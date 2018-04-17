@@ -678,7 +678,7 @@ public class SystemSettingsDao extends BaseDao {
 		setting = settings.get(BACKUP_FILE_LOCATION);
 		if(setting != null){
 	    	File tmp = new File((String)setting);
-	    	if(!tmp.exists()){
+	    	if(!tmp.exists() && !tmp.mkdirs()){
 	    		//Doesn't exist, push up message
 	    		response.addContextualMessage(BACKUP_FILE_LOCATION,
 	    				"systemSettings.validation.backupLocationNotExists");
@@ -719,7 +719,7 @@ public class SystemSettingsDao extends BaseDao {
         	setting = settings.get(DATABASE_BACKUP_FILE_LOCATION);
         	if(setting != null){
     	    	File tmp = new File((String)setting);
-    	    	if(!tmp.exists()){
+    	    	if(!tmp.exists() && !tmp.mkdirs()){
     	    		//Doesn't exist, push up message
     	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
     	    				"systemSettings.validation.databaseBackupLocationNotExists");
