@@ -576,6 +576,10 @@ public class SystemSettingsDao extends BaseDao {
 			response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.illegalValue");
 		}
 		
+		setting = settings.get(DATABASE_SCHEMA_VERSION);
+		if(setting != null)
+		    response.addContextualMessage(DATABASE_SCHEMA_VERSION, "validate.readOnly");
+		
 		setting = settings.get(LANGUAGE);
 		if(setting != null) {
 		    if(setting instanceof String) {
@@ -629,6 +633,15 @@ public class SystemSettingsDao extends BaseDao {
 
 		validatePeriodType(EVENT_PURGE_PERIOD_TYPE, settings, response);
 		validatePeriodType(FUTURE_DATE_LIMIT_PERIOD_TYPE, settings, response);
+		
+		try {
+		    setting = settings.get(FUTURE_DATE_LIMIT_PERIODS);
+		    int settingValue = Integer.valueOf((String)setting);
+		    if(settingValue <= 0)
+		        response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.greaterThanZero");
+		} catch(NumberFormatException|ClassCastException e) {
+		    response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.invalidValue");
+		}
 		
 		//Should validate language not sure how yet
 		
