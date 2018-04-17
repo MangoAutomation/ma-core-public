@@ -16,6 +16,7 @@ import org.junit.Assert;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
+import com.serotonin.db.WideQueryCallback;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -33,6 +34,7 @@ public class NumericPointValueDaoTestHelper {
     
     protected Integer seriesId = 1;
     protected Integer seriesId2 = 2;
+    protected Integer emptySeriesId = 3;
     protected List<Integer> ids;
     protected Map<Integer, List<PointValueTime>> data;
     protected static long startTs;
@@ -115,7 +117,7 @@ public class NumericPointValueDaoTestHelper {
      * Call after every test
      */
     public void after() {
-        this.dao.deleteAllPointData();
+        this.dao.deleteAllPointDataWithoutCount();
     }
     
 
@@ -939,6 +941,26 @@ public class NumericPointValueDaoTestHelper {
         });
         Assert.assertEquals(new Integer(20), count1.getValue());
         Assert.assertEquals(new Integer(20), count2.getValue());
+    }
+    
+    public void testWideQueryNoData() {
+        this.dao.wideQuery(emptySeriesId, 0, 100, new WideQueryCallback<PointValueTime>() {
+
+            @Override
+            public void preQuery(PointValueTime value) {
+                Assert.fail("Should not have data");
+            }
+
+            @Override
+            public void row(PointValueTime value, int index) {
+                Assert.fail("Should not have data");
+            }
+
+            @Override
+            public void postQuery(PointValueTime value) {
+                Assert.fail("Should not have data");
+            }
+        });
     }
  
     /* Bookend Tests */
