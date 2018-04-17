@@ -603,18 +603,11 @@ public class SystemSettingsDao extends BaseDao {
 		    if(setting instanceof Integer) {
 		        if((Integer)setting < 0)
 		            response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.cannotBeNegative");
-		    }else {
+		    } else if(setting instanceof Number){
+		        if(((Number)setting).intValue() < 0)
+                    response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.cannotBeNegative");
+		    } else {
 		        response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.invalidValue");
-		    }
-		}
-		
-		setting = settings.get(HTTP_CLIENT_PROXY_SERVER);
-		if(setting != null) {
-		    if(setting instanceof String) {
-		        if(StringUtils.isEmpty((String)setting))
-		            response.addContextualMessage(HTTP_CLIENT_PROXY_SERVER, "validate.invalidValue");
-		    }else {
-		        response.addContextualMessage(HTTP_CLIENT_PROXY_SERVER, "validate.invalidValue");
 		    }
 		}
 		
@@ -639,7 +632,11 @@ public class SystemSettingsDao extends BaseDao {
 		
 		try {
 		    setting = settings.get(FUTURE_DATE_LIMIT_PERIODS);
-		    int settingValue = Integer.valueOf((String)setting);
+		    int settingValue;
+		    if(setting instanceof Number)
+		        settingValue = ((Number)setting).intValue();
+		    else
+		        settingValue = Integer.valueOf((String)setting);
 		    if(settingValue <= 0)
 		        response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.greaterThanZero");
 		} catch(NumberFormatException|ClassCastException e) {
@@ -828,8 +825,15 @@ public class SystemSettingsDao extends BaseDao {
             def.validateSettings(settings, response);
         
         //Ensure no one can change the superadmin permission 
-        if(settings.get(SuperadminPermissionDefinition.PERMISSION) != null)
-            response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
+        setting = settings.get(SuperadminPermissionDefinition.PERMISSION);
+        if(setting != null) {
+            try {
+                if(!((String)setting).equals(SuperadminPermissionDefinition.GROUP_NAME))
+                    response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
+            } catch(ClassCastException e) {
+                response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
+            }
+        }
         
         //Validate system alarm levels
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, settings, response);
