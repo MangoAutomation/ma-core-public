@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.view.text;
 
 import java.io.Serializable;
+import java.util.Locale;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -38,19 +40,47 @@ public interface TextRenderer extends Serializable {
     
     public static final String UNKNOWN_VALUE = "(n/a)";
 
-    public String getText(int hint);
+    public String getText(int hint, Locale locale);
+    
+    default public String getText(int hint) {
+        return this.getText(hint, Common.getLocale());
+    }
 
-    public String getText(PointValueTime valueTime, int hint);
+    public String getText(PointValueTime valueTime, int hint, Locale locale);
+    
+    default public String getText(PointValueTime valueTime, int hint) {
+        return getText(valueTime, hint, Common.getLocale());
+    }
 
-    public String getText(DataValue value, int hint);
+    public String getText(DataValue value, int hint, Locale locale);
+    
+    default public String getText(DataValue value, int hint) {
+        return getText(value, hint, Common.getLocale());
+    }
 
-    public String getText(double value, int hint);
+    public String getText(double value, int hint, Locale locale);
+    
+    default public String getText(double value, int hint) {
+        return getText(value, hint, Common.getLocale());
+    }
 
-    public String getText(int value, int hint);
+    public String getText(int value, int hint, Locale locale);
+    
+    default public String getText(int value, int hint) {
+        return getText(value, hint, Common.getLocale());
+    }
 
-    public String getText(boolean value, int hint);
+    public String getText(boolean value, int hint, Locale locale);
 
-    public String getText(String value, int hint);
+    default public String getText(boolean value, int hint) {
+        return getText(value, hint, Common.getLocale());
+    }
+
+    public String getText(String value, int hint, Locale locale);
+    
+    default public String getText(String value, int hint) {
+        return getText(value, hint, Common.getLocale());
+    }
 
     public String getMetaText();
 

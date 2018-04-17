@@ -7,6 +7,7 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Locale;
 
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.m2m2.DataTypes;
@@ -38,7 +39,7 @@ public class NoneRenderer extends BaseTextRenderer {
     }
 
     @Override
-    protected String getTextImpl(DataValue value, int hint) {
+    protected String getTextImpl(DataValue value, int hint, Locale locale) {
         return "";
     }
 

@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
@@ -51,14 +52,14 @@ public class TimeRenderer extends BaseTextRenderer {
     }
 
     @Override
-    protected String getTextImpl(DataValue value, int hint) {
+    protected String getTextImpl(DataValue value, int hint, Locale locale) {
         if (!(value instanceof NumericValue))
             return null;
-        return getText((long) value.getDoubleValue(), hint);
+        return getText((long) value.getDoubleValue(), hint, locale);
     }
 
     @Override
-    public String getText(double value, int hint) {
+    public String getText(double value, int hint, Locale locale) {
         long l = (long) value;
 
         if (hint == HINT_RAW || hint == HINT_SPECIFIC)

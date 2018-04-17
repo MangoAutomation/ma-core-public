@@ -8,6 +8,7 @@
 * Raising Audit events as low priority work items to avoid database deadlock when raising events in a transaction.
 * Change locking for adding points to enable polling data sources to easily add points to themselves without a deadlock risk
 * Add new log4j configuration file to optionally use with high performance logging extension
+* Cache access to the System Locale to improve performance
 
 *Version 3.3.4*
 * Export publishers in nightly backup

@@ -7,6 +7,7 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Locale;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
@@ -62,10 +63,10 @@ public class BinaryTextRenderer extends BaseTextRenderer {
     }
 
     @Override
-    protected String getTextImpl(DataValue value, int hint) {
+    protected String getTextImpl(DataValue value, int hint, Locale locale) {
         if (!(value instanceof BinaryValue))
             return null;
-        return getText(value.getBooleanValue(), hint);
+        return getText(value.getBooleanValue(), hint, locale);
     }
 
     @Override
@@ -115,7 +116,7 @@ public class BinaryTextRenderer extends BaseTextRenderer {
     }
 
     @Override
-    public String getText(boolean value, int hint) {
+    public String getText(boolean value, int hint, Locale locale) {
         if (hint == TextRenderer.HINT_RAW)
             return value ? "1" : "0";
         if (value)

@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -60,45 +61,45 @@ abstract public class BaseTextRenderer implements TextRenderer, JsonSerializable
     }
 
     @Override
-    public String getText(int hint) {
+    public String getText(int hint, Locale locale) {
         if (hint == HINT_RAW)
             return "";
         return UNKNOWN_VALUE;
     }
 
     @Override
-    public String getText(PointValueTime valueTime, int hint) {
+    public String getText(PointValueTime valueTime, int hint, Locale locale) {
         if (valueTime == null)
-            return getText(hint);
-        return getText(valueTime.getValue(), hint);
+            return getText(hint, locale);
+        return getText(valueTime.getValue(), hint, locale);
     }
 
     @Override
-    public String getText(DataValue value, int hint) {
+    public String getText(DataValue value, int hint, Locale locale) {
         if (value == null)
-            return getText(hint);
-        return getTextImpl(value, hint);
+            return getText(hint, locale);
+        return getTextImpl(value, hint, locale);
     }
 
-    abstract protected String getTextImpl(DataValue value, int hint);
+    abstract protected String getTextImpl(DataValue value, int hint, Locale locale);
 
     @Override
-    public String getText(double value, int hint) {
+    public String getText(double value, int hint, Locale locale) {
         return Double.toString(value);
     }
 
     @Override
-    public String getText(int value, int hint) {
+    public String getText(int value, int hint, Locale locale) {
         return Integer.toString(value);
     }
 
     @Override
-    public String getText(boolean value, int hint) {
+    public String getText(boolean value, int hint, Locale locale) {
         return value ? "1" : "0";
     }
 
     @Override
-    public String getText(String value, int hint) {
+    public String getText(String value, int hint, Locale locale) {
         return value;
     }
 

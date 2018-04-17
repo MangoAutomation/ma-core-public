@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
@@ -50,14 +51,14 @@ public class MultistateRenderer extends BaseTextRenderer {
     }
 
     @Override
-    protected String getTextImpl(DataValue value, int hint) {
+    protected String getTextImpl(DataValue value, int hint, Locale locale) {
         if (!(value instanceof com.serotonin.m2m2.rt.dataImage.types.MultistateValue))
             return null;
-        return getText(value.getIntegerValue(), hint);
+        return getText(value.getIntegerValue(), hint, locale);
     }
 
     @Override
-    public String getText(int value, int hint) {
+    public String getText(int value, int hint, Locale locale) {
         if (hint == HINT_RAW)
             return Integer.toString(value);
 

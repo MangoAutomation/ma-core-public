@@ -10,6 +10,7 @@ import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.measure.unit.Unit;
 
@@ -85,14 +86,14 @@ public class RangeRenderer extends ConvertingRenderer {
     }
 
     @Override
-    protected String getTextImpl(DataValue value, int hint) {
+    protected String getTextImpl(DataValue value, int hint, Locale locale) {
         if (!(value instanceof NumericValue))
             return null;
-        return getText(value.getDoubleValue(), hint);
+        return getText(value.getDoubleValue(), hint, locale);
     }
 
     @Override
-    public String getText(double value, int hint) {
+    public String getText(double value, int hint, Locale locale) {
         if ((hint & HINT_NO_CONVERT) == 0)
             value = unit.getConverterTo(renderedUnit).convert(value);
 

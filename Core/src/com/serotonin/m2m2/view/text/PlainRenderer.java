@@ -7,6 +7,7 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Locale;
 
 import javax.measure.unit.Unit;
 
@@ -80,7 +81,7 @@ public class PlainRenderer extends ConvertingRenderer {
     }
 
     @Override
-    protected String getTextImpl(DataValue value, int hint) {
+    protected String getTextImpl(DataValue value, int hint, Locale locale) {
         String raw;
         String suffix = this.suffix;
         
@@ -109,7 +110,7 @@ public class PlainRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public String getText(double value, int hint) {
+    public String getText(double value, int hint, Locale locale) {
         if ((hint & HINT_NO_CONVERT) == 0)
             value = unit.getConverterTo(renderedUnit).convert(value);
         

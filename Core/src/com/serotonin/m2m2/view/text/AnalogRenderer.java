@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 
 import javax.measure.unit.Unit;
 
@@ -88,26 +90,23 @@ public class AnalogRenderer extends ConvertingRenderer {
     }
 
     @Override
-    protected String getTextImpl(DataValue value, int hint) {
+    protected String getTextImpl(DataValue value, int hint, Locale locale) {
         if (!(value instanceof NumericValue))
             return null;
-        return getText(value.getDoubleValue(), hint);
+        return getText(value.getDoubleValue(), hint, locale);
     }
 
     @Override
-    public String getText(double value, int hint) {
+    public String getText(double value, int hint, Locale locale) {
         if ((hint & HINT_NO_CONVERT) == 0)
             value = unit.getConverterTo(renderedUnit).convert(value);
-        
         String suffix = this.suffix;
-        
         if (useUnitAsSuffix)
             suffix = " " + UnitUtil.formatLocal(renderedUnit);
-        
-        String raw = new DecimalFormat(format).format(value);
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(locale);
+        String raw = new DecimalFormat(format, symbols).format(value);
         if ((hint & HINT_RAW) != 0 || suffix == null)
             return raw;
-        
         return raw + suffix;
     }
 
