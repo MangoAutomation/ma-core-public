@@ -360,7 +360,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(DATABASE_SCHEMA_VERSION, "0.7.0");
 
         DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_SERVER, "");
-        DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_PORT, -1);
+        DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_PORT, 80);
         DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_USERNAME, "");
         DEFAULT_VALUES.put(HTTP_CLIENT_PROXY_PASSWORD, "");
 
@@ -937,8 +937,6 @@ public class SystemSettingsDao extends BaseDao {
             if(AlarmLevels.CODES.getId((String)setting) == -1)
                 response.addContextualMessage( key, "emport.error.invalid", key, (String)setting,
                         AlarmLevels.CODES.getCodeList());
-            else //Shouldn't be a string code....
-                settings.put(key, AlarmLevels.CODES.getId((String)setting));
         }
 	}
 	
@@ -986,6 +984,10 @@ public class SystemSettingsDao extends BaseDao {
 			return Common.VERSION_STATE_CODES.getId(code);
 		}
 		
+		//Is it an alarm level?
+		if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
+		    return AlarmLevels.CODES.getId(code);
+		
 		//Now try the SystemSettingsDefinitions
 		Integer value = null;
 		for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
@@ -1028,6 +1030,10 @@ public class SystemSettingsDao extends BaseDao {
 		case UPGRADE_VERSION_STATE:
 			return Common.VERSION_STATE_CODES.getCode(value);
 		}
+		
+		//Check if it's an alarm level setting...
+		if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
+		    return AlarmLevels.CODES.getCode(value);
 		
 		//Now try the SystemSettingsDefinitions
 		String code = null;
