@@ -14,6 +14,7 @@ import java.util.Map;
 
 import javax.mail.internet.AddressException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -116,7 +117,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public URI generateResetUrl(String token) throws UnknownHostException {
         UriComponentsBuilder builder;
         String baseUrl = SystemSettingsDao.getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL);
-        if (baseUrl != null) {
+        if (!StringUtils.isEmpty(baseUrl)) {
             builder = UriComponentsBuilder.fromPath(baseUrl);
         } else {
             boolean sslOn = Common.envProps.getBoolean("ssl.on", false);
