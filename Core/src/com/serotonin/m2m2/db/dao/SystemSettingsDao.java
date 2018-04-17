@@ -814,6 +814,35 @@ public class SystemSettingsDao extends BaseDao {
         //Ensure no one can change the superadmin permission 
         if(settings.get(SuperadminPermissionDefinition.PERMISSION) != null)
             response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
+        
+        //Validate system alarm levels
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_PROCESS_FAILURE, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_LICENSE_CHECK, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_BACKUP_FAILURE, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_UPGRADE_CHECK, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_REJECTED_WORK_ITEM, settings, response);
+        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MISSING_MODULE_DEPENDENCY, settings, response);
+        for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
+            validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), settings, response);
+        
+        //Validate audit alarm levels
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_HANDLER, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_TEMPLATE, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER_COMMENT, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_JSON_DATA, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, settings, response);
+        validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, settings, response);
+        for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
+            validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), settings, response);
 	}
 	
 
@@ -855,6 +884,42 @@ public class SystemSettingsDao extends BaseDao {
 						Common.TIME_PERIOD_CODES.getCodeList());
 		}
 		
+	}
+	
+	private void validateAlarmLevel(String key, Map<String,Object> settings, ProcessResult response) {
+	    Object setting = settings.get(key);
+	    if(setting == null)
+	        return;
+	    
+	    if(setting instanceof Number) {
+	        try {
+	            int value = ((Number)setting).intValue();
+	            
+	            switch(value) {
+	                case AlarmLevels.IGNORE:
+	                case AlarmLevels.DO_NOT_LOG:
+	                case AlarmLevels.NONE:
+	                case AlarmLevels.INFORMATION:
+	                case AlarmLevels.IMPORTANT:
+	                case AlarmLevels.WARNING:
+	                case AlarmLevels.URGENT:
+	                case AlarmLevels.CRITICAL:
+	                case AlarmLevels.LIFE_SAFETY:
+	                    break;
+                    default:
+                        response.addContextualMessage(key, "validate.invalidValue");
+	            }
+	        } catch(NumberFormatException e){
+                response.addContextualMessage(key, "validate.illegalValue");
+            }
+	    } else {
+            //String code
+            if(AlarmLevels.CODES.getId((String)setting) == -1)
+                response.addContextualMessage( key, "emport.error.invalid", key, (String)setting,
+                        AlarmLevels.CODES.getCodeList());
+            else //Shouldn't be a string code....
+                settings.put(key, AlarmLevels.CODES.getId((String)setting));
+        }
 	}
 	
     private Integer getIntValue(String key, Map<String,Object> settings) throws NumberFormatException {
