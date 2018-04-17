@@ -579,6 +579,9 @@ public class SystemSettingsDao extends BaseDao {
 		setting = settings.get(DATABASE_SCHEMA_VERSION);
 		if(setting != null)
 		    response.addContextualMessage(DATABASE_SCHEMA_VERSION, "validate.readOnly");
+		setting = settings.get(NEW_INSTANCE);
+        if(setting != null)
+            response.addContextualMessage(NEW_INSTANCE, "validate.readOnly");
 		
 		setting = settings.get(LANGUAGE);
 		if(setting != null) {
