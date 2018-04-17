@@ -17,7 +17,7 @@ public class AlarmLevels {
     public static final int CRITICAL = 5;
     public static final int LIFE_SAFETY = 6;
     public static final int DO_NOT_LOG = -2; //-1 represents the ALL Option on the JSP widget
-    public static final int IGNORE = -3;
+    public static final int IGNORE = -3; //-1 is also used by CODES to indicate no ID for code
 
     public static final String NONE_DESCRIPTION = "common.alarmLevel.none";
     public static final String INFORMATION_DESCRIPTION = "common.alarmLevel.info";
