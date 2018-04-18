@@ -287,8 +287,7 @@ public class PointValueTimeStreamScriptUtility {
             return new TimePeriodBucketCalculator(from, to, rollupPeriodType, rollupPeriod);
         }
     }
-    
-    //TODO Mango 3.4 These classes where simplified from those in MangoAPI and share the same class names
+
     abstract class DataPointStatisticsQuantizer<T extends StatisticsGenerator> implements StatisticsGeneratorQuantizerCallback<T>, BookendQueryCallback<IdPointValueTime>{
 
         protected final RollupsStream callback;
