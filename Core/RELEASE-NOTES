@@ -20,6 +20,7 @@
 * Ensure all data point listeners execute their tasks before returning a failure
 * Adding statistics generator for the NONE type rollup that will return unprocessed values
 * Adding the ability to define custom permissions for Event Types, to be expanded on in future releases
+* Improve authentication for websockets, basic authentication now supported, websockets are closed immediately when user logs out/tokens revoked/password changed etc
 * Update Spring, Spring Security, Jetty, jOOQ and Bouncy Castle dependencies
 
 *Version 3.3.4*
