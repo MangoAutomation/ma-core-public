@@ -17,7 +17,10 @@
 * JSON Emport, default to only export name not alias, alias is still supported for import on objects that previously had that property
 * Don't update thread pool sizes if the settings are saved but not changed for peformance
 * Fix where a latest(limit) query for point values could have returned a list with a null value if there was no data
-
+* Ensure all data point listeners execute their tasks before returning a failure
+* Adding statistics generator for the NONE type rollup that will return unprocessed values
+* Adding the ability to define custom permissions for Event Types, to be expanded on in future releases
+* Update Spring, Spring Security, Jetty, jOOQ and Bouncy Castle dependencies
 
 *Version 3.3.4*
 * Export publishers in nightly backup
