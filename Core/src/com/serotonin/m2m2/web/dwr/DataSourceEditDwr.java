@@ -196,8 +196,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (id == Common.NEW_ID) {
             if (StringUtils.isBlank(xid))
                 response.addContextualMessage("xid", "validate.required");
-            else if (StringValidation.isLengthGreaterThan(xid, 50))
-                response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
+            else if (StringValidation.isLengthGreaterThan(xid, 100))
+                response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 100));
             else if (!DataPointDao.instance.isXidUnique(xid, id))
                 response.addContextualMessage("xid", "validate.xidUsed");
 
