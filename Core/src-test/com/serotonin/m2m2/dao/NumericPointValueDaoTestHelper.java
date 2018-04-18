@@ -6,6 +6,7 @@ package com.serotonin.m2m2.dao;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -962,7 +963,98 @@ public class NumericPointValueDaoTestHelper {
             }
         });
     }
- 
+    
+    public void testWideQueryNoBefore() {
+        MutableLong timestamp = new MutableLong(startTs);
+        this.dao.wideQuery(seriesId, startTs - 1, endTs - 1, new WideQueryCallback<PointValueTime>() {
+            int counter = 0;
+            @Override
+            public void preQuery(PointValueTime value) {
+                Assert.fail("Should not have data");
+            }
+
+            @Override
+            public void row(PointValueTime value, int index) {
+                Assert.assertEquals(data.get(seriesId).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                counter++;
+            }
+
+            @Override
+            public void postQuery(PointValueTime value) {
+                Assert.assertEquals(data.get(seriesId).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                counter++;
+            }
+        });
+    }
+    
+    public void testWideQuery() {
+        MutableLong timestamp = new MutableLong(startTs);
+        this.dao.wideQuery(seriesId, startTs + 1, endTs - 1, new WideQueryCallback<PointValueTime>() {
+            int counter = 0;
+            @Override
+            public void preQuery(PointValueTime value) {
+                Assert.assertEquals(data.get(seriesId).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                counter++;
+            }
+
+            @Override
+            public void row(PointValueTime value, int index) {
+                Assert.assertEquals(data.get(seriesId).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                counter++;
+            }
+
+            @Override
+            public void postQuery(PointValueTime value) {
+                Assert.assertEquals(data.get(seriesId).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                counter++;
+            }
+        });
+    }
+    
+    public void testWideQueryNoAfter() {
+        MutableLong timestamp = new MutableLong(startTs);
+        this.dao.wideQuery(seriesId, startTs + 1, endTs, new WideQueryCallback<PointValueTime>() {
+            int counter = 0;
+            @Override
+            public void preQuery(PointValueTime value) {
+                Assert.assertEquals(data.get(seriesId).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                counter++;
+            }
+
+            @Override
+            public void row(PointValueTime value, int index) {
+                Assert.assertEquals(data.get(seriesId).get(counter).getDoubleValue(), value.getDoubleValue(), 0.001);
+                if(value.getTime() < timestamp.getValue())
+                    Assert.fail("Timestamp out of order.");
+                timestamp.setValue(value.getTime());
+                counter++;
+            }
+
+            @Override
+            public void postQuery(PointValueTime value) {
+                Assert.fail("Should not have data");
+            }
+        });
+    }
+    
     /* Bookend Tests */
     public void testBookendExceptionInFirstValueCallback() {
         this.dao.wideBookendQuery(ids, startTs - 1, endTs, false, null, new BookendQueryCallback<IdPointValueTime>() {
@@ -1188,6 +1280,29 @@ public class NumericPointValueDaoTestHelper {
         Assert.assertEquals(4, count.intValue());
     }
 
+    public void testBookendEmptySeries() {
+        this.dao.wideBookendQuery(Arrays.asList(emptySeriesId), 0, 10000, false, null, new BookendQueryCallback<IdPointValueTime>() {
+            @Override
+            public void firstValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertTrue(bookend);
+                Assert.assertNull(value.getValue());
+                Assert.assertEquals(0, value.getTime());
+            }
+            @Override
+            public void row(IdPointValueTime value, int index) throws IOException {
+                Assert.fail("No data should be in series");
+            }
+            @Override
+            public void lastValue(IdPointValueTime value, int index, boolean bookend)
+                    throws IOException {
+                Assert.assertTrue(bookend);
+                Assert.assertNull(value.getValue());
+                Assert.assertEquals(10000, value.getTime());
+            }
+        });
+    }
+    
     public void testBookendNoDataInOneSeries() {
         MutableInt count = new MutableInt();
         MutableInt mutableIndex = new MutableInt();
