@@ -208,11 +208,11 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
     }
 
     @DwrPermission(user = true)
-    public ProcessResult finishCopy(int copyFromId, int newId) {
+    public ProcessResult finishCopy(int copyFromId, int newId, String deviceName) {
         ProcessResult result = new ProcessResult();
 
         if (!result.getHasMessages()) {
-            this.dao.copyDataSourcePoints(copyFromId, newId);
+            this.dao.copyDataSourcePoints(copyFromId, newId, deviceName);
             result.addData("vo", dao.get(newId));
         }
         return result;

@@ -150,6 +150,7 @@
              DataSourceDwr.finishCopy(
              		dataSources.copyId,
              		response.data.id,
+             		$get('dataSource.deviceName'),
              	function(response){
              		dataSources.copyId = null; //Done with copy
              		hide("copyDeviceName");

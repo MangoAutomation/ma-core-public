@@ -214,7 +214,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
      * @param newDataSourceId
      * @return
      */
-    public int copyDataSourcePoints(final int dataSourceId, final int newDataSourceId) {
+    public int copyDataSourcePoints(final int dataSourceId, final int newDataSourceId, String deviceName) {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
@@ -229,7 +229,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                     dataPointCopy.setId(Common.NEW_ID);
                     dataPointCopy.setXid(dataPointDao.generateUniqueXid());
                     dataPointCopy.setName(dataPoint.getName());
-                    dataPointCopy.setDeviceName(dataSourceCopy.getName());
+                    dataPointCopy.setDeviceName(deviceName != null ? deviceName : dataSourceCopy.getName());
                     dataPointCopy.setDataSourceId(dataSourceCopy.getId());
                     dataPointCopy.setEnabled(dataPoint.isEnabled());
                     dataPointCopy.getComments().clear();
