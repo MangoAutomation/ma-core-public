@@ -163,6 +163,8 @@ public interface PointValueDao {
      * timestamp. This query facilitates charting of values, where for continuity in the chart the values immediately
      * before and after the time range are required.
      * 
+     * NOTE: The preQuery and postQuery callback methods are only called if there is data before/after the query
+     * 
      * @param pointId
      *            the target data point
      * @param from
