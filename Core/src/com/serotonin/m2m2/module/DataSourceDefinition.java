@@ -135,8 +135,9 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
      * super.uninstall so that this code still runs.
      */
     @Override
-    public void uninstall() {
-        DataSourceDao.instance.deleteDataSourceType(getDataSourceTypeName());
+    public void postRuntimeManagerTerminate(boolean uninstall) {
+        if(uninstall)
+            DataSourceDao.instance.deleteDataSourceType(getDataSourceTypeName());
     }
 
     public String getStatusPagePath() {

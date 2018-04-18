@@ -19,6 +19,7 @@ import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
+import com.serotonin.m2m2.db.dao.InstalledModulesDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.LicenseFeature;
@@ -149,6 +150,8 @@ public class Module {
     public void postInitialize(boolean install, boolean upgrade) {
         for (ModuleElementDefinition df : definitions)
             df.postInitialize(install, upgrade);
+        //Fully running so update our version
+        InstalledModulesDao.instance.updateModuleVersion(this);
     }
 
     /**

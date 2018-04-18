@@ -93,14 +93,4 @@ abstract public class ModuleElementDefinition {
     public void postTerminate(boolean uninstall) {
         // Override as required
     }
-    
-    /**
-     * This method is run once at shutdown if the owning module has been marked for deletion. This provides the
-     * definition class an opportunity to perform any necessary cleanup, such as dropping database tables, removing
-     * files, etc.
-     * 
-     */
-    public void uninstall() {
-        // Override as required
-    }
 }

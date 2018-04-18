@@ -33,4 +33,18 @@ public class InstalledModulesDao extends BaseDao {
             }
         });
     }
+
+    /**
+     * Update a single module version to its latest
+     * @param module
+     */
+    public void updateModuleVersion(Module module) {
+        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                ejt.update(DELETE_MODULE, new Object[] {module.getName()});
+                ejt.doInsert(INSERT_MODULE, new Object[] { module.getName(), module.getVersion().toString() }, new int[] {Types.VARCHAR, Types.VARCHAR});
+            }
+        });
+    }
 }

@@ -42,7 +42,8 @@ abstract public class TemplateDefinition extends ModuleElementDefinition{
      * super.uninstall so that this code still runs.
      */
     @Override
-    public void uninstall() {
-        TemplateDao.instance.deleteTemplateType(getTemplateTypeName());
+    public void postRuntimeManagerTerminate(boolean uninstall) {
+        if(uninstall)
+            TemplateDao.instance.deleteTemplateType(getTemplateTypeName());
     }
 }

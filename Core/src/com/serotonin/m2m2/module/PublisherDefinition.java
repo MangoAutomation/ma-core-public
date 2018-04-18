@@ -92,8 +92,9 @@ abstract public class PublisherDefinition extends ModuleElementDefinition {
      * super.uninstall so that this code still runs.
      */
     @Override
-    public void uninstall() {
-    	    PublisherDao.instance.deletePublisherType(getPublisherTypeName());
+    public void postRuntimeManagerTerminate(boolean uninstall) {
+        if(uninstall)
+            PublisherDao.instance.deletePublisherType(getPublisherTypeName());
     }
     
 	/**
