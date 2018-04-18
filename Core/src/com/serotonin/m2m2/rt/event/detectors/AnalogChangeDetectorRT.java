@@ -208,7 +208,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         }
         
         if(raised && !eventActive) {
-            raiseEvent(newValue.getTime(), null);
+            raiseEvent(newValue.getTime(), createEventContext());
             eventActive = true;
         } else if(!raised && eventActive) {
             returnToNormal(newValue.getTime());
@@ -223,7 +223,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                 handleValue(newValue);
             else if((newValue.getDoubleValue() < oldValue.getDoubleValue() - vo.getLimit() || 
                     newValue.getDoubleValue() > oldValue.getDoubleValue() + vo.getLimit()))
-                    raiseEvent(newValue.getTime(), null);
+                    raiseEvent(newValue.getTime(), createEventContext());
         }
     }
     
@@ -237,7 +237,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                     instantValue = value;
                 else if((value.getDoubleValue() < instantValue.getDoubleValue() - vo.getLimit() ||
                         value.getDoubleValue() > instantValue.getDoubleValue() + vo.getLimit())) {
-                    raiseEvent(value.getTime(), null);
+                    raiseEvent(value.getTime(), createEventContext());
                 }
                 
                 if(value.getTime() > instantValue.getTime())
