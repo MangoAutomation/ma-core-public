@@ -24,6 +24,7 @@ import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -266,6 +267,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         //Store the edit point
         DataPointVO editPoint = (DataPointVO) result.getData().get("vo");
         editPoint.setId(COPY_ID);
+        for(AbstractPointEventDetectorVO<?> aed : editPoint.getEventDetectors()) {
+            aed.setId(Common.NEW_ID);
+            aed.setXid(Common.generateXid(EventDetectorDao.instance.xidPrefix));
+        }
         Common.getUser().setEditPoint(editPoint);
 
         return result;
