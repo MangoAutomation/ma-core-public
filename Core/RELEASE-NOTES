@@ -9,6 +9,15 @@
 * Change locking for adding points to enable polling data sources to easily add points to themselves without a deadlock risk
 * Add new log4j configuration file to optionally use with high performance logging extension
 * Cache access to the System Locale to improve performance
+* Further improvements to Ordered Thread Pool Executors to ensure tasks are not orphaned and unable to run in high load systems
+* Use Mango's locale to render and parse values.
+* Fix AnalogChangeEventDetector to properly configure its context for use in Emails
+* Improved System Settings validation when saving via REST
+* JSON Import for anything with an enabled property will only modify the value if the enabled property is in the JSON
+* JSON Emport, default to only export name not alias, alias is still supported for import on objects that previously had that property
+* Don't update thread pool sizes if the settings are saved but not changed for peformance
+* Fix where a latest(limit) query for point values could have returned a list with a null value if there was no data
+
 
 *Version 3.3.4*
 * Export publishers in nightly backup

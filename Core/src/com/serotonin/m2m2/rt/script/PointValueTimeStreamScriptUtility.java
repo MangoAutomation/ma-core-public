@@ -59,7 +59,7 @@ public class PointValueTimeStreamScriptUtility {
         pvts.execute();
     }
     
-    public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) {
+    public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException {
         RollupsStream rs = new RollupsStream(ids, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
         rs.execute();
     }
@@ -114,11 +114,13 @@ public class PointValueTimeStreamScriptUtility {
             quantizerMap = new HashMap<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>>();
         }
         
-        public void execute() {
+        public void execute() throws IOException {
             createQuantizerMap();
             Common.databaseProxy.newPointValueDao().wideBookendQuery(ids, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
-            //TODO Mango 3.4 I believe here you would want to go through the quantizer map and 'finish' anything that isn't done to ensure the empty remaining periods 
-            // get output (and also for points that didn't have any data in the query)
+            //Fast forward to end to fill any gaps at the end
+            for(DataPointStatisticsQuantizer<?> quant : this.quantizerMap.values())
+                if(!quant.isDone())
+                    quant.done();
         }
         
         @Override
@@ -330,6 +332,15 @@ public class PointValueTimeStreamScriptUtility {
             quantizer.lastValue(value, index, bookend);
             quantizer.done();
             this.done = true;
+        }
+        
+        public boolean isDone() {
+            return done;
+        }
+
+        public void done() throws IOException {
+            quantizer.done();
+            done = true;
         }
     }
     
