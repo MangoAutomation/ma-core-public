@@ -123,6 +123,24 @@ public class NumericPointValueDaoTest extends MangoTestBase{
         this.helper.testRangeMultiplePointValuesOrderByIdLimitOffsetSeries();
     }
  
+    //Wide
+    @Test
+    public void testWideQueryNoData() {
+        this.helper.testWideQueryNoData();
+    }
+    
+    @Test public void testWideQueryNoBefore() {
+        this.helper.testWideQueryNoBefore();
+    }
+ 
+    @Test public void testWideQuery() {
+        this.helper.testWideQuery();
+    }
+    
+    @Test public void testWideQueryNoAfter() {
+        this.helper.testWideQueryNoAfter();
+    }
+    
     //Bookend
     @Test
     public void testBookendExceptionInFirstValueCallback() {
@@ -143,6 +161,10 @@ public class NumericPointValueDaoTest extends MangoTestBase{
     @Test
     public void testBookendNoDataInBothSeries() {
         this.helper.testBookendNoDataInBothSeries();
+    }
+    @Test
+    public void testBookendEmptySeries() {
+        this.helper.testBookendEmptySeries();
     }
     @Test
     public void testBookendMultiplePointValuesNoLimit() {

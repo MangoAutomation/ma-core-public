@@ -15,7 +15,7 @@ import java.io.IOException;
 public interface WideQueryCallback<T> {
 
     /**
-     * Called with the value before the query period (can be null)
+     * Called with the value before the query period, will not be called if there is no value before
      * 
      * If an exception is thrown the query should be aborted
      * 
@@ -36,7 +36,7 @@ public interface WideQueryCallback<T> {
     void row(T value, int index);
     
     /**
-     * Called with the value before the query period (can be null)
+     * Called with the value before the query period, will not be called if there is no value after.
      * 
      * If an exception is thrown the query should be aborted
      * 

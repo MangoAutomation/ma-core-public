@@ -831,15 +831,19 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
 	 */
 	@Override
 	public void wideQuery(int pointId, long from, long to, WideQueryCallback<PointValueTime> callback) {
-		//TODO Improve performance by using one statement and using the exceptions to cancel the results
-    		callback.preQuery(this.getPointValueBefore(pointId, from));
-    		this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>(){
-    			@Override
-    			public void row(PointValueTime value, int index) {
-    			    callback.row(value, index);
-    			}
-    		});
-    		callback.postQuery(this.getPointValueAfter(pointId, to));
+        // TODO Improve performance by using one statement and using the exceptions to cancel the results
+	    PointValueTime pvt = this.getPointValueBefore(pointId, from);
+	    if(pvt != null)
+	        callback.preQuery(pvt);
+        this.getPointValuesBetween(pointId, from, to, new MappedRowCallback<PointValueTime>() {
+            @Override
+            public void row(PointValueTime value, int index) {
+                callback.row(value, index);
+            }
+        });
+        pvt = this.getPointValueAfter(pointId, to);
+        if(pvt != null)
+            callback.postQuery(pvt);
 	}
     
 	
