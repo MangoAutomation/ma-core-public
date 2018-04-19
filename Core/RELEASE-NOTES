@@ -23,6 +23,7 @@
 * Improve authentication for websockets, basic authentication now supported, websockets are closed immediately when user logs out/tokens revoked/password changed etc
 * Update Spring, Spring Security, Jetty, jOOQ and Bouncy Castle dependencies
 * Fix bug when copying a data source the supplied Device Name was not applied to the copied points
+* Fix script context points toString for settable property
 
 *Version 3.3.4*
 * Export publishers in nightly backup
