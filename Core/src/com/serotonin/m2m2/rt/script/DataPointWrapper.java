@@ -31,7 +31,7 @@ public class DataPointWrapper {
     }
     
     public boolean isSettable() {
-        return vo.isSettable();
+        return vo.getPointLocator().isSettable();
     }
 
     public String getDeviceName() {
