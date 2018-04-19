@@ -14,7 +14,7 @@ public abstract class ScriptPointValueSetter {
 	//Ensure points are settable and the setter has permissions
 	public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
 
-        if(!point.getVO().isSettable())
+        if(!point.getVO().getPointLocator().isSettable())
         	return;
         
         if(permissions != null && !Permissions.hasPermission(point.getVO().getSetPermission(), permissions.getDataPointSetPermissions()))
