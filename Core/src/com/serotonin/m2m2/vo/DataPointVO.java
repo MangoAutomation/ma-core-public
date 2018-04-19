@@ -358,21 +358,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         }
     }
 
-    /*
-     * This value is used by the watchlists. It is set when the watchlist is
-     * loaded to determine if the user is allowed to set the point or not based
-     * upon various conditions.
-     */
-    private boolean settable;
-
-    public boolean isSettable() {
-        return settable;
-    }
-
-    public void setSettable(boolean settable) {
-        this.settable = settable;
-    }
-
     @Override
     public String getTypeKey() {
         return "event.audit.dataPoint";
@@ -896,7 +881,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setPurgePeriod(purgePeriod);
             copy.setPurgeType(purgeType);
             copy.setRenderedUnit(renderedUnit);
-            copy.setSettable(settable);
             copy.setTolerance(tolerance);
             copy.setUnit(unit);
             copy.setUseIntegralUnit(useIntegralUnit);
@@ -1166,8 +1150,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 + ", integralUnit=" + integralUnit + ", renderedUnit=" + renderedUnit + ", useIntegralUnit="
                 + useIntegralUnit + ", useRenderedUnit=" + useRenderedUnit + chartColour + ", rollup=" + Common.ROLLUP_CODES.getCode(rollup) 
                 + ", plotType=" + plotType + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName 
-                + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue + ", settable="
-                + settable + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
+                + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue
+                + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
                 + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readPermission="
                 + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId 
                 + ", preventSetExtremeValues=" + preventSetExtremeValues + ", setExtremeLowLimit=" + setExtremeLowLimit

@@ -24,6 +24,7 @@
 * Update Spring, Spring Security, Jetty, jOOQ and Bouncy Castle dependencies
 * Fix bug when copying a data source the supplied Device Name was not applied to the copied points
 * Fix script context points toString for settable property
+* removing DataPointVO.settable property, use DataPointVO.pointLocatorVO.settable
 
 *Version 3.3.4*
 * Export publishers in nightly backup
