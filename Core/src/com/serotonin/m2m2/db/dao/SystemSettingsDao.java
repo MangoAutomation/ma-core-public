@@ -632,13 +632,15 @@ public class SystemSettingsDao extends BaseDao {
 		
 		try {
 		    setting = settings.get(FUTURE_DATE_LIMIT_PERIODS);
-		    int settingValue;
-		    if(setting instanceof Number)
-		        settingValue = ((Number)setting).intValue();
-		    else
-		        settingValue = Integer.valueOf((String)setting);
-		    if(settingValue <= 0)
-		        response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.greaterThanZero");
+		    if(setting != null) {
+    		    int settingValue;
+    		    if(setting instanceof Number)
+    		        settingValue = ((Number)setting).intValue();
+    		    else
+    		        settingValue = Integer.valueOf((String)setting);
+    		    if(settingValue <= 0)
+    		        response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.greaterThanZero");
+		    }
 		} catch(NumberFormatException|ClassCastException e) {
 		    response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.invalidValue");
 		}
