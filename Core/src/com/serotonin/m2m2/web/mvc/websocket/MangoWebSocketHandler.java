@@ -128,8 +128,12 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
             throw new WebSocketClosedException();
         }
 
-        JettyWebSocketSession jettySession = (JettyWebSocketSession) session;
-        jettySession.getNativeSession().getRemote().sendStringByFuture(message);
+        try {
+            JettyWebSocketSession jettySession = (JettyWebSocketSession) session;
+            jettySession.getNativeSession().getRemote().sendStringByFuture(message);
+        } catch (Exception e) {
+            throw new WebSocketSendException(e);
+        }
     }
 
     protected void closeSession(WebSocketSession session, CloseStatus closeStaus) {

@@ -6,22 +6,22 @@ package com.serotonin.m2m2.web.mvc.websocket;
 /**
  * @author Jared Wiltshire
  */
-public class WebSocketClosedException extends WebSocketSendException {
+public class WebSocketSendException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    public WebSocketClosedException() {
+    public WebSocketSendException() {
         super();
     }
 
-    public WebSocketClosedException(String message, Throwable cause) {
+    public WebSocketSendException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public WebSocketClosedException(String message) {
+    public WebSocketSendException(String message) {
         super(message);
     }
 
-    public WebSocketClosedException(Throwable cause) {
+    public WebSocketSendException(Throwable cause) {
         super(cause);
     }
 }
