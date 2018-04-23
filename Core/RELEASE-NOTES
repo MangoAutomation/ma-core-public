@@ -25,6 +25,7 @@
 * Fix bug when copying a data source the supplied Device Name was not applied to the copied points
 * Fix script context points toString for settable property
 * removing DataPointVO.settable property, use DataPointVO.pointLocatorVO.settable
+* Fix color in range renderers with rendered units. Add unit to range renderer output string if not in a defined range
 
 *Version 3.3.4*
 * Export publishers in nightly backup

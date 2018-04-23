@@ -19,6 +19,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
+import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
@@ -100,11 +101,11 @@ public class RangeRenderer extends ConvertingRenderer {
         String numberString = new DecimalFormat(format).format(value);
         
         if ((hint & HINT_RAW) != 0 || (hint & HINT_SPECIFIC) != 0)
-            return numberString;
+            return numberString + " " + UnitUtil.formatLocal(renderedUnit);
 
         RangeValue range = getRangeValue(value);
         if (range == null)
-            return numberString;
+            return numberString + " " + UnitUtil.formatLocal(renderedUnit);
         
         return range.formatText(numberString);
     }
@@ -113,12 +114,14 @@ public class RangeRenderer extends ConvertingRenderer {
     protected String getColourImpl(DataValue value) {
         if (!(value instanceof NumericValue))
             return null;
-        return getColour(value.getDoubleValue());
+        double dVal = unit.getConverterTo(renderedUnit).convert(value.getDoubleValue());
+        return getColour(dVal);
     }
 
     @Override
     public String getColour(double value) {
-        RangeValue range = getRangeValue(value);
+        double dVal = unit.getConverterTo(renderedUnit).convert(value);
+        RangeValue range = getRangeValue(dVal);
         if (range == null)
             return null;
         return range.getColour();
