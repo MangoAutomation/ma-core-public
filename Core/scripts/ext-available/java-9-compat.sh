@@ -1,7 +1,7 @@
 #!/bin/bash
 case "$1" in
     init)
-    	# Enable garbageless configuration for high performance logging 
+    	# Add required java modules not inherently loaded in Java 9, comma separated
         JAVAOPTS="$JAVAOPTS --add-modules java.xml.bind"
         ;;
 esac
