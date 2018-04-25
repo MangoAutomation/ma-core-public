@@ -86,7 +86,7 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
             throw new TranslatableJsonException("emport.error.ped.invalid", "durationType", text,
                     Common.TIME_PERIOD_CODES.getCodeList());
 
-        duration = getInt(jsonObject, "duration");
+        duration = getInt(jsonObject, "duration", MISSING_PROP_TRANSLATION_KEY);
 
     }
 	

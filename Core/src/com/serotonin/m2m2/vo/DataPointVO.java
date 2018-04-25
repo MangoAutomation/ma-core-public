@@ -1722,8 +1722,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
 
         //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
-        name = jsonObject.getString("name");
-        enabled = jsonObject.getBoolean("enabled");
+        if(jsonObject.getJsonString("name") != null)
+            name = jsonObject.getString("name");
+        if(jsonObject.getJsonBoolean("enabled") != null)
+            enabled = jsonObject.getBoolean("enabled");
 
         String text = jsonObject.getString("loggingType");
         if (text != null) {

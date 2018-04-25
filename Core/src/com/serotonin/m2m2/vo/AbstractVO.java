@@ -20,9 +20,11 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.MapWrap;
 import com.serotonin.util.SerializationHelper;
@@ -79,6 +81,34 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
         // dont user JsonProperty annotation so we can choose whether to read/write in sub type
         writer.writeEntry("xid", xid);
         writer.writeEntry("name", name);
+    }
+    
+    protected boolean getBoolean(JsonObject json, String name, String missingTranslationKey) throws JsonException {
+        JsonValue o = json.get(name);
+        if(o == null)
+            throw new TranslatableJsonException(missingTranslationKey, name);
+        return o.toBoolean();
+    }
+
+    protected String getString(JsonObject json, String name, String missingTranslationKey) throws JsonException {
+        JsonValue o = json.get(name);
+        if(o == null)
+            throw new TranslatableJsonException(missingTranslationKey, name);
+        return json.getString(name);
+    }
+    
+    protected double getDouble(JsonObject json, String name, String missingTranslationKey) throws JsonException {
+        JsonValue o = json.get(name);
+        if(o == null)
+            throw new TranslatableJsonException(missingTranslationKey, name);
+        return json.getDouble(name);
+    }
+
+    protected int getInt(JsonObject json, String name, String missingTranslationKey) throws JsonException {
+        JsonValue o = json.get(name);
+        if(o == null)
+            throw new TranslatableJsonException(missingTranslationKey, name);
+        return json.getInt(name);
     }
 
     /*

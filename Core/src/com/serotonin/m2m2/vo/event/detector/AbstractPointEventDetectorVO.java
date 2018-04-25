@@ -30,6 +30,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 	private static final long serialVersionUID = 1L;
 
 	public static final String XID_PREFIX = "PED_";
+	protected static final String MISSING_PROP_TRANSLATION_KEY = "emport.error.ped.missingAttr";
 
     private int alarmLevel;
 
@@ -136,33 +137,5 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
                 throw new TranslatableJsonException("emport.error.ped.invalid", "alarmLevel", text,
                         AlarmLevels.CODES.getCodeList());
         }
-    }
-    
-    protected boolean getBoolean(JsonObject json, String name) throws JsonException {
-        JsonValue o = json.get(name);
-    	if(o == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return o.toBoolean();
-    }
-
-    protected String getString(JsonObject json, String name) throws JsonException {
-        JsonValue o = json.get(name);
-    	if(o == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return json.getString(name);
-    }
-    
-    protected double getDouble(JsonObject json, String name) throws JsonException {
-        JsonValue o = json.get(name);
-    	if(o == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return json.getDouble(name);
-    }
-
-    protected int getInt(JsonObject json, String name) throws JsonException {
-        JsonValue o = json.get(name);
-    	if(o == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return json.getInt(name);
     }
 }
