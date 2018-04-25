@@ -85,7 +85,7 @@
       <tr>
         <td class="formLabelRequired"><fmt:message key="pointEdit.purge.all"/></td>
         <td class="formField">
-          <input data-dojo-type="dijit/form/CheckBox" id="purgeNowAll" onclick="purgeNowAllChanged();">
+          <input data-dojo-type="dijit/form/CheckBox" id="purgeNowAll" onchange="purgeNowAllChanged();">
           <label for="purgeNowAll"><fmt:message key="pointEdit.purge.allData"/></label>
         </td>
       </tr>
