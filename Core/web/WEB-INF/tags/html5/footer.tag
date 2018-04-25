@@ -1,5 +1,5 @@
 <%--
-    Copyright (C) 2015 Infinite Automation Systems, Inc. All rights reserved.
+    Copyright (C) 2018 Infinite Automation Systems, Inc. All rights reserved.
     http://infiniteautomation.com/
     @author Jared Wiltshire
 --%>

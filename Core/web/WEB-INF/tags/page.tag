@@ -1,5 +1,5 @@
 <%--
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
+    Copyright (C) 2018 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 --%><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <%@tag import="com.serotonin.m2m2.module.ModuleRegistry"%>
@@ -51,7 +51,7 @@
   <!-- Meta -->
   <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8"/>
   <meta http-equiv="Content-Style-Type" content="text/css" />
-  <meta name="Copyright" content="&copy;2016 Infinite Automation Systems Inc."/>
+  <meta name="Copyright" content="&copy;2018 Infinite Automation Systems Inc."/>
   <meta name="DESCRIPTION" content="Mango Automation from Infinite Automation Systems"/>
   <meta name="KEYWORDS" content="Mango Automation from Infinite Automation Systems"/>
   
@@ -155,7 +155,7 @@
 	        <c:otherwise/>
         </c:choose>
         <tr>
-          <td colspan="2" class="footer" align="center">&copy;2017 Infinite Automation Systems Inc. <fmt:message key="footer.rightsReserved"/></td>
+          <td colspan="2" class="footer" align="center">&copy;2018 Infinite Automation Systems Inc. <fmt:message key="footer.rightsReserved"/></td>
         </tr>
         <tr>
           <td colspan="2" align="center"><a href="http://www.infiniteautomation.com/" ><b></b>www.InfiniteAutomation.com</a></td>
