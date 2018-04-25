@@ -38,14 +38,13 @@ public class UserImporter extends Importer {
             if (user == null) {
                 user = new User();
                 user.setUsername(username);
-                user.setPassword(Common.encrypt(username));
             }
 
             try {
                 ctx.getReader().readInto(user, json);
 
                 // check if a password algorithm was specified, if not assume it was SHA-1 (legacy JSON format)
-                if (user.checkPasswordAlgorithm("SHA-1") == null) {
+                if (user.assumeSha1Algorithm()) {
                     // Password had no algorithm prefix
                     // Can assume this JSON was exported by mango < 2.8.x
                     // Check if they have receiveEvents==NONE, as IGNORE is the new NONE
@@ -62,6 +61,9 @@ public class UserImporter extends Importer {
                     setValidationMessages(userResponse, "emport.user.prefix", username);
                 else {
                     // Sweet. Save it.
+
+                    // only hash plain text passwords after validation has taken place so we can check complexity etc
+                    user.hashPlainText();
                     boolean isnew = user.getId() == Common.NEW_ID;
                     ctx.getUserDao().saveUser(user);
                     addSuccessMessage(isnew, "emport.user.prefix", username);

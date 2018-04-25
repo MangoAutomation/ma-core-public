@@ -55,6 +55,12 @@ import com.serotonin.validation.StringValidation;
 
 public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable, UserDetails {
 
+    public final static String PLAIN_TEXT_ALGORITHM = "PLAINTEXT";
+    public final static String NONE_ALGORITHM = "NONE";
+    public final static String BCRYPT_ALGORITHM = "BCRYPT";
+    public final static String LOCKED_ALGORITHM = "LOCKED";
+    public final static String SHA1_ALGORITHM = "SHA-1";
+
     @JsonProperty
     private String username;
     /**
@@ -264,36 +270,40 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     }
 
     /**
-     * Checks the password field's algorithm and updates it if not set. If the password does not have an algorithm then the supplied default will be used.
-     * If the algorithm is found to be PLAINTEXT then the password will be hashed.
+     * If the password field doesn't have an algorithm encoded in it, assume it's SHA-1 (legacy JSON) and update it
      *
-     * @param defaultAlgorithm The default hash algorithm to use if one is not stored the password field
-     * @return the algorithm that was extracted from the password field, or null if there wasn't one
+     * @return true if the password field was updated, i.e. there was no algorithm in the password field
      */
-    public String checkPasswordAlgorithm(String defaultAlgorithm) {
-        String algorithm = null;
-
-        Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(this.password);
-        if (m.matches()) {
-            // an algorithm was specified
-            algorithm = m.group(1);
-
-            // if the algorithm is set to PLAINTEXT we are going to hash the password
-            if ("PLAINTEXT".equals(algorithm)) {
-                String plainText = m.group(2);
-                this.password = Common.encrypt(plainText);
-            }
-        } else {
-            // no algorithm specified, assume the supplied default
-            if ("PLAINTEXT".equals(defaultAlgorithm)) {
-                // password is actually plain text, hash it using default hash algorithm (BCRYPT)
-                this.password = Common.encrypt(this.password);
-            } else {
-                this.password = "{" + defaultAlgorithm + "}" + this.password;
+    public boolean assumeSha1Algorithm() {
+        if (this.password != null && !this.password.isEmpty()) {
+            Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(this.password);
+            if (!m.matches()) {
+                this.password = "{" + SHA1_ALGORITHM + "}" + this.password;
+                return true;
             }
         }
+        return false;
+    }
 
-        return algorithm;
+    /**
+     * Checks the password field, if the algorithm is PLAINTEXT then it will hash it using the default
+     * hash algorithm (BCRYPT)
+     *
+     * @return true if the password field was updated, i.e. the password was plain text
+     */
+    public boolean hashPlainText() {
+        Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(this.password);
+        if (m.matches()) {
+            String algorithm = m.group(1);
+            String plainText = m.group(2);
+
+            // if the algorithm is set to PLAINTEXT we are going to hash the password
+            if (PLAIN_TEXT_ALGORITHM.equals(algorithm)) {
+                this.password = Common.encrypt(plainText);
+                return true;
+            }
+        }
+        return false;
     }
 
     public void setPassword(String password) {
@@ -521,8 +531,23 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
             response.addMessage("username", new TranslatableMessage("validate.required"));
         if (StringUtils.isBlank(email))
             response.addMessage("email", new TranslatableMessage("validate.required"));
-        if (id == Common.NEW_ID && StringUtils.isBlank(password))
+
+        if (StringUtils.isBlank(password)) {
             response.addMessage("password", new TranslatableMessage("validate.required"));
+        } else {
+            Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(password);
+            if (!m.matches()) {
+                response.addMessage("password", new TranslatableMessage("validate.illegalValue"));
+            } else {
+                String algorithm = m.group(1);
+                String hashOrPassword = m.group(2);
+
+                if ((PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
+                    response.addMessage("password", new TranslatableMessage("validate.required"));
+                }
+            }
+        }
+
         if (StringUtils.isBlank(name))
             response.addMessage("name", new TranslatableMessage("validate.required"));
 
@@ -671,6 +696,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     }
 
     public boolean isPasswordLocked() {
-        return UserDao.LOCKED_PASSWORD.equals(this.password);
+        return this.password != null && this.password.startsWith(UserDao.LOCKED_PASSWORD);
     }
 }

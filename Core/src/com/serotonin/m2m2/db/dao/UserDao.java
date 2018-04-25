@@ -299,7 +299,7 @@ public class UserDao extends AbstractDao<User> {
         userCache.remove(user.getUsername());
     }
 
-    public static final String LOCKED_PASSWORD = "{LOCKED}";
+    public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
 
     public void lockPassword(User user) {
         int userId = user.getId();

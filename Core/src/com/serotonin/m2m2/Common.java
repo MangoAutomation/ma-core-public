@@ -537,15 +537,15 @@ public class Common {
     }
 
     public static String getHashAlgorithm() {
-        return envProps.getString("security.hashAlgorithm", "BCRYPT");
+        return envProps.getString("security.hashAlgorithm", User.BCRYPT_ALGORITHM);
     }
 
     public static String encrypt(String plaintext, String alg) {
         try {
-            if ("NONE".equals(alg))
+            if (User.NONE_ALGORITHM.equals(alg))
                 return plaintext;
 
-            if ("BCRYPT".equals(alg)) {
+            if (User.BCRYPT_ALGORITHM.equals(alg)) {
                 return BCrypt.hashpw(plaintext, BCrypt.gensalt());
             }
 
@@ -569,7 +569,7 @@ public class Common {
         return checkPassword(plaintext, hashed, false);
     }
 
-    public static final Pattern EXTRACT_ALGORITHM_HASH = Pattern.compile("^\\{(.*?)\\}(.*)");
+    public static final Pattern EXTRACT_ALGORITHM_HASH = Pattern.compile("^\\{(.+?)\\}(.*)");
 
     public static boolean checkPassword(String password, String storedHash, boolean passwordEncrypted) {
         try {
@@ -587,11 +587,11 @@ public class Common {
             String algorithm = m.group(1);
             String hash = m.group(2);
 
-            if ("BCRYPT".equals(algorithm)) {
+            if (User.BCRYPT_ALGORITHM.equals(algorithm)) {
                 return BCrypt.checkpw(password, hash);
-            } else if ("NONE".equals(algorithm)) {
+            } else if (User.NONE_ALGORITHM.equals(algorithm)) {
                 return hash.equals(password);
-            } else if ("LOCKED".equals(algorithm)) {
+            } else if (User.LOCKED_ALGORITHM.equals(algorithm)) {
                 return false;
             } else {
                 return hash.equals(encrypt(password, algorithm));
