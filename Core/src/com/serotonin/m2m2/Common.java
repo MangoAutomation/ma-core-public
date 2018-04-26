@@ -748,6 +748,12 @@ public class Common {
     private static ApplicationContext rootContext;
     private static ApplicationContext dispatcherContext;
 
+    /**
+     * Gets the spring root application context, only set after the context has started (refreshed).
+     * If its not null, its safe to use.
+     *
+     * @return
+     */
     public static ApplicationContext getRootContext() {
         return rootContext;
     }
@@ -756,6 +762,11 @@ public class Common {
         rootContext = context;
     }
 
+    /**
+     * Gets the spring dispatcher application context, only set after the context has started (refreshed).
+     * If its not null, its safe to use.
+     * @return
+     */
     public static ApplicationContext getDispatcherContext() {
         return dispatcherContext;
     }

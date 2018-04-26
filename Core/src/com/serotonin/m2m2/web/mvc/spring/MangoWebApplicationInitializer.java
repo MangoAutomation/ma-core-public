@@ -11,7 +11,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -31,16 +31,12 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
  */
 public class MangoWebApplicationInitializer implements ServletContainerInitializer {
 
-    private MangoWebApplicationInitializerListener listener;
     private AnnotationConfigWebApplicationContext rootContext;
     private AnnotationConfigWebApplicationContext dispatcherContext;
+    private ApplicationListener<?> contextListener;
 
-    public static interface MangoWebApplicationInitializerListener {
-        void onStartup(ApplicationContext rootContext, ApplicationContext dispatcherContext);
-    }
-
-    public MangoWebApplicationInitializer(MangoWebApplicationInitializerListener listener) {
-        this.listener = listener;
+    public MangoWebApplicationInitializer(ApplicationListener<?> contextListener) {
+        this.contextListener = contextListener;
     }
 
     /* (non-Javadoc)
@@ -82,9 +78,8 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out
         context.addListener(HttpSessionEventPublisher.class);
 
-        if (listener != null) {
-            listener.onStartup(rootContext, dispatcherContext);
+        if (contextListener != null) {
+            rootContext.addApplicationListener(contextListener);
         }
     }
-
 }
