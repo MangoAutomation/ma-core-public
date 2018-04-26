@@ -19,8 +19,10 @@ import org.joda.time.DateTimeZone;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
+import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
@@ -72,14 +74,21 @@ public class DataPointDetailsDwr extends DataPointDwr {
 
         List<PointValueTime> rawData = facade.getLatestPointValues(limit);
         List<RenderedPointValueTime> renderedData = new ArrayList<RenderedPointValueTime>(rawData.size());
-
+        boolean idPvt = false;
+        if(rawData.size() > 0)
+            idPvt = (rawData.get(0) instanceof IdPointValueTime);
         for (PointValueTime pvt : rawData) {
             RenderedPointValueTime rpvt = new RenderedPointValueTime();
             rpvt.setValue(Functions.getHtmlText(pointVO, pvt));
             rpvt.setTime(Functions.getTime(pvt));
             if (pvt.isAnnotated()) {
-                AnnotatedPointValueTime apvt = (AnnotatedPointValueTime) pvt;
-                rpvt.setAnnotation(apvt.getAnnotation(getTranslations()));
+                if(!idPvt) {
+                    AnnotatedPointValueTime apvt = (AnnotatedPointValueTime) pvt;
+                    rpvt.setAnnotation(apvt.getAnnotation(getTranslations()));
+                } else {
+                    AnnotatedIdPointValueTime apvt = (AnnotatedIdPointValueTime) pvt;
+                    rpvt.setAnnotation(apvt.getAnnotation(getTranslations()));
+                }
             }
             renderedData.add(rpvt);
         }
