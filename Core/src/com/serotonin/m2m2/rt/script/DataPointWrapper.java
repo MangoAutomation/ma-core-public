@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.measure.unit.Unit;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 
@@ -71,7 +72,12 @@ public class DataPointWrapper {
     }
     
     public Map<String, String> getTags() {
-        return vo.getTags();
+        Map<String, String> tags = vo.getTags();
+        if(tags == null) {
+            vo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(vo.getId()));
+            return vo.getTags();
+        } else
+            return tags;
     }
     
     public AbstractPointWrapper getRuntime(){
