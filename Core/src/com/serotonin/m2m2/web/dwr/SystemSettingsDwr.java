@@ -61,24 +61,24 @@ public class SystemSettingsDwr extends BaseDwr {
 
         // Info
         settings.put(SystemSettingsDao.INSTANCE_DESCRIPTION,
-                SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
 
         // Email
-        settings.put(SystemSettingsDao.EMAIL_SMTP_HOST, SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_SMTP_HOST));
+        settings.put(SystemSettingsDao.EMAIL_SMTP_HOST, SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_HOST));
         settings.put(SystemSettingsDao.EMAIL_SMTP_PORT,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.EMAIL_SMTP_PORT));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_SMTP_PORT));
         settings.put(SystemSettingsDao.EMAIL_FROM_ADDRESS,
-                SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS));
-        settings.put(SystemSettingsDao.EMAIL_FROM_NAME, SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_FROM_NAME));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS));
+        settings.put(SystemSettingsDao.EMAIL_FROM_NAME, SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_NAME));
         settings.put(SystemSettingsDao.EMAIL_AUTHORIZATION,
-                SystemSettingsDao.getBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION));
+                SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION));
         settings.put(SystemSettingsDao.EMAIL_SMTP_USERNAME,
-                SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_SMTP_USERNAME));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_USERNAME));
         settings.put(SystemSettingsDao.EMAIL_SMTP_PASSWORD,
-                SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD));
-        settings.put(SystemSettingsDao.EMAIL_TLS, SystemSettingsDao.getBooleanValue(SystemSettingsDao.EMAIL_TLS));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD));
+        settings.put(SystemSettingsDao.EMAIL_TLS, SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_TLS));
         settings.put(SystemSettingsDao.EMAIL_CONTENT_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE));
 
         // System event types
         settings.put("systemEventTypes", SystemEventType.EVENT_TYPES);
@@ -88,107 +88,107 @@ public class SystemSettingsDwr extends BaseDwr {
 
         // Http
         settings.put(SystemSettingsDao.HTTP_CLIENT_USE_PROXY,
-                SystemSettingsDao.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY));
+                SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY));
         settings.put(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER,
-                SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER));
         settings.put(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT));
         settings.put(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME,
-                SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME));
         settings.put(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD,
-                SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD));
 
         // Misc
         settings.put(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.POINT_DATA_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS));
         
-        settings.put(DataPurge.ENABLE_POINT_DATA_PURGE, SystemSettingsDao.getBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, true));
-        settings.put(SystemSettingsDao.POINT_DATA_PURGE_COUNT, SystemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT));
+        settings.put(DataPurge.ENABLE_POINT_DATA_PURGE, SystemSettingsDao.instance.getBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, true));
+        settings.put(SystemSettingsDao.POINT_DATA_PURGE_COUNT, SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT));
 
         settings.put(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
         settings.put(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
         settings.put(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
         settings.put(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
         settings.put(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
 
         settings.put(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS));
         settings.put(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
         settings.put(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS));
         settings.put(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS));
         settings.put(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));
         settings.put(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS));
         settings.put(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS));
 
         settings.put(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.EVENT_PURGE_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS));
 
-        settings.put(SystemSettingsDao.UI_PERFORMANCE, SystemSettingsDao.getIntValue(SystemSettingsDao.UI_PERFORMANCE));
+        settings.put(SystemSettingsDao.UI_PERFORMANCE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.UI_PERFORMANCE));
         settings.put(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE));
         settings.put(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.FUTURE_DATE_LIMIT_PERIODS));
 
         // Language
-        settings.put(SystemSettingsDao.LANGUAGE, SystemSettingsDao.getValue(SystemSettingsDao.LANGUAGE));
+        settings.put(SystemSettingsDao.LANGUAGE, SystemSettingsDao.instance.getValue(SystemSettingsDao.LANGUAGE));
 
         // Colours
         settings.put(SystemSettingsDao.CHART_BACKGROUND_COLOUR,
-                SystemSettingsDao.getValue(SystemSettingsDao.CHART_BACKGROUND_COLOUR));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.CHART_BACKGROUND_COLOUR));
         settings.put(SystemSettingsDao.PLOT_BACKGROUND_COLOUR,
-                SystemSettingsDao.getValue(SystemSettingsDao.PLOT_BACKGROUND_COLOUR));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.PLOT_BACKGROUND_COLOUR));
         settings.put(SystemSettingsDao.PLOT_GRIDLINE_COLOUR,
-                SystemSettingsDao.getValue(SystemSettingsDao.PLOT_GRIDLINE_COLOUR));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.PLOT_GRIDLINE_COLOUR));
 
         //Backup Settings
         settings.put(SystemSettingsDao.BACKUP_FILE_LOCATION,
-                SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
         settings.put(SystemSettingsDao.BACKUP_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE));
-        settings.put(SystemSettingsDao.BACKUP_PERIODS, SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE));
+        settings.put(SystemSettingsDao.BACKUP_PERIODS, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_PERIODS));
         try {
 
             SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
-            String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
+            String lastRunString = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
             if(lastRunString != null){
 	            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
 	            lastRunString = sdf.format(lastRunDate);
@@ -200,29 +200,29 @@ public class SystemSettingsDwr extends BaseDwr {
         catch (Exception e) {
             settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, "unknown");
         }
-        settings.put(SystemSettingsDao.BACKUP_HOUR, SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_HOUR));
-        settings.put(SystemSettingsDao.BACKUP_MINUTE, SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_MINUTE));
+        settings.put(SystemSettingsDao.BACKUP_HOUR, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_HOUR));
+        settings.put(SystemSettingsDao.BACKUP_MINUTE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_MINUTE));
         settings.put(SystemSettingsDao.BACKUP_FILE_COUNT,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT));
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.BACKUP_ENABLED,
-                SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED));
+                SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED));
 
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,
-                SystemSettingsDao.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false));
+                SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false));
 
         //Database Backup Settings
         settings.put(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION,
-                SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
         settings.put(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE));
         settings.put(SystemSettingsDao.DATABASE_BACKUP_PERIODS,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIODS));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIODS));
         try {
 
             SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
-            String lastRunString = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS);
+            String lastRunString = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS);
             if(lastRunString != null){
 	            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
 	            lastRunString = sdf.format(lastRunDate);
@@ -235,18 +235,18 @@ public class SystemSettingsDwr extends BaseDwr {
             settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, "unknown");
         }
         settings.put(SystemSettingsDao.DATABASE_BACKUP_HOUR,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_HOUR));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_HOUR));
         settings.put(SystemSettingsDao.DATABASE_BACKUP_MINUTE,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_MINUTE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_MINUTE));
         settings.put(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT,
-                SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT));
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.DATABASE_BACKUP_ENABLED,
-                SystemSettingsDao.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED));
+                SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED));
 
         // Permissions
         settings.put(SystemSettingsDao.PERMISSION_DATASOURCE,
-                SystemSettingsDao.getValue(SystemSettingsDao.PERMISSION_DATASOURCE, ""));
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE, ""));
         List<Map<String, String>> modulePermissions = new ArrayList<>();
         settings.put("modulePermissions", modulePermissions);
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
@@ -254,30 +254,30 @@ public class SystemSettingsDwr extends BaseDwr {
                 Map<String, String> permission = new HashMap<>();
                 permission.put("name", def.getPermissionTypeName());
                 permission.put("label", Translations.getTranslations(Common.getLocale()).translate(def.getPermissionKey()));
-                permission.put("value", SystemSettingsDao.getValue(def.getPermissionTypeName()));
+                permission.put("value", SystemSettingsDao.instance.getValue(def.getPermissionTypeName()));
                 modulePermissions.add(permission);
             }
         }
 
         //Thread Pool Settings
-        settings.put(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE));
-        settings.put(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE));
-        settings.put(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE));
-        settings.put(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE));
+        settings.put(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE));
+        settings.put(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE));
+        settings.put(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE));
+        settings.put(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE));
         
         //Virtual Serial Ports
         settings.put("virtualSerialPorts", VirtualSerialPortConfigDao.instance.getAll());
         
         //Site analytics
-        settings.put(SystemSettingsDao.SITE_ANALYTICS_HEAD, SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
-        settings.put(SystemSettingsDao.SITE_ANALYTICS_BODY, SystemSettingsDao.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
+        settings.put(SystemSettingsDao.SITE_ANALYTICS_HEAD, SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
+        settings.put(SystemSettingsDao.SITE_ANALYTICS_BODY, SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
         
         //Upgrade states
-        settings.put(SystemSettingsDao.UPGRADE_VERSION_STATE, SystemSettingsDao.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
+        settings.put(SystemSettingsDao.UPGRADE_VERSION_STATE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
         
         //Point Hierarchy
-        settings.put(SystemSettingsDao.EXPORT_HIERARCHY_PATH, SystemSettingsDao.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH));
-        settings.put(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR));
+        settings.put(SystemSettingsDao.EXPORT_HIERARCHY_PATH, SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH));
+        settings.put(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, SystemSettingsDao.instance.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR));
         
         return settings;
     }
@@ -597,7 +597,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public TranslatableMessage purgeAllData() {
-    	boolean countPointValues = SystemSettingsDao.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
+    	boolean countPointValues = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
 		if(countPointValues){
 			long cnt = Common.runtimeManager.purgeDataPointValues();
 			return new TranslatableMessage("systemSettings.purgeDataComplete", cnt);
@@ -688,8 +688,7 @@ public class SystemSettingsDwr extends BaseDwr {
      */
     @DwrPermission(admin = true)
     public void queueBackup() {
-
-        String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
+        String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
         BackupWorkItem.queueBackup(backupLocation);
     }
 
@@ -701,13 +700,9 @@ public class SystemSettingsDwr extends BaseDwr {
      */
     @DwrPermission(admin = true)
     public ProcessResult saveChartSettings(boolean allowAnonymousChartView) {
-        ProcessResult result = new ProcessResult();
+        SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, allowAnonymousChartView);
 
-        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
-
-        systemSettingsDao.setBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, allowAnonymousChartView);
-
-        return result;
+        return new ProcessResult();
     }
 
     /**
@@ -779,7 +774,7 @@ public class SystemSettingsDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public void queueDatabaseBackup() {
 
-        String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+        String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
         DatabaseBackupWorkItem.queueBackup(backupLocation);
     }
 
@@ -802,7 +797,7 @@ public class SystemSettingsDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public ProcessResult getDatabaseBackupFiles() {
         ProcessResult result = new ProcessResult();
-        String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+        String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
 
         File[] backupFiles = DatabaseBackupWorkItem.getBackupFiles(backupLocation);
         if(backupFiles == null) {

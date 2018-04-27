@@ -75,7 +75,7 @@ public class SqlBackupActionDefinition extends SystemActionDefinition{
 		 */
 		@Override
 		public void runImpl(long runtime) {
-        	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+        	String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
 			item.setBackupLocation(backupLocation);
 			Common.backgroundProcessing.addWorkItem(item);
 			

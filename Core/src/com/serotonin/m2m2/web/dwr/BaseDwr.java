@@ -431,7 +431,7 @@ abstract public class BaseDwr {
 		long expireTime = Common.timer.currentTimeMillis() + 60000; // One minute
 		LongPollState state = data.getState();
 		int waitTime = SystemSettingsDao
-				.getIntValue(SystemSettingsDao.UI_PERFORMANCE);
+				.instance.getIntValue(SystemSettingsDao.UI_PERFORMANCE);
 
 		// For users that log in on multiple machines (or browsers), reset the
 		// last alarm timestamp so that it always

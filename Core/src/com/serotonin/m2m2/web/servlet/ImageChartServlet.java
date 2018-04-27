@@ -62,7 +62,7 @@ public class ImageChartServlet extends BaseInfoServlet {
     	//Check out Public Graphic Views
     	User user = Common.getUser(request);
         if (user == null){
-        	boolean allowView = SystemSettingsDao.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false);
+        	boolean allowView = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false);
         	if(!allowView)
         		return;
         }

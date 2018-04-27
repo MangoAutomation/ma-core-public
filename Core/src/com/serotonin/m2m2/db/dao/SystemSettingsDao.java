@@ -185,7 +185,7 @@ public class SystemSettingsDao extends BaseDao {
     // Value cache
     private static final Map<String, String> cache = new ConcurrentHashMap<>();
 
-    public static String getValue(String key) {
+    public String getValue(String key) {
     	Object defaultValue = DEFAULT_VALUES.get(key);
     	if(defaultValue == null){
     		return getValue(key, null);
@@ -202,7 +202,7 @@ public class SystemSettingsDao extends BaseDao {
         
     }
 
-    public static String getValue(String key, String defaultValue) {
+    public String getValue(String key, String defaultValue) {
         String result = cache.computeIfAbsent(key, (k) -> {
             return new BaseDao().queryForObject("select settingValue from systemSettings where settingName=?",
                     new Object[] { k }, String.class, null);
@@ -215,14 +215,14 @@ public class SystemSettingsDao extends BaseDao {
         return result;
     }
 
-    public static int getIntValue(String key) {
+    public int getIntValue(String key) {
         Integer defaultValue = (Integer) DEFAULT_VALUES.get(key);
         if (defaultValue == null)
             return getIntValue(key, 0);
         return getIntValue(key, defaultValue);
     }
 
-    public static int getIntValue(String key, int defaultValue) {
+    public int getIntValue(String key, int defaultValue) {
         String value = getValue(key, null);
         if (value == null)
             return defaultValue;
@@ -234,14 +234,14 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
     
-    public static boolean getBooleanValue(String key) {
+    public boolean getBooleanValue(String key) {
         Boolean defaultValue = (Boolean) DEFAULT_VALUES.get(key);
         if (defaultValue == null)
             return getBooleanValue(key, false);
         return getBooleanValue(key, defaultValue);
     }
 
-    public static boolean getBooleanValue(String key, boolean defaultValue) {
+    public boolean getBooleanValue(String key, boolean defaultValue) {
         String value = getValue(key, null);
         if (value == null)
             return defaultValue;
@@ -249,11 +249,11 @@ public class SystemSettingsDao extends BaseDao {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T getJsonObject(String key, Class<T> clazz) {
+    public <T> T getJsonObject(String key, Class<T> clazz) {
         return (T) getJsonObject(key, (Type) clazz);
     }
 
-    public static Object getJsonObject(String key, Type type) {
+    public Object getJsonObject(String key, Type type) {
         String value = getValue(key, null);
         if (value == null)
             return null;
@@ -328,14 +328,14 @@ public class SystemSettingsDao extends BaseDao {
 
     public static long getFutureDateLimit() {
         if (FUTURE_DATE_LIMIT == -1)
-            FUTURE_DATE_LIMIT = Common.getMillis(getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE),
-                    getIntValue(FUTURE_DATE_LIMIT_PERIODS));
+            FUTURE_DATE_LIMIT = Common.getMillis(instance.getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE),
+                    instance.getIntValue(FUTURE_DATE_LIMIT_PERIODS));
         return FUTURE_DATE_LIMIT;
     }
 
     public static Color getColour(String key) {
         try {
-            return ColorUtils.toColor(getValue(key));
+            return ColorUtils.toColor(instance.getValue(key));
         }
         catch (InvalidArgumentException e) {
             // Should never happen. Just use the default.

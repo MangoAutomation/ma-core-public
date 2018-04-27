@@ -110,7 +110,7 @@ public class PointHierarchy {
     }
     
     public static String getFlatPath(int pointId, PointFolder root) {
-        String pathDelimiter = SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
+        String pathDelimiter = SystemSettingsDao.instance.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
         List<String> path = getPath(pointId, root);
         StringBuilder result = new StringBuilder();
         if(path.size() == 0)

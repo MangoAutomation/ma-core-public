@@ -75,7 +75,7 @@ public class ConfigurationBackupActionDefinition extends SystemActionDefinition{
 		 */
 		@Override
 		public void runImpl(long runtime) {
-        	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
+        	String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
 			item.setBackupLocation(backupLocation);
 			Common.backgroundProcessing.addWorkItem(item);
 			

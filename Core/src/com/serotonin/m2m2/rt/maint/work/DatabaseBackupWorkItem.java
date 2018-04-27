@@ -67,8 +67,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
 			// String cronTrigger = "0/25 * * * * ?";
 
 			// Trigger to run at Set Hour/Minute "s m h * * ?";
-			int hour = SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_HOUR);
-			int minute = SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_MINUTE);
+			int hour = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_HOUR);
+			int minute = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_MINUTE);
 
 			String cronTrigger = "0 " + minute + " " + hour + " * * ?";
 			task = new DatabaseBackupTask(cronTrigger);
@@ -111,7 +111,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 			// Create the filename
 			String filename = "core-database-" + Common.databaseProxy.getType();
 			String runtimeString = dateFormatter.format(new Date());
-			int maxFiles = SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT);
+			int maxFiles = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT);
 			// If > 1 then we will use a date in the filename
 			if (maxFiles > 1) {
 				// Create Mango-Configuration-date.json
@@ -251,8 +251,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
 			// Should we run the backup?
 			try {
 				String lastRunDateString = SystemSettingsDao
-						.getValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS);
-				String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+						.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS);
+				String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
 
 				// Have we ever run?
 				if (lastRunDateString != null) {
@@ -260,8 +260,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
 					DateTime lastRun = new DateTime(lastRunDate);
 					// Compute the next run time off of the last run time
 					DateTime nextRun = DateUtils.plus(lastRun,
-							SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE),
-							SystemSettingsDao.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIODS));
+							SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE),
+							SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_PERIODS));
 					// Is the next run time now or before now?
 					if (!nextRun.isAfter(runtime)) {
 						DatabaseBackupWorkItem.queueBackup(backupLocation);
@@ -304,7 +304,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 		ProcessResult result = new ProcessResult();
 
 		// Fill the full path
-		String fullFilePath = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+		String fullFilePath = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
 
 		if (fullFilePath.endsWith(File.separator)) {
 			fullFilePath += filename;

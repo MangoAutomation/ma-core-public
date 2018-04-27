@@ -60,7 +60,7 @@ public class ModulesController implements UrlHandler {
         // The JSON
         Map<String, Object> json = new HashMap<>();
         json.put("guid", Providers.get(ICoreLicense.class).getGuid());
-        json.put("description", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+        json.put("description", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         json.put("distributor", Common.envProps.getString("distributor"));
 
         Map<String, String> jsonModules = new HashMap<>();

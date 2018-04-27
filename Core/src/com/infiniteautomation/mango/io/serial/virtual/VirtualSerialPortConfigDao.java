@@ -63,7 +63,7 @@ public class VirtualSerialPortConfigDao {
 	 */
 	public List<VirtualSerialPortConfig> getAll(){
         @SuppressWarnings("unchecked")
-		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
+		List<VirtualSerialPortConfig> list = (List<VirtualSerialPortConfig>) SystemSettingsDao.instance.getJsonObject(SerialPortManager.VIRTUAL_SERIAL_PORT_KEY,
                 new TypeDefinition(List.class, VirtualSerialPortConfig.class));
         if(list == null)
         	list = new ArrayList<VirtualSerialPortConfig>();

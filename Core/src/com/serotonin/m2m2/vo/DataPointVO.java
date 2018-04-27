@@ -1698,7 +1698,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         writer.writeEntry("plotType", PLOT_TYPE_CODES.getCode(plotType));
         writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
-        if(SystemSettingsDao.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH))
+        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH))
             writer.writeEntry("path", PointHierarchy.getFlatPath(id, DataPointDao.instance.getPointHierarchy(true).getRoot()));
 
         if (useIntegralUnit)

@@ -35,7 +35,7 @@ public class DwrPermissionFilter implements AjaxFilter {
                 throw new PermissionException(new TranslatableMessage("common.default", "Method " + method.getName() + " does not allow anonymous access"), null);
 
             if(!permission.custom().isEmpty()){
-            	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(permission.custom())))
+            	if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission.custom())))
             		throw new PermissionException(new TranslatableMessage("common.default", "Method " + method.getName() + " requires " + permission.custom() + " access"), user);
             }
             

@@ -86,7 +86,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
         PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getPermissionTypeName());
         if(def == null)
             return;
-        if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(def.getPermissionTypeName())))
+        if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
             throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
     }
     

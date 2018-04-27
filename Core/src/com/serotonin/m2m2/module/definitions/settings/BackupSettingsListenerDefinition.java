@@ -24,7 +24,7 @@ public class BackupSettingsListenerDefinition extends SystemSettingsListenerDefi
 	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
         //Reschedule the task if we are supposed to
         BackupWorkItem.unschedule();
-        if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED))
+        if (SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED))
             BackupWorkItem.schedule();
 	}
 

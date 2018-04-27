@@ -386,7 +386,7 @@ public class Upgrade12 extends DBUpgrade {
     private void backupAuditEvents(OutputStream os){
 
     	//Write them to disk
-    	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
+    	String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
     	File backupFolder = new File(backupLocation);
     	boolean writable = true;
     	if(!backupFolder.exists())

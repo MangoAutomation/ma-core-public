@@ -58,7 +58,7 @@ public class HasNoPermissionTag extends ConditionalTagSupport {
     	if(this.permissionsDefinitions != null){
     		Set<String> permissionDefs = Permissions.explodePermissionGroups(permissionsDefinitions);
     		for(String def : permissionDefs){
-    			String groups = SystemSettingsDao.getValue(def);
+    			String groups = SystemSettingsDao.instance.getValue(def);
     			if(!StringUtils.isEmpty(groups)){
     				if(this.permissions == null){
     					permissions = groups;

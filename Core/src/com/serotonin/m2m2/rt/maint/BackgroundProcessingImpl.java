@@ -435,8 +435,8 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         this.highPriorityService.setRejectedExecutionHandler(this.highPriorityRejectionHandler);
         
         	//Adjust the high priority pool sizes now
-        	int corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-        	int maxPoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
+        	int corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+        	int maxPoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
         	this.highPriorityService.setCorePoolSize(corePoolSize);
         	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
         	
@@ -444,7 +444,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
         	
         	//Pull our settings from the System Settings
-        	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+        	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
         	
         	//Sanity check to ensure the pool sizes are appropriate
         	if(corePoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
@@ -460,7 +460,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
         	      		Common.timer.getTimeSource());
             
-        	corePoolSize = SystemSettingsDao.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
+        	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
         	//Sanity check to ensure the pool sizes are appropriate
         	if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
         	    corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;

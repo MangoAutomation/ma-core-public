@@ -76,7 +76,7 @@ public class SystemEventType extends EventType {
     private static void addEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
         EVENT_TYPES.add(new EventTypeVO(EventType.EventTypeNames.SYSTEM, subtype, 0, 0, new TranslatableMessage(key),
-                SystemSettingsDao.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype)));
+                SystemSettingsDao.instance.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype)));
     }
 
     public static EventTypeVO getEventType(String subtype) {

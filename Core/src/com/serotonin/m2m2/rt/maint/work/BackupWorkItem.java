@@ -57,8 +57,8 @@ public class BackupWorkItem implements WorkItem {
             // Test trigger for running every 25 seconds.
             //String cronTrigger = "0/25 * * * * ?";
             // Trigger to run at Set Hour/Minute "s m h * * ?";
-    		int hour = SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_HOUR);
-    		int minute = SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_MINUTE);
+    		int hour = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_HOUR);
+    		int minute = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_MINUTE);
     		
     		String cronTrigger = "0 " + minute + " " + hour + " * * ?"; 
     		task = new BackupSettingsTask(cronTrigger);
@@ -102,7 +102,7 @@ public class BackupWorkItem implements WorkItem {
             // Create the filename
             String filename = "Mango-Configuration";
             String runtimeString = dateFormatter.format(new Date());
-            int maxFiles = SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
+            int maxFiles = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
             // If > 1 then we will use a date in the filename
             if (maxFiles > 1) {
                 // Create Mango-Configuration-date.json
@@ -207,16 +207,16 @@ public class BackupWorkItem implements WorkItem {
 
         	//Should we run the backup?
         	try{
-        		String lastRunDateString = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
-	        	String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
+        		String lastRunDateString = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
+	        	String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION);
 
 	        	//Have we ever run?
 	        	if(lastRunDateString != null){
 	        		Date lastRunDate = dateFormatter.parse(lastRunDateString);
 	        		DateTime lastRun = new DateTime(lastRunDate);
 	        		//Compute the next run time off of the last run time
-		            DateTime nextRun = DateUtils.plus(lastRun, SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE),
-		                    SystemSettingsDao.getIntValue(SystemSettingsDao.BACKUP_PERIODS));
+		            DateTime nextRun = DateUtils.plus(lastRun, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE),
+		                    SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_PERIODS));
 		        	//Is the next run time now or before now?
 		            if(!nextRun.isAfter(runtime)){
 			        	BackupWorkItem.queueBackup(backupLocation);

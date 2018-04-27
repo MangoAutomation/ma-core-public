@@ -1160,7 +1160,7 @@ public class ModuleRegistry {
             
             @Override
             public boolean isVisible(HttpServletRequest request, HttpServletResponse response) {
-            	return Permissions.hasPermission(Common.getHttpUser(), SystemSettingsDao.getValue(permission));
+            	return Permissions.hasPermission(Common.getHttpUser(), SystemSettingsDao.instance.getValue(permission));
             }
             
             @Override
@@ -1234,7 +1234,7 @@ public class ModuleRegistry {
 
             @Override
             public boolean hasCustomPermission(User user){
-            	return Permissions.hasPermission(user, SystemSettingsDao.getValue(permission));
+            	return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
             }
             
             @Override
@@ -1297,7 +1297,7 @@ public class ModuleRegistry {
             @Override
             public boolean hasCustomPermission(User user)
             		throws PermissionException {
-            	return Permissions.hasPermission(user, SystemSettingsDao.getValue(permission));
+            	return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
             }
         };
     }

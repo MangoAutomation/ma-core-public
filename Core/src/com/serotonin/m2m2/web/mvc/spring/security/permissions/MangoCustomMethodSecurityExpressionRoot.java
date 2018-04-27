@@ -107,7 +107,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 			return true;
 		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
 		for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
-			String groups = SystemSettingsDao.getValue(def.getPermissionTypeName());
+			String groups = SystemSettingsDao.instance.getValue(def.getPermissionTypeName());
 			Set<String> permissions = Permissions.explodePermissionGroups(groups);
 			//TODO Use Collections.disjoint?
 			for(String permission : permissions){

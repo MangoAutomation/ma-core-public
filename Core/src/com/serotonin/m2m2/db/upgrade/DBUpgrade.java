@@ -50,7 +50,7 @@ abstract public class DBUpgrade extends BaseDao {
         // If this is a very old version of the system, there may be multiple upgrades to run, so start a loop.
         while (true) {
             // Get the current schema version.
-            int schemaVersion = SystemSettingsDao.getIntValue(settingsKey, -1);
+            int schemaVersion = SystemSettingsDao.instance.getIntValue(settingsKey, -1);
 
             if (schemaVersion == -1) {
                 if ("core".equals(moduleName))

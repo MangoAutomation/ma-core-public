@@ -33,7 +33,7 @@ public class SqlDatabaseBackupFileListInfoDefinition extends SystemInfoDefinitio
 	@Override
 	public List<String> getValue() {
 		List<String> filenames = new ArrayList<>();
-        String backupLocation = SystemSettingsDao.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
+        String backupLocation = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION);
         File[] backupFiles = DatabaseBackupWorkItem.getBackupFiles(backupLocation);
         
         if(backupFiles == null) {

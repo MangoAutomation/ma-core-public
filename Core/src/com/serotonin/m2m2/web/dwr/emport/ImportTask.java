@@ -298,7 +298,7 @@ public class ImportTask extends ProgressiveTask {
         else
             return;
         
-        String pathSeparator = SystemSettingsDao.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
+        String pathSeparator = SystemSettingsDao.instance.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
         for(DataPointSummaryPathPair dpp : dpPathPairs) {
             root.removePointRecursively(dpp.getDataPointSummary().getId());
             PointFolder starting = root;

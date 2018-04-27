@@ -74,17 +74,17 @@ public class EmailWorkItem implements WorkItem {
     	boolean success = true;
         try {
             if (fromAddress == null) {
-                String addr = SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
-                String pretty = SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_FROM_NAME);
+                String addr = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
+                String pretty = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_NAME);
                 fromAddress = new InternetAddress(addr, pretty);
             }
 
-            EmailSender emailSender = new EmailSender(SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_SMTP_HOST),
-                    SystemSettingsDao.getIntValue(SystemSettingsDao.EMAIL_SMTP_PORT),
-                    SystemSettingsDao.getBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION),
-                    SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_SMTP_USERNAME),
-                    SystemSettingsDao.getValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD),
-                    SystemSettingsDao.getBooleanValue(SystemSettingsDao.EMAIL_TLS));
+            EmailSender emailSender = new EmailSender(SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_HOST),
+                    SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_SMTP_PORT),
+                    SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION),
+                    SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_USERNAME),
+                    SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD),
+                    SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_TLS));
 
             emailSender.send(fromAddress, toAddresses, subject, content);
         }

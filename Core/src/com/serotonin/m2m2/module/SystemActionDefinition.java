@@ -52,7 +52,7 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
     protected void hasTaskPermission(User user) throws AccessDeniedException {
         PermissionDefinition def = getPermissionDefinition();
         if (!Permissions.hasPermission(user,
-                SystemSettingsDao.getValue(def.getPermissionTypeName())))
+                SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
             throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied",
                     user.getUsername(), new TranslatableMessage(def.getPermissionKey()))
                             .translate(Common.getTranslations()));

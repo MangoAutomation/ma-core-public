@@ -55,7 +55,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     	PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
     	if(def == null)
     		return;
-    	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(def.getPermissionTypeName())))
+    	if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
     		throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
     }
 
@@ -67,7 +67,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     	PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
     	if(def == null)
     		return;
-    	if(!Permissions.hasPermission(user, SystemSettingsDao.getValue(def.getPermissionTypeName())))
+    	if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
     		throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
     }
 

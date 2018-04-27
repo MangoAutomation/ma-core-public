@@ -113,7 +113,7 @@ public class Permissions {
 
     public static boolean hasDataSourcePermission(User user) throws PermissionException {
         ensureValidUser(user);
-        String p = SystemSettingsDao.getValue(SystemSettingsDao.PERMISSION_DATASOURCE, "");
+        String p = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE, "");
         return hasPermission(user, p);
     }
 

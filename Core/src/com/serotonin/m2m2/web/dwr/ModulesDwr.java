@@ -313,10 +313,10 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
 
         Map<String, Object> json = new HashMap<>();
         json.put("guid", Providers.get(ICoreLicense.class).getGuid());
-        json.put("description", SystemSettingsDao.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+        json.put("description", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
         json.put("distributor", Common.envProps.getString("distributor"));
         json.put("upgradeVersionState",
-                SystemSettingsDao.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
+                SystemSettingsDao.instance.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
 
         Properties props = new Properties();
         File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
@@ -416,8 +416,8 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                     // wait for the
                     // background processes to finish though.
                     BackupWorkItem.queueBackup(
-                            SystemSettingsDao.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
-                    DatabaseBackupWorkItem.queueBackup(SystemSettingsDao
+                            SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_FILE_LOCATION));
+                    DatabaseBackupWorkItem.queueBackup(SystemSettingsDao.instance
                             .getValue(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION));
                 }
 

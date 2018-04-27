@@ -38,7 +38,7 @@ public class SystemSettingTag extends TagSupport {
 
     @Override
     public int doEndTag() throws JspException {
-        String value = SystemSettingsDao.getValue(key, defaultValue);
+        String value = SystemSettingsDao.instance.getValue(key, defaultValue);
 
         if (value != null) {
             if (escapeQuotes)

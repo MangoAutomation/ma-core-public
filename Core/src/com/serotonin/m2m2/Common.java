@@ -472,7 +472,7 @@ public class Common {
 
     public static String getFiledataPath() {
         if (lazyFiledataPath == null) {
-            String name = SystemSettingsDao.getValue(SystemSettingsDao.FILEDATA_PATH);
+            String name = SystemSettingsDao.instance.getValue(SystemSettingsDao.FILEDATA_PATH);
             if (name.startsWith("~"))
                 name = getWebPath(name.substring(1));
 
@@ -624,11 +624,11 @@ public class Common {
                 .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC)).setSocketTimeout(timeout)
                 .setConnectTimeout(timeout).build();
 
-        if (SystemSettingsDao.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
-            String proxyHost = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
-            int proxyPort = SystemSettingsDao.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
-            String username = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, "");
-            String password = SystemSettingsDao.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, "");
+        if (SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
+            String proxyHost = SystemSettingsDao.instance.getValue(SystemSettingsDao.instance.HTTP_CLIENT_PROXY_SERVER);
+            int proxyPort = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.instance.HTTP_CLIENT_PROXY_PORT);
+            String username = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME);
+            String password = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD);
 
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), new UsernamePasswordCredentials(
@@ -675,7 +675,7 @@ public class Common {
         if (systemLanguage == null) {
             synchronized (i18nLock) {
                 if (systemLanguage == null) {
-                    systemLanguage = SystemSettingsDao.getValue(SystemSettingsDao.LANGUAGE);
+                    systemLanguage = SystemSettingsDao.instance.getValue(SystemSettingsDao.LANGUAGE);
                     systemLocale = parseLocale(systemLanguage);
                     if (systemLocale == null)
                         throw new IllegalArgumentException("Locale for given language not found: " + systemLanguage);
