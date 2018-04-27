@@ -306,6 +306,34 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         return false;
     }
 
+    /**
+     * Sets a new plaintext password, i.e. prepends it with {PLAINTEXT} so it will be hashed upon saving
+     * (after validation).
+     *
+     * @param password
+     */
+    public void setPlainTextPassword(String password) {
+        this.setPasswordHash(PLAIN_TEXT_ALGORITHM, password);
+    }
+
+    /**
+     * Sets the password field to the given algorithm and hash. It is saved in the form {HASH_ALGORITHM}passwordHash
+     *
+     * @param algorithm
+     * @param hash
+     */
+    public void setPasswordHash(String algorithm, String hash) {
+        this.password = "{" + algorithm + "}" + hash;
+    }
+
+    /**
+     * Set the password field, this is actually a password hash, or a plaintext string that will be hashed upon
+     * database insertion/update. It takes the form {HASH_ALGORITHM}passwordHash
+     *
+     * You shouldn't use this directly in most cases (except in tests). Use setPlainTextPassword() or setPasswordHash() instead.
+     *
+     * @param password
+     */
     public void setPassword(String password) {
         this.password = password;
     }

@@ -62,8 +62,6 @@ public class UserImporter extends Importer {
                 else {
                     // Sweet. Save it.
 
-                    // only hash plain text passwords after validation has taken place so we can check complexity etc
-                    user.hashPlainText();
                     boolean isnew = user.getId() == Common.NEW_ID;
                     ctx.getUserDao().saveUser(user);
                     addSuccessMessage(isnew, "emport.user.prefix", username);

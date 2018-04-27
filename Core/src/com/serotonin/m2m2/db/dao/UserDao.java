@@ -108,6 +108,10 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public void saveUser(final User user) {
+        // ensure passwords prefixed with {PLAINTEXT} are always hashed before database insertion/update
+        // we hash plain text passwords after validation has taken place so we can check complexity etc
+        user.hashPlainText();
+
         if (user.getId() == Common.NEW_ID)
             insertUser(user);
         else
