@@ -265,7 +265,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 return;
         }
 
-        if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.getFutureDateLimit()) {
+        if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
             // Too far future dated. Toss it. But log a message first.
             LOG.warn("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime(), new Exception());

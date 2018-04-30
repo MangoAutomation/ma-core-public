@@ -183,7 +183,7 @@ public class SystemSettingsDao extends BaseDao {
     }
     
     // Value cache
-    private static final Map<String, String> cache = new ConcurrentHashMap<>();
+    private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public String getValue(String key) {
     	Object defaultValue = DEFAULT_VALUES.get(key);
@@ -326,14 +326,14 @@ public class SystemSettingsDao extends BaseDao {
         SystemSettingsEventDispatcher.fireSystemSettingRemoved(key, lastValue);
     }
 
-    public static long getFutureDateLimit() {
+    public long getFutureDateLimit() {
         if (FUTURE_DATE_LIMIT == -1)
             FUTURE_DATE_LIMIT = Common.getMillis(instance.getIntValue(FUTURE_DATE_LIMIT_PERIOD_TYPE),
                     instance.getIntValue(FUTURE_DATE_LIMIT_PERIODS));
         return FUTURE_DATE_LIMIT;
     }
 
-    public static Color getColour(String key) {
+    public Color getColour(String key) {
         try {
             return ColorUtils.toColor(instance.getValue(key));
         }
@@ -1007,7 +1007,7 @@ public class SystemSettingsDao extends BaseDao {
 	 * @param value - Integer value of code
 	 * @return Export code or null if none exists for it
 	 */
-	public static String convertToCodeFromValue(String key, Integer value){
+	public String convertToCodeFromValue(String key, Integer value){
 		switch(key){
 		case EMAIL_CONTENT_TYPE:
 			return MangoEmailContent.CONTENT_TYPE_CODES.getCode(value);

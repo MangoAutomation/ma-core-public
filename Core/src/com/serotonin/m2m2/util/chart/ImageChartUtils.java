@@ -71,12 +71,12 @@ public class ImageChartUtils {
     public static void writeChart(PointTimeSeriesCollection pointTimeSeriesCollection, boolean showLegend,
             OutputStream out, int width, int height, long from, long to) throws IOException {
         JFreeChart chart = ChartFactory.createTimeSeriesChart(null, null, null, null, showLegend, false, false);
-        chart.setBackgroundPaint(SystemSettingsDao.getColour(SystemSettingsDao.CHART_BACKGROUND_COLOUR));
+        chart.setBackgroundPaint(SystemSettingsDao.instance.getColour(SystemSettingsDao.CHART_BACKGROUND_COLOUR));
 
         XYPlot plot = chart.getXYPlot();
         ((DateAxis) plot.getDomainAxis()).setTimeZone(pointTimeSeriesCollection.getTimeZone());
-        plot.setBackgroundPaint(SystemSettingsDao.getColour(SystemSettingsDao.PLOT_BACKGROUND_COLOUR));
-        Color gridlines = SystemSettingsDao.getColour(SystemSettingsDao.PLOT_GRIDLINE_COLOUR);
+        plot.setBackgroundPaint(SystemSettingsDao.instance.getColour(SystemSettingsDao.PLOT_BACKGROUND_COLOUR));
+        Color gridlines = SystemSettingsDao.instance.getColour(SystemSettingsDao.PLOT_GRIDLINE_COLOUR);
         plot.setDomainGridlinePaint(gridlines);
         plot.setRangeGridlinePaint(gridlines);
         ((NumberAxis) plot.getRangeAxis()).setAutoRangeStickyZero(false);
