@@ -93,7 +93,7 @@ public class MangoTestBase {
 	public static void staticSetup() throws IOException{
 	    
 	    //Configure Log4j2
-        ConfigurationSource source = new ConfigurationSource(MangoTestBase.class.getClass().getResource("/test-log4j2.xml").openStream());
+        ConfigurationSource source = new ConfigurationSource(ClassLoader.getSystemResource("test-log4j2.xml").openStream());
         Configurator.initialize(null, source);
         
         List<ModuleElementDefinition> definitions = new ArrayList<>();

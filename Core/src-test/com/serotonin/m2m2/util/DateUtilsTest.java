@@ -16,7 +16,6 @@ import org.joda.time.DateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.Common.TimePeriods;
 
 /**
@@ -29,7 +28,7 @@ public class DateUtilsTest {
     public static void staticSetup() throws IOException{
         
         //Configure Log4j2
-        ConfigurationSource source = new ConfigurationSource(MangoTestBase.class.getClass().getResource("/test-log4j2.xml").openStream());
+        ConfigurationSource source = new ConfigurationSource(ClassLoader.getSystemResource("test-log4j2.xml").openStream());
         Configurator.initialize(null, source);
     }
     
