@@ -94,11 +94,11 @@ import net.jazdw.rql.parser.ASTNode;
 
 /**
  * This class is a Half-Breed between the legacy Dao and the new type that extends AbstractDao.
- * 
+ *
  * The top half of the code is the legacy code, the bottom is the new style.
- * 
+ *
  * Eventually all the method innards will be reworked, leaving the names the same.
- * 
+ *
  * @author Terry Packer
  *
  */
@@ -117,12 +117,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * Private as we only ever want 1 of these guys
      */
     private DataPointDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_POINT), 
-                EventType.EventTypeNames.DATA_POINT, "dp", 
-        		new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
-        		false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
+        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_POINT),
+                EventType.EventTypeNames.DATA_POINT, "dp",
+                new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
+                false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
-    
+
     //
     //
     // Data Points
@@ -133,7 +133,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public String getExtendedPointName(int dataPointId) {
-        //TODO? return ejt.queryForObject("SELECT CONCAT(deviceName, ' - ', name) FROM dataPoints WHERE ID=?", 
+        //TODO? return ejt.queryForObject("SELECT CONCAT(deviceName, ' - ', name) FROM dataPoints WHERE ID=?",
         //                                  new Object[]{dataPointId}, String.class, "?");
         DataPointVO vo = getDataPoint(dataPointId, false);
         if (vo == null)
@@ -142,7 +142,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     private static final String DATA_POINT_SELECT = //
-    "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
+            "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
             + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
             + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
             + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, "
@@ -172,12 +172,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             Collections.sort(dps, comparator);
         return dps;
     }
-    
+
     public List<DataPointVO> getDataPointsForDataSourceStart(int dataSourceId) {
-    	List<DataPointVO> dps = query(DataPointStartupResultSetExtractor.DATA_POINT_SELECT_STARTUP, new Object[] { dataSourceId },
+        List<DataPointVO> dps = query(DataPointStartupResultSetExtractor.DATA_POINT_SELECT_STARTUP, new Object[] { dataSourceId },
                 new DataPointStartupResultSetExtractor());
-    	
-    	return dps;
+
+        return dps;
     }
 
     public DataPointVO getDataPoint(int id) {
@@ -199,7 +199,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 // Yep. Log the occurrence and continue.
                 LOG.error("Data point with id '" + id + "' could not be loaded. Is its module missing?", e.getCause());
             }else{
-            	LOG.error(e.getMessage(), e);
+                LOG.error(e.getMessage(), e);
             }
         }
         return null;
@@ -213,61 +213,61 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
         return dp;
     }
-    
+
     /**
      * Get all data point Ids in the table
      * @return
      */
     public List<Integer> getDataPointIds(){
-    	return queryForList("SELECT id FROM dataPoints" , Integer.class);
+        return queryForList("SELECT id FROM dataPoints" , Integer.class);
     }
-    
+
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
-    	private static final int EVENT_DETECTOR_FIRST_COLUMN = 27;
-    	private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, 5);
-    	static final String DATA_POINT_SELECT_STARTUP = //
-        	    "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
-        	            + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
-        	            + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
-        	            + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, ds.name, " //
-        	            + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
-        	            + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
-        	            + "  left outer join eventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
-    	
-		@Override
-		public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
-			Map<Integer, DataPointVO> result = new HashMap<Integer, DataPointVO>();
-			DataPointRowMapper pointRowMapper = new DataPointRowMapper();
-			while(rs.next()) {
-				int id = rs.getInt(2); //dp.id column number
-				if(result.containsKey(id))
-					try{
-						addEventDetector(result.get(id), rs);
-					}catch(Exception e){
-						LOG.error("Point not fully initialized: " + e.getMessage(), e);
-					}
-				else {
-					DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-					dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
-					result.put(id, dpvo);
-					try{
-						addEventDetector(dpvo, rs);
-					}catch(Exception e){
-						LOG.error("Point not fully initialized: " + e.getMessage(), e);
-					}
-				}
-			}
-			return new ArrayList<DataPointVO>(result.values());
-		}
-    	
-		private void addEventDetector(DataPointVO dpvo, ResultSet rs) throws SQLException {
-			if(rs.getObject(EVENT_DETECTOR_FIRST_COLUMN) == null)
-				return;
-			AbstractEventDetectorVO<?> edvo = eventRowMapper.mapRow(rs, rs.getRow());
-			AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) edvo;
-			ped.njbSetDataPoint(dpvo);
-			dpvo.getEventDetectors().add(ped);
-		}
+        private static final int EVENT_DETECTOR_FIRST_COLUMN = 27;
+        private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, 5);
+        static final String DATA_POINT_SELECT_STARTUP = //
+                "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
+                + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
+                + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
+                + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, ds.name, " //
+                + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
+                + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
+                + "  left outer join eventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
+
+        @Override
+        public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            Map<Integer, DataPointVO> result = new HashMap<Integer, DataPointVO>();
+            DataPointRowMapper pointRowMapper = new DataPointRowMapper();
+            while(rs.next()) {
+                int id = rs.getInt(2); //dp.id column number
+                if(result.containsKey(id))
+                    try{
+                        addEventDetector(result.get(id), rs);
+                    }catch(Exception e){
+                        LOG.error("Point not fully initialized: " + e.getMessage(), e);
+                    }
+                else {
+                    DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
+                    dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
+                    result.put(id, dpvo);
+                    try{
+                        addEventDetector(dpvo, rs);
+                    }catch(Exception e){
+                        LOG.error("Point not fully initialized: " + e.getMessage(), e);
+                    }
+                }
+            }
+            return new ArrayList<DataPointVO>(result.values());
+        }
+
+        private void addEventDetector(DataPointVO dpvo, ResultSet rs) throws SQLException {
+            if(rs.getObject(EVENT_DETECTOR_FIRST_COLUMN) == null)
+                return;
+            AbstractEventDetectorVO<?> edvo = eventRowMapper.mapRow(rs, rs.getRow());
+            AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) edvo;
+            ped.njbSetDataPoint(dpvo);
+            dpvo.getEventDetectors().add(ped);
+        }
     }
 
     class DataPointRowMapper implements RowMapper<DataPointVO> {
@@ -299,7 +299,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             //Because we read 0 for null
             dp.setTemplateId(rs.getInt(++i));
             if(rs.wasNull())
-            	dp.setTemplateId(null);
+                dp.setTemplateId(null);
             dp.setRollup(rs.getInt(++i));
 
             // Data source information.
@@ -314,8 +314,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public void saveDataPoint(final DataPointVO dp) {
-    	if(dp.getId() == Common.NEW_ID) checkAddPoint();
-    	
+        if(dp.getId() == Common.NEW_ID) checkAddPoint();
+
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
@@ -324,25 +324,25 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     insertDataPoint(dp);
                 else
                     updateDataPoint(dp);
-                
+
                 // Reset the point hierarchy so that the new or changed point
                 // gets reflected.
                 clearPointHierarchyCache();
             }
         });
     }
-    
+
     public void checkAddPoint() {
-        	IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-        	Integer limit = lifecycle.dataPointLimit();
-        	if(limit != null && this.countMonitor.getValue() >= limit) {
-        		String licenseType;
-        		if(Common.license() != null)
-        			licenseType = Common.license().getLicenseType();
-        		else
-        			licenseType = "Free";
-        		throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", licenseType, limit));
-        	}
+        IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
+        Integer limit = lifecycle.dataPointLimit();
+        if(limit != null && this.countMonitor.getValue() >= limit) {
+            String licenseType;
+            if(Common.license() != null)
+                licenseType = Common.license().getLicenseType();
+            else
+                licenseType = "Free";
+            throw new LicenseViolatedException(new TranslatableMessage("license.dataPointLimit", licenseType, limit));
+        }
     }
 
     void insertDataPoint(final DataPointVO dp) {
@@ -355,10 +355,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         dp.setId(ejt.doInsert(
                 "insert into dataPoints (xid, dataSourceId, name, deviceName, enabled, pointFolderId, loggingType, " //
-                        + "intervalLoggingPeriodType, intervalLoggingPeriod, intervalLoggingType, tolerance, " //
-                        + "purgeOverride, purgeType, purgePeriod, defaultCacheSize, discardExtremeValues, " //
-                        + "engineeringUnits, readPermission, setPermission, templateId, rollup, dataTypeId, data) " //
-                        + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
+                + "intervalLoggingPeriodType, intervalLoggingPeriod, intervalLoggingType, tolerance, " //
+                + "purgeOverride, purgeType, purgePeriod, defaultCacheSize, discardExtremeValues, " //
+                + "engineeringUnits, readPermission, setPermission, templateId, rollup, dataTypeId, data) " //
+                + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
                 new Object[] { dp.getXid(), dp.getDataSourceId(), dp.getName(), dp.getDeviceName(),
                         boolToChar(dp.isEnabled()), dp.getPointFolderId(), dp.getLoggingType(),
                         dp.getIntervalLoggingPeriodType(), dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(),
@@ -389,7 +389,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         //If have a new data type we will wipe our history
         if (old.getPointLocator().getDataTypeId() != dp.getPointLocator().getDataTypeId())
             Common.databaseProxy.newPointValueDao().deletePointValues(dp.getId());
-        
+
         // Save the VO information.
         updateDataPointShallow(dp);
 
@@ -405,10 +405,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void updateDataPointShallow(final DataPointVO dp) {
         ejt.update(
                 "update dataPoints set xid=?, name=?, deviceName=?, enabled=?, pointFolderId=?, loggingType=?, " //
-                        + "intervalLoggingPeriodType=?, intervalLoggingPeriod=?, intervalLoggingType=?, " //
-                        + "tolerance=?, purgeOverride=?, purgeType=?, purgePeriod=?, defaultCacheSize=?, " //
-                        + "discardExtremeValues=?, engineeringUnits=?, readPermission=?, setPermission=?, "//
-                        + "templateId=?, rollup=?, dataTypeId=?, data=? where id=?", //
+                + "intervalLoggingPeriodType=?, intervalLoggingPeriod=?, intervalLoggingType=?, " //
+                + "tolerance=?, purgeOverride=?, purgeType=?, purgePeriod=?, defaultCacheSize=?, " //
+                + "discardExtremeValues=?, engineeringUnits=?, readPermission=?, setPermission=?, "//
+                + "templateId=?, rollup=?, dataTypeId=?, data=? where id=?", //
                 new Object[] { dp.getXid(), dp.getName(), dp.getDeviceName(), boolToChar(dp.isEnabled()),
                         dp.getPointFolderId(), dp.getLoggingType(), dp.getIntervalLoggingPeriodType(),
                         dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(), dp.getTolerance(),
@@ -421,7 +421,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.BINARY, Types.INTEGER });
     }
-    
+
     public void saveEnabledColumn(DataPointVO dp) {
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
@@ -507,18 +507,18 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     /**
      * This method would be more accurately named loadEventDetectors().
      * Loads the event detectors from the database and sets them on the data point.
-     * 
+     *
      * @param dp
      */
     public void setEventDetectors(DataPointVO dp) {
-    	List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(
-    	        EventType.EventTypeNames.DATA_POINT, dp.getId());
-    	List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
-    	for(AbstractEventDetectorVO<?> ed : detectors){
-    		AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
-    		ped.njbSetDataPoint(dp);
-    		peds.add(ped);
-    	}
+        List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(
+                EventType.EventTypeNames.DATA_POINT, dp.getId());
+        List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
+        for(AbstractEventDetectorVO<?> ed : detectors){
+            AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
+            ped.njbSetDataPoint(dp);
+            peds.add(ped);
+        }
         dp.setEventDetectors(peds);
     }
 
@@ -530,20 +530,20 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         // Insert or update each detector in the point.
         for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
             if (ped.getId() > 0){
-            	//Remove from list
-            	removeFromList(existingDetectors, ped.getId());
+                //Remove from list
+                removeFromList(existingDetectors, ped.getId());
             }
             ped.setSourceId(dp.getId());
-        	EventDetectorDao.instance.saveFull(ped);
+            EventDetectorDao.instance.saveFull(ped);
         }
 
         // Delete detectors for any remaining ids in the list of existing
         // detectors.
         for (AbstractEventDetectorVO<?> ed : existingDetectors) {
-        	//Set the data point so the detector can get its event type when it is deleted
-        	AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
-        	ped.njbSetDataPoint(dp);
-        	EventDetectorDao.instance.delete(ed);
+            //Set the data point so the detector can get its event type when it is deleted
+            AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
+            ped.njbSetDataPoint(dp);
+            EventDetectorDao.instance.delete(ed);
         }
     }
 
@@ -563,21 +563,21 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     //
     private static final String POINT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT
             + "where uc.commentType= " + UserCommentVO.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
-    
+
     /**
      * This method would be more accurately named loadPointComments().
      * Loads the comments from the database and them on the data point.
-     * 
+     *
      * @param dp
      */
     private void setPointComments(DataPointVO dp) {
         dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, UserCommentDao.instance.getRowMapper()));
     }
-    
-    
+
+
     /**
      * Get the
-     * 
+     *
      * @return
      */
     public List<PointHistoryCount> getTopPointHistoryCounts() {
@@ -651,7 +651,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     //
     // Data point summaries
     private static final String DATA_POINT_SUMMARY_SELECT = //
-    "select id, xid, dataSourceId, name, deviceName, pointFolderId, readPermission, setPermission from dataPoints ";
+            "select id, xid, dataSourceId, name, deviceName, pointFolderId, readPermission, setPermission from dataPoints ";
 
     public List<DataPointSummary> getDataPointSummaries(Comparator<IDataPoint> comparator) {
 
@@ -672,7 +672,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         if (e.getCause() instanceof ModuleNotLoadedException) {
                             // Yep. Log the occurrence and continue.
                             LOG.error("Data point with id '" + rs.getInt("id") + "' and name '" + rs.getString("name")
-                                    + "' could not be loaded. Is its module missing?", e.getCause());
+                            + "' could not be loaded. Is its module missing?", e.getCause());
                         }else {
                             LOG.error(e.getMessage(), e);
                         }
@@ -715,16 +715,16 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     // Point hierarchy
     //
     static PointHierarchy cachedPointHierarchy;
-    
+
     /**
-     * Get the point hierarchy from its cached copy.  The read only cached copy should 
+     * Get the point hierarchy from its cached copy.  The read only cached copy should
      * never be modified, if you intend to modify it ensure you pass readOnly=false
-     * 
+     *
      * @param readOnly - do not modify a read only point hierarchy
      * @return
      */
     public PointHierarchy getPointHierarchy(boolean readOnly) {
-        
+
         if(cachedPointHierarchy == null) {
             final Map<Integer, List<PointFolder>> folders = new HashMap<>();
 
@@ -754,7 +754,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
             cachedPointHierarchy = ph;
         }
-        
+
         if(readOnly)
             return cachedPointHierarchy;
         else
@@ -776,19 +776,19 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             addFoldersToHeirarchy(ph, f.getId(), folders);
         }
     }
-    
+
     private int getMaxFolderId(final PointFolder root) {
-        	int maxId = 0;
-        	if(root == null)
-        		return maxId;
-        	if(root.getId() > maxId)
-        		maxId = root.getId();
-        	for(PointFolder subfolder : root.getSubfolders()) {
-        		int candidate = getMaxFolderId(subfolder);
-        		if(candidate > maxId)
-        			maxId = candidate;
-        	}
-        	return maxId;
+        int maxId = 0;
+        if(root == null)
+            return maxId;
+        if(root.getId() > maxId)
+            maxId = root.getId();
+        for(PointFolder subfolder : root.getSubfolders()) {
+            int candidate = getMaxFolderId(subfolder);
+            if(candidate > maxId)
+                maxId = candidate;
+        }
+        return maxId;
     }
 
 
@@ -830,11 +830,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     private void assignFolderIds(PointFolder folder, int parentId, AtomicInteger nextId, List<Object> params) {
-        	if(folder.getId() == Common.NEW_ID) {
-    	        int id = nextId.incrementAndGet();
-    	        folder.setId(id);
-        	}
-    	
+        if(folder.getId() == Common.NEW_ID) {
+            int id = nextId.incrementAndGet();
+            folder.setId(id);
+        }
+
         params.add(folder.getId());
         params.add(parentId);
         params.add(StringUtils.abbreviate(folder.getName(), 100));
@@ -855,10 +855,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             for (DataPointSummary p : folder.getPoints())
                 ids.add(p.getId());
             ejt.update("UPDATE dataPoints SET pointFolderId=? WHERE id in (" + createDelimitedList(ids, ",", null)
-                    + ")", folder.getId());
+            + ")", folder.getId());
         }
     }
-    
+
     public void setFolderId(int dataPointId, int folderId) {
         ejt.update("UPDATE dataPoints SET pointFolderId=" + folderId + " WHERE id=" + dataPointId);
     }
@@ -869,7 +869,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
      */
     @Override
@@ -879,7 +879,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
      */
     @Override
@@ -889,7 +889,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
      */
     @Override
@@ -904,7 +904,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
      */
     @Override
@@ -913,19 +913,19 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
 
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-	 */
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+     */
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-    	LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-		map.put("id", Types.INTEGER);
-		map.put("data", Types.BINARY); //Locator
-		map.put("xid", Types.VARCHAR); //Xid
-		map.put("dataSourceId",Types.INTEGER); //Dsid
-		map.put("name", Types.VARCHAR); //Name
-		map.put("deviceName", Types.VARCHAR); //Device Name
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+        map.put("id", Types.INTEGER);
+        map.put("data", Types.BINARY); //Locator
+        map.put("xid", Types.VARCHAR); //Xid
+        map.put("dataSourceId",Types.INTEGER); //Dsid
+        map.put("name", Types.VARCHAR); //Name
+        map.put("deviceName", Types.VARCHAR); //Device Name
         map.put("enabled", Types.CHAR); //Enabled
         map.put("pointFolderId", Types.INTEGER); //Point Folder Id
         map.put("loggingType", Types.INTEGER); //Logging Type
@@ -953,43 +953,43 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     @Override
     protected List<JoinClause> getJoins() {
-    	List<JoinClause> joins = new ArrayList<JoinClause>();
-    	joins.add(new JoinClause(JOIN, SchemaDefinition.DATASOURCES_TABLE, "ds", "ds.id = dp.dataSourceId"));
-    	joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.TEMPLATES_TABLE, "template", "template.id = dp.templateId"));
-    	return joins;
+        List<JoinClause> joins = new ArrayList<JoinClause>();
+        joins.add(new JoinClause(JOIN, SchemaDefinition.DATASOURCES_TABLE, "ds", "ds.id = dp.dataSourceId"));
+        joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.TEMPLATES_TABLE, "template", "template.id = dp.templateId"));
+        return joins;
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getIndexes()
      */
     @Override
     protected List<Index> getIndexes() {
-    	List<Index> indexes = new ArrayList<Index>();
-    	List<QueryAttribute> columns = new ArrayList<QueryAttribute>();
-    	//Data Source Name Force
-    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
-    	indexes.add(new Index("nameIndex", "ds", columns, "ASC"));
-    	
-    	//Data Source xid Force
-    	columns = new ArrayList<QueryAttribute>();
-    	columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
-    	indexes.add(new Index("dataSourcesUn1", "ds", columns, "ASC"));
-    	
-    	//DeviceNameName Index Force
-    	columns = new ArrayList<QueryAttribute>();
-    	columns.add(new QueryAttribute("deviceName", new HashSet<String>(), Types.VARCHAR));
-    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
-    	indexes.add(new Index("deviceNameNameIndex", "dp", columns, "ASC"));
-    	
-    	//xid point name force
-    	columns = new ArrayList<QueryAttribute>();
-    	columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
-    	columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
-    	indexes.add(new Index("xidNameIndex", "dp", columns, "ASC"));
-    	
-    	return indexes;
+        List<Index> indexes = new ArrayList<Index>();
+        List<QueryAttribute> columns = new ArrayList<QueryAttribute>();
+        //Data Source Name Force
+        columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
+        indexes.add(new Index("nameIndex", "ds", columns, "ASC"));
+
+        //Data Source xid Force
+        columns = new ArrayList<QueryAttribute>();
+        columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
+        indexes.add(new Index("dataSourcesUn1", "ds", columns, "ASC"));
+
+        //DeviceNameName Index Force
+        columns = new ArrayList<QueryAttribute>();
+        columns.add(new QueryAttribute("deviceName", new HashSet<String>(), Types.VARCHAR));
+        columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
+        indexes.add(new Index("deviceNameNameIndex", "dp", columns, "ASC"));
+
+        //xid point name force
+        columns = new ArrayList<QueryAttribute>();
+        columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
+        columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
+        indexes.add(new Index("xidNameIndex", "dp", columns, "ASC"));
+
+        return indexes;
     }
-    
+
     @Override
     protected Map<String, Comparator<DataPointVO>> getComparatorMap() {
         HashMap<String, Comparator<DataPointVO>> comparatorMap = new HashMap<>();
@@ -1072,7 +1072,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
      */
     @Override
@@ -1089,7 +1089,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
      */
     @Override
@@ -1129,7 +1129,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             //Because we read 0 for null
             dp.setTemplateId(rs.getInt(++i));
             if(rs.wasNull())
-            	dp.setTemplateId(null);
+                dp.setTemplateId(null);
             dp.setRollup(rs.getInt(++i));
 
             // read and discard dataTypeId
@@ -1174,11 +1174,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         this.loadDataSource(vo);
         this.setTemplateName(vo);
     }
-    
+
     @Override
     public void saveRelationalData(DataPointVO vo, boolean insert) {
         saveEventDetectors(vo);
-        
+
         Map<String, String> tags = vo.getTags();
         if (tags == null) {
             if (!insert) {
@@ -1190,12 +1190,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             // we only need to delete tags when doing an update
             DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
         }
-        
+
         DataPointTagsDao.instance.insertTagsForDataPoint(vo, tags);
     }
 
     @Override
-	public int copy(final int existingId, final String newXid, final String newName) {
+    public int copy(final int existingId, final String newXid, final String newName) {
         TransactionCallback<Integer> callback = new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
@@ -1215,27 +1215,27 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(
                         EventType.EventTypeNames.DATA_POINT, dataPoint.getId());
                 List<AbstractPointEventDetectorVO<?>> detectors = new ArrayList<AbstractPointEventDetectorVO<?>>(existing.size());
-                
+
                 for (AbstractEventDetectorVO<?> ed : existing) {
-                	AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
+                    AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
                     ped.setId(Common.NEW_ID);
                     ped.njbSetDataPoint(copy);
                 }
                 copy.setEventDetectors(detectors);
-                
+
                 Common.runtimeManager.saveDataPoint(copy);
 
-                // Copy permissions. 
+                // Copy permissions.
                 return copy.getId();
             }
         };
 
         return getTransactionTemplate().execute(callback);
     }
-    
+
     /**
      * Load the datasource info into the DataPoint
-     * 
+     *
      * @param vo
      * @return
      */
@@ -1253,17 +1253,17 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     /**
      * This method would be more accurately named loadTemplateName().
      * Loads the template from the database and sets templateName on the data point.
-     * 
+     *
      * @param vo
      */
     public void setTemplateName(DataPointVO vo){
-    	if(vo.getTemplateId() != null){
-	    	BaseTemplateVO<?> template = TemplateDao.instance.get(vo.getTemplateId());
-	    	if(template != null) {
-	    		vo.setTemplateName(template.getName());
-	    		vo.setTemplateXid(template.getXid());
-	    	}
-    	}
+        if(vo.getTemplateId() != null){
+            BaseTemplateVO<?> template = TemplateDao.instance.get(vo.getTemplateId());
+            if(template != null) {
+                vo.setTemplateName(template.getName());
+                vo.setTemplateXid(template.getXid());
+            }
+        }
     }
 
     @Override
@@ -1279,9 +1279,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     /**
-     * 
+     *
      * Overridable method to extract the data
-     * 
+     *
      * @return
      */
     @Override
@@ -1307,7 +1307,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         if (e.getCause() instanceof ModuleNotLoadedException) {
                             // Yep. Log the occurrence and continue.
                             LOG.error("Data point with xid '" + rs.getString("xid")
-                                    + "' could not be loaded. Is its module missing?", e.getCause());
+                            + "' could not be loaded. Is its module missing?", e.getCause());
                         }
                         else {
                             LOG.error(e.getMessage(), e);
@@ -1319,226 +1319,226 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         };
     }
 
-	/**
-	 * Get a list of all Data Points using a given template
-	 * @param id
-	 * @return
-	 */
-	public List<DataPointVO> getByTemplate(int id) {
-		return getByTemplate(id, true);
-	}
+    /**
+     * Get a list of all Data Points using a given template
+     * @param id
+     * @return
+     */
+    public List<DataPointVO> getByTemplate(int id) {
+        return getByTemplate(id, true);
+    }
 
-	/**
-	 * Get a list of all Data Points using a given template
-	 * @param id
-	 * @return
-	 */
-	public List<DataPointVO> getByTemplate(int id, boolean setRelational) {
-		List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
-		if (dps != null && setRelational)
-			loadPartialRelationalData(dps); //We will need this to restart the points after updating them
-		return dps;
-	}
-	
-	/**
-	 * @param node
-	 * @param permissions
-	 * @param updateSetPermissions - true will update set, false will update read
-	 * @return
-	 */
-	public long bulkUpdatePermissions(ASTNode root, String uncleanPermissions,
-			boolean updateSetPermissions) {
-		
-		//Anything to do?
-		if(StringUtils.isEmpty(uncleanPermissions))
-			return 0;
-		
-		//Trim off any ending commas
-		if(uncleanPermissions.endsWith(",")){
-			uncleanPermissions = uncleanPermissions.substring(0, uncleanPermissions.length()-1);
-		}
-		
-		final String newPermissions = uncleanPermissions;
-		long count;
-		
-		if(root == null){
-			//All points
-			count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp FOR UPDATE; ", new ArrayList<Object>()), 
-					new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
-		}else{
-			switch(Common.databaseProxy.getType()){
-			case H2:					
-			case DERBY:
-			case MSSQL:
-			case MYSQL:
-			case POSTGRES:
-			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM ", COUNT_BASE, this.joins, this.tableName, this.TABLE_PREFIX, true, false, super.getIndexes(), this.databaseType);
-				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
-				select.build();
-				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
-						new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
-				break;
-			}
-		}
-		
-		return count;
-	}
+    /**
+     * Get a list of all Data Points using a given template
+     * @param id
+     * @return
+     */
+    public List<DataPointVO> getByTemplate(int id, boolean setRelational) {
+        List<DataPointVO> dps = query(DATA_POINT_SELECT + " WHERE templateId=?", new Object[]{id}, new DataPointRowMapper());
+        if (dps != null && setRelational)
+            loadPartialRelationalData(dps); //We will need this to restart the points after updating them
+        return dps;
+    }
 
-	/**
-	 * @param node
-	 * @param updateSetPermissions - true will update set, false will update read
-	 * @return
-	 * 
-	 */
-	public long bulkClearPermissions(ASTNode root, boolean updateSetPermissions) {
+    /**
+     * @param node
+     * @param permissions
+     * @param updateSetPermissions - true will update set, false will update read
+     * @return
+     */
+    public long bulkUpdatePermissions(ASTNode root, String uncleanPermissions,
+            boolean updateSetPermissions) {
 
-		long count;
-		if(root == null){
-			//All points
-			count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp FOR UPDATE; ", new ArrayList<Object>()), 
-					new DataPointPermissionChangeCallback(updateSetPermissions, null));
-		}else{
-			switch(Common.databaseProxy.getType()){
-			case H2:					
-			case DERBY:
-			case MSSQL:
-			case MYSQL:
-			case POSTGRES:
-			default:
-				final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM ", COUNT_BASE, this.joins, this.tableName, this.TABLE_PREFIX, true, false, super.getIndexes(), this.databaseType);
-				root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
-				select.build();
-				count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()), 
-						new DataPointPermissionChangeCallback(updateSetPermissions, null));
-				break;
-			}
-		}
-		return count;
-	}
+        //Anything to do?
+        if(StringUtils.isEmpty(uncleanPermissions))
+            return 0;
 
-	/**
-	 * Helper to create a data point permission query where the results can be modified
-	 * @author Terry Packer
-	 *
-	 */
-	class DataPointPermissionChangePreparedStatementCreator implements PreparedStatementCreator{
-		
-		final String select;
-		final Object[] args;
-		
-		public DataPointPermissionChangePreparedStatementCreator(String sql, List<Object> args){
-			this.select = sql;
-			this.args = args.toArray();
-		}
-		
-		@Override
-		public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-			PreparedStatement stmt = con.prepareStatement(select, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-			//Set the values
-			ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args);
-			setter.setValues(stmt);
-			return stmt;
-		}
-	}
+        //Trim off any ending commas
+        if(uncleanPermissions.endsWith(",")){
+            uncleanPermissions = uncleanPermissions.substring(0, uncleanPermissions.length()-1);
+        }
 
-	/**
-	 * Callback handler for modifying a permission via a data point query
-	 * @author Terry Packer
-	 *
-	 */
-	class DataPointPermissionChangeCallback implements PreparedStatementCallback<Integer>{
-		final String ID = "id";
-		final String SET_PERMISSION = "setPermission";
-		final String READ_PERMISSION = "readPermission";
-		
-		//count of modified data points
-		int count;
-		//Comma separated list of permissions or one permission
-		final String newPermissions;
-		//Split of permissions on comma
-		final String[] permissions;
-		//Name of permission to change (setPermission or readPermission)
-		final String permissionName;
-		
-		public DataPointPermissionChangeCallback(boolean updateSetPermissions, String newPermissions){
-			this.count = 0;
-			this.permissionName = updateSetPermissions ? SET_PERMISSION : READ_PERMISSION;
-			this.newPermissions = newPermissions;
-			this.permissions = newPermissions != null ? newPermissions.split(",") : null;
-		}
-		
-		/* (non-Javadoc)
-		 * @see org.springframework.jdbc.core.PreparedStatementCallback#doInPreparedStatement(java.sql.PreparedStatement)
-		 */
-		@Override
-		public Integer doInPreparedStatement(PreparedStatement stmt) throws SQLException, DataAccessException {
-			try{
-				stmt.execute();
-				ResultSet rs = stmt.getResultSet();
-				boolean updated;
-				while(rs.next()){
-					updated = false;
-					String existingPermissions = rs.getString(permissionName);
-					if(StringUtils.isEmpty(existingPermissions)){
-						//No permissions, only update if new permissions are not empty
-						if(newPermissions != null){
-							existingPermissions = newPermissions;
-							updated = true;
-						}
-					}else{
-						
-						if(newPermissions != null){
-							//Don't duplicate permissions
-							for(String permission : permissions)
-								if(!existingPermissions.contains(permission)){
-									existingPermissions += "," + permission;
-									updated = true;
-								}
-						}else{
-							//Set to null
-							existingPermissions = newPermissions;
-							updated = true;
-						}
-					}
-					if(updated){
-						count++;
-						rs.updateString(permissionName, existingPermissions);
-						rs.updateRow();
-						DataPointRT rt = Common.runtimeManager.getDataPoint(rs.getInt(ID));
-						if(rt != null)
-							rt.getVO().setSetPermission(existingPermissions);
-					}
-				}
-				
-				//clear the cache to pickup our changes
-				if(count > 0)
-					clearPointHierarchyCache();
-				
-				return count;
-            }finally{
-            	if(stmt != null) { stmt.close(); }
+        final String newPermissions = uncleanPermissions;
+        long count;
+
+        if(root == null){
+            //All points
+            count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp FOR UPDATE; ", new ArrayList<Object>()),
+                    new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
+        }else{
+            switch(Common.databaseProxy.getType()){
+                case H2:
+                case DERBY:
+                case MSSQL:
+                case MYSQL:
+                case POSTGRES:
+                default:
+                    final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM ", COUNT_BASE, this.joins, this.tableName, this.TABLE_PREFIX, true, false, super.getIndexes(), this.databaseType);
+                    root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
+                    select.build();
+                    count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()),
+                            new DataPointPermissionChangeCallback(updateSetPermissions, newPermissions));
+                    break;
             }
-		}
-	}
-	
-	/**
-     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     * For a superadmin user it will get all data points in the system.
-     * 
-	 * @param user
-	 * @return
-	 */
-	public List<DataPointVO> dataPointsForUser(User user) {
-        List<DataPointVO> result = new ArrayList<>();
-        dataPointsForUser(user, (item, index) -> result.add(item));
-        return result;
-	}
+        }
+
+        return count;
+    }
+
+    /**
+     * @param node
+     * @param updateSetPermissions - true will update set, false will update read
+     * @return
+     *
+     */
+    public long bulkClearPermissions(ASTNode root, boolean updateSetPermissions) {
+
+        long count;
+        if(root == null){
+            //All points
+            count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator("SELECT dp.id,dp.readPermission,dp.setPermission FROM dataPoints AS dp FOR UPDATE; ", new ArrayList<Object>()),
+                    new DataPointPermissionChangeCallback(updateSetPermissions, null));
+        }else{
+            switch(Common.databaseProxy.getType()){
+                case H2:
+                case DERBY:
+                case MSSQL:
+                case MYSQL:
+                case POSTGRES:
+                default:
+                    final SQLStatement select = new SQLStatement("SELECT dp.id,dp.readPermission,dp.setPermission FROM ", COUNT_BASE, this.joins, this.tableName, this.TABLE_PREFIX, true, false, super.getIndexes(), this.databaseType);
+                    root.accept(new RQLToSQLSelect<DataPointVO>(this), select);
+                    select.build();
+                    count = ejt.execute(new DataPointPermissionChangePreparedStatementCreator(select.getSelectSql() + " FOR UPDATE; ", select.getSelectArgs()),
+                            new DataPointPermissionChangeCallback(updateSetPermissions, null));
+                    break;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Helper to create a data point permission query where the results can be modified
+     * @author Terry Packer
+     *
+     */
+    class DataPointPermissionChangePreparedStatementCreator implements PreparedStatementCreator{
+
+        final String select;
+        final Object[] args;
+
+        public DataPointPermissionChangePreparedStatementCreator(String sql, List<Object> args){
+            this.select = sql;
+            this.args = args.toArray();
+        }
+
+        @Override
+        public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
+            PreparedStatement stmt = con.prepareStatement(select, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+            //Set the values
+            ArgumentPreparedStatementSetter setter = new ArgumentPreparedStatementSetter(args);
+            setter.setValues(stmt);
+            return stmt;
+        }
+    }
+
+    /**
+     * Callback handler for modifying a permission via a data point query
+     * @author Terry Packer
+     *
+     */
+    class DataPointPermissionChangeCallback implements PreparedStatementCallback<Integer>{
+        final String ID = "id";
+        final String SET_PERMISSION = "setPermission";
+        final String READ_PERMISSION = "readPermission";
+
+        //count of modified data points
+        int count;
+        //Comma separated list of permissions or one permission
+        final String newPermissions;
+        //Split of permissions on comma
+        final String[] permissions;
+        //Name of permission to change (setPermission or readPermission)
+        final String permissionName;
+
+        public DataPointPermissionChangeCallback(boolean updateSetPermissions, String newPermissions){
+            this.count = 0;
+            this.permissionName = updateSetPermissions ? SET_PERMISSION : READ_PERMISSION;
+            this.newPermissions = newPermissions;
+            this.permissions = newPermissions != null ? newPermissions.split(",") : null;
+        }
+
+        /* (non-Javadoc)
+         * @see org.springframework.jdbc.core.PreparedStatementCallback#doInPreparedStatement(java.sql.PreparedStatement)
+         */
+        @Override
+        public Integer doInPreparedStatement(PreparedStatement stmt) throws SQLException, DataAccessException {
+            try{
+                stmt.execute();
+                ResultSet rs = stmt.getResultSet();
+                boolean updated;
+                while(rs.next()){
+                    updated = false;
+                    String existingPermissions = rs.getString(permissionName);
+                    if(StringUtils.isEmpty(existingPermissions)){
+                        //No permissions, only update if new permissions are not empty
+                        if(newPermissions != null){
+                            existingPermissions = newPermissions;
+                            updated = true;
+                        }
+                    }else{
+
+                        if(newPermissions != null){
+                            //Don't duplicate permissions
+                            for(String permission : permissions)
+                                if(!existingPermissions.contains(permission)){
+                                    existingPermissions += "," + permission;
+                                    updated = true;
+                                }
+                        }else{
+                            //Set to null
+                            existingPermissions = newPermissions;
+                            updated = true;
+                        }
+                    }
+                    if(updated){
+                        count++;
+                        rs.updateString(permissionName, existingPermissions);
+                        rs.updateRow();
+                        DataPointRT rt = Common.runtimeManager.getDataPoint(rs.getInt(ID));
+                        if(rt != null)
+                            rt.getVO().setSetPermission(existingPermissions);
+                    }
+                }
+
+                //clear the cache to pickup our changes
+                if(count > 0)
+                    clearPointHierarchyCache();
+
+                return count;
+            }finally{
+                if(stmt != null) { stmt.close(); }
+            }
+        }
+    }
 
     /**
      * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
      * For a superadmin user it will get all data points in the system.
-     * 
+     *
+     * @param user
+     * @return
+     */
+    public List<DataPointVO> dataPointsForUser(User user) {
+        List<DataPointVO> result = new ArrayList<>();
+        dataPointsForUser(user, (item, index) -> result.add(item));
+        return result;
+    }
+
+    /**
+     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
+     * For a superadmin user it will get all data points in the system.
+     *
      * @param user
      * @param callback
      */
@@ -1549,7 +1549,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     /**
      * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
      * For a superadmin user it will get all data points in the system.
-     * 
+     *
      * @param user
      * @param callback
      * @param sort (may be null)
@@ -1567,7 +1567,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /**
      * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     * 
+     *
      * @param restrictions
      * @param user
      * @return
@@ -1580,7 +1580,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /**
      * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     * 
+     *
      * @param restrictions
      * @param user
      * @param callback
@@ -1591,7 +1591,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     /**
      * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     * 
+     *
      * @param restrictions
      * @param user
      * @param callback
@@ -1603,13 +1603,13 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         if (restrictions.isEmpty()) {
             throw new IllegalArgumentException("restrictions should not be empty");
         }
-        
+
         Map<String, Name> tagKeyToColumn = DataPointTagsDao.instance.tagKeyToColumn(restrictions.keySet());
 
         List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
             return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
         }).collect(Collectors.toCollection(ArrayList::new));
-        
+
         if (!user.isAdmin()) {
             conditions.add(DataPointDao.instance.userHasPermission(user));
         }
@@ -1617,8 +1617,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
         SelectOnConditionStep<Record> select = this.create.select(this.fields).from(this.joinedTable).leftJoin(pivotTable)
-            .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
-        
+                .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+
         this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
     }
 
@@ -1636,7 +1636,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
                 return select.leftJoin(pivotTable)
-                    .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+                        .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
             }
         }
         return select;
@@ -1651,20 +1651,43 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
     public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
-    
+
     public Condition userHasPermission(User user) {
         Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
         List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
-        
+
         for (String userPermission : userPermissions) {
             conditions.add(fieldMatchesUserPermission(READ_PERMISSION, userPermission));
             conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
             conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
         }
-        
+
         return DSL.or(conditions);
     }
-    
+
+    public Condition userHasSetPermission(User user) {
+        Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 2);
+
+        for (String userPermission : userPermissions) {
+            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
+        }
+
+        return DSL.or(conditions);
+    }
+
+    public Condition userHasEditPermission(User user) {
+        Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+        List<Condition> conditions = new ArrayList<>(userPermissions.size());
+
+        for (String userPermission : userPermissions) {
+            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
+        }
+
+        return DSL.or(conditions);
+    }
+
     Condition fieldMatchesUserPermission(Field<String> field, String userPermission) {
         return DSL.or(
                 field.eq(userPermission),
@@ -1672,12 +1695,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         field.isNotNull(),
                         field.notEqual(""),
                         field.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX)
-                )
-        );
+                        )
+                );
     }
-    
+
     public static final String TAGS_UPDATED = "tagsUpdated";
-    
+
     protected void notifyTagsUpdated(DataPointVO dataPoint) {
         this.handler.notify(TAGS_UPDATED, dataPoint);
     }
