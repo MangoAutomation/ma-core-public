@@ -1,3 +1,6 @@
+*Version 3.4.1*
+* Fix unreliable attribute to fire Attribute Changed events even on first (and every other) change of attribute and include the recently changed attributes
+
 *Version 3.4.0*
 * Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers
 * Increase the XID field to 100 characters from 50 
