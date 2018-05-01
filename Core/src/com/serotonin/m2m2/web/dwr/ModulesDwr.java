@@ -19,6 +19,7 @@ import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpException;
@@ -136,6 +137,10 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
         try {
             JsonValue jsonResponse = getAvailableUpgrades();
 
+            if (jsonResponse == null) {
+                result.addData("error", new TranslatableMessage("modules.versionCheck.storeNotSet").translate(Common.getHttpUser().getTranslations()));
+                return result;
+            }
             if (jsonResponse instanceof JsonString)
                 result.addData("error", jsonResponse.toString());
             else {
@@ -190,6 +195,10 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
 
             // Send the request
             String baseUrl = Common.envProps.getString("store.url");
+            if(StringUtils.isEmpty(baseUrl)) {
+                LOG.info("No consistency check performed as no store.url is defined in env.properties.");
+                return "No consistency check performed as no store.url is defined in env.properties.";
+            }
             baseUrl += "/servlet/consistencyCheck";
 
             HttpPost post = new HttpPost(baseUrl);
@@ -279,6 +288,8 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     public static int upgradesAvailable() throws Exception {
         JsonValue jsonResponse = getAvailableUpgrades();
 
+        if (jsonResponse == null)
+            return 0; //Empty store.url
         if (jsonResponse instanceof JsonString)
             throw new Exception("Mango Store Response Error: " + jsonResponse.toString());
 
@@ -357,6 +368,10 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
 
         // Send the request
         String baseUrl = Common.envProps.getString("store.url");
+        if(StringUtils.isEmpty(baseUrl)) {
+            LOG.info("No version check performed as no store.url is defined in env.properties.");
+            return null;
+        }
         baseUrl += "/servlet/versionCheck";
 
         HttpPost post = new HttpPost(baseUrl);
@@ -405,6 +420,13 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                 for (ModuleNotificationListener listener : listeners)
                     listener.upgradeStateChanged(UpgradeState.STARTED);
                 LOG.info("UpgradeDownloader started");
+                String baseStoreUrl = Common.envProps.getString("store.url");
+                if(StringUtils.isEmpty(baseStoreUrl)) {
+                    LOG.info("Upgrade download not started as store.url is blank in env.properties.");
+                    for(ModuleNotificationListener listener : listeners)
+                        listener.upgradeStateChanged(UpgradeState.DONE);
+                    return;
+                }
     
                 if (backup) {
                     // Run the backup.
@@ -467,7 +489,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                     Version version = Version.valueOf(mod.getValue());
     
                     String filename = ModuleUtils.moduleFilename(name, version.getNormalVersion());
-                    String url = Common.envProps.getString("store.url") + "/"
+                    String url = baseStoreUrl + "/"
                             + ModuleUtils.downloadFilename(name, version.getNormalVersion());
                     HttpGet get = new HttpGet(url);
     

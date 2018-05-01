@@ -86,6 +86,10 @@ public class ModulesController implements UrlHandler {
     private boolean downloadLicense(String token) throws Exception {
         // Send the request
         String url = Common.envProps.getString("store.url");
+        if(StringUtils.isEmpty(url)) {
+            LOG.info("License download failed: store.url blank in env.properties");
+            return false;
+        }
         url += "/servlet/downloadLicense?token=" + token;
 
         String responseData = HttpUtils4.getTextContent(Common.getHttpClient(), url);
