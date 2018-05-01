@@ -1104,30 +1104,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
     //
     // Multiple-point callback for point history replays
     //
-    private static final String POINT_ID_VALUE_SELECT = "select pv.dataPointId, pv.dataType, pv.pointValue, " //
-            + "pva.textPointValueShort, pva.textPointValueLong, pv.ts "
-            + "from pointValues pv "
-            + "  left join pointValueAnnotations pva on pv.id = pva.pointValueId";
-
     @Override
     public void getPointValuesBetween(List<Integer> dataPointIds, long from, long to,
             MappedRowCallback<IdPointValueTime> callback) {
         String ids = createDelimitedList(dataPointIds, ",", null);
-        query(POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + ids + ") and pv.ts >= ? and pv.ts<? order by ts",
-                new Object[] { from, to }, new IdPointValueRowMapper(), callback);
-    }
-
-    /**
-     * Note: this does not extract source information from the annotation.
-     */
-    class IdPointValueRowMapper implements RowMapper<IdPointValueTime> {
-        @Override
-        public IdPointValueTime mapRow(ResultSet rs, int rowNum) throws SQLException {
-            int dataPointId = rs.getInt(1);
-            DataValue value = createDataValue(rs, 2);
-            long time = rs.getLong(6);
-            return new IdPointValueTime(dataPointId, value, time);
-        }
+        query(ANNOTATED_POINT_ID_VALUE_SELECT + " where pv.dataPointId in (" + ids + ") and pv.ts >= ? and pv.ts<? order by ts",
+                new Object[] { from, to }, new AnnotatedIdPointValueRowMapper(), callback);
     }
     
     /**
