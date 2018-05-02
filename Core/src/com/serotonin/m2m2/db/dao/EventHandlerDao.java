@@ -38,7 +38,20 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 
 	public static final EventHandlerDao instance = new EventHandlerDao();
 	
-	private static final boolean H2_SYNTAX = Common.databaseProxy.getType() == DatabaseProxy.DatabaseType.H2;
+	private static final boolean H2_SYNTAX;
+	private static final boolean MYSQL_SYNTAX;
+	static {
+	    if(Common.databaseProxy.getType() == DatabaseProxy.DatabaseType.H2) {
+	        H2_SYNTAX = true;
+	        MYSQL_SYNTAX = false;
+	    } else if(Common.databaseProxy.getType() == DatabaseProxy.DatabaseType.MYSQL) {
+	        H2_SYNTAX = false;
+            MYSQL_SYNTAX = true;
+	    } else {
+	        H2_SYNTAX = false;
+            MYSQL_SYNTAX = false;
+	    }
+	}
 	
 	protected EventHandlerDao() {
 		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER, "eh", new String[0], false, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
@@ -236,7 +249,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
                     new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()}, 
                     new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
         }
-        else {
+        else if(MYSQL_SYNTAX) {
             if(type.getEventSubtype() == null)
                 ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?)", 
                         new Object[] {handlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()}, 
@@ -245,6 +258,17 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
                 ejt.update("REPLACE INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)", 
                     new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()}, 
                     new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+        }
+        else {
+            getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
+                @Override
+                protected void doInTransactionWithoutResult(TransactionStatus arg0) {
+                    deleteEventHandlerMapping(handlerId, type);
+                    ejt.doInsert("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)", 
+                            new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()}, 
+                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+                }
+            });
         }
     }
     
