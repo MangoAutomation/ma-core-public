@@ -297,6 +297,8 @@ MangoAPI.prototype.applyBulkPointSetPermissions = function(permissions, query) {
 	var extraUrl = '';
 	if(query !== '')
 		extraUrl = '?' + query;
+	else
+		extraUrl = '?limit(1000000)';
 	return this.ajax({
     	type: 'POST',
         url: "/rest/v1/data-points/bulk-apply-set-permissions" + extraUrl,
@@ -317,6 +319,8 @@ MangoAPI.prototype.applyBulkPointReadPermissions = function(permissions, query) 
 	var extraUrl = '';
 	if(query !== '')
 		extraUrl = '?' + query;
+	else
+		extraUrl = '?limit(1000000)';
 	return this.ajax({
     	type: 'POST',
         url: "/rest/v1/data-points/bulk-apply-read-permissions" + extraUrl,
