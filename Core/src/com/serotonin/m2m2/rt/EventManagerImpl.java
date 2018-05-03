@@ -30,11 +30,13 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.UserEventCache;
 import com.serotonin.m2m2.rt.event.UserEventListener;
+import com.serotonin.m2m2.rt.event.UserEventMulticaster;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
+import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
@@ -59,6 +61,7 @@ public class EventManagerImpl implements EventManager {
 	private UserDao userDao;
 	private long lastAlarmTimestamp = 0;
 	private int highestActiveAlarmLevel = 0;
+	private UserEventListener userEventMulticaster = null;
     /**
      * State machine allowed order:
      * PRE_INITIALIZE
@@ -145,6 +148,7 @@ public class EventManagerImpl implements EventManager {
 		List<Integer> eventUserIds = new ArrayList<Integer>();
 		Set<String> emailUsers = new HashSet<String>();
 
+		List<Integer> userIdsToNotify = new ArrayList<Integer>();
 		for (User user : userDao.getActiveUsers()) {
 			// Do not create an event for this user if the event type says the
 			// user should be skipped.
@@ -160,7 +164,7 @@ public class EventManagerImpl implements EventManager {
 				if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
 					for(UserEventListener l : this.userEventListeners){
 						if(l.getUserId() == user.getId()){
-							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, true, false, false, false));
+							userIdsToNotify.add(user.getId());
 						}
 					}
 					//Add to the UserEventCache if the user has recently accessed their events
@@ -169,6 +173,9 @@ public class EventManagerImpl implements EventManager {
 
 			}
 		}
+		
+		if(userEventMulticaster != null)
+		    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, true, false, false, false));
 		
 		DateTime now = new DateTime(Common.timer.currentTimeMillis());
 		for(MailingList ml : MailingListDao.instance.getAlarmMailingLists(alarmLevel)) {
@@ -291,6 +298,7 @@ public class EventManagerImpl implements EventManager {
 		while (evt != null) {
             evt.returnToNormal(time, cause);
             
+            List<Integer> userIdsToNotify = new ArrayList<Integer>();
 			for (User user : activeUsers) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
@@ -302,7 +310,7 @@ public class EventManagerImpl implements EventManager {
 						//Notify All User Event Listeners of the new event
 						for(UserEventListener l : this.userEventListeners){
 							if((l.getUserId() == user.getId())){
-								Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, true, false, false));
+							    userIdsToNotify.add(user.getId());
 		
 							}
 						}
@@ -312,6 +320,9 @@ public class EventManagerImpl implements EventManager {
 				}
 				
 			}
+			
+			if(userEventMulticaster != null)
+			    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, true, false, false));
 			
 			resetHighestAlarmLevel(time);
 			if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
@@ -345,6 +356,7 @@ public class EventManagerImpl implements EventManager {
 			
 			evt.returnToNormal(time, inactiveCause);
 			
+			List<Integer> userIdsToNotify = new ArrayList<Integer>();
 			for (User user : activeUsers) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
@@ -355,12 +367,14 @@ public class EventManagerImpl implements EventManager {
 					//Notify All User Event Listeners of the new event
 					for(UserEventListener l : this.userEventListeners){
 						if(l.getUserId() == user.getId()){
-							Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, true, false));
+							userIdsToNotify.add(user.getId());
 						}
 					}
 				
 				}
 			}
+			if(userEventMulticaster != null)
+			    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, false, true, false));
 			
 			// Call inactiveEvent handlers.
 			handleInactiveEvent(evt);
@@ -398,6 +412,7 @@ public class EventManagerImpl implements EventManager {
 		evt.setAcknowledgedTimestamp(time);
 		evt.setAlternateAckSource(alternateAckSource);
 
+		List<Integer> userIdsToNotify = new ArrayList<Integer>();
 		for (User user : userDao.getActiveUsers()) {
 			// Do not create an event for this user if the event type says the
 			// user should be skipped.
@@ -409,13 +424,14 @@ public class EventManagerImpl implements EventManager {
 				//Notify All User Event Listeners of the new event
 				for(UserEventListener l : this.userEventListeners){
 					if(l.getUserId() == user.getId()){
-						Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(user, l, evt, false, false, false, true));
+						userIdsToNotify.add(user.getId());
 					}
 				}
 				this.userEventCache.removeEvent(user.getId(), evt);
 			}
 		}
-		
+		if(userEventMulticaster != null)
+		    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, false, false, true));
 		return true;
 	}
 
@@ -807,11 +823,13 @@ public class EventManagerImpl implements EventManager {
 	public void removeListener(EventManagerListenerDefinition l) {
 		listeners.remove(l);
 	}
-	public void addUserEventListener(UserEventListener l){
+	public synchronized void addUserEventListener(UserEventListener l){
 		userEventListeners.add(l);
+		userEventMulticaster = UserEventMulticaster.add(l, userEventMulticaster);
 	}
-	public void removeUserEventListener(UserEventListener l){
+	public synchronized void removeUserEventListener(UserEventListener l){
 		userEventListeners.remove(l);
+		userEventMulticaster = UserEventMulticaster.remove(l, userEventMulticaster);
 	}
 
 	//
@@ -977,7 +995,7 @@ public class EventManagerImpl implements EventManager {
     class EventNotifyWorkItem implements WorkItem {
     	private static final String prefix = "EVENT_EVENT_NOTIFY";
     	
-    	private final User user;
+    	private final List<Integer> userIds;
     	private final UserEventListener listener;
     	private final EventInstance event;
     	private final boolean raised;
@@ -985,9 +1003,9 @@ public class EventManagerImpl implements EventManager {
     	private final boolean deactivated;
     	private final boolean acknowledged;
 
-        EventNotifyWorkItem(User user, UserEventListener listener, EventInstance event, boolean raised, 
+        EventNotifyWorkItem(List<Integer> userIds, UserEventListener listener, EventInstance event, boolean raised, 
         		boolean returnToNormal, boolean deactivated, boolean acknowledged) {
-        	this.user = user;
+        	this.userIds = userIds;
             this.listener = listener;
             this.event = event;
             this.raised = raised;
@@ -999,15 +1017,21 @@ public class EventManagerImpl implements EventManager {
 
         @Override
         public void execute() {
-        	
-        	if(raised)
-        		listener.raised(event);
-        	else if(returnToNormal)
-        		listener.returnToNormal(event);
-        	else if(deactivated)
-        		listener.deactivated(event);
-        	else if(acknowledged)
-        		listener.acknowledged(event);
+        	event.setIdsToNotify(userIds);
+        	try {
+            	if(raised)
+            		listener.raised(event);
+            	else if(returnToNormal)
+            		listener.returnToNormal(event);
+            	else if(deactivated)
+            		listener.deactivated(event);
+            	else if(acknowledged)
+            		listener.acknowledged(event);
+        	} catch(ExceptionListWrapper e) {
+                log.warn("Exceptions in user event notify work item.");
+                for(Exception e2 : e.getExceptions())
+                    log.warn("User event listener exception: " + e2.getMessage(), e2);
+            }
         }
 
         @Override
@@ -1027,7 +1051,7 @@ public class EventManagerImpl implements EventManager {
 				type = "deactivated";
 			else if(returnToNormal)
 				type = "return to normal";
-			return "Event " + type + " Notification for user: " + user.getUsername() ;
+			return "Event " + type + " Notification for event: " + event.getId();
 		}
 		
 		/* (non-Javadoc)
@@ -1035,7 +1059,7 @@ public class EventManagerImpl implements EventManager {
 		 */
 		@Override
 		public String getTaskId() {
-			return prefix + user.getId() + "-"  + event.getId();
+			return prefix + "-"  + event.getId();
 		}
 		
 		/* (non-Javadoc)

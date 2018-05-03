@@ -85,6 +85,9 @@ public class EventInstance{
     // the userEvents table.
     private boolean userNotified;
     private boolean silenced;
+    
+    //Used so that the multicaster knows what to ignore
+    private List<Integer> idsToNotify;
 
     //
     // Contextual data from the source that raised the event.
@@ -321,5 +324,11 @@ public class EventInstance{
         return context;
     }
 
-
+    public List<Integer> getIdsToNotify() {
+        return idsToNotify;
+    }
+    
+    public void setIdsToNotify(List<Integer> idsToNotify) {
+        this.idsToNotify = idsToNotify;
+    }
 }
