@@ -625,8 +625,8 @@ public class Common {
                 .setConnectTimeout(timeout).build();
 
         if (SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
-            String proxyHost = SystemSettingsDao.instance.getValue(SystemSettingsDao.instance.HTTP_CLIENT_PROXY_SERVER);
-            int proxyPort = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.instance.HTTP_CLIENT_PROXY_PORT);
+            String proxyHost = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
+            int proxyPort = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
             String username = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME);
             String password = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD);
 
