@@ -1,9 +1,12 @@
+*Version 3.4.2*
+* Setting encryption/security provider at Startup instead of if/when needed during runtime
+* Fix legacy bulk permissions page to have a limit of 1000000 if no filters are provided.
+
 *Version 3.4.1*
 * Fix unreliable attribute to fire Attribute Changed events even on first (and every other) change of attribute and include the recently changed attributes
 * Don't attempt to contact the store if the store.url is not configured.
 * All Point Value DAO SQL methods return annotations if they exist
 * Fix MySQL syntax for event handler mappings, broke in 3.4.0
-* Fix legacy bulk permissions page to have a limit of 1000000 if no filters are provided.
 
 *Version 3.4.0*
 * Prevent NPEs that had been thrown in several json imports, particularly event detectors and handlers

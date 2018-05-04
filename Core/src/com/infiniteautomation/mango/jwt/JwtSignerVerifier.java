@@ -11,7 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -50,11 +49,7 @@ public abstract class JwtSignerVerifier<T> {
     
     protected JwtSignerVerifier() {
         log = LogFactory.getLog(this.getClass());
-        
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-            Security.addProvider(new BouncyCastleProvider());
-        }
-        
+
         this.parser = Jwts.parser().require(TOKEN_TYPE_CLAIM, this.tokenType());
         
         this.keyPair = this.loadKeyPair();
