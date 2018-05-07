@@ -46,6 +46,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -418,8 +419,10 @@ public class EventHandlersDwr extends BaseDwr {
         
         Map<String, Object> otherContext = new HashMap<String, Object>();
         otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
-        if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE)
+        if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE) {
             otherContext.put("model", new HashMap<String, Object>());
+            otherContext.put(EmailHandlerRT.DO_NOT_SEND_KEY, CompiledScriptExecutor.UNCHANGED);
+        }
          
 
         final StringWriter scriptOut = new StringWriter();
@@ -456,9 +459,12 @@ public class EventHandlersDwr extends BaseDwr {
                     new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), loggingSetter, null, true);
             if (pvt.getValue() == null)
                 message = new TranslatableMessage("eventHandlers.script.nullResult");
-            else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue())
-                message = new TranslatableMessage("eventHandlers.script.successUnchanged");
-            else
+            else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue()) {
+                if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE)
+                    message = new TranslatableMessage("eventHandlers.script.successNoEmail");
+                else
+                    message = new TranslatableMessage("eventHandlers.script.successUnchanged");
+            } else
                 message = new TranslatableMessage("eventHandlers.script.success", pvt.getValue());
             //Add the script logging output
             response.addData("out", scriptOut.toString().replaceAll("\n", "<br/>"));

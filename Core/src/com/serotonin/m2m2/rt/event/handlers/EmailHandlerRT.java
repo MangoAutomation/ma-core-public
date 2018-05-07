@@ -79,6 +79,7 @@ import com.serotonin.web.mail.EmailInline;
 
 public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implements ModelTimeoutClient<EventInstance>, SetPointSource {
     private static final Log LOG = LogFactory.getLog(EmailHandlerRT.class);
+    public static final String DO_NOT_SEND_KEY = "CANCEL";
 
     private TimerTask escalationTask;
 
@@ -370,6 +371,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     context.put(pair.getValue(), dprt);
                 }
                 
+                modelContext.put(DO_NOT_SEND_KEY, CompiledScriptExecutor.UNCHANGED);
                 List<JsonImportExclusion> importExclusions = new ArrayList<JsonImportExclusion>(1);
                 importExclusions.add(new JsonImportExclusion("xid", handlerXid) {
                     @Override
@@ -380,10 +382,13 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 
                 try {
                     CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-                    CompiledScriptExecutor.execute(compiledScript, context, modelContext, Common.timer.currentTimeMillis(), 
+                    PointValueTime result = CompiledScriptExecutor.execute(compiledScript, context, modelContext, Common.timer.currentTimeMillis(), 
                             DataTypes.ALPHANUMERIC, evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp(), 
                             permissions, SetPointHandlerRT.NULL_WRITER, new ScriptLog(SetPointHandlerRT.NULL_WRITER,
                             LogLevel.FATAL), setCallback, importExclusions, false);
+                    if(result != null && result.getValue() == CompiledScriptExecutor.UNCHANGED) //The script cancelled the email
+                        return;
+                    
                 } catch(ScriptPermissionsException|ScriptException|ResultTypeException e) {
                     LOG.error("Exception running email handler script: " + e.getMessage(), e);
                 }

@@ -108,6 +108,11 @@
   Publisher events have the publisher's object stored in 'evt.context.publisher'. System events have a null evt.context.
   If the event type is defined by a module, the contents of its context should be described in the help for that module.
 </p>
+<p>
+  The whole Map&lt;String, Object&gt; model map is passed into an optionally defined script. The script can manipulate the 'model'
+  variable however it sees fit prior to the template being processed. The script can also prevent the sending of the email by doing a 
+  "return CANCEL;" or a "return UNCHANGED;"
+</p>
 <h1>Editing set point handlers</h1>
 <p>
   When an event is raised, this handler will set the value of a given settable point. The <b>Target</b> is the settable 
