@@ -3,6 +3,7 @@
 * Fix legacy bulk permissions page to have a limit of 1000000 if no filters are provided.
 * Email handler scripts can cancel the email by doing "return CANCEL;" or "return UNCHANGED;"
 * Don't set upgrades available monitor to 0 at startup before checking
+* Fix bug in removing duplicate users in upgrade 21
 
 *Version 3.4.1*
 * Fix unreliable attribute to fire Attribute Changed events even on first (and every other) change of attribute and include the recently changed attributes

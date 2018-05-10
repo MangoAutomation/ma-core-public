@@ -63,7 +63,7 @@ public class Upgrade21 extends DBUpgrade {
             });
             deleteSQL.append(");");
             Map<String, String[]> scripts = new HashMap<>();
-            if(count.getValue().intValue() > 0) {
+            if(toRemove.keySet().size() > 0) {
                 scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {deleteSQL.toString()});
                 scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {deleteSQL.toString()});
                 scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {deleteSQL.toString()});
