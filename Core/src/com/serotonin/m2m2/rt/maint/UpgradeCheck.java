@@ -29,7 +29,7 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
     private static final long PERIOD_TIMEOUT = 1000 * 60 * 60 * 24; // Run every 24 hours.
 
     public static final String UPGRADES_AVAILABLE_MONITOR_ID = "com.serotonin.m2m2.rt.maint.UpgradeCheck.COUNT";
-    private final IntegerMonitor availableUpgrades;
+    private IntegerMonitor availableUpgrades;
     
     /**
      * This method will set up the upgrade checking job. It assumes that the corresponding system setting for running
@@ -44,8 +44,6 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
 
     public UpgradeCheck() {
         super(new FixedRateTrigger(DELAY_TIMEOUT, PERIOD_TIMEOUT), "Upgrade check task", "UpgradeCheck", 0);
-        this.availableUpgrades = new IntegerMonitor(UPGRADES_AVAILABLE_MONITOR_ID, new TranslatableMessage("internal.monitor.AVAILABLE_UPGRADE_COUNT"), this);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(this.availableUpgrades);
     }
 
     @Override
@@ -59,7 +57,11 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
             else
                 Common.eventManager.returnToNormal(et, Common.timer.currentTimeMillis(),
                         EventInstance.RtnCauses.RETURN_TO_NORMAL, AlarmLevels.URGENT);
-            this.availableUpgrades.setValue(available);
+            if(this.availableUpgrades == null) {
+                this.availableUpgrades = new IntegerMonitor(UPGRADES_AVAILABLE_MONITOR_ID, new TranslatableMessage("internal.monitor.AVAILABLE_UPGRADE_COUNT"), this, available);
+                Common.MONITORED_VALUES.addIfMissingStatMonitor(this.availableUpgrades);
+            } else
+                this.availableUpgrades.setValue(available);
         }
         catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -71,6 +73,6 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
 	 */
 	@Override
 	public void reset(String monitorId) {
-		//TODO Should we do anything here?
+	    
 	}
 }
