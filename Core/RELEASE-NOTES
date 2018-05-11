@@ -6,6 +6,7 @@
 * Removing Apache commons-lang dependency in favor of commons-lang3
 * Adding ability to format values as hex using AnalogRenderer See renderer help.
 * Adding tags into RealTimeDataPointValue for use in high performance realtime data cache (REST controller access via /realtime endpoint)
+* Creating DAO for user defined filestores, access methods to file store definitions in DAO
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP

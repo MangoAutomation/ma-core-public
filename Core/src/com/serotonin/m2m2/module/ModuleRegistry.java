@@ -765,8 +765,10 @@ public class ModuleRegistry {
                     	map.put(def.getStoreName(), def);
                     }
                     for (Module module : MODULES.values()) {
-                        for (FileStoreDefinition def : module.getDefinitions(FileStoreDefinition.class))
+                        for (FileStoreDefinition def : module.getDefinitions(FileStoreDefinition.class)) {
+                            def.ensureExists();
                         	map.put(def.getStoreName(), def);
+                        }
                     }
                     for(FileStoreDefinition def : Module.getDefinitions(postDefaults, FileStoreDefinition.class)){
                     	map.put(def.getStoreName(), def);
