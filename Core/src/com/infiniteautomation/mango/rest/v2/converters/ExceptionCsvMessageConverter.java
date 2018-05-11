@@ -34,25 +34,25 @@ import com.serotonin.ShouldNeverHappenException;
 public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageConverter {
 
     final CsvMapper csvMapper;
-    
+
     final CsvSchema exceptionSchema;
     final CsvSchema restExceptionSchema;
-    
-    
+
+
     public ExceptionCsvMessageConverter() {
         this(new CsvMapper());
     }
-    
+
     public ExceptionCsvMessageConverter(CsvMapper csvMapper) {
         super(csvMapper, new MediaType("text", "csv"));
         this.csvMapper = csvMapper;
-        
+
         CsvSchema.Builder builder = CsvSchema.builder();
         builder.setUseHeader(true);
         builder.addColumn("message", ColumnType.STRING);
         builder.addColumn("stackTrace", ColumnType.ARRAY);
         this.exceptionSchema = builder.build();
-        
+
         builder = CsvSchema.builder();
         builder.setUseHeader(true);
         builder.addColumn("cause", ColumnType.STRING);
@@ -60,7 +60,7 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
         builder.addColumn("mangoStatusName", ColumnType.STRING);
         builder.addColumn("localizedMessage", ColumnType.STRING);
         this.restExceptionSchema = builder.build();
-        
+
     }
 
     /* (non-Javadoc)
@@ -70,23 +70,23 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
     public boolean canWrite(Class<?> clazz, MediaType mediaType) {
         if (!canWrite(mediaType))
             return false;
-        
+
         if(Exception.class.isAssignableFrom(clazz))
             return true;
         else
             return false;
     }
-    
+
     @Override
     protected void writeInternal(Object object, Type type, HttpOutputMessage outputMessage)
             throws IOException, HttpMessageNotWritableException {
-        
+
         MediaType contentType = outputMessage.getHeaders().getContentType();
         JsonEncoding encoding = getJsonEncoding(contentType);
         JsonGenerator generator = this.objectMapper.getFactory().createGenerator(outputMessage.getBody(), encoding);
         try {
             CsvSchema schema;
-            
+
             if(object instanceof AbstractRestV2Exception) {
                 schema = this.restExceptionSchema;
                 object = new CsvRestException((AbstractRestV2Exception)object);
@@ -103,15 +103,12 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
             throw new HttpMessageNotWritableException("Could not write content: " + ex.getMessage(), ex);
         }
     }
-    
-    /* (non-Javadoc)
-     * @see org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter#canRead(java.lang.Class, org.springframework.http.MediaType)
-     */
+
     @Override
-    public boolean canRead(Class<?> clazz, MediaType mediaType) {
+    public boolean canRead(Type type, Class<?> contextClass, MediaType mediaType) {
         return false;
     }
-    
+
     @Override
     protected Object readInternal(Class<?> clazz, HttpInputMessage inputMessage)
             throws IOException, HttpMessageNotReadableException {
@@ -123,9 +120,9 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
             throws IOException, HttpMessageNotReadableException {
         throw new ShouldNeverHappenException("Reading exceptions not supported");
     }
-    
+
     class CsvRestException {
-        
+
         @JsonProperty
         String cause;
         @JsonProperty
@@ -134,7 +131,7 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
         String mangoStatusName;
         @JsonProperty
         String localizedMessage;
-        
+
         public CsvRestException(AbstractRestV2Exception e) {
             this.cause = e.getCauseMessage();
             this.mangoStatusCode = e.getMangoStatusCode();
@@ -197,7 +194,7 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
         public void setLocalizedMessage(String localizedMessage) {
             this.localizedMessage = localizedMessage;
         }
-        
+
     }
-    
+
 }
