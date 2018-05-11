@@ -203,7 +203,7 @@ public class Permissions {
     // Event access
     //
     public static boolean hasEventTypePermission(User user, EventType eventType) {
-        return user.isAdmin() || eventType.hasPermission(user);
+        return hasAdmin(user) || eventType.hasPermission(user);
     }
 
     public static void ensureEventTypePermission(User user, EventType eventType) throws PermissionException {
