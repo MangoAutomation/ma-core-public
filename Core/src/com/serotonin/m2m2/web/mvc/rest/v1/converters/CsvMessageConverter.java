@@ -75,8 +75,8 @@ public class CsvMessageConverter extends AbstractGenericHttpMessageConverter<Lis
         MediaType contentType = inputMessage.getHeaders().getContentType();
         Charset charset = this.charsetForContentType(contentType);
 
-        List records;
-        try (CSVPojoReader in = new CSVPojoReader(new CSVReader(new InputStreamReader(inputMessage.getBody(), charset), separator, quote))) {
+        List<AbstractRestModel<?>> records;
+        try (CSVPojoReader<AbstractRestModel<?>> in = new CSVPojoReader<AbstractRestModel<?>>(new CSVReader(new InputStreamReader(inputMessage.getBody(), charset), separator, quote))) {
             records = in.readAll();
         }
         return records;
@@ -90,7 +90,7 @@ public class CsvMessageConverter extends AbstractGenericHttpMessageConverter<Lis
         Charset charset = this.charsetForContentType(contentType);
 
         if (records.size() > 0) {
-            try (CSVPojoWriter out = new CSVPojoWriter(new CSVWriter(new OutputStreamWriter(outputMessage.getBody(), charset), separator, quote))) {
+            try (CSVPojoWriter<AbstractRestModel<?>> out = new CSVPojoWriter<AbstractRestModel<?>>(new CSVWriter(new OutputStreamWriter(outputMessage.getBody(), charset), separator, quote))) {
                 out.writeAll(records);
             }
         }
