@@ -326,7 +326,10 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>versions-maven-plugin</artifactId>
-        <version>2.4</version>
+        <version>2.5</version>
+        <configuration>
+            <rulesUri>https://raw.githubusercontent.com/infiniteautomation/ma-core-public/versions-plugin-rules.xml</rulesUri>
+        </configuration>
       </plugin>
     </plugins>
   </build>
