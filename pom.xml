@@ -331,6 +331,23 @@
             <rulesUri>https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/versions-plugin-rules.xml</rulesUri>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.16</version>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.maven.doxia</groupId>
+                <artifactId>doxia-core</artifactId>
+                <version>1.6</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.doxia</groupId>
+                <artifactId>doxia-site-renderer</artifactId>
+                <version>1.6</version>
+            </dependency>
+        </dependencies>
+      </plugin>
     </plugins>
   </build>
  <issueManagement>
