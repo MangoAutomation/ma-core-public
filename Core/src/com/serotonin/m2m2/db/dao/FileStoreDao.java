@@ -31,6 +31,14 @@ public class FileStoreDao extends BaseDao {
         return ejt.query(SELECT_FILE_STORE_DEFINITIONS, new FileStoreRowMapper());
     }
     
+    public FileStore getUserFileStore(String storeName) {
+        return ejt.queryForObject(SELECT_FILE_STORE_DEFINITIONS + " where storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
+    }
+    
+    public FileStore getUserFileStoreById(int storeId) {
+        return ejt.queryForObject(SELECT_FILE_STORE_DEFINITIONS + " where id=?", new Object[] {storeId}, new int[] {Types.INTEGER}, new FileStoreRowMapper(), null);
+    }
+    
     public Map<String, FileStoreDefinition> getFileStoreMap() {
         List<FileStore> fileStores = getUserFileStores();
         Map<String, FileStoreDefinition> definitionsMap = new HashMap<String, FileStoreDefinition>();
@@ -40,7 +48,7 @@ public class FileStoreDao extends BaseDao {
         return definitionsMap;
     }
     
-    public FileStoreDefinition getFileStore(String storeName) {
+    public FileStoreDefinition getFileStoreDefinition(String storeName) {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(storeName);
         if(fsd == null) {
             FileStore fs = ejt.queryForObject(SELECT_FILE_STORE_DEFINITIONS + " where storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
@@ -70,6 +78,7 @@ public class FileStoreDao extends BaseDao {
     
     private static final String INSERT_FILE_STORE = "INSERT INTO fileStores (storeName, readPermission, writePermission) values (?, ?, ?)";
     private static final String UPDATE_FILE_STORE = "UPDATE fileStores SET storeName=?, readPermission=?, writePermission=? where id=?";
+    private static final String DELETE_FILE_STORE = "DELETE FROM fileStores WHERE ";
     
     public int saveFileStore(FileStore fs) {
         if(fs.getId() == Common.NEW_ID)
@@ -87,5 +96,13 @@ public class FileStoreDao extends BaseDao {
     private void update(FileStore fs) {
         ejt.update(UPDATE_FILE_STORE, new Object[] {fs.getStoreName(), fs.getReadPermission(), fs.getWritePermission(), fs.getId()}, 
                 new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER});
+    }
+    
+    public int deleteFileStore(String storeName) {
+        return ejt.update(DELETE_FILE_STORE + "storeName='" + storeName + "'");
+    }
+    
+    public int deleteFileStore(int storeId) {
+        return ejt.update(DELETE_FILE_STORE + "id='" + storeId + "'");
     }
 }
