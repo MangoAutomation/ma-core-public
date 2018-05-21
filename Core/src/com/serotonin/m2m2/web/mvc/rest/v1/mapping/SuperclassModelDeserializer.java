@@ -24,43 +24,46 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.SuperclassModel;
  */
 public class SuperclassModelDeserializer extends StdDeserializer<SuperclassModel<?>>{
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * 
-	 */
-	protected SuperclassModelDeserializer() {
-		super(SuperclassModel.class);
-	}
 
-	/* (non-Javadoc)
-	 * @see com.fasterxml.jackson.databind.JsonDeserializer#deserialize(com.fasterxml.jackson.core.JsonParser, com.fasterxml.jackson.databind.DeserializationContext)
-	 */
-	@Override
-	public SuperclassModel<?> deserialize(JsonParser jp,
-			DeserializationContext ctxt) throws IOException,
-			JsonProcessingException {
-		ObjectMapper mapper = (ObjectMapper) jp.getCodec();  
-		JsonNode tree = jp.readValueAsTree();
-	    ModelDefinition definition = findModelDefinition(tree.get("type").asText());
-	    return (SuperclassModel<?>) mapper.treeToValue(tree, definition.getModelClass());
-	}
+    /**
+     *
+     */
+    protected SuperclassModelDeserializer() {
+        super(SuperclassModel.class);
+    }
 
-	/**
-	 * @return
-	 * @throws ModelNotFoundException 
-	 */
-	public ModelDefinition findModelDefinition(String typeName) throws ModelNotFoundException {
-		List<ModelDefinition> definitions = ModuleRegistry.getModelDefinitions();
-		for(ModelDefinition definition : definitions){
-			if(definition.getModelTypeName().equalsIgnoreCase(typeName))
-				return definition;
-		}
-	    throw new ModelNotFoundException(typeName);
-	}
+    /* (non-Javadoc)
+     * @see com.fasterxml.jackson.databind.JsonDeserializer#deserialize(com.fasterxml.jackson.core.JsonParser, com.fasterxml.jackson.databind.DeserializationContext)
+     */
+    @Override
+    public SuperclassModel<?> deserialize(JsonParser jp,
+            DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        ObjectMapper mapper = (ObjectMapper) jp.getCodec();
+        JsonNode tree = jp.readValueAsTree();
+        JsonNode typeNode = tree.get("type");
+        if (typeNode == null) {
+            return null;
+        }
+        ModelDefinition definition = findModelDefinition(typeNode.asText());
+        return (SuperclassModel<?>) mapper.treeToValue(tree, definition.getModelClass());
+    }
+
+    /**
+     * @return
+     * @throws ModelNotFoundException
+     */
+    public ModelDefinition findModelDefinition(String typeName) throws ModelNotFoundException {
+        List<ModelDefinition> definitions = ModuleRegistry.getModelDefinitions();
+        for(ModelDefinition definition : definitions){
+            if(definition.getModelTypeName().equalsIgnoreCase(typeName))
+                return definition;
+        }
+        throw new ModelNotFoundException(typeName);
+    }
 
 }
