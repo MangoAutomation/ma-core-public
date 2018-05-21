@@ -12,7 +12,7 @@ import java.util.List;
 
 import javax.script.ScriptException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
