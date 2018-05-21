@@ -68,7 +68,8 @@ public class ConfigurationExportData {
         names.add(VIRTUAL_SERIAL_PORTS);
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class))
-            names.add(def.getElementId());
+            if(def.getInView())
+                names.add(def.getElementId());
         
         return names.toArray(new String[names.size()]);
     }
@@ -95,7 +96,8 @@ public class ConfigurationExportData {
 
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
-            elements.add(new StringStringPair(def.getDescriptionKey(), def.getElementId()));
+            if(def.getInView())
+                elements.add(new StringStringPair(def.getDescriptionKey(), def.getElementId()));
         }
         
         return elements;
