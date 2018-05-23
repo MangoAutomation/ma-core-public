@@ -6,6 +6,8 @@ package com.serotonin.m2m2.web.mvc.rest.v1.converters;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.core.ResolvableType;
 import org.springframework.http.HttpInputMessage;
@@ -18,7 +20,6 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.QueryArrayStream;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.QueryDataPageStream;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -53,12 +54,6 @@ public class CsvQueryArrayStreamMessageConverter extends AbstractGenericHttpMess
     private boolean supports(Type type) {
         ResolvableType resolvedType = ResolvableType.forType(type);
 
-        // dont support query page data stream, there's another converter for that that includes count
-        if (QueryDataPageStream.class.isAssignableFrom(resolvedType.getRawClass())) {
-            return false;
-        }
-
-
         return QueryArrayStream.class.isAssignableFrom(resolvedType.getRawClass());
     }
 
@@ -74,9 +69,12 @@ public class CsvQueryArrayStreamMessageConverter extends AbstractGenericHttpMess
     protected void writeInternal(QueryArrayStream<?> stream, Type type, HttpOutputMessage outputMessage)
             throws IOException, HttpMessageNotWritableException {
 
-        CSVPojoWriter out = new CSVPojoWriter(new CSVWriter(new OutputStreamWriter(outputMessage.getBody(), Common.UTF8_CS),separator,quote));
-        stream.streamData(out);
-        out.close();
+        MediaType contentType = outputMessage.getHeaders().getContentType();
+        Charset charset = this.charsetForContentType(contentType);
+
+        try (CSVPojoWriter out = new CSVPojoWriter(new CSVWriter(new OutputStreamWriter(outputMessage.getBody(), charset),separator,quote))) {
+            stream.streamData(out);
+        }
     }
 
     @Override
@@ -86,4 +84,13 @@ public class CsvQueryArrayStreamMessageConverter extends AbstractGenericHttpMess
         return null; //Not implemented
     }
 
+    private Charset charsetForContentType(MediaType contentType) {
+        if (contentType != null) {
+            Charset contentTypeCharset = contentType.getCharset();
+            if (contentTypeCharset != null) {
+                return contentTypeCharset;
+            }
+        }
+        return StandardCharsets.UTF_8;
+    }
 }
