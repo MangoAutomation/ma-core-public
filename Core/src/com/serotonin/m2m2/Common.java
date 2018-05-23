@@ -5,6 +5,7 @@
 package com.serotonin.m2m2;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -16,6 +17,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
@@ -567,6 +569,10 @@ public class Common {
             // Should never happen, so just wrap in a runtime exception and rethrow
             throw new ShouldNeverHappenException(e);
         }
+    }
+    
+    public static boolean verifyProperties(InputStream in, boolean signed, Map<String, String> properties) {
+        return Providers.get(IMangoLifecycle.class).verifyProperties(in, signed, properties);
     }
 
     public static boolean checkPassword(String plaintext, String hashed) {

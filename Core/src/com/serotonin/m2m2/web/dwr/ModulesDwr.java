@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -494,8 +496,9 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                     HttpGet get = new HttpGet(url);
     
                     FileOutputStream out = null;
+                    File outFile = new File(tempDir, filename);
                     try {
-                        out = new FileOutputStream(new File(tempDir, filename));
+                        out = new FileOutputStream(outFile);
                         HttpUtils4.execute(httpClient, get, out);
                         for (ModuleNotificationListener listener : listeners)
                             listener.moduleDownloaded(name, version.toString());
@@ -512,6 +515,29 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                                 out.close();
                         } catch (IOException e) {
                             // no op
+                        }
+                    }
+                    
+                    //Validate that module.properties exists and is properly readable
+                    if(!"core".equals(name)) {
+                        Map<String, String> expectedProperties = new HashMap<String, String>();
+                        expectedProperties.put("name", name);
+                        expectedProperties.put("version", version.toString());
+                        boolean signed = true;
+                        try {
+                            ZipFile module = new ZipFile(outFile);
+                            ZipEntry propertiesFile = module.getEntry(ModuleUtils.Constants.MODULE_SIGNED);
+                            if(propertiesFile == null) {
+                                signed = false;
+                                propertiesFile = module.getEntry(ModuleUtils.Constants.MODULE_PROPERTIES);
+                                if(propertiesFile == null) //TODO consider failure here?
+                                    continue;
+                            }
+                        
+                            InputStream in = module.getInputStream(propertiesFile);
+                            Common.verifyProperties(in, signed, expectedProperties);
+                        } catch(Exception e) {
+                            //TODO consider failure here?
                         }
                     }
                 }

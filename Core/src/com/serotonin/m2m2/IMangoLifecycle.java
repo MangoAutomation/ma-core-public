@@ -1,5 +1,8 @@
 package com.serotonin.m2m2;
 
+import java.io.InputStream;
+import java.util.Map;
+
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.provider.Provider;
 
@@ -49,6 +52,12 @@ public interface IMangoLifecycle extends Provider {
      * @return
      */
     public Integer dataPointLimit();
+    
+    /**
+     * Check that the properties file the input stream is from contains the properties described in verify
+     * @return
+     */
+    public boolean verifyProperties(InputStream in, boolean signed, Map<String, String> verify);
 
     /**
      * @param timeout
