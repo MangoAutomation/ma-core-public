@@ -52,179 +52,178 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 /**
  * Scan the rest packages and create a Spring Context for them
  * Exclude the swagger classes as they is in a separate context.
- * 
+ *
  * @author Terry Packer
- * 
+ *
  */
 @Configuration
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
 public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
 
 
-	private static ObjectMapper objectMapper;
+    private static ObjectMapper objectMapper;
 
-	/**
-	 * Public access to our Object Mapper.  Must Be Initialized to use.
-	 * @return
-	 */
-	public static ObjectMapper getObjectMapper(){
-		if(objectMapper == null)
-			throw new ShouldNeverHappenException("Object Mapper not initialized.");
-		else
-			return objectMapper;
-	}
+    /**
+     * Public access to our Object Mapper.  Must Be Initialized to use.
+     * @return
+     */
+    public static ObjectMapper getObjectMapper(){
+        if(objectMapper == null)
+            throw new ShouldNeverHappenException("Object Mapper not initialized.");
+        else
+            return objectMapper;
+    }
 
-	/**
-	 * To be called After all Module Definitions are loaded
-	 */
-	public static void initializeObjectMapper(){
-		objectMapper = createNewObjectMapper();
-	}
+    /**
+     * To be called After all Module Definitions are loaded
+     */
+    public static void initializeObjectMapper(){
+        objectMapper = createNewObjectMapper();
+    }
 
 
-	/**
-	 * Create a Path helper that will not URL Decode 
-	 * the context path and request URI but will
-	 * decode the path variables...
-	 * 
-	 */
+    /**
+     * Create a Path helper that will not URL Decode
+     * the context path and request URI but will
+     * decode the path variables...
+     *
+     */
     public UrlPathHelper getUrlPathHelper(){
-		UrlPathHelper helper = new UrlPathHelper();
-		helper.setUrlDecode(false);
-		return helper;
-	}
-	
-	/**
-	 * 
-	 * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS Setup
-	 * properties to be used in the Spring templates
-	 * 
-	 * @return
-	 */
-	@Bean
-	public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-		// note the static method! important!!
-		PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-		Resource[] resources = new ClassPathResource[] { new ClassPathResource(
-				"env.properties") };
-		configurer.setLocations(resources);
-		configurer.setIgnoreUnresolvablePlaceholders(true);
+        UrlPathHelper helper = new UrlPathHelper();
+        helper.setUrlDecode(false);
+        return helper;
+    }
 
-		// Create and add any properties for Spring Annotations
-		Properties properties = new Properties();
+    /**
+     *
+     * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS Setup
+     * properties to be used in the Spring templates
+     *
+     * @return
+     */
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
+        // note the static method! important!!
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        Resource[] resources = new ClassPathResource[] { new ClassPathResource(
+                "env.properties") };
+        configurer.setLocations(resources);
+        configurer.setIgnoreUnresolvablePlaceholders(true);
 
-		configurer.setProperties(properties);
-		return configurer;
-	}
+        // Create and add any properties for Spring Annotations
+        Properties properties = new Properties();
 
-	@Bean
-	public CommonsMultipartResolver multipartResolver(){
-		CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
-		commonsMultipartResolver.setDefaultEncoding("utf-8");
-		commonsMultipartResolver.setMaxUploadSize(Common.envProps.getLong("web.fileUpload.maxSize", 50000000));
-		return commonsMultipartResolver;
-	}
+        configurer.setProperties(properties);
+        return configurer;
+    }
 
-	@Override
-	public void configurePathMatch(PathMatchConfigurer configurer) {
-		configurer.setUseSuffixPatternMatch(false).setUrlPathHelper(getUrlPathHelper());
-	}
-	
-	/**
-	 * Setup Content Negotiation to map url extensions to returned data types
-	 * 
-	 * @see http
-	 *      ://spring.io/blog/2013/05/11/content-negotiation-using-spring-mvc
-	 */
-	@Override
-	public void configureContentNegotiation(
-			ContentNegotiationConfigurer configurer) {
-		// Simple strategy: only path extension is taken into account
-		configurer.favorPathExtension(false).ignoreAcceptHeader(false)
-				.favorParameter(true)
-				.useJaf(false) // TODO get maven jar to use application types
-				// dont set default to text/html, we dont want this for REST
-				// it causes Accept: */* headers to map to Accept: text/html
-				// which causes hell for finding acceptable content types
-				//.defaultContentType(MediaType.TEXT_HTML)
-				//Add Some file extension default mappings
-				// mediaType("html", MediaType.TEXT_HTML).
-				.mediaType("xml", MediaType.APPLICATION_XML) // TODO add jaxb
-																// for this to
-																// work
-				.mediaType("json", MediaType.APPLICATION_JSON)
-				.mediaType("sjson", SerotoninJsonMessageConverter.MEDIA_TYPE)
-				.mediaType("csv", new MediaType("text", "csv"));
-				//mediaType("csv", new MediaType("text", "csv", Common.UTF8_CS));
-	}
+    @Bean
+    public CommonsMultipartResolver multipartResolver(){
+        CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
+        commonsMultipartResolver.setDefaultEncoding("utf-8");
+        commonsMultipartResolver.setMaxUploadSize(Common.envProps.getLong("web.fileUpload.maxSize", 50000000));
+        return commonsMultipartResolver;
+    }
 
-	
-	/**
-	 * Configure the Message Converters for the API for now only JSON
-	 */
-	@Override
-	public void configureMessageConverters(
-			List<HttpMessageConverter<?>> converters) {
-		
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer.setUseSuffixPatternMatch(false).setUrlPathHelper(getUrlPathHelper());
+    }
+
+    /**
+     * Setup Content Negotiation to map url extensions to returned data types
+     *
+     * @see http
+     *      ://spring.io/blog/2013/05/11/content-negotiation-using-spring-mvc
+     */
+    @Override
+    public void configureContentNegotiation(
+            ContentNegotiationConfigurer configurer) {
+        // Simple strategy: only path extension is taken into account
+        configurer.favorPathExtension(false).ignoreAcceptHeader(false)
+        .favorParameter(true)
+        .useJaf(false) // TODO get maven jar to use application types
+        // dont set default to text/html, we dont want this for REST
+        // it causes Accept: */* headers to map to Accept: text/html
+        // which causes hell for finding acceptable content types
+        //.defaultContentType(MediaType.TEXT_HTML)
+        //Add Some file extension default mappings
+        // mediaType("html", MediaType.TEXT_HTML).
+        .mediaType("xml", MediaType.APPLICATION_XML) // TODO add jaxb
+        // for this to
+        // work
+        .mediaType("json", MediaType.APPLICATION_JSON)
+        .mediaType("sjson", Common.MediaTypes.SEROTONIN_JSON_OLD)
+        .mediaType("csv", Common.MediaTypes.CSV);
+    }
+
+
+    /**
+     * Configure the Message Converters for the API for now only JSON
+     */
+    @Override
+    public void configureMessageConverters(
+            List<HttpMessageConverter<?>> converters) {
+
         converters.add(new ResourceHttpMessageConverter());
-		converters.add(new MappingJackson2HttpMessageConverter(getObjectMapper()));
-		converters.add(new CsvMessageConverter());
-		converters.add(new CsvRowMessageConverter());
-		converters.add(new CsvQueryArrayStreamMessageConverter());
-		converters.add(new CsvDataPageQueryStreamMessageConverter());
-		converters.add(new ByteArrayHttpMessageConverter());
-		converters.add(new HtmlHttpMessageConverter());
-		converters.add(new SerotoninJsonMessageConverter());
-		converters.add(new ExceptionCsvMessageConverter());
-		
-		//Now is a good time to register our Sero Json Converter
-		Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
-		
-	}
+        converters.add(new MappingJackson2HttpMessageConverter(getObjectMapper()));
+        converters.add(new CsvMessageConverter());
+        converters.add(new CsvRowMessageConverter());
+        converters.add(new CsvQueryArrayStreamMessageConverter());
+        converters.add(new CsvDataPageQueryStreamMessageConverter());
+        converters.add(new ByteArrayHttpMessageConverter());
+        converters.add(new HtmlHttpMessageConverter());
+        converters.add(new SerotoninJsonMessageConverter());
+        converters.add(new ExceptionCsvMessageConverter());
 
-	
-	/**
-	 * Create an instance of the Object Mapper.
-	 * Used locally when starting Spring but may also be used for testing.
-	 * 
-	 * Note: This is NOT the same Object Mapper instance used within a running Mango.
-	 * XXX J.W. Seems to be used inside the REST controller to me?
-	 * 
-	 * @return
-	 */
-	public static ObjectMapper createNewObjectMapper() {
-		// For raw Jackson
-		ObjectMapper objectMapper = new ObjectMapper();
-		if(Common.envProps.getBoolean("rest.indentJSON", false))
-			objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        //Now is a good time to register our Sero Json Converter
+        Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
 
-		// JScience
-		JScienceModule jScienceModule = new JScienceModule();
-		objectMapper.registerModule(jScienceModule);
+    }
 
-		// Mango Core JSON Modules
-		MangoCoreModule mangoCore = new MangoCoreModule();
-		objectMapper.registerModule(mangoCore);
-		MangoRestV2JacksonModule mangoCoreV2 = new MangoRestV2JacksonModule();
-		objectMapper.registerModule(mangoCoreV2);
-		
-		//Setup Module Defined JSON Modules
-		List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
-		for(JacksonModuleDefinition def : defs) {
-		    if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.REST)
-		        objectMapper.registerModule(def.getJacksonModule());
-		}
 
-		//Always output dates in ISO 8601
-		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-		objectMapper.setDateFormat(dateFormat);
+    /**
+     * Create an instance of the Object Mapper.
+     * Used locally when starting Spring but may also be used for testing.
+     *
+     * Note: This is NOT the same Object Mapper instance used within a running Mango.
+     * XXX J.W. Seems to be used inside the REST controller to me?
+     *
+     * @return
+     */
+    public static ObjectMapper createNewObjectMapper() {
+        // For raw Jackson
+        ObjectMapper objectMapper = new ObjectMapper();
+        if(Common.envProps.getBoolean("rest.indentJSON", false))
+            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        // JScience
+        JScienceModule jScienceModule = new JScienceModule();
+        objectMapper.registerModule(jScienceModule);
+
+        // Mango Core JSON Modules
+        MangoCoreModule mangoCore = new MangoCoreModule();
+        objectMapper.registerModule(mangoCore);
+        MangoRestV2JacksonModule mangoCoreV2 = new MangoRestV2JacksonModule();
+        objectMapper.registerModule(mangoCoreV2);
+
+        //Setup Module Defined JSON Modules
+        List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
+        for(JacksonModuleDefinition def : defs) {
+            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.REST)
+                objectMapper.registerModule(def.getJacksonModule());
+        }
+
+        //Always output dates in ISO 8601
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        objectMapper.setDateFormat(dateFormat);
 
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
-		
-		//This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		return objectMapper;
-	}
+
+        //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return objectMapper;
+    }
 }

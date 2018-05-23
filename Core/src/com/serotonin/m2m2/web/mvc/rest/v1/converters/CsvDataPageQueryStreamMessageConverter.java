@@ -28,7 +28,7 @@ import au.com.bytecode.opencsv.CSVWriter;
  */
 public class CsvDataPageQueryStreamMessageConverter extends AbstractGenericHttpMessageConverter<QueryDataPageStream<?>>
 {
-    public static final MediaType MEDIA_TYPE = new MediaType("text", "csv");
+    public static final MediaType MEDIA_TYPE = Common.MediaTypes.CSV;
     private final char separator, quote;
 
     public CsvDataPageQueryStreamMessageConverter() {

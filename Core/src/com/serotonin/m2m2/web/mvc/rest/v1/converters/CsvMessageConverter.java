@@ -19,6 +19,7 @@ import org.springframework.http.converter.AbstractGenericHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoReader;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVPojoWriter;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
@@ -31,7 +32,6 @@ import au.com.bytecode.opencsv.CSVWriter;
  * @author Jared Wiltshire
  */
 public class CsvMessageConverter extends AbstractGenericHttpMessageConverter<List<AbstractRestModel<?>>> {
-    public static final MediaType MEDIA_TYPE = new MediaType("text", "csv");
     private final char separator, quote;
 
     public CsvMessageConverter() {
@@ -39,7 +39,7 @@ public class CsvMessageConverter extends AbstractGenericHttpMessageConverter<Lis
     }
 
     public CsvMessageConverter(char separator, char quote) {
-        super(MEDIA_TYPE);
+        super(Common.MediaTypes.CSV);
         this.separator = separator;
         this.quote = quote;
     }

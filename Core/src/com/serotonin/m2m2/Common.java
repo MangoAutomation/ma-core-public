@@ -37,6 +37,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -773,6 +774,18 @@ public class Common {
 
     protected static void setDispatcherContext(ApplicationContext context) {
         dispatcherContext = context;
+    }
+
+    // TODO Mango 3.5 - Dont use in modules until Mango 3.5
+    public static final class MediaTypes {
+        private MediaTypes() {}
+
+        public static final MediaType CSV = new MediaType("text", "csv");
+        public static final MediaType GENERIC_CSV = new MediaType("text", "vnd.infinite-automation-systems.mango.generic-csv");
+        public static final MediaType SEROTONIN_JSON = new MediaType("application", "vnd.infinite-automation-systems.mango.serotonin-json");
+
+        // TODO Mango 3.5 remove this mime type - should be vendor prefixed
+        public static final MediaType SEROTONIN_JSON_OLD = new MediaType("application", "sero-json");
     }
 
 }
