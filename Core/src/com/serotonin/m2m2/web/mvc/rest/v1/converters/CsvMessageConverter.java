@@ -63,9 +63,13 @@ public class CsvMessageConverter extends AbstractGenericHttpMessageConverter<Lis
 
     private boolean supports(Type type) {
         ResolvableType resolvedType = ResolvableType.forType(type);
-        ResolvableType supportedType = ResolvableType.forClassWithGenerics(List.class, AbstractRestModel.class);
 
-        return supportedType.isAssignableFrom(resolvedType);
+        boolean collectionClassSupported = List.class.isAssignableFrom(resolvedType.getRawClass());
+        if (!collectionClassSupported) {
+            return false;
+        }
+
+        return AbstractRestModel.class.isAssignableFrom(resolvedType.getGeneric(0).getRawClass());
     }
 
     @Override
