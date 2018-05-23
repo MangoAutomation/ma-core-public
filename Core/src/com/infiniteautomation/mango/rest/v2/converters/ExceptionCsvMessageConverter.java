@@ -45,7 +45,7 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
     }
 
     public ExceptionCsvMessageConverter(CsvMapper csvMapper) {
-        super(csvMapper, Common.MediaTypes.CSV);
+        super(csvMapper, Common.MediaTypes.CSV_V1);
         this.csvMapper = csvMapper;
 
         CsvSchema.Builder builder = CsvSchema.builder();

@@ -28,7 +28,6 @@ import au.com.bytecode.opencsv.CSVWriter;
  */
 public class CsvDataPageQueryStreamMessageConverter extends AbstractGenericHttpMessageConverter<QueryDataPageStream<?>>
 {
-    public static final MediaType MEDIA_TYPE = Common.MediaTypes.CSV;
     private final char separator, quote;
 
     public CsvDataPageQueryStreamMessageConverter() {
@@ -36,7 +35,7 @@ public class CsvDataPageQueryStreamMessageConverter extends AbstractGenericHttpM
     }
 
     public CsvDataPageQueryStreamMessageConverter(char separator, char quote) {
-        super(MEDIA_TYPE);
+        super(Common.MediaTypes.CSV_V1);
         this.separator = separator;
         this.quote = quote;
     }

@@ -35,7 +35,7 @@ public class CsvQueryArrayStreamMessageConverter extends AbstractGenericHttpMess
     }
 
     public CsvQueryArrayStreamMessageConverter(char separator, char quote) {
-        super(Common.MediaTypes.CSV);
+        super(Common.MediaTypes.CSV_V1);
         this.separator = separator;
         this.quote = quote;
     }

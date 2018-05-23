@@ -37,7 +37,7 @@ AbstractHttpMessageConverter<AbstractRestModel<?>> {
     }
 
     public CsvRowMessageConverter(char separator, char quote) {
-        super(Common.MediaTypes.CSV);
+        super(Common.MediaTypes.CSV_V1);
         this.separator = separator;
         this.quote = quote;
     }
