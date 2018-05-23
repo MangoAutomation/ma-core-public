@@ -37,126 +37,126 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public abstract class MangoVoRestController<VO extends AbstractBasicVO, MODEL, DAO extends AbstractBasicDao<VO>> extends MangoRestController implements IMangoVoRestController<VO, MODEL, DAO>{
 
-	protected DAO dao;
-	
-	//Map of keys -> model members to value -> Vo member/sql column
-	protected Map<String,String> modelMap;
-	//Map of Vo member/sql column to value converter
-	protected Map<String, SQLColumnQueryAppender> appenders;
+    protected DAO dao;
 
-	/**
-	 * Construct a Controller using the default callback
-	 * @param dao
-	 */
-	public MangoVoRestController(DAO dao){
-		this.dao = dao;
-		this.modelMap = new HashMap<String,String>();
-		this.appenders = new HashMap<String, SQLColumnQueryAppender>();
-	}
+    //Map of keys -> model members to value -> Vo member/sql column
+    protected Map<String,String> modelMap;
+    //Map of Vo member/sql column to value converter
+    protected Map<String, SQLColumnQueryAppender> appenders;
 
-	/**
-	 * Get the Query Stream for Streaming an array of data
-	 * @param query
-	 * @return
-	 */
-	protected QueryStream<VO, MODEL, DAO> getStream(ASTNode root){
-		return this.getStream(root, new VoStreamCallback<VO, MODEL, DAO>(this));
-	}
-	
-	/**
-	 * Get the Query Stream for Streaming an array of data
-	 * @param query
-	 * @return
-	 */
-	protected QueryStream<VO, MODEL, DAO> getStream(ASTNode root, VoStreamCallback<VO, MODEL, DAO> callback){
-		QueryStream<VO, MODEL, DAO> stream = new QueryStream<VO, MODEL, DAO>(dao, this, root, callback);
-		//Ensure its ready
-		stream.setupQuery();
-		return stream;
-	}
-	
-	/**
-	 * Get a Stream that is more like a result set with a count
-	 * @param query
-	 * @return
-	 */
-	protected PageQueryStream<VO, MODEL, DAO> getPageStream(ASTNode root){
-		return getPageStream(root, new VoStreamCallback<VO, MODEL, DAO>(this));
-	}
+    /**
+     * Construct a Controller using the default callback
+     * @param dao
+     */
+    public MangoVoRestController(DAO dao){
+        this.dao = dao;
+        this.modelMap = new HashMap<String,String>();
+        this.appenders = new HashMap<String, SQLColumnQueryAppender>();
+    }
 
-	/**
-	 * Get a Stream that is more like a result set with a count
-	 * @param query
-	 * @return
-	 */
-	protected PageQueryStream<VO, MODEL, DAO> getPageStream(ASTNode node, VoStreamCallback<VO, MODEL, DAO> callback){
-		PageQueryStream<VO, MODEL, DAO> stream = new PageQueryStream<VO, MODEL, DAO>(dao, this, node, callback);
-		//Ensure its ready
-		stream.setupQuery();
-		return stream;
-	}
-	
-	
-	@ApiOperation(
-			value = "Get Explaination For Query",
-			notes = "What is Query-able on this model"
-			)
-	@ApiResponses(value = { 
-	@ApiResponse(code = 200, message = "Ok"),
-	@ApiResponse(code = 403, message = "User does not have access")
-	})
-	@RequestMapping(method = RequestMethod.GET, produces={"application/json"}, value = "/explain-query")
+    /**
+     * Get the Query Stream for Streaming an array of data
+     * @param query
+     * @return
+     */
+    protected QueryStream<VO, MODEL, DAO> getStream(ASTNode root){
+        return this.getStream(root, new VoStreamCallback<VO, MODEL, DAO>(this));
+    }
+
+    /**
+     * Get the Query Stream for Streaming an array of data
+     * @param query
+     * @return
+     */
+    protected QueryStream<VO, MODEL, DAO> getStream(ASTNode root, VoStreamCallback<VO, MODEL, DAO> callback){
+        QueryStream<VO, MODEL, DAO> stream = new QueryStream<VO, MODEL, DAO>(dao, this, root, callback);
+        //Ensure its ready
+        stream.setupQuery();
+        return stream;
+    }
+
+    /**
+     * Get a Stream that is more like a result set with a count
+     * @param query
+     * @return
+     */
+    protected PageQueryStream<VO, MODEL, DAO> getPageStream(ASTNode root){
+        return getPageStream(root, new VoStreamCallback<VO, MODEL, DAO>(this));
+    }
+
+    /**
+     * Get a Stream that is more like a result set with a count
+     * @param query
+     * @return
+     */
+    protected PageQueryStream<VO, MODEL, DAO> getPageStream(ASTNode node, VoStreamCallback<VO, MODEL, DAO> callback){
+        PageQueryStream<VO, MODEL, DAO> stream = new PageQueryStream<VO, MODEL, DAO>(dao, this, node, callback);
+        //Ensure its ready
+        stream.setupQuery();
+        return stream;
+    }
+
+
+    @ApiOperation(
+            value = "Get Explaination For Query",
+            notes = "What is Query-able on this model"
+            )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Ok"),
+            @ApiResponse(code = 403, message = "User does not have access")
+    })
+    @RequestMapping(method = RequestMethod.GET, value = "/explain-query")
     public ResponseEntity<TableModel> getTableModel(HttpServletRequest request) {
-        
+
         RestProcessResult<TableModel> result = new RestProcessResult<TableModel>(HttpStatus.OK);
-        
+
         this.checkUser(request, result);
         if(result.isOk()){
- 	        result.addRestMessage(getSuccessMessage());
-	        return result.createResponseEntity(this.getQueryAttributeModel());
+            result.addRestMessage(getSuccessMessage());
+            return result.createResponseEntity(this.getQueryAttributeModel());
         }
-        
+
         return result.createResponseEntity();
     }
-	
-	/**
-	 * Get the Table Model
-	 * @return
-	 */
-	protected TableModel getQueryAttributeModel(){
-		TableModel model = this.dao.getTableModel();
-	
-		
-		//Add in our mappings
-		Iterator<String> it = this.modelMap.keySet().iterator();
-		while(it.hasNext()){
-			String modelMember = it.next();
-			String mappedTo = this.modelMap.get(modelMember);
-			for(QueryAttribute attribute : model.getAttributes()){
-				if(attribute.getColumnName().equals(mappedTo)){
-					attribute.addAlias(modelMember);
-				}
-			}
-		}
-		return model;
-	}
 
-	@Override
-	public Map<String,String> getModelMap(){
-		return this.modelMap;
-	}
-	
-	@Override
-	public Map<String, SQLColumnQueryAppender> getAppenders(){
-		return this.appenders;
-	}
-	
-	/**
-	 * Create a Model
-	 * @param vo
-	 * @return
-	 */
-	@Override
-	public abstract MODEL createModel(VO vo);
-	
+    /**
+     * Get the Table Model
+     * @return
+     */
+    protected TableModel getQueryAttributeModel(){
+        TableModel model = this.dao.getTableModel();
+
+
+        //Add in our mappings
+        Iterator<String> it = this.modelMap.keySet().iterator();
+        while(it.hasNext()){
+            String modelMember = it.next();
+            String mappedTo = this.modelMap.get(modelMember);
+            for(QueryAttribute attribute : model.getAttributes()){
+                if(attribute.getColumnName().equals(mappedTo)){
+                    attribute.addAlias(modelMember);
+                }
+            }
+        }
+        return model;
+    }
+
+    @Override
+    public Map<String,String> getModelMap(){
+        return this.modelMap;
+    }
+
+    @Override
+    public Map<String, SQLColumnQueryAppender> getAppenders(){
+        return this.appenders;
+    }
+
+    /**
+     * Create a Model
+     * @param vo
+     * @return
+     */
+    @Override
+    public abstract MODEL createModel(VO vo);
+
 }

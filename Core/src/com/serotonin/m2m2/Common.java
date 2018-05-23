@@ -810,6 +810,11 @@ public class Common {
             }
         }
 
+        // use these for produces/consumes annotations
+        public static final String CSV_VALUE = "text/csv";
+        public static final String SEROTONIN_JSON_VALUE = "application/vnd.infinite-automation-systems.mango.serotonin-json";
+        public static final String SEROTONIN_JSON_OLD_VALUE = "application/sero-json";
+
         // TODO Mango 3.5 remove null from compatible versions, only allow explicit version=1
         public static final MediaType CSV_V1 = new VersionedMediaType("text", "csv", "1", (String) null);
         public static final MediaType CSV_V2 = new VersionedMediaType("text", "csv", "2", (String) null);
