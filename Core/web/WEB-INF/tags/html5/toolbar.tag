@@ -50,7 +50,7 @@
   </c:if>
   <c:if test="${!empty sessionUser}">
     <div class="user-nav">
-      <span class="username"><fmt:message key="header.user"/>: <strong>${sessionUser.username}</strong></span>
+      <span class="username"><fmt:message key="header.user"/>: <strong>${fn:escapeXml(sessionUser.username)}</strong></span>
       <m2m2:html5menuItem id="logoutMi" href="#" onclick="getElementById('logout-form').submit()" png="control-power" key="header.logout"/>
         <img id="userMutedIcon" class="ptr" <%-- We don't have ability to play a sound --%> />
         <div id="homeWidget" style="display: inline;" >

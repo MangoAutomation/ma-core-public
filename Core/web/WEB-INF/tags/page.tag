@@ -44,7 +44,7 @@
 <html>
 <head>
   <title><c:choose>
-    <c:when test="${!empty instanceDescription}">${instanceDescription}</c:when>
+    <c:when test="${!empty instanceDescription}">${fn:escapeXml(instanceDescription)} - boooooobs</c:when>
     <c:otherwise><fmt:message key="header.title"/></c:otherwise>
   </c:choose></title>
   

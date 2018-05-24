@@ -25,7 +25,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title><c:choose><c:when test="${!empty instanceDescription}">${instanceDescription}</c:when>
+        <title><c:choose><c:when test="${!empty instanceDescription}">${fn:escapeXml(instanceDescription)}</c:when>
         <c:otherwise><fmt:message key="header.title"/></c:otherwise></c:choose></title>
         <meta name="description" content="Mango Automation from Infinite Automation Systems">
         <meta name="copyright" content="&copy;2015 Infinite Automation Systems, Inc.">

@@ -27,7 +27,7 @@
 			<div style="position: relative; width: 100%; height: 100%">
 				<span
 					style="position: absolute; bottom: 0px; right: 0px; white-space: nowrap;"
-					class="smallTitle marR">${instanceDescription}</span>
+					class="smallTitle marR">${fn:escapeXml(instanceDescription)}</span>
 			</div>
 		</c:if>
 	</div>

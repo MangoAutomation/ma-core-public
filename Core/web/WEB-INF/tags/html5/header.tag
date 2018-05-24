@@ -8,7 +8,7 @@
 
 <header>
 <img id="application_logo" src="<%=Common.applicationLogo%>?v=${lastUpgrade}" alt="Logo" />
-<c:if test="${!empty instanceDescription}"><span class="instance-description">${instanceDescription}</span></c:if>
+<c:if test="${!empty instanceDescription}"><span class="instance-description">${fn:escapeXml(instanceDescription)}</span></c:if>
 <div class="event-summary">
     <div class="level-summary none-event" style="display:none"></div>
     <div class="level-summary information-event" style="display:none"></div>
