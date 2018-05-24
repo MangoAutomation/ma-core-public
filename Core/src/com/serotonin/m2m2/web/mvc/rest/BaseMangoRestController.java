@@ -51,6 +51,7 @@ public abstract class BaseMangoRestController {
 
         // remove format=x e.g. format=csv parameter
         queryString = FORMAT_PARAMETER_PATTERN.matcher(queryString).replaceFirst("");
+        if (queryString.isEmpty()) return DEFAULT_NODE;
 
         RQLParser parser = new RQLParser();
 
