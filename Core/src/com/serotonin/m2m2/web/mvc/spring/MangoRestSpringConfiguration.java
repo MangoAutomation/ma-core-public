@@ -136,24 +136,22 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
      *      ://spring.io/blog/2013/05/11/content-negotiation-using-spring-mvc
      */
     @Override
-    public void configureContentNegotiation(
-            ContentNegotiationConfigurer configurer) {
-        // Simple strategy: only path extension is taken into account
-        configurer.favorPathExtension(false).ignoreAcceptHeader(false)
-        .favorParameter(true)
-        .useJaf(false) // TODO get maven jar to use application types
-        // dont set default to text/html, we dont want this for REST
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        // dont set defaultContentType to text/html, we dont want this for REST
         // it causes Accept: */* headers to map to Accept: text/html
         // which causes hell for finding acceptable content types
-        //.defaultContentType(MediaType.TEXT_HTML)
-        //Add Some file extension default mappings
-        // mediaType("html", MediaType.TEXT_HTML).
-        .mediaType("xml", MediaType.APPLICATION_XML) // TODO add jaxb
-        // for this to
-        // work
-        .mediaType("json", MediaType.APPLICATION_JSON)
+
+        configurer
+        .favorPathExtension(false)
+        .ignoreAcceptHeader(false)
+        .favorParameter(true)
+        .useJaf(false)
+        //.mediaType("html", MediaType.TEXT_HTML) TODO should we re-enable this?
+        .mediaType("xml", MediaType.APPLICATION_XML)
+        .mediaType("json", MediaType.APPLICATION_JSON_UTF8)
         .mediaType("sjson", Common.MediaTypes.SEROTONIN_JSON_OLD)
-        .mediaType("csv", Common.MediaTypes.CSV_V1); // TODO Mango 3.5 change to V2
+        .mediaType("csv", Common.MediaTypes.CSV_V1) // TODO Mango 3.5 change to V2
+        .mediaType("csv2", Common.MediaTypes.CSV_V2);
     }
 
 
