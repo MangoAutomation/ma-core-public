@@ -11,6 +11,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -61,7 +62,7 @@ public class UserDao extends AbstractDao<User> {
     public User getUser(String username) {
         if (username == null) return null;
 
-        return userCache.computeIfAbsent(username, u -> {
+        return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
             return queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
                     new UserRowMapper(), null);
         });
@@ -229,7 +230,7 @@ public class UserDao extends AbstractDao<User> {
                 exireSessionsForUser(old);
             }
 
-            userCache.remove(old.getUsername());
+            userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
 
             if (handler != null)
                 handler.notify("update", user);
@@ -279,7 +280,7 @@ public class UserDao extends AbstractDao<User> {
 
         // expire the user's sessions
         exireSessionsForUser(user);
-        userCache.remove(user.getUsername());
+        userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
     }
 
     public void revokeTokens(User user) {
@@ -300,7 +301,7 @@ public class UserDao extends AbstractDao<User> {
             context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.AUTH_TOKEN)));
         }
 
-        userCache.remove(user.getUsername());
+        userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
     }
 
     public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
@@ -327,7 +328,7 @@ public class UserDao extends AbstractDao<User> {
 
         // expire the user's sessions
         exireSessionsForUser(user);
-        userCache.remove(user.getUsername());
+        userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
     }
 
     public void recordLogin(User user) {
@@ -341,7 +342,7 @@ public class UserDao extends AbstractDao<User> {
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", new Object[] { homeUrl, userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
-        userCache.put(user.getUsername(), user);
+        userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -349,7 +350,7 @@ public class UserDao extends AbstractDao<User> {
         ejt.update("UPDATE users SET muted=? WHERE id=?", new Object[] { boolToChar(muted), userId });
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
-        userCache.put(user.getUsername(), user);
+        userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
     }
 
     @Override
