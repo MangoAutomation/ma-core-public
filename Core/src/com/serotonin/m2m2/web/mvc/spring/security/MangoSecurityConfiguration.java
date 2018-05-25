@@ -27,6 +27,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
@@ -599,6 +600,15 @@ public class MangoSecurityConfiguration {
             .frameOptions().disable()
             .cacheControl().disable();
 
+        }
+
+        String contentSecurityPolicy = Common.envProps.getString("web.security.contentSecurityPolicy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src ws: wss: 'self'");
+        if (!contentSecurityPolicy.isEmpty()) {
+            HeadersConfigurer<HttpSecurity>.ContentSecurityPolicyConfig cspConfig = http.headers().contentSecurityPolicy(contentSecurityPolicy);
+            boolean contentSecurityPolicyReportOnly = Common.envProps.getBoolean("web.security.contentSecurityPolicy.reportOnly", false);
+            if (contentSecurityPolicyReportOnly) {
+                cspConfig.reportOnly();
+            }
         }
     }
 
