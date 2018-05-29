@@ -52,6 +52,9 @@ public class TranslateTag extends TagSupport {
             if (escapeDQuotes)
                 s = Functions.dquotEncode(s);
 
+            //We do not want it encoding html
+            s = Functions.escapeLessThan(s);
+            
             try {
                 pageContext.getOut().write(s);
             }
