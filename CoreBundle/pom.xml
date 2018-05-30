@@ -252,7 +252,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>datafile-ds</artifactId>
-			<version>3.4.1-SNAPSHOT</version>
+			<version>3.4.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -336,7 +336,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>persistent-pub-ds</artifactId>
-			<version>3.4.2-SNAPSHOT</version>
+			<version>3.4.4-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -354,7 +354,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>scripting-ds</artifactId>
-			<version>3.4.1-SNAPSHOT</version>
+			<version>3.4.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -433,7 +433,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mangoes-configuration</artifactId>
-			<version>3.4.1-SNAPSHOT</version>
+			<version>3.4.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
         <dependency>
