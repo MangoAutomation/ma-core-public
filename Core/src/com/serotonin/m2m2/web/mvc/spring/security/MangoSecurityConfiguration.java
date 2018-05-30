@@ -15,6 +15,7 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -212,7 +213,8 @@ public class MangoSecurityConfiguration {
         return new PermissionExceptionFilter();
     }
 
-    @Bean
+    @Primary
+    @Bean("restObjectMapper")
     public ObjectMapper objectMapper() {
         return MangoRestSpringConfiguration.getObjectMapper();
     }
