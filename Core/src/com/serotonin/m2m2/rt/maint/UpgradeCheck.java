@@ -11,6 +11,7 @@ import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -51,7 +52,9 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
         try {
         	int available = ModulesDwr.upgradesAvailable();
             if (available > 0) {
-                TranslatableMessage m = new TranslatableMessage("modules.event.upgrades");
+                
+                TranslatableMessage m = new TranslatableMessage("modules.event.upgrades", 
+                        ModuleRegistry.getModule("mangoUI") != null ? "/ui/administration/modules" : "/modules.shtm");
                 SystemEventType.raiseEvent(et, Common.timer.currentTimeMillis(), true, m);
             }
             else
