@@ -563,14 +563,18 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 else
                     throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());
             } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
-                //Okay, no changes rescheduled the timer. Get a value, reschedule
+                //Okay, no changes rescheduled the timer. Get a value,
                 if(pointValue != null) {
                     value = pointValue.getValue();
                     if(vo.getPointLocator().getDataTypeId() == DataTypes.NUMERIC)
                         toleranceOrigin = pointValue.getDoubleValue();
                 } else
                     value = null;
-                rescheduleChangeInterval(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod()));
+
+                if(this.timer == null) // ...and reschedule
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), createIntervalLoggingTimeoutClient());
+                else
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), createIntervalLoggingTimeoutClient(), timer);
             } else
                 value = null;
 
