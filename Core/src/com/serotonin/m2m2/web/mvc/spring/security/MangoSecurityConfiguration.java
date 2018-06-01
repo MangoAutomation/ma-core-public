@@ -5,6 +5,7 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -66,6 +67,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
@@ -231,6 +233,34 @@ public class MangoSecurityConfiguration {
         return firewall;
     }
 
+    @SuppressWarnings("deprecation")
+    @Bean("ipRateLimiter")
+    public RateLimiter<String> ipRateLimiter() {
+        if (!SystemSettingsDao.instance.getBooleanValue("rest.rateLimit.anonymous.enabled", true)) {
+            return null;
+        }
+
+        return new RateLimiter<>(
+                Common.envProps.getLong("rest.rateLimit.anonymous.burstCapacity", 10),
+                Common.envProps.getLong("rest.rateLimit.anonymous.refillQuanitity", 2),
+                Common.envProps.getLong("rest.rateLimit.anonymous.refillPeriod", 1),
+                Common.envProps.getTimeUnitValue("rest.rateLimit.anonymous.refillPeriod", TimeUnit.SECONDS));
+    }
+
+    @SuppressWarnings("deprecation")
+    @Bean("userRateLimiter")
+    public RateLimiter<Integer> userRateLimiter() {
+        if (!SystemSettingsDao.instance.getBooleanValue("rest.rateLimit.user.enabled", false)) {
+            return null;
+        }
+
+        return new RateLimiter<>(
+                Common.envProps.getLong("rest.rateLimit.user.burstCapacity", 20),
+                Common.envProps.getLong("rest.rateLimit.user.refillQuanitity", 10),
+                Common.envProps.getLong("rest.rateLimit.user.refillPeriod", 1),
+                Common.envProps.getTimeUnitValue("rest.rateLimit.user.refillPeriod", TimeUnit.SECONDS));
+    }
+
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
     // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
     // persisted in the session inside the SecurityContext. This security configuration allows the JWT token authentication
@@ -238,19 +268,22 @@ public class MangoSecurityConfiguration {
     @Configuration
     @Order(1)
     public static class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
+        @Autowired
         AccessDeniedHandler accessDeniedHandler;
+        @Autowired
         AuthenticationEntryPoint authenticationEntryPoint = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);
+        @Autowired
         CorsConfigurationSource corsConfigurationSource;
+        @Autowired
         HttpFirewall httpFirewall;
 
         @Autowired
-        public void init(MangoRestAccessDeniedHandler accessDeniedHandler,
-                CorsConfigurationSource corsConfigurationSource,
-                HttpFirewall httpFirewall) {
-            this.accessDeniedHandler = accessDeniedHandler;
-            this.corsConfigurationSource = corsConfigurationSource;
-            this.httpFirewall = httpFirewall;
-        }
+        @Qualifier("ipRateLimiter")
+        RateLimiter<String> ipRateLimiter;
+
+        @Autowired
+        @Qualifier("userRateLimiter")
+        RateLimiter<Integer> userRateLimiter;
 
         @Bean(name=BeanIds.AUTHENTICATION_MANAGER)
         @Override
@@ -307,7 +340,8 @@ public class MangoSecurityConfiguration {
             .authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler)
             .and()
-            .addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
+            .addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class)
+            .addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
 
             //Configure the headers
             configureHeaders(http);
@@ -322,43 +356,36 @@ public class MangoSecurityConfiguration {
     @Configuration
     @Order(2)
     public static class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
+        @Autowired
         AuthenticationSuccessHandler authenticationSuccessHandler;
+        @Autowired
         AuthenticationFailureHandler authenticationFailureHandler;
+        @Autowired
         AccessDeniedHandler accessDeniedHandler;
+        @Autowired
         CorsConfigurationSource corsConfigurationSource;
+        @Autowired
         JsonLoginConfigurer jsonLoginConfigurer;
+        @Autowired
         LogoutHandler logoutHandler;
+        @Autowired
         LogoutSuccessHandler logoutSuccessHandler;
+        @Autowired
         PermissionExceptionFilter permissionExceptionFilter;
+        @Autowired
         SessionRegistry sessionRegistry;
+        @Autowired
         SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
+        @Autowired
         HttpFirewall httpFirewall;
 
         @Autowired
-        public void init(
-                AuthenticationSuccessHandler authenticationSuccessHandler,
-                AuthenticationFailureHandler authenticationFailureHandler,
-                MangoRestAccessDeniedHandler accessDeniedHandler,
-                CorsConfigurationSource corsConfigurationSource,
-                JsonLoginConfigurer jsonLoginConfigurer,
-                LogoutHandler logoutHandler,
-                LogoutSuccessHandler logoutSuccessHandler,
-                PermissionExceptionFilter permissionExceptionFilter,
-                SessionRegistry sessionRegistry,
-                SessionInformationExpiredStrategy sessionInformationExpiredStrategy,
-                HttpFirewall httpFirewall) {
-            this.authenticationSuccessHandler = authenticationSuccessHandler;
-            this.authenticationFailureHandler = authenticationFailureHandler;
-            this.accessDeniedHandler = accessDeniedHandler;
-            this.corsConfigurationSource = corsConfigurationSource;
-            this.jsonLoginConfigurer = jsonLoginConfigurer;
-            this.logoutHandler = logoutHandler;
-            this.logoutSuccessHandler = logoutSuccessHandler;
-            this.permissionExceptionFilter = permissionExceptionFilter;
-            this.sessionRegistry = sessionRegistry;
-            this.sessionInformationExpiredStrategy = sessionInformationExpiredStrategy;
-            this.httpFirewall = httpFirewall;
-        }
+        @Qualifier("ipRateLimiter")
+        RateLimiter<String> ipRateLimiter;
+
+        @Autowired
+        @Qualifier("userRateLimiter")
+        RateLimiter<Integer> userRateLimiter;
 
         @Override
         public void configure(WebSecurity web) throws Exception {
@@ -417,7 +444,8 @@ public class MangoSecurityConfiguration {
             .accessDeniedHandler(accessDeniedHandler)
             .and()
             .addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class)
-            .addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
+            .addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class)
+            .addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
 
             //Configure headers
             configureHeaders(http);
@@ -430,63 +458,52 @@ public class MangoSecurityConfiguration {
 
         @Bean
         public SwitchUserFilter switchUserFilter() {
-            SwitchUserFilter filter = new SwitchUserFilter() {
-                RequestMatcher suMatcher = new AntPathRequestMatcher("/rest/*/login/su", HttpMethod.POST.name());
-                RequestMatcher exitSuMatcher = new AntPathRequestMatcher("/rest/*/login/exit-su", HttpMethod.POST.name());
-
-                @Override
-                protected boolean requiresSwitchUser(HttpServletRequest request) {
-                    return suMatcher.matches(request);
-                }
-
-                @Override
-                protected boolean requiresExitUser(HttpServletRequest request) {
-                    return exitSuMatcher.matches(request);
-                }
-            };
+            SwitchUserFilter filter = new MangoSwitchUserFilter();
             filter.setUserDetailsService(userDetailsService());
             filter.setSuccessHandler(authenticationSuccessHandler);
             filter.setUsernameParameter("username");
             return filter;
+        }
+
+        private static class MangoSwitchUserFilter extends SwitchUserFilter {
+            RequestMatcher suMatcher = new AntPathRequestMatcher("/rest/*/login/su", HttpMethod.POST.name());
+            RequestMatcher exitSuMatcher = new AntPathRequestMatcher("/rest/*/login/exit-su", HttpMethod.POST.name());
+
+            @Override
+            protected boolean requiresSwitchUser(HttpServletRequest request) {
+                return suMatcher.matches(request);
+            }
+
+            @Override
+            protected boolean requiresExitUser(HttpServletRequest request) {
+                return exitSuMatcher.matches(request);
+            }
         }
     }
 
     @Configuration
     @Order(3)
     public static class DefaultSecurityConfiguration extends WebSecurityConfigurerAdapter {
-        AccessDeniedHandler accessDeniedHandler;
-        AuthenticationEntryPoint authenticationEntryPoint;
-        AuthenticationSuccessHandler authenticationSuccessHandler;
-        AuthenticationFailureHandler authenticationFailureHandler;
-        LogoutHandler logoutHandler;
-        LogoutSuccessHandler logoutSuccessHandler;
-        RequestCache requestCache;
-        PermissionExceptionFilter permissionExceptionFilter;
-        SessionRegistry sessionRegistry;
-        SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
-
         @Autowired
-        public void init(AccessDeniedHandler accessDeniedHandler,
-                AuthenticationEntryPoint authenticationEntryPoint,
-                AuthenticationSuccessHandler authenticationSuccessHandler,
-                AuthenticationFailureHandler authenticationFailureHandler,
-                LogoutHandler logoutHandler,
-                LogoutSuccessHandler logoutSuccessHandler,
-                RequestCache requestCache,
-                PermissionExceptionFilter permissionExceptionFilter,
-                SessionRegistry sessionRegistry,
-                SessionInformationExpiredStrategy sessionInformationExpiredStrategy) {
-            this.accessDeniedHandler = accessDeniedHandler;
-            this.authenticationEntryPoint = authenticationEntryPoint;
-            this.authenticationSuccessHandler = authenticationSuccessHandler;
-            this.authenticationFailureHandler = authenticationFailureHandler;
-            this.logoutHandler = logoutHandler;
-            this.logoutSuccessHandler = logoutSuccessHandler;
-            this.requestCache = requestCache;
-            this.permissionExceptionFilter = permissionExceptionFilter;
-            this.sessionRegistry = sessionRegistry;
-            this.sessionInformationExpiredStrategy = sessionInformationExpiredStrategy;
-        }
+        AccessDeniedHandler accessDeniedHandler;
+        @Autowired
+        AuthenticationEntryPoint authenticationEntryPoint;
+        @Autowired
+        AuthenticationSuccessHandler authenticationSuccessHandler;
+        @Autowired
+        AuthenticationFailureHandler authenticationFailureHandler;
+        @Autowired
+        LogoutHandler logoutHandler;
+        @Autowired
+        LogoutSuccessHandler logoutSuccessHandler;
+        @Autowired
+        RequestCache requestCache;
+        @Autowired
+        PermissionExceptionFilter permissionExceptionFilter;
+        @Autowired
+        SessionRegistry sessionRegistry;
+        @Autowired
+        SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {

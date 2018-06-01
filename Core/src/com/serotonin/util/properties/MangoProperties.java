@@ -4,7 +4,7 @@
  */
 package com.serotonin.util.properties;
 
-
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -37,4 +37,20 @@ public interface MangoProperties {
     double getDouble(String key, double defaultValue);
 
     void setDefaultValue(String key, String value);
+
+    // TODO Mango 3.5 remove Deprecated
+    // Dont use in modules for now
+    @Deprecated
+    default TimeUnit getTimeUnitValue(String key, TimeUnit defaultValue) {
+        String value = this.getString(key);
+        if (value == null) {
+            return defaultValue;
+        }
+
+        try {
+            return TimeUnit.valueOf(key);
+        } catch (IllegalArgumentException e) {
+            return defaultValue;
+        }
+    }
 }
