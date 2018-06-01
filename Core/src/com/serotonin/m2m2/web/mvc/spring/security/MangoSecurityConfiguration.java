@@ -236,29 +236,29 @@ public class MangoSecurityConfiguration {
     @SuppressWarnings("deprecation")
     @Bean("ipRateLimiter")
     public RateLimiter<String> ipRateLimiter() {
-        if (!SystemSettingsDao.instance.getBooleanValue("rest.rateLimit.anonymous.enabled", true)) {
+        if (!SystemSettingsDao.instance.getBooleanValue("rateLimit.rest.anonymous.enabled", true)) {
             return null;
         }
 
         return new RateLimiter<>(
-                Common.envProps.getLong("rest.rateLimit.anonymous.burstCapacity", 10),
-                Common.envProps.getLong("rest.rateLimit.anonymous.refillQuanitity", 2),
-                Common.envProps.getLong("rest.rateLimit.anonymous.refillPeriod", 1),
-                Common.envProps.getTimeUnitValue("rest.rateLimit.anonymous.refillPeriod", TimeUnit.SECONDS));
+                Common.envProps.getLong("rateLimit.rest.anonymous.burstCapacity", 10),
+                Common.envProps.getLong("rateLimit.rest.anonymous.refillQuanitity", 2),
+                Common.envProps.getLong("rateLimit.rest.anonymous.refillPeriod", 1),
+                Common.envProps.getTimeUnitValue("rateLimit.rest.anonymous.refillPeriodUnit", TimeUnit.SECONDS));
     }
 
     @SuppressWarnings("deprecation")
     @Bean("userRateLimiter")
     public RateLimiter<Integer> userRateLimiter() {
-        if (!SystemSettingsDao.instance.getBooleanValue("rest.rateLimit.user.enabled", false)) {
+        if (!SystemSettingsDao.instance.getBooleanValue("rateLimit.rest.user.enabled", false)) {
             return null;
         }
 
         return new RateLimiter<>(
-                Common.envProps.getLong("rest.rateLimit.user.burstCapacity", 20),
-                Common.envProps.getLong("rest.rateLimit.user.refillQuanitity", 10),
-                Common.envProps.getLong("rest.rateLimit.user.refillPeriod", 1),
-                Common.envProps.getTimeUnitValue("rest.rateLimit.user.refillPeriod", TimeUnit.SECONDS));
+                Common.envProps.getLong("rateLimit.rest.user.burstCapacity", 20),
+                Common.envProps.getLong("rateLimit.rest.user.refillQuanitity", 10),
+                Common.envProps.getLong("rateLimit.rest.user.refillPeriod", 1),
+                Common.envProps.getTimeUnitValue("rateLimit.rest.user.refillPeriodUnit", TimeUnit.SECONDS));
     }
 
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
