@@ -422,13 +422,17 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
     
     private void rescheduleChangeInterval(long delay) {
-        if(intervalLoggingTask != null)
-            intervalLoggingTask.cancel();
-        
-        if(this.timer == null)
-            intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient());
-        else
-            intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient(), timer);
+        synchronized(intervalLoggingLock) {
+            if(intervalLoggingTask != null)
+                intervalLoggingTask.cancel();
+            
+            if(intervalStartTime != Long.MIN_VALUE) {
+                if(this.timer == null)
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient());
+                else
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient(), timer);
+            }
+        }
     }
     
     private TimeoutClient createIntervalLoggingTimeoutClient(){
@@ -461,6 +465,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
         	//Always check because we may have been an interval logging point and we need to stop this.
             if(intervalLoggingTask != null) //Bug from UI where we are switching types of a running point
             	intervalLoggingTask.cancel();
+            intervalStartTime = Long.MIN_VALUE; //Signal to cancel ON_CHANGE_INTERVAL rescheduling
         }
     }
 

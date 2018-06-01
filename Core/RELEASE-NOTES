@@ -1,5 +1,6 @@
 *Version 3.4.3*
 * Changed i18n modules page links to the appropriate modules page
+* Fix bug in ON_CHANGE_INTERVAL logging, prevent errant logging tasks at point termination
 
 *Version 3.4.2*
 * Setting encryption/security provider at Startup instead of if/when needed during runtime
