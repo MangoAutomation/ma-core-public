@@ -416,7 +416,10 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 else
     	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
             } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
-                rescheduleChangeInterval(delay);
+                if(this.timer == null)
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient());
+                else
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient(), timer);
             }
         }
     }
