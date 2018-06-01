@@ -62,6 +62,11 @@ public interface IMangoLifecycle extends Provider {
      */
     boolean isRestarting();
     
+    /**
+     * (Re)load webserver connector settings
+     */
+    public void loadWebserverConnectors();
+    
     //The Various States
     //States of the Lifecycle
     public static final int NOT_STARTED = 0;
