@@ -50,8 +50,8 @@ public class RateLimiter<T> {
                 .build();
     }
 
-    public long secondsTillRetry() {
-        return TimeUnit.SECONDS.convert(refillPeriod, refillPeriodUnit);
+    public long secondsTillRetry(T id) {
+        return this.tokenBucketCache.get(id).getDurationUntilNextRefill(TimeUnit.SECONDS);
     }
 
     public long getRefillPeriod() {

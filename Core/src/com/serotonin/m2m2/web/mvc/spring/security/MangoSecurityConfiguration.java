@@ -241,10 +241,10 @@ public class MangoSecurityConfiguration {
         }
 
         return new RateLimiter<>(
-                Common.envProps.getLong("rateLimit.rest.anonymous.burstCapacity", 10),
-                Common.envProps.getLong("rateLimit.rest.anonymous.refillQuanitity", 2),
-                Common.envProps.getLong("rateLimit.rest.anonymous.refillPeriod", 1),
-                Common.envProps.getTimeUnitValue("rateLimit.rest.anonymous.refillPeriodUnit", TimeUnit.SECONDS));
+                Common.envProps.getLong("rateLimit.rest.anonymous.burstQuantity", 10),
+                Common.envProps.getLong("rateLimit.rest.anonymous.quanitity", 2),
+                Common.envProps.getLong("rateLimit.rest.anonymous.period", 1),
+                Common.envProps.getTimeUnitValue("rateLimit.rest.anonymous.periodUnit", TimeUnit.SECONDS));
     }
 
     @SuppressWarnings("deprecation")
@@ -255,10 +255,10 @@ public class MangoSecurityConfiguration {
         }
 
         return new RateLimiter<>(
-                Common.envProps.getLong("rateLimit.rest.user.burstCapacity", 20),
-                Common.envProps.getLong("rateLimit.rest.user.refillQuanitity", 10),
-                Common.envProps.getLong("rateLimit.rest.user.refillPeriod", 1),
-                Common.envProps.getTimeUnitValue("rateLimit.rest.user.refillPeriodUnit", TimeUnit.SECONDS));
+                Common.envProps.getLong("rateLimit.rest.user.burstQuantity", 20),
+                Common.envProps.getLong("rateLimit.rest.user.quanitity", 10),
+                Common.envProps.getLong("rateLimit.rest.user.period", 1),
+                Common.envProps.getTimeUnitValue("rateLimit.rest.user.periodUnit", TimeUnit.SECONDS));
     }
 
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.

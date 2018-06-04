@@ -55,18 +55,18 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             // we dont check the X-FORWARDED-FOR header as this can be easily spoofed to bypass the rate limits
             String ip = request.getRemoteAddr();
             rateExceeded = this.ipRateLimiter.checkRateExceeded(ip, multiplier);
-            secondsTillRetry = this.ipRateLimiter.secondsTillRetry();
+            secondsTillRetry = this.ipRateLimiter.secondsTillRetry(ip);
 
             if (rateExceeded && log.isDebugEnabled()) {
-                log.debug("Non-authenticated IP address " + ip + " exceeded rate limit of " + this.ipRateLimiter.getRefillQuanitity() + " requests/" + this.ipRateLimiter.getRefillPeriod() + " " + this.ipRateLimiter.getRefillPeriodUnit());
+                log.debug("Non-authenticated IP address " + ip + " exceeded rate limit of " + this.ipRateLimiter.getRefillQuanitity() + " requests per " + this.ipRateLimiter.getRefillPeriod() + " " + this.ipRateLimiter.getRefillPeriodUnit());
             }
         } else if (!anonymous && this.userRateLimiter != null) {
             User user = (User) authentication.getPrincipal();
             rateExceeded = this.userRateLimiter.checkRateExceeded(user.getId(), multiplier);
-            secondsTillRetry = this.userRateLimiter.secondsTillRetry();
+            secondsTillRetry = this.userRateLimiter.secondsTillRetry(user.getId());
 
             if (rateExceeded && log.isDebugEnabled()) {
-                log.debug("User " + user.getUsername() + " exceeded rate limit of " + this.userRateLimiter.getRefillQuanitity() + " requests/" + this.userRateLimiter.getRefillPeriod() + " " + this.userRateLimiter.getRefillPeriodUnit());
+                log.debug("User " + user.getUsername() + " exceeded rate limit of " + this.userRateLimiter.getRefillQuanitity() + " requests per " + this.userRateLimiter.getRefillPeriod() + " " + this.userRateLimiter.getRefillPeriodUnit());
             }
         }
 
