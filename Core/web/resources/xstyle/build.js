@@ -43,18 +43,13 @@ if(typeof define == 'undefined'){
 	define = pseudoDefine;
 	require('./core/parser');
 }else{
-	define(['build/fs', './build/base64'], function(fsModule, base64){
+	define(['build/fs', 'build/fileUtils', './build/base64'], function(fsModule, fileUtils, base64){
 		fs = fsModule;
 		base64Module = base64;
 		// must create our own path module for Rhino :/
 		pathModule = {
 			resolve: function(base, target){
-				target = (base.replace(/[^\/]+$/, '') + target);
-				var newTarget = target.replace(/\/[^\/]*\/\.\./g, '');
-				while(target !== (newTarget = target.replace(/\/[^\/]*\/\.\./g, ''))){
-					target = newTarget;
-				}
-				return target.replace(/\/\.\//g,'/');
+				return fileUtils.compactPath(base.replace(/[^\/]+$/, '') + target);
 			},
 			dirname: function(path){
 				return path.replace(/[\/\\][^\/\\]*$/, '');
@@ -76,9 +71,7 @@ if(typeof define == 'undefined'){
 				return parts.join('/');
 			},
 			join: function(base, target){
-				return ((base[base.length - 1]  == '/' ? base : (base + '/'))+ target)
-						.replace(/\/[^\/]*\/\.\./g, '')
-						.replace(/\/\./g,'');
+				return fileUtils.compactPath((base[base.length - 1] == '/' ? base : (base + '/')) + target);
 			}
 		};
 		return function(xstyleText){
@@ -119,7 +112,11 @@ function main(source, target){
 function minify(cssText){
 	return cssText.
 			replace(/\/\*([^\*]|\*[^\/])*\*\//g, ' ').
-			replace(/\s*("(\\\\|[^\"])*"|'(\\\\|[^\'])*'|[;}{:])\s*/g,"$1");	
+			replace(/\s*("(\\\\|[^\"])*"|'(\\\\|[^\'])*'|[;}{:])\s*/g,"$1").
+			replace(/[^\x00-\x7F]([0-9a-fA-F])?/g, function(character, hexComesNext){
+				// escape non-ascii characters to be safe
+				return '\\' + character.charCodeAt(0).toString(16) + (hexComesNext ? ' ' + hexComesNext : '');
+			});
 }
 var mimeTypes = {
 	eot: "application/vnd.ms-fontobject",
@@ -127,7 +124,8 @@ var mimeTypes = {
 	gif: "image/gif",
 	jpg: "image/jpeg",
 	jpeg: "image/jpeg",
-	png: "image/png"	
+	png: "image/png",
+	svg:"image/svg+xml"
 }
 function processCss(cssText, basePath, cssPath, inlineAllResources){
 	function XRule(){
@@ -167,32 +165,34 @@ function processCss(cssText, basePath, cssPath, inlineAllResources){
 			};
 			(this.xstyleCss = this.xstyleCss || []).push(name + '=', valueString, ';');
 			var definitions = (this.definitions || (this.definitions = {}));
-			definitions[name] = value || new XRule;
+			definitions[name] = value || new XRule();
 		},
 		setValue: function(name, value){
 			var target = this.getDefinition(name);
 			var browserCss = this.browserCss = this.browserCss || [];
 			if(!this.ruleStarted && !this.root){
 				this.ruleStarted = true;
-				browserCss.push(this.selector) - 1;
-				browserCss.push('{');
+				browserCss.push(this.selector, '{');
 			}
 			if(!target){
 				browserCss.push(name, ':', value, ';');
 			}
-			if(target || !this.cssRule){
+			if(target || typeof value == 'object'){
 				if(!this.xstyleStarted){
 					this.xstyleStarted = true;
 					this.xstyleCss = this.xstyleCss || [];
 				}
-			}
-			if(target || typeof value == 'object'){
 				this.xstyleCss.push(name + ':' + value + ';');
 			}
 		},
 		onArguments: function(){},
+		setMediaSelector: function(selector){
+			this.selector = '';
+			browserCss.push(selector, '{');
+			this.isMediaBlock = true;
+		},
 		toString: function(mode){
-			var str = ''
+			var str = '';
 			str += this.xstyleCss ? this.xstyleCss.join('') : '';
 			for(var i in this.rules){
 				var rule = this.rules[i];
@@ -200,17 +200,20 @@ function processCss(cssText, basePath, cssPath, inlineAllResources){
 					str += rule.toString(1);
 				}
 			}
-			if(!this.root && (str || mode != 1)){
-				str = ((mode == 2 && this.bases) || this.tagName || '') + '{' + this.ref + str.replace(/\s+/g, ' ') + '}'; 
+			if(!this.root && !this.isMediaBlock && this.xstyleStarted && (str || mode != 1)){
+				str = ((mode == 2 && this.bases) || this.tagName || '') + '{' + this.ref + str.replace(/\s+/g, ' ') + '}';
 			}
 			return str;
 		},
 		onRule: function(){
 			if(this.browserCss){
 				this.browserCss.push('}');
-				this.ref=  '/' + ruleCount;
+				this.ref = '/' + ruleCount;
 				ruleCount++;
 				browserCss.push(this.browserCss.join(''));
+			}
+			if(this.isMediaBlock){
+				browserCss.push('}');
 			}
 		},
 		extend: function(derivative, fullExtension){
@@ -249,6 +252,12 @@ function processCss(cssText, basePath, cssPath, inlineAllResources){
 		// compute the relative path from where we are to the base path where the stylesheet will go
 		var relativePath = pathModule.relative(basePath, path);
 		return cssText.replace(/url\s*\(\s*['"]?([^'"\)]*)['"]?\s*\)/g, function(t, url){
+			if(url.match(/^data:/)){
+				return url;
+			}
+			if(/^#/.test(url)){ //do not replace urls which have only fragment (e.g. VML behavior property: "behavior: url(#default#VML);"")
+				return url;
+			}
 			if(inlineAllResources || /#inline$/.test(url)){
 				// we can inline the resource
 				suffix = url.match(/\.(\w+)(#|\?|$)/);

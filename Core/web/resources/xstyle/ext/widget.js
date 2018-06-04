@@ -1,5 +1,156 @@
-//>>built
-define("xstyle/ext/widget",[],function(){function f(a,g,b,c){if(c){var d="x-widget-"+p++;c.addSheetRule("."+d,c.cssText);d=" "+d}if(a.eachProperty){var h={};a.eachProperty(function(a,d){a=a.replace(/-\w/g,function(a){return a.charAt(1).toUpperCase()});d=f(d);"type"==a&&g?b=d:h[a]=d});a=h;if(b){window[b]&&e(window[b]);require("string"==typeof b?b.split(/\s*,\s*/):b,e);var e=function(a,b){b&&(a=dojo.declare([].slice.call(arguments,0)));var c=a.prototype,k;for(k in h){var e=h[k];if(k in c){var f=typeof c[k];
-"string"==f||"string"!=typeof e||(h[k]="number"==f?+e:eval(e))}}g(function(b){b=new a(h,b);d&&(b.domNode.className+=" "+d)})}}}else"object"!=typeof a&&("'"==a.charAt(0)||'"'==a.charAt(0)?a=eval(a):isNaN(a)?m.hasOwnProperty(a)&&(a=m[a]):a=+a);return a}function l(a){return{widget:function(g,b){var c=[];g.replace(/require\s*\(\s*['"]([^'"]*)['"]\s*\)/g,function(a,b){c.push(b)});require(c);return function(d){require(c,function(){with(a){var c=eval(g),e=c.prototype,f={};e&&b.eachProperty(function(a,b,
-c){b in e&&(a=typeof e[b],f[b]="string"==a||"string"!=typeof c?c:"number"==a?+c:eval(c))});c(f,d)}})}},role:"layout"}}var p=0,m={"true":!0,"false":!1,"null":null},n=new l({});l.widget=n.widget;l.role=n.role;return{put:function(a,g,b){return{then:function(b){f(a[0].eachProperty?a[0]:g,function(a){g.elements(a);b()},"string"==typeof a&&a,g)}}},parse:f}});
-//# sourceMappingURL=widget.js.map
+define(['dojo/Deferred'], function(Deferred){
+	var nextId = 0;
+	var literals = {
+		'true': true,
+		'false': false,
+		'null': null
+	};
+	function parse(value, callback, type, rule){
+		if(rule){
+			var widgetCssClass = 'x-widget-' + nextId++; 
+			// create new rule for the generated elements
+			rule.addSheetRule('.' + widgetCssClass, rule.cssText);
+			widgetCssClass = ' ' + widgetCssClass; // make it suitable for direct addition to className
+		}
+		if(value.eachProperty){
+			var props = {/*cssText: value.cssText*/};
+			value.eachProperty(function(name, value){
+				name = name.replace(/-\w/g, function(dashed){
+					return dashed.charAt(1).toUpperCase();
+				});
+				value = parse(value);
+				if(name == "type" && callback){
+					type = value;
+				}else{
+					props[name] = value;
+				}
+			});
+			value = props;
+			// load the class, and adjust the property types based on the class prototype  
+			if(type){
+				if(window[type]){
+					classLoaded(window[type]);
+				}
+				require(typeof type == 'string' ? type.split(/\s*,\s*/) : type, classLoaded); 
+				function classLoaded(Class, Mixin){
+					if(Mixin){
+						// more than one, mix them together
+						// TODO: This should be Class.extend(arguments.slice(1)), but dojo.declare has a bug in extend that causes it modify the original
+						Class = dojo.declare([].slice.call(arguments,0)); // convert the arguments to an array of mixins
+					}
+					var prototype = Class.prototype;
+					for(var name in props){
+						var value = props[name];
+						if(name in prototype){
+							var type = typeof prototype[name];
+							if(type == "string" || typeof value != "string"){
+							}else if(type == "number"){
+								props[name] = +value;
+							}else{
+								props[name] = eval(value);
+							}
+						}
+					}
+					callback(function(element){
+						var widget = new Class(props, element);
+						if(widgetCssClass){
+							widget.domNode.className += ' ' + widgetCssClass;
+						}
+					});
+				}
+			}else if(callback){
+				console.error("No type defined for widget");
+			}
+		}else if(typeof value == 'object'){
+			// an array or object
+		}else if(value.charAt(0) == "'" || value.charAt(0) == '"'){
+			value = eval(value);
+		}else if(!isNaN(value)){
+			value = +value;
+		}else if(literals.hasOwnProperty(value)){
+			value = literals[value];
+		}
+		return value;
+	}
+	
+	function Widget(scope){
+		return {
+			widget: function(value, rule){
+				var modules = [];
+				value.replace(/require\s*\(\s*['"]([^'"]*)['"]\s*\)/g, function(t, moduleId){
+					modules.push(moduleId);
+				});
+				require(modules);
+				return function(domNode){
+					require(modules, function(){
+						with(scope){
+							var __module = eval(value);
+							var prototype = __module.prototype;
+							var props = {};
+							if(prototype){
+								rule.eachProperty(function(t, name, value){
+									if(name in prototype){
+										var type = typeof prototype[name];
+										if(type == "string" || typeof value != "string"){
+											props[name] = value;
+										}else if(type == "number"){
+											props[name] = +value;
+										}else{
+											props[name] = eval(value);
+										}
+									}
+								});
+							}
+							__module(props, domNode);
+						}
+					});
+				};
+			},
+			role: "layout"
+		};
+	}
+	var def = new Widget({});
+	Widget.widget = def.widget;
+	Widget.role = def.role;
+	return {
+		put: function(value, rule){
+			// used for a widget property:
+			//	widget: {
+			//		type: 'dijit/form/Button';
+			//		label: 'Save';
+			//	}
+			return {
+				then: function(callback){
+					var deferred = new Deferred();
+					parse(value[0].eachProperty ? value[0] : rule, function(renderer){
+						deferred.resolve({
+							forElement: function(element){
+								renderer(element);
+							}
+						});
+					}, typeof value == 'string' && value, rule);
+					return deferred.then(callback);
+				}
+			};
+		},
+		parse: parse
+		/*,
+		onFunction: function(name, propertyName, value){
+			// this allows us to create a CSS widget function
+			// x-property{
+			// 		my-widget: widget(my/Widget);
+			//	}
+			//	.class{
+			//		my-widget: 'settings';
+			//	}
+			return function(name, propertyValue){
+				require([value], function(Class){
+					xstyle.addRenderer(rule, function(element){
+						new Class(parse(propertyValue), element);
+					});
+				});
+			};
+		}*/
+		
+	} 
+})

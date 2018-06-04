@@ -1,3 +1,20 @@
-//>>built
-define("xstyle/has-class",["dojo/has"],function(h){var f={};return function(){for(var a,g=arguments,c=0;c<g.length;c++)if(a=g[c],!f[a]){f[a]=!0;var b=a.match(/^(no-)?(.+?)((-[\d\.]+)(-[\d\.]+)?)?$/),d=h(b[2]),e=-b[4];if((0<e?e<=d&&(-b[5]||e)>=d:!!d)==!b[1])document.documentElement.className+=" has-"+a}}});
-//# sourceMappingURL=has-class.js.map
+define(['dojo/has'], function(has){
+	var tested = {};
+	return function(){
+		var test, args = arguments;
+		for(var i = 0; i < args.length; i++){
+			var test = args[i];
+			if(!tested[test]){
+				tested[test] = true;
+				var parts = test.match(/^(no-)?(.+?)((-[\d\.]+)(-[\d\.]+)?)?$/), // parse the class name
+					hasResult = has(parts[2]), // the actual has test
+					lower = -parts[4]; // lower bound if it is in the form of test-4 or test-4-6 (would be 4)
+				// if it has a range boundary, compare to see if we are in it
+				if((lower > 0 ? lower <= hasResult && (-parts[5] || lower) >= hasResult :
+						!!hasResult) == !parts[1]){ // parts[1] is the no- prefix that can negate the result
+					document.documentElement.className += ' has-' + test;
+				}
+			}
+		}
+	};
+});

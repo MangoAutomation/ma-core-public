@@ -1,4 +1,32 @@
-//>>built
-define("xstyle/shim/ie-filter",[],function(){return{put:function(b,e,g){b=b.toString();if("box-shadow"==g){var c=b.split(/\s+/),d=parseFloat(c[0]),f=parseFloat(c[1]),a=Math.sqrt(d*d+f*f),d=(0<f?180:360)-180*Math.atan(d/f)/Math.PI;e.setStyle("filter","progid:DXImageTransform.Microsoft.Shadow(strength\x3d"+a+",direction\x3d"+d+",color\x3d'"+c[3]+"')")}"transform"==g&&b.match(/rotate/)&&(a=b.match(/rotate\(([-\.0-9]+)deg\)/)[1]/180*Math.PI,c=Math.cos(a),a=Math.sin(a),e.setStyle("filter","progid:DXImageTransform.Microsoft.Matrix(M11\x3d"+
-c+", M12\x3d"+-a+",M21\x3d"+a+", M22\x3d"+c+", sizingMethod\x3d'auto expand')"));"opacity"==g&&(e.setStyle("filter","alpha(opacity\x3d"+100*b+")"),e.setStyle("zoom","1"))}}});
-//# sourceMappingURL=ie-filter.js.map
+/*
+    Transforms for IE filters
+
+*/
+define([],function(){
+
+	return {
+		put: function(value, rule, name){
+			value = value.toString();
+			if(name == "box-shadow"){
+				var parts = value.split(/\s+/);
+				var offX = parseFloat(parts[0]);
+				var offY = parseFloat(parts[1]);
+				var strength = Math.sqrt(offX*offX + offY*offY);
+				var direction = (offY > 0 ? 180 : 360) - Math.atan(offX/offY) * 180 / Math.PI;
+				rule.setStyle('filter', "progid:DXImageTransform.Microsoft.Shadow(strength=" + strength + ",direction=" + direction + ",color='" + parts[3] + "')");
+			}
+			if(name == "transform" && value.match(/rotate/)){
+				var angle = value.match(/rotate\(([-\.0-9]+)deg\)/)[1] / 180 * Math.PI;
+				var cos = Math.cos(angle);
+				var sin = Math.sin(angle);
+				rule.setStyle('filter',"progid:DXImageTransform.Microsoft.Matrix(" + 
+                     "M11=" + cos +", M12=" + (-sin) + ",M21=" + sin + ", M22=" + cos + ", sizingMethod='auto expand')");
+			}
+			if(name == "opacity"){
+				rule.setStyle('filter','alpha(opacity=' + (value * 100) + ')');
+				rule.setStyle('zoom', '1');
+			}
+		}
+	};
+});
+

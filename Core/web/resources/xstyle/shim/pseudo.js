@@ -1,4 +1,40 @@
-//>>built
-define("xstyle/shim/pseudo",[],function(){function c(b,a,c){e[b]||(e[b]=!0,document.attachEvent(b,function(b){for(var d=b.srcElement;b=d.currentStyle;)b.xstyle&&(a?d.className+=" "+c:function(a){setTimeout(function(){a.className=(" "+a.className+" ").replace(" "+c+" "," ").slice(1)},0)}(d)),d=d.parentNode}))}var e={};return{onPseudo:function(b,a){"hover"==b?(c("onmouseover",!0,"xstyle-hover"),c("onmouseout",!1,"xstyle-hover"),a.add(a.selector.replace(/:hover/,""),"xstyle: true"),a.add(a.selector.replace(/:hover/,
-".xstyle-hover"),a.cssText)):"focus"==b&&(c("onactivate",!0,"xstyle-focus"),c("ondeactivate",!1,"xstyle-focusr"),a.add(a.selector.replace(/:hover/,""),"xstyle: true"),a.add(a.selector.replace(/:hover/,".xstyle-focus"),a.cssText))}}});
-//# sourceMappingURL=pseudo.js.map
+define("xstyle/shim/pseudo",[], function(){
+	var attachedEvents = {};
+	function handleEvent(eventType, add, className){
+		if(!attachedEvents[eventType]){
+			attachedEvents[eventType] = true;
+			document.attachEvent(eventType, function(event){
+				var style, element = event.srcElement;
+				while(style = element.currentStyle){
+					if(style.xstyle){
+						if(add){
+							element.className += " " + className;
+						}else{
+							(function(element){
+								setTimeout(function(){
+									element.className = (' ' + element.className + ' ').replace(' ' + className + ' ', ' ').slice(1);
+								},0);
+							})(element);
+						}
+					}
+					element = element.parentNode;
+				}
+			});
+		}
+	}
+	return {
+		onPseudo: function(name, rule){
+			if(name == "hover"){
+				handleEvent("onmouseover", true, 'xstyle-hover');
+				handleEvent("onmouseout", false, 'xstyle-hover');
+				rule.add(rule.selector.replace(/:hover/, ''), 'xstyle: true');
+				rule.add(rule.selector.replace(/:hover/, '.xstyle-hover'), rule.cssText);
+			}else if(name == "focus"){
+				handleEvent("onactivate", true, 'xstyle-focus');
+				handleEvent("ondeactivate", false, 'xstyle-focusr');
+				rule.add(rule.selector.replace(/:hover/, ''), 'xstyle: true');
+				rule.add(rule.selector.replace(/:hover/, '.xstyle-focus'), rule.cssText);
+			}
+		}
+	};
+});

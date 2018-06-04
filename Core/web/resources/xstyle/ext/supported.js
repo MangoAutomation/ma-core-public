@@ -1,3 +1,30 @@
-//>>built
-define("xstyle/ext/supported",[],function(){var e=/(([-+])|[,<> ])?\s*(\.|!|#|:)?([-\w$]+)?(?:\[([^\]=]+)=?['"]?([^\]'"]*)['"]?\])?/g;return{onPseudo:function(f,a){var b=!0;a.selector.replace(e,function(a,e,f,k,g,c,h){var d;if(g&&!k&&(a=(d=document.createElement(g)).toString(),"[object HTMLUnknownElement]"==a||"[object]"==a)){b=!1;return}c&&(d.setAttribute(c,h),d[c]!=h&&(b=!1))});b==("supported"==f)&&a.add(a.selector=a.selector.replace(/:(un)?supported/,""),a.cssText)}}});
-//# sourceMappingURL=supported.js.map
+define([], function(){
+	var selectorParse = /(([-+])|[,<> ])?\s*(\.|!|#|:)?([-\w$]+)?(?:\[([^\]=]+)=?['"]?([^\]'"]*)['"]?\])?/g;
+	return {
+		onPseudo: function(name, rule){
+			var supported = true;
+			rule.selector.replace(selectorParse, function(t, combinator, siblingCombinator, prefix, value, attrName, attrValue){
+				var element;
+				if(value && !prefix){
+					// test to see if the element tag name is supported
+					var elementString = (element = document.createElement(value)).toString();
+					if(elementString == "[object HTMLUnknownElement]" || elementString == "[object]"){
+						supported = false;
+						return;
+					}
+				}
+				if(attrName){
+					// test to see if the attribute is supported
+					element.setAttribute(attrName, attrValue);
+					if(element[attrName] != attrValue){
+						supported = false;
+					}
+				}
+			});
+			if(supported == (name == "supported")){
+				// match, add the rule without the pseudo
+				rule.add(rule.selector = rule.selector.replace(/:(un)?supported/, ''), rule.cssText);
+			}
+		}
+	};
+});

@@ -1,4 +1,38 @@
-//>>built
-define("xstyle/shim/gradient",[],function(f){var e=/#(\w{6})/,g={"-webkit-":function(d,a,b,c){return"background-image: -webkit-gradient("+d.substring(0,6)+", left top, left bottom, from("+b+"), to("+c+"))"},"-moz-":function(d,a,b,c){return"background-image: -moz-"+d+"("+a+","+b+","+c+")"},"-o-":function(d,a,b,c){return"background-image: -o-"+d+"("+a+","+b+","+c+")"},"-ms-":function(d,a,b,c){b=b.match(e);c=c.match(e);if(b&&c)return"border-radius: 0px; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr\x3d#FF"+
-b[1]+",endColorstr\x3d#FF"+c[1]+",gradientType\x3d"+("left"==a?1:0)+");"}}[f.prefix];return{onFunction:function(d,a,b){a=a.match(/(\w+-gradient)\(([^\)]*)\)/);d=a[1];a=a[2].split(/,\s*/);return g(d,a[0],a[1],a[2])}}});
-//# sourceMappingURL=gradient.js.map
+/*
+    Handles gradients
+*/
+define([],function(vendor){
+	var colorString = /#(\w{6})/;
+	var createGradient = {
+		"-webkit-": function(type, position, from, to){
+			return "background-image: -webkit-gradient(" + type.substring(0, 6) + ", left top, left bottom, from(" + from + "), to(" + to + "))";
+		},
+		"-moz-": function(type, position, from, to){
+			return "background-image: -moz-" + type + "(" + position + "," + from + "," + to + ")";
+		},
+		"-o-": function(type, position, from, to){
+			return "background-image: -o-" + type + "(" + position + "," + from + "," + to + ")";
+		},
+		"-ms-": function(type, position, from, to){
+			
+			from = from.match(colorString);
+			to = to.match(colorString);
+			if(from && to){ 
+				// must disable border radius for IE
+				return "border-radius: 0px; filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#FF" + from[1] + ",endColorstr=#FF" + to[1] +",gradientType=" + (position=="left" ? 1 : 0) + ");";
+			}
+		}
+	}[vendor.prefix];
+	return {
+		onFunction: function(name, value, rule){
+			var parts = value.match(/(\w+-gradient)\(([^\)]*)\)/);
+			var type = parts[1];
+			var args = parts[2].split(/,\s*/);
+			var position = args[0];
+			var start = args[1];
+			var end = args[2];
+			return createGradient(type, position, start, end);
+		}
+	};
+});
+

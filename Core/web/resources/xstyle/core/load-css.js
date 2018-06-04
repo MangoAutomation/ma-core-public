@@ -1,4 +1,79 @@
-//>>built
-define("xstyle/core/load-css",[],function(){function h(c){if(d.createStyleSheet){var b=d.createStyleSheet();b.cssText=c;return b.owningElement}b=d.createElement("style");b.setAttribute("type","text/css");b.appendChild(d.createTextNode(c));g.insertBefore(b,g.firstChild);return b}function e(c,b,e){var k=l[c];if(k)return a=h(k),b(a);var a=d.createElement("link");a.type="text/css";a.rel="stylesheet";a.href=c;var f=!e||!1!==e.wait;c=(c=navigator.userAgent.match(/AppleWebKit\/(\d+\.?\d*)/))&&+c[1];if(null===
-a.onload&&!(536>c))a.onload=function(){a.onload=null;a.onerror=null;f&&b(a)},a.onerror=function(){f&&b(a)};else if(f)var m=setInterval(function(){a.style&&(clearInterval(m),b(a))},15);(g||d.getElementsByTagName("head")[0]).appendChild(a);f||b(a)}var l="undefined"==typeof _css_cache?{}:_css_cache,d=document,g=d.head;e.insertCss=h;return e});
-//# sourceMappingURL=load-css.js.map
+define([], function(){
+	'use strict';
+	// this module is responsible for doing the loading/insertion
+	// of stylesheets to get CSS loaded.
+
+	var cache = typeof _css_cache == 'undefined' ? {} : _css_cache;
+	var doc = document;
+
+	function has(){
+		return !doc.createStyleSheet;
+	}
+	var head = doc.head;
+	function insertCss(css){
+		if(has("dom-create-style-element")){
+			// we can use standard <style> element creation
+			styleSheet = doc.createElement("style");
+			styleSheet.setAttribute("type", "text/css");
+			styleSheet.appendChild(doc.createTextNode(css));
+			head.appendChild(styleSheet);
+			return styleSheet;
+		}
+		else{
+			// IE's stylesheet insertion
+			var styleSheet = doc.createStyleSheet();
+			styleSheet.cssText = css;
+			return styleSheet.owningElement;
+		}
+	}
+
+	function load(resourceDef, callback, options){
+		var cached = cache[resourceDef];
+		if(cached){
+			// if it is cached (from a build), we directly insert
+			link = insertCss(cached);
+			return callback(link);
+		}
+		// create a link element to load the stylesheet
+		var link = doc.createElement('link');
+		link.type = 'text/css';
+		link.rel = 'stylesheet';
+		link.href = resourceDef;
+		var wait = !options || options.wait !== false;
+		// old webkit's would claim to have onload, but didn't really support it
+		var webkitVersion = navigator.userAgent.match(/AppleWebKit\/(\d+\.?\d*)/);
+		webkitVersion = webkitVersion && +webkitVersion[1];
+		if(link.onload === null && !(webkitVersion < 536)){
+			// most browsers support this onload function now
+			link.onload = function(){
+				// cleanup
+				link.onload = null;
+				link.onerror = null;
+				wait && callback(link);
+			};
+			// always add the error handler, so we can notify of any errors
+			link.onerror = function(){
+				// there isn't really any recourse in AMD for errors, so
+				// we just output the error and continue on
+				console.error('Error loading stylesheet ' + resourceDef);
+				wait && callback(link);
+			};
+		}else if(wait){
+			var interval = setInterval(function(){
+				if(link.style){
+					// loaded
+					clearInterval(interval);
+					callback(link);
+				}
+			}, 15);
+		}
+		// add it to the head to trigger loading
+		(head || doc.getElementsByTagName('head')[0]).appendChild(link);
+		if(!wait){
+			// don't wait for the stylesheet to load, proceed
+			callback(link);
+		}
+	}
+	load.insertCss = insertCss;
+	return load;
+});

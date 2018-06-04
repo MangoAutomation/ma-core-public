@@ -1,4 +1,85 @@
-//>>built
-define("xstyle/css",["require"],function(h){function k(a,c,e){var f=document.documentElement;a=f.insertBefore(document.createElement(a),f.firstChild);a.id=c;c=(a.currentStyle||getComputedStyle(a,null))[e];f.removeChild(a);return c}return{load:function(a,c,e,f){function g(a){var b=k("x-parse",null,"content"),d=a&&(a.sheet||a.styleSheet);b&&"none"!=b?c([eval(b)],function(b){a?b.process(a,e):(b.processAll(),e(d))}):e(d)}var b=c.toUrl(a),l;b.match(/!$/)&&(l={wait:!1},b=b.slice(0,-1));var d=c.cache&&c.cache["url:"+
-b];if(d)d.xCss&&(d=d.cssText),h(["./core/load-css"],function(a){g(a.insertCss(d))});else{if("none"==k("div",a.replace(/\//g,"-").replace(/\..*/,"")+"-loaded","display"))return g();h(["./core/load-css"],function(a){a(b,g,l)})}}}});
-//# sourceMappingURL=css.js.map
+define(["require"], function(moduleRequire){
+"use strict";
+/*
+ * AMD css! plugin
+ * This plugin will load and wait for css files. This allows JavaScript resources to 
+ * fully there dependencies on stylesheets. This can also be used when
+ * loading css files as part of a layer or as a way to apply a run-time theme. This
+ * module checks to see if the CSS is already loaded before incurring the cost
+ * of loading the full CSS loader codebase
+ */
+ 	function testElementStyle(tag, id, property){
+ 		// test an element's style
+		var docElement = document.documentElement;
+		var testDiv = docElement.insertBefore(document.createElement(tag), docElement.firstChild);
+		testDiv.id = id;
+		var styleValue = (testDiv.currentStyle || getComputedStyle(testDiv, null) || {})[property];
+		docElement.removeChild(testDiv);
+ 		return styleValue;
+ 	} 
+ 	return {
+		load: function(resourceDef, require, callback, config) {
+			var url = require.toUrl(resourceDef);
+			var options;
+			if(url.match(/!$/)){
+				// a final ! can be used to indicate not to wait for the stylesheet to load
+				options = {
+					wait: false
+				};
+				url = url.slice(0, -1);
+			}
+			var cachedCss = require.cache && require.cache['url:' + url];
+			if(cachedCss != null){
+				// we have CSS cached inline in the build
+				if(cachedCss.xCss){
+					var parser = cachedCss.parser;
+					var xCss =cachedCss.xCss;
+					cachedCss = cachedCss.cssText;
+				}
+				// cachedCss might be {}, indicating this CSS was part of a built stylesheet. Assume the built
+				// stylesheet is already loaded, so no need to inject this CSS again.
+				if (typeof cachedCss == 'string') {
+					moduleRequire(['./core/load-css'],function(load){
+						checkForParser(load.insertCss(cachedCss));
+					});
+				} else {
+					checkForParser();
+				}
+				if(xCss){
+					//require([parsed], callback);
+				}
+				return;
+			}
+			function checkForParser(styleSheetElement){
+				var parser = testElementStyle('x-parse', null, 'content');
+				var sheet = styleSheetElement && 
+					(styleSheetElement.sheet || styleSheetElement.styleSheet);
+				if(parser && parser != 'none' && parser != 'normal'){
+					// TODO: wait for parser to load
+					require([eval(parser)], function(parser){
+						if(styleSheetElement){
+							parser.process(styleSheetElement, callback);
+						}else{
+							parser.processAll();
+							callback(sheet);
+						}
+					});
+				}else{
+					callback(sheet);
+				}
+			}
+			
+			// if there is an id test available, see if the referenced rule is already loaded,
+			// and if so we can completely avoid any dynamic CSS loading. If it is
+			// not present, we need to use the dynamic CSS loader.
+			var displayStyle = testElementStyle('div', resourceDef.replace(/\//g,'-').replace(/\..*/,'') + "-loaded", 'display');
+			if(displayStyle == "none"){
+				return checkForParser();
+			}
+			// use dynamic loader
+			moduleRequire(["./core/load-css"], function(load){
+				load(url, checkForParser, options);
+			});
+		}
+	};
+});

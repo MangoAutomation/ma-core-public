@@ -70,6 +70,7 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
 
         String username = authentication.getName();
 
+        // TODO check combination of username and ip address - store ip address in Authentication.getDetails()
         if (this.authenticationRateLimiter.checkRateExceeded(username)) {
             throw new RateLimitExceededException();
         }

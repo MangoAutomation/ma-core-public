@@ -1,8 +1,252 @@
-//>>built
-define("xstyle/core/Definition",["xstyle/core/utils","xstyle/core/observe"],function(g,k){function l(b){(this.computeValue=b)&&b.reverse&&this.setReverseCompute(b.reverse)}function q(b,a,c){if(a&&a.forElement)return{forElement:function(d){d=a.selectElement?a.selectElement(d):d;var f=["_cache_"+b.id];if(f in d){var e=d[f+"observe"];e.addKey&&e.addKey(c);return d[f][c]}var m=d[f]=a.forElement(d),h=d[f+"observe"]=n(b,m,c,{elements:[d]});d.xcleanup=function(b){b&&k.unobserve(m,h)};return m[c]}}}function n(b,
-a,c,d){var f=b._properties,e;"object"==typeof a&&(e=function(b){for(var a=0;a<b.length;a++){var c=f[b[a].name];c&&c.invalidate&&c.invalidate(d)}},k.observe(a,e),e.addKey&&e.addKey(c));return e}var p={},r=1;l.prototype={id:"x-variable-"+r++,cache:p,valueOf:function(){if(this.dependents&&this.cache!==p)return this.cache;var b=this,a=this.computeValue;if(a.then)return this.cache=a.then(function(a){b.computeValue=a;(a=b.cache=a())&&a.then&&a.then(function(a){b.cache=a});return a});(a=b.cache=a())&&a.then&&
-a.then(function(a){b.cache=a});return a},property:function(b){var a=this._properties||(this._properties={}),c=a[b];if(!c){var d=this,c=a[b]=new l(function(){return g.when(d.valueOf(),function(a){if(a&&a.forRule)return{forRule:function(c){c=a.selectRule?a.selectRule(c):c;var h=["_cache_"+d.id],e;if((e=h in c?c[h]:c[h]=a.forRule(c))&&e.forElement)return q(d,e,b);var g=c[h+"observe"];g&&(g.addKey?g.addKey(b):c[h+"observe"]=n(d,e,b,{rules:[c]}));return e[b]}};if(a&&a.forElement)return q(d,a,b);var c=
-d.cacheObserve;c?c.addKey&&c.addKey(b):c=d.cacheObserve=n(d,a,b);return a[b]})});c.key=b;c.parent=this;c.put=function(a){return g.when(d.valueOf(),function(c){function d(c){if(c.forElement)return{forElement:function(d){c.forElement(d)[b]=a}};c[b]=a}if(c.forRule)return{forRule:function(a){return d(c.forRule(a))}};d(c)})};c.id=this.id+"-"+b}return c},invalidate:function(b){var a=this.cacheObserve;a&&(k.unobserve(this.cache,a),this.cacheObserve=null);this.cache=p;var c,a=this._properties;for(c in a)a[c].invalidate(b);
-var d=this.dependents||0;c=0;for(a=d.length;c<a;c++)try{d[c].invalidate(b)}catch(f){}},depend:function(b){(this.dependents||(this.dependents=[])).push(b)},setReverseCompute:function(b){this.put=function(a){b(a);this.invalidate()}},setCompute:function(b){(this.computeValue=b)&&b.reverse&&this.setReverseCompute(b.reverse);this.invalidate()},setSource:function(b){this.computeValue=function(){return b};this.invalidate()},observe:function(b){this.computeValue&&b(this.valueOf());var a=this;return this.depend({invalidate:function(){b(a.valueOf())}})},
-newElement:function(){return g.when(this.valueOf(),function(b){return b&&b.newElement&&b.newElement()})}};return l});
-//# sourceMappingURL=Definition.js.map
+define(['xstyle/core/utils', 'xstyle/core/es6'],
+		function(utils, es6){
+	function Definition(computeValue){
+		// computeValue: This is function (or promise to a function) that is called to calculate
+		// the value of this definition
+		this.computeValue = computeValue;
+		if(computeValue && computeValue.reverse){
+			this.setReverseCompute(computeValue.reverse);
+		}
+	}
+	var noCacheEntry = {};
+
+	var nextId = 1;
+	function contextualizeElement(definition, object, key){
+		if(object && object.forElement){
+			return {
+				forElement: function(element){
+					element = object.selectElement ? object.selectElement(element) : element;
+					// TODO: use weakmap
+					var cacheProperty = ['_cache_' + definition.id];
+					if(cacheProperty in element){
+						var cacheObserver = element[cacheProperty + 'observe'];
+						if(cacheObserver.addKey){
+							cacheObserver.addKey(key);
+						}
+						return element[cacheProperty][key];
+					}
+					var result = element[cacheProperty] = object.forElement(element);
+					var observer = element[cacheProperty + 'observe'] = setupObserve(definition, result, key, {
+						elements: [element]
+					});
+					element.xcleanup = function(destroy){
+						if(destroy){
+							es6.unobserve(result, observer);
+						}
+					};
+					return result[key];
+				}
+			};
+		}
+		// else
+	}
+	function setupObserve(definition, object, key, invalidated){
+		var properties = definition._properties;
+		var observer;
+		if(typeof object == 'object'){
+			// if we haven't recorded any observer for this context, let's
+			// setup one now
+			observer = function(events){
+				for(var i = 0; i < events.length; i++){
+					var property = properties[events[i].name];
+					if(property && property.invalidate){
+						property.invalidate(invalidated);
+					}
+				}
+			};
+			es6.observe(object, observer);
+			if(observer.addKey){
+				observer.addKey(key);
+			}
+		}
+		return observer;
+	}
+	Definition.prototype = {
+		// TODO: make ids have a little better names
+		id: 'x-variable-' + nextId++,
+		cache: noCacheEntry,
+		valueOf: function(){
+			// first check to see if we have the variable already computed
+			var useCache = this.dependents || this._properties;
+			if(useCache){
+				// TODO: use when
+				if(this.cache !== noCacheEntry){
+					return this.cache;
+				}
+			}
+			var definition = this;
+			var computeValue = this.computeValue;
+			if(computeValue.then){
+				return (this.cache = computeValue.then(function(computeValue){
+					definition.computeValue = computeValue;
+					var value = definition.cache = computeValue();
+					if(value && value.then){
+						value.then(function(value){
+							definition.cache = value;
+						});
+					}
+					return value;
+				}));
+			}else{
+				var value = definition.cache = computeValue();
+				if(value && value.then){
+					value.then(function(value){
+						definition.cache = value;
+					});
+				}
+				return value;
+			}
+		},
+		property: function(key){
+			var properties = this._properties || (this._properties = {});
+			var propertyDefinition = properties[key];
+			if(!propertyDefinition){
+				// create the property definition
+				var parentDefinition = this;
+				propertyDefinition = properties[key] = new Definition(function(){
+					return utils.when(parentDefinition.valueOf(), function(object){
+						if(object && object.forRule){
+							return {
+								forRule: function(rule){
+									rule = object.selectRule ? object.selectRule(rule) : rule;
+									// TODO: use weakmap
+									var cacheProperty = ['_cache_' + parentDefinition.id];
+									var result;
+									if(cacheProperty in rule){
+										result = rule[cacheProperty];
+									}else{
+										result = rule[cacheProperty] = object.forRule(rule);
+									}
+									if(result && result.forElement){
+										return contextualizeElement(parentDefinition, result, key);
+									}else{
+										var cacheObserve = rule[cacheProperty + 'observe'];
+										if(cacheObserve){
+											if(cacheObserve.addKey){
+												cacheObserve.addKey(key);
+											}else{
+												rule[cacheProperty + 'observe'] = setupObserve(parentDefinition, result, key, {
+													rules: [rule]
+												});
+											}
+										}
+									}
+									return result[key];
+								}
+							};
+						}
+						// else
+						if(object && object.forElement){
+							return contextualizeElement(parentDefinition, object, key);
+						}
+						// else
+						var cacheObserve = parentDefinition.cacheObserve;
+						if(!cacheObserve){
+							cacheObserve = parentDefinition.cacheObserve = setupObserve(parentDefinition, object, key);
+						}else if(cacheObserve.addKey){
+							// used by the es6 to setup setters
+							cacheObserve.addKey(key);
+						}
+						return object[key];
+					});
+				});
+				propertyDefinition.key = key;
+				propertyDefinition.parent = this;
+				propertyDefinition.put = function(value){
+					return utils.when(parentDefinition.valueOf(), function(object){
+						if(object.forRule){
+							return {
+								forRule: function(rule){
+									return setForElement(object.forRule(rule));
+								}
+							};
+						}
+						function setForElement(object){
+							if(object.forElement){
+								return {
+									forElement: function(element){
+										object.forElement(element)[key] = value;
+									}
+								};
+							}
+							object[key] = value;
+						}
+						setForElement(object);
+					});
+				};
+				propertyDefinition.id = this.id + '-' + key;
+			}
+			return propertyDefinition;
+		},
+		invalidate: function(args){
+			// TODO: there might actually be a collection of observers
+			var observer = this.cacheObserve;
+			if(observer){
+				es6.unobserve(this.cache, observer);
+				this.cacheObserve = null;
+			}
+			this.cache = noCacheEntry;
+			var i, l, properties = this._properties;
+			for( i in properties){
+				properties[i].invalidate(args);
+			}
+			var dependents = this.dependents || 0;
+			for(i = 0, l = dependents.length; i < l; i++){
+				try{
+					dependents[i].invalidate(args);
+				}catch(e){
+					console.error(e, 'invalidating a definition');
+				}
+			}
+		},
+		dependencyOf: function(dependent){
+			(this.dependents || (this.dependents = [])).push(dependent);
+		},
+		notDependencyOf: function(dependent){
+			var dependents = this.dependents || 0;
+			for(var i = 0; i < dependents.length; i++){
+				if(dependents[i] === dependent){
+					dependents.splice(i--, 1);
+				}
+			}
+		},
+		setReverseCompute: function(reverse){
+			this.put = function(){
+				var result = reverse.apply(this, arguments);
+				this.invalidate();
+				return result;
+			};
+		},
+		setCompute: function(compute){
+			this.computeValue = compute;
+			if(compute && compute.reverse){
+				this.setReverseCompute(compute.reverse);
+			}
+			this.invalidate();
+		},
+		setSource: function(value){
+			this.computeValue = function(){
+				return value;
+			};
+			this.invalidate();
+		},
+		observe: function(listener){
+			// shorthand for setting up a real invalidation scheme
+			if(this.computeValue){
+				listener(this.valueOf());
+			}
+			var definition = this;
+			return this.dependencyOf({
+				invalidate: function(){
+					listener(definition.valueOf());
+				}
+			});
+		},
+		newElement: function(){
+			return utils.when(this.valueOf(), function(value){
+				return value && value.newElement && value.newElement();
+			});
+		}
+	};
+	return Definition;
+});

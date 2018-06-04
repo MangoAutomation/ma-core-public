@@ -1,4 +1,65 @@
-//>>built
-define("xstyle/ext/dgrid","dojo/_base/declare dojo/promise/all dojo/Deferred dojo/when ./widget ../core/expression".split(" "),function(s,m,n,p,g,q){var h={selectionMode:"Selection",columns:"Grid",keyboard:"Keyboard"},r={selectionMode:function(b,a){b.selectionMode=a},keyboard:function(b,a){b.cellNavigation="cell"==a},store:function(b,a,c){a=q(c,"store",a);p(a,function(a){b.store=a});return a},columns:function(b,a){var c=b.columns={},d;a[0].eachProperty(function(a,b){var e=g.parse(b[0]);e.className=
-b[0].selector.slice(1);e.editor&&(d=new n,require(["dgrid/editor"],function(b){var l=e.editor.split(/,\s*/);c[a]=b(e,l[0],l[1]);d.resolve()}));c[a]=e});return d}};return{put:function(b,a,c){c=c.slice(6);a.constructors||(a.constructors=["dgrid/OnDemandList"],a.handlers=[]);var d=b[0],k=[];d.eachProperty(function(b,c){var f=r[b];f&&(f=f(d.values,c,a))&&k.push(f);h[b]&&a.constructors.push("dgrid/"+h[b])});m(k).then(function(){g.parse(b[0],function(b){a.elements(b)},a.constructors)})}}});
-//# sourceMappingURL=dgrid.js.map
+define([
+	'dojo/_base/declare',
+	'dojo/promise/all',
+	'dojo/Deferred',
+	'dojo/when',
+	'./widget',
+	'../core/expression'
+], function(declare, all, Deferred, when, widgetModule, expression){
+	var classNeeded = {
+		'selectionMode': 'Selection',
+		'columns': 'Grid',
+		'keyboard': 'Keyboard'
+	};
+	var propertyHandlers = {
+		'selectionMode': function(options, value){
+			options.selectionMode = value;
+		},
+		'keyboard': function(options, value){
+			options.cellNavigation = value == 'cell';
+		},
+		'collection': function(options, value, rule){
+			value = expression.evaluate(rule, value);
+			return when(value.valueOf(), function(value){
+				options.collection = value;
+			});
+		},
+		'columns': function(options, value){
+			var columns = options.columns = {};
+			value[0].eachProperty(function(name, value){
+				var columnDefinition = widgetModule.parse(value[0]);
+				columnDefinition.className = value[0].selector.slice(1);
+				columns[name] = columnDefinition;
+			});
+			return columns;
+		}
+	};
+	return {
+		put: function(value, rule, name){
+			name = name.slice(6);
+			if(!rule.constructors){
+				rule.constructors = ['dgrid/OnDemandList'];
+				rule.handlers = [];
+			}
+			var config = value[0];
+			var handlerCompletions = [];
+			config.eachProperty(function(name, value){
+				var handler = propertyHandlers[name];
+				if(handler){
+					var handlerCompletion = handler(config.values, value, rule);
+					if(handlerCompletion){
+						handlerCompletions.push(handlerCompletion);
+					}
+				}
+				if(classNeeded[name]){
+					rule.constructors.push('dgrid/' + classNeeded[name]);
+				}
+			});
+			all(handlerCompletions).then(function(){
+				widgetModule.parse(value[0], function(elementHandler){
+						rule.elements(elementHandler);
+				}, rule.constructors);
+			});
+		}
+	};
+});
