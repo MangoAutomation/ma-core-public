@@ -63,9 +63,9 @@ public interface IMangoLifecycle extends Provider {
     boolean isRestarting();
     
     /**
-     * (Re)load webserver connector settings
+     * (Re)load ssl certificates and keys
      */
-    public void loadWebserverConnectors();
+    public void reloadSslContext();
     
     //The Various States
     //States of the Lifecycle
