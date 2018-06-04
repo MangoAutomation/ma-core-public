@@ -1,6 +1,10 @@
 *Version 3.4.3*
 * Changed i18n modules page links to the appropriate modules page
 * Fix bug in ON_CHANGE_INTERVAL logging, prevent errant logging tasks at point termination
+* Add configuration for CSP (Content Security Policy) to env.properties
+* Fix to use lower case username when interacting with the user cache
+* Escape HTML in various places on legacy UI to protect against script injection
+* Implement configurable rate limiting for the REST API and rate limit authentication attempts
 
 *Version 3.4.2*
 * Setting encryption/security provider at Startup instead of if/when needed during runtime
