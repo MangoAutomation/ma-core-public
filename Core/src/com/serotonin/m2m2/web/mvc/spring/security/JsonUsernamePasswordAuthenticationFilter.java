@@ -25,13 +25,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Attempts authentication for a POST request with a JSON body
- * 
+ *
  * @author Jared Wiltshire
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
-    
+
+    public static final String USERNAME_ATTRIBUTE = "MANGO_AUTHENTICATION_USERNAME";
+
     private ObjectMapper mapper;
 
     @Autowired
@@ -54,23 +56,23 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
         if (!pathMatches) {
             return false;
         }
-        
+
         MediaType requestMediaType;
         try {
             requestMediaType = MediaType.valueOf(contentType);
         } catch (Exception e) {
             return false;
         }
-        
+
         return requestMediaType.isCompatibleWith(MediaType.APPLICATION_JSON);
     }
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException, ServletException {
-        
+
         UsernameAndPassword usernameAndPassword = mapper.readValue(request.getInputStream(), UsernameAndPassword.class);
-        
+
         if (!request.getMethod().equals("POST")) {
             throw new AuthenticationServiceException(
                     "Authentication method not supported: " + request.getMethod());
@@ -85,14 +87,17 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
             password = "";
         }
         username = username.trim();
-        
+
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
                 username, password);
+
+        // store the username so we can access it in the failure handler
+        request.setAttribute(USERNAME_ATTRIBUTE, username);
 
         authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
         return this.getAuthenticationManager().authenticate(authRequest);
     }
-    
+
     public static class UsernameAndPassword {
         String username;
         String password;
