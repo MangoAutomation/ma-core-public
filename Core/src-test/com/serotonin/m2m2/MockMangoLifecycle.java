@@ -41,7 +41,7 @@ import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoProperties;
 
 /**
- * Dummy implementation for Mango Lifecycle for use in testing, 
+ * Dummy implementation for Mango Lifecycle for use in testing,
  *   override as necessary.
  *
  * @author Terry Packer
@@ -55,13 +55,13 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     private final List<Runnable> SHUTDOWN_TASKS = new ArrayList<>();
 
     /**
-     * Create a default lifecycle with an H2 web console on port 9001 
+     * Create a default lifecycle with an H2 web console on port 9001
      *   to view the in-memory database.
      */
     public MockMangoLifecycle(List<Module> modules) {
         this(modules, true, 9001);
     }
-    
+
     public MockMangoLifecycle(List<Module> modules, boolean enableWebConsole, int webPort) {
         this.enableWebConsole = enableWebConsole;
         this.webPort = webPort;
@@ -71,40 +71,40 @@ public class MockMangoLifecycle implements IMangoLifecycle{
      * Startup a dummy Mango with a basic infrastructure
      */
     public void initialize() {
-        
-        Common.MA_HOME =  System.getProperty("ma.home"); 
+
+        Common.MA_HOME =  System.getProperty("ma.home");
         if(Common.MA_HOME == null)
             Common.MA_HOME = ".";
-        
+
         //Add in modules
         for(Module module : modules)
             ModuleRegistry.addModule(module);
-        
+
         Providers.add(IMangoLifecycle.class, this);
-        
+
         //TODO Licensing Providers.add(ICoreLicense.class, new CoreLicenseDefinition());
         //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
         Common.free = false;
-        
+
         //Startup a simulation timer provider
         Providers.add(TimerProvider.class, getSimulationTimerProvider());
-        
+
         //Make sure that Common and other classes are properly loaded
         Common.envProps = getEnvProps();
-        
+
         MangoRestSpringConfiguration.initializeObjectMapper();
-        
+
         Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
         Common.JSON_CONTEXT.addResolver(new BaseChartRenderer.Resolver(), ChartRenderer.class);
         Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
         Common.JSON_CONTEXT.addResolver(new EmailRecipientResolver(), EmailRecipient.class);
         Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);
         Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);
-        
+
         for (Module module : ModuleRegistry.getModules()) {
             module.preInitialize(true, false);
         }
-        
+
         //TODO This must be done only once because we have a static
         // final referece to the PointValueDao in the PointValueCache class
         // and so if you try to restart the database it doesn't get the new connection
@@ -118,41 +118,41 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
         Common.backgroundProcessing.initialize(false);
-        
+
         for (Module module : ModuleRegistry.getModules()) {
             module.postDatabase(true, false);
         }
-        
+
         //Utilities
         //So we can add users etc.
         EventType.initialize();
         SystemEventType.initialize();
         AuditEventType.initialize();
-        
+
         //Setup Common Object Mapper
         Common.objectMapper = new CommonObjectMapper();
-        
+
         //Do this last as Event Types have listeners
         for (SystemSettingsListenerDefinition def : ModuleRegistry.getSystemSettingListenerDefinitions())
-                def.registerListener();
-        
+            def.registerListener();
+
         //Event Manager
         Common.eventManager = getEventManager();
         Common.eventManager.initialize(false);
         for (EventManagerListenerDefinition def : ModuleRegistry.getDefinitions(EventManagerListenerDefinition.class))
             Common.eventManager.addListener(def);
-        
+
         Common.runtimeManager = getRuntimeManager();
         Common.runtimeManager.initialize(false);
-        
+
         if(Common.serialPortManager == null)
             Common.serialPortManager = getSerialPortManager();
 
-        
+
         for (Module module : ModuleRegistry.getModules()) {
             module.postInitialize(true, false);
         }
-        
+
         for (Runnable task : STARTUP_TASKS){
             try{
                 task.run();
@@ -160,9 +160,9 @@ public class MockMangoLifecycle implements IMangoLifecycle{
                 fail(e.getMessage());
             }
         }
-        
+
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.IMangoLifecycle#isTerminated()
      */
@@ -233,7 +233,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     @Override
     public void loadLic() {
         // TODO Auto-generated method stub
-        
+
     }
 
     /* (non-Javadoc)
@@ -260,15 +260,19 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     public boolean isRestarting() {
         return false;
     }
-    
+
+    @Override
+    public void reloadSslContext() {
+    }
+
     protected TimerProvider<AbstractTimer>  getSimulationTimerProvider() {
         return new SimulationTimerProvider();
     }
-    
+
     protected MangoProperties getEnvProps() {
         return new MockMangoProperties();
     }
-    
+
     protected EventManager getEventManager() {
         return new MockEventManager();
     }
@@ -276,16 +280,16 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     protected H2InMemoryDatabaseProxy getDatabaseProxy() {
         return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
     }
-    
+
     protected RuntimeManager getRuntimeManager() {
         return new MockRuntimeManager();
     }
-    
+
     protected SerialPortManager getSerialPortManager() {
         return new MockSerialPortManager();
     }
-    
+
     protected BackgroundProcessing getBackgroundProcessing() {
-        return new MockBackgroundProcessing(Providers.get(TimerProvider.class).getTimer()); 
+        return new MockBackgroundProcessing(Providers.get(TimerProvider.class).getTimer());
     }
 }
