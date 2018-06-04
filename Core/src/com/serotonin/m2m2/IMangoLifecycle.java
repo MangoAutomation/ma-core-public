@@ -4,7 +4,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.provider.Provider;
 
 public interface IMangoLifecycle extends Provider {
-	
+
     boolean isTerminated();
 
     void terminate();
@@ -15,7 +15,7 @@ public interface IMangoLifecycle extends Provider {
 
     /**
      * Get the state of the Lifecycle
-     * 
+     *
      * @return
      */
     public int getLifecycleState();
@@ -24,8 +24,8 @@ public interface IMangoLifecycle extends Provider {
      * Get the percentage 0-100
      * 0 is Not Started
      * 100 is running
-     * 
-     * 
+     *
+     *
      * @return
      */
     public float getStartupProgress();
@@ -34,7 +34,7 @@ public interface IMangoLifecycle extends Provider {
      * Get the percentage 0-100
      * 0 is Running
      * 100 is Shutdown
-     * 
+     *
      * @return
      */
     public float getShutdownProgress();
@@ -43,7 +43,7 @@ public interface IMangoLifecycle extends Provider {
      * (Re)load the license
      */
     public void loadLic();
-    
+
     /**
      * Get the data point limit
      * @return
@@ -61,12 +61,15 @@ public interface IMangoLifecycle extends Provider {
      * @return
      */
     boolean isRestarting();
-    
+
     /**
      * (Re)load ssl certificates and keys
      */
-    public void reloadSslContext();
-    
+    public default void reloadSslContext() {
+        // TODO Mango 3.5, remove default implementation
+        // do nothing
+    }
+
     //The Various States
     //States of the Lifecycle
     public static final int NOT_STARTED = 0;
@@ -103,5 +106,5 @@ public interface IMangoLifecycle extends Provider {
     public static final int POST_TERMINATE = 310;
 
     public static final int TERMINATED = 400;
-    
+
 }
