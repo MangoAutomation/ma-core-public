@@ -5,6 +5,7 @@
 * Fix to use lower case username when interacting with the user cache
 * Escape HTML in various places on legacy UI to protect against script injection
 * Implement configurable rate limiting for the REST API and rate limit authentication attempts
+* Update xstyle - Fixes "Uncaught ReferenceError: normal is not defined" in legacy UI
 
 *Version 3.4.2*
 * Setting encryption/security provider at Startup instead of if/when needed during runtime
