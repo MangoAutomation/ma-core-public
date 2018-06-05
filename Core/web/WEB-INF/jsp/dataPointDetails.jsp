@@ -225,7 +225,7 @@
                 <tr>
                   <td class="smallTitle" colspan="2">
                     <tag:img png="icon_comp" title="common.point"/>
-                    ${point.extendedName}
+                    ${fn:escapeXml(point.extendedName)}
                     <c:if test="${pointEditor}">
                       <a href="data_point_edit.shtm?dpid=${point.id}"><tag:img png="icon_comp_edit" title="pointDetails.editPoint"/></a>
                       <a href="data_source_edit.shtm?dsid=${point.dataSourceId}&pid=${point.id}"><tag:img png="icon_ds_edit"
@@ -509,6 +509,6 @@
 <script type="text/javascript">
   var pointList = [
      <c:forEach items="${userPoints}" var="point" varStatus="status">
-      {id:${point.id},name:"${sst:dquotEncode(point.extendedName)}"}${status.last ? '' : ','}</c:forEach>
+      {id:${point.id},name:"${fn:escapeXml(sst:dquotEncode(point.extendedName))}"}${status.last ? '' : ','}</c:forEach>
   ];
 </script>

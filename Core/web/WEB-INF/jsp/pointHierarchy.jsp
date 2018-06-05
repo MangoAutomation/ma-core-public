@@ -92,7 +92,7 @@
         for (i=0; i<pointFolder.subfolders.length; i++) {
             var folder = pointFolder.subfolders[i];
             var item = {
-                    name: "<img src='images/folder_brick.png'/> "+ folder.name,
+                    name: "<img src='images/folder_brick.png'/> "+ encodeHtml(folder.name),
                     folderId: folder.id,
                     folderName: folder.name,
                     children: []
@@ -105,7 +105,7 @@
         for (i=0; i<pointFolder.points.length; i++) {
             var point = pointFolder.points[i];
             var item = { 
-                    name: "<img src='images/icon_comp.png'/> "+ point.extendedName,
+                    name: "<img src='images/icon_comp.png'/> "+ encodeHtml(point.extendedName),
                     point: makeNonTreeItem(point)
             };
             parent.push(item);
