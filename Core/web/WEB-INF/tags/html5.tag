@@ -61,6 +61,7 @@
         </c:choose>
         
         <script type="text/javascript" src="/resources/modernizr-2.8.3.min.js?v=${lastUpgrade}"></script>
+        <script type="text/javascript" src="/resources/common.js?v=${lastUpgrade}"></script>
       <c:choose>
         <c:when test="${!empty siteAnalyticsHead}">${siteAnalyticsHead}</c:when>
       </c:choose>

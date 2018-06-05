@@ -29,7 +29,7 @@
       
       
       var currentUser = {};
-      currentUser['username'] = '${sessionUser.username}'; 
+      currentUser['username'] = '${fn:escapeXml(sessionUser.username)}'; 
       currentUser['admin'] = ${sessionUser.admin};
 	 
 	  
@@ -72,7 +72,7 @@
       	  			{	translationNamespaces: translationNamespaces,
       	  				componentReady: function(){
       	        	  		usersView.setupView();
-      	            	  	usersView.loadUser('${sessionUser.username}');
+      	            	  	usersView.loadUser('${fn:escapeXml(sessionUser.username)}');
 
       	            	  	<c:if test="${sessionUser.admin}">
       	            	  	var permissionsView = new DataPointPermissionsView();

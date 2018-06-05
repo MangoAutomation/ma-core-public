@@ -57,7 +57,7 @@
       
       <td align="right">
         <c:if test="${!empty sessionUser}">
-          <span class="copyTitle"><fmt:message key="header.user"/>: <b>${sessionUser.username}</b></span>
+          <span class="copyTitle"><fmt:message key="header.user"/>: <b>${fn:escapeXml(sessionUser.username)}</b></span>
           <m2m2:menuItem id="logoutMi" href="#" onclick="getElementById('logout-form').submit()" png="control-power" key="header.logout"/>
           <tag:img id="userMutedImg" onclick="MiscDwr.toggleUserMuted(setUserMuted)" onmouseover="hideLayersIgnoreMissing('userHome', 'localeEdit')"/>
           <div style="display: inline;" onmouseover="hideLayersIgnoreMissing('localeEdit'); showMenu('userHome', null, 10, 10);">

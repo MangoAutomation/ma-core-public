@@ -58,8 +58,8 @@
         	  var content = $("comment_TEMPLATE_").cloneNode(true);
               updateTemplateNode(content, comment.ts);
 	          commentsNode.appendChild(content);
-	          $("comment"+ comment.ts +"UserTime").innerHTML = comment.prettyTime +" <fmt:message key="notes.by"/> "+ comment.username;
-	          $("comment"+ comment.ts +"Text").innerHTML = comment.comment;
+	          $("comment"+ comment.ts +"UserTime").innerHTML = comment.prettyTime +" <fmt:message key="notes.by"/> "+ encodeHtml(comment.username);
+	          $("comment"+ comment.ts +"Text").innerHTML = encodeHtml(comment.comment);
           }
       }
   }
