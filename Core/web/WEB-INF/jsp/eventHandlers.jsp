@@ -66,7 +66,7 @@
             
             allPoints = data.allPoints;
             
-            dojo.forEach(allPoints, function(item) { item.fancyName = item.name; });
+            dojo.forEach(allPoints, function(item) { item.fancyName = encodeHtml(item.name); });
             
             //Create the filtering Selects for the points
             targetPointSelector = new dijit.form.FilteringSelect({
@@ -180,7 +180,7 @@
             
             for (i=0; i<data.dataPoints.length; i++) {
                 dp = makeNonTreeItem(data.dataPoints[i]);
-                var pointNode = { name: "<img src='images/icon_comp.png'/> "+ dp.name, object: dp };
+                var pointNode = { name: "<img src='images/icon_comp.png'/> "+ encodeHtml(dp.name), object: dp };
                 pedRoot.children.push(pointNode);
                 
                 for (j=0; j<dp.eventTypes.length; j++) {
@@ -308,7 +308,7 @@
             function createEventTypeNode(widgetId, eventType, parent) {
                 makeNonTreeItem(eventType);
                 var node = {
-                        name: "<img id='"+ widgetId +"Img'/> "+ eventType.description,
+                        name: "<img id='"+ widgetId +"Img'/> "+ encodeHtml(eventType.description),
                         rawNode: true,
                         eventTypeNode: true,
                         widgetId: widgetId,
@@ -418,7 +418,7 @@
         else if (handler.handlerType == '<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>')
             img = "images/cog_process.png";
         var item = {
-                name: "<img src='"+ img +"'/> <span id='"+ handler.id +"Msg'>"+ handler.message +"</span>",
+                name: "<img src='"+ img +"'/> <span id='"+ handler.id +"Msg'>"+ encodeHtml(handler.message) +"</span>",
                 widgetId: "handler"+ handler.id,
                 object: handler,
                 handlerNode: true
@@ -722,7 +722,7 @@
                 tree.onClick(selectedHandlerNode.item, selectedHandlerNode);
             }
             else
-                $set(handler.id +"Msg", handler.message);
+                $set(handler.id +"Msg", encodeHtml(handler.message));
             
             $$(selectedHandlerNode.item, "object", makeNonTreeItem(handler));
             setUserMessage("<fmt:message key="eventHandlers.saved"/>");

@@ -106,7 +106,7 @@ mango.erecip.EmailRecipients = function(prefix, testEmailMessage, mailingLists, 
             return;
         var ml = this.getMailingList(mlid);
         if (ml) {
-            this.addListEntry("M"+ mlid, "images/book.png", ml.name);
+            this.addListEntry("M"+ mlid, "images/book.png", encodeHtml(ml.name));
             this.updateOptions(this.prefix +"MailingLists", this.mailingLists, this.prefix +"List", "M", "name");
             this.checkListEmptyMessage();
         }
@@ -119,7 +119,7 @@ mango.erecip.EmailRecipients = function(prefix, testEmailMessage, mailingLists, 
             return;
         var user = this.getUser(uid);
         if (user) {
-            this.addListEntry("U"+ uid, "images/user.png", user.username);
+            this.addListEntry("U"+ uid, "images/user.png", encodeHtml(user.username));
             setUserImg(user.admin, user.disabled, $(this.prefix +"U"+ uid +"Img"));
             this.updateOptions(this.prefix +"Users", this.users, this.prefix +"List", "U", "username");
             this.checkListEmptyMessage();
@@ -131,7 +131,7 @@ mango.erecip.EmailRecipients = function(prefix, testEmailMessage, mailingLists, 
             addr = $get(this.prefix +"Address");
         if (addr == "")
             return;
-        this.addListEntry("A"+ this.nextAddressId++, "images/email.png", addr);
+        this.addListEntry("A"+ this.nextAddressId++, "images/email.png", encodeHtml(addr));
         this.checkListEmptyMessage();
     }
     

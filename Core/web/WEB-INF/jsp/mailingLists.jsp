@@ -146,7 +146,7 @@
     }
     
     function updateMailingList(ml) {
-        $set("ml"+ ml.id +"Name", ml.name);
+        $set("ml"+ ml.id +"Name", encodeHtml(ml.name));
     }
     
     function createUserEntry() {
@@ -177,7 +177,7 @@
     function appendUserEntry(userEntry) {
         var content = createFromTemplate("mleUser_TEMPLATE_", userEntry.referenceId, "mailingListEntriesTable");
         setUserImg(userEntry.user.admin, userEntry.user.disabled, $("mle"+ userEntry.referenceId +"Img"));
-        $("mle"+ userEntry.referenceId +"Username").innerHTML = userEntry.user.username;
+        $("mle"+ userEntry.referenceId +"Username").innerHTML = encodeHtml(userEntry.user.username);
     }
     
     function deleteUserEntry(entryId) {
@@ -214,7 +214,7 @@
     
     function appendAddressEntry(addressEntry) {
         var content = createFromTemplate("mleAddress_TEMPLATE_", addressEntry.referenceId, "mailingListEntriesTable");
-        $("mle"+ addressEntry.referenceId +"Address").innerHTML = addressEntry.referenceAddress;
+        $("mle"+ addressEntry.referenceId +"Address").innerHTML = encodeHtml(addressEntry.referenceAddress);
     }
     
     function deleteAddressEntry(entryId) {

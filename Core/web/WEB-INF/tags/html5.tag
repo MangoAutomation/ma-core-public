@@ -61,7 +61,6 @@
         </c:choose>
         
         <script type="text/javascript" src="/resources/modernizr-2.8.3.min.js?v=${lastUpgrade}"></script>
-        <script type="text/javascript" src="/resources/common.js?v=${lastUpgrade}"></script>
       <c:choose>
         <c:when test="${!empty siteAnalyticsHead}">${siteAnalyticsHead}</c:when>
       </c:choose>
@@ -92,6 +91,32 @@
         </c:if>
         
         <!-- Scripts -->
+        <script>
+	        function escapeQuotes(str) {
+			    if (!str)
+			        return "";
+			    return str.replace(/\'/g,"\\'");
+			}
+			
+			function escapeDQuotes(str) {
+			    if (!str)
+			        return "";
+			    return str.replace(/\"/g,"\\\"");
+			}
+			
+			function encodeQuotes(str) {
+			    if (!str)
+			        return "";
+			    return str.replace(/\'/g,"%27").replace(/\"/g,"%22");
+			}
+			
+			function encodeHtml(str) {
+			    if (!str)
+			        return "";
+			    str = str.replace(/&/g,"&amp;");
+			    return str.replace(/</g,"&lt;");
+			}
+        </script>
         <c:choose>
           <c:when test="${replaceScripts == true}">
             <!-- JSP scripts fragment -->
