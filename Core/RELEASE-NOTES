@@ -1,3 +1,7 @@
+*Version 3.4.4*
+* More HTML escapes
+* Fixed insidious typo released in 3.4.3
+
 *Version 3.4.3*
 * Changed i18n modules page links to the appropriate modules page
 * Fix bug in ON_CHANGE_INTERVAL logging, prevent errant logging tasks at point termination
