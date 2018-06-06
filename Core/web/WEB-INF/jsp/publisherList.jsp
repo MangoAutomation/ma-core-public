@@ -20,9 +20,9 @@
         dwr.util.removeAllRows("publisherList");
         dwr.util.addRows("publisherList", publishers,
             [
-                function(p) { return "<b>"+ p.name +"</b>"; },
+                function(p) { return "<b>"+ encodeHtml(p.name) +"</b>"; },
                 function(p) { return p.typeDescription; },
-                function(p) { return p.configDescription; },
+                function(p) { return encodeHtml(p.configDescription); },
                 function(p) {
                     if (p.enabled)
                         return '<img src="images/transmit_go.png" title="<fmt:message key="common.enabledToggle"/>" '+

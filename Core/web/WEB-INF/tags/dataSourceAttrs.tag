@@ -36,21 +36,21 @@
           <c:if test="${copy}">
             <tr id="copyDeviceName">
               <td class="formLabelRequired"><fmt:message key="dsEdit.deviceName"/></td>
-              <td class="formField"><input type="text" id="dataSource.deviceName" value="${dataSource.name}"/></td>
+              <td class="formField"><input type="text" id="dataSource.deviceName" value="${fn:escapeXml(dataSource.name)}"/></td>
             </tr>
           </c:if>
           <tr>
             <td class="formLabelRequired"><fmt:message key="dsEdit.head.name"/></td>
-            <td class="formField"><input type="text" id="dataSource.name" value="${dataSource.name}"/></td>
+            <td class="formField"><input type="text" id="dataSource.name" value="${fn:escapeXml(dataSource.name)}"/></td>
           </tr>
           <tr>
             <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-            <td class="formField"><input type="text" id="dataSource.xid" value="${dataSource.xid}"/></td>
+            <td class="formField"><input type="text" id="dataSource.xid" value="${fn:escapeXml(dataSource.xid)}"/></td>
           </tr>
           <tr>
             <td class="formLabel"><fmt:message key="dsEdit.permission.edit"/></td>
             <td class="formField">
-              <input type="text" id="dataSource.editPermission" value="${dataSource.editPermission}" class="formLong"/>
+              <input type="text" id="dataSource.editPermission" value="${fn:escapeXml(dataSource.editPermission)}" class="formLong"/>
               <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('dataSource.editPermission')"/>
               <tag:help id="permissions"/>
             </td>

@@ -7,6 +7,8 @@ package com.serotonin.m2m2.vo.event;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.web.util.HtmlUtils;
+
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
@@ -410,9 +412,9 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
 	    		if(comment.getUsername() == null)
 	    			builder.append(Common.translate("common.deleted"));
 	    		else
-	    			builder.append(comment.getUsername());
+	    			builder.append(HtmlUtils.htmlEscape(comment.getUsername()));
 	    		builder.append("</span></br>");
-	    		builder.append(comment.getComment()).append("</br>");
+	    		builder.append(HtmlUtils.htmlEscape(comment.getComment())).append("</br>");
 	    	}
     	}
     	return builder.toString();

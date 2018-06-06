@@ -357,14 +357,14 @@ eventInstances = new StoreView({
     		renderCell: function(eventInstance, messageString, cell){
     			var div = document.createElement("div");
 
-    			var html = messageString;
+    			var html = encodeHtml(messageString);
     			html += "<img src='/images/comment_add.png' onclick='eventInstances.openAlarmCommentDialog(" 
     				+ eventInstance.id + ")' title='"
     				+ mangoMsg['notes.addNote'] + "'/>";
         			//TODO Add comments too!
     			var comments = eventInstance.commentsHTML;
     			if(comments != '')
-    				html += comments;
+    				html += comments; //Already HTML escaped in EventInstanceVO
     			div.innerHTML = html;
     			
     			return div;

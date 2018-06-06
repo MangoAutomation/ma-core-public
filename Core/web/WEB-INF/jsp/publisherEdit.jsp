@@ -87,12 +87,12 @@
             </tr>
             <tr>
               <td class="formLabelRequired"><fmt:message key="publisherEdit.name"/></td>
-              <td class="formField"><input type="text" id="name" value="${publisher.name}"/></td>
+              <td class="formField"><input type="text" id="name" value="${fn:escapeXml(publisher.name)}"/></td>
             </tr>
             
             <tr>
               <td class="formLabelRequired"><fmt:message key="common.xid"/></td>
-              <td class="formField"><input type="text" id="xid" value="${publisher.xid}"/></td>
+              <td class="formField"><input type="text" id="xid" value="${fn:escapeXml(publisher.xid)}"/></td>
             </tr>
             
             <tr>

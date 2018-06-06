@@ -1276,9 +1276,9 @@ function PermissionUI(dwr) {
 						content += ",";
 					
 					if (matched)
-						content += "<b>"+ p +"</b>";
+						content += "<b>"+ encodeHtml(p) +"</b>";
 					else
-						content += "<a id='perm-"+ textNodeId +"-"+ escapeQuotes(p) +"' class='ptr groupStr'>"+ p +"</a>";
+						content += "<a id='perm-"+ textNodeId +"-"+ encodeHtml(escapeQuotes(p)) +"' class='ptr groupStr'>"+ p +"</a>";
 				}
 				
 				content += "</td></tr>";

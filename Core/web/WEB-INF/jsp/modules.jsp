@@ -142,7 +142,7 @@
                 s += "<input type='checkbox' id='"+ name +"Check' checked='checked' class='modCB upgradeCB' onclick='selectDependencies(this.id, this.checked);'>";
                 s += "<div class='modName'><label for='"+ name +"Check'>&nbsp;" + name +"-"+ upgradeList[i].version +"</label></div>";
                 s += "&nbsp;<div id='"+ name +"relNotes' class='relNotes'>"+ notes +"</div>";
-                s += "<span class='infoData' style='padding-left:20px;' id='"+ name +"downloadResult'></span>";
+                s += "<span class='infoData' style='padding-left:20px;' id='"+ encodeHtml(name) +"downloadResult'></span>";
                 s += "</div>";
             }
             $set("upgradeModulesList", s);
