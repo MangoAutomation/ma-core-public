@@ -1260,7 +1260,7 @@ function PermissionUI(dwr) {
 				else
 					content += '<img src="/images/cross.png"/> ';
 				
-				content += '</td><td class="permUser">'+ result[i].username +'</td><td>';
+				content += '</td><td class="permUser">'+ encodeHtml(result[i].username) +'</td><td>';
 				
 				for (var j=0; j<result[i].allGroups.length; j++) {
 					var p = result[i].allGroups[j];
@@ -1278,7 +1278,7 @@ function PermissionUI(dwr) {
 					if (matched)
 						content += "<b>"+ encodeHtml(p) +"</b>";
 					else
-						content += "<a id='perm-"+ textNodeId +"-"+ encodeHtml(escapeQuotes(p)) +"' class='ptr groupStr'>"+ p +"</a>";
+						content += "<a id='perm-"+ textNodeId +"-"+ escapeQuotes(p) +"' class='ptr groupStr'>"+ encodeHtml(p) +"</a>";
 				}
 				
 				content += "</td></tr>";
