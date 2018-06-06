@@ -264,15 +264,25 @@ BaseUIComponent.prototype.dstoreErrorHandler = function(data) {
             parsed = $.parseJSON(data.response.data);
         } catch(e) { }
     }
+
+    var message;
     
-    if (parsed.validationMessages && parsed.validationMessages.length) {
+    if (parsed.validationMessages) {
+        this.showValidationErrors(parsed);
+    } else if (parsed.mangoStatusCode === 4002) {
+        parsed.validationMessages = parsed.result.messages;
         this.showValidationErrors(parsed);
     }
     
-    var message;
-    if(data.response){
+    if (parsed.localizedMessage) {
+        message = parsed.localizedMessage;
+    }
+    if(!message && data.response){
     	//Mango will return errors in the header
     	message = data.response.getHeader('errors');
+    }
+    if(!message && data.response && data.response.xhr){
+        message = data.response.xhr.statusText;
     }
     if (!message) {
     	message = data.message;
