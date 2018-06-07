@@ -481,7 +481,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
             if (!StringUtils.isEmpty(timezone))
                 dtz = DateTimeZone.forID(timezone);
             if (dtz == null)
-                dtz = DateTimeZone.forID(TimeZone.getDefault().getID());
+                dtz = DateTimeZone.getDefault();
             return dtz;
         });
     }
