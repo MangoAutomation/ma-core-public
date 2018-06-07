@@ -437,7 +437,7 @@
         targetPointSelector.store = new dojo.store.Memory();
         for (var i=0; i<allPoints.length; i++) {
             dp = allPoints[i];
-            dp.fancyName = dp.name
+            //dp.fancyName = dp.name
             if (dp.settable)
                targetPointSelector.store.put(dp);
         }        
@@ -828,7 +828,7 @@
               templateKey : templateKey
           };
           //Disable in list
-          data.fancyName = "<span class='disabled'>"+ data.name +"</span>";
+          data.fancyName = "<span class='disabled'>"+ encodeHtml(data.name) +"</span>";
       }
   }
   
@@ -840,7 +840,7 @@
       writeContextArray(contextTable);
       var data = getElement(allPoints, pointId);
       if(data)
-          data.fancyName = data.name;
+          data.fancyName = encodeHtml(data.name);
   }
     
     function writeContextArray(contextTable) {
@@ -854,7 +854,7 @@
           show($(contextTable + "Headers"));
           dwr.util.addRows(contextTable, contextArray,
               [
-                  function(data) { return data.pointName; },
+                  function(data) { return encodeHtml(data.pointName); },
                   function(data) { return data.pointType; },
                   function(data) {
                           return "<input type='text' value='"+ data.templateKey +"' class='formLong' "+
