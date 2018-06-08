@@ -509,6 +509,6 @@
 <script type="text/javascript">
   var pointList = [
      <c:forEach items="${userPoints}" var="point" varStatus="status">
-      {id:${point.id},name:"${fn:escapeXml(sst:dquotEncode(point.extendedName))}"}${status.last ? '' : ','}</c:forEach>
+      {id:${point.id},name:"${sst:escapeLessThan(sst:dquotEncode(point.extendedName))}".replace(/&lt;/g, "<")}${status.last ? '' : ','}</c:forEach>
   ];
 </script>

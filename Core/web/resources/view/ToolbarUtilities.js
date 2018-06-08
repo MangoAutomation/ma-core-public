@@ -162,7 +162,7 @@ ToolbarUtilities.prototype.renderEventLevel = function(level) {
         
         if (level.unsilencedCount === 1) {
             // display single event message and ack button
-            $a.append(level.translatedName + ': ' + encodeHtml(event.message));
+            $a.append(level.translatedName + ': ' + event.message);
             $div.append(this.acknowledgeEventTick(event));
         } else  {
             // display link and count

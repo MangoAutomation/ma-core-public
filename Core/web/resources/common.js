@@ -142,7 +142,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}else{
 	        		//For only 1
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span><img src='/images/flag_grey.png'/> " + encodeHtml(response.noneEvent.messageString)  + 
+		            	message: "<span><img src='/images/flag_grey.png'/> " + response.noneEvent.messageString  + 
 		            	" <a class='ptr' onclick='ackEvent(" + response.noneEvent.id + ")'>" +	
 		            	"<img src='/images/tick.png' id='ackImg" + response.noneEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
 		            	type: "message",
@@ -161,7 +161,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}else{
 	        		//For only 1
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span><img src='/images/flag_blue.png'/> " + encodeHtml(response.informationEvent.messageString)  + 
+		            	message: "<span><img src='/images/flag_blue.png'/> " + response.informationEvent.messageString  + 
 		            	" <a class='ptr' onclick='ackEvent(" + response.informationEvent.id + ")'>" +	
 		            	"<img src='/images/tick.png' id='ackImg" + response.informationEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
 		            	type: "message",
@@ -199,7 +199,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}else{
 	        		//For only 1
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span><img src='/images/flag_green.png'/> " + encodeHtml(response.warningEvent.messageString)  + 
+		            	message: "<span><img src='/images/flag_green.png'/> " + response.warningEvent.messageString  + 
 		            	" <a class='ptr' onclick='ackEvent(" + response.warningEvent.id + ")'>" +	
 		            	"<img src='/images/tick.png' id='ackImg" + response.warningEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
 		            	type: "message",
@@ -218,7 +218,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}else{
 	        		//For only 1
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span><img src='/images/flag_yellow.png'/> " + encodeHtml(response.urgentEvent.messageString)  + 
+		            	message: "<span><img src='/images/flag_yellow.png'/> " + response.urgentEvent.messageString  + 
 		            	" <a class='ptr' onclick='ackEvent(" + response.urgentEvent.id + ")'>" + 
 		            	"<img src='/images/tick.png' id='ackImg"+ response.urgentEvent.id + "' title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
 	            	type: "message",
@@ -237,7 +237,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}else{
 	        		//For only 1 event
 		            dojo.publish("alarmTopic",[{
-		            	message: "<span><img src='/images/flag_orange.png'/> " + encodeHtml(response.criticalEvent.messageString)  + 
+		            	message: "<span><img src='/images/flag_orange.png'/> " + response.criticalEvent.messageString  + 
 		            	" <a class='ptr'onclick='ackEvent(" + response.criticalEvent.id + ")'>" + 
 		            	"<img src='/images/tick.png' id='ackImg" + response.criticalEvent.id + "'  title='" + mangoMsg['events.acknowledge'] + "'/></a></span>",
 	            	type: "message",
@@ -256,7 +256,7 @@ mango.longPoll.pollCB = function(response) {
 	        	}else{
 	        		//For only 1 message
 		            dojo.publish("alarmTopic",[{
-	   	            	message: "<span><img src='/images/flag_red.png'/> " + encodeHtml(response.lifeSafetyEvent.messageString)  +
+	   	            	message: "<span><img src='/images/flag_red.png'/> " + response.lifeSafetyEvent.messageString  +
 	   	            	" <a class='ptr' onclick='ackEvent(" + response.lifeSafetyEvent.id + ")'>" +
 	   	            	"<img src='/images/tick.png' id='ackImg" + response.lifeSafetyEvent.id +"' title='" + mangoMsg['events.acknowledge'] +"'/></a></span>",
 	            	type: "message",
