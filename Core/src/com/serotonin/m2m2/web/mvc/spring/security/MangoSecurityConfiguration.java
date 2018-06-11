@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
@@ -52,6 +54,8 @@ import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -146,8 +150,9 @@ public class MangoSecurityConfiguration {
     }
 
     // used to dectect if we should do redirects on login/authentication failure/logout etc
+    // TODO Mango 3.5 remove static, fix UI module
     @Bean(name="browserHtmlRequestMatcher")
-    public RequestMatcher browserHtmlRequestMatcher() {
+    public static RequestMatcher browserHtmlRequestMatcher() {
         return BrowserRequestMatcher.INSTANCE;
     }
 
@@ -244,6 +249,7 @@ public class MangoSecurityConfiguration {
     @Autowired JsonLoginConfigurer jsonLoginConfigurer;
     @Autowired @Qualifier("ipRateLimiter") RateLimiter<String> ipRateLimiter;
     @Autowired @Qualifier("userRateLimiter") RateLimiter<Integer> userRateLimiter;
+    @Autowired Environment env;
 
     @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled;
     @Value("${authentication.basic.enabled:true}") boolean basicAuthenticationEnabled;
@@ -258,9 +264,15 @@ public class MangoSecurityConfiguration {
 
     @Value("${web.security.iFrameAccess:SAMEORIGIN}") String iFrameAccess;
 
-    @Value("${web.security.contentSecurityPolicy.enabled:true}") boolean contentSecurityPolicyEnabled;
-    @Value("${web.security.contentSecurityPolicy:}") String contentSecurityPolicy;
-    @Value("${web.security.contentSecurityPolicy.reportOnly:false}") boolean contentSecurityPolicyReportOnly;
+    @Value("${web.security.contentSecurityPolicy.enabled:true}") boolean cspEnabled;
+    @Value("${web.security.contentSecurityPolicy.reportOnly:false}") boolean cspReportOnly;
+    @Value("${web.security.contentSecurityPolicy.other:}") String cspOther;
+
+    @Value("${web.security.contentSecurityPolicy.legacyUi.enabled:true}") boolean legacyCspEnabled;
+    @Value("${web.security.contentSecurityPolicy.legacyUi.reportOnly:false}") boolean legacyCspReportOnly;
+    @Value("${web.security.contentSecurityPolicy.legacyUi.other:}") String legacyCspOther;
+
+    final static String[] SRC_TYPES = new String[] {"default", "script", "style", "connect", "img", "font", "media", "object", "frame", "worker", "manifest"};
 
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
     // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
@@ -341,7 +353,7 @@ public class MangoSecurityConfiguration {
             }
 
             //Configure the headers
-            configureHeaders(http);
+            configureHeaders(http, true);
             configureHSTS(http, false);
 
             // Use the MVC Cors Configuration
@@ -421,7 +433,7 @@ public class MangoSecurityConfiguration {
             }
 
             //Configure headers
-            configureHeaders(http);
+            configureHeaders(http, true);
             configureHSTS(http, false);
 
             // Use the MVC Cors Configuration
@@ -503,7 +515,7 @@ public class MangoSecurityConfiguration {
             http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             //Customize the headers here
-            configureHeaders(http);
+            configureHeaders(http, false);
             configureHSTS(http, true);
         }
     }
@@ -531,7 +543,7 @@ public class MangoSecurityConfiguration {
      * @param http
      * @throws Exception
      */
-    private void configureHeaders(HttpSecurity http) throws Exception {
+    private void configureHeaders(HttpSecurity http, boolean isRest) throws Exception {
         HeadersConfigurer<HttpSecurity> headers = http.headers();
         headers.cacheControl().disable();
 
@@ -547,15 +559,37 @@ public class MangoSecurityConfiguration {
             headers.addHeaderWriter(headerWriter).frameOptions().disable();
         }
 
-        if (contentSecurityPolicyEnabled) {
-            String contentSecurityPolicy = this.contentSecurityPolicy;
-            if (contentSecurityPolicy == null || contentSecurityPolicy.isEmpty()) {
-                contentSecurityPolicy = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src ws: wss: 'self'";
+        if (!isRest && (cspEnabled || legacyCspEnabled)) {
+            RequestMatcher legacyUiMatcher = new OrRequestMatcher(new AntPathRequestMatcher("/*.htm"), new AntPathRequestMatcher("/**/*.shtm"));
+            RequestMatcher otherMatcher = new NegatedRequestMatcher(legacyUiMatcher);
+
+            List<String> policies = new ArrayList<>();
+            List<String> legacyPolicies = new ArrayList<>();
+
+            for (String srcType : SRC_TYPES) {
+                String policy = env.getProperty("web.security.contentSecurityPolicy." + srcType + "Src");
+                if (policy !=null && !policy.isEmpty()) {
+                    policies.add(srcType + "-src " + policy);
+                }
+
+                String legacyPolicy = env.getProperty("web.security.contentSecurityPolicy.legacyUi." + srcType + "Src");
+                if (legacyPolicy != null && !legacyPolicy.isEmpty()) {
+                    legacyPolicies.add(srcType + "-src " + legacyPolicy);
+                }
             }
 
-            HeadersConfigurer<HttpSecurity>.ContentSecurityPolicyConfig cspConfig = headers.contentSecurityPolicy(contentSecurityPolicy);
-            if (contentSecurityPolicyReportOnly) {
-                cspConfig.reportOnly();
+            if (cspOther != null && !cspOther.isEmpty()) {
+                policies.add(cspOther);
+            }
+            if (legacyCspOther != null && !legacyCspOther.isEmpty()) {
+                legacyPolicies.add(legacyCspOther);
+            }
+
+            if (cspEnabled && !policies.isEmpty()) {
+                headers.addHeaderWriter(new MangoCSPHeaderWriter(cspReportOnly, policies, otherMatcher));
+            }
+            if (legacyCspEnabled && !legacyPolicies.isEmpty()) {
+                headers.addHeaderWriter(new MangoCSPHeaderWriter(legacyCspReportOnly, legacyPolicies, legacyUiMatcher));
             }
         }
     }
