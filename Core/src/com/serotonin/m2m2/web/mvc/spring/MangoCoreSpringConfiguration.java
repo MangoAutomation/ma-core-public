@@ -28,8 +28,8 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 
 /**
  * Spring Configuration for Mango Automation Core
- * 
- * 
+ *
+ *
  * @author Terry Packer
  *
  */
@@ -38,61 +38,61 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @EnableWebMvc
 @ComponentScan(
-		basePackages = { "com.serotonin.m2m2.web.mvc.controller" })
+        basePackages = { "com.serotonin.m2m2.web.mvc.controller" })
 public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfiguration implements BeanFactoryAware {
 
-	private BeanFactory beanFactory;
-	
-	@Bean(name="viewResolver")
-	public InternalResourceViewResolver internalResourceViewResolver(){
-		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
-		resolver.setViewClass(JstlView.class);
-		return resolver;
-	}
-	
-	@Bean(name="defaultMessageCodeResolver")
-	public DefaultMessageCodesResolver defaultMessageCodesResolver(){
-		return new DefaultMessageCodesResolver();
-	}
-	
-	@Bean(name="commonData")
-	public CommonDataInterceptor commonDataInterceptor(){
-		return new CommonDataInterceptor();
-	}
-	
-	@Bean(name="mappings")
-	public BlabberUrlHandlerMapping blabberUrlHandlerMapping(CommonDataInterceptor commonDataInterceptor){
-		
-		BlabberUrlHandlerMapping mapping = new BlabberUrlHandlerMapping();
-		mapping.addInterceptor(commonDataInterceptor);
+    private BeanFactory beanFactory;
 
-		return mapping;
-	}
-	
-	@Bean
-	public MangoSpringExceptionHandler exceptionHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher){
-		return new MangoSpringExceptionHandler(browserHtmlRequestMatcher);
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
-	 */
-	@Override
-	public void setBeanFactory(BeanFactory factory) throws BeansException{
-		this.beanFactory = factory;
-	}
-	public BeanFactory getBeanFactory(){
-		return this.beanFactory;
-	}
-	
+    @Bean(name="viewResolver")
+    public InternalResourceViewResolver internalResourceViewResolver(){
+        InternalResourceViewResolver resolver = new InternalResourceViewResolver();
+        resolver.setViewClass(JstlView.class);
+        return resolver;
+    }
+
+    @Bean(name="defaultMessageCodeResolver")
+    public DefaultMessageCodesResolver defaultMessageCodesResolver(){
+        return new DefaultMessageCodesResolver();
+    }
+
+    @Bean(name="commonData")
+    public CommonDataInterceptor commonDataInterceptor(){
+        return new CommonDataInterceptor();
+    }
+
+    @Bean(name="mappings")
+    public BlabberUrlHandlerMapping blabberUrlHandlerMapping(CommonDataInterceptor commonDataInterceptor){
+
+        BlabberUrlHandlerMapping mapping = new BlabberUrlHandlerMapping();
+        mapping.addInterceptor(commonDataInterceptor);
+
+        return mapping;
+    }
+
+    @Bean
+    public MangoSpringExceptionHandler exceptionHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher){
+        return new MangoSpringExceptionHandler(browserHtmlRequestMatcher);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.springframework.beans.factory.BeanFactoryAware#setBeanFactory(org.springframework.beans.factory.BeanFactory)
+     */
+    @Override
+    public void setBeanFactory(BeanFactory factory) throws BeansException{
+        this.beanFactory = factory;
+    }
+    public BeanFactory getBeanFactory(){
+        return this.beanFactory;
+    }
+
     /* (non-Javadoc)
      * @see org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration#createExpressionHandler()
      */
     @Override
     protected MethodSecurityExpressionHandler createExpressionHandler() {
-    	MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler();
-    	expressionHandler.setPermissionEvaluator(new MangoPermissionEvaluator());
-    	return expressionHandler;
+        MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler();
+        expressionHandler.setPermissionEvaluator(new MangoPermissionEvaluator());
+        return expressionHandler;
     }
 }

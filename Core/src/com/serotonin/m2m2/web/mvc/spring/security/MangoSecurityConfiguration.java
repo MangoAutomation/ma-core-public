@@ -3,8 +3,7 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,7 +20,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.BeanIds;
@@ -48,16 +47,11 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.security.web.header.writers.frameoptions.AllowFromStrategy;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
-import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -67,7 +61,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
@@ -83,19 +76,15 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetail
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.security"})
 public class MangoSecurityConfiguration {
 
-    public static final String BASIC_AUTHENTICATION_REALM = "Mango";
-
     @Autowired
     private ConfigurableListableBeanFactory beanFactory;
-
-    //Share between all Configurations
-    final static RequestMatcher browserHtmlRequestMatcher = createBrowserHtmlRequestMatcher();
 
     @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
             MangoUserDetailsService userDetails,
             MangoPasswordAuthenticationProvider passwordAuthenticationProvider,
-            MangoTokenAuthenticationProvider tokenAuthProvider
+            MangoTokenAuthenticationProvider tokenAuthProvider,
+            @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled
             ) throws Exception {
 
         auth.userDetailsService(userDetails);
@@ -104,8 +93,11 @@ public class MangoSecurityConfiguration {
             auth.authenticationProvider(def.authenticationProvider());
         }
 
-        auth.authenticationProvider(passwordAuthenticationProvider)
-        .authenticationProvider(tokenAuthProvider);
+        auth.authenticationProvider(passwordAuthenticationProvider);
+
+        if (tokenAuthEnabled) {
+            auth.authenticationProvider(tokenAuthProvider);
+        }
     }
 
     @Bean
@@ -116,16 +108,6 @@ public class MangoSecurityConfiguration {
     @Bean
     public UserDetailsService userDetailsService(MangoUserDetailsService userDetails) {
         return userDetails;
-    }
-
-    @Bean
-    public AccessDeniedHandler accessDeniedHandler(MangoAccessDeniedHandler handler) {
-        return handler;
-    }
-
-    @Bean(name = "restAccessDeniedHandler")
-    public AccessDeniedHandler restAccessDeniedHandler(MangoRestAccessDeniedHandler handler) {
-        return new MangoRestAccessDeniedHandler();
     }
 
     @Bean
@@ -165,8 +147,8 @@ public class MangoSecurityConfiguration {
 
     // used to dectect if we should do redirects on login/authentication failure/logout etc
     @Bean(name="browserHtmlRequestMatcher")
-    public static RequestMatcher browserHtmlRequestMatcher() {
-        return browserHtmlRequestMatcher;
+    public RequestMatcher browserHtmlRequestMatcher() {
+        return BrowserRequestMatcher.INSTANCE;
     }
 
     @Bean
@@ -174,40 +156,31 @@ public class MangoSecurityConfiguration {
         return new MangoExpiredSessionStrategy(matcher);
     }
 
-    /**
-     * Internal method to create a static matcher
-     * @return
-     */
-    private static RequestMatcher createBrowserHtmlRequestMatcher(){
-        ContentNegotiationStrategy contentNegotiationStrategy = contentNegotiationStrategy();
-
-        MediaTypeRequestMatcher mediaMatcher = new MediaTypeRequestMatcher(
-                contentNegotiationStrategy, MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML);
-        mediaMatcher.setIgnoredMediaTypes(Collections.singleton(MediaType.ALL));
-
-        RequestMatcher notXRequestedWith = new NegatedRequestMatcher(
-                new RequestHeaderRequestMatcher("X-Requested-With", "XMLHttpRequest"));
-
-        return new AndRequestMatcher(Arrays.asList(notXRequestedWith, mediaMatcher));
-    }
-
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        if(Common.envProps.getBoolean("rest.cors.enabled", false)) {
-            CorsConfiguration configuration = new CorsConfiguration();
-            configuration.setAllowedOrigins(Arrays.asList(Common.envProps.getStringArray("rest.cors.allowedOrigins", ",", new String[0])));
-            configuration.setAllowedMethods(Arrays.asList(Common.envProps.getStringArray("rest.cors.allowedMethods", ",", new String[0])));
-            configuration.setAllowedHeaders(Arrays.asList(Common.envProps.getStringArray("rest.cors.allowedHeaders", ",", new String[0])));
-            configuration.setExposedHeaders(Arrays.asList(Common.envProps.getStringArray("rest.cors.exposedHeaders", ",", new String[0])));
-            configuration.setAllowCredentials(Common.envProps.getBoolean("rest.cors.allowCredentials", false));
-            configuration.setMaxAge(Common.envProps.getLong("rest.cors.maxAge", 0));
-            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-            source.setAlwaysUseFullPath(true); //Don't chop off the starting /rest stuff
-            source.registerCorsConfiguration("/rest/**", configuration);
-            return source;
-        } else {
-            return null;
-        }
+    public CorsConfigurationSource corsConfigurationSource(
+            @Value("${rest.cors.enabled:false}") boolean enabled,
+            @Value("${rest.cors.allowedOrigins:}") List<String> allowedOrigins,
+            @Value("${rest.cors.allowedMethods:PUT,POST,GET,OPTIONS,DELETE}") List<String> allowedMethods,
+            @Value("${rest.cors.allowedHeaders:content-type,x-requested-with,authorization}") List<String> allowedHeaders,
+            @Value("${rest.cors.exposedHeaders:}") List<String> exposedHeaders,
+            @Value("${rest.cors.allowCredentials:false}") boolean allowCredentials,
+            @Value("${rest.cors.maxAge:3600}") long maxAge) {
+
+        if (!enabled) return null;
+
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(allowedOrigins);
+        configuration.setAllowedMethods(allowedMethods);
+        configuration.setAllowedHeaders(allowedHeaders);
+        configuration.setExposedHeaders(exposedHeaders);
+        configuration.setAllowCredentials(allowCredentials);
+        configuration.setMaxAge(maxAge);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.setAlwaysUseFullPath(true); //Don't chop off the starting /rest stuff
+        source.registerCorsConfiguration("/rest/**", configuration);
+
+        return source;
     }
 
     @Bean
@@ -233,33 +206,61 @@ public class MangoSecurityConfiguration {
         return firewall;
     }
 
-    @SuppressWarnings("deprecation")
     @Bean("ipRateLimiter")
-    public RateLimiter<String> ipRateLimiter() {
-        if (!SystemSettingsDao.instance.getBooleanValue("rateLimit.rest.anonymous.enabled", true)) {
-            return null;
-        }
+    public RateLimiter<String> ipRateLimiter(
+            @Value("${rateLimit.rest.anonymous.enabled:true}") boolean enabled,
+            @Value("${rateLimit.rest.anonymous.burstQuantity:10}") long burstQuantity,
+            @Value("${rateLimit.rest.anonymous.quanitity:2}") long quanitity,
+            @Value("${rateLimit.rest.anonymous.period:1}") long period,
+            @Value("${rateLimit.rest.anonymous.periodUnit:SECONDS}") TimeUnit periodUnit) {
 
-        return new RateLimiter<>(
-                Common.envProps.getLong("rateLimit.rest.anonymous.burstQuantity", 10),
-                Common.envProps.getLong("rateLimit.rest.anonymous.quanitity", 2),
-                Common.envProps.getLong("rateLimit.rest.anonymous.period", 1),
-                Common.envProps.getTimeUnitValue("rateLimit.rest.anonymous.periodUnit", TimeUnit.SECONDS));
+        return !enabled ? null : new RateLimiter<>(burstQuantity, quanitity, period, periodUnit);
     }
 
-    @SuppressWarnings("deprecation")
     @Bean("userRateLimiter")
-    public RateLimiter<Integer> userRateLimiter() {
-        if (!SystemSettingsDao.instance.getBooleanValue("rateLimit.rest.user.enabled", false)) {
-            return null;
-        }
+    public RateLimiter<Integer> userRateLimiter(
+            @Value("${rateLimit.rest.user.enabled:false}") boolean enabled,
+            @Value("${rateLimit.rest.user.burstQuantity:20}") long burstQuantity,
+            @Value("${rateLimit.rest.user.quanitity:10}") long quanitity,
+            @Value("${rateLimit.rest.user.period:1}") long period,
+            @Value("${rateLimit.rest.user.periodUnit:SECONDS}") TimeUnit periodUnit) {
 
-        return new RateLimiter<>(
-                Common.envProps.getLong("rateLimit.rest.user.burstQuantity", 20),
-                Common.envProps.getLong("rateLimit.rest.user.quanitity", 10),
-                Common.envProps.getLong("rateLimit.rest.user.period", 1),
-                Common.envProps.getTimeUnitValue("rateLimit.rest.user.periodUnit", TimeUnit.SECONDS));
+        return !enabled ? null : new RateLimiter<>(burstQuantity, quanitity, period, periodUnit);
     }
+
+    @Autowired HttpFirewall httpFirewall;
+    @Autowired AccessDeniedHandler accessDeniedHandler;
+    @Autowired @Qualifier("restAccessDeniedHandler") AccessDeniedHandler restAccessDeniedHandler;
+    @Autowired AuthenticationEntryPoint authenticationEntryPoint;
+    @Autowired CorsConfigurationSource corsConfigurationSource;
+    @Autowired AuthenticationSuccessHandler authenticationSuccessHandler;
+    @Autowired AuthenticationFailureHandler authenticationFailureHandler;
+    @Autowired LogoutHandler logoutHandler;
+    @Autowired LogoutSuccessHandler logoutSuccessHandler;
+    @Autowired RequestCache requestCache;
+    @Autowired PermissionExceptionFilter permissionExceptionFilter;
+    @Autowired SessionRegistry sessionRegistry;
+    @Autowired SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
+    @Autowired JsonLoginConfigurer jsonLoginConfigurer;
+    @Autowired @Qualifier("ipRateLimiter") RateLimiter<String> ipRateLimiter;
+    @Autowired @Qualifier("userRateLimiter") RateLimiter<Integer> userRateLimiter;
+
+    @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled;
+    @Value("${authentication.basic.enabled:true}") boolean basicAuthenticationEnabled;
+    @Value("${authentication.basic.realm:Mango}") String basicAuthenticationRealm;
+    @Value("${rest.cors.enabled:false}") boolean corsEnabled;
+    @Value("${authentication.session.maxSessions:10}") int maxSessions;
+
+    @Value("${ssl.on:false}") boolean sslOn;
+    @Value("${ssl.hsts.enabled:true}") boolean sslHstsEnabled;
+    @Value("${ssl.hsts.maxAge:31536000}") long sslHstsMaxAge;
+    @Value("${ssl.hsts.includeSubDomains:false}") boolean sslHstsIncludeSubDomains;
+
+    @Value("${web.security.iFrameAccess:SAMEORIGIN}") String iFrameAccess;
+
+    @Value("${web.security.contentSecurityPolicy.enabled:true}") boolean contentSecurityPolicyEnabled;
+    @Value("${web.security.contentSecurityPolicy:}") String contentSecurityPolicy;
+    @Value("${web.security.contentSecurityPolicy.reportOnly:false}") boolean contentSecurityPolicyReportOnly;
 
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
     // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
@@ -267,23 +268,7 @@ public class MangoSecurityConfiguration {
     // and also basic authentication.
     @Configuration
     @Order(1)
-    public static class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
-        @Autowired
-        AccessDeniedHandler accessDeniedHandler;
-        @Autowired
-        AuthenticationEntryPoint authenticationEntryPoint = new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED);
-        @Autowired
-        CorsConfigurationSource corsConfigurationSource;
-        @Autowired
-        HttpFirewall httpFirewall;
-
-        @Autowired
-        @Qualifier("ipRateLimiter")
-        RateLimiter<String> ipRateLimiter;
-
-        @Autowired
-        @Qualifier("userRateLimiter")
-        RateLimiter<Integer> userRateLimiter;
+    public class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Bean(name=BeanIds.AUTHENTICATION_MANAGER)
         @Override
@@ -293,11 +278,12 @@ public class MangoSecurityConfiguration {
 
         @Override
         public void configure(WebSecurity web) throws Exception {
-            web.httpFirewall(this.httpFirewall);
+            web.httpFirewall(httpFirewall);
         }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
+
             http.requestMatcher(new RequestMatcher() {
                 AntPathRequestMatcher pathMatcher = new AntPathRequestMatcher("/rest/**");
                 @Override
@@ -305,14 +291,15 @@ public class MangoSecurityConfiguration {
                     String header = request.getHeader("Authorization");
                     return header != null && pathMatcher.matches(request);
                 }
-            })
-            .sessionManagement()
+            });
+
             // stops the SessionManagementConfigurer from using a HttpSessionSecurityContextRepository to
             // store the SecurityContext, instead it creates a NullSecurityContextRepository which does
             // result in session creation
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .authorizeRequests()
+            http.sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+            http.authorizeRequests()
             .antMatchers("/rest/*/login/**").denyAll()
             .antMatchers("/rest/*/logout/**").denyAll()
             .antMatchers(HttpMethod.POST, "/rest/*/login/su").denyAll()
@@ -324,90 +311,72 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
             .antMatchers(HttpMethod.OPTIONS).permitAll()
-            .anyRequest().authenticated()
-            .and()
+            .anyRequest().authenticated();
+
             // do not need CSRF protection when we are using a JWT token
-            .csrf().disable()
+            http.csrf().disable()
             .rememberMe().disable()
             .logout().disable()
             .formLogin().disable()
-            .requestCache().disable()
-            .httpBasic()
-            .realmName(BASIC_AUTHENTICATION_REALM)
+            .requestCache().disable();
+
+            if (basicAuthenticationEnabled) {
+                http.httpBasic()
+                .realmName(basicAuthenticationRealm)
+                .authenticationEntryPoint(authenticationEntryPoint);
+            } else {
+                http.httpBasic().disable();
+            }
+
+            http.exceptionHandling()
             .authenticationEntryPoint(authenticationEntryPoint)
-            .and()
-            .exceptionHandling()
-            .authenticationEntryPoint(authenticationEntryPoint)
-            .accessDeniedHandler(accessDeniedHandler)
-            .and()
-            .addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class)
-            .addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
+            .accessDeniedHandler(restAccessDeniedHandler);
+
+            if (tokenAuthEnabled) {
+                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
+            }
+
+            if (ipRateLimiter != null || userRateLimiter != null) {
+                http.addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
+            }
 
             //Configure the headers
             configureHeaders(http);
             configureHSTS(http, false);
 
             // Use the MVC Cors Configuration
-            if (Common.envProps.getBoolean("rest.cors.enabled", false))
+            if (corsEnabled) {
                 http.cors().configurationSource(corsConfigurationSource);
+            }
         }
     }
 
     @Configuration
     @Order(2)
-    public static class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
-        @Autowired
-        AuthenticationSuccessHandler authenticationSuccessHandler;
-        @Autowired
-        AuthenticationFailureHandler authenticationFailureHandler;
-        @Autowired
-        AccessDeniedHandler accessDeniedHandler;
-        @Autowired
-        CorsConfigurationSource corsConfigurationSource;
-        @Autowired
-        JsonLoginConfigurer jsonLoginConfigurer;
-        @Autowired
-        LogoutHandler logoutHandler;
-        @Autowired
-        LogoutSuccessHandler logoutSuccessHandler;
-        @Autowired
-        PermissionExceptionFilter permissionExceptionFilter;
-        @Autowired
-        SessionRegistry sessionRegistry;
-        @Autowired
-        SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
-        @Autowired
-        HttpFirewall httpFirewall;
-
-        @Autowired
-        @Qualifier("ipRateLimiter")
-        RateLimiter<String> ipRateLimiter;
-
-        @Autowired
-        @Qualifier("userRateLimiter")
-        RateLimiter<Integer> userRateLimiter;
+    public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Override
         public void configure(WebSecurity web) throws Exception {
-            web.httpFirewall(this.httpFirewall);
+            web.httpFirewall(httpFirewall);
         }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/rest/**")
-            .sessionManagement()
+            http.antMatcher("/rest/**");
+
+            http.sessionManagement()
             // dont actually want an invalid session strategy, just treat them as having no session
             //.invalidSessionStrategy(invalidSessionStrategy)
-            .maximumSessions(10)
+            .maximumSessions(maxSessions)
             .maxSessionsPreventsLogin(false)
             .sessionRegistry(sessionRegistry)
             .expiredSessionStrategy(sessionInformationExpiredStrategy)
             .and()
             .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             .sessionFixation()
-            .newSession()
-            .and()
-            .authorizeRequests()
+            .newSession();
+
+            http.authorizeRequests()
             .antMatchers("/rest/*/login").permitAll()
             .antMatchers("/rest/*/exception/**").permitAll() //For exception info for a user's session...
             .antMatchers(HttpMethod.POST, "/rest/*/login/su").hasRole("ADMIN")
@@ -418,42 +387,47 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
             .antMatchers(HttpMethod.OPTIONS).permitAll()
-            .anyRequest().authenticated()
-            .and()
-            .apply(jsonLoginConfigurer)
+            .anyRequest().authenticated();
+
+            http.apply(jsonLoginConfigurer)
             .successHandler(authenticationSuccessHandler)
-            .failureHandler(authenticationFailureHandler)
-            .and()
-            .logout()
+            .failureHandler(authenticationFailureHandler);
+
+            http.logout()
             .logoutRequestMatcher(new AntPathRequestMatcher("/rest/*/logout", "POST"))
             .addLogoutHandler(logoutHandler)
             .invalidateHttpSession(true)
             // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
             // but why not for the sake of cleanliness
             .deleteCookies(Common.getCookieName())
-            .logoutSuccessHandler(logoutSuccessHandler)
-            .and()
-            .csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            .and()
-            .rememberMe().disable()
+            .logoutSuccessHandler(logoutSuccessHandler);
+
+            http.csrf()
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+
+            http.rememberMe().disable()
             .formLogin().disable()
-            .requestCache().disable()
-            .exceptionHandling()
+            .requestCache().disable();
+
+            http.exceptionHandling()
             .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-            .accessDeniedHandler(accessDeniedHandler)
-            .and()
-            .addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class)
-            .addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class)
-            .addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
+            .accessDeniedHandler(restAccessDeniedHandler);
+
+            http.addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
+            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
+
+            if (ipRateLimiter != null || userRateLimiter != null) {
+                http.addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
+            }
 
             //Configure headers
             configureHeaders(http);
             configureHSTS(http, false);
 
             // Use the MVC Cors Configuration
-            if (Common.envProps.getBoolean("rest.cors.enabled", false))
+            if (corsEnabled) {
                 http.cors().configurationSource(corsConfigurationSource);
+            }
         }
 
         @Bean
@@ -464,83 +438,47 @@ public class MangoSecurityConfiguration {
             filter.setUsernameParameter("username");
             return filter;
         }
-
-        private static class MangoSwitchUserFilter extends SwitchUserFilter {
-            RequestMatcher suMatcher = new AntPathRequestMatcher("/rest/*/login/su", HttpMethod.POST.name());
-            RequestMatcher exitSuMatcher = new AntPathRequestMatcher("/rest/*/login/exit-su", HttpMethod.POST.name());
-
-            @Override
-            protected boolean requiresSwitchUser(HttpServletRequest request) {
-                return suMatcher.matches(request);
-            }
-
-            @Override
-            protected boolean requiresExitUser(HttpServletRequest request) {
-                return exitSuMatcher.matches(request);
-            }
-        }
     }
 
     @Configuration
     @Order(3)
-    public static class DefaultSecurityConfiguration extends WebSecurityConfigurerAdapter {
-        @Autowired
-        AccessDeniedHandler accessDeniedHandler;
-        @Autowired
-        AuthenticationEntryPoint authenticationEntryPoint;
-        @Autowired
-        AuthenticationSuccessHandler authenticationSuccessHandler;
-        @Autowired
-        AuthenticationFailureHandler authenticationFailureHandler;
-        @Autowired
-        LogoutHandler logoutHandler;
-        @Autowired
-        LogoutSuccessHandler logoutSuccessHandler;
-        @Autowired
-        RequestCache requestCache;
-        @Autowired
-        PermissionExceptionFilter permissionExceptionFilter;
-        @Autowired
-        SessionRegistry sessionRegistry;
-        @Autowired
-        SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
+    public class DefaultSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http
-            .sessionManagement()
+            http.sessionManagement()
             // dont actually want an invalid session strategy, just treat them as having no session
             //.invalidSessionStrategy(invalidSessionStrategy)
-            .maximumSessions(10)
+            .maximumSessions(maxSessions)
             .maxSessionsPreventsLogin(false)
             .sessionRegistry(sessionRegistry)
             .expiredSessionStrategy(sessionInformationExpiredStrategy)
             .and()
             .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             .sessionFixation()
-            .newSession()
-            .and()
-            .formLogin()
+            .newSession();
+
+            http.formLogin()
             // setting this prevents FormLoginConfigurer from adding the login page generating filter
             // this adds an authentication entry point but it wont be used as we have already specified one below in exceptionHandling()
             .loginPage("/login-xyz.htm")
             .loginProcessingUrl("/login")
             .successHandler(authenticationSuccessHandler)
             .failureHandler(authenticationFailureHandler)
-            .permitAll()
-            .and()
-            .logout()
+            .permitAll();
+
+            http.logout()
             .logoutUrl("/logout")
             .addLogoutHandler(logoutHandler)
             .invalidateHttpSession(true)
             // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
             // but why not for the sake of cleanliness
             .deleteCookies(Common.getCookieName())
-            .logoutSuccessHandler(logoutSuccessHandler)
-            .and()
-            .rememberMe()
-            .disable()
-            .authorizeRequests()
+            .logoutSuccessHandler(logoutSuccessHandler);
+
+            http.rememberMe().disable();
+
+            http.authorizeRequests()
             // dont allow access to any modules folders other than web
             .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll()
             .antMatchers("/modules/**").denyAll()
@@ -549,21 +487,20 @@ public class MangoSecurityConfiguration {
             //Access to protected folder
             .antMatchers("/protected/**").authenticated()
             // Default to permit all
-            .anyRequest().permitAll()
-            .and()
-            .csrf()
+            .anyRequest().permitAll();
+
+            http.csrf()
             // DWR handles its own CRSF protection (It is set to look at the same cookie in Lifecyle)
             .ignoringAntMatchers("/dwr/**", "/httpds")
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            .and()
-            .requestCache()
-            .requestCache(requestCache)
-            .and()
-            .exceptionHandling()
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+
+            http.requestCache().requestCache(requestCache);
+
+            http.exceptionHandling()
             .authenticationEntryPoint(authenticationEntryPoint)
-            .accessDeniedHandler(accessDeniedHandler)
-            .and()
-            .addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
+            .accessDeniedHandler(accessDeniedHandler);
+
+            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             //Customize the headers here
             configureHeaders(http);
@@ -571,85 +508,55 @@ public class MangoSecurityConfiguration {
         }
     }
 
-    static void configureHSTS(HttpSecurity http, boolean requiresSecure) throws Exception {
+    private void configureHSTS(HttpSecurity http, boolean requiresSecure) throws Exception {
+        HeadersConfigurer<HttpSecurity>.HstsConfig hsts = http.headers().httpStrictTransportSecurity();
+
         // If using SSL then enable the hsts and secure forwarding
-        if (Common.envProps.getBoolean("ssl.on", false) && Common.envProps.getBoolean("ssl.hsts.enabled", true)) {
+        if (sslOn && sslHstsEnabled) {
             // dont enable "requiresSecure" for REST calls
             // this options sets the REQUIRES_SECURE_CHANNEL attribute and causes ChannelProcessingFilter
             // to perform a 302 redirect to https://
             if (requiresSecure) {
-                http.requiresChannel()
-                .anyRequest()
-                .requiresSecure();
+                http.requiresChannel().anyRequest().requiresSecure();
             }
-            http.headers()
-            .httpStrictTransportSecurity()
-            .maxAgeInSeconds(Common.envProps.getLong("ssl.hsts.maxAge", 31536000))
-            .includeSubDomains(Common.envProps.getBoolean("ssl.hsts.includeSubDomains", false));
+            hsts.maxAgeInSeconds(sslHstsMaxAge).includeSubDomains(sslHstsIncludeSubDomains);
         } else {
-            http.headers()
-            .httpStrictTransportSecurity()
-            .disable();
+            hsts.disable();
         }
     }
 
     /**
      * Ensure the headers are properly configured
+     *
      * @param http
      * @throws Exception
      */
-    static void configureHeaders(HttpSecurity http) throws Exception{
-        String iFrameControl = Common.envProps.getString("web.security.iFrameAccess", "SAMEORIGIN");
-        if(StringUtils.equals(iFrameControl, "SAMEORIGIN")){
-            http.headers()
-            .frameOptions().sameOrigin()
-            .cacheControl().disable();
-        }else if(StringUtils.equals(iFrameControl, "DENY")){
-            http.headers()
-            .frameOptions().deny()
-            .cacheControl().disable();
-        }else if(StringUtils.equals(iFrameControl, "ANY")){
-            http.headers()
-            .frameOptions().disable()
-            .cacheControl().disable();
-        }else{
-            //TODO Ensure these are valid Domains?
-            XFrameOptionsHeaderWriter headerWriter = new XFrameOptionsHeaderWriter(new MangoAllowFromStrategy(iFrameControl));
-            http.headers().addHeaderWriter(headerWriter)
-            .frameOptions().disable()
-            .cacheControl().disable();
+    private void configureHeaders(HttpSecurity http) throws Exception {
+        HeadersConfigurer<HttpSecurity> headers = http.headers();
+        headers.cacheControl().disable();
 
+        if (StringUtils.equals(iFrameAccess, "SAMEORIGIN")) {
+            headers.frameOptions().sameOrigin();
+        } else if (StringUtils.equals(iFrameAccess, "DENY")) {
+            headers.frameOptions().deny();
+        } else if (StringUtils.equals(iFrameAccess, "ANY")) {
+            headers.frameOptions().disable();
+        } else {
+            // TODO Ensure these are valid Domains?
+            XFrameOptionsHeaderWriter headerWriter = new XFrameOptionsHeaderWriter(request -> iFrameAccess);
+            headers.addHeaderWriter(headerWriter).frameOptions().disable();
         }
 
-        String contentSecurityPolicy = Common.envProps.getString("web.security.contentSecurityPolicy", "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src ws: wss: 'self'");
-        if (!contentSecurityPolicy.isEmpty()) {
-            HeadersConfigurer<HttpSecurity>.ContentSecurityPolicyConfig cspConfig = http.headers().contentSecurityPolicy(contentSecurityPolicy);
-            boolean contentSecurityPolicyReportOnly = Common.envProps.getBoolean("web.security.contentSecurityPolicy.reportOnly", false);
+        if (contentSecurityPolicyEnabled) {
+            String contentSecurityPolicy = this.contentSecurityPolicy;
+            if (contentSecurityPolicy == null || contentSecurityPolicy.isEmpty()) {
+                contentSecurityPolicy = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src ws: wss: 'self'";
+            }
+
+            HeadersConfigurer<HttpSecurity>.ContentSecurityPolicyConfig cspConfig = headers.contentSecurityPolicy(contentSecurityPolicy);
             if (contentSecurityPolicyReportOnly) {
                 cspConfig.reportOnly();
             }
         }
-    }
-
-    /**
-     * Get the
-     *
-     * @author Terry Packer
-     */
-    static class MangoAllowFromStrategy implements AllowFromStrategy{
-
-        String allowedDomain;
-
-        public MangoAllowFromStrategy(String allowed){
-            this.allowedDomain = allowed;
-        }
-        /* (non-Javadoc)
-         * @see org.springframework.security.web.header.writers.frameoptions.AllowFromStrategy#getAllowFromValue(javax.servlet.http.HttpServletRequest)
-         */
-        @Override
-        public String getAllowFromValue(HttpServletRequest request) {
-            return allowedDomain;
-        }
-
     }
 }

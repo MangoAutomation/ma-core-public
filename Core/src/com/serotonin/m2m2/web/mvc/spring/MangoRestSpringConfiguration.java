@@ -7,16 +7,12 @@ package com.serotonin.m2m2.web.mvc.spring;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Properties;
 import java.util.TimeZone;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -91,29 +87,6 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
         UrlPathHelper helper = new UrlPathHelper();
         helper.setUrlDecode(false);
         return helper;
-    }
-
-    /**
-     *
-     * TODO EXPERIMENTAL SUPPORT FOR PROPERTY CONFIGURATION IN ANNOTATIONS Setup
-     * properties to be used in the Spring templates
-     *
-     * @return
-     */
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
-        // note the static method! important!!
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        Resource[] resources = new ClassPathResource[] { new ClassPathResource(
-                "env.properties") };
-        configurer.setLocations(resources);
-        configurer.setIgnoreUnresolvablePlaceholders(true);
-
-        // Create and add any properties for Spring Annotations
-        Properties properties = new Properties();
-
-        configurer.setProperties(properties);
-        return configurer;
     }
 
     @Bean
