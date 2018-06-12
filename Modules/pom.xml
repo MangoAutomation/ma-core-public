@@ -266,16 +266,17 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                         <execution>
                             <id>Install node and npm</id>
                             <goals>
-                                <goal>install-node-and-npm</goal>
+                                <goal>install-node-and-yarn</goal>
                             </goals>
                             <configuration>
                                 <nodeVersion>v8.9.4</nodeVersion>
+                                <yarnVersion>v1.7.0</yarnVersion>
                             </configuration>
                         </execution>
                         <execution>
                             <id>Run npm install</id>
                             <goals>
-                                <goal>npm</goal>
+                                <goal>yarn</goal>
                             </goals>
                             <configuration>
                                 <arguments>install</arguments>
@@ -284,10 +285,10 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                         <execution>
                             <id>Run webpack</id>
                             <goals>
-                                <goal>npm</goal>
+                                <goal>yarn</goal>
                             </goals>
                             <configuration>
-                                <arguments>run-script webpack -- --mode ${webpack.mode}</arguments>
+                                <arguments>run webpack --mode ${webpack.mode}</arguments>
                             </configuration>
                         </execution>
                     </executions>
