@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.directwebremoting.WebContext;
 import org.directwebremoting.WebContextFactory;
+import org.springframework.web.util.HtmlUtils;
 
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -37,7 +38,7 @@ public class StartupDwr {
     	List<String> messages =  LoggingConsoleRT.instance.getMessagesSince(since);
     	StringBuilder builder = new StringBuilder();
     	for(String message : messages){
-    		builder.append(message);
+    		builder.append(HtmlUtils.htmlEscape(message));
     		builder.append("</br>");
     	}
     		
