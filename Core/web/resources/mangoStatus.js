@@ -41,7 +41,7 @@ require(["dijit/ProgressBar", "dojo/_base/window",'dojo/_base/xhr',"dojo/ready",
                var newMessages = "";
                for (var i = 0; i < data.messages.length; i++) {
             	   //Replace any \n with <br> for cleaner messages
-            	   var msg = data.messages[i].replace(/\n/g, "<br />");
+            	   var msg = encodeHtml(data.messages[i]).replace(/\n/g, "<br />");
             	   if(msg.startsWith('WARN') || msg.startsWith('ERROR') || msg.startsWith('FATAL')){
             		   msg = '<span style="color: red">' + msg + "</span>";
             	   }
