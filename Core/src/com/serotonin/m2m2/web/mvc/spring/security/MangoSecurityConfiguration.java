@@ -560,7 +560,10 @@ public class MangoSecurityConfiguration {
         }
 
         if (!isRest && (cspEnabled || legacyCspEnabled)) {
-            RequestMatcher legacyUiMatcher = new OrRequestMatcher(new AntPathRequestMatcher("/*.htm"), new AntPathRequestMatcher("/**/*.shtm"));
+            RequestMatcher legacyUiMatcher = new OrRequestMatcher(
+                    new AntPathRequestMatcher("/*.htm"),
+                    new AntPathRequestMatcher("/**/*.shtm"),
+                    new AntPathRequestMatcher("/swagger/**"));
             RequestMatcher otherMatcher = new NegatedRequestMatcher(legacyUiMatcher);
 
             List<String> policies = new ArrayList<>();
