@@ -498,6 +498,10 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 	                }
 	                
 	                if (mapped || properties.contains(prop)) {
+                        if (!mapped) {
+                            dbProp = this.tablePrefix + dbProp;
+                        }
+                        
 	                    String tempSql = (i == 0) ? WHERE : (or ? OR : AND);
 	                    
 	                    String condition = query.get(prop);
@@ -508,26 +512,22 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 	                            condition = condition.substring(1, condition.length() - 1);
 	                            condition = condition.replace(".*.*", "%");
 	                            condition = condition.replace(".*", "%");
+	                            
 	                            //Derby doesn't handle LIKE for anything but varchars
 	                            switch (Common.databaseProxy.getType()) {
 	                            case MYSQL:
 	                            case POSTGRES:
 	                            case MSSQL:
 	                            case H2:
-	                            	if(mapped)
-	                            		tempSql += "lower(" + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
-	                            	else
-	                            		tempSql += "lower(" + this.tablePrefix + dbProp + ") LIKE '" + condition.toLowerCase() + "'";
+	                                tempSql += "lower(" + dbProp + ") LIKE ?";
+	                                args.add(condition.toLowerCase());
 		                            break;
 	                            case DERBY:
-		                            if(mapped)
-		                            	tempSql += "(CHAR(" + dbProp + ") LIKE '" + condition + "')";
-		                            else
-		                            	tempSql += "(CHAR(" + this.tablePrefix + dbProp + ") LIKE '" + condition + "')";
+	                            	tempSql += "(CHAR(" + dbProp + ") LIKE ?)";
+		                            args.add(condition);
 	                            	break;
 	                            default:
 	                            	LOG.warn("No case for converting regex expressing for database of type: " + Common.databaseProxy.getType());
-
 	                            }
 	                        }
 	                        else {
@@ -541,66 +541,52 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 	                    		endAt = 6;
 	                    	String value = condition.substring(endAt,condition.length());
 	                    	String compare = condition.substring(4, endAt);
-	                    	if(mapped)
-	                    		tempSql += dbProp + " " + compare + " " + value;
-	                    	else
-	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + value;
+	                    	
+                    		tempSql += dbProp + " " + compare + " ?";
+	                    	args.add(value);
 	                    }else if(condition.startsWith("Long:")){
 	                    	//Parse the value as Long:operatorvalue - Long:>10000
 	                    	String ms = condition.substring(6,condition.length());
 	                    	String compare = condition.substring(5, 6);
-	                    	if(mapped)
-	                    		tempSql += dbProp + " " + compare + " " + ms;
-	                    	else
-	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + ms;
+	                    	
+	                    	tempSql += dbProp + " " + compare + " ?";
+                            args.add(ms);
 	                    }else if(condition.startsWith("LongRange:")){
 	                    	//Parse the value as LongRange:>startValue:<EndValue
 	                    	String[] parts = condition.split(":");
 	                    	String startCompare = parts[1].substring(0,1);
 	                    	String startMs = parts[1].substring(1,parts[1].length());
 	                    	String endCompare = parts[2].substring(0,1);
-	                    	String endMs = parts[2].substring(1,parts[2].length());	                    	
-	                    	if(mapped)
-	                    		tempSql += dbProp + startCompare + startMs + " AND " + dbProp + endCompare + endMs;
-	                    	else
-	                       		tempSql += this.tablePrefix + dbProp + startCompare + startMs + " AND " + this.tablePrefix + dbProp + endCompare + endMs;
-	       	                    	
+	                    	String endMs = parts[2].substring(1,parts[2].length());
+	                    	
+	                    	tempSql += dbProp + startCompare + " ? AND " + dbProp + endCompare + " ?";
+                            args.add(startMs);
+                            args.add(endMs);
 	                    }else if(condition.startsWith("Duration:")){
 	                    	//Parse the value as Duration:operatorvalue - Duration:>1:00:00
 	                    	String durationString = condition.substring(10,condition.length());
 	                    	String compare = condition.substring(9, 10);
 	                    	Long longValue = DeltamationCommon.unformatDuration(durationString);
-	                    	if(mapped)
-	                    		tempSql += dbProp + " " + compare + " " + longValue;
-	                    	else
-	                    		tempSql += this.tablePrefix + dbProp + " " + compare + " " + longValue;
 	                    	
+	                    	tempSql += dbProp + " " + compare + " ?";
+                            args.add(longValue);
 	                    }else if(condition.startsWith("BooleanIs:")){
 	                    	//Parse the value as BooleanIs:value
 	                    	String booleanString = condition.substring(10,condition.length());
 	                    	//Boolean value = Boolean.parseBoolean(booleanString);
-	                    	if(mapped)
-	                    		tempSql += dbProp + " IS " + booleanString;
-	                    	else
-	                    		tempSql += this.tablePrefix + dbProp + " = " + booleanString;
 	                    	
+	                    	tempSql += dbProp + " IS ?";
+                            args.add(booleanString);
 	                    }else if(condition.startsWith("NullCheck:")){
 	                    	//Parse the value as NullCheck:true or NullCheck:false
 	                    	String checkForString = condition.substring(10,condition.length());
 	                    	Boolean checkFor = Boolean.parseBoolean(checkForString);
 	                    	if(checkFor){
-		                    	if(mapped)
-		                    		tempSql += dbProp + " IS NULL";
-		                    	else
-		                    		tempSql += this.tablePrefix + dbProp + " IS NULL";
+	                    	    tempSql += dbProp + " IS NULL";
 	                    	}else{
-		                    	if(mapped)
-		                    		tempSql += dbProp + " IS NOT NULL";
-		                    	else
-		                    		tempSql += this.tablePrefix + dbProp + " IS NOT NULL";
+	                    	    tempSql += dbProp + " IS NOT NULL";
 	                    	}
-	                    }
-	                    else {
+	                    } else {
 	                        //if (condition.isEmpty()) // occurs when empty array is set in query
 	                        //    continue;
 	                        
@@ -611,10 +597,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 	                            qMarks += j == 0 ? "?" : ",?";
 	                        }
 	                        // TODO not sure if IN will work with string values
-	                        if(mapped)
-	                        	tempSql += dbProp + " IN (" + qMarks + ")";
-	                        else
-	                        	tempSql += this.tablePrefix + dbProp + " IN (" + qMarks + ")";
+	                        tempSql += dbProp + " IN (" + qMarks + ")";
 	                    }
 	                    sql += tempSql;
 	                    i++;
