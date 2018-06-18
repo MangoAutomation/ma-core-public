@@ -493,7 +493,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>advanced-scheduler</artifactId>
-			<version>3.4.2-SNAPSHOT</version>
+			<version>3.4.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
