@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
+import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -119,7 +120,7 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
         if(args.size() > 0) {
             ASTNode query = new ASTNode("in", args);
             query = addAndRestriction(query, new ASTNode("eq", "userId", user.getId()));
-            query = addAndRestriction(query, new ASTNode("eq", "typeName", "DATA_POINT"));
+            query = addAndRestriction(query, new ASTNode("eq", "typeName", EventTypeNames.DATA_POINT));
     
             return query;
         }else {
