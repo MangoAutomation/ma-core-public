@@ -860,7 +860,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public void setFolderId(int dataPointId, int folderId) {
-        ejt.update("UPDATE dataPoints SET pointFolderId=" + folderId + " WHERE id=" + dataPointId);
+        ejt.update("UPDATE dataPoints SET pointFolderId=? WHERE id=?", folderId, dataPointId);
     }
 
     /**

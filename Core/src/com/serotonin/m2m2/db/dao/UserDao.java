@@ -69,7 +69,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     public boolean userExists(int id) {
-        return ejt.queryForInt("SELECT count(id) FROM users WHERE id="+id, new Object[0], 0) == 1;
+        return ejt.queryForInt("SELECT count(id) FROM users WHERE id=?", new Object[] {id}, 0) == 1;
     }
 
     class UserRowMapper implements RowMapper<User> {
