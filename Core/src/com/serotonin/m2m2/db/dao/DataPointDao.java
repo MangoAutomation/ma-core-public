@@ -483,6 +483,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
     }
 
+    /**
+     * TODO Mango 3.5 refactor to take a data source ID and use a join on data source ID
+     */
     void deleteDataPointImpl(String dataPointIdList) {
         dataPointIdList = "(" + dataPointIdList + ")";
         ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1 in " + dataPointIdList,
