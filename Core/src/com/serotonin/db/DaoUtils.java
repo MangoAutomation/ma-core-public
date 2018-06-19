@@ -46,21 +46,21 @@ public class DaoUtils {
     protected final PlatformTransactionManager transactionManager;
     protected final ExtendedJdbcTemplate ejt;
     protected DataSourceTransactionManager tm;
-    
+
     // Print out times and SQL for RQL Queries
     protected final boolean useMetrics;
     protected final long metricsThreshold;
 
     protected final DatabaseType databaseType;
     protected final DSLContext create;
-    
+
     public DaoUtils(DataSource dataSource, PlatformTransactionManager transactionManager) {
         this.dataSource = dataSource;
         this.transactionManager = transactionManager;
         this.databaseType = Common.databaseProxy.getType();
         this.useMetrics = Common.envProps.getBoolean("db.useMetrics", false);
         this.metricsThreshold = Common.envProps.getLong("db.metricsThreshold", 0L);
-        
+
         ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(dataSource);
 
@@ -72,7 +72,7 @@ public class DaoUtils {
         if (this.useMetrics) {
             configuration.set(() -> new StopWatchListener());
         }
-        
+
         switch(this.databaseType) {
             case DERBY:
                 configuration.set(SQLDialect.DERBY);
@@ -92,14 +92,14 @@ public class DaoUtils {
                 configuration.set(SQLDialect.DEFAULT);
                 break;
         }
-        
+
         this.create = DSL.using(configuration);
     }
 
     public boolean isUseMetrics() {
         return this.useMetrics;
     }
-    
+
     public long getMetricsThreshold() {
         return this.metricsThreshold;
     }
@@ -140,6 +140,10 @@ public class DaoUtils {
 
     //
     // Delimited lists
+    /**
+     * Bad practice, should be using prepared statements. This is being used to do WHERE x IN(a,b,c)
+     */
+    @Deprecated
     protected String createDelimitedList(Collection<?> values, String delimeter, String quote) {
         StringBuilder sb = new StringBuilder();
         Iterator<?> iterator = values.iterator();
@@ -161,6 +165,10 @@ public class DaoUtils {
         return sb.toString();
     }
 
+    /**
+     * Bad practice, should be using prepared statements. This is being used to do WHERE x IN(a,b,c)
+     */
+    @Deprecated
     protected String createDelimitedList(List<?> values, int from, int to, String delimeter, String quote) {
         if (from < 0)
             from = 0;
@@ -193,10 +201,12 @@ public class DaoUtils {
 
         try {
             return ejt.batchUpdate(sql, new BatchPreparedStatementSetter() {
+                @Override
                 public int getBatchSize() {
                     return args.length;
                 }
 
+                @Override
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     (apsss.get(i)).setValues(ps);
                 }
@@ -408,6 +418,7 @@ public class DaoUtils {
         ejt.query(sql, args, new RowCallbackHandler() {
             private int rowNum = 0;
 
+            @Override
             public void processRow(ResultSet rs) throws SQLException {
                 callback.row(rowMapper.mapRow(rs, rowNum), rowNum);
                 rowNum++;
@@ -455,21 +466,22 @@ public class DaoUtils {
     protected TransactionTemplate getTransactionTemplate() {
         return new TransactionTemplate(getTransactionManager());
     }
-    
+
     public <T> T doInTransaction(TransactionCallback<T> callback) {
         return this.getTransactionTemplate().execute(callback);
     }
-    
+
     public void doInTransaction(TransactionCallbackNoResult callback) {
         this.getTransactionTemplate().execute(callback);
     }
-    
+
     public interface TransactionCallbackNoResult extends TransactionCallback<Object> {
+        @Override
         default Object doInTransaction(TransactionStatus status) {
             doInTransactionNoResult(status);
             return null;
         }
-        
+
         void doInTransactionNoResult(TransactionStatus status);
     }
 }
