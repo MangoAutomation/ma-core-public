@@ -254,7 +254,9 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     }
 
     /**
-     * Get all vo in the system, sorted by column
+     * Get all vo in the system, sorted by column.
+     * 
+     * TODO Mango 3.5 remove this, unused and doesn't support column mapping
      * 
      * @param column
      * @return List of all vo
@@ -264,12 +266,18 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     }
 
     /**
-     * Get all vo in the system, sorted by column
+     * Get all vo in the system, sorted by column.
+     * 
+     * TODO Mango 3.5 remove this, unused and doesn't support column mapping
      * 
      * @param column
      * @return List of all vo
      */
     public List<T> getAllSorted(String column, boolean ascending) {
+        if (!this.propertyTypeMap.containsKey(column)) {
+            throw new IllegalArgumentException("Invalid column name");
+        }
+
         String sort;
         if (ascending) {
             sort = " ASC";
