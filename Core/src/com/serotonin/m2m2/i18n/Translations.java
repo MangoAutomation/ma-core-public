@@ -24,6 +24,8 @@ public class Translations {
 
     private static final String BASE_NAME = "i18n";
     private static final Map<Locale, Translations> TRANSLATIONS_CACHE = new ConcurrentHashMap<Locale, Translations>();
+    //Class loader that contains all of the translation property files
+    private static ClassLoader ROOT_CLASSLOADER;
 
     static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -63,7 +65,8 @@ public class Translations {
         return null;
     }
 
-    public static void clearCache() {
+    public static void clearCache(ClassLoader root) {
+        ROOT_CLASSLOADER = root;
         TRANSLATIONS_CACHE.clear();
     }
 
@@ -89,8 +92,9 @@ public class Translations {
         }
 
         name = sb.toString();
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
-        Enumeration<URL> urls = cl.getResources(name + ".properties");
+        if(ROOT_CLASSLOADER == null)
+            ROOT_CLASSLOADER = Thread.currentThread().getContextClassLoader();
+        Enumeration<URL> urls = ROOT_CLASSLOADER.getResources(name + ".properties");
 
         while (urls.hasMoreElements()) {
             URL url = urls.nextElement();
@@ -108,6 +112,8 @@ public class Translations {
                 if (namespacedTranslations == null) {
                     namespacedTranslations = new HashMap<String, String>();
                     namespaces.put(namespace, namespacedTranslations);
+                    if(LOG.isDebugEnabled())
+                        LOG.debug("Adding i18n namespace " + namespace);
                 }
                 
                 pairs.put(key, translation);
