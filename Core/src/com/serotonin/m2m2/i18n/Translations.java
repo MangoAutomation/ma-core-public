@@ -14,6 +14,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -24,8 +25,8 @@ public class Translations {
 
     private static final String BASE_NAME = "i18n";
     private static final Map<Locale, Translations> TRANSLATIONS_CACHE = new ConcurrentHashMap<Locale, Translations>();
-    //Class loader that contains all of the translation property files
-    private static ClassLoader ROOT_CLASSLOADER;
+    //Class loader that contains all of the translation property files (including ones from modules)
+    private static final AtomicReference<ClassLoader> ROOT_CLASSLOADER = new AtomicReference<>();
 
     static final Charset UTF8 = Charset.forName("UTF-8");
 
@@ -38,7 +39,7 @@ public class Translations {
         if ((cachedTranslations = TRANSLATIONS_CACHE.get(locale)) != null) {
             return cachedTranslations;
         }
-        
+
         Locale parentLocale = getParentLocale(locale);
         final Translations parentTranslations = parentLocale != null ? getTranslations(parentLocale) : null;
 
@@ -51,7 +52,7 @@ public class Translations {
             }
         });
     }
-    
+
     public static Locale getParentLocale(Locale locale) {
         if (!StringUtils.isBlank(locale.getLanguage())) {
             if (!StringUtils.isBlank(locale.getCountry())) {
@@ -65,9 +66,11 @@ public class Translations {
         return null;
     }
 
-    public static void clearCache(ClassLoader root) {
-        ROOT_CLASSLOADER = root;
-        TRANSLATIONS_CACHE.clear();
+    public static void setRootClassLoader(ClassLoader root) {
+        if (ROOT_CLASSLOADER.compareAndSet(null, root)) {
+            // clear the cache so we get all the translations after the modules have been loaded
+            TRANSLATIONS_CACHE.clear();
+        }
     }
 
     private final String name;
@@ -77,7 +80,7 @@ public class Translations {
 
     private Translations(Locale locale, Translations parent) throws IOException {
         this.parent = parent;
-        
+
         StringBuilder sb = new StringBuilder();
         sb.append(BASE_NAME);
 
@@ -92,10 +95,15 @@ public class Translations {
         }
 
         name = sb.toString();
-        if(ROOT_CLASSLOADER == null)
-            ROOT_CLASSLOADER = Thread.currentThread().getContextClassLoader();
-        Enumeration<URL> urls = ROOT_CLASSLOADER.getResources(name + ".properties");
 
+        ClassLoader classLoader = ROOT_CLASSLOADER.get();
+
+        // use the current thread's class loader if the root class loader has not been set yet
+        if (classLoader == null) {
+            classLoader = Thread.currentThread().getContextClassLoader();
+        }
+
+        Enumeration<URL> urls = classLoader.getResources(name + ".properties");
         while (urls.hasMoreElements()) {
             URL url = urls.nextElement();
 
@@ -115,7 +123,7 @@ public class Translations {
                     if(LOG.isDebugEnabled())
                         LOG.debug("Adding i18n namespace " + namespace);
                 }
-                
+
                 pairs.put(key, translation);
                 namespacedTranslations.put(key, translation);
             }
@@ -145,21 +153,21 @@ public class Translations {
             t = parent.translateImpl(key);
         return t;
     }
-    
+
     public Map<String, Map<String, String>> asMap() {
         return asMap(null);
     }
-    
+
     public Map<String, Map<String, String>> asMap(String namespace) {
         Map<String, Map<String, String>> map;
-        
+
         if (parent == null) {
             map = new HashMap<String, Map<String, String>>();
         }
         else {
             map = parent.asMap(namespace);
         }
-        
+
         Map<String, String> translations;
         if (namespace == null) {
             translations = pairs;
@@ -167,26 +175,26 @@ public class Translations {
         else {
             translations = namespaces.get(namespace);
         }
-        
+
         if (translations == null) {
             translations = new HashMap<String, String>();
         }
-        
+
         map.put(languageTag(), translations);
-        
+
         return map;
     }
-    
+
     private String languageTag() {
         if (name.equals(BASE_NAME))
             return "root";
-        
+
         String language;
         if (name.startsWith(BASE_NAME + "_"))
             language = StringUtils.substringAfter(name, BASE_NAME + "_");
         else
             language = name;
-        
+
         return language.replace("_", "-");
     }
 }
