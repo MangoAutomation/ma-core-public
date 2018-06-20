@@ -31,22 +31,20 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
  */
 public class MangoWebApplicationInitializer implements ServletContainerInitializer {
 
-    private AnnotationConfigWebApplicationContext rootContext;
-    private AnnotationConfigWebApplicationContext dispatcherContext;
+    public static final String ROOT_CONTEXT_ID = "rootContext";
+    public static final String DISPATCHER_CONTEXT_ID = "dispatcherContext";
     private ApplicationListener<?> contextListener;
 
     public MangoWebApplicationInitializer(ApplicationListener<?> contextListener) {
         this.contextListener = contextListener;
     }
 
-    /* (non-Javadoc)
-     * @see javax.servlet.ServletContainerInitializer#onStartup(java.util.Set, javax.servlet.ServletContext)
-     */
     @Override
     public void onStartup(Set<Class<?>> c, ServletContext context) throws ServletException {
 
         // Create the 'root' Spring application context
-        rootContext = new AnnotationConfigWebApplicationContext();
+        AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
+        rootContext.setId(ROOT_CONTEXT_ID);
         rootContext.register(MangoApplicationContextConfiguration.class);
         rootContext.register(MangoSecurityConfiguration.class);
 
@@ -54,7 +52,8 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         context.addListener(new ContextLoaderListener(rootContext));
 
         // Create the dispatcher servlet's Spring application context
-        dispatcherContext = new AnnotationConfigWebApplicationContext();
+        AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
+        dispatcherContext.setId(DISPATCHER_CONTEXT_ID);
         dispatcherContext.register(MangoCoreSpringConfiguration.class);
 
         boolean enableRest = Common.envProps.getBoolean("rest.enabled", false);

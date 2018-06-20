@@ -16,7 +16,6 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.session.SessionDestroyedEvent;
@@ -30,6 +29,7 @@ import com.google.common.collect.SetMultimap;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.web.mvc.spring.ApplicationListenerAdapter;
 import com.serotonin.m2m2.web.mvc.spring.events.AuthTokensRevokedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserDeletedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
@@ -83,15 +83,10 @@ public class MangoWebSocketSessionTracker {
         // on the parent.
         ConfigurableApplicationContext parent = (ConfigurableApplicationContext) context.getParent();
 
-        ApplicationListener<SessionDestroyedEvent> sessionDestroyedListener = this::sessionDestroyed;
-        ApplicationListener<UserUpdatedEvent> userUpdatedListener = this::userUpdated;
-        ApplicationListener<UserDeletedEvent> userDeletedListener = this::userDeleted;
-        ApplicationListener<AuthTokensRevokedEvent> allAuthTokensRevokedListener = this::allAuthTokensRevoked;
-
-        parent.addApplicationListener(sessionDestroyedListener);
-        parent.addApplicationListener(userUpdatedListener);
-        parent.addApplicationListener(userDeletedListener);
-        parent.addApplicationListener(allAuthTokensRevokedListener);
+        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::sessionDestroyed, SessionDestroyedEvent.class));
+        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::userUpdated, UserUpdatedEvent.class));
+        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::userDeleted, UserDeletedEvent.class));
+        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::allAuthTokensRevoked, AuthTokensRevokedEvent.class));
     }
 
     private String httpSessionIdForSession(WebSocketSession session) {
