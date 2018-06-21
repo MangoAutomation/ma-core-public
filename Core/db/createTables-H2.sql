@@ -21,7 +21,7 @@ CREATE TABLE templates (
   templateType varchar(50),
   readPermission varchar(255),
   setPermission varchar(255),
-  data longblob NOT NULL,
+  data binary NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE templates ADD CONSTRAINT templatesUn1 UNIQUE (xid);
@@ -99,8 +99,8 @@ CREATE TABLE dataSources (
   xid varchar(100) NOT NULL,
   name varchar(255) NOT NULL,
   dataSourceType varchar(40) NOT NULL,
-  data longblob NOT NULL,
-  rtdata longblob,
+  data binary NOT NULL,
+  rtdata binary,
   editPermission varchar(255),
   PRIMARY KEY (id)
 );
@@ -129,7 +129,7 @@ CREATE TABLE dataPoints (
   defaultCacheSize int,
   discardExtremeValues char(1),
   engineeringUnits int,
-  data longblob NOT NULL,
+  data binary NOT NULL,
   readPermission varchar(255),
   setPermission varchar(255),
   templateId int,
@@ -251,7 +251,7 @@ CREATE TABLE eventHandlers (
   xid varchar(100) NOT NULL,
   alias varchar(255),
   eventHandlerType varchar(40) NOT NULL,
-  data longblob NOT NULL,
+  data binary NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE eventHandlers ADD CONSTRAINT eventHandlersUn1 UNIQUE (xid);
@@ -296,8 +296,8 @@ CREATE TABLE publishers (
   id int NOT NULL auto_increment,
   xid varchar(100) NOT NULL,
   publisherType varchar(40) NOT NULL,
-  data longblob NOT NULL,
-  rtdata longblob,
+  data binary NOT NULL,
+  rtdata binary,
   PRIMARY KEY (id)
 );
 ALTER TABLE publishers ADD CONSTRAINT publishersUn1 UNIQUE (xid);

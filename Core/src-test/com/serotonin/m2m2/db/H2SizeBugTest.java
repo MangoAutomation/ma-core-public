@@ -5,8 +5,14 @@ package com.serotonin.m2m2.db;
 
 import static org.junit.Assert.fail;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectOutputStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -42,10 +49,15 @@ import com.serotonin.util.properties.MangoProperties;
 public class H2SizeBugTest extends MangoTestBase {
 
     protected static final File baseTestDir = new File("junit");
-    protected String compress = "DEFLATE"; //Options NO LZF DEFLATE (Only for pagestore)
-    protected int useTrace = 3; //0=none, 1=error, 2=info, 3=debug
+    protected String compress = "DEFAULT"; //Options DEFAULT NO LZF DEFLATE (Only for pagestore)
+    protected int useTrace = -1; //-1=default 0=none, 1=error, 2=info, 3=debug
     protected boolean useMvStore = false;
     protected boolean useCheckpoint = false; //Flush to disk
+    protected boolean useDao = true;
+    protected boolean useShutdownCompact = false;
+    protected boolean closeOnExit = false;
+    protected boolean printSize = false;
+    protected boolean enableWeb = false;
     
     @BeforeClass
     public static void addDefinitions() throws IOException {
@@ -58,14 +70,14 @@ public class H2SizeBugTest extends MangoTestBase {
     @Test
     public void testH2Growth() throws Exception {
         try {
-            Common.databaseProxy.runScript(new String[] {"SET COMPRESS_LOB " + compress + ";"}, System.out);
+            if(!"DEFAULT".equals(compress))
+                Common.databaseProxy.runScript(new String[] {"SET COMPRESS_LOB " + compress + ";"}, System.out);
         } catch (Exception e) {
             fail(e.getMessage());
         }
         MockPublisherVO vo = new MockPublisherVO();
         vo.setDefinition(new MockPublisherDefinition());
         vo.setXid("PUB_TEST1");
-        //vo.setPoints(createPoints());
         vo.setEnabled(false);
         
         PublisherDao.instance.savePublisher(vo);
@@ -73,40 +85,54 @@ public class H2SizeBugTest extends MangoTestBase {
         Map<Integer, Long> data = getData(10000, 0);
         Map<String, Object> rtData = new HashMap<String, Object>();
         rtData.put("RT_DATA", data);
+        int id = vo.getId();
         for(int i=0; i<200; i++) {
-            updateDatabase(vo.getId(), data);
+            id = updateDatabase(id, rtData);
             modifyData(data);
             if(i%10 == 0) {
                 if(useCheckpoint)
                     Common.databaseProxy.runScript(new String[] {"CHECKPOINT;"}, System.out);
-
-                System.out.println("DB Size: " + DirectoryUtils.bytesDescription(dbSize()));
+                long size = dbSize();
+                if(printSize)
+                    System.out.println("DB Size: " + DirectoryUtils.bytesDescription(size));
+                if(size > 20000000)
+                    fail("Database grew over 20MB.");
             }
         }
-        
-        //This will shrink the DB back to normal size
-        Common.databaseProxy.runScript(new String[] {"SHUTDOWN DEFRAG;"}, System.out);
-
         System.out.print("DONE");
     }
     
     /**
      * @param data
      * @throws SQLException 
+     * @throws IOException 
      */
-    private void updateDatabase(int id, Map<Integer, Long> rtData) throws SQLException {
+    private int updateDatabase(int id, Map<String, Object> rtData) throws SQLException, IOException {
 
         //Test without DAO Layer (Not the bug)
-//        String sql = "update publishers set rtData=? where id=?";
-//        JdbcConnectionPool pool = (JdbcConnectionPool)Common.databaseProxy.getDataSource();
-//        Connection conn = pool.getConnection();
-//        PreparedStatement ps = conn.prepareStatement(sql);
-//        ps.setObject(1, SerializationHelper.writeObject(rtData));
-//        ps.setInt(2, id);
-//        conn.close();
-        
-        PublisherDao.instance.savePersistentData(id, rtData);
-        
+        if(!useDao) {
+            String sql = "update publishers set rtData=? where id=?";
+            JdbcConnectionPool pool = (JdbcConnectionPool)Common.databaseProxy.getDataSource();
+            Connection conn = pool.getConnection();
+            conn.setAutoCommit(true);
+            PreparedStatement ps = conn.prepareStatement(sql);
+            //ps.setObject(1, SerializationHelper.writeObject(rtData));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(rtData);
+            oos.flush();
+            oos.close();
+            InputStream is = new ByteArrayInputStream(baos.toByteArray());
+            ps.setBinaryStream(1, is);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+            ps.close();
+            conn.close();
+            return id;
+        }else {
+            PublisherDao.instance.savePersistentData(id, rtData);
+            return id;
+        }
     }
 
     private Map<Integer,Long> getData(int size, long initialValue){
@@ -168,15 +194,22 @@ public class H2SizeBugTest extends MangoTestBase {
         protected MangoProperties getEnvProps() {
             MockMangoProperties props = new MockMangoProperties();
             props.setDefaultValue("db.type", "h2");
-            String url = "jdbc:h2:" + baseTestDir.getAbsolutePath() + "/databases/mah2-test;";
-            if(useTrace > 0)
-                url += "TRACE_LEVEL_FILE=" + useTrace + ";";
+            String url = "jdbc:h2:" + baseTestDir.getAbsolutePath() + "/databases/mah2-test;LOB_TIMEOUT=50";
+            if(useTrace >= 0)
+                url += ";TRACE_LEVEL_FILE=" + useTrace;
             if(useMvStore)
-                url += "MV_STORE=TRUE;";
+                url += ";MV_STORE=TRUE";
+            if(closeOnExit)
+                url += ";DB_CLOSE_ON_EXIT=TRUE";
+            
             props.setDefaultValue("db.url", url);
             props.setDefaultValue("db.location", baseTestDir.getAbsolutePath() +"/databases/mah2-test");
-            //props.setDefaultValue("db.web.start", "true");
-            //props.setDefaultValue("db.web.port","8091");
+            if(useShutdownCompact)
+                props.setDefaultValue("db.h2.shutdownCompact", "true");
+            
+            if(enableWeb)
+                props.setDefaultValue("db.web.start", "true");
+                props.setDefaultValue("db.web.port","8091");
             
             return props;
         }
@@ -184,6 +217,8 @@ public class H2SizeBugTest extends MangoTestBase {
         @Override
         public void terminate() {
             Common.databaseProxy.terminate(true);
+            
+            //Check size here
         }
     }
 }

@@ -135,10 +135,10 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
         // Decide whether to insert or update.
         if (vo.getId() == Common.NEW_ID){
             vo.setId(ejt.doInsert(
-                    "insert into publishers (xid, publisherType, data) values (?,?,?)",
+                    "insert into publishers (xid, publisherType, data, rtData) values (?,?,?,?)",
                     new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
-                            SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                    		Types.BINARY})); //TP Edit Nov 2013 had to change from BINARY to BLOB... Did we upgrade Derby version since this code was last touched?
+                            SerializationHelper.writeObject(vo), null }, new int[] { Types.VARCHAR, Types.VARCHAR,
+                    		Types.BINARY, Types.BINARY})); //TP Edit Nov 2013 had to change from BINARY to BLOB... Did we upgrade Derby version since this code was last touched?
         	AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
         	this.countMonitor.increment();
         }else{

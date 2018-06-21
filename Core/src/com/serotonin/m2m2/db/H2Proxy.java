@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -239,7 +240,21 @@ public class H2Proxy extends AbstractDatabaseProxy {
     @Override
     public void terminateImpl() {
         if (Common.envProps.getBoolean("db.h2.shutdownCompact", false)) {
-            runScript(new String[] {"SHUTDOWN COMPACT;"}, null);
+            try {
+                JdbcConnectionPool pool = (JdbcConnectionPool)Common.databaseProxy.getDataSource();
+                Connection conn = pool.getConnection();
+                conn.createStatement().executeUpdate("SHUTDOWN COMPACT;");
+            }catch(SQLException e) {
+                LOG.error(e.getMessage());
+            }
+        }else {
+            try {
+                JdbcConnectionPool pool = (JdbcConnectionPool)Common.databaseProxy.getDataSource();
+                Connection conn = pool.getConnection();
+                conn.createStatement().executeUpdate("SHUTDOWN;");
+            }catch(SQLException e) {
+                LOG.error(e.getMessage());
+            }
         }
         if (dataSource != null)
             dataSource.dispose();
