@@ -112,8 +112,10 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         //Start the Database so we can use Daos (Base Dao requires this)
         if(Common.databaseProxy == null) {
             Common.databaseProxy = getDatabaseProxy();
-            Common.databaseProxy.initialize(null);
         }
+        
+        if(Common.databaseProxy != null)
+            Common.databaseProxy.initialize(null);
 
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
