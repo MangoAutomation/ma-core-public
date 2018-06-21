@@ -72,7 +72,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         ServletRegistration.Dynamic dispatcher =
                 context.addServlet("springDispatcher", new DispatcherServlet(dispatcherContext));
         dispatcher.setLoadOnStartup(1);
-        dispatcher.addMapping("*.htm", "*.shtm", "/rest/*", "/api-docs/*");
+        dispatcher.addMapping("*.htm", "*.shtm", "/rest/*");
 
         //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out
         context.addListener(HttpSessionEventPublisher.class);
