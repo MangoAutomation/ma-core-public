@@ -3,6 +3,8 @@
 * Fix bug with i18n translations from modules not being loaded in certain Log4j configurations
 * REST security enhancements
 * Legacy UI security enhancements
+* Upgrade H2 to 
+* Change H2 longblob column types to binary for improved performance
 
 *Version 3.4.4*
 * More HTML escapes
