@@ -128,19 +128,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
             if (line.startsWith("--"))
                 continue;
 
-            // Replace macros in the line
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "blob", replacement("blob"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "char", replacement("char"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "clob", replacement("clob"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "double", replacement("double"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "identity", replacement("identity"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "int", replacement("int"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "varchar", replacement("varchar"));
-            //
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "ALTER COLUMN", replacement("ALTER COLUMN"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "DROP FOREIGN KEY",
-            //                    replacement("DROP FOREIGN KEY"));
-
             statement.append(line);
             statement.append(" ");
             if (line.endsWith(";")) {

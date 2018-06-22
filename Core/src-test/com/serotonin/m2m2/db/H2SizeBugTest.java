@@ -160,11 +160,11 @@ public class H2SizeBugTest extends MangoTestBase {
         provider.reset();
         Common.runtimeManager.terminate();
         Common.runtimeManager.joinTermination();
-//        try {
-//            delete(baseTestDir);
-//        } catch (IOException e) {
-//            fail(e.getMessage());
-//        }
+        try {
+            delete(baseTestDir);
+        } catch (IOException e) {
+            fail(e.getMessage());
+        }
     }
     
     /* (non-Javadoc)
