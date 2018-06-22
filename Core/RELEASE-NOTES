@@ -1,4 +1,5 @@
 *Version 3.4.5*
+* Content Security Policy (CSP) configuration options have changed, if you have configured CSP please review the new setting names and format in the default env.properties
 * Fix DateTimeZone default if user didn't specify one and is in certain locales
 * Fix bug with i18n translations from modules not being loaded in certain Log4j configurations
 * REST security enhancements
