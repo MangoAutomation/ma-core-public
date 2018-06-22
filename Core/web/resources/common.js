@@ -1016,7 +1016,7 @@ function showDwrMessages(/*ProcessResult.messages*/messages, /*tbody*/genericMes
             }
             
             if (node) {
-                node.innerHTML = m.contextualMessage;
+                node.innerHTML = encodeHtml(m.contextualMessage);
                 show(node);
             }
         }
@@ -1053,7 +1053,7 @@ function showDwrMessages(/*ProcessResult.messages*/messages, /*tbody*/genericMes
                 var content = "";
                 for (var i=0; i<genericMessages.length; i++)
                     content += genericMessages[i].genericMessage + "<br/>";
-                genericMessageNode.innerHTML = content;
+                genericMessageNode.innerHTML = encodeHtml(content);
             }
         }
     }

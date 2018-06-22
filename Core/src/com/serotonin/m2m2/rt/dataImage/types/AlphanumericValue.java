@@ -14,7 +14,7 @@ public class AlphanumericValue extends DataValue implements Comparable<Alphanume
     private final String value;
 
     public AlphanumericValue(String value) {
-        this.value = StringUtils.escapeLT(value);
+        this.value = value;
     }
 
     @Override
