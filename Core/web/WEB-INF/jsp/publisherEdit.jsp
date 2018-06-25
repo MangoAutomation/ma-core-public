@@ -66,7 +66,7 @@
               <tr><td class="formError">
                 <tag:eventIcon eventBean="${event}"/>
                 ${event.prettyActiveTimestamp}:
-                ${event.message}
+                ${fn:escapeXml(event.message)}
               </td></tr>
             </c:forEach>
           </table>

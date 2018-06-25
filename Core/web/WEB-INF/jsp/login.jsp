@@ -51,7 +51,7 @@
               <c:if test="${status.error}">
                 <td colspan="3" class="formError">
                   <c:forEach items="${status.errorMessages}" var="error">
-                    <c:out value="${error}"/><br/>
+                    <c:out value="${fn:escapeXml(error)}"/><br/>
                   </c:forEach>
                 </td>
               </c:if>
