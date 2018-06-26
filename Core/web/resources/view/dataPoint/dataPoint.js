@@ -373,7 +373,7 @@ dataPoints = new StoreView({
     	var divId = "pointValue" + this.prefix + id;
     	var div = $(divId);
     	DataPointDwr.getMostRecentValue(id,function(response){
-        	div.innerHTML = response.data.pointValue.replace("<", "&lt;");
+        	div.innerHTML = String(response.data.pointValue).replace(/</g, "&lt;");
         	show(divId);
     	});
 

@@ -447,7 +447,7 @@ allDataPoints = new StoreView({
     	var div = $(divId);
 
     	DataPointDwr.getMostRecentValue(id,function(response){
-    		div.innerHTML = response.data.pointValue.replace("<", "&lt;");
+    		div.innerHTML = String(response.data.pointValue).replace(/</g, "&lt;");
         	show(divId);
     	});
 
