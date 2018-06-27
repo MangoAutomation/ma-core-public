@@ -208,12 +208,22 @@ public class PointValueCache {
                             nc.add(cc.remove(0));
                         if(cc.size() > 0 && cc.get(0).getTime() == value.getTime())
                             cc.remove(0);
-                        if(nc.size() < size)
-                            nc.add(value);
+                        if(nc.size() < size) {
+                            //TODO Mango 3.5 Remove instanceof when we fix the hierarchy of AnnotatedIdPointValueTime
+                            if(value instanceof AnnotatedIdPointValueTime)
+                                nc.add(new AnnotatedPointValueTime(value.getValue(), value.getTime(), ((AnnotatedIdPointValueTime)value).getSourceMessage()));
+                            else
+                                nc.add(value);
+                        }
                     }else {
                         //Past cached value times
-                        if(nc.size() < size)
-                            nc.add(value);
+                        if(nc.size() < size) {
+                            //TODO Mango 3.5 Remove instanceof when we fix the hierarchy of AnnotatedIdPointValueTime
+                            if(value instanceof AnnotatedIdPointValueTime)
+                                nc.add(new AnnotatedPointValueTime(value.getValue(), value.getTime(), ((AnnotatedIdPointValueTime)value).getSourceMessage()));
+                            else
+                                nc.add(value);
+                        }
                     }
                 });
                 cache = nc;

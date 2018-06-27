@@ -4,6 +4,7 @@
 * Fix bug with i18n translations from modules not being loaded in certain Log4j configurations
 * REST security enhancements
 * Legacy UI security enhancements
+* Fix for not loading Annotated values into the point cache properly
 
 *Version 3.4.4*
 * More HTML escapes
