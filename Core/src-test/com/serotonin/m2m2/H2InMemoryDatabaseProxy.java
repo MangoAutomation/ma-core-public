@@ -514,6 +514,13 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
         user.setDisabled(false);
         UserDao.instance.saveUser(user);
+        
+        //Clean the noSQL database
+        // Check if we are using NoSQL
+        if (NoSQLProxyFactory.instance.getProxy() != null) {
+            noSQLProxy = NoSQLProxyFactory.instance.getProxy();
+            noSQLProxy.createPointValueDao().deleteAllPointDataWithoutCount();
+        }
     }
 
     @Override
