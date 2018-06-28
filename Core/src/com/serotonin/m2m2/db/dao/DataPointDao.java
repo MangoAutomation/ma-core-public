@@ -1459,8 +1459,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         int count;
         //Comma separated list of permissions or one permission
         final Set<String> newPermissions;
-        //Split of permissions on comma
-        final String[] permissions;
         //Name of permission to change (setPermission or readPermission)
         final String permissionName;
 
@@ -1468,7 +1466,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             this.count = 0;
             this.permissionName = updateSetPermissions ? SET_PERMISSION : READ_PERMISSION;
             this.newPermissions = Permissions.explodePermissionGroups(newPermissions);
-            this.permissions = newPermissions != null ? newPermissions.split(",") : null;
         }
 
         /* (non-Javadoc)
