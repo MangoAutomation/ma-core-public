@@ -54,6 +54,16 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     private final List<Runnable> STARTUP_TASKS = new ArrayList<>();
     private final List<Runnable> SHUTDOWN_TASKS = new ArrayList<>();
 
+    //Members to use for non defaults
+    protected TimerProvider<AbstractTimer> timer;
+    protected MangoProperties properties;
+    protected EventManager eventManager;
+    protected H2InMemoryDatabaseProxy db;
+    protected RuntimeManager runtimeManager;
+    protected SerialPortManager serialPortManager;
+    protected MockBackgroundProcessing backgroundProcessing;
+    
+    
     /**
      * Create a default lifecycle with an H2 web console on port 9001
      *   to view the in-memory database.
@@ -67,6 +77,8 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         this.webPort = webPort;
         this.modules = modules;
     }
+    
+    
     /**
      * Startup a dummy Mango with a basic infrastructure
      */
@@ -268,30 +280,93 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     }
 
     protected TimerProvider<AbstractTimer>  getSimulationTimerProvider() {
-        return new SimulationTimerProvider();
+        if(this.timer == null)
+            return new SimulationTimerProvider();
+        else 
+            return this.timer;
     }
 
     protected MangoProperties getEnvProps() {
-        return new MockMangoProperties();
+        if(this.properties == null)
+            return new MockMangoProperties();
+        else
+            return this.properties;
     }
 
     protected EventManager getEventManager() {
-        return new MockEventManager();
+        if(this.eventManager == null)
+            return new MockEventManager();
+        else
+            return this.eventManager;
     }
 
     protected H2InMemoryDatabaseProxy getDatabaseProxy() {
-        return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
+        if(this.db == null)
+            return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
+        else 
+            return this.db;
     }
 
     protected RuntimeManager getRuntimeManager() {
-        return new MockRuntimeManager();
+        if(this.runtimeManager == null)
+            return new MockRuntimeManager();
+        else
+            return this.runtimeManager;
     }
 
     protected SerialPortManager getSerialPortManager() {
-        return new MockSerialPortManager();
+        if(this.serialPortManager == null)
+            return new MockSerialPortManager();
+        else
+            return this.serialPortManager;
     }
 
     protected BackgroundProcessing getBackgroundProcessing() {
-        return new MockBackgroundProcessing(Providers.get(TimerProvider.class).getTimer());
+        if(this.backgroundProcessing == null)
+            return new MockBackgroundProcessing(Providers.get(TimerProvider.class).getTimer());
+        else
+            return this.backgroundProcessing;
     }
+
+    public boolean isEnableWebConsole() {
+        return enableWebConsole;
+    }
+
+    public void setEnableWebConsole(boolean enableWebConsole) {
+        this.enableWebConsole = enableWebConsole;
+    }
+
+    public void setWebPort(int webPort) {
+        this.webPort = webPort;
+    }
+
+    public void setTimer(TimerProvider<AbstractTimer> timer) {
+        this.timer = timer;
+    }
+
+    public void setProperties(MangoProperties properties) {
+        this.properties = properties;
+    }
+
+    public void setEventManager(EventManager eventManager) {
+        this.eventManager = eventManager;
+    }
+
+    public void setDb(H2InMemoryDatabaseProxy db) {
+        this.db = db;
+    }
+
+    public void setRuntimeManager(RuntimeManager runtimeManager) {
+        this.runtimeManager = runtimeManager;
+    }
+
+    public void setSerialPortManager(SerialPortManager serialPortManager) {
+        this.serialPortManager = serialPortManager;
+    }
+
+    public void setBackgroundProcessing(MockBackgroundProcessing backgroundProcessing) {
+        this.backgroundProcessing = backgroundProcessing;
+    }
+    
+    
 }

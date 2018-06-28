@@ -29,11 +29,13 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.provider.Providers;
@@ -209,6 +211,32 @@ public class MangoTestBase {
                }
             }
         }
+    }
+    
+    /**
+     * Create users with password=password and supplied permissions
+     * @param count
+     * @param permissions
+     * @return
+     */
+    protected List<User> createUsers(int count, String permissions){
+        List<User> users = new ArrayList<>();
+        for(int i=0; i<count; i++) {
+            User user = new User();
+            user.setId(Common.NEW_ID);
+            user.setName("User" + i);
+            user.setUsername("user" + i);
+            user.setPassword(Common.encrypt("password"));
+            user.setEmail("user" + i + "@yourMangoDomain.com");
+            user.setPhone("");
+            user.setPermissions(permissions);
+            user.setDisabled(false);
+            validate(user);
+            
+            UserDao.instance.saveUser(user);
+            users.add(user);
+        }
+        return users;
     }
     
     /**

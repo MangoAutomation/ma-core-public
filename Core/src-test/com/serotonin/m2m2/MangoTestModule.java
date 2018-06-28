@@ -7,6 +7,7 @@ package com.serotonin.m2m2;
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
+import com.serotonin.m2m2.rt.event.type.MockEventTypeDefinition;
 
 /**
  * 
@@ -25,6 +26,7 @@ public class MangoTestModule extends Module{
         super(name, Version.forIntegers(1, 0, 0), 
                 new TranslatableMessage("common.default", name), 
                 "IAS", "https://www.infiniteautomation.com", null, 1, false);
+        this.addDefinition(new MockEventTypeDefinition());
     }
     
     /* (non-Javadoc)

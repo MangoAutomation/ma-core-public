@@ -331,4 +331,17 @@ public class EventInstance{
     public void setIdsToNotify(List<Integer> idsToNotify) {
         this.idsToNotify = idsToNotify;
     }
+
+    @Override
+    public String toString() {
+        return "EventInstance [id=" + id + ", eventType=" + eventType + ", activeTimestamp="
+                + activeTimestamp + ", rtnApplicable=" + rtnApplicable + ", rtnTimestamp="
+                + rtnTimestamp + ", rtnCause=" + rtnCause + ", alarmLevel=" + alarmLevel
+                + ", message=" + message + ", eventComments=" + eventComments + ", handlers="
+                + handlers + ", acknowledgedTimestamp=" + acknowledgedTimestamp
+                + ", acknowledgedByUserId=" + acknowledgedByUserId + ", acknowledgedByUsername="
+                + acknowledgedByUsername + ", alternateAckSource=" + alternateAckSource
+                + ", hasComments=" + hasComments + ", userNotified=" + userNotified + ", silenced="
+                + silenced + ", idsToNotify=" + idsToNotify + ", context=" + context + "]";
+    }
 }

@@ -57,7 +57,7 @@ public class UserEventCacheTest extends MangoTestBase{
 	 * To simulate Mango we will have 1 thread generating events 
 	 * and occasionally purging them while several other threads read their user's events out.
 	 */
-    //@Test(timeout = 30000)
+    @Test(timeout = 30000)
 	public void benchmark(){
 		
 		this.cache = new UserEventCache(15 * 60000,  60000);
@@ -87,13 +87,7 @@ public class UserEventCacheTest extends MangoTestBase{
         }
 		
 		while(runningThreads.intValue() > 0){
-			synchronized(monitor){
-				try {
-					monitor.wait();
-				} catch (InterruptedException e) {
-					fail(e.getMessage());
-				}
-			}
+		    this.timer.fastForwardTo(this.timer.currentTimeMillis() + 1);
 		}
 		timer.stop("");
 	}
