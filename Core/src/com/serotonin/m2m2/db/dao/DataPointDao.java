@@ -1458,7 +1458,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         //count of modified data points
         int count;
         //Comma separated list of permissions or one permission
-        final String newPermissions;
+        final Set<String> newPermissions;
         //Split of permissions on comma
         final String[] permissions;
         //Name of permission to change (setPermission or readPermission)
@@ -1467,7 +1467,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         public DataPointPermissionChangeCallback(boolean updateSetPermissions, String newPermissions){
             this.count = 0;
             this.permissionName = updateSetPermissions ? SET_PERMISSION : READ_PERMISSION;
-            this.newPermissions = newPermissions;
+            this.newPermissions = Permissions.explodePermissionGroups(newPermissions);
             this.permissions = newPermissions != null ? newPermissions.split(",") : null;
         }
 
@@ -1485,22 +1485,24 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     String existingPermissions = rs.getString(permissionName);
                     if(StringUtils.isEmpty(existingPermissions)){
                         //No permissions, only update if new permissions are not empty
-                        if(newPermissions != null){
-                            existingPermissions = newPermissions;
+                        if(!newPermissions.isEmpty()){
+                            existingPermissions = Permissions.implodePermissionGroups(newPermissions);
                             updated = true;
                         }
                     }else{
 
-                        if(newPermissions != null){
+                        if(!newPermissions.isEmpty()){
                             //Don't duplicate permissions
-                            for(String permission : permissions)
-                                if(!existingPermissions.contains(permission)){
-                                    existingPermissions += "," + permission;
-                                    updated = true;
-                                }
+                            Set<String> existing = Permissions.explodePermissionGroups(existingPermissions);
+                            int originalSize = existing.size();
+                            newPermissions.addAll(existing);
+                            if(newPermissions.size() != originalSize) {
+                                existingPermissions = Permissions.implodePermissionGroups(newPermissions);
+                                updated = true;
+                            }
                         }else{
                             //Set to null
-                            existingPermissions = newPermissions;
+                            existingPermissions = null;
                             updated = true;
                         }
                     }
