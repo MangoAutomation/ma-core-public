@@ -171,7 +171,7 @@ mango.view.pointDetails.setPoint = function(pointId, componentId, value) {
 
 mango.view.pointDetails.setData = function(state) {
     if (state.value != null)
-        $("pointValue").innerHTML = encodeHtml(String(state.value));
+        $("pointValue").innerHTML = state.value;
     
     if (state.time != null)
         $("pointValueTime").innerHTML = state.time;

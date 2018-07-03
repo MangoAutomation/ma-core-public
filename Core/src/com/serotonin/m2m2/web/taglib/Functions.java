@@ -87,23 +87,25 @@ public class Functions {
 
     private static String getHtml(String colour, String text, boolean detectOverflow) {
         String result;
-
-        if (text != null && detectOverflow && text.length() > 30) {
-            text = encodeDQuot(text);
-            if (StringUtils.isBlank(colour))
-                result = "<input type='text' readonly='readonly' class='ovrflw' value=\"" + text + "\"/>";
-            else
-                result = "<input type='text' readonly='readonly' class='ovrflw' style='color:" + colour + ";' value=\""
-                        + text + "\"/>";
+        if (text != null) {
+            text = encodeHtml(text);
+            if (detectOverflow && text.length() > 30) {
+                text = encodeDQuot(text);
+                if (StringUtils.isBlank(colour))
+                    result = "<input type='text' readonly='readonly' class='ovrflw' value=\"" + text + "\"/>";
+                else
+                    result = "<input type='text' readonly='readonly' class='ovrflw' style='color:" + colour + ";' value=\""
+                            + text + "\"/>";
+            }
+            else {
+                if (StringUtils.isBlank(colour))
+                    result = text;
+                else
+                    result = "<span style='color:" + colour + ";'>" + text + "</span>";
+            }
+            return result;
         }
-        else {
-            if (StringUtils.isBlank(colour))
-                result = text;
-            else
-                result = "<span style='color:" + colour + ";'>" + text + "</span>";
-        }
-
-        return result;
+        return null;
     }
 
     public static String getTime(PointValueTime pointValue) {
@@ -118,6 +120,10 @@ public class Functions {
 
     public static String encodeDQuot(String s) {
         return s.replaceAll("\"", "&quot;");
+    }
+    
+    public static String encodeHtml(String s) {
+        return s.replaceAll("&", "&amp;").replaceAll("<", "&lt;");
     }
 
     public static String escapeScripts(String s) {

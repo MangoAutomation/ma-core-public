@@ -74,7 +74,7 @@
                   else {
                       dwr.util.addRows("historyTableData", data,
                           [
-                              function(data) { return encodeHtml(String(data.value)); },
+                              function(data) { return data.value; },
                               function(data) { return data.time; },
                               function(data) { return data.annotation; }
                           ],
