@@ -139,7 +139,8 @@ UsersView.prototype.loadUser = function(username){
 	this.clearErrors();
 	var self = this;
 
-	this.store.get(username).then(function(userData){
+	var requestUser = username.replace(/\//g, "%2F");
+	this.store.get(requestUser).then(function(userData){
 		self.newUser = false;
 		$('#userEditView').show();
 		self.fillUserInputs(userData);
