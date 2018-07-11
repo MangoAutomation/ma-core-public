@@ -73,6 +73,7 @@ import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
+import com.serotonin.provider.Providers;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.OrderedRealTimeTimer;
@@ -740,6 +741,15 @@ public class Common {
      * @return
      */
     public static String getCookieName() {
+        if (Common.envProps.getBoolean("sessionCookie.useGuid", false)) {
+            return Providers.get(ICoreLicense.class).getGuid();
+        }
+
+        String cookieName = Common.envProps.getString("sessionCookie.name");
+        if (cookieName != null && !cookieName.isEmpty()) {
+            return cookieName;
+        }
+
         if(Common.envProps.getBoolean("ssl.on", false)) {
             return "MANGO" + Common.envProps.getInt("ssl.port", 443);
         }else {

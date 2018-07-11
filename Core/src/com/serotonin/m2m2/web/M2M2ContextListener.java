@@ -81,8 +81,8 @@ public class M2M2ContextListener implements ServletContextListener {
         ctx.setAttribute("constants.SystemEventType.TYPE_EMAIL_SEND_FAILURE", SystemEventType.TYPE_EMAIL_SEND_FAILURE);
         ctx.setAttribute("constants.SystemEventType.TYPE_PROCESS_FAILURE", SystemEventType.TYPE_PROCESS_FAILURE);
         ctx.setAttribute("constants.SystemEventType.TYPE_LICENSE_CHECK", SystemEventType.TYPE_LICENSE_CHECK);
-        ctx.setAttribute("constants.SystemEventType.TYPE_UPGRADE_CHECK", SystemEventType.TYPE_UPGRADE_CHECK);        
-        
+        ctx.setAttribute("constants.SystemEventType.TYPE_UPGRADE_CHECK", SystemEventType.TYPE_UPGRADE_CHECK);
+
         ctx.setAttribute("constants.AuditEventType.TYPE_DATA_SOURCE", AuditEventType.TYPE_DATA_SOURCE);
         ctx.setAttribute("constants.AuditEventType.TYPE_DATA_POINT", AuditEventType.TYPE_DATA_POINT);
         ctx.setAttribute("constants.AuditEventType.TYPE_EVENT_DETECTOR", AuditEventType.TYPE_EVENT_DETECTOR);
@@ -103,9 +103,14 @@ public class M2M2ContextListener implements ServletContextListener {
         for (String code : codes)
             messages.put(code, new TranslatableMessage(code));
         ctx.setAttribute("clientSideMessages", messages);
-        
+
         SessionCookieConfig sessionCookieConfig = ctx.getSessionCookieConfig();
         sessionCookieConfig.setHttpOnly(true);
         sessionCookieConfig.setName(Common.getCookieName());
+
+        String cookieDomain = Common.envProps.getString("sessionCookie.domain");
+        if (cookieDomain != null && !cookieDomain.isEmpty()) {
+            sessionCookieConfig.setDomain(cookieDomain);
+        }
     }
 }
