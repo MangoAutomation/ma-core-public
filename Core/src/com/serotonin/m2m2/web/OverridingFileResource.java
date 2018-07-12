@@ -14,7 +14,7 @@ import org.eclipse.jetty.util.resource.Resource;
 
 /**
  * Used by the web app context to override resources using the overrides directory.
- * 
+ *
  * @author Matthew
  */
 public class OverridingFileResource extends Resource {
@@ -27,7 +27,7 @@ public class OverridingFileResource extends Resource {
     }
 
     private OverridingFileResource(Resource override, Resource base, String path) throws MalformedURLException,
-            IOException {
+    IOException {
         this.override = override.addPath(path);
         this.base = base.addPath(path);
     }
@@ -104,12 +104,12 @@ public class OverridingFileResource extends Resource {
         return base.getInputStream();
     }
 
-//    @Override
-//    public OutputStream getOutputStream() throws IOException, SecurityException {
-//        if (override.exists())
-//            return override.getOutputStream();
-//        return base.getOutputStream();
-//    }
+    //    @Override
+    //    public OutputStream getOutputStream() throws IOException, SecurityException {
+    //        if (override.exists())
+    //            return override.getOutputStream();
+    //        return base.getOutputStream();
+    //    }
 
     @Override
     public boolean delete() throws SecurityException {
@@ -127,8 +127,15 @@ public class OverridingFileResource extends Resource {
 
     @Override
     public String[] list() {
-        String[] baseList = base.list();
-        String[] overrideList = override.list();
+        String[] baseList = null;
+        String[] overrideList = null;
+
+        if (base.isDirectory()) {
+            baseList = base.list();
+        }
+        if (override.isDirectory()) {
+            overrideList = override.list();
+        }
 
         if (baseList == null || baseList.length == 0)
             return overrideList;
@@ -147,13 +154,13 @@ public class OverridingFileResource extends Resource {
         return base.toString();
     }
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jetty.util.resource.Resource#getReadableByteChannel()
-	 */
-	@Override
-	public ReadableByteChannel getReadableByteChannel() throws IOException {
+    /* (non-Javadoc)
+     * @see org.eclipse.jetty.util.resource.Resource#getReadableByteChannel()
+     */
+    @Override
+    public ReadableByteChannel getReadableByteChannel() throws IOException {
         if (override.exists())
             return override.getReadableByteChannel();
         return base.getReadableByteChannel();
-	}
+    }
 }
