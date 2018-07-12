@@ -155,9 +155,17 @@ Each StartAndRuntime object has the following properties:
 </ul>
 
 <p>
-  To access a specific StartAndRuntime object in the list, use the get() function. For example, the following returns the proportion of time that 'b' was in state 'false' over the previous 2 months.
+  To access a specific StartAndRuntime object in the list, you will first need to test to see if the state exists, as states that the point was not in during the period will not exist. 
+  For example, the following returns the proportion of time that 'b' was in state 'false' over the previous 2 months.  Note 
+  that any states that have not occurred in this period will be null and must be checked first as we cannot know this before asking for the state information.
 </p>
-<pre>return b.past(MONTH, 2).get(false).proportion;</pre>
+<pre>
+    var sar = b.past(MONTH, 2)[false];
+    if(sar != null)
+		return b.proportion;
+	else
+		return 0;
+</pre>
 
 <p>
   The <b>ValueChangeCounter</b> object is returned by Alphanumeric points. 

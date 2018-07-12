@@ -5,6 +5,7 @@
 * REST security enhancements
 * Legacy UI security enhancements
 * Fix saving multiple new event detectors on edit point page
+* Improve StartsAndRuntimeListWrapper documentation for Mango JavaScript
 
 *Version 3.4.4*
 * More HTML escapes
