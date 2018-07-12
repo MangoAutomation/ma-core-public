@@ -80,6 +80,8 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetail
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.security"})
 public class MangoSecurityConfiguration {
 
+    public static final String IS_PROXY_REQUEST_ATTRIBUTE = "MANGO_IS_PROXY_REQUEST";
+
     @Autowired
     private ConfigurableListableBeanFactory beanFactory;
 
@@ -274,12 +276,48 @@ public class MangoSecurityConfiguration {
 
     final static String[] SRC_TYPES = new String[] {"default", "script", "style", "connect", "img", "font", "media", "object", "frame", "worker", "manifest"};
 
+    @Configuration
+    @Order(1)
+    public class TunnelProxySecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.requestMatcher(request -> request.getAttribute(IS_PROXY_REQUEST_ATTRIBUTE) != null);
+            http.authorizeRequests().anyRequest().authenticated();
+
+            http.sessionManagement()
+            // dont actually want an invalid session strategy, just treat them as having no session
+            //.invalidSessionStrategy(invalidSessionStrategy)
+            .maximumSessions(maxSessions)
+            .maxSessionsPreventsLogin(false)
+            .sessionRegistry(sessionRegistry)
+            .expiredSessionStrategy(sessionInformationExpiredStrategy)
+            .and()
+            .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+            .sessionFixation()
+            .newSession();
+
+            http.csrf()
+            .ignoringAntMatchers("/tunnel-proxy/dwr/**")
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+
+            http.rememberMe().disable()
+            .logout().disable()
+            .formLogin().disable()
+            .requestCache().disable();
+
+            http.httpBasic().disable();
+
+            http.headers().disable();
+        }
+    }
+
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
     // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
     // persisted in the session inside the SecurityContext. This security configuration allows the JWT token authentication
     // and also basic authentication.
     @Configuration
-    @Order(1)
+    @Order(2)
     public class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Bean(name=BeanIds.AUTHENTICATION_MANAGER)
@@ -364,7 +402,7 @@ public class MangoSecurityConfiguration {
     }
 
     @Configuration
-    @Order(2)
+    @Order(3)
     public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Override
@@ -453,7 +491,7 @@ public class MangoSecurityConfiguration {
     }
 
     @Configuration
-    @Order(3)
+    @Order(4)
     public class DefaultSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Override
@@ -517,6 +555,19 @@ public class MangoSecurityConfiguration {
             //Customize the headers here
             configureHeaders(http, false);
             configureHSTS(http, true);
+
+
+            if (basicAuthenticationEnabled) {
+                http.httpBasic()
+                .realmName(basicAuthenticationRealm)
+                .authenticationEntryPoint(authenticationEntryPoint);
+            } else {
+                http.httpBasic().disable();
+            }
+
+            if (tokenAuthEnabled) {
+                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
+            }
         }
     }
 
