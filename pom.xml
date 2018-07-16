@@ -62,6 +62,12 @@
       </modules>
     </profile>
     <profile>
+      <id>dashboards</id>
+      <modules>
+        <module>../dashboards</module>
+      </modules>
+    </profile>
+    <profile>
       <id>core-zip</id>
       <modules>
         <module>CoreBundle</module>
