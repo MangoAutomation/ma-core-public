@@ -6,6 +6,9 @@
 * Legacy UI security enhancements
 * Fix saving multiple new event detectors on edit point page
 * Improve StartsAndRuntimeListWrapper documentation for Mango JavaScript
+* Improve bulk permissions editing accuracy for data points
+* Fix database upgrade 21 to not fail when deleting a duplicate user that has foreign key entries in linked tables.  IMPORTANT: if you have duplicate users
+* Improve performance of the overrides system
 
 *Version 3.4.4*
 * More HTML escapes
