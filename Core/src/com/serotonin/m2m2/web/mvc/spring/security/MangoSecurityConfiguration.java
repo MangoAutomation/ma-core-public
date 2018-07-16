@@ -264,11 +264,11 @@ public class MangoSecurityConfiguration {
 
     @Value("${web.security.iFrameAccess:SAMEORIGIN}") String iFrameAccess;
 
-    @Value("${web.security.contentSecurityPolicy.enabled:true}") boolean cspEnabled;
+    @Value("${web.security.contentSecurityPolicy.enabled:false}") boolean cspEnabled;
     @Value("${web.security.contentSecurityPolicy.reportOnly:false}") boolean cspReportOnly;
     @Value("${web.security.contentSecurityPolicy.other:}") String cspOther;
 
-    @Value("${web.security.contentSecurityPolicy.legacyUi.enabled:true}") boolean legacyCspEnabled;
+    @Value("${web.security.contentSecurityPolicy.legacyUi.enabled:false}") boolean legacyCspEnabled;
     @Value("${web.security.contentSecurityPolicy.legacyUi.reportOnly:false}") boolean legacyCspReportOnly;
     @Value("${web.security.contentSecurityPolicy.legacyUi.other:}") String legacyCspOther;
 
