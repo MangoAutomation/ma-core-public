@@ -4,6 +4,11 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -12,8 +17,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
@@ -27,22 +32,22 @@ import com.serotonin.m2m2.util.license.ModuleLicense;
 
 /**
  * All information regarding a module required by the core.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class Module {
-    
+
     private static final Log LOG = LogFactory.getLog(Module.class);
-	
-	public static final ExportCodes VERSION_STATE_CODES = new ExportCodes();
-	static {
-		VERSION_STATE_CODES.addElement(UpgradeVersionState.DEVELOPMENT, "DEVELOPMENT");
-		VERSION_STATE_CODES.addElement(UpgradeVersionState.ALPHA, "ALPHA");
-		VERSION_STATE_CODES.addElement(UpgradeVersionState.BETA, "BETA");
-		VERSION_STATE_CODES.addElement(UpgradeVersionState.RELEASE_CANDIDATE, "RELEASE_CANDIDATE");
-		VERSION_STATE_CODES.addElement(UpgradeVersionState.PRODUCTION, "PRODUCTION");
-	}
-	
+
+    public static final ExportCodes VERSION_STATE_CODES = new ExportCodes();
+    static {
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.DEVELOPMENT, "DEVELOPMENT");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.ALPHA, "ALPHA");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.BETA, "BETA");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.RELEASE_CANDIDATE, "RELEASE_CANDIDATE");
+        VERSION_STATE_CODES.addElement(UpgradeVersionState.PRODUCTION, "PRODUCTION");
+    }
+
     public static final void sortByName(List<Module> modules) {
         Collections.sort(modules, new Comparator<Module>() {
             @Override
@@ -82,7 +87,7 @@ public class Module {
 
     /**
      * Module constructor. Should not be used by client code.
-     * 
+     *
      * @param name
      * @param version
      * @param description
@@ -102,6 +107,7 @@ public class Module {
     }
 
     /**
+     * TODO Mango 3.5 deprecate/remove
      * @return the path from the MA home to the module's directory. Suitable for creating File objects within Java
      *         code
      */
@@ -110,10 +116,51 @@ public class Module {
     }
 
     /**
+     * TODO Mango 3.5 deprecate/remove
      * @return the path from MA's web root to the module's directory. Suitable for creating URLs to module assets.
      */
     public String getWebPath() {
         return "/" + Constants.DIR_MODULES + "/" + name;
+    }
+
+    /**
+     * Do not use in modules until Mango 3.5, new API.
+     * TODO Mango 3.5 remove @Deprecated
+     * @return
+     */
+    @Deprecated
+    public URI webPath() {
+        return URI.create("/" + Constants.DIR_MODULES).resolve(name);
+    }
+
+    /**
+     * Do not use in modules until Mango 3.5, new API.
+     * TODO Mango 3.5 remove @Deprecated
+     * @return
+     */
+    @Deprecated
+    public Path modulePath() {
+        return Paths.get(Common.MA_HOME, Constants.DIR_WEB, Constants.DIR_MODULES, name);
+    }
+
+    /**
+     * Do not use in modules until Mango 3.5, new API.
+     * TODO Mango 3.5 remove @Deprecated
+     * @return
+     */
+    @Deprecated
+    public Path moduleDataPath() {
+        Path dataPath = Paths.get(Common.MA_HOME, Constants.DIR_DATA, name);
+
+        try {
+            Files.createDirectories(dataPath);
+        } catch (IOException e) {
+            if (LOG.isErrorEnabled()) {
+                LOG.error("Error creating module data directory, subsequent read/write operations to this directory will fail", e);
+            }
+        }
+
+        return dataPath;
     }
 
     /**
@@ -133,7 +180,7 @@ public class Module {
         for (ModuleElementDefinition df : definitions)
             df.postDatabase(install, upgrade);
     }
-    
+
     /**
      * Called after immediately after the event manager is initialized, but before the runtime managers. Should not be
      * used by client code.
@@ -142,7 +189,7 @@ public class Module {
         for (ModuleElementDefinition df : definitions)
             df.postEventManager(install, upgrade);
     }
-    
+
     /**
      * Called after the system is initialized, i.e. once services like the database, timer, properties, runtime, etc are
      * available. Should not be used by client code.
@@ -162,7 +209,7 @@ public class Module {
         for (ModuleElementDefinition df : definitions)
             df.preTerminate(uninstall);
     }
-    
+
     /**
      * Called upon shutdown after the runtime, but before the event manager, has been terminated.  Should not be used by client code.
      */
@@ -192,7 +239,7 @@ public class Module {
     public Version getVersion() {
         return version;
     }
-    
+
     public String getNormalVersion() {
         return version.getNormalVersion();
     }
@@ -224,13 +271,13 @@ public class Module {
     public int getLoadOrder() {
         return loadOrder;
     }
-    
+
     public String getBuildNumber(){
-    	return this.version.getBuildMetadata();
+        return this.version.getBuildMetadata();
     }
-    
+
     public boolean isSigned() {
-    	return signed;
+        return signed;
     }
 
     public ModuleLicense license() {
@@ -264,7 +311,7 @@ public class Module {
                         depName = dependencyStr;
                     else
                         depName = dependencyStr.substring(0, pos);
-                    
+
                     Module dep = ModuleRegistry.getModule(depName);
                     if(dep == null)
                         LOG.error("Unable to identify module dependency: " + dep); //don't let this stop us
@@ -280,7 +327,7 @@ public class Module {
             for(Module mod : ModuleRegistry.getModules()) {
                 if(mod.getName().equals(name) || StringUtils.isBlank(mod.getDependencies()))
                     continue;
-                
+
                 String[] parts = mod.getDependencies().split("\\s*,\\s*");
                 for (String dependencyStr : parts) {
                     if (dependencyStr.isEmpty()) continue;
@@ -291,7 +338,7 @@ public class Module {
                         depName = dependencyStr;
                     else
                         depName = dependencyStr.substring(0, pos);
-                    
+
                     if(name.equals(depName) && !mod.isMarkedForDeletion()) {
                         LOG.warn("Cannot mark module " + name + " for deletion while something depends on it: " + depName);
                         this.markedForDeletion = false;
