@@ -3,6 +3,7 @@ package com.serotonin.web.taglib;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.tagext.TagSupport;
 
+// TODO Mango 3.5 remove - unused
 abstract public class BaseUserTypeTag<T> extends TagSupport {
     private static final long serialVersionUID = 1L;
 
@@ -121,7 +122,7 @@ abstract public class BaseUserTypeTag<T> extends TagSupport {
     /**
      * Check for any intersection of the given arrays. If there is at least one common element, return true otherwise
      * return false.
-     * 
+     *
      * @param arr1
      *            the first array
      * @param arr2
@@ -138,7 +139,7 @@ abstract public class BaseUserTypeTag<T> extends TagSupport {
 
     /**
      * Check if the given item is in the given array.
-     * 
+     *
      * @param arr
      *            the array of strings
      * @param item

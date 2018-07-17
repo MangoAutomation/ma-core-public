@@ -23,8 +23,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -298,7 +296,7 @@ public class MangoSecurityConfiguration {
             .newSession();
 
             http.csrf()
-            .ignoringAntMatchers("/tunnel-proxy/dwr/**")
+            .ignoringAntMatchers("/cloud-connect-proxy/dwr/**")
             .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 
             http.rememberMe().disable()
@@ -319,12 +317,6 @@ public class MangoSecurityConfiguration {
     @Configuration
     @Order(2)
     public class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-        @Bean(name=BeanIds.AUTHENTICATION_MANAGER)
-        @Override
-        public AuthenticationManager authenticationManagerBean() throws Exception {
-            return super.authenticationManagerBean();
-        }
 
         @Override
         public void configure(WebSecurity web) throws Exception {

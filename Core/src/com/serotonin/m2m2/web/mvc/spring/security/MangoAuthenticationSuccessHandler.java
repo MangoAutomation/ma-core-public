@@ -33,14 +33,14 @@ import com.serotonin.m2m2.vo.User;
 public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
     final RequestMatcher browserHtmlRequestMatcher;
     RequestCache requestCache;
-    
+
     @Autowired
     public MangoAuthenticationSuccessHandler(RequestCache requestCache,
             @Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
         this.setRequestCache(requestCache);
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
     }
-    
+
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
         String url = super.determineTargetUrl(request, response);
@@ -60,18 +60,19 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         User user = Common.getHttpUser();
-        
+
         HttpSession session = request.getSession(false);
         if (session != null && user != null) {
-            
+
             // Update the last login time.
             UserDao.instance.recordLogin(user);
-            
+
             // Set the IP Address for the session
             user.setRemoteAddr(request.getRemoteAddr());
-            
+
             // For legacy pages also update the session (NOTE This calls ValueBound in the user which raises the Login event
             // so we MUST have all the information for the event set in the user by this point.
+            // Mango 3.5 move the login event code elsewhere and dont set session attribute
             session.setAttribute(Common.SESSION_USER, user);
         }
 

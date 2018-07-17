@@ -5,7 +5,6 @@
 <%@tag import="com.serotonin.m2m2.module.ModuleRegistry"%>
 <%@tag import="com.serotonin.m2m2.Common"%>
 <%@include file="/WEB-INF/tags/decl.tagf"%>
-<%@ taglib prefix="page" tagdir="/WEB-INF/tags/page" %>
 <%@attribute name="styles" fragment="true" %>
 <%@attribute name="dwr" rtexprvalue="true" %>
 <%@attribute name="js" %>
@@ -14,6 +13,7 @@
 <%@attribute name="showHeader" %>
 <%@attribute name="showToolbar" %>
 
+<c:set var="sessionUser" value="<%= Common.getHttpUser() %>" scope="request" />
 
 <c:set var="theme">claro</c:set>
 <%-- <c:set var="theme">nihilo</c:set> --%>
