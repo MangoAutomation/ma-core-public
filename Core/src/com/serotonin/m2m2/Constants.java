@@ -1,7 +1,6 @@
 package com.serotonin.m2m2;
 
 public interface Constants {
-    String DIR_DATA = "data";
     String DIR_WEB = "web";
     String DIR_MODULES = "modules";
     String DIR_LIB = "lib";

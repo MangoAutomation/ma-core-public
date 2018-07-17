@@ -39,6 +39,9 @@ public class Module {
 
     private static final Log LOG = LogFactory.getLog(Module.class);
 
+    public static final String MODULE_DATA_ENV_PROP = "moduleData.location";
+    public static final String MODULE_DATA_ENV_PROP_DEFAULT = "data";
+
     public static final ExportCodes VERSION_STATE_CODES = new ExportCodes();
     static {
         VERSION_STATE_CODES.addElement(UpgradeVersionState.DEVELOPMENT, "DEVELOPMENT");
@@ -150,7 +153,11 @@ public class Module {
      */
     @Deprecated
     public Path moduleDataPath() {
-        Path dataPath = Paths.get(Common.MA_HOME, Constants.DIR_DATA, name);
+        String location = Common.envProps.getString(MODULE_DATA_ENV_PROP);
+        if (location == null || location.isEmpty()) {
+            location = MODULE_DATA_ENV_PROP_DEFAULT;
+        }
+        Path dataPath = Paths.get(Common.MA_HOME).resolve(location).resolve(name);
 
         try {
             Files.createDirectories(dataPath);
