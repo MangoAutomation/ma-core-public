@@ -295,8 +295,13 @@ public class MangoSecurityConfiguration {
                 http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
-            http.headers().disable();
-            configureHSTS(http);
+            if (sslOn && sslHstsEnabled) {
+                http.headers().defaultsDisabled();
+                configureHSTS(http);
+            } else {
+                http.headers().disable();
+            }
+
             http.cors().disable();
         }
     }
