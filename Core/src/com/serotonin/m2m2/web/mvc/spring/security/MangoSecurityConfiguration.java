@@ -150,11 +150,6 @@ public class MangoSecurityConfiguration {
         return source;
     }
 
-    @Bean
-    public PermissionExceptionFilter permissionExceptionFilter(){
-        return new PermissionExceptionFilter();
-    }
-
     @Primary
     @Bean("restObjectMapper")
     public ObjectMapper objectMapper() {
@@ -286,7 +281,12 @@ public class MangoSecurityConfiguration {
             http.formLogin().disable();
             http.requestCache().disable();
 
-            // exception handling
+            // TODO
+            //http.exceptionHandling()
+            //.authenticationEntryPoint(authenticationEntryPoint)
+            //.accessDeniedHandler(accessDeniedHandler);
+
+            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             // can we enable token and basic auth for this proxy?
             http.httpBasic().disable();
@@ -359,6 +359,8 @@ public class MangoSecurityConfiguration {
             http.exceptionHandling()
             .authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler);
+
+            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             if (basicAuthenticationEnabled) {
                 http.httpBasic()
