@@ -7,13 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -21,7 +18,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -32,14 +28,12 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
@@ -51,6 +45,7 @@ import org.springframework.security.web.header.writers.frameoptions.XFrameOption
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -81,9 +76,6 @@ public class MangoSecurityConfiguration {
     public static final String IS_PROXY_REQUEST_ATTRIBUTE = "MANGO_IS_PROXY_REQUEST";
 
     @Autowired
-    private ConfigurableListableBeanFactory beanFactory;
-
-    @Autowired
     public void configureAuthenticationManager(AuthenticationManagerBuilder auth,
             MangoUserDetailsService userDetails,
             MangoPasswordAuthenticationProvider passwordAuthenticationProvider,
@@ -110,36 +102,6 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(MangoUserDetailsService userDetails) {
-        return userDetails;
-    }
-
-    @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint(MangoAuthenticationEntryPoint authenticationEntryPoint) {
-        return authenticationEntryPoint;
-    }
-
-    @Bean
-    public AuthenticationSuccessHandler mangoAuthenticationSuccessHandler() {
-        return new MangoAuthenticationSuccessHandler(requestCache(), browserHtmlRequestMatcher());
-    }
-
-    @Bean
-    public AuthenticationFailureHandler authenticationFailureHandler(MangoAuthenticationFailureHandler authenticationFailureHandler) {
-        return authenticationFailureHandler;
-    }
-
-    @Bean
-    public LogoutHandler logoutHandler(MangoLogoutHandler logoutHandler) {
-        return logoutHandler;
-    }
-
-    @Bean
-    public LogoutSuccessHandler logoutSuccessHandler(MangoLogoutSuccessHandler logoutSuccessHandler) {
-        return logoutSuccessHandler;
-    }
-
-    @Bean
     public static ContentNegotiationStrategy contentNegotiationStrategy() {
         return new HeaderContentNegotiationStrategy();
     }
@@ -149,16 +111,16 @@ public class MangoSecurityConfiguration {
         return new NullRequestCache();
     }
 
+    @Bean
+    public CookieCsrfTokenRepository cookieCsrfTokenRepository() {
+        return CookieCsrfTokenRepository.withHttpOnlyFalse();
+    }
+
     // used to dectect if we should do redirects on login/authentication failure/logout etc
     // TODO Mango 3.5 remove static, fix UI module
     @Bean(name="browserHtmlRequestMatcher")
     public static RequestMatcher browserHtmlRequestMatcher() {
         return BrowserRequestMatcher.INSTANCE;
-    }
-
-    @Bean
-    public SessionInformationExpiredStrategy sessionInformationExpiredStrategy(@Qualifier("browserHtmlRequestMatcher") RequestMatcher matcher) {
-        return new MangoExpiredSessionStrategy(matcher);
     }
 
     @Bean
@@ -200,11 +162,6 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public SessionRegistry sessionRegistry() {
-        return beanFactory.createBean(MangoSessionRegistry.class);
-    }
-
-    @Bean
     public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
         DefaultHttpFirewall firewall = new DefaultHttpFirewall();
         firewall.setAllowUrlEncodedSlash(true);
@@ -235,7 +192,6 @@ public class MangoSecurityConfiguration {
 
     @Autowired HttpFirewall httpFirewall;
     @Autowired AccessDeniedHandler accessDeniedHandler;
-    @Autowired @Qualifier("restAccessDeniedHandler") AccessDeniedHandler restAccessDeniedHandler;
     @Autowired AuthenticationEntryPoint authenticationEntryPoint;
     @Autowired CorsConfigurationSource corsConfigurationSource;
     @Autowired AuthenticationSuccessHandler authenticationSuccessHandler;
@@ -243,6 +199,8 @@ public class MangoSecurityConfiguration {
     @Autowired LogoutHandler logoutHandler;
     @Autowired LogoutSuccessHandler logoutSuccessHandler;
     @Autowired RequestCache requestCache;
+    @Autowired CookieCsrfTokenRepository cookieCsrfTokenRepository;
+    @Autowired SwitchUserFilter switchUserFilter;
     @Autowired PermissionExceptionFilter permissionExceptionFilter;
     @Autowired SessionRegistry sessionRegistry;
     @Autowired SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
@@ -250,6 +208,24 @@ public class MangoSecurityConfiguration {
     @Autowired @Qualifier("ipRateLimiter") RateLimiter<String> ipRateLimiter;
     @Autowired @Qualifier("userRateLimiter") RateLimiter<Integer> userRateLimiter;
     @Autowired Environment env;
+
+    @Autowired @Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher;
+    @Autowired MangoRequiresCsrfMatcher mangoRequiresCsrfMatcher;
+    @Autowired TokenAuthMatcher tokenAuthMatcher;
+    @Autowired AuthHeaderMatcher authHeaderMatcher;
+
+    RequestMatcher restRequestMatcher = new AntPathRequestMatcher("/rest/**");
+    RequestMatcher notRestRequestMatcher = new NegatedRequestMatcher(restRequestMatcher);
+    RequestMatcher proxiedRestRequestMatcher = new AntPathRequestMatcher("/cloud-connect-proxy/rest/**");
+
+    RequestMatcher legacyUiMatcher = new OrRequestMatcher(
+            new AntPathRequestMatcher("/*.htm"),
+            new AntPathRequestMatcher("/**/*.shtm"),
+            new AntPathRequestMatcher("/swagger/**"));
+    RequestMatcher legacyCspMatcher = new AndRequestMatcher(notRestRequestMatcher, legacyUiMatcher);
+    RequestMatcher standardCspMatcher = new AndRequestMatcher(notRestRequestMatcher, new NegatedRequestMatcher(legacyUiMatcher));
+
+    @Value("${rateLimit.rest.anonymous.honorXForwardedFor:false}") boolean honorXForwardedFor;
 
     @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled;
     @Value("${authentication.basic.enabled:true}") boolean basicAuthenticationEnabled;
@@ -276,12 +252,16 @@ public class MangoSecurityConfiguration {
 
     @Configuration
     @Order(1)
-    public class TunnelProxySecurityConfiguration extends WebSecurityConfigurerAdapter {
+    public class ProxySecurityConfiguration extends WebSecurityConfigurerAdapter {
+
+        @Override
+        public void configure(WebSecurity web) throws Exception {
+            web.httpFirewall(httpFirewall);
+        }
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
             http.requestMatcher(request -> request.getAttribute(IS_PROXY_REQUEST_ATTRIBUTE) != null);
-            http.authorizeRequests().anyRequest().authenticated();
 
             http.sessionManagement()
             // dont actually want an invalid session strategy, just treat them as having no session
@@ -295,28 +275,39 @@ public class MangoSecurityConfiguration {
             .sessionFixation()
             .newSession();
 
+            http.authorizeRequests().anyRequest().authenticated();
+
             http.csrf()
-            .ignoringAntMatchers("/cloud-connect-proxy/dwr/**")
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+            .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
+            .csrfTokenRepository(cookieCsrfTokenRepository);
 
-            http.rememberMe().disable()
-            .logout().disable()
-            .formLogin().disable()
-            .requestCache().disable();
+            http.rememberMe().disable();
+            http.logout().disable();
+            http.formLogin().disable();
+            http.requestCache().disable();
 
+            // exception handling
+
+            // can we enable token and basic auth for this proxy?
             http.httpBasic().disable();
 
+            if (ipRateLimiter != null || userRateLimiter != null) {
+                http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor), ExceptionTranslationFilter.class);
+            }
+
             http.headers().disable();
+            configureHSTS(http);
+            http.cors().disable();
         }
     }
 
     // Configure a separate WebSecurityConfigurerAdapter for REST requests which have an Authorization header.
     // We use a stateless session creation policy and disable CSRF for these requests so that the Authentication is not
-    // persisted in the session inside the SecurityContext. This security configuration allows the JWT token authentication
+    // persisted in the session inside the SecurityContext. This security configuration will be used for JWT token authentication
     // and also basic authentication.
     @Configuration
     @Order(2)
-    public class TokenAuthenticatedRestSecurityConfiguration extends WebSecurityConfigurerAdapter {
+    public class StatelessSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Override
         public void configure(WebSecurity web) throws Exception {
@@ -325,23 +316,20 @@ public class MangoSecurityConfiguration {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
+            http.requestMatcher(authHeaderMatcher);
 
-            http.requestMatcher(new RequestMatcher() {
-                AntPathRequestMatcher pathMatcher = new AntPathRequestMatcher("/rest/**");
-                @Override
-                public boolean matches(HttpServletRequest request) {
-                    String header = request.getHeader("Authorization");
-                    return header != null && pathMatcher.matches(request);
-                }
-            });
+            // problem with using STATELESS CsrfAuthenticationStrategy changes the XSRF-TOKEN on every request
+            // disabled the whole session management filter
+            http.sessionManagement().disable();
+            //.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            //.sessionFixation().none();
 
-            // stops the SessionManagementConfigurer from using a HttpSessionSecurityContextRepository to
-            // store the SecurityContext, instead it creates a NullSecurityContextRepository which does
-            // result in session creation
-            http.sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+            // stops authentication being stored in the session
+            http.securityContext().disable();
+            // .securityContextRepository(new NullSecurityContextRepository())
 
             http.authorizeRequests()
+            .antMatchers(HttpMethod.OPTIONS).permitAll()
             .antMatchers("/rest/*/login/**").denyAll()
             .antMatchers("/rest/*/logout/**").denyAll()
             .antMatchers(HttpMethod.POST, "/rest/*/login/su").denyAll()
@@ -352,15 +340,25 @@ public class MangoSecurityConfiguration {
             .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
-            .antMatchers(HttpMethod.OPTIONS).permitAll()
-            .anyRequest().authenticated();
+            .requestMatchers(restRequestMatcher).authenticated()
+            .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
+            .antMatchers("/modules/**").denyAll()
+            .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
+            .antMatchers("/protected/**").authenticated() // protected folder requires authentication
+            .anyRequest().permitAll(); // default to permit all
 
-            // do not need CSRF protection when we are using a JWT token
-            http.csrf().disable()
-            .rememberMe().disable()
-            .logout().disable()
-            .formLogin().disable()
-            .requestCache().disable();
+            http.csrf()
+            .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
+            .csrfTokenRepository(cookieCsrfTokenRepository);
+
+            http.rememberMe().disable();
+            http.logout().disable();
+            http.formLogin().disable();
+            http.requestCache().disable();
+
+            http.exceptionHandling()
+            .authenticationEntryPoint(authenticationEntryPoint)
+            .accessDeniedHandler(accessDeniedHandler);
 
             if (basicAuthenticationEnabled) {
                 http.httpBasic()
@@ -370,21 +368,17 @@ public class MangoSecurityConfiguration {
                 http.httpBasic().disable();
             }
 
-            http.exceptionHandling()
-            .authenticationEntryPoint(authenticationEntryPoint)
-            .accessDeniedHandler(restAccessDeniedHandler);
-
             if (tokenAuthEnabled) {
                 http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
             }
 
             if (ipRateLimiter != null || userRateLimiter != null) {
-                http.addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
             //Configure the headers
-            configureHeaders(http, true);
-            configureHSTS(http, false);
+            configureHeaders(http);
+            configureHSTS(http);
 
             // Use the MVC Cors Configuration
             if (corsEnabled) {
@@ -395,7 +389,7 @@ public class MangoSecurityConfiguration {
 
     @Configuration
     @Order(3)
-    public class RestSecurityConfiguration extends WebSecurityConfigurerAdapter {
+    public class SessionSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
         @Override
         public void configure(WebSecurity web) throws Exception {
@@ -404,8 +398,6 @@ public class MangoSecurityConfiguration {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.antMatcher("/rest/**");
-
             http.sessionManagement()
             // dont actually want an invalid session strategy, just treat them as having no session
             //.invalidSessionStrategy(invalidSessionStrategy)
@@ -419,6 +411,7 @@ public class MangoSecurityConfiguration {
             .newSession();
 
             http.authorizeRequests()
+            .antMatchers(HttpMethod.OPTIONS).permitAll()
             .antMatchers("/rest/*/login").permitAll()
             .antMatchers("/rest/*/exception/**").permitAll() //For exception info for a user's session...
             .antMatchers(HttpMethod.POST, "/rest/*/login/su").hasRole("ADMIN")
@@ -428,77 +421,23 @@ public class MangoSecurityConfiguration {
             .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
-            .antMatchers(HttpMethod.OPTIONS).permitAll()
-            .anyRequest().authenticated();
+            .requestMatchers(restRequestMatcher).authenticated()
+            .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
+            .antMatchers("/modules/**").denyAll()
+            .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
+            .antMatchers("/protected/**").authenticated() // protected folder requires authentication
+            .anyRequest().permitAll(); // default to permit all
+
+            http.csrf()
+            .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
+            .csrfTokenRepository(cookieCsrfTokenRepository);
+
+            http.rememberMe().disable();
+            http.requestCache().disable();
 
             http.apply(jsonLoginConfigurer)
             .successHandler(authenticationSuccessHandler)
             .failureHandler(authenticationFailureHandler);
-
-            http.logout()
-            .logoutRequestMatcher(new AntPathRequestMatcher("/rest/*/logout", "POST"))
-            .addLogoutHandler(logoutHandler)
-            .invalidateHttpSession(true)
-            // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
-            // but why not for the sake of cleanliness
-            .deleteCookies(Common.getCookieName())
-            .logoutSuccessHandler(logoutSuccessHandler);
-
-            http.csrf()
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-
-            http.rememberMe().disable()
-            .formLogin().disable()
-            .requestCache().disable();
-
-            http.exceptionHandling()
-            .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-            .accessDeniedHandler(restAccessDeniedHandler);
-
-            http.addFilterAfter(switchUserFilter(), FilterSecurityInterceptor.class);
-            http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
-
-            if (ipRateLimiter != null || userRateLimiter != null) {
-                http.addFilterAfter(new RateLimitingFilter(ipRateLimiter, userRateLimiter), ExceptionTranslationFilter.class);
-            }
-
-            //Configure headers
-            configureHeaders(http, true);
-            configureHSTS(http, false);
-
-            // Use the MVC Cors Configuration
-            if (corsEnabled) {
-                http.cors().configurationSource(corsConfigurationSource);
-            }
-        }
-
-        @Bean
-        public SwitchUserFilter switchUserFilter() {
-            SwitchUserFilter filter = new MangoSwitchUserFilter();
-            filter.setUserDetailsService(userDetailsService());
-            filter.setSuccessHandler(authenticationSuccessHandler);
-            filter.setUsernameParameter("username");
-            return filter;
-        }
-    }
-
-    @Configuration
-    @Order(4)
-    public class DefaultSecurityConfiguration extends WebSecurityConfigurerAdapter {
-
-        @Override
-        protected void configure(HttpSecurity http) throws Exception {
-            http.sessionManagement()
-            // dont actually want an invalid session strategy, just treat them as having no session
-            //.invalidSessionStrategy(invalidSessionStrategy)
-            .maximumSessions(maxSessions)
-            .maxSessionsPreventsLogin(false)
-            .sessionRegistry(sessionRegistry)
-            .expiredSessionStrategy(sessionInformationExpiredStrategy)
-            .and()
-            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-            .sessionFixation()
-            .newSession();
 
             http.formLogin()
             // setting this prevents FormLoginConfigurer from adding the login page generating filter
@@ -510,7 +449,7 @@ public class MangoSecurityConfiguration {
             .permitAll();
 
             http.logout()
-            .logoutUrl("/logout")
+            .logoutRequestMatcher(new AntPathRequestMatcher("/rest/*/logout", "POST"))
             .addLogoutHandler(logoutHandler)
             .invalidateHttpSession(true)
             // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
@@ -518,62 +457,37 @@ public class MangoSecurityConfiguration {
             .deleteCookies(Common.getCookieName())
             .logoutSuccessHandler(logoutSuccessHandler);
 
-            http.rememberMe().disable();
-
-            http.authorizeRequests()
-            // dont allow access to any modules folders other than web
-            .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll()
-            .antMatchers("/modules/**").denyAll()
-            // Access to *.shtm files must be authenticated
-            .antMatchers("/**/*.shtm").authenticated()
-            //Access to protected folder
-            .antMatchers("/protected/**").authenticated()
-            // Default to permit all
-            .anyRequest().permitAll();
-
-            http.csrf()
-            // DWR handles its own CRSF protection (It is set to look at the same cookie in Lifecyle)
-            .ignoringAntMatchers("/dwr/**", "/httpds")
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
-
-            http.requestCache().requestCache(requestCache);
-
             http.exceptionHandling()
             .authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler);
 
+            http.addFilterAfter(switchUserFilter, FilterSecurityInterceptor.class);
             http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
-            //Customize the headers here
-            configureHeaders(http, false);
-            configureHSTS(http, true);
-
-
-            if (basicAuthenticationEnabled) {
-                http.httpBasic()
-                .realmName(basicAuthenticationRealm)
-                .authenticationEntryPoint(authenticationEntryPoint);
-            } else {
-                http.httpBasic().disable();
+            if (ipRateLimiter != null || userRateLimiter != null) {
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
-            if (tokenAuthEnabled) {
-                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
+            //Configure headers
+            configureHeaders(http);
+            configureHSTS(http);
+
+            // Use the MVC Cors Configuration
+            if (corsEnabled) {
+                http.cors().configurationSource(corsConfigurationSource);
             }
         }
     }
 
-    private void configureHSTS(HttpSecurity http, boolean requiresSecure) throws Exception {
+    private void configureHSTS(HttpSecurity http) throws Exception {
         HeadersConfigurer<HttpSecurity>.HstsConfig hsts = http.headers().httpStrictTransportSecurity();
 
         // If using SSL then enable the hsts and secure forwarding
         if (sslOn && sslHstsEnabled) {
-            // dont enable "requiresSecure" for REST calls
+            // only enable "requiresSecure" for browser requests (not for XHR/REST requests)
             // this options sets the REQUIRES_SECURE_CHANNEL attribute and causes ChannelProcessingFilter
             // to perform a 302 redirect to https://
-            if (requiresSecure) {
-                http.requiresChannel().anyRequest().requiresSecure();
-            }
+            http.requiresChannel().requestMatchers(browserHtmlRequestMatcher).requiresSecure();
             hsts.maxAgeInSeconds(sslHstsMaxAge).includeSubDomains(sslHstsIncludeSubDomains);
         } else {
             hsts.disable();
@@ -586,7 +500,7 @@ public class MangoSecurityConfiguration {
      * @param http
      * @throws Exception
      */
-    private void configureHeaders(HttpSecurity http, boolean isRest) throws Exception {
+    private void configureHeaders(HttpSecurity http) throws Exception {
         HeadersConfigurer<HttpSecurity> headers = http.headers();
         headers.cacheControl().disable();
 
@@ -602,13 +516,7 @@ public class MangoSecurityConfiguration {
             headers.addHeaderWriter(headerWriter).frameOptions().disable();
         }
 
-        if (!isRest && (cspEnabled || legacyCspEnabled)) {
-            RequestMatcher legacyUiMatcher = new OrRequestMatcher(
-                    new AntPathRequestMatcher("/*.htm"),
-                    new AntPathRequestMatcher("/**/*.shtm"),
-                    new AntPathRequestMatcher("/swagger/**"));
-            RequestMatcher otherMatcher = new NegatedRequestMatcher(legacyUiMatcher);
-
+        if (cspEnabled || legacyCspEnabled) {
             List<String> policies = new ArrayList<>();
             List<String> legacyPolicies = new ArrayList<>();
 
@@ -632,10 +540,10 @@ public class MangoSecurityConfiguration {
             }
 
             if (cspEnabled && !policies.isEmpty()) {
-                headers.addHeaderWriter(new MangoCSPHeaderWriter(cspReportOnly, policies, otherMatcher));
+                headers.addHeaderWriter(new MangoCSPHeaderWriter(cspReportOnly, policies, standardCspMatcher));
             }
             if (legacyCspEnabled && !legacyPolicies.isEmpty()) {
-                headers.addHeaderWriter(new MangoCSPHeaderWriter(legacyCspReportOnly, legacyPolicies, legacyUiMatcher));
+                headers.addHeaderWriter(new MangoCSPHeaderWriter(legacyCspReportOnly, legacyPolicies, legacyCspMatcher));
             }
         }
     }

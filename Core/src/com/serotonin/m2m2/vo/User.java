@@ -100,6 +100,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private final transient ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<>();
     private transient DataPointVO editPoint;
     private transient DataSourceVO<?> editDataSource;
+    // TODO Mango 3.5 remove
     private transient TestingUtility testingUtility;
     private transient PublisherVO<? extends PublishedPointVO> editPublisher;
     private transient ImportTask importTask;
@@ -108,6 +109,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
+    // TODO Mango 3.5 remove
     private transient String remoteAddr; //remote address we are logged in from
 
     private transient boolean admin;
@@ -192,12 +194,14 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     //
     // HttpSessionBindingListener implementation
     //
+    // TODO Mango 3.5 remove
     @Override
     public void valueBound(HttpSessionBindingEvent evt) {
         // User is bound to a session when logged in. Notify the event manager.
         SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, id), Common.timer.currentTimeMillis(), true, new TranslatableMessage("event.login", username, remoteAddr));
     }
 
+    // TODO Mango 3.5 remove
     @Override
     public void valueUnbound(HttpSessionBindingEvent evt) {
         // User is unbound from a session when logged out or the session expires.
@@ -216,6 +220,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     //
     // Testing utility management
+    // TODO Mango 3.5 remove
     public <T extends TestingUtility> T getTestingUtility(Class<T> requiredClass) {
         TestingUtility tu = testingUtility;
 

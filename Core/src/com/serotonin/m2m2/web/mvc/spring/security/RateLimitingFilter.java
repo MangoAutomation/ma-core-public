@@ -12,11 +12,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.eclipse.jetty.http.HttpHeader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.serotonin.m2m2.Common;
@@ -28,17 +30,21 @@ import com.serotonin.m2m2.vo.User;
  */
 public class RateLimitingFilter extends OncePerRequestFilter {
     private final Log log = LogFactory.getLog(RateLimitingFilter.class);
+    private final RequestMatcher requestMatcher;
     private final RateLimiter<String> ipRateLimiter;
     private final RateLimiter<Integer> userRateLimiter;
     private final int multiplier;
+    private final boolean honorXForwardedFor;
 
-    public RateLimitingFilter(RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter) {
-        this(ipRateLimiter, userRateLimiter, 1);
+    public RateLimitingFilter(RequestMatcher requestMatcher, RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter, boolean honorXForwardedFor) {
+        this(requestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor, 1);
     }
 
-    public RateLimitingFilter(RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter, int multiplier) {
+    public RateLimitingFilter(RequestMatcher requestMatcher, RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter, boolean honorXForwardedFor, int multiplier) {
+        this.requestMatcher = requestMatcher;
         this.ipRateLimiter = ipRateLimiter;
         this.userRateLimiter = userRateLimiter;
+        this.honorXForwardedFor = honorXForwardedFor;
         this.multiplier = multiplier;
     }
 
@@ -46,14 +52,33 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        if (!requestMatcher.matches(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         boolean rateExceeded = false;
         long secondsTillRetry = 0;
         boolean anonymous = authentication == null || authentication instanceof AnonymousAuthenticationToken;
 
         if (anonymous && this.ipRateLimiter != null) {
-            // we dont check the X-FORWARDED-FOR header as this can be easily spoofed to bypass the rate limits
             String ip = request.getRemoteAddr();
+
+            // we dont check the X-FORWARDED-FOR header by default as this can be easily spoofed to bypass the rate limits
+            if (honorXForwardedFor) {
+                String value = request.getHeader(HttpHeader.X_FORWARDED_FOR.asString());
+                if (value != null) {
+                    String[] split = value.split("\\s*,\\s*");
+                    if (split.length > 0) {
+                        String lastHop = split[split.length - 1];
+                        if (!lastHop.isEmpty()) {
+                            ip = lastHop;
+                        }
+                    }
+                }
+            }
+
             rateExceeded = this.ipRateLimiter.checkRateExceeded(ip, multiplier);
             secondsTillRetry = this.ipRateLimiter.secondsTillRetry(ip);
 
