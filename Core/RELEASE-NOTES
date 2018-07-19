@@ -1,3 +1,5 @@
+*Version 3.5.0*
+
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
 * Fix DateTimeZone default if user didn't specify one and is in certain locales
