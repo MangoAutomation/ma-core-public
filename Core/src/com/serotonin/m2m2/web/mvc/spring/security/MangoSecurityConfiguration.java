@@ -38,7 +38,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
@@ -49,6 +49,7 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -109,11 +110,6 @@ public class MangoSecurityConfiguration {
     @Bean
     public RequestCache requestCache() {
         return new NullRequestCache();
-    }
-
-    @Bean
-    public CookieCsrfTokenRepository cookieCsrfTokenRepository() {
-        return CookieCsrfTokenRepository.withHttpOnlyFalse();
     }
 
     // used to dectect if we should do redirects on login/authentication failure/logout etc
@@ -194,7 +190,7 @@ public class MangoSecurityConfiguration {
     @Autowired LogoutHandler logoutHandler;
     @Autowired LogoutSuccessHandler logoutSuccessHandler;
     @Autowired RequestCache requestCache;
-    @Autowired CookieCsrfTokenRepository cookieCsrfTokenRepository;
+    @Autowired CsrfTokenRepository csrfTokenRepository;
     @Autowired SwitchUserFilter switchUserFilter;
     @Autowired PermissionExceptionFilter permissionExceptionFilter;
     @Autowired SessionRegistry sessionRegistry;
@@ -274,7 +270,7 @@ public class MangoSecurityConfiguration {
 
             http.csrf()
             .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
-            .csrfTokenRepository(cookieCsrfTokenRepository);
+            .csrfTokenRepository(csrfTokenRepository);
 
             http.rememberMe().disable();
             http.logout().disable();
@@ -324,6 +320,7 @@ public class MangoSecurityConfiguration {
             http.requestMatcher(authHeaderMatcher);
 
             // problem with using STATELESS CsrfAuthenticationStrategy changes the XSRF-TOKEN on every request
+            // as it believes that we are newly authenticated on every request
             // disabled the whole session management filter
             http.sessionManagement().disable();
             //.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -352,9 +349,7 @@ public class MangoSecurityConfiguration {
             .antMatchers("/protected/**").authenticated() // protected folder requires authentication
             .anyRequest().permitAll(); // default to permit all
 
-            http.csrf()
-            .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
-            .csrfTokenRepository(cookieCsrfTokenRepository);
+            http.csrf().disable();
 
             http.rememberMe().disable();
             http.logout().disable();
@@ -437,7 +432,7 @@ public class MangoSecurityConfiguration {
 
             http.csrf()
             .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
-            .csrfTokenRepository(cookieCsrfTokenRepository);
+            .csrfTokenRepository(csrfTokenRepository);
 
             http.rememberMe().disable();
             http.requestCache().disable();

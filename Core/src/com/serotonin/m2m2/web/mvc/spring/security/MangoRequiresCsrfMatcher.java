@@ -8,7 +8,6 @@ import java.util.HashSet;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -30,13 +29,8 @@ public class MangoRequiresCsrfMatcher implements RequestMatcher {
             new AntPathRequestMatcher("/dwr/**"),
             new AntPathRequestMatcher("/cloud-connect-proxy/dwr/**"));
 
-    @Autowired TokenAuthMatcher tokenAuthMatcher;
-
     @Override
     public boolean matches(HttpServletRequest request) {
-        if (tokenAuthMatcher.matches(request)) {
-            return false;
-        }
         if (isAllowedUrl.matches(request)) {
             return false;
         }
