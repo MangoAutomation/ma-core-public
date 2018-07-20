@@ -54,7 +54,9 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
         Map<String, Object> context = new HashMap<String, Object>();
         context.put("pointEventDetector", vo);
         DataPointVO dataPointVo = vo.njbGetDataPoint();
-        dataPointVo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(dataPointVo.getId()));
+        //Load the tags if they have not already been loaded
+        if(dataPointVo.getTags() == null)
+            dataPointVo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(dataPointVo.getId()));
         context.put("point", dataPointVo);
         return context;
     }
