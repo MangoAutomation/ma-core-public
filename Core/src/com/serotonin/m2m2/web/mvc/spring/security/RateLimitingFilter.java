@@ -79,7 +79,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                 }
             }
 
-            rateExceeded = this.ipRateLimiter.checkRateExceeded(ip, multiplier);
+            rateExceeded = this.ipRateLimiter.hit(ip, multiplier);
             secondsTillRetry = this.ipRateLimiter.secondsTillRetry(ip);
 
             if (rateExceeded && log.isDebugEnabled()) {
@@ -87,7 +87,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
             }
         } else if (!anonymous && this.userRateLimiter != null) {
             User user = (User) authentication.getPrincipal();
-            rateExceeded = this.userRateLimiter.checkRateExceeded(user.getId(), multiplier);
+            rateExceeded = this.userRateLimiter.hit(user.getId(), multiplier);
             secondsTillRetry = this.userRateLimiter.secondsTillRetry(user.getId());
 
             if (rateExceeded && log.isDebugEnabled()) {
