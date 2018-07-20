@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -15,6 +16,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -22,22 +24,10 @@ import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
+ * 
  * @author Terry Packer
- * 
- * 
- * Device Name
- * Point Name
- * Point Value
- * Units
- * Rendered Value
- * Current time stamp
- * Status (if it's reliable or not)
- * Point Hierarchy path
- * XID
- *
- *
  */
-public class RealTimeDataPointValue implements JsonSerializable, DataPointListener{
+public class RealTimeDataPointValue implements JsonSerializable, DataPointListener {
 	
 	private final String DISABLED = "DISABLED";
 	private final String OK = "OK";
@@ -58,7 +48,6 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	private String readPermission;
 	private String setPermission;
 	private int dataTypeId;
-	
 	
 	public RealTimeDataPointValue(DataPointSummary summary, List<String> paths){
 		
@@ -175,6 +164,22 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		return setPermission;
 	}
 	
+	/**
+     * @return the tags
+     */
+    public Map<String, String> getTags() {
+        if(rt != null) {
+            Map<String, String> tags = rt.getVO().getTags();
+            if(tags == null) {
+                tags = DataPointTagsDao.instance.getTagsForDataPointId(dataPointId);
+                rt.getVO().setTags(tags);
+            }
+            return tags;
+        }else {
+            return DataPointTagsDao.instance.getTagsForDataPointId(dataPointId);
+        }
+    }
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
 	 */
@@ -200,6 +205,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		writer.writeEntry("xid", this.getXid());
 		writer.writeEntry("readPermission", readPermission);
 		writer.writeEntry("setPermission", setPermission);
+		writer.writeEntry("tags", getTags());
 	}
 
 	/* (non-Javadoc)
@@ -207,7 +213,8 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	 */
 	@Override
 	public void pointInitialized() {
-		this.rt = Common.runtimeManager.getDataPoint(dataPointId); 
+		this.rt = Common.runtimeManager.getDataPoint(dataPointId);
+		
 	}
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointTerminated()
