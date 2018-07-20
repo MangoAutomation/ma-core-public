@@ -16,10 +16,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.SortField;
+import org.jooq.SortOrder;
+import org.jooq.impl.DSL;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
@@ -32,6 +39,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 
@@ -441,5 +449,29 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 		//return ejt.queryForInt("SELECT COUNT(*) FROM events AS evt left join userEvents ue on evt.id=ue.eventId where ue.silenced=? and evt.ackUserId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
 		return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
 	}    
-    
+ 
+	/**
+	 * Get all active events within the period start inclusive end exclusive
+	 * @param start
+	 * @param end
+	 * @param typeNames
+	 * @param referenceId1s
+	 */
+	public ConditionSortLimit activeEventsInPeriod(User user, long from, long to, List<String> typeNames, List<Integer> referenceId1s, List<Integer> referenceId2s, Integer limit, Integer offset) {
+
+	    //TODO admin /userid condition to ue.userId
+	    Field<Object> activeTs = DSL.field(DSL.name(TABLE_PREFIX, "activeTs"));
+	    Field<Object> rtnTs = DSL.field(DSL.name(TABLE_PREFIX, "rtnTs"));
+	    Field<Object> typeName = DSL.field(DSL.name(TABLE_PREFIX, "typeName"));
+	    
+	    //TODO if(typeNames != null) {
+	        Condition typeNameIn = typeName.in(typeNames);
+	    //}
+	    
+	    List<SortField<Object>> sort = new ArrayList<>();
+	    sort.add(activeTs.sort(SortOrder.ASC));
+	    return new ConditionSortLimit(typeNameIn, sort, limit, offset);
+
+	}
+	
 }

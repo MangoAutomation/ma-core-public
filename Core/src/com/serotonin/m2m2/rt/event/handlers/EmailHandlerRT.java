@@ -22,10 +22,10 @@ import java.util.zip.ZipOutputStream;
 import javax.script.CompiledScript;
 import javax.script.ScriptException;
 
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StringEscapeUtils;
 import org.joda.time.DateTime;
 
 import com.infiniteautomation.mango.util.ConfigurationExportData;
@@ -188,7 +188,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
-        sendEmail(evt, notificationType, addresses, vo.getAlias(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), 
+        sendEmail(evt, notificationType, addresses, vo.getName(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), 
         		vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext(), vo.getScript(), 
         		new SetCallback(vo.getScriptPermissions()), vo.getScriptPermissions());
     }

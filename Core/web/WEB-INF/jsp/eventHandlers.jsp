@@ -1098,7 +1098,7 @@
 		        <tbody id="emailContextTable"></tbody>
 		      </table></td>
 		    </tr>
-            <tr><td class="formLabel"><fmt:message key="eventHandlers.customTemplate"/></td>
+            <tr><td class="formLabel"><fmt:message key="eventHandlers.customTemplate"/><tag:help id="emailTemplates"/></td>
               <td class="formField"><textarea id="customTemplate"></textarea></td></tr>
             <tr id="emailScriptRow">
               <td class="formLabel">

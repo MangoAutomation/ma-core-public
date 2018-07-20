@@ -1,5 +1,8 @@
 *Version 3.5.0*
-*Adding lastName to User (Not required)
+* Adding lastName to User (Not required)
+* Adding data point tags to email template model
+* Adding email template help for email event handlers
+* Adding Apache commons-text 1.4 as dependency
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
