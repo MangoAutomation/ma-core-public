@@ -4,6 +4,7 @@
 * Adding email template help for email event handlers
 * Adding Apache commons-text 1.4 as dependency
 * Removing Apache commons-lang dependency in favor of commons-lang3
+* Adding ability to format values as hex using AnalogRenderer See renderer help.
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP

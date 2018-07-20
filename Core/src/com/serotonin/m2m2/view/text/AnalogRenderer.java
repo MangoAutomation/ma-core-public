@@ -13,6 +13,8 @@ import java.util.Locale;
 
 import javax.measure.unit.Unit;
 
+import org.jfree.chart.util.HexNumberFormat;
+
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -103,8 +105,20 @@ public class AnalogRenderer extends ConvertingRenderer {
         String suffix = this.suffix;
         if (useUnitAsSuffix)
             suffix = " " + UnitUtil.formatLocal(renderedUnit);
-        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(locale);
-        String raw = new DecimalFormat(format, symbols).format(value);
+        
+        String raw;
+        if(format != null && (format.startsWith("0x") || (format.startsWith("0X")))){
+            String[] parts = format.toUpperCase().split("0X");
+            int digits = 0;
+            //Count the 0s in the second part
+            for(int i=0; i<parts[1].length(); i++)
+                if(parts[1].charAt(i) == '0')
+                    digits++;
+            raw = new HexNumberFormat(digits).format(value);
+        }else {
+            DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(locale);
+            raw = new DecimalFormat(format, symbols).format(value);
+        }
         if ((hint & HINT_RAW) != 0 || suffix == null)
             return raw;
         return raw + suffix;
@@ -212,6 +226,21 @@ public class AnalogRenderer extends ConvertingRenderer {
 		
 		if((format == null)||(format.equals("")))
 			result.addContextualMessage("format", "validate.required");
+		if(format.startsWith("0x") || format.startsWith("0X")) {
+		    String[] parts = format.toUpperCase().split("0X");
+		    if(parts.length != 2) {
+		        result.addContextualMessage("format", "validate.invalidValue");
+		        return;
+		    }
+		    //Count digits
+		    int digits = 0;
+            //Count the 0s in the second part
+            for(int i=0; i<parts[1].length(); i++)
+                if(parts[1].charAt(i) == '0')
+                    digits++;
+            if(digits < 1)
+                result.addContextualMessage("format", "validate.invalidValue");
+		}
 	}
     
     
