@@ -10,6 +10,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -25,7 +26,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.BearerAuthentic
 /**
  * Attempts authentication based on a bearer Authorization header
  * Based loosely on {@link org.springframework.security.web.authentication.www.BasicAuthenticationFilter}
- * 
+ *
  * @author Jared Wiltshire
  */
 public class BearerAuthenticationFilter extends OncePerRequestFilter {
@@ -40,7 +41,7 @@ public class BearerAuthenticationFilter extends OncePerRequestFilter {
         this.authenticationManager = authenticationManager;
         this.authenticationEntryPoint = authenticationEntryPoint;
     }
-    
+
     @Override
     public void afterPropertiesSet() {
         Assert.notNull(this.authenticationManager,
@@ -49,23 +50,23 @@ public class BearerAuthenticationFilter extends OncePerRequestFilter {
         Assert.notNull(this.authenticationEntryPoint,
                 "An AuthenticationEntryPoint is required");
     }
-    
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        
+
         String tokenString = null;
-        
+
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             tokenString = header.substring(7).trim();
         }
-        
+
         if (tokenString == null || tokenString.isEmpty()) {
             chain.doFilter(request, response);
             return;
         }
-        
+
         try {
             if (authenticationIsRequired()) {
                 BearerAuthenticationToken authRequest = new BearerAuthenticationToken(tokenString);
@@ -75,16 +76,27 @@ public class BearerAuthenticationFilter extends OncePerRequestFilter {
             }
         } catch (AuthenticationException failed) {
             SecurityContextHolder.clearContext();
-            this.authenticationEntryPoint.commence(request, response, failed);
+
+            // we could handle this with the authentication entry point, however this causes anyone using a token
+            // injected via a proxy to be continually be redirected to the login page in an infinite loop
+            // (usually its impossible for a browser request to have a Authentication Bearer header)
+            //this.authenticationEntryPoint.commence(request, response, failed);
+
+            // we could carry on and pretend nothing happened
+            //chain.doFilter(request, response);
+
+            // instead lets just send a HTTP 401
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), failed.getMessage());
+
             return;
         }
 
         chain.doFilter(request, response);
     }
-    
+
     /**
      * Pulled from BasicAuthenticationFilter, checks if the user is already authenticated
-     * 
+     *
      * @param username
      * @return
      */
