@@ -448,30 +448,5 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	public int countUnsilencedEvents(int userId, int level) {
 		//return ejt.queryForInt("SELECT COUNT(*) FROM events AS evt left join userEvents ue on evt.id=ue.eventId where ue.silenced=? and evt.ackUserId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
 		return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
-	}    
- 
-	/**
-	 * Get all active events within the period start inclusive end exclusive
-	 * @param start
-	 * @param end
-	 * @param typeNames
-	 * @param referenceId1s
-	 */
-	public ConditionSortLimit activeEventsInPeriod(User user, long from, long to, List<String> typeNames, List<Integer> referenceId1s, List<Integer> referenceId2s, Integer limit, Integer offset) {
-
-	    //TODO admin /userid condition to ue.userId
-	    Field<Object> activeTs = DSL.field(DSL.name(TABLE_PREFIX, "activeTs"));
-	    Field<Object> rtnTs = DSL.field(DSL.name(TABLE_PREFIX, "rtnTs"));
-	    Field<Object> typeName = DSL.field(DSL.name(TABLE_PREFIX, "typeName"));
-	    
-	    //TODO if(typeNames != null) {
-	        Condition typeNameIn = typeName.in(typeNames);
-	    //}
-	    
-	    List<SortField<Object>> sort = new ArrayList<>();
-	    sort.add(activeTs.sort(SortOrder.ASC));
-	    return new ConditionSortLimit(typeNameIn, sort, limit, offset);
-
-	}
-	
+	}    	
 }
