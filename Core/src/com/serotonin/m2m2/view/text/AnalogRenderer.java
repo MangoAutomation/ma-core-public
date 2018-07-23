@@ -7,13 +7,15 @@ package com.serotonin.m2m2.view.text;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 import javax.measure.unit.Unit;
 
-import org.jfree.chart.util.HexNumberFormat;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.buf.HexUtils;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -114,7 +116,7 @@ public class AnalogRenderer extends ConvertingRenderer {
             for(int i=0; i<parts[1].length(); i++)
                 if(parts[1].charAt(i) == '0')
                     digits++;
-            raw = new HexNumberFormat(digits).format(value);
+            raw = String.format("0x%0" + digits + "x", (long)value);
         }else {
             DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(locale);
             raw = new DecimalFormat(format, symbols).format(value);
@@ -129,6 +131,19 @@ public class AnalogRenderer extends ConvertingRenderer {
         return null;
     }
 
+    //
+    // Parse
+    @Override
+    public DataValue parseText(String s, int dataType) {
+        if(StringUtils.isEmpty(s))
+            return new NumericValue(0);
+        else if(s.startsWith("0x") || s.startsWith("0X")) {
+            byte[] values = HexUtils.fromHexString(s.substring(2));
+            return new NumericValue(new BigInteger(1, values).longValue());
+        }else
+            return DataValue.stringToValue(s, dataType);
+    }
+    
     public String getFormat() {
         return format;
     }
@@ -242,7 +257,4 @@ public class AnalogRenderer extends ConvertingRenderer {
                 result.addContextualMessage("format", "validate.invalidValue");
 		}
 	}
-    
-    
-    
 }
