@@ -122,7 +122,7 @@ public class UserDao extends AbstractDao<User> {
 
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
             + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, name, locale, tokenVersion, passwordVersion, lastName) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
         int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
