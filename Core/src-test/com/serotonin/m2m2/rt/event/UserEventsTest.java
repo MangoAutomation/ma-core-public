@@ -4,10 +4,12 @@
 package com.serotonin.m2m2.rt.event;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.junit.Test;
 
@@ -59,18 +61,26 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.RAISED, eventCount, 5000);
+        waitForAllEvents(listeners, EventAction.RAISED, eventCount, 10000);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were raised
             assertEquals(eventCount, l.getRaised().size());
             
-            //Ensure the order is correct
-            for(int i=0; i<eventCount; i++) {
-                MockEventTypeTime m = raised.get(i);
-                EventInstance e = l.getRaised().get(i);
-                m.assertEqual((MockEventType)e.getEventType(), e.getActiveTimestamp());
+            //Ensure all were returned and not duplicated
+            for(MockEventTypeTime m : raised) {
+                ListIterator<EventInstance> it  = l.getRaised().listIterator();
+                while(it.hasNext()) {
+                    EventInstance e = it.next();
+                    if(m.time == e.getActiveTimestamp())
+                        it.remove();
+                        
+                }
             }
+        }
+        
+        for(MockUserEventListener l : listeners) {
+            assertTrue(l.raised.size() == 0);
         }
         
         //Acknowledge
@@ -84,18 +94,26 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.ACKNOWLEDGED, eventCount, 5000);
+        waitForAllEvents(listeners, EventAction.ACKNOWLEDGED, eventCount, 10000);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were acked
             assertEquals(eventCount, l.getAcknowledged().size());
             
-            //Ensure the order is correct
-            for(int i=0; i<eventCount; i++) {
-                MockEventTypeTime m = acknowledged.get(i);
-                EventInstance e = l.getAcknowledged().get(i);
-                m.assertEqual((MockEventType)e.getEventType(), e.getAcknowledgedTimestamp());
+            //Ensure all were acked and not duplicated
+            for(MockEventTypeTime m : acknowledged) {
+                ListIterator<EventInstance> it  = l.getAcknowledged().listIterator();
+                while(it.hasNext()) {
+                    EventInstance e = it.next();
+                    if(m.time == e.getAcknowledgedTimestamp())
+                        it.remove();
+                        
+                }
             }
+        }
+
+        for(MockUserEventListener l : listeners) {
+            assertTrue(l.acknowledged.size() == 0);
         }
         
         //Return to normal
@@ -108,18 +126,26 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.RETURNED, eventCount, 5000);
+        waitForAllEvents(listeners, EventAction.RETURNED, eventCount, 10000);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were raised
             assertEquals(eventCount, l.getReturned().size());
             
-            //Ensure the order is correct
-            for(int i=0; i<eventCount; i++) {
-                MockEventTypeTime m = returned.get(i);
-                EventInstance e = l.getReturned().get(i);
-                m.assertEqual((MockEventType)e.getEventType(), e.getRtnTimestamp());
+            //Ensure all were returned and not duplicated
+            for(MockEventTypeTime m : returned) {
+                ListIterator<EventInstance> it  = l.getReturned().listIterator();
+                while(it.hasNext()) {
+                    EventInstance e = it.next();
+                    if(m.time == e.getRtnTimestamp())
+                        it.remove();
+                        
+                }
             }
+        }
+        
+        for(MockUserEventListener l : listeners) {
+            assertTrue(l.returned.size() == 0);
         }
         
     }
@@ -153,25 +179,33 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.RAISED, eventCount, 5000);
+        waitForAllEvents(listeners, EventAction.RAISED, eventCount, 10000);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were raised
             assertEquals(eventCount, l.getRaised().size());
             
-            //Ensure the order is correct
-            for(int i=0; i<eventCount; i++) {
-                MockEventTypeTime m = raised.get(i);
-                EventInstance e = l.getRaised().get(i);
-                m.assertEqual((MockEventType)e.getEventType(), e.getActiveTimestamp());
+            //Ensure all were returned and not duplicated
+            for(MockEventTypeTime m : raised) {
+                ListIterator<EventInstance> it  = l.getRaised().listIterator();
+                while(it.hasNext()) {
+                    EventInstance e = it.next();
+                    if(m.time == e.getActiveTimestamp())
+                        it.remove();
+                        
+                }
             }
+        }
+        
+        for(MockUserEventListener l : listeners) {
+            assertTrue(l.raised.size() == 0);
         }
         
         //Deactivate
         long deactivatedTime = this.timer.currentTimeMillis();
         Common.eventManager.cancelEventsForDataPoint(dataPointId);
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.DEACTIVATED, eventCount, 5000);
+        waitForAllEvents(listeners, EventAction.DEACTIVATED, eventCount, 10000);
         
         
         for(MockUserEventListener l : listeners) {
@@ -224,7 +258,7 @@ public class UserEventsTest extends MangoTestBase {
                 try {Thread.sleep(10);} catch (InterruptedException e) {e.printStackTrace();}
             waited+=10;
             if(waited > timeout)
-                fail("Failed to raise " + eventCount +" events");
+                fail("Failed to raise " + eventCount +" events for " + listeners.size() + " users.");
         }
         
     }
@@ -264,12 +298,6 @@ public class UserEventsTest extends MangoTestBase {
         public MockEventTypeTime(MockEventType type, long time) {
             this.type = type;
             this.time = time;
-        }
-
-        public void assertEqual(MockEventType type, long time) {
-            assertEquals(this.time, time);
-            if(!this.type.equals(type))
-                fail("Event types don't match");
         }
     }
     
