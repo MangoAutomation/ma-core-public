@@ -69,6 +69,7 @@ import com.serotonin.m2m2.module.definitions.permissions.PurgeWithPurgeSettingsA
 import com.serotonin.m2m2.module.definitions.permissions.SqlBackupActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.query.DataPointEventsByDataPointRQLQueryDefinition;
 import com.serotonin.m2m2.module.definitions.query.DataPointEventsByTagQueryDefinition;
@@ -1062,7 +1063,7 @@ public class ModuleRegistry {
         preDefaults.add(new PublicFileStoreWritePermissionDefinition());
         preDefaults.add(new DocsFileStoreReadPermissionDefinition());
         preDefaults.add(new DocsFileStoreWritePermissionDefinition());
-        
+        preDefaults.add(new UserFileStoreCreatePermissionDefinition());
         
         /* Read Only Settings */
         preDefaults.add(new TimezoneInfoDefinition());
