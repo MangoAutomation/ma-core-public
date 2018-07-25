@@ -6,37 +6,27 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * @author Matthew Lohbihler
  */
 public class IntegerMonitor extends ValueMonitor<Integer> {
-    protected volatile int value;
 
+    /**
+     * Create monitor with initial value of 0
+     * @param id
+     * @param name
+     * @param owner
+     */
     public IntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
-        this(id, name, owner, 0);
+        super(id, name, owner, 0);
     }
 
-    public IntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, int initialValue) {
-        super(id, name, owner);
-        value = initialValue;
+    public IntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, Integer initialValue) {
+        super(id, name, owner, initialValue);
     }
 
-    @Override
-    public Integer getValue() {
-        return value;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
-    }
-
-    public void addValue(int value) {
+    public void addValue(Integer value) {
         this.value += value;
     }
 
-    public void setValueIfGreater(int value) {
+    public void setValueIfGreater(Integer value) {
         if (this.value < value)
             this.value = value;
-    }
-
-    @Override
-    public int intValue() {
-        return value;
     }
 }

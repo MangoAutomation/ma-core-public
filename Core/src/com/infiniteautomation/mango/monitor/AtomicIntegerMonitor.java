@@ -12,22 +12,20 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * Threadsafe Integer Monitor
  * @author Terry Packer
  */
-public class AtomicIntegerMonitor extends ValueMonitor<Integer> {
+public class AtomicIntegerMonitor extends ValueMonitor<AtomicInteger> {
 
-	private final AtomicInteger value;
-	
+    /**
+     * Create monitor with initial value of 0
+     * @param id
+     * @param name
+     * @param owner
+     */
 	public AtomicIntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
-        this(id, name, owner, 0);
+        super(id, name, owner, new AtomicInteger(0));
     }
 
-    public AtomicIntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, int initialValue) {
-        super(id, name, owner);
-        value = new AtomicInteger(initialValue);
-    }
-
-    @Override
-    public Integer getValue() {
-        return value.get();
+    public AtomicIntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, AtomicInteger initialValue) {
+        super(id, name, owner, initialValue);
     }
 
     public void setValue(int value) {
@@ -48,10 +46,5 @@ public class AtomicIntegerMonitor extends ValueMonitor<Integer> {
     
     public void decrement(){
     	this.value.decrementAndGet();
-    }
-    
-    @Override
-    public int intValue() {
-        return value.get();
     }
 }

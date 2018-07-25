@@ -6,24 +6,19 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * @author Matthew Lohbihler
  */
 public class DoubleMonitor extends ValueMonitor<Double> {
-    private volatile double value;
 
+    /**
+     * Create monitor with initial value of 0.0
+     * @param id
+     * @param name
+     * @param owner
+     */
     public DoubleMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
-        this(id, name, owner, 0);
+        super(id, name, owner, 0D);
     }
 
-    public DoubleMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, double initialValue) {
-        super(id, name, owner);
-        value = initialValue;
-    }
-
-    @Override
-    public Double getValue() {
-        return value;
-    }
-
-    public void setValue(double value) {
-        this.value = value;
+    public DoubleMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, Double initialValue) {
+        super(id, name, owner, initialValue);
     }
 
     public void addValue(double value) {
@@ -33,10 +28,5 @@ public class DoubleMonitor extends ValueMonitor<Double> {
     public void setValueIfGreater(double value) {
         if (this.value < value)
             this.value = value;
-    }
-
-    @Override
-    public double doubleValue() {
-        return value;
     }
 }

@@ -180,7 +180,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         Runtime rt = Runtime.getRuntime();
         javaMaxMemory.setValue((int)(rt.maxMemory()/mb));
         javaUsedMemory.setValue((int)(rt.totalMemory()/mb) -(int)(rt.freeMemory()/mb));
-        javaFreeMemory.setValue(javaMaxMemory.intValue() - javaUsedMemory.intValue());
+        javaFreeMemory.setValue(javaMaxMemory.getValue() - javaUsedMemory.getValue());
 
         //Uptime in HRS
         long uptimeMs = fireTime - Common.START_TIME;
