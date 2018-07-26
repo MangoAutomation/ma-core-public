@@ -50,14 +50,14 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     final Log log = LogFactory.getLog(BackgroundProcessingImpl.class);
     
     //Private access to our timer
-    private AbstractTimer timer;
-    private OrderedThreadPoolExecutor highPriorityService;
-    private TaskRejectionHandler highPriorityRejectionHandler;
-    private TaskRejectionHandler mediumPriorityRejectionHandler;
-    private OrderedThreadPoolExecutor mediumPriorityService;
-    private ThreadPoolExecutor lowPriorityService;
+    protected AbstractTimer timer;
+    protected OrderedThreadPoolExecutor highPriorityService;
+    protected TaskRejectionHandler highPriorityRejectionHandler;
+    protected TaskRejectionHandler mediumPriorityRejectionHandler;
+    protected OrderedThreadPoolExecutor mediumPriorityService;
+    protected ThreadPoolExecutor lowPriorityService;
     
-    private int state = PRE_INITIALIZE;
+    protected int state = PRE_INITIALIZE;
 
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#execute(com.serotonin.m2m2.util.timeout.HighPriorityTask)
@@ -423,47 +423,47 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         // Set the started indicator to true.
         state = INITIALIZE;
         
-    	    try {
-    	        this.timer = Providers.get(TimerProvider.class).getTimer();
-    	        this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-    	        this.highPriorityRejectionHandler = new TaskRejectionHandler();
-    	        this.mediumPriorityRejectionHandler = new TaskRejectionHandler();
+	    try {
+	        this.timer = Providers.get(TimerProvider.class).getTimer();
+	        this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
+	        this.highPriorityRejectionHandler = new TaskRejectionHandler();
+	        this.mediumPriorityRejectionHandler = new TaskRejectionHandler();
         }
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
         }
         this.highPriorityService.setRejectedExecutionHandler(this.highPriorityRejectionHandler);
+    
+    	//Adjust the high priority pool sizes now
+    	int corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+    	int maxPoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
+    	this.highPriorityService.setCorePoolSize(corePoolSize);
+    	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
+    	
+    	//TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
+    	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
+    	
+    	//Pull our settings from the System Settings
+    	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+    	
+    	//Sanity check to ensure the pool sizes are appropriate
+    	if(corePoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
+    		corePoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
+    	mediumPriorityService = new OrderedThreadPoolExecutor(
+    	       		corePoolSize,
+    	       		corePoolSize,
+    	      		60L,
+    	      		TimeUnit.SECONDS,
+    	            new LinkedBlockingQueue<Runnable>(),
+    	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+    	      		mediumPriorityRejectionHandler,
+    	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
+    	      		Common.timer.getTimeSource());
         
-        	//Adjust the high priority pool sizes now
-        	int corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-        	int maxPoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
-        	this.highPriorityService.setCorePoolSize(corePoolSize);
-        	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
-        	
-        	//TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
-        	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
-        	
-        	//Pull our settings from the System Settings
-        	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
-        	
-        	//Sanity check to ensure the pool sizes are appropriate
-        	if(corePoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
-        		corePoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
-        	mediumPriorityService = new OrderedThreadPoolExecutor(
-        	       		corePoolSize,
-        	       		corePoolSize,
-        	      		60L,
-        	      		TimeUnit.SECONDS,
-        	            new LinkedBlockingQueue<Runnable>(),
-        	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
-        	      		mediumPriorityRejectionHandler,
-        	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
-        	      		Common.timer.getTimeSource());
-            
-        	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
-        	//Sanity check to ensure the pool sizes are appropriate
-        	if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
-        	    corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
+    	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
+    	//Sanity check to ensure the pool sizes are appropriate
+    	if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
+    	    corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
         lowPriorityService = new ThreadPoolExecutor(corePoolSize, corePoolSize, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY));
         this.state = RUNNING;
@@ -609,7 +609,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      * @author Terry Packer
      *
      */
-    class RejectableWorkItemRunnable extends Task{
+    public class RejectableWorkItemRunnable extends Task{
 
     	final WorkItem item;
     	final TaskRejectionHandler rejectionHandler;
@@ -663,7 +663,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      * @author Terry Packer
      *
      */
-    class WorkItemRunnable implements Runnable{
+    public class WorkItemRunnable implements Runnable{
     	
     	public WorkItemRunnable(WorkItem item){
     		this.item = item;
