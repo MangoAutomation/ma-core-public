@@ -2,9 +2,9 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.rt;
+package com.serotonin.m2m2.rt.event;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,9 +20,6 @@ import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.EventInstance;
-import com.serotonin.m2m2.rt.event.UserEventCache;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 
@@ -36,7 +33,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 public class UserEventCacheTest extends MangoTestBase{
 	
 	//Settings
-	static final int EVENT_COUNT = 10000;
+	static final int EVENT_COUNT = 100000;
 	static final int USER_COUNT = 10;
 	
 	
@@ -58,12 +55,14 @@ public class UserEventCacheTest extends MangoTestBase{
 	 * and occasionally purging them while several other threads read their user's events out.
 	 */
     @Test(timeout = 30000)
-	public void benchmark(){
+	public void benchmark() throws InterruptedException {
 		
-		this.cache = new UserEventCache(15 * 60000,  60000);
+        int timeToLive = 100;
+        int cleanerPeriod = 500;
+		this.cache = new UserEventCache(timeToLive,  cleanerPeriod);
 
 		//Setup EventThread
-		EventGeneratorThread egt = new EventGeneratorThread(this);
+		EventGeneratorThread egt = new EventGeneratorThread(this, EVENT_COUNT);
 		
 		//Setup User Threads
 		List<UserThread> userThreads = new ArrayList<UserThread>();
@@ -80,25 +79,32 @@ public class UserEventCacheTest extends MangoTestBase{
 		//Start Event Thread
 		egt.start();
 		
-		try {
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            fail(e.getMessage());
-        }
+		Thread.sleep(50);
 		
 		while(runningThreads.intValue() > 0){
 		    this.timer.fastForwardTo(this.timer.currentTimeMillis() + 1);
 		}
 		timer.stop("");
+		
+		//Wait for cleaner to run and then ensure all entries are removed
+		Thread.sleep(cleanerPeriod + timeToLive + 5);
+		
+		//should be totally empty
+		for(int i=0; i<USER_COUNT; i++){
+		    assertNull(this.cache.getCache().get(i));
+		}
+		
 	}
 	
 	class EventGeneratorThread extends Thread{
 		
 		private UserEventCacheTest parent;
+		private int eventCount;
 		
-		public EventGeneratorThread(UserEventCacheTest parent){
+		public EventGeneratorThread(UserEventCacheTest parent, int eventCount){
 			super("Event Generator");
 			this.parent = parent;
+			this.eventCount = eventCount;
 		}
 		
 		/* (non-Javadoc)
@@ -114,7 +120,7 @@ public class UserEventCacheTest extends MangoTestBase{
 			
             List<EventInstance> allEvents = new ArrayList<EventInstance>();
 			//Raise Events
-			for(int i=0; i<EVENT_COUNT; i++){
+			for(int i=0; i<eventCount; i++){
 				EventInstance e = new EventInstance(
 						eventType,
 						Common.timer.currentTimeMillis(), 

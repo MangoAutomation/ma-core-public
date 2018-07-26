@@ -5,11 +5,9 @@
 package com.serotonin.m2m2.rt.event;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -60,7 +58,6 @@ public class UserEventCache extends TimeoutClient{
         this.timerTask = new TimeoutTask(new FixedRateTrigger(500, timeInterval), this);
         this.running = true;
     }
-    
     
     /**
      * Add event for a user
@@ -115,63 +112,46 @@ public class UserEventCache extends TimeoutClient{
      * @param time
      */
     public void purgeEventsBefore(long time){
-        Iterator<Integer> it = cacheMap.keySet().iterator();
-        while (it.hasNext()) {
-            cacheMap.get(it.next()).purgeBefore(time);
-        }
+        cacheMap.forEach((k,v) ->{
+            v.purgeBefore(time);
+        });
     }
     
     public void purgeEventsBefore(long time, int alarmLevel){
-        Iterator<Integer> it = cacheMap.keySet().iterator();
-        while (it.hasNext()) {
-            cacheMap.get(it.next()).purgeBefore(time, alarmLevel);
-        }
+        cacheMap.forEach((k,v) ->{
+            v.purgeBefore(time, alarmLevel);
+        });
     }
     
     public void purgeEventsBefore(long time, String typeName){
-		Iterator<Integer> it = cacheMap.keySet().iterator();
-		while(it.hasNext()){
-			cacheMap.get(it.next()).purgeBefore(time, typeName);
-		}
+        cacheMap.forEach((k,v) ->{
+            v.purgeBefore(time, typeName);
+        });
     }
     
 	/**
 	 * Clear Events for all users
 	 */
 	public void purgeAllEvents() {
-		Iterator<Integer> it = cacheMap.keySet().iterator();
-		while(it.hasNext()){
-			cacheMap.get(it.next()).purge();
-		}
+        cacheMap.forEach((k,v) ->{
+            v.purge();
+        });
 	}
     
     // CLEANUP method
     public void cleanup() {
         if (!running)
             return;
-
         long now = Common.timer.currentTimeMillis();
-        ArrayList<Integer> deleteKey = null;
-
-
-        Iterator<Entry<Integer, UserEventCacheEntry>> itr = cacheMap.entrySet().iterator();
-
-        deleteKey = new ArrayList<Integer>((cacheMap.size() / 2) + 1);
-        Entry<Integer, UserEventCacheEntry> entry = null;
-        UserEventCacheEntry cacheEntry = null;
-        while (itr.hasNext()) {
-            entry = itr.next();
-            cacheEntry = entry.getValue();
-            if (cacheEntry != null && (now > (timeToLive + cacheEntry.lastAccessed))) {
-                deleteKey.add(entry.getKey());
-            }
-        }
-
-        for (Integer key : deleteKey) {
-            cacheMap.remove(key);
-        }
+        cacheMap.values().removeIf(v -> {
+            return now > (timeToLive + v.lastAccessed);
+        });
+        
     }
-
+    
+    protected Map<Integer, UserEventCacheEntry> getCache() {
+        return cacheMap;
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#scheduleTimeout(long)
