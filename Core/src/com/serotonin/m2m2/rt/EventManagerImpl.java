@@ -1051,6 +1051,8 @@ public class EventManagerImpl implements EventManager {
 				type = "deactivated";
 			else if(returnToNormal)
 				type = "return to normal";
+			else if(acknowledged)
+			    type = "acknowleged";
 			return "Event " + type + " Notification for event: " + event.getId();
 		}
 		
@@ -1059,7 +1061,16 @@ public class EventManagerImpl implements EventManager {
 		 */
 		@Override
 		public String getTaskId() {
-			return prefix + "-"  + event.getId();
+            if(raised)
+                return prefix + "-"  + event.getId() + "_RAISE";
+            else if(returnToNormal)
+                return prefix + "-"  + event.getId() +  "_RTN";
+            else if(deactivated)
+                return prefix + "-"  + event.getId() + "_DEACTIVATED";
+            else if(acknowledged)
+                return prefix + "-"  + event.getId() + "_ACK";
+            else
+                return prefix + "-"  + event.getId() + "_UNK";
 		}
 		
 		/* (non-Javadoc)

@@ -31,13 +31,14 @@ import com.serotonin.m2m2.vo.User;
  * @author Terry Packer
  */
 public class UserEventsTest extends MangoTestBase {
+    
+    private final int eventInsertTimeoutMs = 5000;
+    private final int dataPointId = 17;
+    private final int userCount = 5;
+    private final int eventCount = 1000;
 
     @Test
     public void testRaiseEvents() throws InterruptedException {
-        
-        int dataPointId = 17;
-        int userCount = 2;
-        int eventCount = 100;
         
         //Create some users
         List<User> users = createUsers(userCount, SuperadminPermissionDefinition.GROUP_NAME);
@@ -61,7 +62,7 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.RAISED, eventCount, 10000);
+        waitForAllEvents(listeners, EventAction.RAISED, eventCount, eventInsertTimeoutMs);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were raised
@@ -94,7 +95,7 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.ACKNOWLEDGED, eventCount, 10000);
+        waitForAllEvents(listeners, EventAction.ACKNOWLEDGED, eventCount, eventInsertTimeoutMs);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were acked
@@ -126,7 +127,7 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.RETURNED, eventCount, 10000);
+        waitForAllEvents(listeners, EventAction.RETURNED, eventCount, eventInsertTimeoutMs);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were raised
@@ -153,10 +154,6 @@ public class UserEventsTest extends MangoTestBase {
     @Test
     public void testDeactivateEvents() throws InterruptedException {
         
-        int dataPointId = 17;
-        int userCount = 2;
-        int eventCount = 100;
-        
         //Create some users
         List<User> users = createUsers(userCount, SuperadminPermissionDefinition.GROUP_NAME);
         
@@ -179,7 +176,7 @@ public class UserEventsTest extends MangoTestBase {
         }
         
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.RAISED, eventCount, 10000);
+        waitForAllEvents(listeners, EventAction.RAISED, eventCount, eventInsertTimeoutMs);
         
         for(MockUserEventListener l : listeners) {
             //Check to ensure the events were raised
@@ -205,7 +202,7 @@ public class UserEventsTest extends MangoTestBase {
         long deactivatedTime = this.timer.currentTimeMillis();
         Common.eventManager.cancelEventsForDataPoint(dataPointId);
         timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-        waitForAllEvents(listeners, EventAction.DEACTIVATED, eventCount, 10000);
+        waitForAllEvents(listeners, EventAction.DEACTIVATED, eventCount, eventInsertTimeoutMs);
         
         
         for(MockUserEventListener l : listeners) {
@@ -254,11 +251,35 @@ public class UserEventsTest extends MangoTestBase {
             }
             if(finished == listeners.size())
                 break;
-            else
+            else 
                 try {Thread.sleep(10);} catch (InterruptedException e) {e.printStackTrace();}
             waited+=10;
-            if(waited > timeout)
-                fail("Failed to raise " + eventCount +" events for " + listeners.size() + " users.");
+            if(waited > timeout) {
+                StringBuilder b = new StringBuilder();
+                for(MockUserEventListener l : listeners) {
+                    switch(action) {
+                        case ACKNOWLEDGED:
+                            if(l.getAcknowledged().size() != eventCount)
+                                b.append("Failed to ack all events for " + l.getUser().getUsername() + ", " + l.getAcknowledged().size() + " out of " + eventCount + "ack'd\n");
+                            break;
+                        case DEACTIVATED:
+                            if(l.getDeactivated().size() != eventCount)
+                                b.append("Failed to deactivate all events for " + l.getUser().getUsername() + ", " + l.getDeactivated().size() + " out of " + eventCount + "deactivated\n");
+                            break;
+                        case RAISED:
+                            if(l.getRaised().size() != eventCount)
+                                b.append("Failed to raise all events for " + l.getUser().getUsername() + ", " + l.getRaised().size() + " out of " + eventCount + "raised\n");
+                            break;
+                        case RETURNED:
+                            if(l.getReturned().size() != eventCount)
+                                b.append("Failed to rtn all events for " + l.getUser().getUsername() + ", " + l.getReturned().size() + " out of " + eventCount + " rtn'd\n");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                fail(b.toString());
+            }
         }
         
     }
@@ -301,79 +322,7 @@ public class UserEventsTest extends MangoTestBase {
         }
     }
     
-    class MockUserEventListener implements UserEventListener {
-
-        protected User user;
-        protected List<EventInstance> raised = new ArrayList<>();
-        protected List<EventInstance> returned = new ArrayList<>();
-        protected List<EventInstance> deactivated = new ArrayList<>();
-        protected List<EventInstance> acknowledged = new ArrayList<>();
-        
-        public MockUserEventListener(User user) {
-            this.user = user;
-        }
-        
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.event.UserEventListener#getUserId()
-         */
-        @Override
-        public int getUserId() {
-            return user.getId();
-        }
-
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.event.UserEventListener#raised(com.serotonin.m2m2.rt.event.EventInstance)
-         */
-        @Override
-        public void raised(EventInstance evt) {
-            this.raised.add(evt);
-        }
-
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.event.UserEventListener#returnToNormal(com.serotonin.m2m2.rt.event.EventInstance)
-         */
-        @Override
-        public void returnToNormal(EventInstance evt) {
-            this.returned.add(evt);
-        }
-
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.event.UserEventListener#deactivated(com.serotonin.m2m2.rt.event.EventInstance)
-         */
-        @Override
-        public void deactivated(EventInstance evt) {
-            this.deactivated.add(evt);
-        }
-
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.event.UserEventListener#acknowledged(com.serotonin.m2m2.rt.event.EventInstance)
-         */
-        @Override
-        public void acknowledged(EventInstance evt) {
-            this.acknowledged.add(evt);
-        }
-
-        public User getUser() {
-            return user;
-        }
-
-        public List<EventInstance> getRaised() {
-            return raised;
-        }
-
-        public List<EventInstance> getReturned() {
-            return returned;
-        }
-
-        public List<EventInstance> getDeactivated() {
-            return deactivated;
-        }
-
-        public List<EventInstance> getAcknowledged() {
-            return acknowledged;
-        }
-        
-    }
+    
     
     class EventManagerMockMangoLifecycle extends MockMangoLifecycle {
 
