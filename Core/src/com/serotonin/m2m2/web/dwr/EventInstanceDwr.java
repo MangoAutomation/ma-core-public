@@ -10,7 +10,6 @@ import java.util.Map;
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DojoQueryCallback;
-import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.ResultSetCounter;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
@@ -178,7 +177,6 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         
         final User user = Common.getHttpUser();
         if (user != null) {        
-        	final EventDao eventDao = EventDao.instance;
         	final ResultSetCounter counter = new ResultSetCounter();
         	QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
             DojoQueryCallback<EventInstanceVO> callback = new DojoQueryCallback<EventInstanceVO>(false) {
@@ -187,7 +185,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
                 public void row(EventInstanceVO vo, int rowIndex) {
             		if(!vo.isSilenced()){
             			//If not silenced then do it.
-	            		eventDao.toggleSilence(vo.getId(), user.getId());
+	            		Common.eventManager.toggleSilence(vo.getId(), user.getId());
 	            		counter.increment();
             		}
             		

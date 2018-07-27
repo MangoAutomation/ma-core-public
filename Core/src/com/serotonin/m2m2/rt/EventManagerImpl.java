@@ -149,6 +149,7 @@ public class EventManagerImpl implements EventManager {
 		Set<String> emailUsers = new HashSet<String>();
 
 		List<Integer> userIdsToNotify = new ArrayList<Integer>();
+		Set<Integer> userIdsForCache = new HashSet<Integer>();
 		for (User user : userDao.getActiveUsers()) {
 			// Do not create an event for this user if the event type says the
 			// user should be skipped.
@@ -167,12 +168,15 @@ public class EventManagerImpl implements EventManager {
 							userIdsToNotify.add(user.getId());
 						}
 					}
-					//Add to the UserEventCache if the user has recently accessed their events
-					this.userEventCache.addEvent(user.getId(), evt);
+					userIdsForCache.add(user.getId());
 				}
-
 			}
 		}
+		
+        //Add to the UserEventCache if the user has recently accessed their events
+        if(userIdsForCache.size() > 0)
+            this.userEventCache.addEvent(userIdsForCache, evt);
+
 		
 		if(userEventMulticaster != null)
 		    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, true, false, false, false));
@@ -299,6 +303,7 @@ public class EventManagerImpl implements EventManager {
             evt.returnToNormal(time, cause);
             
             List<Integer> userIdsToNotify = new ArrayList<Integer>();
+            Set<Integer> userIdsForCache = new HashSet<Integer>();
 			for (User user : activeUsers) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
@@ -314,13 +319,15 @@ public class EventManagerImpl implements EventManager {
 		
 							}
 						}
-						//Only alarms make it into the cache
-						this.userEventCache.updateEvent(user.getId(), evt);
+						userIdsForCache.add(user.getId());
 					}
 				}
 				
 			}
-			
+			//Only alarms make it into the cache
+			if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
+			    this.userEventCache.updateEvent(userIdsForCache, evt);
+
 			if(userEventMulticaster != null)
 			    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, true, false, false));
 			
@@ -340,7 +347,7 @@ public class EventManagerImpl implements EventManager {
 	}
 
 	/**
-	 * Deactivate a group of simmilar events, these events should have been removed from the active events list already.
+	 * Deactivate a group of similar events, these events should have been removed from the active events list already.
 	 * 
 	 * @param evts
 	 * @param time
@@ -357,6 +364,7 @@ public class EventManagerImpl implements EventManager {
 			evt.returnToNormal(time, inactiveCause);
 			
 			List<Integer> userIdsToNotify = new ArrayList<Integer>();
+			Set<Integer> userIdsForCache = new HashSet<Integer>();
 			for (User user : activeUsers) {
 				// Do not create an event for this user if the event type says the
 				// user should be skipped.
@@ -370,9 +378,13 @@ public class EventManagerImpl implements EventManager {
 							userIdsToNotify.add(user.getId());
 						}
 					}
-				
+                    userIdsForCache.add(user.getId());
 				}
 			}
+			//Only alarms make it into the cache
+	        if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
+	            this.userEventCache.updateEvent(userIdsForCache, evt);
+	         
 			if(userEventMulticaster != null)
 			    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, false, true, false));
 			
@@ -427,9 +439,11 @@ public class EventManagerImpl implements EventManager {
 						userIdsToNotify.add(user.getId());
 					}
 				}
-				this.userEventCache.removeEvent(user.getId(), evt);
 			}
 		}
+		//Remove the event totally
+        this.userEventCache.removeEvent(evt);
+        
 		if(userEventMulticaster != null)
 		    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, false, false, true));
 		return true;
@@ -473,6 +487,24 @@ public class EventManagerImpl implements EventManager {
         }
         
         return dbEvent;
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.EventManager#toggleSilence(int, int)
+     */
+    @Override
+    public boolean toggleSilence(int eventId, int userId) {
+        EventInstance cachedEvent = getById(eventId);
+        if (cachedEvent != null) {
+            cachedEvent.setSilenced(EventDao.instance.toggleSilence(eventId, userId));
+            Set<Integer> userIds = new HashSet<>(1);
+            userIds.add(userId);
+            this.userEventCache.updateEvent(userIds, cachedEvent);
+            return cachedEvent.isSilenced();
+        }else {
+           return EventDao.instance.toggleSilence(eventId, userId);
+        }
     }
 
 	public long getLastAlarmTimestamp() {
