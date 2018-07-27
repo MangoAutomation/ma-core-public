@@ -413,6 +413,7 @@ allDataPoints = new StoreView({
             if (!title)
                 title = mangoTranslate('table.missingKey',"table."+button);
             
+            var action;
             if (button === 'toggle') {
                 if (object.enabled) {
                     button = 'toggleOn';
@@ -420,13 +421,14 @@ allDataPoints = new StoreView({
                 else {
                     button = 'toggleOff';
                 }
-            }
+                action = this.varName + '.' + this.fnMap[button] + '(' + id + ', this.src.indexOf("_go") == -1);';
+            } else
+            	action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
             
             var src = this.imgMap[button];
             if (src.substring(0,1) !== '/')
                 src = '/images/' + src + '.png';
             
-            var action = this.varName + '.' + this.fnMap[button] + '(' + id + ', this.src.indexOf("_go") == -1);';
             if(button === 'pointDetails'){
             	var over = this.varName + ".showPointValue(event," + id + ")";
             	var out = this.varName + ".hidePointValue(" + id + ")";
