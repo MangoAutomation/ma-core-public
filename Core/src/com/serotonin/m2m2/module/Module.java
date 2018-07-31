@@ -137,21 +137,17 @@ public class Module {
     }
 
     /**
-     * Do not use in modules until Mango 3.5, new API.
-     * TODO Mango 3.5 remove @Deprecated
+     * TODO Mango 3.5 Do not use in modules until Mango 3.5, new API.
      * @return
      */
-    @Deprecated
     public Path modulePath() {
         return Paths.get(Common.MA_HOME, Constants.DIR_WEB, Constants.DIR_MODULES, name);
     }
 
     /**
-     * Do not use in modules until Mango 3.5, new API.
-     * TODO Mango 3.5 remove @Deprecated
+     * TODO Mango 3.5 Do not use in modules until Mango 3.5, new API.
      * @return
      */
-    @Deprecated
     public Path moduleDataPath() {
         String location = Common.envProps.getString(MODULE_DATA_ENV_PROP);
         if (location == null || location.isEmpty()) {
