@@ -16,25 +16,20 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  * @see SetPointSource
  * @author Matthew Lohbihler
  */
-public class AnnotatedPointValueTime extends PointValueTime {
+public class AnnotatedPointValueTime extends PointValueTime implements IAnnotated {
     private static final long serialVersionUID = -1;
-
     private final TranslatableMessage sourceMessage;
 
     public AnnotatedPointValueTime(DataValue value, long time, TranslatableMessage sourceMessage) {
         super(value, time);
         this.sourceMessage = sourceMessage;
     }
-
+    
     @Override
-    public boolean isAnnotated() {
-        return sourceMessage != null;
-    }
-
     public TranslatableMessage getSourceMessage() {
         return sourceMessage;
     }
-
+    @Override
     public String getAnnotation(Translations translations) {
         return sourceMessage.translate(translations);
     }

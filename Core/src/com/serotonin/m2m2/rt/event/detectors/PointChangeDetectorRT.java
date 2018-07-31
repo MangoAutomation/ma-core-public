@@ -5,7 +5,7 @@
 package com.serotonin.m2m2.rt.event.detectors;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IAnnotated;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -46,9 +46,9 @@ public class PointChangeDetectorRT extends PointEventDetectorRT<PointChangeDetec
 
     @Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        if (newValue.isAnnotated()) {
-            annotation = ((AnnotatedPointValueTime) newValue).getSourceMessage();
-        }
+        if (newValue instanceof IAnnotated)
+            annotation = ((IAnnotated)newValue).getSourceMessage();
+
         this.oldValue = PointValueTime.getValue(oldValue);
         this.newValue = newValue.getValue();
         raiseEvent(newValue.getTime(), createEventContext());

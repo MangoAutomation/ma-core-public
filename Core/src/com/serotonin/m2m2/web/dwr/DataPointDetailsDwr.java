@@ -19,10 +19,8 @@ import org.joda.time.DateTimeZone;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
-import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
-import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IAnnotated;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
@@ -44,7 +42,7 @@ public class DataPointDetailsDwr extends DataPointDwr {
     public static PointDetailsState getPointData() {
         // Get the point from the user's session. It should have been set by the controller.
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
-        User user = Common.getUser(request);
+        User user = Common.getHttpUser();
         DataPointVO pointVO = user.getEditPoint();
 
         // Create the watch list state.
@@ -69,26 +67,17 @@ public class DataPointDetailsDwr extends DataPointDwr {
 
     @DwrPermission(user = true)
     public ProcessResult getHistoryTableData(int limit, boolean useCache) {
-        DataPointVO pointVO = Common.getUser().getEditPoint();
+        DataPointVO pointVO = Common.getHttpUser().getEditPoint();
         PointValueFacade facade = new PointValueFacade(pointVO.getId(), useCache);
 
         List<PointValueTime> rawData = facade.getLatestPointValues(limit);
         List<RenderedPointValueTime> renderedData = new ArrayList<RenderedPointValueTime>(rawData.size());
-        boolean idPvt = false;
-        if(rawData.size() > 0)
-            idPvt = (rawData.get(0) instanceof IdPointValueTime);
         for (PointValueTime pvt : rawData) {
             RenderedPointValueTime rpvt = new RenderedPointValueTime();
             rpvt.setValue(Functions.getHtmlText(pointVO, pvt));
             rpvt.setTime(Functions.getTime(pvt));
-            if (pvt.isAnnotated()) {
-                if(!idPvt) {
-                    AnnotatedPointValueTime apvt = (AnnotatedPointValueTime) pvt;
-                    rpvt.setAnnotation(apvt.getAnnotation(getTranslations()));
-                } else {
-                    AnnotatedIdPointValueTime apvt = (AnnotatedIdPointValueTime) pvt;
-                    rpvt.setAnnotation(apvt.getAnnotation(getTranslations()));
-                }
+            if (pvt instanceof IAnnotated) {
+                rpvt.setAnnotation(((IAnnotated)pvt).getAnnotation(getTranslations()));
             }
             renderedData.add(rpvt);
         }
@@ -103,7 +92,7 @@ public class DataPointDetailsDwr extends DataPointDwr {
     public ProcessResult getImageChartData(int fromYear, int fromMonth, int fromDay, int fromHour, int fromMinute,
             int fromSecond, boolean fromNone, int toYear, int toMonth, int toDay, int toHour, int toMinute,
             int toSecond, boolean toNone, int width, int height, boolean useCache) {
-        DateTimeZone dtz = Common.getUser().getDateTimeZoneInstance();
+        DateTimeZone dtz = Common.getHttpUser().getDateTimeZoneInstance();
         DateTime from = createDateTime(fromYear, fromMonth, fromDay, fromHour, fromMinute, fromSecond, fromNone, dtz);
         DateTime to = createDateTime(toYear, toMonth, toDay, toHour, toMinute, toSecond, toNone, dtz);
 
@@ -133,7 +122,7 @@ public class DataPointDetailsDwr extends DataPointDwr {
     @DwrPermission(user = true)
     public void getChartData(int fromYear, int fromMonth, int fromDay, int fromHour, int fromMinute, int fromSecond,
             boolean fromNone, int toYear, int toMonth, int toDay, int toHour, int toMinute, int toSecond, boolean toNone) {
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         DateTimeZone dtz = user.getDateTimeZoneInstance();
         DateTime from = createDateTime(fromYear, fromMonth, fromDay, fromHour, fromMinute, fromSecond, fromNone, dtz);
         DateTime to = createDateTime(toYear, toMonth, toDay, toHour, toMinute, toSecond, toNone, dtz);
@@ -146,7 +135,7 @@ public class DataPointDetailsDwr extends DataPointDwr {
     @DwrPermission(user = true)
     public ProcessResult getStatsChartData(int periodType, int period, boolean includeSum) {
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
-        DataPointVO pointVO = Common.getUser(request).getEditPoint();
+        DataPointVO pointVO = Common.getHttpUser().getEditPoint();
 
         Map<String, Object> model = new HashMap<String, Object>();
         model.put("point", pointVO);
@@ -160,13 +149,12 @@ public class DataPointDetailsDwr extends DataPointDwr {
     }
 
     private DataPointVO getDataPointVO() {
-        return Common.getUser().getEditPoint();
+        return Common.getHttpUser().getEditPoint();
     }
 
     @DwrPermission(user = true)
     public ProcessResult getFlipbookData(int limit) {
-        HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
-        DataPointVO vo = Common.getUser(request).getEditPoint();
+        DataPointVO vo = Common.getHttpUser().getEditPoint();
         PointValueFacade facade = new PointValueFacade(vo.getId());
 
         List<PointValueTime> values = facade.getLatestPointValues(limit);
