@@ -26,7 +26,7 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
     public String getValue() {
         DataValue value = getValueImpl();
         if (value == null)
-            return "";
+            return null;
         return value.getStringValue();
     }
 

@@ -180,7 +180,7 @@
       </td>
       <td align="right" id="dataSourceTypesContent" style="display:none">
         <select id="dataSourceTypes"></select>
-        <tag:img png="icon_ds_add" title="common.add" onclick="addDataSource()"/>
+        <div tabindex="0"><tag:img png="icon_ds_add" title="common.add" onclick="addDataSource()"/></div>
       </td>
     </tr>
 

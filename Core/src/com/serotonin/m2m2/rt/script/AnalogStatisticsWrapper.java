@@ -17,7 +17,7 @@ import com.infiniteautomation.mango.statistics.AnalogStatistics;
  */
 public class AnalogStatisticsWrapper {
 
-    private AnalogStatistics statistics;
+    private final AnalogStatistics statistics;
 
     public AnalogStatisticsWrapper(AnalogStatistics statistics) {
         this.statistics = statistics;
@@ -32,85 +32,52 @@ public class AnalogStatisticsWrapper {
         return statistics.getPeriodEndTime();
     }
 
-    public double getMinimumValue() {
-        if (statistics.getMinimumValue() == null)
-            return 0;
-        else
-            return (double) statistics.getMinimumValue();
+    public Double getMinimumValue() {
+        return statistics.getMinimumValue();
     }
 
-    public long getMinimumTime() {
-        if (statistics.getMinimumTime() == null)
-            return -1;
-        else
-            return (long) statistics.getMinimumTime();
+    public Long getMinimumTime() {
+        return statistics.getMinimumTime();
     }
 
-    public double getMaximumValue() {
-        if (statistics.getMaximumValue() == null)
-            return 0;
-        else
-            return (double) statistics.getMaximumValue();
+    public Double getMaximumValue() {
+        return statistics.getMaximumValue();
     }
 
-    public long getMaximumTime() {
-        if (statistics.getMaximumTime() == null)
-            return -1;
-        else
-            return (long) statistics.getMaximumTime();
+    public Long getMaximumTime() {
+        return statistics.getMaximumTime();
     }
 
-    public double getAverage() {
-        if (statistics.getAverage() == null)
-            return 0;
-        else
-            return (double) statistics.getAverage();
+    public Double getAverage() {
+        return statistics.getAverage();
     }
 
-    public double getIntegral() {
-        if (statistics.getIntegral() == null)
-            return 0;
-        else
-            return (double) statistics.getIntegral();
+    public Double getIntegral() {
+        return statistics.getIntegral();
     }
 
     public double getSum() {
         return statistics.getSum();
     }
 
-    public double getStartValue() {
-        if (statistics.getStartValue() == null)
-            return 0;
-        else
-            return (double) statistics.getStartValue();
+    public Double getStartValue() {
+        return statistics.getStartValue();
     }
 
-    public double getFirstValue() {
-        if (statistics.getFirstValue() == null)
-            return 0;
-        else
-            return (double) statistics.getFirstValue();
+    public Double getFirstValue() {
+        return statistics.getFirstValue();
     }
 
-    public long getFirstTime() {
-        if (statistics.getFirstTime() == null)
-            return -1;
-        else
-            return (long) statistics.getFirstTime();
+    public Long getFirstTime() {
+        return statistics.getFirstTime();
     }
 
-    public double getLastValue() {
-        if (statistics.getLastValue() == null)
-            return 0;
-        else
-            return (double) statistics.getLastValue();
+    public Double getLastValue() {
+        return statistics.getLastValue();
     }
 
-    public long getLastTime() {
-        if (statistics.getLastTime() == null)
-            return -1;
-        else
-            return (long) statistics.getLastTime();
+    public Long getLastTime() {
+        return statistics.getLastTime();
     }
 
     public int getCount() {

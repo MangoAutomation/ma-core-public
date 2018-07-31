@@ -19,22 +19,22 @@ public class MultistatePointWrapper extends DistinctPointWrapper {
         super(point, engine, setter);
     }
 
-    public int getValue() {
+    public Integer getValue() {
         DataValue value = getValueImpl();
         if (value == null)
-            return 0;
+            return null;
         return value.getIntegerValue();
     }
 
-    public int ago(int periodType) {
+    public Integer ago(int periodType) {
         return ago(periodType, 1);
     }
 
-    public int ago(int periodType, int count) {
+    public Integer ago(int periodType, int count) {
         long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
         PointValueTime pvt = point.getPointValueBefore(from);
         if (pvt == null)
-            return 0;
+            return null;
         return pvt.getIntegerValue();
     }
     

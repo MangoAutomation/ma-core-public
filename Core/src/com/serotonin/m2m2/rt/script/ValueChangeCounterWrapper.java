@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.script;
 
 import com.infiniteautomation.mango.statistics.ValueChangeCounter;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
  * @author Terry Packer
@@ -22,57 +23,60 @@ public class ValueChangeCounterWrapper {
 	}
 
     public long getPeriodStartTime() {
-        return this.statistics.getPeriodStartTime();
+        return statistics.getPeriodStartTime();
     }
 
     public long getPeriodEndTime() {
-        return this.statistics.getPeriodEndTime();
+        return statistics.getPeriodEndTime();
 
+    }
+    
+    public String  getStartValue() {
+        DataValue value = statistics.getStartValue(); 
+        if(value == null)
+            return null;
+        else
+            return value.getStringValue();
     }
 
     public String getFirstValue() {
-    	if(statistics.getFirstValue() == null)
+        DataValue value = statistics.getFirstValue(); 
+    	if(value == null)
     		return null;
     	else
-    		return this.statistics.getFirstValue().getStringValue();
+    		return value.getStringValue();
     }
 
-    public long getFirstTime() {
-    	if(this.statistics.getFirstTime() == null)
-    		return -1;
-    	else
-    		return (long)this.statistics.getFirstTime();
+    public Long getFirstTime() {
+    	return statistics.getFirstTime();
     }
 
     public String getLastValue() {
     	if(statistics.getLastValue() == null)
     		return null;
     	else
-    		return this.statistics.getLastValue().getStringValue();
+    		return statistics.getLastValue().getStringValue();
     }
 
-    public long getLastTime() {
-    	if(this.statistics.getLastTime() == null)
-    		return -1;
-    	else
-    		return (long)this.statistics.getLastTime();
+    public Long getLastTime() {
+    	return statistics.getLastTime();
     }
 
     public int getCount() {
-        return this.statistics.getCount();
+        return statistics.getCount();
     }
 
     public int getChanges() {
-    	return this.statistics.getChanges();
+    	return statistics.getChanges();
     }
 
     public String getHelp() {
-        return this.statistics.getHelp();
+        return statistics.getHelp();
     }
 
     @Override
     public String toString() {
-    	return this.statistics.toString();
+    	return statistics.toString();
     }
 	
 	

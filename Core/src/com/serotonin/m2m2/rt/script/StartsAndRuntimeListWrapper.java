@@ -42,22 +42,16 @@ public abstract class StartsAndRuntimeListWrapper {
         return this.statistics.getFirstValue();
     }
 
-    public long getFirstTime() {
-    	if(this.statistics.getFirstTime() == null)
-    		return -1;
-    	else
-    		return (long)this.statistics.getFirstTime();
+    public Long getFirstTime() {
+    	return this.statistics.getFirstTime();
     }
 
     protected DataValue getLastDataValue() {
         return this.statistics.getLastValue();
     }
 
-    public long getLastTime() {
-    	if(this.statistics.getLastTime() == null)
-    		return -1;
-    	else
-    		return (long)this.statistics.getLastTime();
+    public Long getLastTime() {
+    	return this.statistics.getLastTime();
     }
 
     public Map<Object, StartsAndRuntime> getStartsAndRuntime() {

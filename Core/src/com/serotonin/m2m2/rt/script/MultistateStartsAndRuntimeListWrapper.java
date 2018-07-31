@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.script;
 
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
  * @author Terry Packer
@@ -18,17 +19,26 @@ public class MultistateStartsAndRuntimeListWrapper extends StartsAndRuntimeListW
 	public MultistateStartsAndRuntimeListWrapper(StartsAndRuntimeList statistics) {
 		super(statistics);
 	}
-
-    public int getFirstValue() {
-    	if(statistics.getFirstValue() == null)
-    		return 0;
-    	else
-    		return statistics.getFirstValue().getIntegerValue();
+	
+	public Integer getStartValue() {
+	    DataValue value = getStartDataValue();
+        if(value == null)
+            return null;
+        else
+            return value.getIntegerValue();
     }
-    public int getLastValue() {
-    	if(statistics.getLastValue() == null)
-    		return 0;
+    public Integer getFirstValue() {
+        DataValue value = getFirstDataValue(); 
+    	if(value == null)
+    		return null;
     	else
-    		return statistics.getLastValue().getIntegerValue();
+    		return value.getIntegerValue();
+    }
+    public Integer getLastValue() {
+        DataValue value = getStartDataValue();
+        if(value == null)
+            return null;
+        else
+            return value.getIntegerValue();
     }
 }
