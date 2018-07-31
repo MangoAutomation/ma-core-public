@@ -8,9 +8,7 @@ package com.serotonin.m2m2.rt.script;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 
 /**
- * Wrapper to allow use of Java Primitives from Statistics in JavaScript. This is Required for the
- * Nashorn Javascript Engine because it doesn't automatically convert java.lang.xxx to Javascript
- * Number
+ * Wrapper to supply getHelp method and make the statistics read-only from the script
  * 
  * @author Terry Packer
  *
