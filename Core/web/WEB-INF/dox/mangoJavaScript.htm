@@ -104,8 +104,6 @@ The following fields can be useful for conversions:</p>
     var end = new Date();
     var start = new Date(end.getTime() - 1000 * 60 * 20); //20 min before now
     var stats = p1.getStats(start.getTime(), end.getTime());</pre>
-<p><b>Note 2:</b> Statistics are returned as Javascript Objects so Mathematical operations must use the .doubleValue() method.  For example: </p>
-<pre>p1.past(HOUR).minimumValue.doubleValue() + p2.past(HOUR).maximumValue.doubleValue()</pre>
 
 <p>
   The <b>AnalogStatistics</b> object is returned by Numeric points. It contains the following properties:
@@ -188,7 +186,7 @@ Each ValueChangeCounter has the following properties:
   <li><b>changes</b>: (integer) number of values not equal to the preceding value</li>
 </ul>
 
-<p>
+<p><b>Note 2: </b>
   startValue, firstValue, firstTime, lastValue, and lastTime can readily be null if there is no value before or especially in the period.
   Null values are cast by the JavaScript engine when used, typically to false or 0. When cast to a string, it will be "null" . Other statistics
   may have NaN, 0, or null values when there is no data in the period.
