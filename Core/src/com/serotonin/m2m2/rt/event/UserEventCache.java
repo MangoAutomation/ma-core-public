@@ -165,7 +165,8 @@ public class UserEventCache extends TimeoutClient{
     }
 
     /**
-     * Get all events if no events exist in cache then an entry is created.
+     * Get all events for a user, if no events exist in cache then an entry is created 
+     * and filled with all unsilenced events from the database.
      * @param userId
      * @return
      */
@@ -212,6 +213,50 @@ public class UserEventCache extends TimeoutClient{
             this.activeUsers.compute(userId, (k,v) -> Common.timer.currentTimeMillis());
             return view;
         }
+    }
+    
+    /**
+     * Add a user to a cached event (when user un-silences an event)
+     * @param userId
+     * @param eventId
+     */
+    public void addUser(Integer userId, int eventId) {
+        MultiUserEvent event = findEvent(eventId);
+        if(event != null)
+            event.users.add(userId);
+    }
+    
+    /**
+     * Remove a user from a cached event (when user silences an event)
+     * @param userId
+     * @param eventId
+     */
+    public void removeUser(Integer userId, int eventId) {
+        MultiUserEvent event = findEvent(eventId);
+        if(event != null)
+            event.users.remove(userId);
+    }
+    
+    /**
+     * Find an event with this id in our cache
+     * @param eventId
+     * @return
+     */
+    protected MultiUserEvent findEvent(int eventId) {
+        MultiUserEvent event = null;
+        //Find the event (There should only be one
+        for(List<MultiUserEvent> events : cache.values()){
+            for(MultiUserEvent e : events) {
+                if(e.event.getId() == eventId) {
+                    event = e;
+                    break;
+                }
+            }
+            if(event != null)
+                break;
+        }
+        
+        return event;
     }
     
     public Map<Long, List<MultiUserEvent>> getCache(){

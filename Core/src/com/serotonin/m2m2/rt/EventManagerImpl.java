@@ -496,15 +496,32 @@ public class EventManagerImpl implements EventManager {
     @Override
     public boolean toggleSilence(int eventId, int userId) {
         EventInstance cachedEvent = getById(eventId);
+        boolean silenced = EventDao.instance.toggleSilence(eventId, userId);
         if (cachedEvent != null) {
-            cachedEvent.setSilenced(EventDao.instance.toggleSilence(eventId, userId));
-            Set<Integer> userIds = new HashSet<>(1);
-            userIds.add(userId);
-            this.userEventCache.updateEvent(userIds, cachedEvent);
-            return cachedEvent.isSilenced();
+            cachedEvent.setSilenced(silenced);
+            //The cache holds un-silenced events
+            if(silenced) {
+                this.userEventCache.removeUser(userId, eventId);
+            }else {
+                Set<Integer> userIds = new HashSet<>(1);
+                userIds.add(userId);
+                this.userEventCache.addEvent(userIds, cachedEvent);
+            }
         }else {
-           return EventDao.instance.toggleSilence(eventId, userId);
+            //The cache holds un-silenced events
+            if(silenced) {
+                this.userEventCache.removeUser(userId, eventId);
+            }else {
+                EventInstance dbEvent = EventDao.instance.get(eventId);
+                if(dbEvent != null) {
+                    Set<Integer> userIds = new HashSet<>(1);
+                    userIds.add(userId);
+                    this.userEventCache.addEvent(userIds, dbEvent);
+                }
+            }
         }
+
+        return silenced;
     }
 
 	public long getLastAlarmTimestamp() {
