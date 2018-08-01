@@ -62,8 +62,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     public final static String SHA1_ALGORITHM = "SHA-1";
 
     @JsonProperty
-    private String lastName;
-    @JsonProperty
     private String username;
     /**
      * This field actually stores a password hash with the hashing algorithm prefixed.
@@ -466,14 +464,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         this._dtz.reset();
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
     public TimeZone getTimeZoneInstance() {
         return this._tz.get(() -> {
             TimeZone tz = null;
@@ -566,8 +556,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     @Override
     public void validate(ProcessResult response) {
         
-        if (StringValidation.isLengthGreaterThan(lastName, 255))
-            response.addMessage("lastName", new TranslatableMessage("validate.notLongerThan", 255));
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         if (StringUtils.isBlank(email))

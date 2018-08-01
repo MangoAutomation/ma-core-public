@@ -42,7 +42,6 @@ CREATE TABLE users (
   muted character(1),
   permissions varchar(255),
   name varchar(255),
-  lastName varchar(255),
   locale varchar(50),
   tokenVersion integer NOT NULL,
   passwordVersion integer NOT NULL,
