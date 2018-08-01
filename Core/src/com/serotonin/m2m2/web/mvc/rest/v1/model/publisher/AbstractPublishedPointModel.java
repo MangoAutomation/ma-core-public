@@ -39,17 +39,16 @@ public abstract class AbstractPublishedPointModel<T extends PublishedPointVO> ex
 	@CSVColumnSetter(order=0, header="modelType")
 	public void setModelType(String typeName){ }
 	
-	//using name 'dataPointId' despite it being XID to be consistent with PublisherPointVO export
-	@CSVColumnGetter(order=1, header="dataPointId")
-	public String getDataPointId(){
+	@CSVColumnGetter(order=1, header="dataPointXid")
+	public String getDataPointXid(){
 		return DataPointDao.instance.getXidById(this.data.getDataPointId());
 	}
-	@CSVColumnSetter(order=1, header="dataPointId")
-	public void setDataPointId(String dataPointId){
-	    Integer dpid = DataPointDao.instance.getIdByXid(dataPointId);
+	@CSVColumnSetter(order=1, header="dataPointXid")
+	public void setDataPointXid(String dataPointXid){
+	    Integer dpid = DataPointDao.instance.getIdByXid(dataPointXid);
 	    if(dpid == null) { //also the case if dataPointId is null
 	        this.data.setDataPointId(Common.NEW_ID);
-	        missingXid = dataPointId;
+	        missingXid = dataPointXid;
 	    } else
 	        this.data.setDataPointId(dpid.intValue());
 	}
