@@ -502,5 +502,11 @@
 			<version>3.5.0-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
+        <dependency>
+            <groupId>com.infiniteautomation.mango</groupId>
+            <artifactId>cloudConnect</artifactId>
+            <version>3.5.0-SNAPSHOT</version>
+            <type>zip</type>
+        </dependency>
 	</dependencies>
 </project>
