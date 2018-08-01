@@ -1125,7 +1125,7 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             DataValue value = createDataValue(rs, 2);
             long time = rs.getLong(6);
             TranslatableMessage sourceMessage = BaseDao.readTranslatableMessage(rs, 7);
-                if (sourceMessage == null)
+                if (sourceMessage != null)
                     return new AnnotatedIdPointValueTime(dataPointId, value, time, sourceMessage);
                 else
                     return new IdPointValueTime(dataPointId, value, time);
