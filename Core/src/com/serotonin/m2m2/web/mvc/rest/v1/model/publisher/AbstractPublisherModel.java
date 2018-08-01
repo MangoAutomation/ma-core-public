@@ -28,6 +28,9 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractActionVoModel;
  */
 public class AbstractPublisherModel<T extends PublisherVO<P>, P extends PublishedPointVO> extends AbstractActionVoModel<T> {
 
+    @JsonIgnore
+    private List<? extends AbstractPublishedPointModel<P>> modelPoints;
+    
 	/**
 	 * @param data
 	 */
@@ -98,6 +101,11 @@ public class AbstractPublisherModel<T extends PublisherVO<P>, P extends Publishe
 		for(AbstractPublishedPointModel<P> model : points)
 			publishedPoints.add(model.getData());
 		this.data.setPoints(publishedPoints);
+		modelPoints = points;
+	}
+	
+	public List<? extends AbstractPublishedPointModel<P>> getIncomingModelPoints() {
+	    return modelPoints;
 	}
 	
 	public String getPublishType(){

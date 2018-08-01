@@ -14,6 +14,7 @@
 * Give "add data source" button a tabindex, click it on enter or spacebar when selected
 * Fix for ValueChangeCounter discrete statistic to not assume a value at exactly the period start as a change within the period
 * Fix for Mango JavaScript statistics to handle edge case where a value existing at the from time may have been missed
+* Use XIDs in publisher REST endpoints for points lists
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
