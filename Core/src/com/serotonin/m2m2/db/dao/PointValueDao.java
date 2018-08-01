@@ -182,8 +182,8 @@ public interface PointValueDao {
      *   callback.preQuery with either the value exactly at from or the value
      *    before from with from as the timestamp (can be null if nothing at or before from)
      *   
-     *   callback.postQuery with either the value exactly at to or the value
-     *    before to with to as the timestamp (can be null if nothing at or before to) 
+     *   callback.postQuery with either the value the value most recently
+     *    before 'to' with 'to' as the timestamp (can be null if nothing before to) 
      * 
      * NOTE: The beforeQuery and afterQuery methods are called once for every data point ID 
      *      
