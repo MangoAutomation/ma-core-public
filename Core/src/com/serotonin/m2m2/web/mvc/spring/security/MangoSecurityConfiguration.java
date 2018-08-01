@@ -49,7 +49,6 @@ import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
@@ -266,7 +265,7 @@ public class MangoSecurityConfiguration {
             .sessionFixation()
             .newSession();
 
-            http.authorizeRequests().anyRequest().authenticated();
+            http.authorizeRequests().anyRequest().permitAll();
 
             http.csrf()
             .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)
