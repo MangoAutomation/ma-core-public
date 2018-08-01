@@ -71,53 +71,57 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.authentication.AuthenticationProvider#authenticate(org.springframework.security.core.Authentication)
-     */
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
-            return null;
-        }
-
         String username = authentication.getName();
-
-        if (!(authentication.getDetails() instanceof WebAuthenticationDetails)) {
-            throw new InternalAuthenticationServiceException("Expected authentication details to be instance of WebAuthenticationDetails");
-        }
 
         WebAuthenticationDetails details = (WebAuthenticationDetails) authentication.getDetails();
         String ip = details.getRemoteAddress();
 
-        boolean ipRateExceeded = this.ipRateLimiter != null && this.ipRateLimiter.checkRateExceeded(ip);
-        boolean usernameRateExceeded = this.usernameRateLimiter != null && this.usernameRateLimiter.checkRateExceeded(username);
+        try {
+            if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
+                return null;
+            }
 
-        if (ipRateExceeded) {
-            throw new IpAddressAuthenticationRateException();
+            if (!(authentication.getDetails() instanceof WebAuthenticationDetails)) {
+                throw new InternalAuthenticationServiceException("Expected authentication details to be instance of WebAuthenticationDetails");
+            }
+
+            boolean ipRateExceeded = this.ipRateLimiter != null && this.ipRateLimiter.checkRateExceeded(ip);
+            boolean usernameRateExceeded = this.usernameRateLimiter != null && this.usernameRateLimiter.checkRateExceeded(username);
+
+            if (ipRateExceeded) {
+                throw new IpAddressAuthenticationRateException();
+            }
+
+            if (usernameRateExceeded) {
+                throw new UsernameAuthenticationRateException();
+            }
+
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            this.userDetailsChecker.check(userDetails);
+
+            // Validating the password against the database.
+            if (!Common.checkPassword((String) authentication.getCredentials(), userDetails.getPassword())) {
+                throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
+            }
+
+            if (!(userDetails instanceof User)) {
+                throw new InternalAuthenticationServiceException("Expected user details to be instance of User");
+            }
+
+            return new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), Collections.unmodifiableCollection(userDetails.getAuthorities()));
+        } catch (AuthenticationException e) {
+            if (this.ipRateLimiter != null) {
+                this.ipRateLimiter.hit(ip);
+            }
+            if (this.usernameRateLimiter != null) {
+                this.usernameRateLimiter.hit(username);
+            }
+            throw e;
         }
-
-        if (usernameRateExceeded) {
-            throw new UsernameAuthenticationRateException();
-        }
-
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-        this.userDetailsChecker.check(userDetails);
-
-        // Validating the password against the database.
-        if (!Common.checkPassword((String) authentication.getCredentials(), userDetails.getPassword())) {
-            throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
-        }
-
-        if (!(userDetails instanceof User)) {
-            throw new InternalAuthenticationServiceException("Expected user details to be instance of User");
-        }
-
-        return new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), Collections.unmodifiableCollection(userDetails.getAuthorities()));
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.authentication.AuthenticationProvider#supports(java.lang.Class)
-     */
     @Override
     public boolean supports(Class<?> authentication) {
         return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);

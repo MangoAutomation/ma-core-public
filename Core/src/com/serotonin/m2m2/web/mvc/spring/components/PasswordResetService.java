@@ -122,10 +122,14 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         } else {
             boolean sslOn = Common.envProps.getBoolean("ssl.on", false);
             int port = sslOn ? Common.envProps.getInt("ssl.port", 443) : Common.envProps.getInt("web.port", 8080);
+            String hostname = SystemSettingsDao.instance.getValue(SystemSettingsDao.PUBLIC_HOSTNAME);
+            if (hostname == null) {
+                hostname = InetAddress.getLocalHost().getHostName();
+            }
 
             builder = UriComponentsBuilder.newInstance()
                     .scheme(sslOn ? "https" : "http")
-                    .host(InetAddress.getLocalHost().getHostName())
+                    .host(hostname)
                     .port(port);
         }
 

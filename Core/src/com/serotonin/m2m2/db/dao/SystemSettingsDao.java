@@ -62,9 +62,11 @@ public class SystemSettingsDao extends BaseDao {
     public static final String EMAIL_SMTP_PASSWORD = "emailSmtpPassword";
     public static final String EMAIL_TLS = "emailTls";
     public static final String EMAIL_CONTENT_TYPE = "emailContentType";
-    
+
     // Base URL to use when inserting links in emails etc
     public static final String PUBLICLY_RESOLVABLE_BASE_URL = "publiclyResolvableBaseUrl";
+    // Used if PUBLICLY_RESOLVABLE_BASE_URL is not set
+    public static final String PUBLIC_HOSTNAME = "publicHostname";
 
     // Point data purging
     public static final String POINT_DATA_PURGE_PERIOD_TYPE = "pointDataPurgePeriodType";
@@ -151,55 +153,55 @@ public class SystemSettingsDao extends BaseDao {
 
     // Permissions
     public static final String PERMISSION_DATASOURCE = "permissionDatasource";
-    
+
     //Background Processing
     public static final String HIGH_PRI_CORE_POOL_SIZE = "highPriorityThreadCorePoolSize";
     public static final String HIGH_PRI_MAX_POOL_SIZE = "highPriorityThreadMaximumPoolSize";
-    
+
     public static final String MED_PRI_CORE_POOL_SIZE = "mediumPriorityThreadCorePoolSize";
-    
+
     public static final String LOW_PRI_CORE_POOL_SIZE = "lowPriorityThreadCorePoolSize";
-    
+
     //Site analytics
     public static final String SITE_ANALYTICS_HEAD = "siteAnalyticsHead";
     public static final String SITE_ANALYTICS_BODY = "siteAnalyticsBody";
-    
+
     //Download update settings
     public static final String UPGRADE_VERSION_STATE = "upgradeVersionState";
 
     // Last install/upgrade of Mango Core or modules
     public static final String LAST_UPGRADE = "lastUpgrade";
     public static final String CORE_VERSION_LAST_START = "coreVersionLastStart";
-    
+
     // The path delimiter for flat paths
     public static final String EXPORT_HIERARCHY_PATH = "exportHierarchyPath";
     public static final String HIERARCHY_PATH_SEPARATOR = "hierarchyPathSeparator";
-    
+
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
     private SystemSettingsDao(){
-    	    this.threadPoolListener = new ThreadPoolSettingsListenerDefinition();
+        this.threadPoolListener = new ThreadPoolSettingsListenerDefinition();
     }
-    
+
     // Value cache
     private final Map<String, String> cache = new ConcurrentHashMap<>();
 
     public String getValue(String key) {
-    	Object defaultValue = DEFAULT_VALUES.get(key);
-    	if(defaultValue == null){
-    		return getValue(key, null);
-    	}else{
-    		if(defaultValue instanceof String)
-    			return getValue(key, (String)defaultValue);
-    		else if(defaultValue instanceof Integer)
-    			return getValue(key, ((Integer)defaultValue).toString());
-    		else if(defaultValue instanceof Boolean)
-    			return getValue(key, ((Boolean)defaultValue).toString());
-    		else 
-    			throw new ShouldNeverHappenException("Unsupported type of default value " + defaultValue.getClass().getCanonicalName() + " for System Setting: " + key);
-    	}
-        
+        Object defaultValue = DEFAULT_VALUES.get(key);
+        if(defaultValue == null){
+            return getValue(key, null);
+        }else{
+            if(defaultValue instanceof String)
+                return getValue(key, (String)defaultValue);
+            else if(defaultValue instanceof Integer)
+                return getValue(key, ((Integer)defaultValue).toString());
+            else if(defaultValue instanceof Boolean)
+                return getValue(key, ((Boolean)defaultValue).toString());
+            else
+                throw new ShouldNeverHappenException("Unsupported type of default value " + defaultValue.getClass().getCanonicalName() + " for System Setting: " + key);
+        }
+
     }
 
     public String getValue(String key, String defaultValue) {
@@ -207,11 +209,11 @@ public class SystemSettingsDao extends BaseDao {
             return new BaseDao().queryForObject("select settingValue from systemSettings where settingName=?",
                     new Object[] { k }, String.class, null);
         });
-        
+
         if (result == null) {
             result = defaultValue;
         }
-        
+
         return result;
     }
 
@@ -233,7 +235,7 @@ public class SystemSettingsDao extends BaseDao {
             return defaultValue;
         }
     }
-    
+
     public boolean getBooleanValue(String key) {
         Boolean defaultValue = (Boolean) DEFAULT_VALUES.get(key);
         if (defaultValue == null)
@@ -250,7 +252,7 @@ public class SystemSettingsDao extends BaseDao {
 
     @SuppressWarnings("unchecked")
     public <T> T getJsonObject(String key, Class<T> clazz) {
-        return (T) getJsonObject(key, (Type) clazz);
+        return getJsonObject(key, clazz);
     }
 
     public Object getJsonObject(String key, Type type) {
@@ -377,7 +379,7 @@ public class SystemSettingsDao extends BaseDao {
 
         DEFAULT_VALUES.put(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(DATA_POINT_EVENT_PURGE_PERIODS, 1);
-        
+
         DEFAULT_VALUES.put(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(DATA_SOURCE_EVENT_PURGE_PERIODS, 1);
         DEFAULT_VALUES.put(SYSTEM_EVENT_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
@@ -434,14 +436,14 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_COUNT, 10);
         DEFAULT_VALUES.put(DATABASE_BACKUP_HOUR, 0);
         DEFAULT_VALUES.put(DATABASE_BACKUP_MINUTE, 5);
-        
+
         DEFAULT_VALUES.put(HIGH_PRI_CORE_POOL_SIZE, 1);
         DEFAULT_VALUES.put(HIGH_PRI_MAX_POOL_SIZE, 100);
         DEFAULT_VALUES.put(MED_PRI_CORE_POOL_SIZE, 3);
         DEFAULT_VALUES.put(LOW_PRI_CORE_POOL_SIZE, 1);
-        
+
         DEFAULT_VALUES.put(UPGRADE_VERSION_STATE, UpgradeVersionState.PRODUCTION);
-        
+
         DEFAULT_VALUES.put(DataPurge.ENABLE_POINT_DATA_PURGE, true);
         DEFAULT_VALUES.put(DATABASE_BACKUP_ENABLED, true);
         DEFAULT_VALUES.put(BACKUP_ENABLED, true);
@@ -463,7 +465,7 @@ public class SystemSettingsDao extends BaseDao {
         // Add module system event type defaults
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), def.getDefaultAlarmLevel());
-        
+
         // Add built-in audit event type defaults
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, AlarmLevels.INFORMATION);
@@ -474,42 +476,42 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_JSON_DATA, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION);
-        
+
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
             DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), AlarmLevels.INFORMATION);
         }
-        
+
         //Module Defaults
         Map<String,Object> modDefaults = null;
         for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
-            	modDefaults = def.getDefaultValues();
-            	if(modDefaults != null)
-            		DEFAULT_VALUES.putAll(modDefaults);
-            	modDefaults = null;
+            modDefaults = def.getDefaultValues();
+            if(modDefaults != null)
+                DEFAULT_VALUES.putAll(modDefaults);
+            modDefaults = null;
         }
-        
+
         for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-            	String defaultValue = "";
-            	if(def.getValue().getDefaultGroups() != null)
-            		for(String s : def.getValue().getDefaultGroups()) {
-            			if(defaultValue.isEmpty())
-            				defaultValue += s;
-            			else
-            				defaultValue += ","+s;
-            		}
-            	DEFAULT_VALUES.put(def.getKey(), defaultValue);
+            String defaultValue = "";
+            if(def.getValue().getDefaultGroups() != null)
+                for(String s : def.getValue().getDefaultGroups()) {
+                    if(defaultValue.isEmpty())
+                        defaultValue += s;
+                    else
+                        defaultValue += ","+s;
+                }
+            DEFAULT_VALUES.put(def.getKey(), defaultValue);
         }
-        
+
         DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
         DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
     }
 
-	/**
+    /**
      * Save values to the table by replacing old values and inserting new ones
      * caution, there is no checking on quality of the values being saved use
      * validate() first.
-     * 
+     *
      * @param vo
      */
     public void updateSettings(Map<String,Object> settings) {
@@ -540,293 +542,293 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
 
-	/**
-	 * 
-	 * Validate the system settings passed in, only validating settings that exist in the map.
-	 * 
-	 * @param settings
-	 * @param voResponse
-	 */
-	public void validate(Map<String, Object> settings, ProcessResult response) {
-		
-		Object setting = null;
-		
-		try{
-			setting = settings.get(EMAIL_CONTENT_TYPE);
-			if(setting != null){
-				
-				if(setting instanceof Number){
-					int emailContentType = ((Number)setting).intValue();
-					switch(emailContentType){
-						case MangoEmailContent.CONTENT_TYPE_BOTH:
-						case MangoEmailContent.CONTENT_TYPE_HTML:
-						case MangoEmailContent.CONTENT_TYPE_TEXT:
-						break;
-						default:
-							response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.invalideValue");
-					}
-				}else{
-					//String Code
-					if(MangoEmailContent.CONTENT_TYPE_CODES.getId((String)setting) < 0)
-						response.addContextualMessage(EMAIL_CONTENT_TYPE, "emport.error.invalid", EMAIL_CONTENT_TYPE, (String)setting,
-								MangoEmailContent.CONTENT_TYPE_CODES.getCodeList());
-				}
-			}
-		}catch(NumberFormatException e){
-			response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.illegalValue");
-		}
-		
-		setting = settings.get(DATABASE_SCHEMA_VERSION);
-		if(setting != null)
-		    response.addContextualMessage(DATABASE_SCHEMA_VERSION, "validate.readOnly");
-		setting = settings.get(NEW_INSTANCE);
+    /**
+     *
+     * Validate the system settings passed in, only validating settings that exist in the map.
+     *
+     * @param settings
+     * @param voResponse
+     */
+    public void validate(Map<String, Object> settings, ProcessResult response) {
+
+        Object setting = null;
+
+        try{
+            setting = settings.get(EMAIL_CONTENT_TYPE);
+            if(setting != null){
+
+                if(setting instanceof Number){
+                    int emailContentType = ((Number)setting).intValue();
+                    switch(emailContentType){
+                        case MangoEmailContent.CONTENT_TYPE_BOTH:
+                        case MangoEmailContent.CONTENT_TYPE_HTML:
+                        case MangoEmailContent.CONTENT_TYPE_TEXT:
+                            break;
+                        default:
+                            response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.invalideValue");
+                    }
+                }else{
+                    //String Code
+                    if(MangoEmailContent.CONTENT_TYPE_CODES.getId((String)setting) < 0)
+                        response.addContextualMessage(EMAIL_CONTENT_TYPE, "emport.error.invalid", EMAIL_CONTENT_TYPE, setting,
+                                MangoEmailContent.CONTENT_TYPE_CODES.getCodeList());
+                }
+            }
+        }catch(NumberFormatException e){
+            response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.illegalValue");
+        }
+
+        setting = settings.get(DATABASE_SCHEMA_VERSION);
+        if(setting != null)
+            response.addContextualMessage(DATABASE_SCHEMA_VERSION, "validate.readOnly");
+        setting = settings.get(NEW_INSTANCE);
         if(setting != null)
             response.addContextualMessage(NEW_INSTANCE, "validate.readOnly");
-		
-		setting = settings.get(LANGUAGE);
-		if(setting != null) {
-		    if(setting instanceof String) {
-		        try{
-		            Locale newLocale = Common.parseLocale((String)setting);
-		            if(newLocale == null)
-		                response.addContextualMessage(LANGUAGE, "validate.invalidValue");
-		        }catch(Throwable t) {
-		            response.addContextualMessage(LANGUAGE, "validate.invalidValue");
-		        }
-		    }else {
-		        response.addContextualMessage(LANGUAGE, "validate.invalidValue");
-		    }
-		}
 
-		setting = settings.get(HTTP_CLIENT_PROXY_PORT);
-		if(setting != null) {
-		    if(setting instanceof Integer) {
-		        if((Integer)setting < 0)
-		            response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.cannotBeNegative");
-		    } else if(setting instanceof Number){
-		        if(((Number)setting).intValue() < 0)
+        setting = settings.get(LANGUAGE);
+        if(setting != null) {
+            if(setting instanceof String) {
+                try{
+                    Locale newLocale = Common.parseLocale((String)setting);
+                    if(newLocale == null)
+                        response.addContextualMessage(LANGUAGE, "validate.invalidValue");
+                }catch(Throwable t) {
+                    response.addContextualMessage(LANGUAGE, "validate.invalidValue");
+                }
+            }else {
+                response.addContextualMessage(LANGUAGE, "validate.invalidValue");
+            }
+        }
+
+        setting = settings.get(HTTP_CLIENT_PROXY_PORT);
+        if(setting != null) {
+            if(setting instanceof Integer) {
+                if((Integer)setting < 0)
                     response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.cannotBeNegative");
-		    } else {
-		        response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.invalidValue");
-		    }
-		}
-		
-		validatePeriodType(POINT_DATA_PURGE_PERIOD_TYPE, settings, response);
-		
-		validatePeriodType(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(SYSTEM_EVENT_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(AUDIT_EVENT_PURGE_PERIOD_TYPE, settings, response);
-		
-		validatePeriodType(NONE_ALARM_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(INFORMATION_ALARM_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(WARNING_ALARM_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(URGENT_ALARM_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(CRITICAL_ALARM_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings, response);
+            } else if(setting instanceof Number){
+                if(((Number)setting).intValue() < 0)
+                    response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.cannotBeNegative");
+            } else {
+                response.addContextualMessage(HTTP_CLIENT_PROXY_PORT, "validate.invalidValue");
+            }
+        }
 
-		validatePeriodType(EVENT_PURGE_PERIOD_TYPE, settings, response);
-		validatePeriodType(FUTURE_DATE_LIMIT_PERIOD_TYPE, settings, response);
-		
-		try {
-		    setting = settings.get(FUTURE_DATE_LIMIT_PERIODS);
-		    if(setting != null) {
-    		    int settingValue;
-    		    if(setting instanceof Number)
-    		        settingValue = ((Number)setting).intValue();
-    		    else
-    		        settingValue = Integer.valueOf((String)setting);
-    		    if(settingValue <= 0)
-    		        response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.greaterThanZero");
-		    }
-		} catch(NumberFormatException|ClassCastException e) {
-		    response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.invalidValue");
-		}
-		
-		//Should validate language not sure how yet
-		
-		try {
-			setting = settings.get(CHART_BACKGROUND_COLOUR);
-			if(setting != null)
-				ColorUtils.toColor((String)setting);
+        validatePeriodType(POINT_DATA_PURGE_PERIOD_TYPE, settings, response);
+
+        validatePeriodType(DATA_POINT_EVENT_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(SYSTEM_EVENT_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(PUBLISHER_EVENT_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(AUDIT_EVENT_PURGE_PERIOD_TYPE, settings, response);
+
+        validatePeriodType(NONE_ALARM_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(INFORMATION_ALARM_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(IMPORTANT_ALARM_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(WARNING_ALARM_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(URGENT_ALARM_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(CRITICAL_ALARM_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE, settings, response);
+
+        validatePeriodType(EVENT_PURGE_PERIOD_TYPE, settings, response);
+        validatePeriodType(FUTURE_DATE_LIMIT_PERIOD_TYPE, settings, response);
+
+        try {
+            setting = settings.get(FUTURE_DATE_LIMIT_PERIODS);
+            if(setting != null) {
+                int settingValue;
+                if(setting instanceof Number)
+                    settingValue = ((Number)setting).intValue();
+                else
+                    settingValue = Integer.valueOf((String)setting);
+                if(settingValue <= 0)
+                    response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.greaterThanZero");
+            }
+        } catch(NumberFormatException|ClassCastException e) {
+            response.addContextualMessage(FUTURE_DATE_LIMIT_PERIODS, "validate.invalidValue");
+        }
+
+        //Should validate language not sure how yet
+
+        try {
+            setting = settings.get(CHART_BACKGROUND_COLOUR);
+            if(setting != null)
+                ColorUtils.toColor((String)setting);
         }
         catch (InvalidArgumentException e) {
             response.addContextualMessage(CHART_BACKGROUND_COLOUR,
                     "systemSettings.validation.invalidColour");
         }
-		
-		try {
-			setting = settings.get(PLOT_BACKGROUND_COLOUR);
-			if(setting != null)
-				ColorUtils.toColor((String)setting);
+
+        try {
+            setting = settings.get(PLOT_BACKGROUND_COLOUR);
+            if(setting != null)
+                ColorUtils.toColor((String)setting);
         }
         catch (InvalidArgumentException e) {
             response.addContextualMessage(PLOT_BACKGROUND_COLOUR,
                     "systemSettings.validation.invalidColour");
         }
-		
-		try {
-			setting = settings.get(PLOT_GRIDLINE_COLOUR);
-			if(setting != null)
-				ColorUtils.toColor((String)setting);
+
+        try {
+            setting = settings.get(PLOT_GRIDLINE_COLOUR);
+            if(setting != null)
+                ColorUtils.toColor((String)setting);
         }
         catch (InvalidArgumentException e) {
             response.addContextualMessage(PLOT_GRIDLINE_COLOUR,
                     "systemSettings.validation.invalidColour");
         }
-		
-		setting = settings.get(BACKUP_FILE_LOCATION);
-		if(setting != null){
-	    	File tmp = new File((String)setting);
-	    	if(!tmp.exists() && !tmp.mkdirs()){
-	    		//Doesn't exist, push up message
-	    		response.addContextualMessage(BACKUP_FILE_LOCATION,
-	    				"systemSettings.validation.backupLocationNotExists");
-	    	}
-	    	if(!tmp.canWrite()){
-	    		response.addContextualMessage(BACKUP_FILE_LOCATION,
-	    				"systemSettings.validation.cannotWriteToBackupFileLocation");
-	    	}
-		}
-		
-        	//Validate the Hour and Minute
-        	Integer backupHour = getIntValue(BACKUP_HOUR, settings);
-        	if(backupHour != null)
-    			if((backupHour > 23)||(backupHour<0)){
-    	    		response.addContextualMessage(BACKUP_HOUR,
-    	    				"systemSettings.validation.backupHourInvalid");
-    	    	}
-        	
-        	Integer backupMinute = getIntValue(BACKUP_MINUTE, settings);
-        	if(backupMinute != null)
-    	    	if((backupMinute > 59)||(backupMinute<0)){
-    	    		response.addContextualMessage(BACKUP_MINUTE,
-    	    				"systemSettings.validation.backupMinuteInvalid");
-    	    	}
-        	
-        	validatePeriodType(BACKUP_PERIOD_TYPE, settings, response);
-        	
-        	//Validate the number of backups to keep
-        	Integer backupFileCount = getIntValue(BACKUP_FILE_COUNT, settings);
-        	if(backupFileCount != null)
-    	    	if(backupFileCount < 1){
-    	    		response.addContextualMessage(BACKUP_FILE_COUNT,
-    	    				"systemSettings.validation.backupFileCountInvalid");
-    	    	}   	
-    
-    
-    		//Validate
-        	setting = settings.get(DATABASE_BACKUP_FILE_LOCATION);
-        	if(setting != null){
-    	    	File tmp = new File((String)setting);
-    	    	if(!tmp.exists() && !tmp.mkdirs()){
-    	    		//Doesn't exist, push up message
-    	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
-    	    				"systemSettings.validation.databaseBackupLocationNotExists");
-    	    	}
-    	    	if(!tmp.canWrite()){
-    	    		response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
-    	    				"systemSettings.validation.cannotWriteToDatabaseBackupFileLocation");
-    	    	}
-        	}
-        	
-        	//Validate the Hour and Minute
-        	Integer databaseBackupHour = getIntValue(DATABASE_BACKUP_HOUR, settings);
-        	if(databaseBackupHour != null)
-    	    	if((databaseBackupHour > 23)||(databaseBackupHour<0)){
-    	    		response.addContextualMessage(DATABASE_BACKUP_HOUR,
-    	    				"systemSettings.validation.databaseBackupHourInvalid");
-    	    	}
-        	
-        	Integer databaseBackupMinute = getIntValue(DATABASE_BACKUP_MINUTE, settings);
-        	if(databaseBackupMinute != null)
-    	    	if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
-    	    		response.addContextualMessage(DATABASE_BACKUP_MINUTE,
-    	    				"systemSettings.validation.databaseBackupMinuteInvalid");
-    	    	}
-        	
-        	validatePeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings, response);
-        	
-        	//Validate the number of backups to keep
-        	Integer databaseBackupFileCount = getIntValue(DATABASE_BACKUP_FILE_COUNT, settings);
-        	if(databaseBackupFileCount != null)
-    	    	if(databaseBackupFileCount < 1){
-    	    		response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
-    	    				"systemSettings.validation.databaseBackupFileCountInvalid");
-    	    	} 
-        	
-        	//Thread Pool Sizes
-        	Integer corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
-        	Integer maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
-    	
+
+        setting = settings.get(BACKUP_FILE_LOCATION);
+        if(setting != null){
+            File tmp = new File((String)setting);
+            if(!tmp.exists() && !tmp.mkdirs()){
+                //Doesn't exist, push up message
+                response.addContextualMessage(BACKUP_FILE_LOCATION,
+                        "systemSettings.validation.backupLocationNotExists");
+            }
+            if(!tmp.canWrite()){
+                response.addContextualMessage(BACKUP_FILE_LOCATION,
+                        "systemSettings.validation.cannotWriteToBackupFileLocation");
+            }
+        }
+
+        //Validate the Hour and Minute
+        Integer backupHour = getIntValue(BACKUP_HOUR, settings);
+        if(backupHour != null)
+            if((backupHour > 23)||(backupHour<0)){
+                response.addContextualMessage(BACKUP_HOUR,
+                        "systemSettings.validation.backupHourInvalid");
+            }
+
+        Integer backupMinute = getIntValue(BACKUP_MINUTE, settings);
+        if(backupMinute != null)
+            if((backupMinute > 59)||(backupMinute<0)){
+                response.addContextualMessage(BACKUP_MINUTE,
+                        "systemSettings.validation.backupMinuteInvalid");
+            }
+
+        validatePeriodType(BACKUP_PERIOD_TYPE, settings, response);
+
+        //Validate the number of backups to keep
+        Integer backupFileCount = getIntValue(BACKUP_FILE_COUNT, settings);
+        if(backupFileCount != null)
+            if(backupFileCount < 1){
+                response.addContextualMessage(BACKUP_FILE_COUNT,
+                        "systemSettings.validation.backupFileCountInvalid");
+            }
+
+
+        //Validate
+        setting = settings.get(DATABASE_BACKUP_FILE_LOCATION);
+        if(setting != null){
+            File tmp = new File((String)setting);
+            if(!tmp.exists() && !tmp.mkdirs()){
+                //Doesn't exist, push up message
+                response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
+                        "systemSettings.validation.databaseBackupLocationNotExists");
+            }
+            if(!tmp.canWrite()){
+                response.addContextualMessage(DATABASE_BACKUP_FILE_LOCATION,
+                        "systemSettings.validation.cannotWriteToDatabaseBackupFileLocation");
+            }
+        }
+
+        //Validate the Hour and Minute
+        Integer databaseBackupHour = getIntValue(DATABASE_BACKUP_HOUR, settings);
+        if(databaseBackupHour != null)
+            if((databaseBackupHour > 23)||(databaseBackupHour<0)){
+                response.addContextualMessage(DATABASE_BACKUP_HOUR,
+                        "systemSettings.validation.databaseBackupHourInvalid");
+            }
+
+        Integer databaseBackupMinute = getIntValue(DATABASE_BACKUP_MINUTE, settings);
+        if(databaseBackupMinute != null)
+            if((databaseBackupMinute > 59)||(databaseBackupMinute<0)){
+                response.addContextualMessage(DATABASE_BACKUP_MINUTE,
+                        "systemSettings.validation.databaseBackupMinuteInvalid");
+            }
+
+        validatePeriodType(DATABASE_BACKUP_PERIOD_TYPE, settings, response);
+
+        //Validate the number of backups to keep
+        Integer databaseBackupFileCount = getIntValue(DATABASE_BACKUP_FILE_COUNT, settings);
+        if(databaseBackupFileCount != null)
+            if(databaseBackupFileCount < 1){
+                response.addContextualMessage(DATABASE_BACKUP_FILE_COUNT,
+                        "systemSettings.validation.databaseBackupFileCountInvalid");
+            }
+
+        //Thread Pool Sizes
+        Integer corePoolSize = getIntValue(HIGH_PRI_CORE_POOL_SIZE, settings);
+        Integer maxPoolSize = getIntValue(HIGH_PRI_MAX_POOL_SIZE, settings);
+
         if((corePoolSize != null)&&(corePoolSize < 0)){
-        	    response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", 0);
+            response.addContextualMessage(HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", 0);
         }
 
         if((maxPoolSize != null)&&(maxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN)){
             response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
         }
-        
+
         if((maxPoolSize != null)&&(maxPoolSize < corePoolSize)){
-        	    response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+            response.addContextualMessage(HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }
 
-        //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a 
+        //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a
         // core pool thread is available
         corePoolSize = getIntValue(MED_PRI_CORE_POOL_SIZE, settings);
         if(corePoolSize < BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN){
-        	    response.addContextualMessage(MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
+            response.addContextualMessage(MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
         }
-        
+
         corePoolSize = getIntValue(LOW_PRI_CORE_POOL_SIZE, settings);
         if(corePoolSize < BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
-        	    response.addContextualMessage(LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
+            response.addContextualMessage(LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
         }
-        
+
         //Validate Upgrade Version State
         setting = settings.get(UPGRADE_VERSION_STATE);
-		if(setting != null){
-			if(setting instanceof Number){
-				//Legacy Integer Value
-				try{
-					int value = ((Number)setting).intValue();
-				
-					switch(value){
-					case UpgradeVersionState.DEVELOPMENT:
-					case UpgradeVersionState.ALPHA:
-					case UpgradeVersionState.BETA:
-					case UpgradeVersionState.RELEASE_CANDIDATE:
-					case UpgradeVersionState.PRODUCTION:
-						break;
-					default:
-						response.addContextualMessage(UPGRADE_VERSION_STATE, "validate.invalidValue");
-						break;
-					}
-				}catch(NumberFormatException e){
-					response.addContextualMessage(UPGRADE_VERSION_STATE, "validate.illegalValue");
-				}
-			}else{
-				//Must be a code
-				if(Common.VERSION_STATE_CODES.getId((String)setting) < 0)
-					response.addContextualMessage(UPGRADE_VERSION_STATE, "emport.error.invalid", UPGRADE_VERSION_STATE, (String)setting,
-							Common.VERSION_STATE_CODES.getCodeList());
-			}
-		}
-        
-		//Validate point hierarchy settings
-		setting = settings.get(HIERARCHY_PATH_SEPARATOR);
-		if(setting != null) {
-		    if(StringUtils.isEmpty((String)setting))
-		        response.addContextualMessage(HIERARCHY_PATH_SEPARATOR, "validate.cannotContainEmptyString");
-		}
-		
+        if(setting != null){
+            if(setting instanceof Number){
+                //Legacy Integer Value
+                try{
+                    int value = ((Number)setting).intValue();
+
+                    switch(value){
+                        case UpgradeVersionState.DEVELOPMENT:
+                        case UpgradeVersionState.ALPHA:
+                        case UpgradeVersionState.BETA:
+                        case UpgradeVersionState.RELEASE_CANDIDATE:
+                        case UpgradeVersionState.PRODUCTION:
+                            break;
+                        default:
+                            response.addContextualMessage(UPGRADE_VERSION_STATE, "validate.invalidValue");
+                            break;
+                    }
+                }catch(NumberFormatException e){
+                    response.addContextualMessage(UPGRADE_VERSION_STATE, "validate.illegalValue");
+                }
+            }else{
+                //Must be a code
+                if(Common.VERSION_STATE_CODES.getId((String)setting) < 0)
+                    response.addContextualMessage(UPGRADE_VERSION_STATE, "emport.error.invalid", UPGRADE_VERSION_STATE, setting,
+                            Common.VERSION_STATE_CODES.getCodeList());
+            }
+        }
+
+        //Validate point hierarchy settings
+        setting = settings.get(HIERARCHY_PATH_SEPARATOR);
+        if(setting != null) {
+            if(StringUtils.isEmpty((String)setting))
+                response.addContextualMessage(HIERARCHY_PATH_SEPARATOR, "validate.cannotContainEmptyString");
+        }
+
         // Validate the Module Settings
         for (SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions())
             def.validateSettings(settings, response);
-        
-        //Ensure no one can change the superadmin permission 
+
+        //Ensure no one can change the superadmin permission
         setting = settings.get(SuperadminPermissionDefinition.PERMISSION);
         if(setting != null) {
             try {
@@ -836,7 +838,7 @@ public class SystemSettingsDao extends BaseDao {
                 response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
             }
         }
-        
+
         //Validate system alarm levels
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, settings, response);
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, settings, response);
@@ -852,7 +854,7 @@ public class SystemSettingsDao extends BaseDao {
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MISSING_MODULE_DEPENDENCY, settings, response);
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), settings, response);
-        
+
         //Validate audit alarm levels
         validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, settings, response);
         validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, settings, response);
@@ -865,232 +867,233 @@ public class SystemSettingsDao extends BaseDao {
         validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, settings, response);
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), settings, response);
-	}
-	
+    }
 
-	/**
-	 * @param pointDataPurgePeriodType2
-	 * @param pointDataPurgePeriodType3
-	 * @param response
-	 */
-	private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
 
-		Object setting = settings.get(key);
-		if(setting == null)
-			return;
-			
-		if(setting instanceof Number){
-			try{
-				int value = ((Number)setting).intValue();
-				
-				switch(value){
-				case TimePeriods.DAYS:
-				case TimePeriods.HOURS:
-				case TimePeriods.MILLISECONDS:
-				case TimePeriods.MINUTES:
-				case TimePeriods.MONTHS:
-				case TimePeriods.SECONDS:
-				case TimePeriods.WEEKS:
-				case TimePeriods.YEARS:
-					break;
-				default:
-					response.addContextualMessage(key, "validate.invalidValue");
-				}
-			}catch(NumberFormatException e){
-				response.addContextualMessage(key, "validate.illegalValue");
-			}	
-		}else{
-			//String code
-			if(Common.TIME_PERIOD_CODES.getId((String)setting) < 0)
-				response.addContextualMessage( key, "emport.error.invalid", key, (String)setting,
-						Common.TIME_PERIOD_CODES.getCodeList());
-		}
-		
-	}
-	
-	private void validateAlarmLevel(String key, Map<String,Object> settings, ProcessResult response) {
-	    Object setting = settings.get(key);
-	    if(setting == null)
-	        return;
-	    
-	    if(setting instanceof Number) {
-	        try {
-	            int value = ((Number)setting).intValue();
-	            
-	            switch(value) {
-	                case AlarmLevels.IGNORE:
-	                case AlarmLevels.DO_NOT_LOG:
-	                case AlarmLevels.NONE:
-	                case AlarmLevels.INFORMATION:
-	                case AlarmLevels.IMPORTANT:
-	                case AlarmLevels.WARNING:
-	                case AlarmLevels.URGENT:
-	                case AlarmLevels.CRITICAL:
-	                case AlarmLevels.LIFE_SAFETY:
-	                    break;
+    /**
+     * @param pointDataPurgePeriodType2
+     * @param pointDataPurgePeriodType3
+     * @param response
+     */
+    private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
+
+        Object setting = settings.get(key);
+        if(setting == null)
+            return;
+
+        if(setting instanceof Number){
+            try{
+                int value = ((Number)setting).intValue();
+
+                switch(value){
+                    case TimePeriods.DAYS:
+                    case TimePeriods.HOURS:
+                    case TimePeriods.MILLISECONDS:
+                    case TimePeriods.MINUTES:
+                    case TimePeriods.MONTHS:
+                    case TimePeriods.SECONDS:
+                    case TimePeriods.WEEKS:
+                    case TimePeriods.YEARS:
+                        break;
                     default:
                         response.addContextualMessage(key, "validate.invalidValue");
-	            }
-	        } catch(NumberFormatException e){
+                }
+            }catch(NumberFormatException e){
                 response.addContextualMessage(key, "validate.illegalValue");
             }
-	    } else {
+        }else{
+            //String code
+            if(Common.TIME_PERIOD_CODES.getId((String)setting) < 0)
+                response.addContextualMessage( key, "emport.error.invalid", key, setting,
+                        Common.TIME_PERIOD_CODES.getCodeList());
+        }
+
+    }
+
+    private void validateAlarmLevel(String key, Map<String,Object> settings, ProcessResult response) {
+        Object setting = settings.get(key);
+        if(setting == null)
+            return;
+
+        if(setting instanceof Number) {
+            try {
+                int value = ((Number)setting).intValue();
+
+                switch(value) {
+                    case AlarmLevels.IGNORE:
+                    case AlarmLevels.DO_NOT_LOG:
+                    case AlarmLevels.NONE:
+                    case AlarmLevels.INFORMATION:
+                    case AlarmLevels.IMPORTANT:
+                    case AlarmLevels.WARNING:
+                    case AlarmLevels.URGENT:
+                    case AlarmLevels.CRITICAL:
+                    case AlarmLevels.LIFE_SAFETY:
+                        break;
+                    default:
+                        response.addContextualMessage(key, "validate.invalidValue");
+                }
+            } catch(NumberFormatException e){
+                response.addContextualMessage(key, "validate.illegalValue");
+            }
+        } else {
             //String code
             if(AlarmLevels.CODES.getId((String)setting) == -1)
-                response.addContextualMessage( key, "emport.error.invalid", key, (String)setting,
+                response.addContextualMessage( key, "emport.error.invalid", key, setting,
                         AlarmLevels.CODES.getCodeList());
         }
-	}
-	
+    }
+
     private Integer getIntValue(String key, Map<String,Object> settings) throws NumberFormatException {
         Object value = settings.get(key);
         if (value == null)
-        	value = getIntValue(key);
+            value = getIntValue(key);
 
         if(value instanceof Number)
-        	return ((Number) value).intValue();
+            return ((Number) value).intValue();
         else
-        	return Integer.parseInt((String)value);
+            return Integer.parseInt((String)value);
     }
 
-	/**
-	 * Potentially Convert a value from a code, if no code exists then return null; 
-	 * 
-	 * @param key - Setting key
-	 * @param value - String code
-	 * @return
-	 */
-	public Integer convertToValueFromCode(String key, String code) {
-		switch(key){
-		case EMAIL_CONTENT_TYPE:
-			return MangoEmailContent.CONTENT_TYPE_CODES.getId(code);
-		case POINT_DATA_PURGE_PERIOD_TYPE:
-		case DATA_POINT_EVENT_PURGE_PERIOD_TYPE:
-		case DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE:
-		case SYSTEM_EVENT_PURGE_PERIOD_TYPE:
-		case PUBLISHER_EVENT_PURGE_PERIOD_TYPE:
-		case AUDIT_EVENT_PURGE_PERIOD_TYPE:
-		case NONE_ALARM_PURGE_PERIOD_TYPE:
-		case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
-		case IMPORTANT_ALARM_PURGE_PERIOD_TYPE:
-		case WARNING_ALARM_PURGE_PERIOD_TYPE:
-		case URGENT_ALARM_PURGE_PERIOD_TYPE:
-		case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
-		case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:
-		case EVENT_PURGE_PERIOD_TYPE:
-		case BACKUP_PERIOD_TYPE:
-		case DATABASE_BACKUP_PERIOD_TYPE:
-		case FUTURE_DATE_LIMIT_PERIOD_TYPE:
-			return Common.TIME_PERIOD_CODES.getId(code); 
-		case UPGRADE_VERSION_STATE:
-			return Common.VERSION_STATE_CODES.getId(code);
-		}
-		
-		//Is it an alarm level?
-		if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
-		    return AlarmLevels.CODES.getId(code);
-		
-		//Now try the SystemSettingsDefinitions
-		Integer value = null;
-		for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
-			value = def.convertToValueFromCode(key, code);
-			if(value != null)
-				return value;
-		}
-		
-		return null;
-	}
-	
-	/**
-	 * Potentially convert an Integer value from it's Export code value to its export code
-	 * @param key - Setting key
-	 * @param value - Integer value of code
-	 * @return Export code or null if none exists for it
-	 */
-	public String convertToCodeFromValue(String key, Integer value){
-		switch(key){
-		case EMAIL_CONTENT_TYPE:
-			return MangoEmailContent.CONTENT_TYPE_CODES.getCode(value);
-		case POINT_DATA_PURGE_PERIOD_TYPE:
-		case DATA_POINT_EVENT_PURGE_PERIOD_TYPE:
-		case DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE:
-		case SYSTEM_EVENT_PURGE_PERIOD_TYPE:
-		case PUBLISHER_EVENT_PURGE_PERIOD_TYPE:
-		case AUDIT_EVENT_PURGE_PERIOD_TYPE:
-		case NONE_ALARM_PURGE_PERIOD_TYPE:
-		case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
-		case IMPORTANT_ALARM_PURGE_PERIOD_TYPE:
-		case WARNING_ALARM_PURGE_PERIOD_TYPE:
-		case URGENT_ALARM_PURGE_PERIOD_TYPE:
-		case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
-		case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:
-		case EVENT_PURGE_PERIOD_TYPE:
-		case BACKUP_PERIOD_TYPE:
-		case DATABASE_BACKUP_PERIOD_TYPE:
-		case FUTURE_DATE_LIMIT_PERIOD_TYPE:
-			return Common.TIME_PERIOD_CODES.getCode(value);
-		case UPGRADE_VERSION_STATE:
-			return Common.VERSION_STATE_CODES.getCode(value);
-		}
-		
-		//Check if it's an alarm level setting...
-		if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
-		    return AlarmLevels.CODES.getCode(value);
-		
-		//Now try the SystemSettingsDefinitions
-		String code = null;
-		for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
-			code = def.convertToCodeFromValue(key, value);
-			if(code != null)
-				return code;
-		}
-		return null;
-	}
+    /**
+     * Potentially Convert a value from a code, if no code exists then return null;
+     *
+     * @param key - Setting key
+     * @param value - String code
+     * @return
+     */
+    public Integer convertToValueFromCode(String key, String code) {
+        switch(key){
+            case EMAIL_CONTENT_TYPE:
+                return MangoEmailContent.CONTENT_TYPE_CODES.getId(code);
+            case POINT_DATA_PURGE_PERIOD_TYPE:
+            case DATA_POINT_EVENT_PURGE_PERIOD_TYPE:
+            case DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE:
+            case SYSTEM_EVENT_PURGE_PERIOD_TYPE:
+            case PUBLISHER_EVENT_PURGE_PERIOD_TYPE:
+            case AUDIT_EVENT_PURGE_PERIOD_TYPE:
+            case NONE_ALARM_PURGE_PERIOD_TYPE:
+            case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
+            case IMPORTANT_ALARM_PURGE_PERIOD_TYPE:
+            case WARNING_ALARM_PURGE_PERIOD_TYPE:
+            case URGENT_ALARM_PURGE_PERIOD_TYPE:
+            case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
+            case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:
+            case EVENT_PURGE_PERIOD_TYPE:
+            case BACKUP_PERIOD_TYPE:
+            case DATABASE_BACKUP_PERIOD_TYPE:
+            case FUTURE_DATE_LIMIT_PERIOD_TYPE:
+                return Common.TIME_PERIOD_CODES.getId(code);
+            case UPGRADE_VERSION_STATE:
+                return Common.VERSION_STATE_CODES.getId(code);
+        }
 
-	/**
-	 * Make a copy of the map and convert any Export codes into their values
-	 * @param settings
-	 * @return
-	 */
-	public Map<String, Object> convertCodesToValues(Map<String, Object> settings) {
-		Map<String, Object> values = new HashMap<String,Object>(settings);
-		
-		values.replaceAll((key, value) -> {
-		    if (value instanceof String) {
-		        Integer code = convertToValueFromCode(key, (String) value);
-		        if (code != null) return code;
-		    }
-		    return value;
-		});
-		
-		return values;
-	}
-	
-	/**
-	 * Return all settings (if no setting is saved return default value) whilst converting to Export Codes where necessary
-	 * 
-	 * @return
-	 */
-	public Map<String, Object> getAllSystemSettingsAsCodes() {
-		Map<String, Object> settings = new HashMap<String,Object>(DEFAULT_VALUES.size());
-		
-		//Add The Permissions with empty values since they don't necessarily have defaults
+        //Is it an alarm level?
+        if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
+            return AlarmLevels.CODES.getId(code);
+
+        //Now try the SystemSettingsDefinitions
+        Integer value = null;
+        for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
+            value = def.convertToValueFromCode(key, code);
+            if(value != null)
+                return value;
+        }
+
+        return null;
+    }
+
+    /**
+     * Potentially convert an Integer value from it's Export code value to its export code
+     * @param key - Setting key
+     * @param value - Integer value of code
+     * @return Export code or null if none exists for it
+     */
+    public String convertToCodeFromValue(String key, Integer value){
+        switch(key){
+            case EMAIL_CONTENT_TYPE:
+                return MangoEmailContent.CONTENT_TYPE_CODES.getCode(value);
+            case POINT_DATA_PURGE_PERIOD_TYPE:
+            case DATA_POINT_EVENT_PURGE_PERIOD_TYPE:
+            case DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE:
+            case SYSTEM_EVENT_PURGE_PERIOD_TYPE:
+            case PUBLISHER_EVENT_PURGE_PERIOD_TYPE:
+            case AUDIT_EVENT_PURGE_PERIOD_TYPE:
+            case NONE_ALARM_PURGE_PERIOD_TYPE:
+            case INFORMATION_ALARM_PURGE_PERIOD_TYPE:
+            case IMPORTANT_ALARM_PURGE_PERIOD_TYPE:
+            case WARNING_ALARM_PURGE_PERIOD_TYPE:
+            case URGENT_ALARM_PURGE_PERIOD_TYPE:
+            case CRITICAL_ALARM_PURGE_PERIOD_TYPE:
+            case LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE:
+            case EVENT_PURGE_PERIOD_TYPE:
+            case BACKUP_PERIOD_TYPE:
+            case DATABASE_BACKUP_PERIOD_TYPE:
+            case FUTURE_DATE_LIMIT_PERIOD_TYPE:
+                return Common.TIME_PERIOD_CODES.getCode(value);
+            case UPGRADE_VERSION_STATE:
+                return Common.VERSION_STATE_CODES.getCode(value);
+        }
+
+        //Check if it's an alarm level setting...
+        if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
+            return AlarmLevels.CODES.getCode(value);
+
+        //Now try the SystemSettingsDefinitions
+        String code = null;
+        for(SystemSettingsDefinition def : ModuleRegistry.getSystemSettingsDefinitions()){
+            code = def.convertToCodeFromValue(key, value);
+            if(code != null)
+                return code;
+        }
+        return null;
+    }
+
+    /**
+     * Make a copy of the map and convert any Export codes into their values
+     * @param settings
+     * @return
+     */
+    public Map<String, Object> convertCodesToValues(Map<String, Object> settings) {
+        Map<String, Object> values = new HashMap<String,Object>(settings);
+
+        values.replaceAll((key, value) -> {
+            if (value instanceof String) {
+                Integer code = convertToValueFromCode(key, (String) value);
+                if (code != null) return code;
+            }
+            return value;
+        });
+
+        return values;
+    }
+
+    /**
+     * Return all settings (if no setting is saved return default value) whilst converting to Export Codes where necessary
+     *
+     * @return
+     */
+    public Map<String, Object> getAllSystemSettingsAsCodes() {
+        Map<String, Object> settings = new HashMap<String,Object>(DEFAULT_VALUES.size());
+
+        //Add The Permissions with empty values since they don't necessarily have defaults
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
             settings.put(def.getPermissionTypeName(), "");
         }
-		
-		//Start with all the defaults
-		Iterator<String> it = DEFAULT_VALUES.keySet().iterator();
-		String key;
-		while(it.hasNext()){
-			key = it.next();
-			if(!key.toLowerCase().contains("password")&&!key.startsWith(DATABASE_SCHEMA_VERSION))
-				settings.put(key, DEFAULT_VALUES.get(key));
-		}
-		
+
+        //Start with all the defaults
+        Iterator<String> it = DEFAULT_VALUES.keySet().iterator();
+        String key;
+        while(it.hasNext()){
+            key = it.next();
+            if(!key.toLowerCase().contains("password")&&!key.startsWith(DATABASE_SCHEMA_VERSION))
+                settings.put(key, DEFAULT_VALUES.get(key));
+        }
+
         // Then replace anything with what is stored in the database
         ejt.query("select settingName,settingValue from systemSettings", new RowCallbackHandler() {
 
+            @Override
             public void processRow(ResultSet rs) throws SQLException {
                 String settingName = rs.getString(1);
                 // Don't export any passwords or schema numbers
@@ -1122,7 +1125,7 @@ public class SystemSettingsDao extends BaseDao {
                 }
             }
         });
-		
+
         // Convert the Integers to Codes
         it = settings.keySet().iterator();
         while (it.hasNext()) {
@@ -1134,8 +1137,8 @@ public class SystemSettingsDao extends BaseDao {
                     settings.put(key, code);
             }
         }
-		
-		return settings;
-	}
-	
+
+        return settings;
+    }
+
 }

@@ -12,6 +12,9 @@
 <%@attribute name="showFooter" %>
 <%@attribute name="replaceStyles" %>
 <%@attribute name="replaceScripts" %>
+
+<c:set var="sessionUser" value="<%= Common.getHttpUser() %>" scope="request" />
+
 <c:choose>
     <c:when test="${empty showHeader}"><c:set var="showHeader">${param.showHeader}</c:set></c:when>
 </c:choose>

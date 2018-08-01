@@ -40,6 +40,14 @@ public class RateLimiter<T> {
     }
 
     public boolean checkRateExceeded(T id, int numTokens) {
+        return this.tokenBucketCache.get(id).getNumTokens() < numTokens;
+    }
+
+    public boolean hit(T id) {
+        return this.hit(id, 1);
+    }
+
+    public boolean hit(T id, int numTokens) {
         return !this.tokenBucketCache.get(id).tryConsume(numTokens);
     }
 

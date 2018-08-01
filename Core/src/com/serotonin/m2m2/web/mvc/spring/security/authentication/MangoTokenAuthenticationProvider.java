@@ -58,16 +58,16 @@ public class MangoTokenAuthenticationProvider implements AuthenticationProvider 
             jws = tokenAuthenticationService.parse(bearerToken);
             user = tokenAuthenticationService.verify(jws);
         } catch (ExpiredJwtException e) {
-            throw new CredentialsExpiredException(e.getMessage(), e);
+            throw new CredentialsExpiredException("JWT token expired", e);
         } catch (UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e) {
             // assume that this is not a JWT, allow the next AuthenticationProvider to process it
             return null;
         } catch (SignatureException | MissingClaimException | IncorrectClaimException e) {
-            throw new BadCredentialsException(e.getMessage(), e);
+            throw new BadCredentialsException("JWT signature verification error or claim incorrect", e);
         } catch (NotFoundException e) {
             throw new BadCredentialsException("Invalid username", e);
         } catch (Exception e) {
-            throw new InternalAuthenticationServiceException(e.getMessage(), e);
+            throw new InternalAuthenticationServiceException("Error authenticating with JWT token", e);
         }
 
         userDetailsChecker.check(user);

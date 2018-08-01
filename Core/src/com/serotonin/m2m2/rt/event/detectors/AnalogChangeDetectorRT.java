@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt.event.detectors;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,36 +17,35 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 
 /**
- * TODO This class is a work in progress and IS NOT USABLE in its current state. 
- * 
+ * TODO This class is a work in progress and IS NOT USABLE in its current state.
+ *
  * The AnalogChangeDetector is used to detect occurrences of point values changing by a given amount within a duration of time.
- * 
+ *
  * For example a user may want to know if the water pressure drops suddenly but not be interested in a slowly dropping pressure.
- * 
+ *
  * This detector works by first determining if the user is tracking upward or downward changes.
- * 
+ *
  * Upward changes:
- * The detector tracks the lowest value during the period of interest.  For non-durational detectors this is the 
- * life of the point.  For durational detectors this is during the period.  
- * If the current value - lowest value > maxAllowedChange then the event will fire. 
- * 
- * 
+ * The detector tracks the lowest value during the period of interest.  For non-durational detectors this is the
+ * life of the point.  For durational detectors this is during the period.
+ * If the current value - lowest value > maxAllowedChange then the event will fire.
+ *
+ *
  * With duration:
  * We need to track the start and end of the periods and ensure that the 'lowest' value is in the period,
  * discarding older values.  This can be only be done by maintaining a list of previous Point Values and dropping
- * them from the list over time. 
- * 
- * 
+ * them from the list over time.
+ *
+ *
  * The configuration fields provided are static for the lifetime of this detector. The state fields vary based on the
- * changing conditions in the system. 
- * 
+ * changing conditions in the system.
+ *
  * In particular, the highLimitActive field describes whether the point's value is
  * currently above the high limit or not. The eventActive field describes whether the point's value has been above the
  * high limit for longer than the tolerance duration.
- * 
+ *
  * @author Terry Packer
  */
 public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetectorVO> {
@@ -55,16 +55,16 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
      */
     private boolean eventActive;
     private PointValueTime instantValue;
-    
+
     private double max = Double.NEGATIVE_INFINITY;
     private double min = Double.POSITIVE_INFINITY;
     private long latestTime;
     private boolean dirty = false;
     private final long durationMillis;
     private final int valueEventType;
-    
+
     private final List<PointValueTime> periodValues;
-	
+
     public AnalogChangeDetectorRT(AnalogChangeDetectorVO vo) {
         super(vo);
         this.durationMillis = Common.getMillis(vo.getDurationType(), vo.getDuration());
@@ -79,12 +79,12 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         }else {
             latestTime = -1;
         }
-        
+
         if(durationMillis == 0 && valueEventType == AnalogChangeDetectorVO.UpdateEventType.LOGGED_ONLY)
             instantValue = periodStartValue;
-        
+
         periodValues.addAll(pvd.getPointValues(vo.getSourceId(), now - durationMillis + 1));
-        
+
         Iterator<PointValueTime> iter = periodValues.iterator();
         while(iter.hasNext()) {
             PointValueTime pvt = iter.next();
@@ -95,7 +95,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             if(pvt.getTime() > latestTime)
                 latestTime = pvt.getTime();
         }
-        
+
     }
 
     @Override
@@ -103,7 +103,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         String name = vo.njbGetDataPoint().getExtendedName();
         String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
-        
+
         if(durationDescription != null) {
             if(vo.isCheckIncrease() && vo.isCheckDecrease())
                 return new TranslatableMessage("event.detector.analogChangePeriod", name, prettyLimit, durationDescription);
@@ -126,20 +126,20 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
     }
 
     @Override
-	public boolean isEventActive() {
+    public boolean isEventActive() {
         return eventActive;
     }
-    
+
     private void pruneValueList(long time) {
         long cutoff = time - durationMillis;
         boolean recomputeMinimum = false, recomputeMaximum = false;
-        
+
         if(dirty) {
             Collections.sort(periodValues);
             latestTime = periodValues.get(periodValues.size()-1).getTime();
             dirty = false;
         }
-        
+
         while(periodValues.size() > 1) {
             PointValueTime pvt1 = periodValues.get(0);
             PointValueTime pvt2 = periodValues.get(1);
@@ -153,10 +153,10 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                 break;
             }
         }
-        
+
         recomputeMaximum |= periodValues.size() <= 1;
         recomputeMinimum |= periodValues.size() <= 1;
-        
+
         if(recomputeMaximum || recomputeMinimum) {
             double newMax = Double.NEGATIVE_INFINITY;
             double newMin = Double.POSITIVE_INFINITY;
@@ -174,7 +174,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                 min = newMin;
         }
     }
-    
+
     private boolean checkNewValue(PointValueTime newValue) {
         boolean active = false;
         if(periodValues.size() > 0) {
@@ -185,7 +185,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                 active = true;
             }
         }
-        
+
         periodValues.add(newValue);
         if(newValue.getTime() > latestTime)
             latestTime = newValue.getTime();
@@ -197,7 +197,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             min = newValue.getDoubleValue();
         return active;
     }
-    
+
     private void handleValue(PointValueTime newValue) {
         boolean raised = false;
         synchronized(periodValues) {
@@ -206,7 +206,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             raised = checkNewValue(newValue);
             scheduleJob(Common.timer.currentTimeMillis() + durationMillis);
         }
-        
+
         if(raised && !eventActive) {
             raiseEvent(newValue.getTime(), createEventContext());
             eventActive = true;
@@ -221,12 +221,12 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.CHANGES_ONLY) {
             if(durationMillis != 0)
                 handleValue(newValue);
-            else if((newValue.getDoubleValue() < oldValue.getDoubleValue() - vo.getLimit() || 
+            else if((newValue.getDoubleValue() < oldValue.getDoubleValue() - vo.getLimit() ||
                     newValue.getDoubleValue() > oldValue.getDoubleValue() + vo.getLimit()))
-                    raiseEvent(newValue.getTime(), createEventContext());
+                raiseEvent(newValue.getTime(), createEventContext());
         }
     }
-    
+
     @Override
     public void pointLogged(PointValueTime value) {
         if(valueEventType == AnalogChangeDetectorVO.UpdateEventType.LOGGED_ONLY) {
@@ -239,43 +239,43 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                         value.getDoubleValue() > instantValue.getDoubleValue() + vo.getLimit())) {
                     raiseEvent(value.getTime(), createEventContext());
                 }
-                
+
                 if(value.getTime() > instantValue.getTime())
                     instantValue = value;
             }
         }
     }
-    
-	/* 
-	 * Call to check changes and see if we have changed enough
-	 * (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.detectors.TimeoutDetectorRT#scheduleTimeoutImpl(long)
-	 */
-	@Override
-	protected void scheduleTimeoutImpl(long fireTime) {
-		synchronized(periodValues) {
-		    PointValueTime lastValue = null;
-		    if(periodValues.size() > 0)
-		        lastValue = periodValues.get(periodValues.size()-1);
-		    periodValues.clear();
-		    if(lastValue != null) {
-		        periodValues.add(lastValue);
-		        min = max = lastValue.getDoubleValue();
-		    } else {
-    		    max = Double.NEGATIVE_INFINITY;
-    		    min = Double.POSITIVE_INFINITY;
-		    }
-		    returnToNormal(fireTime);
-		    eventActive = false;
-		}
-	}
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
-	@Override
-	public String getThreadNameImpl() {
-		return "AnalogChange Detector " + this.vo.getXid();
-	}
+
+    /*
+     * Call to check changes and see if we have changed enough
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.detectors.TimeoutDetectorRT#scheduleTimeoutImpl(long)
+     */
+    @Override
+    protected void scheduleTimeoutImpl(long fireTime) {
+        synchronized(periodValues) {
+            PointValueTime lastValue = null;
+            if(periodValues.size() > 0)
+                lastValue = periodValues.get(periodValues.size()-1);
+            periodValues.clear();
+            if(lastValue != null) {
+                periodValues.add(lastValue);
+                min = max = lastValue.getDoubleValue();
+            } else {
+                max = Double.NEGATIVE_INFINITY;
+                min = Double.POSITIVE_INFINITY;
+            }
+            returnToNormal(fireTime);
+            eventActive = false;
+        }
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+     */
+    @Override
+    public String getThreadNameImpl() {
+        return "AnalogChange Detector " + this.vo.getXid();
+    }
 
 }

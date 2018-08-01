@@ -26,22 +26,22 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 @Component
 public class MangoAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
     final RequestMatcher browserHtmlRequestMatcher;
-    
+
     @Autowired
     public MangoAuthenticationEntryPoint(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
         // this URL is not actually used
         super("/login.htm");
-        
+
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
     }
-    
+
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
         if (browserHtmlRequestMatcher.matches(request)) {
             super.commence(request, response, authException);
         } else {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.sendError(HttpStatus.UNAUTHORIZED.value(), authException.getMessage());
         }
     }
 
