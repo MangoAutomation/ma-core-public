@@ -186,14 +186,14 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                 //Test periodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
                 if(counter.getValue() == 1) {
-                    //Test Changes
-                    Assert.assertEquals(1, stats.getChanges());
+                    //Test Count for 1st value at period start
+                    Assert.assertEquals(1, stats.getCount());
                 }else {
-                    //No data in other periods
-                    //Test Changes
-                    Assert.assertEquals(0, stats.getChanges());
+                    //No values in any other period
+                    Assert.assertEquals(0, stats.getCount());
                 }
-                
+                //No changes in any period
+                Assert.assertEquals(0, stats.getChanges());
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
@@ -446,14 +446,15 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                     Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                     //Test count
                     Assert.assertEquals(11, stats.getCount());
+                    //Test changes
+                    Assert.assertEquals(9, stats.getChanges());
                 }else {
                     Assert.assertEquals(10, stats.getStartValue().getIntegerValue());
                     //Test count
                     Assert.assertEquals(10, stats.getCount());
+                  //Test changes
+                    Assert.assertEquals(10, stats.getChanges());
                 }
-
-                //Test Changes
-                Assert.assertEquals(10, stats.getChanges());
                 
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
@@ -467,4 +468,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
         quantizer.done();
         Assert.assertEquals(new Integer(31), counter.getValue());
     }
+    
+    
+    
 }

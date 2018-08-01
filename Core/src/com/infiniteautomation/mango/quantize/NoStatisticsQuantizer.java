@@ -6,7 +6,7 @@ package com.infiniteautomation.mango.quantize;
 import java.time.Instant;
 
 import com.infiniteautomation.mango.statistics.NoStatisticsGenerator;
-import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.view.stats.IValueTime;
 
 /**
  *
@@ -28,7 +28,7 @@ public class NoStatisticsQuantizer extends AbstractPointValueTimeQuantizer<NoSta
      */
     @Override
     protected NoStatisticsGenerator createStatistics(Instant start, Instant end,
-            DataValue startValue) {
+            IValueTime startValue) {
         return new NoStatisticsGenerator(start.toEpochMilli(), end.toEpochMilli());
     }
 

@@ -77,6 +77,15 @@ public class MockEventManager implements EventManager{
         return null;
     }
 
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.EventManager#toggleSilence(int, int)
+     */
+    @Override
+    public boolean toggleSilence(int eventId, int userId) {
+        return false;
+    }
+    
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.EventManager#getLastAlarmTimestamp()
      */

@@ -327,6 +327,19 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 
 --
 --
+-- FileStores
+--
+CREATE TABLE fileStores (
+	id int not null auto_increment, 
+	storeName nvarchar(100) not null, 
+	readPermission nvarchar(255), 
+	writePermission nvarchar(255),
+	PRIMARY KEY (id)
+);
+ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
+
+--
+--
 -- Compound events detectors
 --
 -- create table compoundEventDetectors (

@@ -132,10 +132,12 @@ public class UserDao extends AbstractDao<User> {
                         new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                                 boolToChar(user.isDisabled()), user.getHomeUrl(),
                                 user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
-                                boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(), user.getPasswordVersion() },
+                                boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(), 
+                                user.getPasswordVersion()},
                         new int[] { Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER }
+                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, 
+                                Types.VARCHAR, Types.INTEGER, Types.INTEGER }
                         );
             }
         });
@@ -385,7 +387,7 @@ public class UserDao extends AbstractDao<User> {
                 vo.getName(),
                 vo.getLocale(),
                 vo.getTokenVersion(),
-                vo.getPasswordVersion()
+                vo.getPasswordVersion(),
         };
     }
 

@@ -44,7 +44,7 @@ create table users (
   timezone varchar(50),
   muted char(1),
   permissions varchar(255),
-  name nvarchar(255),
+  name varchar(255),
   locale varchar(50),
   tokenVersion int not null,
   passwordVersion int not null,
@@ -323,7 +323,7 @@ CREATE TABLE jsonData (
   	publicData char(1),
   	data longtext,
     primary key (id)
-)engine=InnoDB;
+) engine=InnoDB;
 ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
 
 --
@@ -333,8 +333,21 @@ ALTER TABLE jsonData ADD CONSTRAINT jsonDataUn1 UNIQUE (xid);
 CREATE TABLE installedModules (
 	name varchar(30) not null,
 	version varchar(255) not null
-);
+) engine=InnoDB;
 ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
+
+--
+--
+-- FileStores
+--
+CREATE TABLE fileStores (
+	id int not null auto_increment, 
+	storeName varchar(100) not null, 
+	readPermission varchar(255), 
+	writePermission varchar(255),
+	PRIMARY KEY (id)
+) engine=InnoDB;
+ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
 
 --
 --

@@ -49,8 +49,9 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
 
     @Override
     public void run(long fireTime) {
+        Integer available = null;
         try {
-        	int available = ModulesDwr.upgradesAvailable();
+        	available = ModulesDwr.upgradesAvailable();
             if (available > 0) {
                 
                 TranslatableMessage m = new TranslatableMessage("modules.event.upgrades", 
@@ -60,14 +61,16 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
             else
                 Common.eventManager.returnToNormal(et, Common.timer.currentTimeMillis(),
                         EventInstance.RtnCauses.RETURN_TO_NORMAL, AlarmLevels.URGENT);
+        }
+        catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        } finally {
+            //To ensure that the monitor is created, event if it is with a null value.  
             if(this.availableUpgrades == null) {
                 this.availableUpgrades = new IntegerMonitor(UPGRADES_AVAILABLE_MONITOR_ID, new TranslatableMessage("internal.monitor.AVAILABLE_UPGRADE_COUNT"), this, available);
                 Common.MONITORED_VALUES.addIfMissingStatMonitor(this.availableUpgrades);
             } else
                 this.availableUpgrades.setValue(available);
-        }
-        catch (Exception e) {
-            LOG.error(e.getMessage(), e);
         }
     }
 

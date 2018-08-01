@@ -53,6 +53,7 @@ import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedIdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
+import com.serotonin.m2m2.rt.dataImage.IAnnotated;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
@@ -923,9 +924,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                         realSamples.increment();
                     } else {
                         IdPointValueTime fakeValue;
-                        if(current.isAnnotated())
+                        if(current instanceof IAnnotated)
                             fakeValue = new AnnotatedIdPointValueTime(current.getId(), current.getValue(), from, 
-                                    ((AnnotatedIdPointValueTime)current).getSourceMessage());
+                                    ((IAnnotated)current).getSourceMessage());
                         else
                             fakeValue = new IdPointValueTime(current.getId(), current.getValue(), from);
                         callback.firstValue(fakeValue, counter.getAndIncrement(), true);
@@ -959,9 +960,9 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
                 
                 for(IdPointValueTime current : values.values()) {
                     IdPointValueTime fakeValue;
-                    if(current.isAnnotated())
+                    if(current instanceof IAnnotated)
                         fakeValue = new AnnotatedIdPointValueTime(current.getId(), current.getValue(), to, 
-                                ((AnnotatedIdPointValueTime)current).getSourceMessage());
+                                ((IAnnotated)current).getSourceMessage());
                     else
                         fakeValue = new IdPointValueTime(current.getId(), current.getValue(), to);
                     callback.lastValue(fakeValue, counter.getAndIncrement(), true);

@@ -85,6 +85,9 @@ public class EventInstance{
     // the userEvents table.
     private boolean userNotified;
     private boolean silenced;
+    
+    //Used so that the multicaster knows what to ignore
+    private List<Integer> idsToNotify;
 
     //
     // Contextual data from the source that raised the event.
@@ -321,5 +324,24 @@ public class EventInstance{
         return context;
     }
 
+    public List<Integer> getIdsToNotify() {
+        return idsToNotify;
+    }
+    
+    public void setIdsToNotify(List<Integer> idsToNotify) {
+        this.idsToNotify = idsToNotify;
+    }
 
+    @Override
+    public String toString() {
+        return "EventInstance [id=" + id + ", eventType=" + eventType + ", activeTimestamp="
+                + activeTimestamp + ", rtnApplicable=" + rtnApplicable + ", rtnTimestamp="
+                + rtnTimestamp + ", rtnCause=" + rtnCause + ", alarmLevel=" + alarmLevel
+                + ", message=" + message + ", eventComments=" + eventComments + ", handlers="
+                + handlers + ", acknowledgedTimestamp=" + acknowledgedTimestamp
+                + ", acknowledgedByUserId=" + acknowledgedByUserId + ", acknowledgedByUsername="
+                + acknowledgedByUsername + ", alternateAckSource=" + alternateAckSource
+                + ", hasComments=" + hasComments + ", userNotified=" + userNotified + ", silenced="
+                + silenced + ", idsToNotify=" + idsToNotify + ", context=" + context + "]";
+    }
 }

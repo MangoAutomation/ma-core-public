@@ -1,3 +1,21 @@
+*Version 3.5.0*
+* Adding lastName to User (Not required)
+* Adding data point tags to email template model
+* Adding email template help for email event handlers
+* Adding Apache commons-text 1.4 as dependency
+* Removing Apache commons-lang dependency in favor of commons-lang3
+* Adding ability to format values as hex using AnalogRenderer See renderer help.
+* Adding tags into RealTimeDataPointValue for use in high performance realtime data cache (REST controller access via /realtime endpoint)
+* Creating DAO for user defined filestores, access methods to file store definitions in DAO
+* Fixing data point delete confirmation in all data points table
+* Improve performance and memory footprint of User Event Cache which is used to speed up recent alarm access
+* Fix for class cast error due to annotated point value classes in cache
+* Change JavaScript wrappers to supply null if there is no value, instead of default values false, 0, "" and null on times is no value, like p.past(MINUTE).firstTime could now be null where previously -1
+* Give "add data source" button a tabindex, click it on enter or spacebar when selected
+* Fix for ValueChangeCounter discrete statistic to not assume a value at exactly the period start as a change within the period
+* Fix for Mango JavaScript statistics to handle edge case where a value existing at the from time may have been missed
+* Use XIDs in publisher REST endpoints for points lists
+
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
 * Fix DateTimeZone default if user didn't specify one and is in certain locales
@@ -7,7 +25,7 @@
 * Fix saving multiple new event detectors on edit point page
 * Improve StartsAndRuntimeListWrapper documentation for Mango JavaScript
 * Improve bulk permissions editing accuracy for data points
-* Fix database upgrade 21 to not fail when deleting a duplicate user that has foreign key entries in linked tables.  IMPORTANT: if you have duplicate users
+* Fix database upgrade 21 to not fail when deleting a duplicate user that has foreign key entries in linked tables.  IMPORTANT: if you have duplicate users with the same username the user created most recently will be deleted.
 * Improve performance of the overrides system
 
 *Version 3.4.4*

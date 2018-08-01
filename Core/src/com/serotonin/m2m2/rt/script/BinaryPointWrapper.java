@@ -19,22 +19,22 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
         super(point, engine, setter);
     }
 
-    public boolean getValue() {
+    public Boolean getValue() {
         DataValue value = getValueImpl();
         if (value == null)
-            return false;
+            return null;
         return value.getBooleanValue();
     }
 
-    public boolean ago(int periodType) {
+    public Boolean ago(int periodType) {
         return ago(periodType, 1);
     }
 
-    public boolean ago(int periodType, int count) {
+    public Boolean ago(int periodType, int count) {
         long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
         PointValueTime pvt = point.getPointValueBefore(from);
         if (pvt == null)
-            return false;
+            return null;
         return pvt.getBooleanValue();
     }
 
@@ -43,8 +43,8 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
 	 */
 	@Override
 	protected void helpImpl(StringBuilder builder) {
-		builder.append("ago(periodType): boolean,\n ");		
-    	builder.append("ago(periodType, periods): boolean,\n ");
+		builder.append("ago(periodType): Boolean,\n ");		
+    	builder.append("ago(periodType, periods): Boolean,\n ");
     	super.helpImpl(builder);
 	}
 }

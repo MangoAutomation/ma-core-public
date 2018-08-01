@@ -335,7 +335,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void checkAddPoint() {
         IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
         Integer limit = lifecycle.dataPointLimit();
-        if(limit != null && this.countMonitor.getValue() >= limit) {
+        if(limit != null && this.countMonitor.getValue().get() >= limit) {
             String licenseType;
             if(Common.license() != null)
                 licenseType = Common.license().getLicenseType();

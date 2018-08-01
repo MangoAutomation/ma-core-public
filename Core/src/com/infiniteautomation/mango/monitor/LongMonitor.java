@@ -6,24 +6,20 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * @author Matthew Lohbihler
  */
 public class LongMonitor extends ValueMonitor<Long> {
-    private volatile long value;
 
+    /**
+     * Create monitor with initial value of 0
+     * @param id
+     * @param name
+     * @param owner
+     */
     public LongMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
-        this(id, name, owner, 0);
+        super(id, name, owner, 0L);
     }
 
-    public LongMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, long initialValue) {
-        super(id, name, owner);
+    public LongMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, Long initialValue) {
+        super(id, name, owner, initialValue);
         value = initialValue;
-    }
-    
-    @Override
-    public Long getValue() {
-        return value;
-    }
-
-    public void setValue(long value) {
-        this.value = value;
     }
 
     public void addValue(long value) {
@@ -33,10 +29,5 @@ public class LongMonitor extends ValueMonitor<Long> {
     public void setValueIfGreater(long value) {
         if (this.value < value)
             this.value = value;
-    }
-
-    @Override
-    public long longValue() {
-        return value;
     }
 }

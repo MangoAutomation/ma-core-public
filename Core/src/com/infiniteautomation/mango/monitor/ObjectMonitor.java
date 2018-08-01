@@ -9,24 +9,13 @@ public class ObjectMonitor<T> extends ValueMonitor<T> {
     private volatile T value;
 
     public ObjectMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
-        this(id, name, owner, null);
+        super(id, name, owner);
     }
 
     public ObjectMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, T initialValue) {
-        super(id, name, owner);
-        this.value = initialValue;
-    }
-    
-    @Override
-    public T getValue() {
-        return value;
+        super(id, name, owner, initialValue);
     }
 
-    public void setValue(T value) {
-        this.value = value;
-    }
-
-    @Override
     public String stringValue() {
         if (value == null)
             return null;

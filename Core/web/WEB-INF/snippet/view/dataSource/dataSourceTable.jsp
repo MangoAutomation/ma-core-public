@@ -12,7 +12,8 @@
     
     <!-- Select Type of DataSource -->
     <select id="dataSourceTypes" ></select>             
-    <tag:img png="add" title="common.add" id="addDataSource" onclick="dataSources.open(-1)"/>
+    <span tabindex="0" onkeypress="if(event.keyCode == 13 || event.keyCode == 32) dataSources.open(-1);"><tag:img png="add" title="common.add" id="addDataSource" onclick="dataSources.open(-1)"/></span>
+    
     <tag:img png="emport" title="emport.export" style="float:right" id="exportDataSources" onclick="dataSources.showExportUsingFilter()" />
     
     <div id="dataSourceTable"></div>

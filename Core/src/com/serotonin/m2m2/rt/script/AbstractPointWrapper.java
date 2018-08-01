@@ -10,7 +10,6 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -41,47 +40,50 @@ abstract public class AbstractPointWrapper {
         return pvt.getValue();
     }
 
-    public long getTime() {
+    public Long getTime() {
         PointValueTime pvt = point.getPointValue();
         if (pvt == null)
-            return -1;
+            return null;
         return pvt.getTime();
     }
 
-    public int getMillis() {
-        return getCalendar().get(Calendar.MILLISECOND);
+    public Integer getMillis() {
+        return getCalendar(Calendar.MILLISECOND);
     }
 
-    public int getSecond() {
-        return getCalendar().get(Calendar.SECOND);
+    public Integer getSecond() {
+        return getCalendar(Calendar.SECOND);
     }
 
-    public int getMinute() {
-        return getCalendar().get(Calendar.MINUTE);
+    public Integer getMinute() {
+        return getCalendar(Calendar.MINUTE);
     }
 
-    public int getHour() {
-        return getCalendar().get(Calendar.HOUR_OF_DAY);
+    public Integer getHour() {
+        return getCalendar(Calendar.HOUR_OF_DAY);
     }
 
-    public int getDay() {
-        return getCalendar().get(Calendar.DATE);
+    public Integer getDay() {
+        return getCalendar(Calendar.DATE);
     }
 
-    public int getDayOfWeek() {
-        return getCalendar().get(Calendar.DAY_OF_WEEK);
+    public Integer getDayOfWeek() {
+        return getCalendar(Calendar.DAY_OF_WEEK);
     }
 
-    public int getDayOfYear() {
-        return getCalendar().get(Calendar.DAY_OF_YEAR);
+    public Integer getDayOfYear() {
+        return getCalendar(Calendar.DAY_OF_YEAR);
     }
 
-    public int getMonth() {
-        return getCalendar().get(Calendar.MONTH) + 1;
+    public Integer getMonth() {
+        Integer month = getCalendar(Calendar.MONTH);
+        if(month != null)
+            return month + 1;
+        return null;
     }
 
-    public int getYear() {
-        return getCalendar().get(Calendar.YEAR);
+    public Integer getYear() {
+        return getCalendar(Calendar.YEAR);
     }
 
     public List<PointValueTime> last(int limit) {
@@ -99,13 +101,13 @@ abstract public class AbstractPointWrapper {
         return list.get(index);
     }
 
-    private GregorianCalendar getCalendar() {
-        long time = getTime();
-        if (time == -1)
-            throw new ShouldNeverHappenException("No timestamp for point value.");
+    private Integer getCalendar(int calendarAttribute) {
+        Long time = getTime();
+        if (time == null)
+            return null;
         GregorianCalendar gc = new GregorianCalendar();
         gc.setTimeInMillis(time);
-        return gc;
+        return gc.get(calendarAttribute);
     }
 
     public void set(Object value) {

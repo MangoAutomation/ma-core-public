@@ -1,22 +1,28 @@
 package com.infiniteautomation.mango.monitor;
 
-import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
  * @author Matthew Lohbihler
  */
 abstract public class ValueMonitor<T> {
+    
     private final String id;
     private final TranslatableMessage name;
     protected final ValueMonitorOwner owner;
-
+    protected volatile T value;
+    
     public ValueMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
+        this(id, name, owner, null);
+    }
+
+    public ValueMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, T value) {
         this.id = id;
         this.name = name;
         this.owner = owner;
+        this.value = value;
     }
-
+    
     public String getId() {
         return id;
     }
@@ -32,27 +38,13 @@ abstract public class ValueMonitor<T> {
     public void reset(){
     	this.owner.reset(this.id);
     }
-
-    abstract public T getValue();
-
-    public int intValue() {
-        throw new NotImplementedException();
-    }
-
-    public long longValue() {
-        throw new NotImplementedException();
-    }
-
-    public float floatValue() {
-        throw new NotImplementedException();
-    }
-
-    public double doubleValue() {
-        throw new NotImplementedException();
-    }
-
-    public String stringValue() {
-        throw new NotImplementedException();
+    
+    public void setValue(T value) {
+        this.value = value;
     }
     
+    public T getValue() {
+        return value;
+    }
+
  }

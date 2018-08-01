@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -40,27 +39,23 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     private long latestTime;
     private StartsAndRuntime sar;
 
-    public StartsAndRuntimeList(long periodStart, long periodEnd, PointValueTime startVT,
+    public StartsAndRuntimeList(long periodStart, long periodEnd, IValueTime startVT,
             List<? extends IValueTime> values) {
-        this(periodStart, periodEnd, startVT == null ? null : startVT.getValue(), values);
+      this(periodStart, periodEnd, startVT);
+      for (IValueTime vt : values)
+          addValueTime(vt);
+      done();
     }
 
-    public StartsAndRuntimeList(long periodStart, long periodEnd, DataValue startValue,
-            List<? extends IValueTime> values) {
-        this(periodStart, periodEnd, startValue);
-        for (IValueTime vt : values)
-            addValueTime(vt);
-        done();
-    }
-
-    public StartsAndRuntimeList(long periodStart, long periodEnd, DataValue startValue) {
+    public StartsAndRuntimeList(long periodStart, long periodEnd, IValueTime startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
 
-        if (startValue != null) {
-            this.startValue = startValue;
+        //Check for null and also bookend values
+        if (startValue != null && startValue.getValue() != null) {
+            this.startValue = startValue.getValue();
             latestTime = periodStart;
-            sar = get(startValue);
+            sar = get(this.startValue);
         }
     }
 
@@ -129,7 +124,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     public DataValue getStartValue() {
         return startValue;
     }
-
+    
     public DataValue getFirstValue() {
         return firstValue;
     }

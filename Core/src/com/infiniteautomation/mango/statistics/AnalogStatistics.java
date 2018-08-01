@@ -44,23 +44,19 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     public AnalogStatistics(long periodStart, long periodEnd, IValueTime startVT,
             List<? extends IValueTime> values) {
-        this(periodStart, periodEnd, startVT == null ? null : startVT.getValue().getDoubleValue(),
-                values);
-    }
-
-    public AnalogStatistics(long periodStart, long periodEnd, Double startValue,
-            List<? extends IValueTime> values) {
-        this(periodStart, periodEnd, startValue);
+        this(periodStart, periodEnd, startVT);
         for (IValueTime p : values)
             addValueTime(p);
         done();
     }
 
-    public AnalogStatistics(long periodStart, long periodEnd, Double startValue) {
+
+    public AnalogStatistics(long periodStart, long periodEnd, IValueTime startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
-        if (startValue != null) {
-            minimumValue = maximumValue = latestValue = this.startValue = startValue;
+        //Check for null and also bookend values
+        if (startValue != null && startValue.getValue() != null) {
+            minimumValue = maximumValue = latestValue = this.startValue = startValue.getValue().getDoubleValue();
             minimumTime = maximumTime = latestTime = periodStart;
         }
     }
@@ -224,12 +220,21 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     @Override
     public String toString() {
-        return "{minimumValue: " + minimumValue + ", minimumTime: " + minimumTime
-                + ", maximumValue: " + maximumValue + ", maximumTime: " + maximumTime
-                + ", average: " + average + ", sum: " + sum + ", count: " + count + ", delta: "
-                + delta + ", integral: " + integral + ", startValue: " + startValue
-                + ", firstValue: " + firstValue + ", firstTime: " + firstTime + ", lastValue: "
-                + lastValue + ", lastTime: " + lastTime + ", periodStartTime: " + periodStart
+        return "{minimumValue: " + minimumValue + 
+                ", minimumTime: " + minimumTime + 
+                ", maximumValue: " + maximumValue + 
+                ", maximumTime: " + maximumTime + 
+                ", average: " + average + 
+                ", sum: " + sum + 
+                ", count: " + count + 
+                ", delta: " + delta + 
+                ", integral: " + integral + 
+                ", startValue: " + startValue +
+                ", firstValue: " + firstValue + 
+                ", firstTime: " + firstTime + 
+                ", lastValue: " + lastValue + 
+                ", lastTime: " + lastTime + 
+                ", periodStartTime: " + periodStart
                 + ", periodEndTime: " + periodEnd + "}";
     }
 }

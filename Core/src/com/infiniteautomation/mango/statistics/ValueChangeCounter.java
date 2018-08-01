@@ -7,7 +7,6 @@ package com.infiniteautomation.mango.statistics;
 import java.util.List;
 import java.util.Objects;
 
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -21,10 +20,10 @@ public class ValueChangeCounter implements StatisticsGenerator {
     private final long periodEnd;
 
     // Calculated values
+    private DataValue startValue;
     private DataValue firstValue;
     private Long firstTime;
     private DataValue lastValue;
-    private DataValue startValue;
     private Long lastTime;
     private int count;
     private int changes;
@@ -32,22 +31,21 @@ public class ValueChangeCounter implements StatisticsGenerator {
     // State values
     private DataValue latestValue;
 
-    public ValueChangeCounter(long periodStart, long periodEnd, PointValueTime startVT,
+    public ValueChangeCounter(long periodStart, long periodEnd, IValueTime startVT,
             List<? extends IValueTime> values) {
-        this(periodStart, periodEnd, startVT == null ? null : startVT.getValue(), values);
-    }
-
-    public ValueChangeCounter(long periodStart, long periodEnd, DataValue startValue, List<? extends IValueTime> values) {
-        this(periodStart, periodEnd, startValue);
+        this(periodStart, periodEnd, startVT);
         for (IValueTime p : values)
             addValueTime(p);
         done();
     }
 
-    public ValueChangeCounter(long periodStart, long periodEnd, DataValue startValue) {
+    public ValueChangeCounter(long periodStart, long periodEnd, IValueTime startValue) {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
-        latestValue = this.startValue = startValue;
+      //Check for null and also bookend values
+        if(startValue != null && startValue.getValue() != null) {
+            latestValue = this.startValue = startValue.getValue();
+        }
     }
 
     @Override
@@ -66,12 +64,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
             firstTime = time;
         }
 
-        if(time == periodStart) {
-            //This is probably the same as the start value but we don't really care it is definitely 
-            // the first change
-            changes++;
-            latestValue = value;
-        }else if (!Objects.equals(latestValue, value)) {
+        if (!Objects.equals(latestValue, value)) {
             changes++;
             latestValue = value;
         }
@@ -98,7 +91,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
     public DataValue getStartValue() {
         return startValue;
     }
-
+    
     public DataValue getFirstValue() {
         return firstValue;
     }
@@ -129,8 +122,14 @@ public class ValueChangeCounter implements StatisticsGenerator {
 
     @Override
     public String toString() {
-        return "{count: " + count + ", changes: " + changes + ", firstValue: " + firstValue + ", firstTime: "
-                + firstTime + ", lastValue: " + lastValue + ", lastTime: " + lastTime + ", periodStartTime: " + periodStart
+        return "{count: " + count + 
+                ", changes: " + changes + 
+                ", startValue: " + startValue +
+                ", firstValue: " + firstValue + 
+                ", firstTime: " + firstTime + 
+                ", lastValue: " + lastValue + 
+                ", lastTime: " + lastTime + 
+                ", periodStartTime: " + periodStart
                 + ", periodEndTime: " + periodEnd + "}";
     }
 }

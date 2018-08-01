@@ -440,6 +440,5 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 	public int countUnsilencedEvents(int userId, int level) {
 		//return ejt.queryForInt("SELECT COUNT(*) FROM events AS evt left join userEvents ue on evt.id=ue.eventId where ue.silenced=? and evt.ackUserId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
 		return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
-	}    
-    
+	}    	
 }

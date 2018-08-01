@@ -560,6 +560,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     @Override
     public void validate(ProcessResult response) {
+        
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         if (StringUtils.isBlank(email))

@@ -26,7 +26,7 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
     public String getValue() {
         DataValue value = getValueImpl();
         if (value == null)
-            return "";
+            return null;
         return value.getStringValue();
     }
 
@@ -71,8 +71,10 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
     }
 
     public ValueChangeCounterWrapper getStats(long from, long to) {
-        PointValueTime start = point.getPointValueBefore(from);
-        List<PointValueTime> values = point.getPointValuesBetween(from, to);
+        PointValueTime start = point.getPointValueBefore(from + 1);
+        List<PointValueTime> values = point.getPointValuesBetween(from + 1, to);
+        if(start != null && start.getTime() == from)
+            values.add(0, start);
         ValueChangeCounter stats = new ValueChangeCounter(from, to, start, values);
         ValueChangeCounterWrapper wrapper = new ValueChangeCounterWrapper(stats);
         return wrapper;

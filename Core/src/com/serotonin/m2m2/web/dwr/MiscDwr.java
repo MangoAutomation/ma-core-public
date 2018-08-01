@@ -55,7 +55,7 @@ public class MiscDwr extends BaseDwr {
 
         User user = Common.getHttpUser();
         if (user != null) {
-            boolean result = EventDao.instance.toggleSilence(eventId, user.getId());
+            boolean result = Common.eventManager.toggleSilence(eventId, user.getId());
             resetLastAlarmLevelChange();
             response.addData("silenced", result);
         }
@@ -73,7 +73,7 @@ public class MiscDwr extends BaseDwr {
             EventDao eventDao = EventDao.instance;
             for (EventInstance evt : eventDao.getPendingEvents(user.getId())) {
                 if (!evt.isSilenced()) {
-                    eventDao.toggleSilence(evt.getId(), user.getId());
+                    Common.eventManager.toggleSilence(evt.getId(), user.getId());
                     silenced.add(evt.getId());
                 }
             }

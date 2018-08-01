@@ -31,7 +31,12 @@
   	<relation id="alarms"/>
   </item>
   
-  <item id="emailSettings" key="dox.emailSettings" filename="emailSettings.htm"/>
+  <item id="emailSettings" key="dox.emailSettings" filename="emailSettings.htm">
+  	<relation id="emailTemplates"/>
+  </item>
+  <item id="emailTemplates" key="dox.emailTemplates" filename="emailTemplates.htm">
+  	<relation id="emailSettings"/>
+  </item>
 
   <item id="siteAnalyticsSettings" key="dox.siteAnalyticsSettings" filename="analyticsSettings.htm"/>
   

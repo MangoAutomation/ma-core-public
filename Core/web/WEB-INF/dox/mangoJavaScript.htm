@@ -104,8 +104,6 @@ The following fields can be useful for conversions:</p>
     var end = new Date();
     var start = new Date(end.getTime() - 1000 * 60 * 20); //20 min before now
     var stats = p1.getStats(start.getTime(), end.getTime());</pre>
-<p><b>Note 2:</b> Statistics are returned as Javascript Objects so Mathematical operations must use the .doubleValue() method.  For example: </p>
-<pre>p1.past(HOUR).minimumValue.doubleValue() + p2.past(HOUR).maximumValue.doubleValue()</pre>
 
 <p>
   The <b>AnalogStatistics</b> object is returned by Numeric points. It contains the following properties:
@@ -118,12 +116,13 @@ The following fields can be useful for conversions:</p>
   <li><b>average</b>: (float) the average value of the point over the period</li>
   <li><b>integral</b>: (float) the integral value of the point over the period</li>
   <li><b>sum</b>: (float) the sum of all value updates over the period (appropriate for pulse counting)</li>
+  <li><b>startValue</b>: (float) the value before or exactly at the period start time</li>
   <li><b>firstValue</b>: (float) the first value in the period</li>
   <li><b>firstTime</b>: (integer) the time of the first value</li>
   <li><b>lastValue</b>: (float) the last value in the period</li>
   <li><b>lastTime</b>: (integer) the time of the last value</li> 
   <li><b>count</b>: (integer) the number of updates over the period</li>
-  <li><b>delta</b>: (float) the cumulative change in value from firstValue to lastValue</li>
+  <li><b>delta</b>: (float) the change in value from startValue, or if null firstValue, to lastValue</li>
   <li><b>periodStartTime</b> (integer) the start time used for the calculation </li>
   <li><b>periodEndTime</b> (integer) the end time used for the calculation </li>
 </ul>
@@ -139,6 +138,7 @@ The following fields can be useful for conversions:</p>
   <li><b>periodStartTime</b> (integer) the start time used for the calculation </li>
   <li><b>periodEndTime</b> (integer) the end time used for the calculation </li>
   <li><b>count</b> (integer) count of the total number of entries
+  <li><b>startValue</b>: the value before or exactly at the period start time</li>
   <li><b>firstValue</b>: the first value in the period</li>
   <li><b>firstTime</b>: (integer) the time of the first value</li>
   <li><b>lastValue</b>: the last value in the period</li>
@@ -177,15 +177,20 @@ Each ValueChangeCounter has the following properties:
 <ul>
   <li><b>periodStartTime</b> (integer) the start time used for the calculation </li>
   <li><b>periodEndTime</b> (integer) the end time used for the calculation </li>
-  <li><b>count</b> (integer) count of the total number of entries
+  <li><b>count</b> (integer) count of the total number of entries</li>
+  <li><b>startValue</b>: the value before or exactly at the period start time</li>
   <li><b>firstValue</b>: the first value in the period</li>
   <li><b>firstTime</b>: (integer) the time of the first value</li>
   <li><b>lastValue</b>: the last value in the period</li>
   <li><b>lastTime</b>: (integer) the time of the last value</li> 
-  <li><b>count</b>: (integer) count of the number of samples</li>
-  <li><b>changes</b>: (integer) number of unique sample values</li>
-  
+  <li><b>changes</b>: (integer) number of values not equal to the preceding value</li>
 </ul>
+
+<p><b>Note 2: </b>
+  startValue, firstValue, firstTime, lastValue, and lastTime can readily be null if there is no value before or especially in the period.
+  Null values are cast by the JavaScript engine when used, typically to false or 0. When cast to a string, it will be "null" . Other statistics
+  may have NaN, 0, or null values when there is no data in the period.
+</p>
 
 <h1>Global Utilities</h1>
 The script context has some utilites that are globally available.

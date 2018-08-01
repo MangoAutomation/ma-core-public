@@ -24,22 +24,22 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         super(point, engine, setter);
     }
 
-    public double getValue() {
+    public Double getValue() {
         DataValue value = getValueImpl();
         if (value == null)
-            return 0;
+            return null;
         return value.getDoubleValue();
     }
 
-    public double ago(int periodType) {
+    public Double ago(int periodType) {
         return ago(periodType, 1);
     }
 
-    public double ago(int periodType, int count) {
+    public Double ago(int periodType, int count) {
         long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
         PointValueTime pvt = point.getPointValueBefore(from);
         if (pvt == null)
-            return 0;
+            return null;
         return pvt.getDoubleValue();
     }
 
@@ -72,8 +72,10 @@ public class NumericPointWrapper extends AbstractPointWrapper {
     }
 
     public AnalogStatisticsWrapper getStats(long from, long to) {
-        PointValueTime start = point.getPointValueBefore(from);
-        List<PointValueTime> values = point.getPointValuesBetween(from, to);
+        PointValueTime start = point.getPointValueBefore(from + 1);
+        List<PointValueTime> values = point.getPointValuesBetween(from + 1, to);
+        if(start != null && start.getTime() == from)
+            values.add(0, start);
         AnalogStatistics stats = new AnalogStatistics(from, to, start, values);
         AnalogStatisticsWrapper wrapper = new AnalogStatisticsWrapper(stats);
         return wrapper;

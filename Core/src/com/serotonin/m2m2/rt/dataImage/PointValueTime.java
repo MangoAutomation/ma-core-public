@@ -72,10 +72,6 @@ public class PointValueTime implements Serializable, IValueTime, Comparable<Poin
         return value;
     }
 
-    public boolean isAnnotated() {
-        return false;
-    }
-
     public double getDoubleValue() {
         return value.getDoubleValue();
     }

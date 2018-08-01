@@ -89,8 +89,13 @@ public class ExportCodes {
         }
         return result;
     }
-
-    class Element {
+    
+    public List<Element> getElements() {
+        return elements;
+    }
+    
+    public static class Element {
+        
         final int id;
         final String code;
         final String key;
@@ -100,5 +105,18 @@ public class ExportCodes {
             this.code = code;
             this.key = key;
         }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getKey() {
+            return key;
+        }
+        
     }
 }

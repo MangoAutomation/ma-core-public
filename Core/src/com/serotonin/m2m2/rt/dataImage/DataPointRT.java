@@ -401,8 +401,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
                     intervalStartTime = timer == null ? Common.timer.currentTimeMillis() : timer.currentTimeMillis();
                     if(averagingValues.size() > 0) {
-                        Double nullValue = null;
-                            AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, nullValue, averagingValues);
+                            AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, null, averagingValues);
                             PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
                         valueCache.logPointValueAsync(newValue, null);
                         //Fire logged Events

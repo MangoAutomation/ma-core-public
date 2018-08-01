@@ -12,7 +12,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  *
  * @author Terry Packer
  */
-public class AnnotatedIdPointValueTime extends IdPointValueTime implements IdTime{
+public class AnnotatedIdPointValueTime extends IdPointValueTime implements IAnnotated {
 
     private static final long serialVersionUID = 1L;
     private final TranslatableMessage sourceMessage;
@@ -30,14 +30,10 @@ public class AnnotatedIdPointValueTime extends IdPointValueTime implements IdTim
     }
 
     @Override
-    public boolean isAnnotated() {
-        return sourceMessage != null;
-    }
-
     public TranslatableMessage getSourceMessage() {
         return sourceMessage;
     }
-
+    @Override
     public String getAnnotation(Translations translations) {
         return sourceMessage.translate(translations);
     }

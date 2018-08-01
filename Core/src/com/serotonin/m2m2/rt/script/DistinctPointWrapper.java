@@ -51,8 +51,10 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
     }
 
     public StartsAndRuntimeListWrapper getStats(long from, long to) {
-        PointValueTime start = point.getPointValueBefore(from);
-        List<PointValueTime> values = point.getPointValuesBetween(from, to);
+        PointValueTime start = point.getPointValueBefore(from + 1);
+        List<PointValueTime> values = point.getPointValuesBetween(from + 1, to);
+        if(start != null && start.getTime() == from)
+            values.add(0, start);
         StartsAndRuntimeList stats = new StartsAndRuntimeList(from, to, start, values);
         if (point.getDataTypeId() == DataTypes.BINARY)
             return new BinaryStartsAndRuntimeListWrapper(stats);
