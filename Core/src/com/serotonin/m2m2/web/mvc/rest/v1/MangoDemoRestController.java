@@ -14,25 +14,28 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.infiniteautomation.mango.db.query.pojo.RQLToObjectListQuery;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModel.Demo;
-import com.wordnik.swagger.annotations.ApiOperation;
-import com.wordnik.swagger.annotations.ApiParam;
-import com.wordnik.swagger.annotations.ApiResponse;
-import com.wordnik.swagger.annotations.ApiResponses;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
  *
  */
-//@Api(value="Demo", description="Demo Controller", position=1)
-//@RestController(value="DemoRestController")
-//@RequestMapping("/v1/demo")
+@Api(value="Demo", description="Demo Controller", position=1)
+@RestController(value="DemoRestController")
+@RequestMapping("/v1/demo")
 public class MangoDemoRestController extends MangoRestController{
 
     private static int MAX_ITEMS = 100;
@@ -44,7 +47,8 @@ public class MangoDemoRestController extends MangoRestController{
 
     @ApiOperation(
             value = "Get all demos",
-            notes = "Notes for getting all demos"
+            notes = "Notes for getting all demos",
+            authorizations = { @Authorization(value="Mango Token") }
             )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Ok"),

@@ -1,73 +1,109 @@
 /**
- * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
+ * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
 package com.serotonin.m2m2.web.mvc.rest.swagger;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
+import java.util.Arrays;
 
-import com.mangofactory.swagger.configuration.SpringSwaggerConfig;
-import com.mangofactory.swagger.models.dto.ApiInfo;
-import com.mangofactory.swagger.plugin.EnableSwagger;
-import com.mangofactory.swagger.plugin.SwaggerSpringMvcPlugin;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.classmate.TypeResolver;
+import com.google.common.net.HttpHeaders;
 import com.serotonin.m2m2.Common;
+
+import io.swagger.models.auth.In;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.schema.AlternateTypeRule;
+import springfox.documentation.schema.WildcardType;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.Contact;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.paths.AbstractPathProvider;
+import springfox.documentation.spring.web.paths.Paths;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 
 /**
+ * Simple Swagger 2 Configuration
+ * 
+ * TODO: Add Token Authentication if we want to expose api-docs endpoint to public
+ * 
  * @author Terry Packer
- *
  */
-@EnableSwagger
 @Configuration
-@ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest.swagger" })
-public class SwaggerConfig{
+@EnableSwagger2
+public class SwaggerConfig {
+	
+	@Autowired
+	private TypeResolver typeResolver;
+	
+	@Value("${springfox.documentation.swagger.v2.path}")
+	private String swagger2Endpoint;
+	
+	@Bean
+	public Docket describe(){
+		
+		Docket docket = new Docket(DocumentationType.SWAGGER_2)
+		        .ignoredParameterTypes(AuthenticationPrincipal.class)
+		        .select()
+		          .apis(RequestHandlerSelectors.any())
+		          .paths(PathSelectors.regex("/" + Common.envProps.getString("swagger.mangoApiVersion", "v1") + "/.*"))
+		          .build()
+		          .securitySchemes(Arrays.asList(new ApiKey("Mango Token", HttpHeaders.AUTHORIZATION, In.HEADER.name())))
+		          .pathProvider(new BasePathAwareRelativePathProvider("/rest"))
+		        .genericModelSubstitutes(ResponseEntity.class);
+		
+		docket.alternateTypeRules(
+		            new AlternateTypeRule(typeResolver.resolve(DeferredResult.class,
+		                    typeResolver.resolve(ResponseEntity.class, WildcardType.class)),
+		                typeResolver.resolve(WildcardType.class)))
+		        .useDefaultResponseMessages(false);
 
-    /**
-     * Every SwaggerSpringMvcPlugin bean is picked up by the swagger-mvc framework - allowing for multiple
-     * swagger groups i.e. same code base multiple swagger resource listings.
-     */
-    @Bean
-    public SwaggerSpringMvcPlugin customImplementation(MangoRestPathProvider provider, SpringSwaggerConfig springSwaggerConfig){
+		docket.apiInfo(new ApiInfoBuilder()
+	              .title("Mango REST API")
+	              .description("Support: <a href='http://infiniteautomation.com/forum'>Forum</a> or <a href='http://infiniteautomation.com/wiki/doku.php?id=graphics:api:intro'>Wiki</a>")
+	              .version("2.0")
+	              .termsOfServiceUrl("https://infiniteautomation.com/terms/")
+	              .contact(new Contact("IAS", "https://infiniteautomation.com", "info@infiniteautomation.com"))
+	              .license("Apache 2.0")
+	              .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
+	              .build());
+		return docket;
+	}
+	
+	class BasePathAwareRelativePathProvider extends AbstractPathProvider {
+        private String basePath;
 
-        //Authorization TODO Add in when ready for Auth
-        //	    List<AuthorizationScope> scopes = new ArrayList<AuthorizationScope>();
-        //	    scopes.add(new AuthorizationScope("email", "Access to your email address"));
-        //	    scopes.add(new AuthorizationScope("pets", "Access to your pets"));
-        //	   List<GrantType> grantTypes = new ArrayList<GrantType>();
-        //
-        //	    ImplicitGrant implicitGrant = new ImplicitGrant(
-        //	      new LoginEndpoint("http://localhost:8002/oauth/dialog"),
-        //	      "access_code");
-        //	    grantTypes.add(implicitGrant);
-        //
-        //	    AuthorizationType oauth = new OAuthBuilder().scopes(scopes).grantTypes(grantTypes).build();
-        return new SwaggerSpringMvcPlugin(springSwaggerConfig)
-                .apiInfo(apiInfo())
-                //.ignoredParameterTypes(ObjectMapper.class) //Ignore these types for Doc generation
-                //.authorizationTypes(authorizationTypes)
-                .pathProvider(provider)
-                .includePatterns(".*" + Common.envProps.getString("swagger.mangoApiVersion", "v[12]") + "/.*");
+        public BasePathAwareRelativePathProvider(String basePath) {
+            this.basePath = basePath;
+        }
+
+        @Override
+        protected String applicationPath() {
+            return basePath;
+        }
+
+        @Override
+        protected String getDocumentationPath() {
+            return basePath;
+        }
+
+        @Override
+        public String getOperationPath(String operationPath) {
+            UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromPath("/");
+            return Paths.removeAdjacentForwardSlashes(
+                    uriComponentsBuilder.path(operationPath.replaceFirst(basePath, "")).build().toString());
+        }
     }
-
-    /**
-     * Return the API Info for the Swagger UI Display
-     * @return
-     */
-    private ApiInfo apiInfo() {
-        ApiInfo apiInfo = new ApiInfo(
-                "Mango Rest API",                             /* title */
-                //Sub-title and support info,
-                "Support: <a href='http://infiniteautomation.com/forum'>Forum</a>&nbsp or &nbsp <a href='http://infiniteautomation.com/wiki/doku.php?id=graphics:api:intro'>Wiki</a>",
-                "http://infiniteautomation.com/terms/",           /* TOS URL */
-                "info@infiniteautomation.com",                    /* Contact */
-                "Apache 2.0",                                     /* license */
-                "http://www.apache.org/licenses/LICENSE-2.0.html" /* license URL */
-                );
-        return apiInfo;
-    }
-
-
-
 }

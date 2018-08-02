@@ -237,7 +237,10 @@ public class MangoSecurityConfiguration {
     @Value("${web.security.contentSecurityPolicy.legacyUi.enabled:false}") boolean legacyCspEnabled;
     @Value("${web.security.contentSecurityPolicy.legacyUi.reportOnly:false}") boolean legacyCspReportOnly;
     @Value("${web.security.contentSecurityPolicy.legacyUi.other:}") String legacyCspOther;
-
+    
+    @Value("${swagger.apidocs.protected:true}") boolean swaggerApiDocsProtected;
+    @Value("${springfox.documentation.swagger.v2.path}") String swagger2Endpoint;
+    
     final static String[] SRC_TYPES = new String[] {"default", "script", "style", "connect", "img", "font", "media", "object", "frame", "worker", "manifest"};
 
     @Configuration
@@ -348,6 +351,10 @@ public class MangoSecurityConfiguration {
             .antMatchers("/protected/**").authenticated() // protected folder requires authentication
             .anyRequest().permitAll(); // default to permit all
 
+          if(swaggerApiDocsProtected)
+              http.authorizeRequests().antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
+
+            
             http.csrf().disable();
 
             http.rememberMe().disable();
@@ -428,6 +435,9 @@ public class MangoSecurityConfiguration {
             .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
             .antMatchers("/protected/**").authenticated() // protected folder requires authentication
             .anyRequest().permitAll(); // default to permit all
+
+            if(swaggerApiDocsProtected)
+                http.authorizeRequests().antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
 
             http.csrf()
             .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)

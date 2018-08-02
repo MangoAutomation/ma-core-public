@@ -11,7 +11,8 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
-import com.wordnik.swagger.annotations.ApiModelProperty;
+
+import io.swagger.annotations.ApiModelProperty;
 
 /**
  * @author Terry Packer
