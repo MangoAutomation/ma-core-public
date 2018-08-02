@@ -17,6 +17,7 @@
 * Use XIDs in publisher REST endpoints for points lists
 * Upgrade to Swagger 2 for REST api documentation, view page at /swagger-ui.html
 * Fix additional context and unchange point value for inactive scripts on set point handlers
+* Add byXid method to DataPointQuery and DataSourceQuery in script environments
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
