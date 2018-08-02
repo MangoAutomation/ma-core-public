@@ -61,6 +61,18 @@ public class DataSourceQuery{
 		return results;
 	}
 	
+	public DataSourceWrapper byXid(String xid) {
+	    DataSourceVO ds = DataSourceDao.instance.getByXid(xid);
+	    if(ds == null)
+	        return null;
+	    
+	    if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), ds)) {
+	        List<DataPointWrapper> points = getPointsForSource(ds);
+            return new DataSourceWrapper(ds, points);
+	    } else
+	        return null;
+	}
+	
     /**
      * Helper to extract points for a source
 	 * @param ds

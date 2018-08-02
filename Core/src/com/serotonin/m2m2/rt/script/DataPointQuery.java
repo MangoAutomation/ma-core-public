@@ -12,7 +12,6 @@ import javax.script.ScriptEngine;
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 
-import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
@@ -79,6 +78,25 @@ public class DataPointQuery{
 			}
 		}
 		return results;
+	}
+	
+	public DataPointWrapper byXid(String xid) {
+	    DataPointVO dp = DataPointDao.instance.getByXid(xid);
+	    if(dp == null)
+	        return null;
+	    
+	    if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), dp) || Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), dp)) {
+	        DataPointRT rt = null;
+	        AbstractPointWrapper wrapper = null;
+	        rt = Common.runtimeManager.getDataPoint(dp.getId());
+	        if(rt != null)
+	            wrapper = ScriptUtils.wrapPoint(engine, rt, setter);
+	        else
+	            wrapper = null;
+	        return new DataPointWrapper(dp, wrapper);
+	    } else
+	        return null;
+	    
 	}
 	
     public String getHelp(){
