@@ -229,8 +229,15 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	}
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         	context.put("target", targetPoint);
+        	Map<String, Object> additionalContext = new HashMap<String, Object>();
+            additionalContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, new EventInstanceWrapper(evt));
         	try {
-	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, new HashMap<String, Object>(), evt.getRtnTimestamp(), 
+        	    for(IntStringPair cxt : vo.getAdditionalContext()) {
+                    DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
+                    if(dprt != null)
+                        context.put(cxt.getValue(), dprt);
+                }
+	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, additionalContext, evt.getRtnTimestamp(), 
 	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), vo.getScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL),
 	        			setCallback, importExclusions, false);
 	        	value = pvt.getValue();
@@ -248,7 +255,8 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         else
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getInactiveAction());
 
-        Common.backgroundProcessing.addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value,
+        if(CompiledScriptExecutor.UNCHANGED != value)
+            Common.backgroundProcessing.addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value,
                 evt.getRtnTimestamp()), this));
     }
 
