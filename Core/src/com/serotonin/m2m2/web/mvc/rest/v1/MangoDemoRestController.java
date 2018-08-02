@@ -26,7 +26,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
@@ -47,8 +46,7 @@ public class MangoDemoRestController extends MangoRestController{
 
     @ApiOperation(
             value = "Get all demos",
-            notes = "Notes for getting all demos",
-            authorizations = { @Authorization(value="Mango Token") }
+            notes = "Notes for getting all demos"
             )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Ok"),

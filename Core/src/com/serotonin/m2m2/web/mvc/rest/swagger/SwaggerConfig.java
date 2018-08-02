@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.swagger;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,8 +27,11 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.schema.AlternateTypeRule;
 import springfox.documentation.schema.WildcardType;
 import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
 import springfox.documentation.service.Contact;
+import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.paths.AbstractPathProvider;
 import springfox.documentation.spring.web.paths.Paths;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -37,14 +41,18 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 /**
  * Simple Swagger 2 Configuration
  * 
- * TODO: Add Token Authentication if we want to expose api-docs endpoint to public
+ * Note that to use the Swagger 2 UI with tokens:
  * 
+ *  1.  the Value: field should be Bearar [space] [token]
+ *  2.  the swagger.apidocs.protected=false must be set
  * @author Terry Packer
  */
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
 	
+    private final String SECURITY_TOKEN_REFERENCE = "Mango Token";
+    
 	@Autowired
 	private TypeResolver typeResolver;
 	
@@ -60,7 +68,8 @@ public class SwaggerConfig {
 		          .apis(RequestHandlerSelectors.any())
 		          .paths(PathSelectors.regex("/" + Common.envProps.getString("swagger.mangoApiVersion", "v1") + "/.*"))
 		          .build()
-		          .securitySchemes(Arrays.asList(new ApiKey("Mango Token", HttpHeaders.AUTHORIZATION, In.HEADER.name())))
+		          .securitySchemes(Arrays.asList(new ApiKey(SECURITY_TOKEN_REFERENCE, HttpHeaders.AUTHORIZATION, In.HEADER.name())))
+		          .securityContexts(Arrays.asList(securityContext()))
 		          .pathProvider(new BasePathAwareRelativePathProvider("/rest"))
 		        .genericModelSubstitutes(ResponseEntity.class);
 		
@@ -75,13 +84,31 @@ public class SwaggerConfig {
 	              .description("Support: <a href='http://infiniteautomation.com/forum'>Forum</a> or <a href='http://infiniteautomation.com/wiki/doku.php?id=graphics:api:intro'>Wiki</a>")
 	              .version("2.0")
 	              .termsOfServiceUrl("https://infiniteautomation.com/terms/")
-	              .contact(new Contact("IAS", "https://infiniteautomation.com", "info@infiniteautomation.com"))
+	              .contact(new Contact("IAS", "https://infiniteautomation.com", "support@infiniteautomation.com"))
 	              .license("Apache 2.0")
 	              .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
 	              .build());
 		return docket;
 	}
 	
+	/**
+	 * Setup the security context to allow Tokens to test the API
+	 * @return
+	 */
+    private SecurityContext securityContext() {
+        return SecurityContext.builder().securityReferences(defaultAuth())
+                .forPaths(PathSelectors.any()).build();
+    }
+
+    private List<SecurityReference> defaultAuth() {
+        AuthorizationScope[] authScopes = new AuthorizationScope[0];
+        SecurityReference securityReference = SecurityReference.builder()
+                .reference(SECURITY_TOKEN_REFERENCE)
+                .scopes(authScopes)
+                .build();
+        return Arrays.asList(securityReference);
+    }
+    
 	class BasePathAwareRelativePathProvider extends AbstractPathProvider {
         private String basePath;
 
