@@ -28,7 +28,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import org.springframework.web.servlet.mvc.multiaction.NoSuchRequestHandlingMethodException;
 
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModel;
@@ -81,17 +80,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     	return super.handleExceptionInternal(ex, body, headers, status, request);
     }
-
-	@Override
-	protected ResponseEntity<Object> handleNoSuchRequestHandlingMethod(
-			NoSuchRequestHandlingMethodException ex, HttpHeaders headers,
-			HttpStatus status, WebRequest request) {
-    	LOG.error(ex.getMessage(), ex);
-        headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
-        headers.setContentType(MediaType.APPLICATION_JSON);
-		return super.handleNoSuchRequestHandlingMethod(ex, headers, status, request);
-	}
 
 	@Override
 	protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(

@@ -21,7 +21,7 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -53,7 +53,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  */
 @Configuration
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
-public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
+public class MangoRestSpringConfiguration implements WebMvcConfigurer {
 
 
     private static ObjectMapper objectMapper;
@@ -118,7 +118,7 @@ public class MangoRestSpringConfiguration extends WebMvcConfigurerAdapter {
         .favorPathExtension(false)
         .ignoreAcceptHeader(false)
         .favorParameter(true)
-        .useJaf(false)
+        .useRegisteredExtensionsOnly(true)
         //.mediaType("html", MediaType.TEXT_HTML) TODO should we re-enable this?
         .mediaType("xml", MediaType.APPLICATION_XML)
         .mediaType("json", MediaType.APPLICATION_JSON_UTF8)

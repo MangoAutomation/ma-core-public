@@ -5,6 +5,7 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
@@ -119,7 +120,7 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(
+    public Optional<CorsConfigurationSource> corsConfigurationSource(
             @Value("${rest.cors.enabled:false}") boolean enabled,
             @Value("${rest.cors.allowedOrigins:}") List<String> allowedOrigins,
             @Value("${rest.cors.allowedMethods:PUT,POST,GET,OPTIONS,DELETE}") List<String> allowedMethods,
@@ -128,7 +129,7 @@ public class MangoSecurityConfiguration {
             @Value("${rest.cors.allowCredentials:false}") boolean allowCredentials,
             @Value("${rest.cors.maxAge:3600}") long maxAge) {
 
-        if (!enabled) return null;
+        if (!enabled) return Optional.empty();
 
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
@@ -142,7 +143,7 @@ public class MangoSecurityConfiguration {
         source.setAlwaysUseFullPath(true); //Don't chop off the starting /rest stuff
         source.registerCorsConfiguration("/rest/**", configuration);
 
-        return source;
+        return Optional.of(source);
     }
 
     @Primary
@@ -159,31 +160,31 @@ public class MangoSecurityConfiguration {
     }
 
     @Bean("ipRateLimiter")
-    public RateLimiter<String> ipRateLimiter(
+    public Optional<RateLimiter<String>> ipRateLimiter(
             @Value("${rateLimit.rest.anonymous.enabled:true}") boolean enabled,
             @Value("${rateLimit.rest.anonymous.burstQuantity:10}") long burstQuantity,
             @Value("${rateLimit.rest.anonymous.quanitity:2}") long quanitity,
             @Value("${rateLimit.rest.anonymous.period:1}") long period,
             @Value("${rateLimit.rest.anonymous.periodUnit:SECONDS}") TimeUnit periodUnit) {
 
-        return !enabled ? null : new RateLimiter<>(burstQuantity, quanitity, period, periodUnit);
+        return !enabled ? Optional.empty() : Optional.of(new RateLimiter<>(burstQuantity, quanitity, period, periodUnit));
     }
 
     @Bean("userRateLimiter")
-    public RateLimiter<Integer> userRateLimiter(
+    public Optional<RateLimiter<Integer>> userRateLimiter(
             @Value("${rateLimit.rest.user.enabled:false}") boolean enabled,
             @Value("${rateLimit.rest.user.burstQuantity:20}") long burstQuantity,
             @Value("${rateLimit.rest.user.quanitity:10}") long quanitity,
             @Value("${rateLimit.rest.user.period:1}") long period,
             @Value("${rateLimit.rest.user.periodUnit:SECONDS}") TimeUnit periodUnit) {
 
-        return !enabled ? null : new RateLimiter<>(burstQuantity, quanitity, period, periodUnit);
+        return !enabled ? Optional.empty() : Optional.of(new RateLimiter<>(burstQuantity, quanitity, period, periodUnit));
     }
 
     @Autowired HttpFirewall httpFirewall;
     @Autowired AccessDeniedHandler accessDeniedHandler;
     @Autowired AuthenticationEntryPoint authenticationEntryPoint;
-    @Autowired CorsConfigurationSource corsConfigurationSource;
+    @Autowired Optional<CorsConfigurationSource> corsConfigurationSource;
     @Autowired AuthenticationSuccessHandler authenticationSuccessHandler;
     @Autowired AuthenticationFailureHandler authenticationFailureHandler;
     @Autowired LogoutHandler logoutHandler;
@@ -195,8 +196,8 @@ public class MangoSecurityConfiguration {
     @Autowired SessionRegistry sessionRegistry;
     @Autowired SessionInformationExpiredStrategy sessionInformationExpiredStrategy;
     @Autowired JsonLoginConfigurer jsonLoginConfigurer;
-    @Autowired @Qualifier("ipRateLimiter") RateLimiter<String> ipRateLimiter;
-    @Autowired @Qualifier("userRateLimiter") RateLimiter<Integer> userRateLimiter;
+    @Autowired @Qualifier("ipRateLimiter") Optional<RateLimiter<String>> ipRateLimiter;
+    @Autowired @Qualifier("userRateLimiter") Optional<RateLimiter<Integer>> userRateLimiter;
     @Autowired Environment env;
 
     @Autowired @Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher;
@@ -289,8 +290,8 @@ public class MangoSecurityConfiguration {
             // can we enable token and basic auth for this proxy?
             http.httpBasic().disable();
 
-            if (ipRateLimiter != null || userRateLimiter != null) {
-                http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor), ExceptionTranslationFilter.class);
+            if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
+                http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter.get(), userRateLimiter.get(), honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
             if (sslOn && sslHstsEnabled) {
@@ -380,8 +381,8 @@ public class MangoSecurityConfiguration {
                 http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
             }
 
-            if (ipRateLimiter != null || userRateLimiter != null) {
-                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor), ExceptionTranslationFilter.class);
+            if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.get(), userRateLimiter.get(), honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
             //Configure the headers
@@ -390,7 +391,7 @@ public class MangoSecurityConfiguration {
 
             // Use the MVC Cors Configuration
             if (corsEnabled) {
-                http.cors().configurationSource(corsConfigurationSource);
+                http.cors().configurationSource(corsConfigurationSource.get());
             }
         }
     }
@@ -475,8 +476,8 @@ public class MangoSecurityConfiguration {
             http.addFilterAfter(switchUserFilter, FilterSecurityInterceptor.class);
             http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
-            if (ipRateLimiter != null || userRateLimiter != null) {
-                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor), ExceptionTranslationFilter.class);
+            if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.get(), userRateLimiter.get(), honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
             //Configure headers
@@ -485,7 +486,7 @@ public class MangoSecurityConfiguration {
 
             // Use the MVC Cors Configuration
             if (corsEnabled) {
-                http.cors().configurationSource(corsConfigurationSource);
+                http.cors().configurationSource(corsConfigurationSource.get());
             }
         }
     }
