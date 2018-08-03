@@ -58,9 +58,9 @@
 		<Logger name="com.infiniteautomation" level="debug"/>
 		<Logger name="com.serotonin.log.LogStopWatch" level="info"/>
 		<Logger name="com.serotonin.modbus4j" level="info"/>
-		<Logger name="org.tinytsdb" level="debug"/>
 		<Logger name="com.mangofactory" level="debug"/>
-		<Logger name="com.mangofactory.swagger.models.ObjectMapperBeanPropertyNamingStrategy" level="warn"/>
+		<Logger name="io.swagger" level="debug"/>
+		<Logger name="springfox.documentation" level="debug"/>
 		<Logger name="org.eclipse.jetty" level="info"/>
 		<Logger name="org.springframework.web" level="debug"/>
 		<Logger name="org.springframework.security" level="debug"/>
