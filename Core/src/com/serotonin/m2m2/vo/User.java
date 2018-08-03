@@ -109,6 +109,8 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
+    private transient final LazyInitializer<Set<String>> permissionsSet = new LazyInitializer<>();
+
     // TODO Mango 3.5 remove
     private transient String remoteAddr; //remote address we are logged in from
 
@@ -377,6 +379,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         //Set the admin flag if necessary
         this.admin = Permissions.permissionContains(SuperadminPermissionDefinition.GROUP_NAME, permissions);
         this.authorities.reset();
+        this.permissionsSet.reset();
     }
 
     public DataSourceVO<?> getEditDataSource() {
@@ -735,5 +738,84 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     public boolean isPasswordLocked() {
         return this.password != null && this.password.startsWith(UserDao.LOCKED_PASSWORD);
+    }
+
+    public boolean equalsAllFields(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        User other = (User) obj;
+        if (disabled != other.disabled)
+            return false;
+        if (email == null) {
+            if (other.email != null)
+                return false;
+        } else if (!email.equals(other.email))
+            return false;
+        if (homeUrl == null) {
+            if (other.homeUrl != null)
+                return false;
+        } else if (!homeUrl.equals(other.homeUrl))
+            return false;
+        if (lastLogin != other.lastLogin)
+            return false;
+        if (locale == null) {
+            if (other.locale != null)
+                return false;
+        } else if (!locale.equals(other.locale))
+            return false;
+        if (muted != other.muted)
+            return false;
+        if (password == null) {
+            if (other.password != null)
+                return false;
+        } else if (!password.equals(other.password))
+            return false;
+        if (passwordVersion != other.passwordVersion)
+            return false;
+        if (permissions == null) {
+            if (other.permissions != null)
+                return false;
+        } else if (!permissions.equals(other.permissions))
+            return false;
+        if (phone == null) {
+            if (other.phone != null)
+                return false;
+        } else if (!phone.equals(other.phone))
+            return false;
+        if (receiveAlarmEmails != other.receiveAlarmEmails)
+            return false;
+        if (receiveOwnAuditEvents != other.receiveOwnAuditEvents)
+            return false;
+        if (timezone == null) {
+            if (other.timezone != null)
+                return false;
+        } else if (!timezone.equals(other.timezone))
+            return false;
+        if (tokenVersion != other.tokenVersion)
+            return false;
+        if (username == null) {
+            if (other.username != null)
+                return false;
+        } else if (!username.equals(other.username))
+            return false;
+        return true;
+    }
+
+    public Set<String> getPermissionsSet() {
+        return permissionsSet.get(() -> {
+            return Permissions.explodePermissionGroups(this.permissions);
+        });
+    }
+
+    public boolean hasAnyPermission(Set<String> requiredPermissions) {
+        return Permissions.hasAny(this.getPermissionsSet(), requiredPermissions);
+    }
+
+    public boolean hasAllPermissions(Set<String> requiredPermissions) {
+        return Permissions.hasAll(this.getPermissionsSet(), requiredPermissions);
     }
 }

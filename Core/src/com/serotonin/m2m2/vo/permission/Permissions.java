@@ -26,7 +26,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 
 /**
  * @author Matthew Lohbihler
- * 
+ *
  */
 public class Permissions {
     public interface DataPointAccessTypes {
@@ -36,16 +36,16 @@ public class Permissions {
         int DATA_SOURCE = 3;
         int ADMIN = 4;
     }
-    
+
     public static final ExportCodes ACCESS_TYPE_CODES = new ExportCodes();
     static{
-    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.NONE, "NONE");
-    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.READ, "READ");
-    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.SET, "SET");
-    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.DATA_SOURCE, AuditEventType.TYPE_DATA_SOURCE);
-    	ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.ADMIN, "ADMIN");
+        ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.NONE, "NONE");
+        ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.READ, "READ");
+        ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.SET, "SET");
+        ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.DATA_SOURCE, AuditEventType.TYPE_DATA_SOURCE);
+        ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.ADMIN, "ADMIN");
     }
-    
+
     private Permissions() {
         // no op
     }
@@ -61,14 +61,14 @@ public class Permissions {
             throw new PermissionException(new TranslatableMessage("permission.exception.userIsDisabled"), user);
     }
 
-	public static boolean isValidUser(User user){
-		if (user == null)
+    public static boolean isValidUser(User user){
+        if (user == null)
             return false;
-		else if (user.isDisabled())
-           return false;
-		else return true;
-	}
-    
+        else if (user.isDisabled())
+            return false;
+        else return true;
+    }
+
     //
     //
     // Administrator
@@ -119,12 +119,12 @@ public class Permissions {
 
     public static boolean hasDataSourcePermission(String userPermissions, DataSourceVO<?> ds){
         if(hasPermission(ds.getEditPermission(), userPermissions))
-        	return true;
+            return true;
         else
-        	return false;
+            return false;
     }
-    
-    
+
+
     //
     //
     // Data point access
@@ -141,16 +141,16 @@ public class Permissions {
     }
 
     public static boolean hasDataPointReadPermission(String userPermissions, IDataPoint point){
-    	if(hasPermission(point.getReadPermission(), userPermissions) || 
-    	   permissionContains(point.getSetPermission(), userPermissions)) //No need to recheck admin
-    		return true;
-    	String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-    	if (permissionContains(dsPermission, userPermissions))
+        if(hasPermission(point.getReadPermission(), userPermissions) ||
+                permissionContains(point.getSetPermission(), userPermissions)) //No need to recheck admin
+            return true;
+        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
+        if (permissionContains(dsPermission, userPermissions))
             return true;
         else
-        	return false;
+            return false;
     }
-    
+
     public static void ensureDataPointSetPermission(User user, DataPointVO point) throws PermissionException {
         if (!point.getPointLocator().isSettable())
             throw new ShouldNeverHappenException("Point is not settable");
@@ -173,14 +173,14 @@ public class Permissions {
      */
     public static boolean hasDataPointSetPermission(String userPermissions, IDataPoint point){
         if(hasPermission(point.getSetPermission(), userPermissions))
-        	return true;
-    	String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-    	if (permissionContains(dsPermission, userPermissions))
+            return true;
+        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
+        if (permissionContains(dsPermission, userPermissions))
             return true;
         else
-        	return false;
+            return false;
     }
-    
+
     public static int getDataPointAccessType(User user, IDataPoint point) {
         if (!isValidUser(user))
             return DataPointAccessTypes.NONE;
@@ -223,7 +223,7 @@ public class Permissions {
             return true;
         return permissionContains(query, user.getPermissions());
     }
-    
+
     /**
      * Utility to check for a user permission in a list of permissions
      * that ensures Super Admin access to everything
@@ -232,7 +232,7 @@ public class Permissions {
      * @return
      */
     public static boolean hasPermission(String query, String userPermissions){
-    	if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, userPermissions))
+        if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, userPermissions))
             return true;
         return permissionContains(query, userPermissions);
     }
@@ -241,7 +241,7 @@ public class Permissions {
      * Checks if the given query matches the given group list. Each is a comma-delimited list of tags, where if any
      * tag in the query string matches any tag in the groups string, true is returned. In other words, if there is
      * any intersection in the tags, permission is granted.
-     * 
+     *
      * @param query
      *            the granted permission tags
      * @param groups
@@ -298,10 +298,10 @@ public class Permissions {
 
     /**
      * Provides detailed information on the permission provided to a user for a given query string.
-     * 
+     *
      * Also filters out any permissions that are not part of the limitPermissions
      * so not all permissions or users are viewable.
-     * 
+     *
      * If the currentUser is an admin then everything is visible
      *
      * @param currentUser - user to limit details of view to thier permissions groups
@@ -316,18 +316,18 @@ public class Permissions {
 
         //Add any matching groups
         if (!StringUtils.isEmpty(user.getPermissions())) {
-        	if(currentUser.isAdmin()){
-        		//Add all groups
-        		for (String s : user.getPermissions().split(",")) {
+            if(currentUser.isAdmin()){
+                //Add all groups
+                for (String s : user.getPermissions().split(",")) {
                     if (!StringUtils.isEmpty(s))
                         d.addGroup(s);
                 }
-        	}else{
-	        	Set<String> matching = findMatchingPermissions(currentUser.getPermissions(), user.getPermissions());
-	        	for(String match : matching){
-	        		d.addGroup(match);
-	        	}
-        	}
+            }else{
+                Set<String> matching = findMatchingPermissions(currentUser.getPermissions(), user.getPermissions());
+                for(String match : matching){
+                    d.addGroup(match);
+                }
+            }
 
             if (!StringUtils.isEmpty(query)) {
                 for (String queryPart : query.split(",")) {
@@ -343,18 +343,18 @@ public class Permissions {
         }
 
         if(d.getAllGroups().size() == 0)
-        	return null;
-        
+            return null;
+
         return d;
     }
-    
+
     public static Set<String> explodePermissionGroups(String groups) {
         Set<String> set = new HashSet<>();
 
         if (!StringUtils.isEmpty(groups)) {
             for (String s : groups.split(",")) {
                 if (!StringUtils.isEmpty(s)){
-                	s = s.trim();
+                    s = s.trim();
                     set.add(s);
                 }
             }
@@ -363,96 +363,107 @@ public class Permissions {
         return set;
     }
 
-	/**
-	 * Find any permissions that are not granted
-	 * 
-	 * @param permissions - Permissions of the item
-	 * @param userPermissions - Granted permissions
-	 * @return
-	 */
-	public static Set<String> findInvalidPermissions(
-			String permissions, String userPermissions) {
-		
-		Set<String> notGranted = new HashSet<String>();
-		Set<String> itemPermissions = explodePermissionGroups(permissions);
-		Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
-		
-		for(String itemPermission : itemPermissions){
-			if(!grantedPermissions.contains(itemPermission))
-				notGranted.add(itemPermission);
-		}
-		
-		return notGranted;
-	}
-	
-	/**
-	 * Find any permissions that are not granted
-	 * 
-	 * @param permissions - Permissions of the item
-	 * @param userPermissions - Granted permissions
-	 * @return
-	 */
-	public static Set<String> findMatchingPermissions(
-			String permissions, String userPermissions) {
-		
-		Set<String> matching = new HashSet<String>();
-		Set<String> itemPermissions = explodePermissionGroups(permissions);
-		Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
-		
-		for(String itemPermission : itemPermissions){
-			if(grantedPermissions.contains(itemPermission))
-				matching.add(itemPermission);
-		}
-		return matching;
-	}
-	
-	/**
-	 * Create a comma separated list from a set of permission groups
-	 * @param groups
-	 * @return
-	 */
-	public static String implodePermissionGroups(Set<String> groups){
-		String groupsList = new String();
-		for(String p : groups){
-			if(groupsList.isEmpty())
-				groupsList += p;
-			else
-				groupsList += ("," + p);
-		}
-		return groupsList;
-	}
-	
-	
-	/**
-	 * Validate permissions that are being set on an item.
-	 * 
-	 * Any permissions that the User does not have are invalid unless that user is an admin.
-	 * 
-	 * @param itemPermissions
-	 * @param user
-	 * @param response
-	 * @param contextKey - UI Element ID
-	 */
-	public static void validateAddedPermissions(String itemPermissions, User user, ProcessResult response, String contextKey){
-		
-		if(user == null){
-			response.addContextualMessage(contextKey, "validate.invalidPermission","No User Found");
-			return;
-		}
-		if(!user.isAdmin()){
-			//if permission is empty then don't bother checking
-			if(!itemPermissions.isEmpty()){
-				//Determine if any of the permissions are unavailable to us
-				Set<String> invalid = findInvalidPermissions(itemPermissions, user.getPermissions());
-				if(invalid.size() > 0){
-					String notGranted = implodePermissionGroups(invalid);
-					response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
-				}
-			}
-		}
-		
-	}
+    /**
+     * Find any permissions that are not granted
+     *
+     * @param permissions - Permissions of the item
+     * @param userPermissions - Granted permissions
+     * @return
+     */
+    public static Set<String> findInvalidPermissions(
+            String permissions, String userPermissions) {
+
+        Set<String> notGranted = new HashSet<String>();
+        Set<String> itemPermissions = explodePermissionGroups(permissions);
+        Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
+
+        for(String itemPermission : itemPermissions){
+            if(!grantedPermissions.contains(itemPermission))
+                notGranted.add(itemPermission);
+        }
+
+        return notGranted;
+    }
+
+    /**
+     * Find any permissions that are not granted
+     *
+     * @param permissions - Permissions of the item
+     * @param userPermissions - Granted permissions
+     * @return
+     */
+    public static Set<String> findMatchingPermissions(
+            String permissions, String userPermissions) {
+
+        Set<String> matching = new HashSet<String>();
+        Set<String> itemPermissions = explodePermissionGroups(permissions);
+        Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
+
+        for(String itemPermission : itemPermissions){
+            if(grantedPermissions.contains(itemPermission))
+                matching.add(itemPermission);
+        }
+        return matching;
+    }
+
+    /**
+     * Create a comma separated list from a set of permission groups
+     * @param groups
+     * @return
+     */
+    public static String implodePermissionGroups(Set<String> groups){
+        String groupsList = new String();
+        for(String p : groups){
+            if(groupsList.isEmpty())
+                groupsList += p;
+            else
+                groupsList += ("," + p);
+        }
+        return groupsList;
+    }
 
 
-	
+    /**
+     * Validate permissions that are being set on an item.
+     *
+     * Any permissions that the User does not have are invalid unless that user is an admin.
+     *
+     * @param itemPermissions
+     * @param user
+     * @param response
+     * @param contextKey - UI Element ID
+     */
+    public static void validateAddedPermissions(String itemPermissions, User user, ProcessResult response, String contextKey){
+
+        if(user == null){
+            response.addContextualMessage(contextKey, "validate.invalidPermission","No User Found");
+            return;
+        }
+        if(!user.isAdmin()){
+            //if permission is empty then don't bother checking
+            if(!itemPermissions.isEmpty()){
+                //Determine if any of the permissions are unavailable to us
+                Set<String> invalid = findInvalidPermissions(itemPermissions, user.getPermissions());
+                if(invalid.size() > 0){
+                    String notGranted = implodePermissionGroups(invalid);
+                    response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
+                }
+            }
+        }
+
+    }
+
+    public static boolean hasAny(Set<String> heldPermissions, Set<String> requiredPermissions) {
+        for (String requiredPermission : requiredPermissions) {
+            if (heldPermissions.contains(requiredPermission)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasAll(Set<String> heldPermissions, Set<String> requiredPermissions) {
+        return heldPermissions.containsAll(requiredPermissions);
+    }
+
 }

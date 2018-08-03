@@ -32,14 +32,14 @@ import com.serotonin.validation.StringValidation;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
- * 
+ *
  * @author Jared Wiltshire
  */
 public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicVO implements Serializable,
-        JsonSerializable, Cloneable, Validatable {
-	
-	private static final Log LOG = LogFactory.getLog(AbstractVO.class);
-	
+JsonSerializable, Cloneable, Validatable {
+
+    private static final Log LOG = LogFactory.getLog(AbstractVO.class);
+
     /**
      * Allows the conversion of VOs between code versions by providing access to properties that would otherwise have
      * been expunged by the version handling in the readObject method.
@@ -57,10 +57,10 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
      * @return
      */
     protected abstract AbstractDao<T> getDao();
-    
+
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader,
      * com.serotonin.json.type.JsonObject)
      */
@@ -73,7 +73,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
      */
     @Override
@@ -82,7 +82,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
         writer.writeEntry("xid", xid);
         writer.writeEntry("name", name);
     }
-    
+
     protected boolean getBoolean(JsonObject json, String name, String missingTranslationKey) throws JsonException {
         JsonValue o = json.get(name);
         if(o == null)
@@ -96,7 +96,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
             throw new TranslatableJsonException(missingTranslationKey, name);
         return json.getString(name);
     }
-    
+
     protected double getDouble(JsonObject json, String name, String missingTranslationKey) throws JsonException {
         JsonValue o = json.get(name);
         if(o == null)
@@ -179,7 +179,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
 
     /**
      * Validates a vo
-     * 
+     *
      * @param response
      */
     @Override
@@ -198,17 +198,17 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
     }
 
     protected boolean isXidUnique(String xid, int id){
-    	AbstractDao<T> dao = getDao();
-    	if(dao == null){
-    		LOG.warn("No dao provided to validate XID uniqueness.");
-    		return true;
-    	}
-    	return dao.isXidUnique(xid,id);
+        AbstractDao<T> dao = getDao();
+        if(dao == null){
+            LOG.warn("No dao provided to validate XID uniqueness.");
+            return true;
+        }
+        return dao.isXidUnique(xid,id);
     }
-    
+
     /**
      * Check if a vo is newly created
-     * 
+     *
      * @return true if newly created, false otherwise
      */
     public boolean isNew() {
@@ -217,7 +217,7 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
 
     /**
      * Copies a vo
-     * 
+     *
      * @return Copy of this vo
      */
     @SuppressWarnings("unchecked")
@@ -237,5 +237,37 @@ public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicV
     @Override
     public String toString() {
         return "id: " + this.id + " name: " + this.name;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((xid == null) ? 0 : xid.hashCode());
+        return result;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!super.equals(obj))
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        AbstractVO other = (AbstractVO) obj;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        if (xid == null) {
+            if (other.xid != null)
+                return false;
+        } else if (!xid.equals(other.xid))
+            return false;
+        return true;
     }
 }
