@@ -19,6 +19,7 @@
 * Fix additional context and unchange point value for inactive scripts on set point handlers
 * Add byXid method to DataPointQuery and DataSourceQuery in script environments
 * Making Log4J configuration fully asynchronous to improve performance
+* Adding system setting for HTTP session timeout
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP

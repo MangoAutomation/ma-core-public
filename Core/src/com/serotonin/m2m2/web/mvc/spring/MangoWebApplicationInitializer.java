@@ -20,6 +20,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.mvc.rest.swagger.SwaggerConfig;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**
  *
@@ -81,6 +82,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
 
         //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out
         context.addListener(HttpSessionEventPublisher.class);
+        context.addListener(new MangoSessionListener());
 
         if (contextListener != null) {
             rootContext.addApplicationListener(contextListener);

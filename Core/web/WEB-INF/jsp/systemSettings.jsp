@@ -106,9 +106,7 @@
             $set("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE %>"/>);
-            $set("<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>);
-
-            
+            $set("<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS %>"/>);            
             
             $set("<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.EVENT_PURGE_PERIODS %>"/>);
@@ -167,6 +165,11 @@
            //Point Hierarchy
            $set("<c:out value="<%= SystemSettingsDao.EXPORT_HIERARCHY_PATH %>"/>", settings.<c:out value="<%= SystemSettingsDao.EXPORT_HIERARCHY_PATH %>"/>);
            $set("<c:out value="<%= SystemSettingsDao.HIERARCHY_PATH_SEPARATOR %>"/>", settings.<c:out value="<%= SystemSettingsDao.HIERARCHY_PATH_SEPARATOR %>"/>);
+           
+           //Http Session timeouts
+           $set("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE %>"/>);
+           $set("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS %>"/>", settings.<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS %>"/>);
+
            
            displayVirtualSerialPorts(settings.virtualSerialPorts)
             
@@ -431,6 +434,8 @@
                 $get("<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_PORT %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE %>"/>"),
                 function() {
                     setDisabled("saveHttpSettingsBtn", false);
                     setUserMessage("httpMessage", "<fmt:message key="systemSettings.httpSaved"/>");
@@ -487,6 +492,8 @@
                 $get("<c:out value="<%= SystemSettingsDao.UI_PERFORMANCE %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.FUTURE_DATE_LIMIT_PERIOD_TYPE %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.FUTURE_DATE_LIMIT_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS %>"/>"),
                 function() {
                     setDisabled("saveMiscSettingsBtn", false);
                     setUserMessage("miscMessage", "<fmt:message key="systemSettings.miscSaved"/>");
@@ -1269,14 +1276,21 @@
         <td class="formLabel"><fmt:message key="systemSettings.proxyPassword"/></td>
         <td class="formField"><input id="<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD %>"/>" type="password"/></td>
       </tr>
-      
+
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.httpSessionTimeout"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS %>"/>" type="text" class="formShort"/>
+          <c:set var="httpSessionPeriodType"><c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE %>"/></c:set>
+          <tag:timePeriods id="${httpSessionPeriodType}" s="true" min="true" h="true" d="true" w="true" mon="true" y="true"/>
+        </td>
+      </tr>
       <tr>
         <td colspan="2" align="center">
           <input id="saveHttpSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveHttpSettings()"/>
           <tag:help id="httpSettings"/>
         </td>
       </tr>
-      
       <tr><td colspan="2" id="httpMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
@@ -1477,7 +1491,7 @@
       <tr><td colspan="2" id="miscMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
-  
+
   <c:forEach items="<%= ModuleRegistry.getDefinitions(SystemSettingsDefinition.class) %>" var="def">
     <tag:labelledSection labelKey="${def.descriptionKey}" closed="true" sectionId="${def.module.name}">
       <c:set var="incpage">${def.module.webPath}/${def.sectionJspPath}</c:set>

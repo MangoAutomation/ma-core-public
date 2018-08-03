@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
@@ -176,6 +177,10 @@ public class SystemSettingsDao extends BaseDao {
     // The path delimiter for flat paths
     public static final String EXPORT_HIERARCHY_PATH = "exportHierarchyPath";
     public static final String HIERARCHY_PATH_SEPARATOR = "hierarchyPathSeparator";
+    
+    // Timeouts for http sessions
+    public static final String HTTP_SESSION_TIMEOUT_PERIOD_TYPE = "httpSessionTimeoutPeriodType";
+    public static final String HTTP_SESSION_TIMEOUT_PERIODS = "httpSessionTimeoutPeriods";
 
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
@@ -250,7 +255,6 @@ public class SystemSettingsDao extends BaseDao {
         return charToBool(value);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T getJsonObject(String key, Class<T> clazz) {
         return getJsonObject(key, clazz);
     }
@@ -477,6 +481,9 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, AlarmLevels.INFORMATION);
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION);
 
+        DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, Common.TimePeriods.HOURS);
+        DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIODS, 24);
+        
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
             DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), AlarmLevels.INFORMATION);
@@ -867,6 +874,18 @@ public class SystemSettingsDao extends BaseDao {
         validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, settings, response);
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), settings, response);
+        
+        validatePeriodType(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS);
+        Object o = settings.get(HTTP_SESSION_TIMEOUT_PERIODS);
+        if(o != null) {
+            if(o instanceof Integer) {
+                Integer timeoutPeriods = (Integer)o;
+                if(timeoutPeriods < 1)
+                    response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
+            }else {
+                response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
+            }
+        }
     }
 
 
@@ -876,7 +895,10 @@ public class SystemSettingsDao extends BaseDao {
      * @param response
      */
     private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
-
+        validatePeriodType(key, settings, response);
+    }
+    
+    private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response, int...excludeIds) {
         Object setting = settings.get(key);
         if(setting == null)
             return;
@@ -884,7 +906,12 @@ public class SystemSettingsDao extends BaseDao {
         if(setting instanceof Number){
             try{
                 int value = ((Number)setting).intValue();
-
+                
+                if(ArrayUtils.contains(excludeIds, value)) {
+                    response.addContextualMessage(key, "validate.invalidValue");
+                    return;
+                }
+                
                 switch(value){
                     case TimePeriods.DAYS:
                     case TimePeriods.HOURS:
@@ -903,11 +930,10 @@ public class SystemSettingsDao extends BaseDao {
             }
         }else{
             //String code
-            if(Common.TIME_PERIOD_CODES.getId((String)setting) < 0)
+            if(Common.TIME_PERIOD_CODES.getId((String)setting, excludeIds) < 0)
                 response.addContextualMessage( key, "emport.error.invalid", key, setting,
                         Common.TIME_PERIOD_CODES.getCodeList());
         }
-
     }
 
     private void validateAlarmLevel(String key, Map<String,Object> settings, ProcessResult response) {
