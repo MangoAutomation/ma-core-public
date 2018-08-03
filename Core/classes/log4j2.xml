@@ -42,18 +42,14 @@
 		<MangoFrontendAppender name="frontend">
 			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
 		</MangoFrontendAppender>
-		<Async name="async" includeLocation="true">
+	</Appenders>
+	<Loggers>
+		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2" level="info"/>
+		<AsyncLogger includeLocation="true" name="com.infiniteautomation" level="info"/>
+		<AsyncRoot includeLocationInfo="true" level="error">
 			<AppenderRef ref="logfile"/>
 			<AppenderRef ref="stdout" />
 			<AppenderRef ref="frontend" />
-		</Async>
-	</Appenders>
-	<Loggers>
-		<Logger name="org" level="error"/>
-		<Logger name="com.serotonin.m2m2" level="info"/>
-		<Logger name="com.infiniteautomation" level="info"/>
-		<Root level="error">
-			<AppenderRef ref="async"/>
-		</Root>
+		</AsyncRoot>
 	</Loggers>
 </Configuration>
