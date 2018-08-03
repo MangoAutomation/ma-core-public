@@ -87,7 +87,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 		if(user.isAdmin())
 			return true;
 		
-		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+		Set<String> userPermissions = user.getPermissionsSet();
 		//TODO Use Collections.disjoint?
 		for(String permission : permissions){
 			if(!userPermissions.contains(permission))
@@ -105,7 +105,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 		User user =  (User) this.getPrincipal();
 		if(user.isAdmin())
 			return true;
-		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+		Set<String> userPermissions = user.getPermissionsSet();
 		for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
 			String groups = SystemSettingsDao.instance.getValue(def.getPermissionTypeName());
 			Set<String> permissions = Permissions.explodePermissionGroups(groups);
@@ -182,7 +182,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 */
 	public boolean hasAnyPermission(String...permissions){
 		User user =  (User) this.getPrincipal();
-		Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+		Set<String> userPermissions = user.getPermissionsSet();
 		//TODO Use Intersect (See Permissions)
 		for(String permission : permissions){
 			if(userPermissions.contains(permission))

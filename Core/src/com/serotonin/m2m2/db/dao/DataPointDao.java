@@ -1657,7 +1657,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
 
     public Condition userHasPermission(User user) {
-        Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+        Set<String> userPermissions = user.getPermissionsSet();
         List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
 
         for (String userPermission : userPermissions) {
@@ -1670,7 +1670,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public Condition userHasSetPermission(User user) {
-        Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+        Set<String> userPermissions = user.getPermissionsSet();
         List<Condition> conditions = new ArrayList<>(userPermissions.size() * 2);
 
         for (String userPermission : userPermissions) {
@@ -1682,7 +1682,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public Condition userHasEditPermission(User user) {
-        Set<String> userPermissions = Permissions.explodePermissionGroups(user.getPermissions());
+        Set<String> userPermissions = user.getPermissionsSet();
         List<Condition> conditions = new ArrayList<>(userPermissions.size());
 
         for (String userPermission : userPermissions) {
