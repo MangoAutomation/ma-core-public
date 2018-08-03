@@ -740,7 +740,11 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         return this.password != null && this.password.startsWith(UserDao.LOCKED_PASSWORD);
     }
 
-    public boolean equalsAllFields(Object obj) {
+    /**
+     * @param obj
+     * @return true if the import/export fields are all equal
+     */
+    public boolean equalsImportExport(Object obj) {
         if (this == obj)
             return true;
         if (!super.equals(obj))
@@ -759,8 +763,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
             if (other.homeUrl != null)
                 return false;
         } else if (!homeUrl.equals(other.homeUrl))
-            return false;
-        if (lastLogin != other.lastLogin)
             return false;
         if (locale == null) {
             if (other.locale != null)
@@ -794,8 +796,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
             if (other.timezone != null)
                 return false;
         } else if (!timezone.equals(other.timezone))
-            return false;
-        if (tokenVersion != other.tokenVersion)
             return false;
         if (username == null) {
             if (other.username != null)
