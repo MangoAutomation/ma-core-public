@@ -560,7 +560,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     @Override
     public void validate(ProcessResult response) {
-        
+
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         if (StringUtils.isBlank(email))
@@ -627,6 +627,10 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         return result;
     }
 
+    /**
+     * User is considered to be equal if its id is equal.
+     * This implementation is relied upon by MangoSessionRegistry
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
