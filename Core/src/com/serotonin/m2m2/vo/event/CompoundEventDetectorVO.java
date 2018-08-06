@@ -86,7 +86,7 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
     public static void validate(String condition, DwrResponseI18n response) {
         try {
             User user = Common.getUser();
-            final boolean admin = Permissions.hasAdmin(user);
+            final boolean admin = Permissions.hasAdminPermission(user);
             if(!admin)
                 Permissions.ensureDataSourcePermission(user);
 

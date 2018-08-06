@@ -4,12 +4,11 @@
  */
 package com.serotonin.m2m2.vo.permission;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -20,7 +19,6 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
@@ -29,6 +27,9 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
  *
  */
 public class Permissions {
+
+    private static final Pattern PERMISSION_SPLITTER = Pattern.compile("\\s*,\\s*");
+
     public interface DataPointAccessTypes {
         int NONE = 0;
         int READ = 1;
@@ -54,17 +55,17 @@ public class Permissions {
     //
     // Valid user
     //
-    public static void ensureValidUser(User user) throws PermissionException {
+    public static void ensureValidPermissionHolder(PermissionHolder user) throws PermissionException {
         if (user == null)
             throw new PermissionException(new TranslatableMessage("permission.exception.notAuthenticated"), null);
-        if (user.isDisabled())
+        if (user.isPermissionHolderDisabled())
             throw new PermissionException(new TranslatableMessage("permission.exception.userIsDisabled"), user);
     }
 
-    public static boolean isValidUser(User user){
+    public static boolean isValidPermissionHolder(PermissionHolder user){
         if (user == null)
             return false;
-        else if (user.isDisabled())
+        else if (user.isPermissionHolderDisabled())
             return false;
         else return true;
     }
@@ -73,13 +74,12 @@ public class Permissions {
     //
     // Administrator
     //
-    public static boolean hasAdmin(User user) throws PermissionException {
-        ensureValidUser(user);
-        return user.isAdmin();
+    public static boolean hasAdminPermission(PermissionHolder user) throws PermissionException {
+        return hasSinglePermission(user, SuperadminPermissionDefinition.GROUP_NAME);
     }
 
-    public static void ensureAdmin(User user) throws PermissionException {
-        if (!hasAdmin(user))
+    public static void ensureHasAdminPermission(PermissionHolder user) throws PermissionException {
+        if (!hasAdminPermission(user))
             throw new PermissionException(new TranslatableMessage("permission.exception.mustBeAdmin"), user);
     }
 
@@ -87,113 +87,101 @@ public class Permissions {
     //
     // Data source admin
     //
-    public static void ensureDataSourcePermission(User user, int dsId) throws PermissionException {
+    public static void ensureDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
         ensureDataSourcePermission(user, DataSourceDao.instance.get(dsId));
     }
 
-    public static void ensureDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
+    public static void ensureDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
         if (!hasDataSourcePermission(user, ds))
-            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getUsername()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
     }
 
-    public static boolean hasDataSourcePermission(User user, int dsId) throws PermissionException {
-        return hasDataSourcePermission(user, DataSourceDao.instance.get(dsId));
+    public static boolean hasDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
+        String dsPermission = DataSourceDao.instance.getEditPermission(dsId);
+        return hasAnyPermission(user, explodePermissionGroups(dsPermission));
     }
 
-    public static boolean hasDataSourcePermission(User user, DataSourceVO<?> ds) throws PermissionException {
-        if (hasAdmin(user))
-            return true;
-        return permissionContains(ds.getEditPermission(), user.getPermissions());
+    public static boolean hasDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
+        return hasAnyPermission(user, explodePermissionGroups(ds.getEditPermission()));
     }
 
-    public static void ensureDataSourcePermission(User user) throws PermissionException {
+    public static void ensureDataSourcePermission(PermissionHolder user) throws PermissionException {
         if (!hasDataSourcePermission(user))
-            throw new PermissionException(new TranslatableMessage("permission.exception.editAnyDataSource", user.getUsername()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.editAnyDataSource", user.getPermissionHolderName()), user);
     }
 
-    public static boolean hasDataSourcePermission(User user) throws PermissionException {
-        ensureValidUser(user);
+    public static boolean hasDataSourcePermission(PermissionHolder user) throws PermissionException {
         String p = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE, "");
-        return hasPermission(user, p);
+        return hasAnyPermission(user, explodePermissionGroups(p));
     }
 
-    public static boolean hasDataSourcePermission(String userPermissions, DataSourceVO<?> ds){
-        if(hasPermission(ds.getEditPermission(), userPermissions))
-            return true;
-        else
-            return false;
+    @Deprecated
+    public static boolean hasDataSourcePermission(String userPermissions, DataSourceVO<?> ds) {
+        return containsAny(explodePermissionGroups(userPermissions), explodePermissionGroups(ds.getEditPermission()));
     }
-
 
     //
     //
     // Data point access
     //
-    public static void ensureDataPointReadPermission(User user, IDataPoint point) throws PermissionException {
+    public static void ensureDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
         if (!hasDataPointReadPermission(user, point))
-            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getUsername()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getPermissionHolderName()), user);
     }
 
-    public static boolean hasDataPointReadPermission(User user, IDataPoint point) throws PermissionException {
-        if (hasPermission(user, point.getReadPermission()))
+    public static boolean hasDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
+        if (hasAnyPermission(user, explodePermissionGroups(point.getReadPermission())))
             return true;
         return hasDataPointSetPermission(user, point);
     }
 
-    public static boolean hasDataPointReadPermission(String userPermissions, IDataPoint point){
-        if(hasPermission(point.getReadPermission(), userPermissions) ||
-                permissionContains(point.getSetPermission(), userPermissions)) //No need to recheck admin
+    @Deprecated
+    public static boolean hasDataPointReadPermission(String userPermissions, IDataPoint point) {
+        Set<String> heldPermissions = explodePermissionGroups(userPermissions);
+
+        if (containsAny(heldPermissions, explodePermissionGroups(point.getReadPermission())) ||
+                containsAny(heldPermissions, explodePermissionGroups(point.getSetPermission()))) {
             return true;
+        }
+
         String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-        if (permissionContains(dsPermission, userPermissions))
-            return true;
-        else
-            return false;
+        return containsAny(heldPermissions, explodePermissionGroups(dsPermission));
     }
 
-    public static void ensureDataPointSetPermission(User user, DataPointVO point) throws PermissionException {
-        if (!point.getPointLocator().isSettable())
-            throw new ShouldNeverHappenException("Point is not settable");
+    public static void ensureDataPointSetPermission(PermissionHolder user, DataPointVO point) throws PermissionException {
         if (!hasDataPointSetPermission(user, point))
-            throw new PermissionException(new TranslatableMessage("permission.exception.setDataPoint", user.getUsername()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.setDataPoint", user.getPermissionHolderName()), user);
     }
 
-    public static boolean hasDataPointSetPermission(User user, IDataPoint point) throws PermissionException {
-        if (hasPermission(user, point.getSetPermission()))
+    public static boolean hasDataPointSetPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
+        if (hasAnyPermission(user, explodePermissionGroups(point.getSetPermission())))
             return true;
+
+        return hasDataSourcePermission(user, point.getDataSourceId());
+    }
+
+    @Deprecated
+    public static boolean hasDataPointSetPermission(String userPermissions, IDataPoint point) {
+        Set<String> heldPermissions = explodePermissionGroups(userPermissions);
+
+        if (containsAny(heldPermissions, explodePermissionGroups(point.getSetPermission()))) {
+            return true;
+        }
+
         String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-        return permissionContains(dsPermission, user.getPermissions());
+        return containsAny(heldPermissions, explodePermissionGroups(dsPermission));
     }
 
-    /**
-     * Returns true or Exception
-     * @param userPermissions
-     * @param point
-     * @return
-     */
-    public static boolean hasDataPointSetPermission(String userPermissions, IDataPoint point){
-        if(hasPermission(point.getSetPermission(), userPermissions))
-            return true;
-        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-        if (permissionContains(dsPermission, userPermissions))
-            return true;
-        else
-            return false;
-    }
-
-    public static int getDataPointAccessType(User user, IDataPoint point) {
-        if (!isValidUser(user))
+    public static int getDataPointAccessType(PermissionHolder user, IDataPoint point) {
+        if (!isValidPermissionHolder(user))
             return DataPointAccessTypes.NONE;
-        if (user.isAdmin())
+        if (hasAdminPermission(user))
             return DataPointAccessTypes.ADMIN;
-
-        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-        if (permissionContains(dsPermission, user.getPermissions()))
+        if (hasDataSourcePermission(user, point.getDataSourceId()))
             return DataPointAccessTypes.DATA_SOURCE;
-
-        if (permissionContains(point.getSetPermission(), user.getPermissions()))
+        if (hasDataPointSetPermission(user, point))
             return DataPointAccessTypes.SET;
-        if (permissionContains(point.getReadPermission(), user.getPermissions()))
+        if (hasDataPointReadPermission(user, point))
             return DataPointAccessTypes.READ;
         return DataPointAccessTypes.NONE;
     }
@@ -202,207 +190,122 @@ public class Permissions {
     //
     // Event access
     //
-    public static boolean hasEventTypePermission(User user, EventType eventType) {
-        return hasAdmin(user) || eventType.hasPermission(user);
+    public static boolean hasEventTypePermission(PermissionHolder user, EventType eventType) {
+        return hasAdminPermission(user) || eventType.hasPermission(user);
     }
 
-    public static void ensureEventTypePermission(User user, EventType eventType) throws PermissionException {
+    public static void ensureEventTypePermission(PermissionHolder user, EventType eventType) throws PermissionException {
         if (!hasEventTypePermission(user, eventType))
-            throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getUsername()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getPermissionHolderName()), user);
     }
 
-    public static void ensureEventTypePermission(User user, EventTypeVO eventType) throws PermissionException {
+    public static void ensureEventTypePermission(PermissionHolder user, EventTypeVO eventType) throws PermissionException {
         ensureEventTypePermission(user, eventType.createEventType());
     }
 
     //
     // Utility
     //
-    public static boolean hasPermission(User user, String query) {
-        if (hasAdmin(user))
-            return true;
-        return permissionContains(query, user.getPermissions());
-    }
 
     /**
-     * Utility to check for a user permission in a list of permissions
-     * that ensures Super Admin access to everything
-     * @param query
-     * @param userPermissions
-     * @return
-     */
-    public static boolean hasPermission(String query, String userPermissions){
-        if (permissionContains(SuperadminPermissionDefinition.GROUP_NAME, userPermissions))
-            return true;
-        return permissionContains(query, userPermissions);
-    }
-
-    /**
-     * Checks if the given query matches the given group list. Each is a comma-delimited list of tags, where if any
-     * tag in the query string matches any tag in the groups string, true is returned. In other words, if there is
-     * any intersection in the tags, permission is granted.
+     * Try not to use this, use hasAnyPermission() instead.
      *
-     * @param query
-     *            the granted permission tags
-     * @param groups
-     *            the owned permission tags
-     * @return true if permission is granted, false otherwise.
+     * @param user
+     * @param requiredPermissions comma separated list of permissions
+     * @return true if user holds any of the required permissions
      */
-    public static boolean permissionContains(String query, String groups) {
-        if (StringUtils.isEmpty(query) || StringUtils.isEmpty(groups))
-            return false;
-
-        String[] queryParts = query.split(",");
-        String[] groupParts = groups.split(",");
-        for (String queryPart : queryParts) {
-            if (StringUtils.isEmpty(queryPart))
-                continue;
-            for (String groupPart : groupParts) {
-                if (StringUtils.equals(queryPart.trim(), groupPart.trim()))
-                    return true;
-            }
-        }
-
-        return false;
+    public static boolean hasPermission(PermissionHolder user, String requiredPermissions) {
+        return hasAnyPermission(user, explodePermissionGroups(requiredPermissions));
     }
 
     /**
-     * Provides detailed information on the permission provided to a user for a given query string.
-     */
-    public static PermissionDetails getPermissionDetails(String query, User user) {
-        PermissionDetails d = new PermissionDetails(user.getUsername());
-
-        d.setAdmin(user.isAdmin());
-
-        if (!StringUtils.isEmpty(user.getPermissions())) {
-            for (String s : user.getPermissions().split(",")) {
-                if (!StringUtils.isEmpty(s))
-                    d.addGroup(s);
-            }
-
-            if (!StringUtils.isEmpty(query)) {
-                for (String queryPart : query.split(",")) {
-                    if (StringUtils.isEmpty(queryPart))
-                        continue;
-
-                    for (String groupPart : d.getAllGroups()) {
-                        if (StringUtils.equals(queryPart.trim(), groupPart.trim()))
-                            d.addMatchingGroup(groupPart);
-                    }
-                }
-            }
-        }
-
-        return d;
-    }
-
-    /**
-     * Provides detailed information on the permission provided to a user for a given query string.
+     * Provides detailed information on the permission held by a user for a given query string.
      *
-     * Also filters out any permissions that are not part of the limitPermissions
+     * Also filters out any permissions that are not held by currentUser,
      * so not all permissions or users are viewable.
      *
      * If the currentUser is an admin then everything is visible
      *
-     * @param currentUser - user to limit details of view to thier permissions groups
+     * @param currentUser - user to limit details of view to their permissions groups
      * @param query - Any permissions to show as already added in the UI
-     * @param user - User for whom to check permissions
+     * @param user - PermissionHolder for whom to check permissions
      * @return Null if no permissions align else the permissions details with only the viewable groups
      */
-    public static PermissionDetails getPermissionDetails(User currentUser, String query, User user) {
-        PermissionDetails d = new PermissionDetails(user.getUsername());
+    public static PermissionDetails getPermissionDetails(PermissionHolder currentUser, String query, PermissionHolder user) {
+        PermissionDetails d = new PermissionDetails(user.getPermissionHolderName());
+        d.setAdmin(hasAdminPermission(user));
 
-        d.setAdmin(user.isAdmin());
+        boolean currentUserAdmin = hasAdminPermission(currentUser);
+        Set<String> querySet = explodePermissionGroups(query);
 
-        //Add any matching groups
-        if (!StringUtils.isEmpty(user.getPermissions())) {
-            if(currentUser.isAdmin()){
-                //Add all groups
-                for (String s : user.getPermissions().split(",")) {
-                    if (!StringUtils.isEmpty(s))
-                        d.addGroup(s);
-                }
-            }else{
-                Set<String> matching = findMatchingPermissions(currentUser.getPermissions(), user.getPermissions());
-                for(String match : matching){
-                    d.addGroup(match);
-                }
-            }
+        // Add any matching groups
+        for (String permission : user.getPermissionsSet()) {
+            if (currentUserAdmin || hasSinglePermission(currentUser, permission)) {
+                d.addGroup(permission);
 
-            if (!StringUtils.isEmpty(query)) {
-                for (String queryPart : query.split(",")) {
-                    if (StringUtils.isEmpty(queryPart))
-                        continue;
-
-                    for (String groupPart : d.getAllGroups()) {
-                        if (StringUtils.equals(queryPart.trim(), groupPart.trim()))
-                            d.addMatchingGroup(groupPart);
-                    }
+                if (querySet.contains(permission)) {
+                    d.addMatchingGroup(permission);
                 }
             }
         }
 
-        if(d.getAllGroups().size() == 0)
+        if (d.getAllGroups().size() == 0)
             return null;
 
         return d;
     }
 
     public static Set<String> explodePermissionGroups(String groups) {
-        Set<String> set = new HashSet<>();
+        if (groups == null || groups.isEmpty()) {
+            return Collections.emptySet();
+        }
 
-        if (!StringUtils.isEmpty(groups)) {
-            for (String s : groups.split(",")) {
-                if (!StringUtils.isEmpty(s)){
-                    s = s.trim();
-                    set.add(s);
-                }
+        Set<String> set = new HashSet<>();
+        for (String s : PERMISSION_SPLITTER.split(groups)) {
+            if (!s.isEmpty()) {
+                set.add(s);
+            }
+        }
+        return Collections.unmodifiableSet(set);
+    }
+
+    /**
+     * Returns all permissions in the string that the user does not hold.
+     *
+     * @param user
+     * @param permissions
+     * @return
+     */
+    public static Set<String> findInvalidPermissions(PermissionHolder user, String permissions) {
+        Set<String> notHeld = new HashSet<String>();
+        Set<String> itemPermissions = explodePermissionGroups(permissions);
+
+        for (String itemPermission : itemPermissions) {
+            if (!hasSinglePermission(user, itemPermission)) {
+                notHeld.add(itemPermission);
             }
         }
 
-        return set;
+        return notHeld;
     }
 
     /**
-     * Find any permissions that are not granted
+     * Returns all permissions in the string that the user holds.
      *
-     * @param permissions - Permissions of the item
-     * @param userPermissions - Granted permissions
+     * @param user
+     * @param permissions
      * @return
      */
-    public static Set<String> findInvalidPermissions(
-            String permissions, String userPermissions) {
-
-        Set<String> notGranted = new HashSet<String>();
-        Set<String> itemPermissions = explodePermissionGroups(permissions);
-        Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
-
-        for(String itemPermission : itemPermissions){
-            if(!grantedPermissions.contains(itemPermission))
-                notGranted.add(itemPermission);
-        }
-
-        return notGranted;
-    }
-
-    /**
-     * Find any permissions that are not granted
-     *
-     * @param permissions - Permissions of the item
-     * @param userPermissions - Granted permissions
-     * @return
-     */
-    public static Set<String> findMatchingPermissions(
-            String permissions, String userPermissions) {
-
+    public static Set<String> findMatchingPermissions(PermissionHolder user, String permissions) {
         Set<String> matching = new HashSet<String>();
         Set<String> itemPermissions = explodePermissionGroups(permissions);
-        Set<String> grantedPermissions = explodePermissionGroups(userPermissions);
 
-        for(String itemPermission : itemPermissions){
-            if(grantedPermissions.contains(itemPermission))
+        for (String itemPermission : itemPermissions) {
+            if (hasSinglePermission(user, itemPermission)) {
                 matching.add(itemPermission);
+            }
         }
+
         return matching;
     }
 
@@ -411,49 +314,100 @@ public class Permissions {
      * @param groups
      * @return
      */
-    public static String implodePermissionGroups(Set<String> groups){
-        String groupsList = new String();
-        for(String p : groups){
-            if(groupsList.isEmpty())
-                groupsList += p;
-            else
-                groupsList += ("," + p);
+    public static String implodePermissionGroups(Set<String> groups) {
+        for (String group : groups) {
+            if (group == null || group.isEmpty()) {
+                throw new IllegalArgumentException("Permission cannot be null or empty");
+            }
         }
-        return groupsList;
-    }
 
+        return String.join(",", groups);
+    }
 
     /**
      * Validate permissions that are being set on an item.
      *
-     * Any permissions that the User does not have are invalid unless that user is an admin.
+     * Any permissions that the PermissionHolder does not have are invalid unless that user is an admin.
      *
      * @param itemPermissions
      * @param user
      * @param response
      * @param contextKey - UI Element ID
      */
-    public static void validateAddedPermissions(String itemPermissions, User user, ProcessResult response, String contextKey){
-
-        if(user == null){
-            response.addContextualMessage(contextKey, "validate.invalidPermission","No User Found");
+    public static void validateAddedPermissions(String itemPermissions, PermissionHolder user, ProcessResult response, String contextKey) {
+        if (user == null) {
+            response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
             return;
         }
-        if(!user.isAdmin()){
-            //if permission is empty then don't bother checking
-            if(!itemPermissions.isEmpty()){
-                //Determine if any of the permissions are unavailable to us
-                Set<String> invalid = findInvalidPermissions(itemPermissions, user.getPermissions());
-                if(invalid.size() > 0){
-                    String notGranted = implodePermissionGroups(invalid);
-                    response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
-                }
-            }
-        }
 
+        Set<String> invalid = findInvalidPermissions(user, itemPermissions);
+        if (invalid.size() > 0) {
+            String notGranted = implodePermissionGroups(invalid);
+            response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
+        }
     }
 
-    public static boolean hasAny(Set<String> heldPermissions, Set<String> requiredPermissions) {
+    public static boolean hasSinglePermission(PermissionHolder user, String requiredPermission) {
+        if (requiredPermission == null || requiredPermission.isEmpty()) {
+            throw new IllegalArgumentException("Required permission/s can't be null or empty");
+        }
+        ensureValidPermissionHolder(user);
+
+        Set<String> heldPermissions = user.getPermissionsSet();
+        return heldPermissions.contains(requiredPermission);
+    }
+
+    public static boolean hasAnyPermission(PermissionHolder user, Set<String> requiredPermissions) {
+        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
+            throw new IllegalArgumentException("Required permission/s can't be null or empty");
+        }
+        ensureValidPermissionHolder(user);
+
+        Set<String> heldPermissions = user.getPermissionsSet();
+        return containsAny(heldPermissions, requiredPermissions);
+    }
+
+    public static boolean hasAllPermissions(PermissionHolder user, Set<String> requiredPermissions) {
+        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
+            throw new IllegalArgumentException("Required permission/s can't be null or empty");
+        }
+        ensureValidPermissionHolder(user);
+
+        Set<String> heldPermissions = user.getPermissionsSet();
+        return containsAll(heldPermissions, requiredPermissions);
+    }
+
+    public static void ensureHasSinglePermission(PermissionHolder user, String requiredPermission) {
+        if (!hasSinglePermission(user, requiredPermission)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
+    }
+
+    public static void ensureHasAnyPermission(PermissionHolder user, Set<String> requiredPermissions) {
+        if (!hasAnyPermission(user, requiredPermissions)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
+    }
+
+    public static void ensureHasAllPermissions(PermissionHolder user, Set<String> requiredPermissions) {
+        if (!hasAllPermissions(user, requiredPermissions)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
+    }
+
+    private static boolean containsAll(Set<String> heldPermissions, Set<String> requiredPermissions) {
+        if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
+            return true;
+        }
+
+        return heldPermissions.containsAll(requiredPermissions);
+    }
+
+    private static boolean containsAny(Set<String> heldPermissions, Set<String> requiredPermissions) {
+        if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
+            return true;
+        }
+
         for (String requiredPermission : requiredPermissions) {
             if (heldPermissions.contains(requiredPermission)) {
                 return true;
@@ -461,9 +415,4 @@ public class Permissions {
         }
         return false;
     }
-
-    public static boolean hasAll(Set<String> heldPermissions, Set<String> requiredPermissions) {
-        return heldPermissions.containsAll(requiredPermissions);
-    }
-
 }

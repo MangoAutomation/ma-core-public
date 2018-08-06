@@ -40,7 +40,7 @@ public class DataSourceListDwr extends BaseDwr {
         User user = Common.getUser();
         List<DataSourceVO<?>> allDataSources = Common.runtimeManager.getDataSources();
 
-        if (Permissions.hasAdmin(user)) {
+        if (Permissions.hasAdminPermission(user)) {
             response.addData("dataSources", allDataSources);
 
             List<StringStringPair> translatedTypes = new ArrayList<>();

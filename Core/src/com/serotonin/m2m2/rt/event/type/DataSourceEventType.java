@@ -12,8 +12,8 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.DataSourceEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
@@ -48,13 +48,13 @@ public class DataSourceEventType extends EventType {
     public String getEventSubtype() {
         return null;
     }
-    
-    @Override
-	public boolean isRateLimited() {
-		return true;
-	}
 
-	public int getDataSourceEventTypeId() {
+    @Override
+    public boolean isRateLimited() {
+        return true;
+    }
+
+    public int getDataSourceEventTypeId() {
         return dataSourceEventTypeId;
     }
 
@@ -132,22 +132,19 @@ public class DataSourceEventType extends EventType {
         writer.writeEntry("dataSourceEventType", ds.getEventCodes().getCode(dataSourceEventTypeId));
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-	 */
-	@Override
-	public EventTypeModel asModel() {
-		return new DataSourceEventTypeModel(this);
-	}
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
-	 */
-	@Override
-	public boolean hasPermission(User user) {
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+     */
+    @Override
+    public EventTypeModel asModel() {
+        return new DataSourceEventTypeModel(this);
+    }
+
+    @Override
+    public boolean hasPermission(PermissionHolder user) {
         DataSourceVO<?> ds = DataSourceDao.instance.get(dataSourceId);
         if(ds == null)
             return false;
-        return Permissions.permissionContains(ds.getEditPermission(), user.getPermissions());
-	}
+        return Permissions.hasDataSourcePermission(user, ds);
+    }
 }

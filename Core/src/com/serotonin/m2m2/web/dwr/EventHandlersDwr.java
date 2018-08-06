@@ -71,6 +71,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -102,8 +103,8 @@ public class EventHandlersDwr extends BaseDwr {
         List<DataPointBean> allPoints = new ArrayList<>();
         List<EventSourceBean> dataPoints = new ArrayList<>();
         List<DataPointVO> dps = DataPointDao.instance.getDataPoints(DataPointExtendedNameComparator.instance, true);
-        final boolean admin = Permissions.hasAdmin(user);
-        
+        final boolean admin = Permissions.hasAdminPermission(user);
+
         for (DataPointVO dp : dps) {
             if (!admin && !Permissions.hasDataSourcePermission(user, dslu.get(dp.getDataSourceId())))
                 continue;
@@ -216,11 +217,11 @@ public class EventHandlersDwr extends BaseDwr {
                     adminEventTypes.put(def.getTypeName(), info);
                 }
             }
-            
+
         }
 
         model.put("userNewScriptPermissions", new ScriptPermissions(user));
-        
+
         // Get the mailing lists.
         model.put(SchemaDefinition.MAILING_LISTS_TABLE, MailingListDao.instance.getMailingLists());
 
@@ -278,8 +279,8 @@ public class EventHandlersDwr extends BaseDwr {
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled,
             List<RecipientListEntryBean> activeRecipients, String customTemplate, boolean sendEscalation, boolean repeatEscalations,
             int escalationDelayType, int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
-            boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo, 
-            int includePointValueCount, boolean includeLogfile, List<IntStringPair> additionalContext, 
+            boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo,
+            int includePointValueCount, boolean includeLogfile, List<IntStringPair> additionalContext,
             ScriptPermissions permissions, String script) {
         EmailEventHandlerVO handler = new EmailEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
@@ -324,14 +325,14 @@ public class EventHandlersDwr extends BaseDwr {
         vo.setXid(StringUtils.isBlank(xid) ? EventHandlerDao.instance.generateUniqueXid() : xid);
         vo.setAlias(alias);
         vo.setDisabled(disabled);
-        
+
         vo.addAddedEventType(type.createEventType());
-        
+
         ProcessResult response = new ProcessResult();
         vo.validate(response);
 
         if (!response.getHasMessages()) {
-        	EventHandlerDao.instance.saveFull(vo);
+            EventHandlerDao.instance.saveFull(vo);
             response.addData("handler", vo);
         }
 
@@ -349,10 +350,10 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public TranslatableMessage testProcessCommand(String command, int timeout) {
-    	
-    	//Ensure only Data Source Level users can access this
-    	Permissions.ensureDataSourcePermission(Common.getHttpUser());
-    	
+
+        //Ensure only Data Source Level users can access this
+        Permissions.ensureDataSourcePermission(Common.getHttpUser());
+
         if (StringUtils.isBlank(command))
             return null;
 
@@ -365,9 +366,9 @@ public class EventHandlersDwr extends BaseDwr {
             return new TranslatableMessage("common.default", e.getMessage());
         }
     }
-    
+
     @DwrPermission(user = true)
-    public ProcessResult validateScript(String script, Integer targetPointId, int type, 
+    public ProcessResult validateScript(String script, Integer targetPointId, int type,
             List<IntStringPair> additionalContext, ScriptPermissions scriptPermissions) {
         ProcessResult response = new ProcessResult();
         TranslatableMessage message;
@@ -395,7 +396,7 @@ public class EventHandlersDwr extends BaseDwr {
         } else {
             targetDataType = DataTypes.ALPHANUMERIC;
         }
-        
+
         for(IntStringPair cxt : additionalContext) {
             DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
             if(dprt == null) {
@@ -416,18 +417,18 @@ public class EventHandlersDwr extends BaseDwr {
             }
             context.put(cxt.getValue(), dprt);
         }
-        
+
         Map<String, Object> otherContext = new HashMap<String, Object>();
         otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
         if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE) {
             otherContext.put("model", new HashMap<String, Object>());
             otherContext.put(EmailHandlerRT.DO_NOT_SEND_KEY, CompiledScriptExecutor.UNCHANGED);
         }
-         
+
 
         final StringWriter scriptOut = new StringWriter();
         final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-        
+
         final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/YYY HH:mm:ss");
         ScriptPointValueSetter loggingSetter = new ScriptPointValueSetter(scriptPermissions) {
             @Override
@@ -437,8 +438,8 @@ public class EventHandlersDwr extends BaseDwr {
                     scriptOut.append("Point " + dprt.getVO().getExtendedName() + " not settable.");
                     return;
                 }
-                
-                if(!Permissions.hasPermission(dprt.getVO().getSetPermission(), permissions.getDataPointSetPermissions())) {
+
+                if(!Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), dprt.getVO())) {
                     scriptOut.write(new TranslatableMessage("pointLinks.setTest.permissionDenied", dprt.getVO().getXid()).translate(Common.getTranslations()));
                     return;
                 }
@@ -455,7 +456,7 @@ public class EventHandlersDwr extends BaseDwr {
         try {
             CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
             PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
-                    targetDataType, System.currentTimeMillis(), scriptPermissions, scriptWriter, 
+                    targetDataType, System.currentTimeMillis(), scriptPermissions, scriptWriter,
                     new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), loggingSetter, null, true);
             if (pvt.getValue() == null)
                 message = new TranslatableMessage("eventHandlers.script.nullResult");
@@ -487,48 +488,46 @@ public class EventHandlersDwr extends BaseDwr {
             response.addMessage("emailScript", message);
         return response;
     }
-    
+
     private EventInstanceWrapper getTestEvent() {
-    	EventInstance ei = new EventInstance(new EventType() {
+        EventInstance ei = new EventInstance(new EventType() {
 
-			@Override
-			public String getEventType() {
-				return EventType.EventTypeNames.SYSTEM;
-			}
+            @Override
+            public String getEventType() {
+                return EventType.EventTypeNames.SYSTEM;
+            }
 
-			@Override
-			public String getEventSubtype() {
-				return "Set Point Handler Test";
-			}
+            @Override
+            public String getEventSubtype() {
+                return "Set Point Handler Test";
+            }
 
-			@Override
-			public int getDuplicateHandling() {
-				return DuplicateHandling.IGNORE;
-			}
+            @Override
+            public int getDuplicateHandling() {
+                return DuplicateHandling.IGNORE;
+            }
 
-			@Override
-			public int getReferenceId1() {
-				return -1;
-			}
+            @Override
+            public int getReferenceId1() {
+                return -1;
+            }
 
-			@Override
-			public int getReferenceId2() {
-				return -2;
-			}
+            @Override
+            public int getReferenceId2() {
+                return -2;
+            }
 
-			@Override
-			public EventTypeModel asModel() {
-				return null; //Not to be used
-			}
-			/* (non-Javadoc)
-			 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
-			 */
-			@Override
-			public boolean hasPermission(User user) {
-			    return true;
-			}
-		}, Common.timer.currentTimeMillis(), false, AlarmLevels.INFORMATION, 
-    			new TranslatableMessage("common.test"), null);
-    	return new EventInstanceWrapper(ei);
+            @Override
+            public EventTypeModel asModel() {
+                return null; //Not to be used
+            }
+
+            @Override
+            public boolean hasPermission(PermissionHolder user) {
+                return true;
+            }
+        }, Common.timer.currentTimeMillis(), false, AlarmLevels.INFORMATION,
+                new TranslatableMessage("common.test"), null);
+        return new EventInstanceWrapper(ei);
     }
 }

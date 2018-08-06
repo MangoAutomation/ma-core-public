@@ -22,8 +22,9 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.util.ExportNames;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.SystemEventTypeModel;
 
@@ -68,7 +69,7 @@ public class SystemEventType extends EventType {
         addEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck");
         addEventType(TYPE_REJECTED_WORK_ITEM, "event.system.rejectedWorkItem");
         addEventType(TYPE_MISSING_MODULE_DEPENDENCY, "event.system.missingModuleDepDesc");
-        
+
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey());
     }
@@ -86,9 +87,9 @@ public class SystemEventType extends EventType {
         }
         return null;
     }
-    
+
     public static List<EventTypeVO> getAllRegisteredEventTypes(){
-    	return EVENT_TYPES;
+        return EVENT_TYPES;
     }
 
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {
@@ -106,7 +107,7 @@ public class SystemEventType extends EventType {
     }
 
     public static void returnToNormal(SystemEventType type, long time) {
-    	EventTypeVO vo = getEventType(type.getSystemEventType());
+        EventTypeVO vo = getEventType(type.getSystemEventType());
         Common.eventManager.returnToNormal(type, time, vo.getAlarmLevel());
     }
 
@@ -220,19 +221,16 @@ public class SystemEventType extends EventType {
         writer.writeEntry("systemType", systemEventType);
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-	 */
-	@Override
-	public EventTypeModel asModel() {
-		return new SystemEventTypeModel(this);
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
-	 */
-	@Override
-	public boolean hasPermission(User user) {
-	    return user.isAdmin();
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+     */
+    @Override
+    public EventTypeModel asModel() {
+        return new SystemEventTypeModel(this);
+    }
+
+    @Override
+    public boolean hasPermission(PermissionHolder user) {
+        return Permissions.hasAdminPermission(user);
+    }
 }

@@ -22,7 +22,7 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
             uri = getLoginUri(request, response);
         else {
             // If this is the first login to the instance by an admin...
-            if (Permissions.hasAdmin(user) && SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.NEW_INSTANCE, false)) {
+            if (Permissions.hasAdminPermission(user) && SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.NEW_INSTANCE, false)) {
                 // Remove the flag
             	SystemSettingsDao.instance.removeValue(SystemSettingsDao.NEW_INSTANCE);
 

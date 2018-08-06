@@ -14,8 +14,8 @@ import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.CompoundEventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.CompoundEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
@@ -63,10 +63,10 @@ public class CompoundDetectorEventType extends EventType {
     }
 
     //TODO Implement
-//    @Override
-//    public int getCompoundEventDetectorId() {
-//        return compoundDetectorId;
-//    }
+    //    @Override
+    //    public int getCompoundEventDetectorId() {
+    //        return compoundDetectorId;
+    //    }
 
     @Override
     public int hashCode() {
@@ -106,7 +106,7 @@ public class CompoundDetectorEventType extends EventType {
         compoundDetectorId = getCompoundEventDetectorId(jsonObject, "XID");
     }
 
-    
+
     protected int getCompoundEventDetectorId(JsonObject json, String name) throws JsonException {
         String xid = json.getString(name);
         if (xid == null)
@@ -116,36 +116,33 @@ public class CompoundDetectorEventType extends EventType {
             throw new TranslatableJsonException("emport.error.eventType.invalid.reference", name, xid);
         return ced.getId();
     }
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#getEventType()
-	 */
-	@Override
-	public String getEventType() {
-		 return EventType.EventTypeNames.COMPOUND;
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#getEventType()
+     */
+    @Override
+    public String getEventType() {
+        return EventType.EventTypeNames.COMPOUND;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#getEventSubtype()
-	 */
-	@Override
-	public String getEventSubtype() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#getEventSubtype()
+     */
+    @Override
+    public String getEventSubtype() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-	 */
-	@Override
-	public EventTypeModel asModel() {
-		throw new ShouldNeverHappenException("Un-implemented");
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
-	 */
-	@Override
-	public boolean hasPermission(User user) {
-	    throw new ShouldNeverHappenException("Un-implemented");
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+     */
+    @Override
+    public EventTypeModel asModel() {
+        throw new ShouldNeverHappenException("Un-implemented");
+    }
+
+    @Override
+    public boolean hasPermission(PermissionHolder user) {
+        throw new ShouldNeverHappenException("Un-implemented");
+    }
 }

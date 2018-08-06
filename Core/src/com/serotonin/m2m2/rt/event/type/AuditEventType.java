@@ -31,6 +31,8 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.AuditEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 import com.serotonin.timer.RejectedTaskReason;
@@ -40,8 +42,8 @@ public class AuditEventType extends EventType{
     //
     // Static stuff
     //
-	private static final Log LOG = LogFactory.getLog(AuditEventType.class);
-	
+    private static final Log LOG = LogFactory.getLog(AuditEventType.class);
+
     public static final String AUDIT_SETTINGS_PREFIX = "auditEventAlarmLevel.";
 
     public static final String TYPE_DATA_SOURCE = "DATA_SOURCE";
@@ -54,7 +56,7 @@ public class AuditEventType extends EventType{
     public static final String TYPE_JSON_DATA = "JSON_DATA";
     public static final String TYPE_EVENT_DETECTOR = "EVENT_DETECTOR";
     public static final String TYPE_PUBLISHER = "EVENT_PUBLISHER";
-    
+
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
 
@@ -86,9 +88,9 @@ public class AuditEventType extends EventType{
         }
         return null;
     }
-    
+
     public static List<EventTypeVO> getAllRegisteredEventTypes(){
-    	return EVENT_TYPES;
+        return EVENT_TYPES;
     }
 
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {
@@ -99,32 +101,32 @@ public class AuditEventType extends EventType{
         Map<String, Object> context = new HashMap<String, Object>();
         JsonSerializableUtility scanner = new JsonSerializableUtility();
         try {
-			context = scanner.findValues(o);
-		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException | JsonException | IOException e) {
-			LOG.error(e.getMessage(), e);
-		}
+            context = scanner.findValues(o);
+        } catch (IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | JsonException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, auditEventType, o, "event.audit.extended.added", context);
     }
 
     public static void raiseChangedEvent(String auditEventType, AbstractVO<?> from, AbstractVO<?> to) {
-    	Map<String, Object> context = new HashMap<String, Object>();
-    	
-    	//Find the annotated properties
-    	JsonSerializableUtility scanner = new JsonSerializableUtility();
-    	try {
-    		context = scanner.findChanges(from,to);
-    		if (context.size() == 0)
+        Map<String, Object> context = new HashMap<String, Object>();
+
+        //Find the annotated properties
+        JsonSerializableUtility scanner = new JsonSerializableUtility();
+        try {
+            context = scanner.findChanges(from,to);
+            if (context.size() == 0)
                 // If the object wasn't in fact changed, don't raise an event.
                 return;
-		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException | JsonException | IOException e) {
-			LOG.error(e.getMessage(), e);
-		}
-        
+        } catch (IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | JsonException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
+
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, to, "event.audit.extended.changed", context);
     }
-    
+
     public static void raiseToggleEvent(String auditEventType, AbstractActionVO<?> toggled) {
         Map<String, Object> context = new HashMap<String, Object>();
         context.put(AbstractActionVO.ENABLED_KEY, toggled.isEnabled());
@@ -135,11 +137,11 @@ public class AuditEventType extends EventType{
         Map<String, Object> context = new HashMap<String, Object>();
         JsonSerializableUtility scanner = new JsonSerializableUtility();
         try {
-			context = scanner.findValues(o);
-		} catch (IllegalAccessException | IllegalArgumentException
-				| InvocationTargetException | JsonException | IOException e) {
-			LOG.error(e.getMessage(), e);
-		}
+            context = scanner.findValues(o);
+        } catch (IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException | JsonException | IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, auditEventType, o, "event.audit.extended.deleted", context);
     }
 
@@ -155,24 +157,24 @@ public class AuditEventType extends EventType{
             else
                 username = new TranslatableMessage(descKey);
         }
-        
+
         TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
                 to.getName(), to.getXid());
-        
+
         AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
         type.setRaisingUser(user);
 
         Common.backgroundProcessing.addWorkItem(new AuditEventWorkItem(type, Common.timer.currentTimeMillis(), message, context));
     }
-    
+
     static class AuditEventWorkItem implements WorkItem {
 
         private AuditEventType type;
         private long time;
         private TranslatableMessage message;
         private Map<String, Object> context;
-        
-        
+
+
         /**
          * @param type
          * @param time
@@ -234,7 +236,7 @@ public class AuditEventType extends EventType{
          */
         @Override
         public void rejected(RejectedTaskReason reason) {
-          //No special handling, tracking/logging handled by WorkItemRunnable
+            //No special handling, tracking/logging handled by WorkItemRunnable
         }
     }
 
@@ -257,7 +259,7 @@ public class AuditEventType extends EventType{
         this.changeType = changeType;
         this.referenceId = referenceId;
     }
-    
+
     public AuditEventType(String auditEventType, int changeType, int referenceId, User raisingUser, int auditEventId) {
         this.auditEventType = auditEventType;
         this.changeType = changeType;
@@ -296,7 +298,7 @@ public class AuditEventType extends EventType{
     }
 
     public void setReferenceId2(int auditEventId){
-    	this.auditEventId = auditEventId;
+        this.auditEventId = auditEventId;
     }
     @Override
     public int getReferenceId2() {
@@ -304,13 +306,13 @@ public class AuditEventType extends EventType{
     }
 
     public int getChangeType(){
-    	return changeType;
+        return changeType;
     }
-    
+
     public User getRaisingUser(){
-    	return this.raisingUser;
+        return this.raisingUser;
     }
-    
+
     public void setRaisingUser(User raisingUser) {
         this.raisingUser = raisingUser;
     }
@@ -350,7 +352,7 @@ public class AuditEventType extends EventType{
             return false;
         return true;
     }
-    
+
     //
     //
     // Serialization
@@ -367,19 +369,16 @@ public class AuditEventType extends EventType{
         writer.writeEntry("auditType", auditEventType);
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-	 */
-	@Override
-	public EventTypeModel asModel() {
-		return new AuditEventTypeModel(this);
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
-	 */
-	@Override
-	public boolean hasPermission(User user) {
-	    return user.isAdmin();
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
+     */
+    @Override
+    public EventTypeModel asModel() {
+        return new AuditEventTypeModel(this);
+    }
+
+    @Override
+    public boolean hasPermission(PermissionHolder user) {
+        return Permissions.hasAdminPermission(user);
+    }
 }

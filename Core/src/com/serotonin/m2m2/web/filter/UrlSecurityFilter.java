@@ -60,7 +60,7 @@ public class UrlSecurityFilter implements Filter {
                 
                 switch (uriDef.getPermission()) {
                 case ADMINISTRATOR:
-                    if ((user==null)||(!Permissions.hasAdmin(user)))
+                    if ((user==null)||(!Permissions.hasAdminPermission(user)))
                         allowed = false;
                     break;
                 case DATA_SOURCE:
@@ -107,7 +107,7 @@ public class UrlSecurityFilter implements Filter {
 
 	                switch (uriDef.getPermission()) {
 	                case ADMINISTRATOR:
-	                    if ((user==null)||(!Permissions.hasAdmin(user)))
+	                    if ((user==null)||(!Permissions.hasAdminPermission(user)))
 	                        allowed = false;
 	                    break;
 	                case DATA_SOURCE:
@@ -155,7 +155,7 @@ public class UrlSecurityFilter implements Filter {
 
 	                switch (uriDef.getPermission()) {
 	                case ADMINISTRATOR:
-	                    if ((user==null)||(!Permissions.hasAdmin(user)))
+	                    if ((user==null)||(!Permissions.hasAdminPermission(user)))
 	                        allowed = false;
 	                    break;
 	                case DATA_SOURCE:

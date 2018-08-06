@@ -3,7 +3,7 @@
  */
 package com.serotonin.m2m2.rt.event.type;
 
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
@@ -11,13 +11,13 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
  * @author Terry Packer
  */
 public class MockEventType extends EventType {
-    
+
     public static final String TYPE_NAME = "MOCK";
     private int duplicateHandling;
     private String eventSubtype;
     private int ref1;
     private int ref2;
-    
+
     /**
      * Create a mock event type with duplicate handling of ALLOW
      * and event sub type of null
@@ -25,7 +25,7 @@ public class MockEventType extends EventType {
     public MockEventType() {
         this(EventType.DuplicateHandling.ALLOW);
     }
-    
+
     /**
      * default subtype of null
      * @param duplicateHandling
@@ -33,18 +33,18 @@ public class MockEventType extends EventType {
     public MockEventType(int duplicateHandling) {
         this(duplicateHandling, null);
     }
-    
+
     public MockEventType(int duplicateHandling, String eventSubType) {
         this(duplicateHandling, eventSubType, -1, -1);
     }
-    
+
     public MockEventType(int duplicateHandling, String eventSubType, int ref1, int ref2) {
         this.duplicateHandling = duplicateHandling;
         this.eventSubtype = null;
         this.ref1 = ref1;
         this.ref2 = ref2;
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.event.type.EventType#getEventType()
      */
@@ -93,11 +93,8 @@ public class MockEventType extends EventType {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
-     */
     @Override
-    public boolean hasPermission(User user) {
+    public boolean hasPermission(PermissionHolder user) {
         return true;
     }
 
@@ -108,7 +105,7 @@ public class MockEventType extends EventType {
     public int getDataPointId() {
         return ref2;
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;

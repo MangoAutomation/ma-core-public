@@ -13,7 +13,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.DataPointEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
@@ -35,11 +35,11 @@ public class DataPointEventType extends EventType {
 
     public DataPointEventType(int dataSourceId, int dataPointId, int pointEventDetectorId, int duplicateHandling){
         this.dataSourceId = dataSourceId;
-    	this.dataPointId = dataPointId;
+        this.dataPointId = dataPointId;
         this.pointEventDetectorId = pointEventDetectorId;
         this.duplicateHandling = duplicateHandling;
     }
-    
+
     @Override
     public String getEventType() {
         return EventType.EventTypeNames.DATA_POINT;
@@ -53,9 +53,9 @@ public class DataPointEventType extends EventType {
     @Override
     public int getDataSourceId() {
         if (dataSourceId == -1){
-        	DataPointVO vo = DataPointDao.instance.getDataPoint(dataPointId, false);
-        	if(vo != null) //In case the point has been deleted
-        		dataSourceId = vo.getDataSourceId();
+            DataPointVO vo = DataPointDao.instance.getDataPoint(dataPointId, false);
+            if(vo != null) //In case the point has been deleted
+                dataSourceId = vo.getDataSourceId();
         }
         return dataSourceId;
     }
@@ -133,22 +133,16 @@ public class DataPointEventType extends EventType {
         writer.writeEntry("detectorXID", EventDetectorDao.instance.getXid(pointEventDetectorId));
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-	 */
-	@Override
-	public EventTypeModel asModel() {
-		return new DataPointEventTypeModel(this);
-	}
-	
     /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#hasPermission(com.serotonin.m2m2.vo.User)
+     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
      */
     @Override
-    public boolean hasPermission(User user) {
-        if (user.isAdmin())
-            return true;
-        
+    public EventTypeModel asModel() {
+        return new DataPointEventTypeModel(this);
+    }
+
+    @Override
+    public boolean hasPermission(PermissionHolder user) {
         DataPointVO point = DataPointDao.instance.get(dataPointId);
         if(point == null)
             return false;

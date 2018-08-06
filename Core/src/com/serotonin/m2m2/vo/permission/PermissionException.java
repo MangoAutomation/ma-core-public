@@ -6,28 +6,27 @@ package com.serotonin.m2m2.vo.permission;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.vo.User;
 
 public class PermissionException extends RuntimeException {
     private static final long serialVersionUID = -1;
 
     private final TranslatableMessage translatableMessage;
-    private final User user;
+    private final PermissionHolder permissionHolder;
 
-    public PermissionException(TranslatableMessage translatableMessage, User user) {
+    public PermissionException(TranslatableMessage translatableMessage, PermissionHolder permissionHolder) {
         super();
         this.translatableMessage = translatableMessage;
-        this.user = user;
+        this.permissionHolder = permissionHolder;
     }
 
-    public User getUser() {
-        return user;
+    public PermissionHolder getPermissionHolder() {
+        return permissionHolder;
     }
-    
+
     public TranslatableMessage getTranslatableMessage() {
         return translatableMessage;
     }
-    
+
     @Override
     public String getMessage() {
         return this.translatableMessage.translate(Common.getTranslations());

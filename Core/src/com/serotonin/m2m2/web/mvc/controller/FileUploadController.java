@@ -56,7 +56,7 @@ public class FileUploadController implements UrlHandler {
      * @param user
      */
     protected void ensurePermission(User user) throws PermissionException{
-    	Permissions.ensureAdmin(Common.getHttpUser());
+    	Permissions.ensureHasAdminPermission(Common.getHttpUser());
     }
 
 	/**

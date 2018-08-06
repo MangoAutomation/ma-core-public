@@ -53,7 +53,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             throws Exception {
         DataSourceVO<?> dataSourceVO = null;
         User user = Common.getUser(request);
-        final boolean admin = Permissions.hasAdmin(user);
+        final boolean admin = Permissions.hasAdminPermission(user);
         // Create the model.
         Map<String, Object> model = new HashMap<>();
 

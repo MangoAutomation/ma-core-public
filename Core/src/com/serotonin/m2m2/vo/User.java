@@ -43,6 +43,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -53,7 +54,7 @@ import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 import com.serotonin.validation.StringValidation;
 
-public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable, UserDetails {
+public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable, UserDetails, PermissionHolder {
 
     public final static String PLAIN_TEXT_ALGORITHM = "PLAINTEXT";
     public final static String NONE_ALGORITHM = "NONE";
@@ -250,6 +251,12 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     }
 
     // Properties
+
+    /**
+     * Use hasAdminPermission()
+     * @return
+     */
+    @Deprecated
     public boolean isAdmin() {
         return admin;
     }
@@ -370,16 +377,16 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         this.disabled = disabled;
     }
 
+    @Override
     public String getPermissions() {
         return permissions;
     }
 
     public void setPermissions(String permissions) {
         this.permissions = permissions;
-        //Set the admin flag if necessary
-        this.admin = Permissions.permissionContains(SuperadminPermissionDefinition.GROUP_NAME, permissions);
         this.authorities.reset();
         this.permissionsSet.reset();
+        this.admin = this.getPermissionsSet().contains(SuperadminPermissionDefinition.GROUP_NAME);
     }
 
     public DataSourceVO<?> getEditDataSource() {
@@ -805,17 +812,20 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         return true;
     }
 
+    @Override
     public Set<String> getPermissionsSet() {
         return permissionsSet.get(() -> {
             return Permissions.explodePermissionGroups(this.permissions);
         });
     }
 
-    public boolean hasAnyPermission(Set<String> requiredPermissions) {
-        return Permissions.hasAny(this.getPermissionsSet(), requiredPermissions);
+    @Override
+    public String getPermissionHolderName() {
+        return this.username;
     }
 
-    public boolean hasAllPermissions(Set<String> requiredPermissions) {
-        return Permissions.hasAll(this.getPermissionsSet(), requiredPermissions);
+    @Override
+    public boolean isPermissionHolderDisabled() {
+        return this.disabled;
     }
 }

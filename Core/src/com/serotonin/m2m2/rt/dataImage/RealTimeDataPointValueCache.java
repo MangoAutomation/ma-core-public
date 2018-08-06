@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2013 Infinite Automation Software. All rights reserved.
- * 
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.rt.dataImage;
@@ -30,15 +30,15 @@ import com.serotonin.m2m2.vo.hierarchy.PointHierarchyListener;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
- * 
+ *
  * Real Time Data Cache that contains the most recent value for all data points in the Point
  * Hierarchy. This was previously on a per user basis but now all points are registered and
  * permissions are used to extract the data.
  *
  * Available properties defined in RealTimeDataPointValue
- * 
+ *
  * Changes to data point configurations are only picked up when the point hierarchy is saved.
- * 
+ *
  * @author Terry Packer
  *
  */
@@ -99,15 +99,11 @@ public class RealTimeDataPointValueCache {
         }
         List<RealTimeDataPointValue> results = new ArrayList<RealTimeDataPointValue>();
 
-        final boolean admin = Permissions.hasAdmin(user);
-        final String permissions = user.getPermissions();
-        
         for (RealTimeDataPointValue rtdpv : this.realTimeData) {
-
             // Do we have set or read permissions for this point?
-            if (admin || Permissions.hasPermission(rtdpv.getSetPermission(), permissions)
-                    || Permissions.hasPermission(rtdpv.getReadPermission(), permissions))
+            if (Permissions.hasPermission(user, rtdpv.getSetPermission()) || Permissions.hasPermission(user, rtdpv.getReadPermission())) {
                 results.add(rtdpv);
+            }
         }
 
         return results;
@@ -115,7 +111,7 @@ public class RealTimeDataPointValueCache {
 
     /**
      * Create a point hierarchy for this user out of all points they can read
-     * 
+     *
      * @param translations
      * @param user
      * @return
@@ -140,7 +136,7 @@ public class RealTimeDataPointValueCache {
 
     /**
      * Fill the real time cache from the point hierarchy
-     * 
+     *
      * @param hierarchy
      * @param folder
      */
@@ -166,7 +162,7 @@ public class RealTimeDataPointValueCache {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
          */
         @SuppressWarnings("unchecked")

@@ -52,7 +52,7 @@ public class PublisherEditController extends ParameterizableViewController {
     protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)
             throws Exception {
         User user = Common.getUser(request);
-        Permissions.ensureAdmin(user);
+        Permissions.ensureHasAdminPermission(user);
 
         PublisherVO<? extends PublishedPointVO> publisherVO;
 
