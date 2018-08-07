@@ -114,11 +114,6 @@ public class Permissions {
         return hasAnyPermission(user, explodePermissionGroups(p));
     }
 
-    @Deprecated
-    public static boolean hasDataSourcePermission(String userPermissions, DataSourceVO<?> ds) {
-        return containsAny(explodePermissionGroups(userPermissions), explodePermissionGroups(ds.getEditPermission()));
-    }
-
     //
     //
     // Data point access
@@ -134,19 +129,6 @@ public class Permissions {
         return hasDataPointSetPermission(user, point);
     }
 
-    @Deprecated
-    public static boolean hasDataPointReadPermission(String userPermissions, IDataPoint point) {
-        Set<String> heldPermissions = explodePermissionGroups(userPermissions);
-
-        if (containsAny(heldPermissions, explodePermissionGroups(point.getReadPermission())) ||
-                containsAny(heldPermissions, explodePermissionGroups(point.getSetPermission()))) {
-            return true;
-        }
-
-        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-        return containsAny(heldPermissions, explodePermissionGroups(dsPermission));
-    }
-
     public static void ensureDataPointSetPermission(PermissionHolder user, DataPointVO point) throws PermissionException {
         if (!hasDataPointSetPermission(user, point))
             throw new PermissionException(new TranslatableMessage("permission.exception.setDataPoint", user.getPermissionHolderName()), user);
@@ -157,18 +139,6 @@ public class Permissions {
             return true;
 
         return hasDataSourcePermission(user, point.getDataSourceId());
-    }
-
-    @Deprecated
-    public static boolean hasDataPointSetPermission(String userPermissions, IDataPoint point) {
-        Set<String> heldPermissions = explodePermissionGroups(userPermissions);
-
-        if (containsAny(heldPermissions, explodePermissionGroups(point.getSetPermission()))) {
-            return true;
-        }
-
-        String dsPermission = DataSourceDao.instance.getEditPermission(point.getDataSourceId());
-        return containsAny(heldPermissions, explodePermissionGroups(dsPermission));
     }
 
     public static int getDataPointAccessType(PermissionHolder user, IDataPoint point) {
