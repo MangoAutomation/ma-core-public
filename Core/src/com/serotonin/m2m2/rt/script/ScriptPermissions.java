@@ -1,25 +1,29 @@
 /**
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.rt.script;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
+import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
- * Container for all scripts that holds the
- * permissions during runtime.
+ * Container for all scripts that holds the permissions during runtime.
  *
  * @author Terry Packer
  *
  */
-public class ScriptPermissions implements Serializable{
+public class ScriptPermissions implements Serializable, PermissionHolder {
 
     public static final String DATA_SOURCE = "scriptDataSourcePermission";
     public static final String DATA_POINT_READ = "scriptDataPointReadPermission";
@@ -30,29 +34,31 @@ public class ScriptPermissions implements Serializable{
     private static final long serialVersionUID = 1L;
 
     @JsonProperty
-    private String dataSourcePermissions = new String();
+    private String dataSourcePermissions = "";
     @JsonProperty
-    private String dataPointSetPermissions = new String();
+    private String dataPointSetPermissions = "";
     @JsonProperty
-    private String dataPointReadPermissions = new String();
+    private String dataPointReadPermissions = "";
     @JsonProperty
-    private String customPermissions = new String();
+    private String customPermissions = "";
 
-    public ScriptPermissions(){
-        dataSourcePermissions = new String();
-        dataPointSetPermissions = new String();
-        dataPointReadPermissions = new String();
-        customPermissions = new String();
+    private transient final LazyInitializer<Set<String>> combinedPermissions = new LazyInitializer<>();
+
+    public ScriptPermissions() {
+        dataSourcePermissions = "";
+        dataPointSetPermissions = "";
+        dataPointReadPermissions = "";
+        customPermissions = "";
     }
 
-    public ScriptPermissions(User user){
-        if(user == null){
-            dataSourcePermissions = new String();
-            dataPointSetPermissions = new String();
-            dataPointReadPermissions = new String();
-            customPermissions = new String();
+    public ScriptPermissions(User user) {
+        if (user == null) {
+            dataSourcePermissions = "";
+            dataPointSetPermissions = "";
+            dataPointReadPermissions = "";
+            customPermissions = "";
 
-        }else{
+        } else {
             dataPointReadPermissions = user.getPermissions();
             dataPointSetPermissions = user.getPermissions();
             dataSourcePermissions = user.getPermissions();
@@ -60,54 +66,69 @@ public class ScriptPermissions implements Serializable{
         }
     }
 
+    @Deprecated
     public String getDataSourcePermissions() {
         return dataSourcePermissions;
     }
+
     public void setDataSourcePermissions(String dataSourcePermissions) {
         this.dataSourcePermissions = dataSourcePermissions;
+        this.combinedPermissions.reset();
     }
+
+    @Deprecated
     public String getDataPointSetPermissions() {
         return dataPointSetPermissions;
     }
+
     public void setDataPointSetPermissions(String dataPointSetPermissions) {
         this.dataPointSetPermissions = dataPointSetPermissions;
+        this.combinedPermissions.reset();
     }
+
+    @Deprecated
     public String getDataPointReadPermissions() {
         return dataPointReadPermissions;
     }
+
     public void setDataPointReadPermissions(String dataPointReadPermissions) {
         this.dataPointReadPermissions = dataPointReadPermissions;
+        this.combinedPermissions.reset();
     }
+
+    @Deprecated
     public String getCustomPermissions() {
         return customPermissions;
     }
+
     public void setCustomPermissions(String customPermissions) {
         this.customPermissions = customPermissions;
+        this.combinedPermissions.reset();
     }
 
-    public void validate(ProcessResult response, User user){
-        if(user == null){
-            response.addContextualMessage(DATA_SOURCE, "validate.invalidPermission","No User Found");
-            response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermission","No User Found");
-            response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermission","No User Found");
+    public void validate(ProcessResult response, User user) {
+        if (user == null) {
+            response.addContextualMessage(DATA_SOURCE, "validate.invalidPermission", "No User Found");
+            response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermission", "No User Found");
+            response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermission", "No User Found");
             return;
         }
 
-        if(user.isAdmin())
+        if (user.hasAdminPermission())
             return;
 
-        //If superadmin then fine or if not then only allow my groups
-        if((!this.dataSourcePermissions.isEmpty())&&(!Permissions.hasPermission(user, this.dataSourcePermissions))){
+        // If superadmin then fine or if not then only allow my groups
+        if ((!this.dataSourcePermissions.isEmpty()) && (!Permissions.hasPermission(user, this.dataSourcePermissions))) {
             Set<String> invalid = Permissions.findInvalidPermissions(user, this.dataSourcePermissions);
             String notGranted = Permissions.implodePermissionGroups(invalid);
             response.addContextualMessage(DATA_SOURCE, "validate.invalidPermission", notGranted);
         }
-        if((!this.dataPointSetPermissions.isEmpty())&&(!Permissions.hasPermission(user, this.dataPointSetPermissions))){
+        if ((!this.dataPointSetPermissions.isEmpty()) && (!Permissions.hasPermission(user, this.dataPointSetPermissions))) {
             Set<String> invalid = Permissions.findInvalidPermissions(user, this.dataPointSetPermissions);
             String notGranted = Permissions.implodePermissionGroups(invalid);
             response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermission", notGranted);
         }
-        if((!this.dataPointReadPermissions.isEmpty())&&(!Permissions.hasPermission(user, this.dataPointReadPermissions))){
+        if ((!this.dataPointReadPermissions.isEmpty()) && (!Permissions.hasPermission(user, this.dataPointReadPermissions))) {
             Set<String> invalid = Permissions.findInvalidPermissions(user, this.dataPointReadPermissions);
             String notGranted = Permissions.implodePermissionGroups(invalid);
             response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermission", notGranted);
@@ -115,37 +136,65 @@ public class ScriptPermissions implements Serializable{
     }
 
     public void validate(ProcessResult response, User user, ScriptPermissions oldPermissions) {
-        if(user.isAdmin())
+        if (user.hasAdminPermission())
             return;
 
         Set<String> nonUserPre = Permissions.findInvalidPermissions(user, oldPermissions.getDataSourcePermissions());
         Set<String> nonUserPost = Permissions.findInvalidPermissions(user, this.dataSourcePermissions);
-        if(nonUserPre.size() != nonUserPost.size())
+        if (nonUserPre.size() != nonUserPost.size())
             response.addContextualMessage(DATA_SOURCE, "validate.invalidPermissionModification", user.getPermissions());
         else {
-            for(String s : nonUserPre)
-                if(!nonUserPost.contains(s))
+            for (String s : nonUserPre)
+                if (!nonUserPost.contains(s))
                     response.addContextualMessage(DATA_SOURCE, "validate.invalidPermissionModification", user.getPermissions());
         }
 
         nonUserPre = Permissions.findInvalidPermissions(user, oldPermissions.getDataPointSetPermissions());
         nonUserPost = Permissions.findInvalidPermissions(user, this.dataPointSetPermissions);
-        if(nonUserPre.size() != nonUserPost.size())
+        if (nonUserPre.size() != nonUserPost.size())
             response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermissionModification", user.getPermissions());
         else {
-            for(String s : nonUserPre)
-                if(!nonUserPost.contains(s))
+            for (String s : nonUserPre)
+                if (!nonUserPost.contains(s))
                     response.addContextualMessage(DATA_POINT_SET, "validate.invalidPermissionModification", user.getPermissions());
         }
 
         nonUserPre = Permissions.findInvalidPermissions(user, oldPermissions.getDataPointReadPermissions());
         nonUserPost = Permissions.findInvalidPermissions(user, this.dataPointReadPermissions);
-        if(nonUserPre.size() != nonUserPost.size())
+        if (nonUserPre.size() != nonUserPost.size())
             response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermissionModification", user.getPermissions());
         else {
-            for(String s : nonUserPre)
-                if(!nonUserPost.contains(s))
+            for (String s : nonUserPre)
+                if (!nonUserPost.contains(s))
                     response.addContextualMessage(DATA_POINT_READ, "validate.invalidPermissionModification", user.getPermissions());
         }
+    }
+
+    @Override
+    public String getPermissions() {
+        return Permissions.implodePermissionGroups(this.getPermissionsSet());
+    }
+
+    @Override
+    public String getPermissionHolderName() {
+        // TODO return parent object's name or something, this is used in messages in exceptions
+        return "script";
+    }
+
+    @Override
+    public boolean isPermissionHolderDisabled() {
+        return false;
+    }
+
+    @Override
+    public Set<String> getPermissionsSet() {
+        return combinedPermissions.get(() -> {
+            Set<String> combined = new HashSet<>();
+            combined.addAll(Permissions.explodePermissionGroups(this.dataSourcePermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointSetPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointReadPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.customPermissions));
+            return Collections.unmodifiableSet(combined);
+        });
     }
 }
