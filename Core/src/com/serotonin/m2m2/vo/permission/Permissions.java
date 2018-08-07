@@ -348,9 +348,6 @@ public class Permissions {
     }
 
     public static boolean hasSinglePermission(PermissionHolder user, String requiredPermission) {
-        if (requiredPermission == null || requiredPermission.isEmpty()) {
-            throw new IllegalArgumentException("Required permission/s can't be null or empty");
-        }
         ensureValidPermissionHolder(user);
 
         Set<String> heldPermissions = user.getPermissionsSet();
@@ -358,9 +355,6 @@ public class Permissions {
     }
 
     public static boolean hasAnyPermission(PermissionHolder user, Set<String> requiredPermissions) {
-        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
-            throw new IllegalArgumentException("Required permission/s can't be null or empty");
-        }
         ensureValidPermissionHolder(user);
 
         Set<String> heldPermissions = user.getPermissionsSet();
@@ -368,9 +362,6 @@ public class Permissions {
     }
 
     public static boolean hasAllPermissions(PermissionHolder user, Set<String> requiredPermissions) {
-        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
-            throw new IllegalArgumentException("Required permission/s can't be null or empty");
-        }
         ensureValidPermissionHolder(user);
 
         Set<String> heldPermissions = user.getPermissionsSet();
@@ -400,6 +391,10 @@ public class Permissions {
             return true;
         }
 
+        if (requiredPermission == null || requiredPermission.isEmpty()) {
+            return false;
+        }
+
         return heldPermissions.contains(requiredPermission);
     }
 
@@ -408,12 +403,20 @@ public class Permissions {
             return true;
         }
 
+        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
+            return false;
+        }
+
         return heldPermissions.containsAll(requiredPermissions);
     }
 
     private static boolean containsAny(Set<String> heldPermissions, Set<String> requiredPermissions) {
         if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
+        }
+
+        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
+            return false;
         }
 
         for (String requiredPermission : requiredPermissions) {
