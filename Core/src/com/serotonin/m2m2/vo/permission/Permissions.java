@@ -6,8 +6,10 @@ package com.serotonin.m2m2.vo.permission;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -315,13 +317,8 @@ public class Permissions {
      * @return
      */
     public static String implodePermissionGroups(Set<String> groups) {
-        for (String group : groups) {
-            if (group == null || group.isEmpty()) {
-                throw new IllegalArgumentException("Permission cannot be null or empty");
-            }
-        }
-
-        return String.join(",", groups);
+        checkPermissionSet(groups);
+        return String.join(",", groups.stream().map(group -> group.trim()).collect(Collectors.toSet()));
     }
 
     /**
@@ -391,6 +388,7 @@ public class Permissions {
             return true;
         }
 
+        // empty permissions string indicates that only superadmins are allowed access
         if (requiredPermission == null || requiredPermission.isEmpty()) {
             return false;
         }
@@ -399,11 +397,14 @@ public class Permissions {
     }
 
     private static boolean containsAll(Set<String> heldPermissions, Set<String> requiredPermissions) {
+        checkPermissionSet(requiredPermissions);
+
         if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
         }
 
-        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
+        // empty permissions string indicates that only superadmins are allowed access
+        if (requiredPermissions.isEmpty()) {
             return false;
         }
 
@@ -411,11 +412,14 @@ public class Permissions {
     }
 
     private static boolean containsAny(Set<String> heldPermissions, Set<String> requiredPermissions) {
+        checkPermissionSet(requiredPermissions);
+
         if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
         }
 
-        if (requiredPermissions == null || requiredPermissions.isEmpty()) {
+        // empty permissions string indicates that only superadmins are allowed access
+        if (requiredPermissions.isEmpty()) {
             return false;
         }
 
@@ -424,6 +428,17 @@ public class Permissions {
                 return true;
             }
         }
+
         return false;
+    }
+
+    private static void checkPermissionSet(Set<String> requiredPermissions) {
+        Objects.requireNonNull(requiredPermissions, "Permission set cannot be null");
+
+        for (String requiredPermission : requiredPermissions) {
+            if (requiredPermission == null || requiredPermission.isEmpty()) {
+                throw new IllegalArgumentException("Permission string in set cannot be null or empty");
+            }
+        }
     }
 }

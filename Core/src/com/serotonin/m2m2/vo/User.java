@@ -253,7 +253,10 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     // Properties
 
     /**
-     * Use hasAdminPermission()
+     * This method should not be used for permission checks, use hasAdminPermission().
+     *
+     * Why? This method does not check if the user is disabled.
+     *
      * @return
      */
     @Deprecated
