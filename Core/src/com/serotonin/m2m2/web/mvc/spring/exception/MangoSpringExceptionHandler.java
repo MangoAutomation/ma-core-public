@@ -29,10 +29,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
 import com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException;
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
+import com.infiniteautomation.mango.rest.v2.exception.InvalidRQLRestException;
 import com.infiniteautomation.mango.rest.v2.exception.NotFoundRestException;
 import com.infiniteautomation.mango.rest.v2.exception.ResourceNotFoundException;
 import com.infiniteautomation.mango.rest.v2.exception.ServerErrorException;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
+import com.infiniteautomation.mango.util.exception.InvalidRQLException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
@@ -103,7 +105,14 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     public ResponseEntity<Object> handleNotFoundException(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
         return handleExceptionInternal(ex, new NotFoundRestException(ex), new HttpHeaders(), HttpStatus.NOT_FOUND, req);
     }
-        
+       
+    @ExceptionHandler({
+        InvalidRQLException.class
+    })
+    public ResponseEntity<Object> handleInvalidRQLException(HttpServletRequest request, HttpServletResponse response, InvalidRQLException ex, WebRequest req) {
+        return handleExceptionInternal(ex, new InvalidRQLRestException(ex.getQuery(), ex.getParserMessage()), new HttpHeaders(), HttpStatus.NOT_FOUND, req);
+    }
+    
     @ExceptionHandler({
     	Exception.class
     })

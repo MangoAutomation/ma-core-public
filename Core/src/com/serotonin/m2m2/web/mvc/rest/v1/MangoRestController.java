@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.rest.BaseMangoRestController;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.ResourceCreatedMessage;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessage;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
@@ -21,8 +20,11 @@ import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 /**
  * @author Terry Packer
  * 
+ * This class is deprecated as exceptions should be handled by the MangoSpringExceptionHandler
+ * 
  */
-public abstract class MangoRestController extends BaseMangoRestController{
+@Deprecated 
+public abstract class MangoRestController  {
 
 	/**
 	 * Check to see if a User is logged in
