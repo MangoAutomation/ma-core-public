@@ -822,6 +822,10 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         });
     }
 
+    public void setPermissionsSet(Set<String> permissionsSet) {
+        this.setPermissions(Permissions.implodePermissionGroups(permissionsSet));
+    }
+
     @Override
     public String getPermissionHolderName() {
         return this.username;

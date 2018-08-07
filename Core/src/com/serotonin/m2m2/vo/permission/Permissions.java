@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -29,8 +28,6 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
  *
  */
 public class Permissions {
-
-    private static final Pattern PERMISSION_SPLITTER = Pattern.compile("\\s*,\\s*");
 
     public interface DataPointAccessTypes {
         int NONE = 0;
@@ -263,7 +260,8 @@ public class Permissions {
         }
 
         Set<String> set = new HashSet<>();
-        for (String s : PERMISSION_SPLITTER.split(groups)) {
+        for (String s : groups.split(",")) {
+            s = s.trim();
             if (!s.isEmpty()) {
                 set.add(s);
             }
