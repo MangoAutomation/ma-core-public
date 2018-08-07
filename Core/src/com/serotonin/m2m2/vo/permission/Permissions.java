@@ -354,7 +354,7 @@ public class Permissions {
         ensureValidPermissionHolder(user);
 
         Set<String> heldPermissions = user.getPermissionsSet();
-        return heldPermissions.contains(requiredPermission);
+        return containsSinglePermission(heldPermissions, requiredPermission);
     }
 
     public static boolean hasAnyPermission(PermissionHolder user, Set<String> requiredPermissions) {
@@ -393,6 +393,14 @@ public class Permissions {
         if (!hasAllPermissions(user, requiredPermissions)) {
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
         }
+    }
+
+    private static boolean containsSinglePermission(Set<String> heldPermissions, String requiredPermission) {
+        if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
+            return true;
+        }
+
+        return heldPermissions.contains(requiredPermission);
     }
 
     private static boolean containsAll(Set<String> heldPermissions, Set<String> requiredPermissions) {
