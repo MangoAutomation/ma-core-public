@@ -61,6 +61,7 @@ import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermi
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PublicFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
@@ -1064,6 +1065,7 @@ public class ModuleRegistry {
         preDefaults.add(new DocsFileStoreReadPermissionDefinition());
         preDefaults.add(new DocsFileStoreWritePermissionDefinition());
         preDefaults.add(new UserFileStoreCreatePermissionDefinition());
+        preDefaults.add(new JsonDataCreatePermissionDefinition());
         
         /* Read Only Settings */
         preDefaults.add(new TimezoneInfoDefinition());

@@ -1,11 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="maven-target/test-classes" path="src-test"/>
-	<classpathentry excluding="**/*.java" kind="src" output="maven-target/test-classes" path="db"/>
-	<classpathentry excluding="**/*.java" including="i18n.properties" kind="src" output="maven-target/test-classes" path="classes"/>
-	<classpathentry including="**/*.java" kind="src" path="src"/>
+	<classpathentry including="**/*.java" kind="src" output="maven-target/test-classes" path="src-test">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="maven-target/test-classes" path="db">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="**" kind="src" output="maven-target/test-classes" path="classes">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="maven-target/classes" path="src">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry including="**/*.java" kind="src" path="src-patch"/>
-	<classpathentry including="**/*.java" kind="src" path="maven-target/generated-sources/java-templates"/>
+	<classpathentry kind="src" output="maven-target/classes" path="maven-target/generated-sources/java-templates">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="src" path="overrides/classes"/>
 	<classpathentry kind="src" path="overrides/properties"/>
 	<classpathentry kind="var" path="M2_REPO/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar" sourcepath="M2_REPO/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0-sources.jar"/>
@@ -14,7 +37,11 @@
 	<classpathentry kind="var" path="M2_REPO/javax/activation/activation/1.1/activation-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/faces/javax.faces-api/2.2/javax.faces-api-2.2.jar" sourcepath="M2_REPO/javax/faces/javax.faces-api/2.2/javax.faces-api-2.2-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/javax/transaction/jta/1.1/jta-1.1.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="var" path="M2_REPO/commons-collections/commons-collections/3.2.2/commons-collections-3.2.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/commons-io/commons-io/2.5/commons-io-2.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/apache/commons/commons-lang3/3.7/commons-lang3-3.7.jar" sourcepath="M2_REPO/org/apache/commons/commons-lang3/3.7/commons-lang3-3.7-sources.jar"/>
@@ -175,5 +202,10 @@
 	<classpathentry kind="var" path="M2_REPO/org/jooq/jooq/3.10.7/jooq-3.10.7.jar" sourcepath="M2_REPO/org/jooq/jooq/3.10.7/jooq-3.10.7-sources.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/github/ben-manes/caffeine/caffeine/2.6.2/caffeine-2.6.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/isomorphism/token-bucket/1.6/token-bucket-1.6.jar"/>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="maven-target/classes"/>
 </classpath>
