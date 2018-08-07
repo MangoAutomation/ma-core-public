@@ -34,7 +34,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 				return OPERATION_NO_CHANGE;
 			
 			DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), dsRt.getVo()))
+			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
 				return OPERATION_NO_CHANGE;
 			
 			//forcePointRead
@@ -64,7 +64,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
                 return OPERATION_NO_CHANGE;
             
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), dsRt.getVo()))
+            if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
                 return OPERATION_NO_CHANGE;
             
             //Common.runtimeManager.forceDataSourcePoll(vo.getId());
@@ -83,7 +83,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int enableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
 			return OPERATION_SUCCESSFUL;
@@ -99,7 +99,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int disableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())
 			return OPERATION_SUCCESSFUL;
@@ -115,7 +115,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int enableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null || Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
+		if(vo == null || Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
 			return OPERATION_SUCCESSFUL;
@@ -131,7 +131,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int disableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null || Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
+		if(vo == null || Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())
 			return OPERATION_SUCCESSFUL;

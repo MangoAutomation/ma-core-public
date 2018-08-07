@@ -68,7 +68,7 @@ public class DataPointQuery{
 		for(DataPointVO dp : dataPoints){
 			
 			//Can we read or write to this point?
-			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), dp) || Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), dp)){
+			if(Permissions.hasDataPointSetPermission(permissions, dp) || Permissions.hasDataPointReadPermission(permissions, dp)){
 				rt = Common.runtimeManager.getDataPoint(dp.getId());
 				if(rt != null)
 					wrapper = ScriptUtils.wrapPoint(engine, rt, setter);
@@ -85,7 +85,7 @@ public class DataPointQuery{
 	    if(dp == null)
 	        return null;
 	    
-	    if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), dp) || Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), dp)) {
+	    if(Permissions.hasDataPointSetPermission(permissions, dp) || Permissions.hasDataPointReadPermission(permissions, dp)) {
 	        DataPointRT rt = null;
 	        AbstractPointWrapper wrapper = null;
 	        rt = Common.runtimeManager.getDataPoint(dp.getId());

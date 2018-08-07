@@ -53,7 +53,7 @@ public class RuntimeManagerScriptUtility{
 				return OPERATION_NO_CHANGE;
 			
 			DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), dsRt.getVo()))
+			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
 				return OPERATION_NO_CHANGE;
 			
 			Common.runtimeManager.forcePointRead(vo.getId());
@@ -83,7 +83,7 @@ public class RuntimeManagerScriptUtility{
                 return OPERATION_NO_CHANGE;
             
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), dsRt.getVo()))
+            if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
                 return OPERATION_NO_CHANGE;
             
             Common.runtimeManager.forceDataSourcePoll(vo.getId());
@@ -107,7 +107,7 @@ public class RuntimeManagerScriptUtility{
 			return false;
 		else{
 			//This will throw an exception if there is no permission
-			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
+			if(Permissions.hasDataSourcePermission(permissions, vo))
 				return vo.isEnabled();
 			else
 				return false;
@@ -122,7 +122,7 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int enableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
 			vo.setEnabled(true);
@@ -144,7 +144,7 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int disableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), vo))
+		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
 			vo.setEnabled(false);
@@ -172,7 +172,7 @@ public class RuntimeManagerScriptUtility{
 		if(vo == null)
 			return false;
 		else{
-			if(Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo) || Permissions.hasDataPointReadPermission(permissions.getDataPointReadPermissions(), vo)){
+			if(Permissions.hasDataPointSetPermission(permissions, vo) || Permissions.hasDataPointReadPermission(permissions, vo)){
 				DataSourceVO<?> ds = DataSourceDao.instance.get(vo.getDataSourceId());
 				if(ds == null)
 					return false;
@@ -189,7 +189,7 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int enableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null || !Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
+		if(vo == null || !Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
 			try{
@@ -211,7 +211,7 @@ public class RuntimeManagerScriptUtility{
 	 */
 	public int disableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.instance.getByXid(xid);
-		if(vo == null || !Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), vo))
+		if(vo == null || !Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
 			try{

@@ -17,7 +17,7 @@ public abstract class ScriptPointValueSetter {
         if(!point.getVO().getPointLocator().isSettable())
             return;
 
-        if(permissions != null && !Permissions.hasDataPointSetPermission(permissions.getDataPointSetPermissions(), point.getVO()))
+        if(permissions != null && !Permissions.hasDataPointSetPermission(permissions, point.getVO()))
             throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", point.getVO().getXid()));
 
         setImpl(point, value, timestamp, annotation);

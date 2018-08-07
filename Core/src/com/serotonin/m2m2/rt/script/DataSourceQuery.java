@@ -53,7 +53,7 @@ public class DataSourceQuery{
 
 		//Filter on permissions
 		for(DataSourceVO<?> ds : dataSources){
-			if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), ds)){
+			if(Permissions.hasDataSourcePermission(permissions, ds)){
 				List<DataPointWrapper> points = getPointsForSource(ds);
 				results.add(new DataSourceWrapper(ds, points));
 			}
@@ -66,7 +66,7 @@ public class DataSourceQuery{
 	    if(ds == null)
 	        return null;
 	    
-	    if(Permissions.hasDataSourcePermission(permissions.getDataSourcePermissions(), ds)) {
+	    if(Permissions.hasDataSourcePermission(permissions, ds)) {
 	        List<DataPointWrapper> points = getPointsForSource(ds);
             return new DataSourceWrapper(ds, points);
 	    } else

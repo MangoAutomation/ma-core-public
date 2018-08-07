@@ -44,26 +44,26 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *  and bookeneds being included is optional.
  */
 public class PointValueTimeStreamScriptUtility {
-    
+
     private static final Log LOG = LogFactory.getLog(PointValueTimeStreamScriptUtility.class);
     public static final String CONTEXT_KEY = "PointValueQuery";
-    
+
     private final ScriptPermissions scriptPermissions;
-    
+
     public PointValueTimeStreamScriptUtility(ScriptPermissions scriptPermissions) {
         this.scriptPermissions = scriptPermissions;
     }
-    
+
     public void query(List<Integer> ids, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
         PointValueTimeStream pvts = new PointValueTimeStream(ids, from, to, bookend, callback);
         pvts.execute();
     }
-    
+
     public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException {
         RollupsStream rs = new RollupsStream(ids, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
         rs.execute();
     }
-    
+
     class PointValueTimeStream {
         final List<Integer> ids;
         final long from;
@@ -71,7 +71,7 @@ public class PointValueTimeStreamScriptUtility {
         final boolean bookend;
         final ScriptPointValueTimeCallback callback;
         Integer limit = null;
-        
+
         public PointValueTimeStream(List<Integer> ids, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
             this.ids = ids;
             this.from = from;
@@ -79,7 +79,7 @@ public class PointValueTimeStreamScriptUtility {
             this.bookend = bookend;
             this.callback = callback;
         }
-        
+
         public void execute() {
             if(bookend)
                 Common.databaseProxy.newPointValueDao().wideBookendQuery(ids, from, to, false, limit, callback);
@@ -87,7 +87,7 @@ public class PointValueTimeStreamScriptUtility {
                 Common.databaseProxy.newPointValueDao().getPointValuesBetween(ids, from, to, false, limit, callback);
         }
     }
-    
+
     class RollupsStream implements BookendQueryCallback<IdPointValueTime> {
         final List<Integer> ids;
         Integer limit = null;
@@ -99,7 +99,7 @@ public class PointValueTimeStreamScriptUtility {
         final int rollupPeriodType;
         final Map<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>> quantizerMap;
         boolean warned = false;
-        
+
         public RollupsStream(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollup, int rollupPeriod, int rollupPeriodType) {
             this.ids = ids;
             Instant instantFrom = Instant.ofEpochMilli(from);
@@ -113,7 +113,7 @@ public class PointValueTimeStreamScriptUtility {
             this.rollupPeriodType = rollupPeriodType;
             quantizerMap = new HashMap<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>>();
         }
-        
+
         public void execute() throws IOException {
             createQuantizerMap();
             Common.databaseProxy.newPointValueDao().wideBookendQuery(ids, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
@@ -122,10 +122,10 @@ public class PointValueTimeStreamScriptUtility {
                 if(!quant.isDone())
                     quant.done();
         }
-        
+
         @Override
         public void firstValue(IdPointValueTime value, int index, boolean bookend) throws IOException {
-            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());        
+            DataPointStatisticsQuantizer<?> quantizer = this.quantizerMap.get(value.getId());
             quantizer.firstValue(value, index, bookend);
         }
 
@@ -184,7 +184,7 @@ public class PointValueTimeStreamScriptUtility {
                     break;
             }
         }
-        
+
         public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) {
             switch(rollup) {
                 case Rollups.ALL :
@@ -217,7 +217,7 @@ public class PointValueTimeStreamScriptUtility {
                     break;
             }
         }
-        
+
         public void quantizedStatistics(ValueChangeCounter statisticsGenerator) {
             switch(rollup) {
                 case Rollups.ALL :
@@ -250,7 +250,7 @@ public class PointValueTimeStreamScriptUtility {
                     break;
             }
         }
-        
+
         private void createQuantizerMap() {
             for(Integer id : ids) {
                 if(id == null)
@@ -258,31 +258,31 @@ public class PointValueTimeStreamScriptUtility {
                 DataPointVO vo = DataPointDao.instance.getDataPoint(id, false);
                 if(vo == null)
                     throw new RuntimeException("Data point with id " + id + " does not exist."); //TODO better error'ing
-                if(!Permissions.hasDataPointReadPermission(scriptPermissions.getDataPointReadPermissions(), vo) &&
-                   !Permissions.hasDataPointSetPermission(scriptPermissions.getDataPointSetPermissions(), vo) &&
-                   !Permissions.hasDataSourcePermission(scriptPermissions.getDataSourcePermissions(), DataSourceDao.instance.get(vo.getDataSourceId())))
+                if(!Permissions.hasDataPointReadPermission(scriptPermissions, vo) &&
+                        !Permissions.hasDataPointSetPermission(scriptPermissions, vo) &&
+                        !Permissions.hasDataSourcePermission(scriptPermissions, DataSourceDao.instance.get(vo.getDataSourceId())))
                     throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", vo.getXid()));
                 DataPointStatisticsQuantizer<?> quantizer;
                 switch(vo.getPointLocator().getDataTypeId()) {
                     case DataTypes.ALPHANUMERIC:
                     case DataTypes.IMAGE:
                         quantizer = new ValueChangeCounterDataPointQuantizer(vo, getBucketCalculator(), this);
-                    break;
+                        break;
                     case DataTypes.BINARY:
                     case DataTypes.MULTISTATE:
                         quantizer = new StartsAndRuntimeListDataPointQuantizer(vo, getBucketCalculator(), this);
-                    break;
+                        break;
                     case DataTypes.NUMERIC:
                         quantizer = new AnalogStatisticsDataPointQuantizer(vo, getBucketCalculator(), this);
-                    break;
+                        break;
                     default:
                         throw new RuntimeException("Unknown Data Type: " + vo.getPointLocator().getDataTypeId());
                 }
-                
+
                 this.quantizerMap.put(id, quantizer);
             }
         }
-        
+
         BucketCalculator getBucketCalculator(){
             return new TimePeriodBucketCalculator(from, to, rollupPeriodType, rollupPeriod);
         }
@@ -295,14 +295,14 @@ public class PointValueTimeStreamScriptUtility {
         protected final DataPointVO vo;
         protected boolean open;
         protected boolean done;
-        
+
         public DataPointStatisticsQuantizer(DataPointVO vo, RollupsStream callback) {
             this.vo = vo;
             this.callback = callback;
             this.open = false;
             this.done = false;
         }
-        
+
         /*
          * (non-Javadoc)
          * @see com.infiniteautomation.mango.db.query.BookendQueryCallback#firstValue(com.serotonin.m2m2.rt.dataImage.PointValueTime, int, boolean)
@@ -332,7 +332,7 @@ public class PointValueTimeStreamScriptUtility {
             quantizer.done();
             this.done = true;
         }
-        
+
         public boolean isDone() {
             return done;
         }
@@ -342,43 +342,43 @@ public class PointValueTimeStreamScriptUtility {
             done = true;
         }
     }
-    
+
     class ValueChangeCounterDataPointQuantizer extends DataPointStatisticsQuantizer<ValueChangeCounter> {
         public ValueChangeCounterDataPointQuantizer(DataPointVO vo, BucketCalculator calc, RollupsStream callback) {
             super(vo, callback);
             quantizer = new ValueChangeCounterQuantizer(calc, this);
         }
-        
+
         @Override
         public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
             this.callback.quantizedStatistics(statisticsGenerator);
         }
     }
-    
+
     class StartsAndRuntimeListDataPointQuantizer extends DataPointStatisticsQuantizer<StartsAndRuntimeList> {
         public StartsAndRuntimeListDataPointQuantizer(DataPointVO vo, BucketCalculator calc, RollupsStream callback) {
             super(vo, callback);
             quantizer = new StartsAndRuntimeListQuantizer(calc, this);
         }
-        
+
         @Override
         public void quantizedStatistics(StartsAndRuntimeList statisticsGenerator) throws IOException {
             this.callback.quantizedStatistics(statisticsGenerator);
         }
     }
-    
+
     class AnalogStatisticsDataPointQuantizer extends DataPointStatisticsQuantizer<AnalogStatistics> {
         public AnalogStatisticsDataPointQuantizer(DataPointVO vo, BucketCalculator calc, RollupsStream callback) {
             super(vo, callback);
             quantizer = new AnalogStatisticsQuantizer(calc, this);
         }
-        
+
         @Override
         public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
             this.callback.quantizedStatistics(statisticsGenerator);
         }
     }
-    
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
