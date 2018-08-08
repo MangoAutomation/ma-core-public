@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
@@ -23,7 +22,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Terry Packer
  *
  */
-public class ScriptPermissions implements Serializable, PermissionHolder {
+public class ScriptPermissions extends ScriptPermissionParent implements Serializable, PermissionHolder {
 
     public static final String DATA_SOURCE = "scriptDataSourcePermission";
     public static final String DATA_POINT_READ = "scriptDataPointReadPermission";
@@ -41,8 +40,6 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
     private String dataPointReadPermissions = "";
     @JsonProperty
     private String customPermissions = "";
-
-    private transient final LazyInitializer<Set<String>> combinedPermissions = new LazyInitializer<>();
 
     public ScriptPermissions() {
         dataSourcePermissions = "";
