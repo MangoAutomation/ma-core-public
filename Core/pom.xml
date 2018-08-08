@@ -30,6 +30,9 @@
 				<directory>db</directory>
 			</testResource>
 			<testResource>
+				<directory>db-test</directory>
+			</testResource>
+			<testResource>
 				<directory>classes</directory>
 				<includes>
 					<include>i18n.properties</include>

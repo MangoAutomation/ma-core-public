@@ -39,6 +39,10 @@ public class PermissionsTest extends MangoTestBase {
     DataSourceVO<?> dataSource;
     DataPointVO dataPoint;
 
+    public PermissionsTest() {
+        super(true, 8000);
+    }
+    
     User createTestUser() {
         User user = new User();
         user.setId(Common.NEW_ID);

@@ -20,6 +20,7 @@ public class MockMangoProperties extends AbstractProperties{
     
     public MockMangoProperties() {
         //Fill in all default values for properties
+        properties.put("db.update.log.dir", Common.MA_HOME + "/logs/");
         properties.put("security.hashAlgorithm", "NONE");
     }
     

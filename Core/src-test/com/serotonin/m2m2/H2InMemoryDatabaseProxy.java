@@ -40,6 +40,7 @@ import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
@@ -67,6 +68,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
     private Server web; //web UI
     protected DataSourceTransactionManager transactionManager;
     protected boolean useMetrics = false;
+    protected String altCreateScript = null;
+    protected String defaultDataScript = null;
     
     public H2InMemoryDatabaseProxy() {
         mockPointValueDao = new MockPointValueDao();
@@ -78,10 +81,25 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
     }
     
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics) {
+        this(initWebConsole, webPort, useMetrics, null, null);
+    }
+    
+    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics, String altCreateScript, String defaultDataScript) {
         this.mockPointValueDao = new MockPointValueDao();
         this.initWebConsole = initWebConsole;
         this.webPort = webPort;
         this.useMetrics = useMetrics;
+        this.altCreateScript = altCreateScript;
+        this.defaultDataScript = defaultDataScript;
+    }
+    
+    public void runScriptPreInitialize(InputStream scriptStream) {
+        JdbcDataSource jds = new JdbcDataSource();
+        String url = "jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1";
+        jds.setUrl(url);
+        JdbcConnectionPool dataSource = JdbcConnectionPool.create(jds);
+        
+        dataSource.dispose();
     }
     
     /* (non-Javadoc)
@@ -112,11 +130,16 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
         
+        if(altCreateScript != null)
+            runScript(this.getClass().getResourceAsStream(altCreateScript), System.out);
+        if(defaultDataScript != null)
+            runScript(this.getClass().getResourceAsStream(defaultDataScript), System.out);
+        
         //Create the empty database
         if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
-            runScript(this.getClass().getResourceAsStream("/createTables-" + getType().name() + ".sql"), null);
+            runScript(this.getClass().getResourceAsStream("/createTables-" + getType().name() + ".sql"), System.out);
 
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
                 def.newInstallationCheck(ejt);
@@ -150,6 +173,9 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
                }
             });
         } 
+        
+        // The database exists, so let's make its schema version matches the application version.
+        DBUpgrade.checkUpgrade();
         
         // Check if we are using NoSQL
         if (NoSQLProxyFactory.instance.getProxy() != null) {
