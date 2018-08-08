@@ -22,5 +22,5 @@ public abstract class MangoJavascriptContextObjectDefinition extends ModuleEleme
      * Get the object to use in the context
      * @return
      */
-    abstract public Object getContextObject();
+    abstract public Object getContextObject(PermissionHolder holder);
 }

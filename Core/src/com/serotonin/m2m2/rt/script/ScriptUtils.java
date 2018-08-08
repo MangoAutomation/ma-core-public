@@ -150,7 +150,7 @@ public class ScriptUtils {
     	
     	for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
     	    //TODO Pass in the PermissionHolder 
-    	    engineScope.put(def.getContextKey(), def.getContextObject());
+    	    engineScope.put(def.getContextKey(), def.getContextObject(permissions));
     	}
     }
 
