@@ -29,10 +29,13 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
  * @author Terry Packer
  */
 @Configuration
-@ComponentScan(basePackages = { "com.infiniteautomation.mango.spring" })
+@ComponentScan(basePackages = { 
+        "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
+        "com.serotonin.m2m2.db.dao" //DAOs 
+        })
 public class MangoRuntimeContextConfiguration {
     
-    //TODO setup common object mapper here too
+    //TODO Mango 3.5 setup common object mapper here too
     
     @Primary
     @Bean("restObjectMapper")
