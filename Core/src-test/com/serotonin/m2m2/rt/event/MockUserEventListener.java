@@ -36,7 +36,7 @@ public class MockUserEventListener implements UserEventListener {
      * @see com.serotonin.m2m2.rt.event.UserEventListener#raised(com.serotonin.m2m2.rt.event.EventInstance)
      */
     @Override
-    public void raised(EventInstance evt) {
+    public synchronized void raised(EventInstance evt) {
         this.raised.add(evt);
     }
 
@@ -44,7 +44,7 @@ public class MockUserEventListener implements UserEventListener {
      * @see com.serotonin.m2m2.rt.event.UserEventListener#returnToNormal(com.serotonin.m2m2.rt.event.EventInstance)
      */
     @Override
-    public void returnToNormal(EventInstance evt) {
+    public synchronized void returnToNormal(EventInstance evt) {
         this.returned.add(evt);
     }
 
@@ -52,7 +52,7 @@ public class MockUserEventListener implements UserEventListener {
      * @see com.serotonin.m2m2.rt.event.UserEventListener#deactivated(com.serotonin.m2m2.rt.event.EventInstance)
      */
     @Override
-    public void deactivated(EventInstance evt) {
+    public synchronized void deactivated(EventInstance evt) {
         this.deactivated.add(evt);
     }
 
@@ -60,7 +60,7 @@ public class MockUserEventListener implements UserEventListener {
      * @see com.serotonin.m2m2.rt.event.UserEventListener#acknowledged(com.serotonin.m2m2.rt.event.EventInstance)
      */
     @Override
-    public void acknowledged(EventInstance evt) {
+    public synchronized void acknowledged(EventInstance evt) {
         this.acknowledged.add(evt);
     }
 
