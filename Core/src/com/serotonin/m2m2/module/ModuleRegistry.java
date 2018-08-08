@@ -145,11 +145,13 @@ public class ModuleRegistry {
     private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
     private static Map<String, ModuleQueryDefinition> MODULE_QUERY_DEFINITIONS; 
+    private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
     
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
     private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();
 
+    
     /**
      * Helper Method to create a Module with Core Information 
      * @return
@@ -811,6 +813,36 @@ public class ModuleRegistry {
                         map.put(def.getQueryTypeName(), def);
                     }
                     MODULE_QUERY_DEFINITIONS = map;
+                }
+            }
+        }
+    }
+    
+    //
+    //
+    // Read Only Settings special handling
+    //
+    public static List<MangoJavascriptContextObjectDefinition> getMangoJavascriptContextObjectDefinitions() {
+        ensureJavascriptContextDefinitions();
+        return JAVASCRIPT_CONTEXT_DEFINITIONS;
+    }
+
+    private static void ensureJavascriptContextDefinitions() {
+        if (JAVASCRIPT_CONTEXT_DEFINITIONS == null) {
+            synchronized (LOCK) {
+                if (JAVASCRIPT_CONTEXT_DEFINITIONS == null) {
+                    List<MangoJavascriptContextObjectDefinition> list = new ArrayList<MangoJavascriptContextObjectDefinition>();
+                    for(MangoJavascriptContextObjectDefinition def : Module.getDefinitions(preDefaults, MangoJavascriptContextObjectDefinition.class)){
+                        list.add(def);
+                    }
+                    for (Module module : MODULES.values()) {
+                        for (MangoJavascriptContextObjectDefinition def : module.getDefinitions(MangoJavascriptContextObjectDefinition.class))
+                            list.add(def);
+                    }
+                    for(MangoJavascriptContextObjectDefinition def : Module.getDefinitions(postDefaults, MangoJavascriptContextObjectDefinition.class)){
+                        list.add(def);
+                    }
+                    JAVASCRIPT_CONTEXT_DEFINITIONS = list;
                 }
             }
         }
