@@ -65,7 +65,7 @@ public class DataPointTagsDao extends BaseDao {
     public static final String DEVICE_TAG_KEY = "device";
     public static final String NAME_TAG_KEY = "name";
     
-    public DataPointTagsDao() {
+    private DataPointTagsDao() {
         instance = this;
     }
     

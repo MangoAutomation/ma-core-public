@@ -24,6 +24,8 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * Provides the module an opportunity to check if it is a new installation (typically by checking if a table that it
      * uses exists or not). Modules should perform any required installation tasks at this time.
      * 
+     * NOTE that the dao's are NOT available yet
+     * 
      * @param ejt
      *            the JDBC template that provides access to the database
      */

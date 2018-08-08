@@ -125,7 +125,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     /**
      * Private as we only ever want 1 of these guys
      */
-    public DataPointDao() {
+    private DataPointDao() {
         super(EventType.EventTypeNames.DATA_POINT, "dp",
                 new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
                 false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));

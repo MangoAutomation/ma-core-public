@@ -502,7 +502,7 @@ public class Upgrade12 extends DBUpgrade {
         	}
     		String jsonData = null;
     		try{ 
-    			jsonData = EventDetectorDao.instance.writeValueAsString(vo);
+    			jsonData = EventDetectorDao.writeValueAsString(vo);
     		}catch(JsonException | IOException e){
     			LOG.error(e.getMessage(), e);
     			try{

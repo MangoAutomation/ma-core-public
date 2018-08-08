@@ -53,7 +53,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
 	
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
-    public PublisherDao(){
+    private PublisherDao(){
     	super(AuditEventType.TYPE_PUBLISHER, new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
     	instance = this;
     }

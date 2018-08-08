@@ -134,7 +134,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
         return (JsonObject)reader.read();
     }
     
-    public String writeValueAsString(AbstractEventDetectorVO<?> value) throws JsonException, IOException {
+    public static String writeValueAsString(AbstractEventDetectorVO<?> value) throws JsonException, IOException {
         StringWriter stringWriter = new StringWriter();
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
         writer.writeObject(value);
