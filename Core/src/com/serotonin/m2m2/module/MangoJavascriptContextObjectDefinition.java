@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.module;
 
+import com.infiniteautomation.mango.util.script.ScriptUtility;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -18,9 +20,16 @@ public abstract class MangoJavascriptContextObjectDefinition extends ModuleEleme
      */
     abstract public String getContextKey();
     
+    abstract protected Class<? extends ScriptUtility> getUtilityClass();
     /**
      * Get the object to use in the context
      * @return
      */
-    abstract public Object getContextObject(PermissionHolder holder);
+    public ScriptUtility initializeContextObject(PermissionHolder holder) {
+        Class<? extends ScriptUtility> utilityClass = getUtilityClass();
+        //Auto wire this guy
+        ScriptUtility utility = Common.getRuntimeContext().getAutowireCapableBeanFactory().createBean(utilityClass);
+        utility.setPermissions(holder);
+        return utility;
+    }
 }

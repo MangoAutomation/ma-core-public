@@ -149,8 +149,7 @@ public class ScriptUtils {
     	engineScope.put(PointValueTimeStreamScriptUtility.CONTEXT_KEY, new PointValueTimeStreamScriptUtility(permissions));
     	
     	for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
-    	    //TODO Pass in the PermissionHolder 
-    	    engineScope.put(def.getContextKey(), def.getContextObject(permissions));
+    	    engineScope.put(def.getContextKey(), def.initializeContextObject(permissions));
     	}
     }
 

@@ -188,6 +188,16 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
 
     @Override
     public Set<String> getPermissionsSet() {
+        //TODO Fix this, due to serialization this is null when read back out of the database
+        if(combinedPermissions == null) {
+            Set<String> combined = new HashSet<>();
+            combined.addAll(Permissions.explodePermissionGroups(this.dataSourcePermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointSetPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointReadPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.customPermissions));
+            return Collections.unmodifiableSet(combined);
+        }
+
         return combinedPermissions.get(() -> {
             Set<String> combined = new HashSet<>();
             combined.addAll(Permissions.explodePermissionGroups(this.dataSourcePermissions));

@@ -19,7 +19,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Terry Packer
  *
  */
-public class RuntimeManagerScriptUtility{
+public class RuntimeManagerScriptUtility {
 	
 	public static final String CONTEXT_KEY = "RuntimeManager";
 	
