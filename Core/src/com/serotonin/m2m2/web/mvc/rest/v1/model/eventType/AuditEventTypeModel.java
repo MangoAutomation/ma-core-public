@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.eventType;
 
-import com.serotonin.m2m2.db.dao.UserDao;
+import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.DuplicateHandling;

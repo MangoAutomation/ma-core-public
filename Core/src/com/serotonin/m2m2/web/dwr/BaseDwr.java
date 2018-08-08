@@ -28,15 +28,15 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.IllegalFieldValueException;
 
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
+import com.infiniteautomation.mango.spring.dao.UserCommentDao;
+import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.UserCommentDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.LongPollDefinition;

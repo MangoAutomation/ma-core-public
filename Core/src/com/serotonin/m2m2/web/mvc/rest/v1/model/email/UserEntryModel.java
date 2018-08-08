@@ -6,7 +6,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.email;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.serotonin.m2m2.db.dao.UserDao;
+import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
 

@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2.module;
 
-import org.springframework.web.socket.WebSocketHandler;
-
 /**
  * Allow Modules to define WebSockets
  * 
@@ -12,15 +10,12 @@ import org.springframework.web.socket.WebSocketHandler;
  */
 public abstract class WebSocketDefinition extends ModuleElementDefinition {
 
-	/* Singleton Instance */
-	private WebSocketHandler handler;
-
 	/**
-	 * Create the one and only singleton
+	 * Get the bean name to use to find the Spring Bean
 	 * @return
 	 */
-	protected abstract WebSocketHandler createHandler();
-	
+	public abstract String getWebSocketHandlerBeanName();
+		
 	/**
 	 * The URL to connect to this websocket
 	 * 
@@ -34,15 +29,4 @@ public abstract class WebSocketDefinition extends ModuleElementDefinition {
 	 */
 	public abstract String getTypeName();
 	
-	
-	/**
-	 * To be used to get the instance that is loaded into Spring and mapped to this Url
-	 * @return
-	 */
-	public WebSocketHandler getHandlerInstance() {
-		if (this.handler == null) {
-			this.handler = createHandler();
-		}
-		return this.handler;
-	}
 }

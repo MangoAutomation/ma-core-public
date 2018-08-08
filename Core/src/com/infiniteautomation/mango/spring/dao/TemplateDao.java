@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,9 +14,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
@@ -30,16 +33,19 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
+@Repository("templateDao")
 public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 
 	private static final String TEMPLATE_SELECT = "SELECT id, xid, name, templateType, readPermission, setPermission, data FROM templates ";
-	public static final TemplateDao instance = new TemplateDao();
+	@Deprecated
+	public static TemplateDao instance;
 	
 	/**
 	 * @param typeName
 	 */
 	protected TemplateDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("TEMPLATE"), AuditEventType.TYPE_TEMPLATE, "t", new String[]{});
+		super(AuditEventType.TYPE_TEMPLATE, "t", new String[]{}, false, null);
+		instance = this;
 	}
 
 	/* (non-Javadoc)

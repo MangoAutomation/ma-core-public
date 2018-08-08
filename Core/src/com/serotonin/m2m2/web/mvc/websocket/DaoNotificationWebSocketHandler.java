@@ -7,13 +7,14 @@ package com.serotonin.m2m2.web.mvc.websocket;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
 
 /**
  * @author Jared Wiltshire
  */
-public abstract class DaoNotificationWebSocketHandler<T> extends MultiSessionWebSocketHandler {
-
+public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO> extends MultiSessionWebSocketHandler {
+    
     /**
      * @param action add, update or delete
      * @param vo
@@ -45,9 +46,16 @@ public abstract class DaoNotificationWebSocketHandler<T> extends MultiSessionWeb
         }
     }
 
+
     abstract protected boolean hasPermission(User user, T vo);
     abstract protected Object createModel(T vo);
-
+    
+    /**
+     * So we can register with the Dao bean at startup when the web layer is ready
+     * @return
+     */
+    abstract public String getDaoBeanName();
+    
     protected void notify(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
         try {
             DaoNotificationModel notification = new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);

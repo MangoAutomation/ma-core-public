@@ -16,7 +16,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.LocaleResolver;
 
-import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;

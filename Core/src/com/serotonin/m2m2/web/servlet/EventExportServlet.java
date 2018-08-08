@@ -8,10 +8,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.infiniteautomation.mango.spring.dao.EventInstanceDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DojoQueryCallback;
 import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;

@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -23,6 +24,9 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.EventDetectorRowMapper;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -35,20 +39,22 @@ import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
  * @author Terry Packer
  *
  */
+@Repository("eventDetectorDao")
 public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
     
-    public static final EventDetectorDao instance = new EventDetectorDao();
+    @Deprecated
+    public static EventDetectorDao instance;
     
     /* Map of Source Type to Source ID Column Names */
     private LinkedHashMap<String, String> sourceTypeToColumnNameMap;
     
     private EventDetectorDao(){
-        super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_DETECTOR"),
-                AuditEventType.TYPE_EVENT_DETECTOR, 
+        super(AuditEventType.TYPE_EVENT_DETECTOR, 
                 "edt",
                 new String[0],
                 false,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"));
+        instance = this;
     }
     
     /* (non-Javadoc)

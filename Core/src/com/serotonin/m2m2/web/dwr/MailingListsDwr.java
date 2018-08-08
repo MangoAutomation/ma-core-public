@@ -16,9 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;

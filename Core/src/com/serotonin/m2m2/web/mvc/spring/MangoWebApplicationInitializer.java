@@ -42,13 +42,14 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
 
     @Override
     public void onStartup(Set<Class<?>> c, ServletContext context) throws ServletException {
-
+        
         // Create the 'root' Spring application context
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
         rootContext.setId(ROOT_CONTEXT_ID);
+        rootContext.setParent(Common.getRuntimeContext());
         rootContext.register(MangoApplicationContextConfiguration.class);
         rootContext.register(MangoSecurityConfiguration.class);
-
+        
         // Manage the lifecycle of the root application context
         context.addListener(new ContextLoaderListener(rootContext));
 

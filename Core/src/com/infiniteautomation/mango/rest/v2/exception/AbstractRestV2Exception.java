@@ -4,6 +4,7 @@
  */
 package com.infiniteautomation.mango.rest.v2.exception;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -78,7 +79,11 @@ public abstract class AbstractRestV2Exception extends RuntimeException {
     public String getCauseMessage() {
         Throwable cause = this.getCause();
         if (cause != null) {
-            return cause.getClass().getSimpleName() + ": " + cause.getMessage();
+            String causeInfo = cause.getClass().getSimpleName();
+            if(!StringUtils.isEmpty(cause.getMessage()))
+                return causeInfo + ": " + cause.getMessage();
+            else
+                return causeInfo;
         }
         return null;
     }

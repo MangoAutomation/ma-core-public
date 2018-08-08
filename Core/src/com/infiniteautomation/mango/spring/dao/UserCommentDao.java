@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -13,13 +13,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 
@@ -29,14 +30,16 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
  * @author Terry Packer
  *
  */
+@Repository("userCommentDao")
 public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	
-	public static final UserCommentDao instance = new UserCommentDao();
+    @Deprecated
+	public static UserCommentDao instance;
 	
 	private UserCommentDao(){
-		super(ModuleRegistry.getWebSocketHandlerDefinition("USER_COMMENT"), AuditEventType.TYPE_USER_COMMENT, "uc", 
-				new String[]{ "u.username" });
-		LOG = LogFactory.getLog(UserCommentDao.class);
+		super(AuditEventType.TYPE_USER_COMMENT, "uc", 
+				new String[]{ "u.username" }, false, null);
+		instance = this;
 	}
 
 	public static final String USER_COMMENT_SELECT = "select uc.id, uc.xid, uc.userId, uc.ts, uc.commentText, uc.commentType, uc.typeKey, u.username "

@@ -2,9 +2,9 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+import static com.infiniteautomation.mango.spring.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -45,6 +45,7 @@ import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -66,6 +67,12 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.EventDetectorRowMapper;
+import com.serotonin.m2m2.db.dao.FilterListCallback;
+import com.serotonin.m2m2.db.dao.IFilter;
+import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -102,9 +109,11 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
+@Repository("dataPointDao")
 public class DataPointDao extends AbstractDao<DataPointVO>{
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
-    public static final DataPointDao instance = new DataPointDao();
+    @Deprecated
+    public static DataPointDao instance;
 
     public static final Name DATA_POINTS_ALIAS = DSL.name("dp");
     public static final Table<Record> DATA_POINTS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTS_TABLE)).as(DATA_POINTS_ALIAS);
@@ -116,11 +125,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     /**
      * Private as we only ever want 1 of these guys
      */
-    private DataPointDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_POINT),
-                EventType.EventTypeNames.DATA_POINT, "dp",
+    public DataPointDao() {
+        super(EventType.EventTypeNames.DATA_POINT, "dp",
                 new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
                 false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
+        instance = this;
     }
 
     //

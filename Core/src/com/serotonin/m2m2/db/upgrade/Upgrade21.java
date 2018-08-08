@@ -15,8 +15,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
+import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.dao.UserDao;
 
 /**
  * @author Jared Wiltshire

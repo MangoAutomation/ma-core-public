@@ -12,9 +12,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
+import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.AbstractRT;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;

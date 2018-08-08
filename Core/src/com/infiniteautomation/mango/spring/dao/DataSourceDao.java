@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -29,6 +29,7 @@ import org.jooq.impl.SQLDataType;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -38,6 +39,10 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.FilterListCallback;
+import com.serotonin.m2m2.db.dao.IFilter;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -47,6 +52,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.util.SerializationHelper;
 
+@Repository("dataSourceDao")
 public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
@@ -58,11 +64,12 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     private static final String DATA_SOURCE_SELECT = //
     "SELECT id, xid, name, dataSourceType, data, editPermission FROM dataSources ";
 
-    public static final DataSourceDao<DataSourceVO<?>> instance = new DataSourceDao<>();
+    @Deprecated
+    public static DataSourceDao<DataSourceVO<?>> instance;
 
     private DataSourceDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.DATA_SOURCE),
-                AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
+        super(AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
+        instance = (DataSourceDao<DataSourceVO<?>>) this;
     }
 
     public List<T> getDataSources() {

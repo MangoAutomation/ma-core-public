@@ -24,6 +24,8 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.infiniteautomation.mango.spring.dao.AuditEventDao;
+import com.infiniteautomation.mango.spring.dao.UserCommentDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;

@@ -24,10 +24,10 @@ import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;

@@ -51,5 +51,5 @@ public class CommonObjectMapper {
     public ObjectReader getObjectReader(Class<?> type) {
         return mapper.readerFor(type);
     }
-
+    
 }

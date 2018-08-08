@@ -24,12 +24,12 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.BeforeClass;
 
+import com.infiniteautomation.mango.spring.dao.PublisherDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.SimulationTimerProvider;
-import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;

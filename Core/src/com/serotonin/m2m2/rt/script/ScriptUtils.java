@@ -18,6 +18,7 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.MangoJavascriptContextObjectDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.ScriptSourceDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -146,6 +147,11 @@ public class ScriptUtils {
     	engineScope.put(CompiledScriptExecutor.UNCHANGED_KEY, CompiledScriptExecutor.UNCHANGED);
     	engineScope.put(HttpBuilderScriptUtility.CONTEXT_KEY, new HttpBuilderScriptUtility(permissions));
     	engineScope.put(PointValueTimeStreamScriptUtility.CONTEXT_KEY, new PointValueTimeStreamScriptUtility(permissions));
+    	
+    	for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
+    	    //TODO Pass in the PermissionHolder 
+    	    engineScope.put(def.getContextKey(), def.getContextObject());
+    	}
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {

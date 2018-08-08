@@ -2,7 +2,7 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  */
 
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,10 +29,12 @@ import org.jooq.Table;
 import org.jooq.TableOnConditionStep;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
+import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -42,9 +44,12 @@ import net.jazdw.rql.parser.ASTNode;
 /**
  * @author Jared Wiltshire
  */
+@Repository("dataPointTagsDao")
 public class DataPointTagsDao extends BaseDao {
     static final Log LOG = LogFactory.getLog(DataPointTagsDao.class);
-    public static final DataPointTagsDao instance = new DataPointTagsDao();
+    
+    @Deprecated
+    public static DataPointTagsDao instance;
 
     public static final Name DATA_POINT_TAGS_ALIAS = DSL.name("tags");
     public static final Table<Record> DATA_POINT_TAGS_NO_ALIAS = DSL.table(DSL.name("dataPointTags"));
@@ -59,6 +64,10 @@ public class DataPointTagsDao extends BaseDao {
 
     public static final String DEVICE_TAG_KEY = "device";
     public static final String NAME_TAG_KEY = "name";
+    
+    public DataPointTagsDao() {
+        instance = this;
+    }
     
     /**
      * Retrieves all tag keys and values from the database for a datapoint.

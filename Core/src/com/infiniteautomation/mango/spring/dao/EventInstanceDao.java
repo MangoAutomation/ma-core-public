@@ -2,7 +2,7 @@
  * Copyright (C) 2013 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -15,14 +15,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.BaseDao;
+import com.serotonin.m2m2.db.dao.IFilter;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.db.dao.AbstractDao.PropertyArguments;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -39,20 +44,22 @@ import com.serotonin.m2m2.vo.event.EventInstanceVO;
  * @author Terry Packer
  *
  */
+@Repository("eventInstanceDao")
 public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 
-	public static final EventInstanceDao instance = new EventInstanceDao();
+    @Deprecated
+	public static EventInstanceDao instance;
 	
 	/**
 	 * @param typeName
 	 */
 	private EventInstanceDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_INSTANCE"), null,"evt",
+		super(null,"evt",
 				new String[]{
 					"u.username",
 					"(select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
-					"ue.silenced"});
-		LOG = LogFactory.getLog(EventInstanceDao.class);
+					"ue.silenced"}, false, null);
+		instance = this;
 	}
 
 	/* (non-Javadoc)

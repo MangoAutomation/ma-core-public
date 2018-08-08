@@ -6,11 +6,11 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 
+import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;

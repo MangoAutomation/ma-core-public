@@ -10,15 +10,15 @@ import org.springframework.web.socket.WebSocketHandler;
  */
 public abstract class PerConnectionWebSocketDefinition extends WebSocketDefinition {
 
-	@Override
-	protected WebSocketHandler createHandler() {
-        throw new UnsupportedOperationException("Can't create handler instance for a per connection handler");
-    }
-
-	@Override
-	public WebSocketHandler getHandlerInstance() {
-	    throw new UnsupportedOperationException("Can't get handler instance for a per connection handler");
-	}
-
+    /**
+     * Get the class to instantiate beans of when a new connection is created
+     * @return
+     */
     public abstract Class<? extends WebSocketHandler> getHandlerClass();
+    
+    
+    @Override
+    public String getWebSocketHandlerBeanName() {
+        throw new UnsupportedOperationException("Per connection handler's should not be named beans");
+    }
 }

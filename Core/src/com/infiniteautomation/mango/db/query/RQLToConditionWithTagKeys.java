@@ -13,7 +13,7 @@ import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.impl.DSL;
 
-import com.serotonin.m2m2.db.dao.DataPointTagsDao;
+import com.infiniteautomation.mango.spring.dao.DataPointTagsDao;
 
 import net.jazdw.rql.parser.ASTNode;
 

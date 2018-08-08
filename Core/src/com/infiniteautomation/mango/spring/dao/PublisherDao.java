@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -23,6 +23,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -31,6 +32,8 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -42,14 +45,17 @@ import com.serotonin.util.SerializationHelper;
 /**
  * @author Matthew Lohbihler
  */
+@Repository("publisherDao")
 public class PublisherDao extends AbstractDao<PublisherVO<?>> {
 	
-	public static final PublisherDao instance = new PublisherDao();
+    @Deprecated
+	public static PublisherDao instance;
 	
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
     private PublisherDao(){
-    	super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.PUBLISHER), AuditEventType.TYPE_PUBLISHER, new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
+    	super(AuditEventType.TYPE_PUBLISHER, new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
+    	instance = this;
     }
     
     

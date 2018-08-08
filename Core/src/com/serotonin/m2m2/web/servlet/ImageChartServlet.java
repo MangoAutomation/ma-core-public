@@ -25,10 +25,10 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.data.time.TimeSeries;
 
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;

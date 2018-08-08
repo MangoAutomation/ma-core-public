@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
-import com.serotonin.m2m2.db.dao.TemplateDao;
+import com.infiniteautomation.mango.spring.dao.TemplateDao;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 
 /**

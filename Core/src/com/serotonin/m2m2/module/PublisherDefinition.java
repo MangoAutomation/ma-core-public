@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
-import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.infiniteautomation.mango.spring.dao.PublisherDao;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;

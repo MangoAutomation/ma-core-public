@@ -9,9 +9,12 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.CommonObjectMapper;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
@@ -128,6 +131,9 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         
         if(Common.databaseProxy != null)
             Common.databaseProxy.initialize(null);
+        
+        //Setup the Spring Context
+        springRuntimeContextInitialize();
 
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
@@ -175,6 +181,15 @@ public class MockMangoLifecycle implements IMangoLifecycle{
             }
         }
 
+    }
+    
+    protected void springRuntimeContextInitialize() {
+        AnnotationConfigWebApplicationContext runtimeContext = new AnnotationConfigWebApplicationContext();
+        runtimeContext.register(MangoRuntimeContextConfiguration.class);
+        runtimeContext.setId(Common.RUNTIME_CONTEXT_ID);
+        runtimeContext.refresh();
+        runtimeContext.start();
+        Common.setRuntimeContext(runtimeContext);
     }
 
     /* (non-Javadoc)

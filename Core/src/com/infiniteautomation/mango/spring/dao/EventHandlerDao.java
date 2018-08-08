@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
@@ -22,6 +23,9 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -34,9 +38,11 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
+@Repository("eventHandlerDao")
 public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 
-	public static final EventHandlerDao instance = new EventHandlerDao();
+    @Deprecated
+	public static EventHandlerDao instance;
 	
 	private static final boolean H2_SYNTAX;
 	private static final boolean MYSQL_SYNTAX;
@@ -54,7 +60,8 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	}
 	
 	protected EventHandlerDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("EVENT_HANDLER"), AuditEventType.TYPE_EVENT_HANDLER, "eh", new String[0], false, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
+		super(AuditEventType.TYPE_EVENT_HANDLER, "eh", new String[0], false, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
+		instance = this;
 	}
 
 	/* (non-Javadoc)

@@ -4,8 +4,8 @@
  */
 package com.serotonin.m2m2.vo.comment;
 
+import com.infiniteautomation.mango.spring.dao.UserCommentDao;
 import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;

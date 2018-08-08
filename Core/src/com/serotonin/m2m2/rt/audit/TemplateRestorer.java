@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.dao.TemplateDao;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.TemplateDefinition;

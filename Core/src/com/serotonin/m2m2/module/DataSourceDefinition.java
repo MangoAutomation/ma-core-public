@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
-import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.EventDataSource;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;

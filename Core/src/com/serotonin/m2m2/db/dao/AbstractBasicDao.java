@@ -62,7 +62,6 @@ import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
 
@@ -81,7 +80,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     public static final int DEFAULT_LIMIT = 100;
 
-    protected final DaoNotificationWebSocketHandler<T> handler;
+    protected DaoNotificationWebSocketHandler<T> handler;
 
     public static final String WHERE = " WHERE ";
     public static final String OR = " OR ";
@@ -162,10 +161,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
      * @param extraProperties - Other SQL for use in Queries
      */
-    @SuppressWarnings("unchecked")
-    public AbstractBasicDao(WebSocketDefinition def, String tablePrefix, String[] extraProperties) {
-        this((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandlerInstance() : null), tablePrefix, extraProperties,
-                false, null);
+    public AbstractBasicDao(String tablePrefix, String[] extraProperties) {
+        this(null, tablePrefix, extraProperties, false, null);
     }
 
     /**
@@ -415,6 +412,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     }
 
+    public void setHandler(DaoNotificationWebSocketHandler<T> handler) {
+        this.handler = handler;
+    }
+    
     /**
      * Override as necessary Can be null if no Pk Exists
      *

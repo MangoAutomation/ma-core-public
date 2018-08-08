@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -13,13 +13,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 
@@ -27,16 +30,19 @@ import com.serotonin.m2m2.vo.json.JsonDataVO;
  * @author Terry Packer
  *
  */
+@Repository("jsonDataDao")
 public class JsonDataDao extends AbstractDao<JsonDataVO>{
 
-	public static final JsonDataDao instance = new JsonDataDao();
+    @Deprecated
+	public static JsonDataDao instance;
 	
 	/**
 	 * @param handler
 	 * @param typeName
 	 */
 	private JsonDataDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition("JSON_DATA"), AuditEventType.TYPE_JSON_DATA);
+		super(AuditEventType.TYPE_JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"));
+		instance = this;
 	}
 
 	/* (non-Javadoc)

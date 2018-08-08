@@ -12,17 +12,17 @@ import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
+import com.infiniteautomation.mango.spring.dao.DataSourceDao;
+import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
+import com.infiniteautomation.mango.spring.dao.JsonDataDao;
+import com.infiniteautomation.mango.spring.dao.PublisherDao;
+import com.infiniteautomation.mango.spring.dao.TemplateDao;
+import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.db.pair.StringStringPair;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.TemplateDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 

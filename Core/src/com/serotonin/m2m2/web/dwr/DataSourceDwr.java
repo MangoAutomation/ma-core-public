@@ -14,13 +14,13 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.Period;
 
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
+import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;

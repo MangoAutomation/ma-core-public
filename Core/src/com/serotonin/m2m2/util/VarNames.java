@@ -3,6 +3,7 @@ package com.serotonin.m2m2.util;
 import java.io.IOException;
 import java.util.List;
 
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
@@ -10,7 +11,6 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonString;
 import com.serotonin.json.type.JsonValue;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.DataPointVO;
 

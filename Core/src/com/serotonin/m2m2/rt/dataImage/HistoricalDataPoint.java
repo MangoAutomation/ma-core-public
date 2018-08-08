@@ -2,9 +2,9 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.List;
 
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;

@@ -62,6 +62,7 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
      * Public access to our Object Mapper.  Must Be Initialized to use.
      * @return
      */
+    @Deprecated //TODO Mango 3.5 see MangoRuntimeContextConfiguration
     public static ObjectMapper getObjectMapper(){
         if(objectMapper == null)
             throw new ShouldNeverHappenException("Object Mapper not initialized.");
@@ -160,6 +161,7 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
      *
      * @return
      */
+    @Deprecated //Mango 3.5 remove see MangoRuntimeContextConfiguration
     public static ObjectMapper createNewObjectMapper() {
         // For raw Jackson
         ObjectMapper objectMapper = new ObjectMapper();

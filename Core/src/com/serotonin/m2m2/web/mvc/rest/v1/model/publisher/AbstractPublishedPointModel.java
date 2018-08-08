@@ -5,8 +5,8 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.publisher;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;

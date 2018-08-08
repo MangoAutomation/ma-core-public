@@ -26,7 +26,6 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
@@ -77,9 +76,8 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param useSubQuery - Compute queries as sub-queries
      * @param countMonitorName - If not null create a monitor to track table row count
      */
-    @SuppressWarnings("unchecked")
-	protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, TranslatableMessage countMonitorName) {
-        super((DaoNotificationWebSocketHandler<T>) (def != null ? def.getHandlerInstance() : null), tablePrefix, extraProperties, useSubQuery, countMonitorName);
+	protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, TranslatableMessage countMonitorName) {
+        super(null, tablePrefix, extraProperties, useSubQuery, countMonitorName);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
@@ -93,17 +91,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      */
     protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, String tablePrefix, String[] extraProperties) {
         this(handler, typeName, tablePrefix, extraProperties, false, null);
-    }
-
-    /**
-     * 
-     * @param def - shortcut Instead of Handler for web sockets
-     * @param typeName - Type name for Audit events
-     * @param tablePrefix - Table prefix for Selects/Joins
-     * @param extraProperties - Any extra SQL for queries
-     */
-    protected AbstractDao(WebSocketDefinition def, String typeName, String tablePrefix, String[] extraProperties) {
-        this(def, typeName, tablePrefix, extraProperties, false, null);
     }
     
     /**
@@ -124,24 +111,14 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     protected AbstractDao(DaoNotificationWebSocketHandler<T> handler, String typeName, TranslatableMessage countMonitorName) {
         this(handler, typeName, null, new String[0], false, countMonitorName);
     }
-
-    /**
-     * 
-     * @param def - shortcut Instead of Handler for web sockets
-     * @param typeName - Type name for Audit events
-     */
-    protected AbstractDao(WebSocketDefinition def, String typeName) {
-        this(def, typeName, null, new String[0]);
-    }
     
     /**
      * 
-     * @param def - shortcut Instead of Handler for web sockets
      * @param typeName - Type name for Audit events
      * @param countMonitorName - If not null used to track count of table rows
      */
-    protected AbstractDao(WebSocketDefinition def, String typeName, TranslatableMessage countMonitorName) {
-        this(def, typeName, null, new String[0], false, countMonitorName);
+    protected AbstractDao(String typeName, TranslatableMessage countMonitorName) {
+        this(null, typeName, null, new String[0], false, countMonitorName);
     }
     
     /**
@@ -183,7 +160,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 	}
     
 
-	interface PropertyArguments{
+	public interface PropertyArguments{
 		public Object[] getArguments();
 	}
 

@@ -6,9 +6,9 @@ package com.serotonin.m2m2.web.dwr.emport.importers;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.dao.JsonDataDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.json.JsonDataVO;

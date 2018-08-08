@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,13 +22,15 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
@@ -38,9 +40,11 @@ import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent.UpdatedFields;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
+@Repository("userDao")
 public class UserDao extends AbstractDao<User> {
 
-    public static final UserDao instance = new UserDao();
+    @Deprecated
+    public static UserDao instance;
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
     /**
@@ -50,7 +54,8 @@ public class UserDao extends AbstractDao<User> {
      * @param extraSQL
      */
     private UserDao() {
-        super(ModuleRegistry.getWebSocketHandlerDefinition("USER"), AuditEventType.TYPE_USER, new TranslatableMessage("internal.monitor.USER_COUNT"));
+        super(AuditEventType.TYPE_USER, new TranslatableMessage("internal.monitor.USER_COUNT"));
+        instance = this;
     }
 
     private static final Log LOG = LogFactory.getLog(UserDao.class);

@@ -26,9 +26,12 @@ import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PerConnectionWebSocketDefinition;
 import com.serotonin.m2m2.module.WebSocketDefinition;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
+import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
 
 /**
  *
@@ -84,17 +87,19 @@ public class MangoWebSocketConfiguration implements WebSocketConfigurer {
 
         for (WebSocketDefinition def : ModuleRegistry.getDefinitions(WebSocketDefinition.class)) {
             WebSocketHandler handler;
-
             if (def instanceof PerConnectionWebSocketDefinition) {
                 PerConnectionWebSocketHandler perConnection = new PerConnectionWebSocketHandler(((PerConnectionWebSocketDefinition) def).getHandlerClass());
                 beanFactory.initializeBean(perConnection, PerConnectionWebSocketHandler.class.getName());
                 handler = perConnection;
             } else {
-                handler = def.getHandlerInstance();
-                beanFactory.autowireBean(handler);
-                handler = (WebSocketHandler) beanFactory.initializeBean(handler, handler.getClass().getName());
+                handler = (WebSocketHandler)beanFactory.getBean(def.getWebSocketHandlerBeanName());
+                if(handler instanceof DaoNotificationWebSocketHandler<?>) {
+                    //Register us with the Dao as the bean is ready to be used
+                    DaoNotificationWebSocketHandler daoHandler = (DaoNotificationWebSocketHandler<?>)handler;
+                    AbstractBasicDao<?> dao = (AbstractBasicDao<?>)beanFactory.getBean(daoHandler.getDaoBeanName());
+                    dao.setHandler(daoHandler);
+                }
             }
-
             WebSocketHandlerRegistration registration = registry.addHandler(handler, def.getUrl())
                     .setHandshakeHandler(handshakeHandler())
                     .addInterceptors(handshakeInterceptor);

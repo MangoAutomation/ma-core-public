@@ -6,8 +6,8 @@ package com.serotonin.m2m2.rt.dataSource;
 
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.AbstractRTM;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 

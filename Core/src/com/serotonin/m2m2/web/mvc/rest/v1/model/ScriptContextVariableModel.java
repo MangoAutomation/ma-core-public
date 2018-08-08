@@ -4,8 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 
 /**

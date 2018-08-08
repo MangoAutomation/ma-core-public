@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.dao;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -21,17 +22,19 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 
 /**
  * @author Terry Packer
  *
  */
+@Repository("auditEventDao")
 public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 
-	public static final AuditEventDao instance = new AuditEventDao();
+    @Deprecated
+	public static AuditEventDao instance;
 	
 	/**
 	 * @param tablePrefix
@@ -39,7 +42,8 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 	 * @param extraSQL
 	 */
 	private AuditEventDao() {
-		super(ModuleRegistry.getWebSocketHandlerDefinition(EventType.EventTypeNames.AUDIT), "aud", new String[0]);
+		super("aud", new String[0]);
+		instance = this;
 	}
 	
 	/* (non-Javadoc)

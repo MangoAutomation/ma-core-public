@@ -24,7 +24,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.module.WebSocketDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 public class TestStreamableSqlQuery extends MangoTestBase {
@@ -54,7 +53,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 			e.printStackTrace();
 			fail("Failed to create test database.");
 		}
-		StreamTestDao std = new StreamTestDao(null, "streamTest");
+		StreamTestDao std = new StreamTestDao("streamTest");
 		StreamableSqlQuery<StreamTestData> ssq = new StreamableSqlQuery<StreamTestData>(std, false, std.TEST_SELECT_ALL,
 				new StreamableRowCallback<StreamTestData>() {
 					boolean logged = false;
@@ -124,8 +123,8 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 
 		public final SQLStatement TEST_SELECT_ALL = new SQLStatement("select testData from ", "select count(id) from ",null, "streamTest", null, false, false, new ArrayList<Index>(), DatabaseType.H2);
 		
-		protected StreamTestDao(WebSocketDefinition def, String typeName) {
-			super(def, typeName);
+		protected StreamTestDao(String typeName) {
+			super(typeName, null);
 			TEST_SELECT_ALL.build();
 		}
 

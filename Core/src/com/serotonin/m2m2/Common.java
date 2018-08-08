@@ -760,9 +760,23 @@ public class Common {
 
 
     /* Spring application contexts */
+    public static String RUNTIME_CONTEXT_ID = "runtimeContext";
+    private static ApplicationContext runtimeContext;
     private static ApplicationContext rootContext;
     private static ApplicationContext dispatcherContext;
 
+    /**
+     * Set in the Lifecycle after Database Initialize, if not null its safe to use
+     * @return
+     */
+    public static ApplicationContext getRuntimeContext() {
+        return runtimeContext;
+    }
+    
+    public static void setRuntimeContext(ApplicationContext context) {
+        runtimeContext = context;
+    }
+    
     /**
      * Gets the spring root application context, only set after the context has started (refreshed).
      * If its not null, its safe to use.

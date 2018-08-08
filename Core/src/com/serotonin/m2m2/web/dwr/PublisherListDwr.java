@@ -7,9 +7,9 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.infiniteautomation.mango.spring.dao.PublisherDao;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;

@@ -19,10 +19,10 @@ import com.infiniteautomation.mango.io.serial.virtual.SerialServerSocketBridgeCo
 import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
+import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
