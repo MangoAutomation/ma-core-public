@@ -1,8 +1,8 @@
 package com.serotonin.m2m2.rt.script;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -26,7 +26,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int refreshDataPoint(String xid){
 		
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		
 		if(vo != null){
 			
@@ -56,7 +56,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
      */
     public int refreshDataSource(String xid){
         
-        DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
         
         if(vo != null){
             
@@ -82,7 +82,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	 */
 	@Override
 	public int enableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
@@ -98,7 +98,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	 */
 	@Override
 	public int disableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())
@@ -114,7 +114,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	 */
 	@Override
 	public int enableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
@@ -130,7 +130,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	 */
 	@Override
 	public int disableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())

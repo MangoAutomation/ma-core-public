@@ -24,13 +24,13 @@ import com.infiniteautomation.mango.quantize.StartsAndRuntimeListQuantizer;
 import com.infiniteautomation.mango.quantize.StatisticsGeneratorQuantizerCallback;
 import com.infiniteautomation.mango.quantize.TimePeriodBucketCalculator;
 import com.infiniteautomation.mango.quantize.ValueChangeCounterQuantizer;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.statistics.ValueChangeCounter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.IdPointValueTime;
@@ -255,12 +255,12 @@ public class PointValueTimeStreamScriptUtility {
             for(Integer id : ids) {
                 if(id == null)
                     continue;
-                DataPointVO vo = DataPointDao.instance.getDataPoint(id, false);
+                DataPointVO vo = DataPointDao.getInstance().getDataPoint(id, false);
                 if(vo == null)
                     throw new RuntimeException("Data point with id " + id + " does not exist."); //TODO better error'ing
                 if(!Permissions.hasDataPointReadPermission(scriptPermissions, vo) &&
                         !Permissions.hasDataPointSetPermission(scriptPermissions, vo) &&
-                        !Permissions.hasDataSourcePermission(scriptPermissions, DataSourceDao.instance.get(vo.getDataSourceId())))
+                        !Permissions.hasDataSourcePermission(scriptPermissions, DataSourceDao.getInstance().get(vo.getDataSourceId())))
                     throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", vo.getXid()));
                 DataPointStatisticsQuantizer<?> quantizer;
                 switch(vo.getPointLocator().getDataTypeId()) {

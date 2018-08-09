@@ -8,12 +8,12 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.ExportCodes;
 
@@ -53,7 +53,7 @@ public class DataPointAccess implements JsonSerializable {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("dataPointXid", DataPointDao.instance.getXidById(dataPointId));
+        writer.writeEntry("dataPointXid", DataPointDao.getInstance().getXidById(dataPointId));
         writer.writeEntry("permission", ACCESS_CODES.getCode(permission));
     }
 
@@ -63,7 +63,7 @@ public class DataPointAccess implements JsonSerializable {
         if (StringUtils.isBlank(text))
             throw new TranslatableJsonException("emport.error.permission.missing", "dataPointXid");
 
-        Integer dpid = DataPointDao.instance.getIdByXid(text);
+        Integer dpid = DataPointDao.getInstance().getIdByXid(text);
         if (dpid == null)
             throw new TranslatableJsonException("emport.error.missingPoint", text);
         dataPointId = dpid;

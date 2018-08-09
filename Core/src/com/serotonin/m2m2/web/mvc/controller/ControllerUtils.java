@@ -16,7 +16,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.servlet.LocaleResolver;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
@@ -50,7 +50,7 @@ public class ControllerUtils {
     }
 
     public static List<DataPointSummary> addPointListDataToModel(User user, int pointId, Map<String, Object> model) {
-        List<DataPointSummary> allPoints = DataPointDao.instance
+        List<DataPointSummary> allPoints = DataPointDao.getInstance()
                 .getDataPointSummaries(DataPointExtendedNameComparator.instance);
         List<DataPointSummary> userPoints = new LinkedList<>();
 

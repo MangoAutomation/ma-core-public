@@ -20,11 +20,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
 import com.infiniteautomation.mango.db.query.SortOption;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.EventDetectorDao;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.LicenseViolatedException;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -59,7 +59,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
      * Default Constructor
      */
     public DataPointDwr() {
-        super(DataPointDao.instance, DataPointDao.instance.tableName);
+        super(DataPointDao.getInstance(), DataPointDao.getInstance().tableName);
         LOG = LogFactory.getLog(DataPointDwr.class);
     }
 
@@ -79,7 +79,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             return result;
         }
 
-        List<DataPointVO> points = DataPointDao.instance
+        List<DataPointVO> points = DataPointDao.getInstance()
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
         result.addData("list", points);
 
@@ -88,7 +88,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
 
     @DwrPermission(user = true)
     public ProcessResult toggle(int dataPointId) {
-        DataPointVO dataPoint = DataPointDao.instance.getFull(dataPointId);
+        DataPointVO dataPoint = DataPointDao.getInstance().getFull(dataPointId);
         Permissions.ensureDataSourcePermission(Common.getUser(), dataPoint.getDataSourceId());
 
         dataPoint.setEnabled(!dataPoint.isEnabled());
@@ -103,11 +103,11 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     
     @DwrPermission(user = true)
     public ProcessResult enableDisable(int dataPointId, boolean enabled) {
-        DataPointVO dataPoint = DataPointDao.instance.getDataPoint(dataPointId, false);
+        DataPointVO dataPoint = DataPointDao.getInstance().getDataPoint(dataPointId, false);
         Permissions.ensureDataSourcePermission(Common.getUser(), dataPoint.getDataSourceId());
  
         if(enabled)
-            DataPointDao.instance.setEventDetectors(dataPoint);
+            DataPointDao.getInstance().setEventDetectors(dataPoint);
         
         Common.runtimeManager.enableDataPoint(dataPoint, enabled);
         
@@ -269,7 +269,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         editPoint.setId(COPY_ID);
         for(AbstractPointEventDetectorVO<?> aed : editPoint.getEventDetectors()) {
             aed.setId(Common.NEW_ID);
-            aed.setXid(Common.generateXid(EventDetectorDao.instance.xidPrefix));
+            aed.setXid(Common.generateXid(EventDetectorDao.getInstance().xidPrefix));
         }
         Common.getUser().setEditPoint(editPoint);
 

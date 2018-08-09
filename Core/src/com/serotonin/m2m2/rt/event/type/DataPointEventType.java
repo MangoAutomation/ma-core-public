@@ -6,12 +6,12 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.EventDetectorDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -53,7 +53,7 @@ public class DataPointEventType extends EventType {
     @Override
     public int getDataSourceId() {
         if (dataSourceId == -1){
-            DataPointVO vo = DataPointDao.instance.getDataPoint(dataPointId, false);
+            DataPointVO vo = DataPointDao.getInstance().getDataPoint(dataPointId, false);
             if(vo != null) //In case the point has been deleted
                 dataSourceId = vo.getDataSourceId();
         }
@@ -129,8 +129,8 @@ public class DataPointEventType extends EventType {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        writer.writeEntry("dataPointXID", DataPointDao.instance.getXidById(dataPointId));
-        writer.writeEntry("detectorXID", EventDetectorDao.instance.getXid(pointEventDetectorId));
+        writer.writeEntry("dataPointXID", DataPointDao.getInstance().getXidById(dataPointId));
+        writer.writeEntry("detectorXID", EventDetectorDao.getInstance().getXid(pointEventDetectorId));
     }
 
     /* (non-Javadoc)
@@ -143,7 +143,7 @@ public class DataPointEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user) {
-        DataPointVO point = DataPointDao.instance.get(dataPointId);
+        DataPointVO point = DataPointDao.getInstance().get(dataPointId);
         if(point == null)
             return false;
         return Permissions.hasDataPointReadPermission(user, point);

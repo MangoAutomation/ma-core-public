@@ -5,12 +5,12 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -36,7 +36,7 @@ public class EventDetectorImporter extends Importer {
 		//Everyone is in the same thread so no synchronization on dataPointMap required.
 		if(dataPointMap.containsKey(dataPointXid))
 		    dpvo = dataPointMap.get(dataPointXid);
-		else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.instance.getByXid(dataPointXid)) == null) {
+		else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.getInstance().getByXid(dataPointXid)) == null) {
 			addFailureMessage("emport.error.missingPoint", dataPointXid);
 			return;
 		} else {
@@ -61,7 +61,7 @@ public class EventDetectorImporter extends Importer {
         JsonArray handlerXids = json.getJsonArray("handlers");
         if(handlerXids != null)
             for(int k = 0; k < handlerXids.size(); k+=1) {
-                AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(handlerXids.getString(k));
+                AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
                 if(eh == null) {
                     addFailureMessage("emport.eventHandler.missing", handlerXids.getString(k));
                     return;

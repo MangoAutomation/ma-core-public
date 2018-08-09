@@ -14,7 +14,6 @@ import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -26,6 +25,7 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
@@ -225,7 +225,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         List<String> varNameSpace = new ArrayList<String>();
         if(additionalContext != null){
 	        for(IntStringPair cxt : additionalContext) {
-	        	if(DataPointDao.instance.get(cxt.getKey()) == null)
+	        	if(DataPointDao.getInstance().get(cxt.getKey()) == null)
 	        		response.addGenericMessage("event.script.contextPointMissing", cxt.getKey(), cxt.getValue());
 	        	
 	        	String varName = cxt.getValue();
@@ -420,7 +420,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         
         JsonArray context = new JsonArray();
         for(IntStringPair pnt : additionalContext) {
-        	DataPointVO dpvo = DataPointDao.instance.get(pnt.getKey());
+        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey());
         	if(dpvo != null) {
         		JsonObject point = new JsonObject();
         		point.put("dataPointXid", dpvo.getXid());
@@ -516,7 +516,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         		if(dataPointXid == null)
         			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
         		
-        		DataPointVO dpvo = DataPointDao.instance.getByXid(dataPointXid);
+        		DataPointVO dpvo = DataPointDao.getInstance().getByXid(dataPointXid);
         		if(dpvo == null)
         			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
         		

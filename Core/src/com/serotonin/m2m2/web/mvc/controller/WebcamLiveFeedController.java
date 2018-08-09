@@ -22,7 +22,7 @@ public class WebcamLiveFeedController extends ParameterizableViewController {
         // TODO
 
         //        int pointId = Integer.parseInt(request.getParameter("pointId"));
-        //        DataPointDao dataPointDao = DataPointDao.instance;
+        //        DataPointDao dataPointDao = DataPointDao.getInstance();
         //        DataPointVO dp = dataPointDao.getDataPoint(pointId);
 
         //        if (!(dp.getPointLocator() instanceof HttpImagePointLocatorVO))

@@ -13,8 +13,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
 import com.serotonin.m2m2.web.mvc.spring.events.AuthTokensRevokedEvent;
@@ -90,7 +90,7 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
     }
 
     public void revokeTokens(User user) {
-        UserDao.instance.revokeTokens(user);
+        UserDao.getInstance().revokeTokens(user);
     }
 
     @Override

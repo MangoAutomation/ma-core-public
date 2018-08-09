@@ -12,9 +12,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.infiniteautomation.mango.io.serial.SerialPortException;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.AbstractRT;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -87,7 +87,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
      * This method is usable by subclasses to retrieve serializable data stored using the setPersistentData method.
      */
     public Object getPersistentData() {
-        return DataSourceDao.instance.getPersistentData(vo.getId());
+        return DataSourceDao.getInstance().getPersistentData(vo.getId());
     }
 
     /**
@@ -96,7 +96,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
      * called in the terminate method, but may also be called regularly for failover purposes.
      */
     protected void setPersistentData(Object persistentData) {
-        DataSourceDao.instance.savePersistentData(vo.getId(), persistentData);
+        DataSourceDao.getInstance().savePersistentData(vo.getId(), persistentData);
     }
 
     protected boolean isTerminated() {

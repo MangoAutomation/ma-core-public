@@ -20,10 +20,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataPointTagsDao;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
-import com.infiniteautomation.mango.spring.dao.TemplateDao;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -38,7 +34,11 @@ import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataPointTagsDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -1040,7 +1040,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         }
         
         if((templateId!=null) &&(templateId > 0)){
-        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.get(templateId);
+        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
         	if(template == null){
         		response.addContextualMessage("template", "pointEdit.template.validate.templateNotFound", templateId);
         	}else if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
@@ -1699,14 +1699,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
         if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH))
-            writer.writeEntry("path", PointHierarchy.getFlatPath(id, DataPointDao.instance.getPointHierarchy(true).getRoot()));
+            writer.writeEntry("path", PointHierarchy.getFlatPath(id, DataPointDao.getInstance().getPointHierarchy(true).getRoot()));
 
         if (useIntegralUnit)
             writer.writeEntry("integralUnit", UnitUtil.formatUcum(integralUnit));
         if (useRenderedUnit)
             writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
         if(templateId != null){
-        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.instance.get(templateId);
+        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
         	if(template != null)
         		writer.writeEntry("templateXid", template.getXid());
         }
@@ -1805,7 +1805,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 JsonArray handlerXids = pedObject.getJsonArray("handlers");
                 if(handlerXids != null)
                     for(int k = 0; k < handlerXids.size(); k+=1) {
-                        AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(handlerXids.getString(k));
+                        AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
                         if(eh == null) {
                             throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
                         }else {
@@ -1886,7 +1886,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 	 */
 	@Override
 	protected AbstractDao<DataPointVO> getDao() {
-		return DataPointDao.instance;
+		return DataPointDao.getInstance();
 	}
 
     /**

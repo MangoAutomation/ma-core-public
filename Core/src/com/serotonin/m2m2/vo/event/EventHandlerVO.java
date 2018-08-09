@@ -12,8 +12,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -26,6 +24,8 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -362,7 +362,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
     public void validate(ProcessResult response) {
         if (handlerType == TYPE_SET_POINT) {
-            DataPointVO dp = DataPointDao.instance.getDataPoint(targetPointId, false);
+            DataPointVO dp = DataPointDao.getInstance().getDataPoint(targetPointId, false);
 
             if (dp == null)
                 response.addGenericMessage("eventHandlers.noTargetPoint");
@@ -392,7 +392,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (activeAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpActive = DataPointDao.instance.getDataPoint(activePointId, false);
+                    DataPointVO dpActive = DataPointDao.getInstance().getDataPoint(activePointId, false);
 
                     if (dpActive == null)
                         response.addGenericMessage("eventHandlers.invalidActiveSource");
@@ -420,7 +420,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpInactive = DataPointDao.instance.getDataPoint(inactivePointId, false);
+                    DataPointVO dpInactive = DataPointDao.getInstance().getDataPoint(inactivePointId, false);
 
                     if (dpInactive == null)
                         response.addGenericMessage("eventHandlers.invalidInactiveSource");
@@ -674,7 +674,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        DataPointDao dataPointDao = DataPointDao.instance;
+        DataPointDao dataPointDao = DataPointDao.getInstance();
 
         writer.writeEntry("xid", xid);
         writer.writeEntry("handlerType", TYPE_CODES.getCode(handlerType));
@@ -730,7 +730,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
     @SuppressWarnings("unchecked")
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        DataPointDao dataPointDao = DataPointDao.instance;
+        DataPointDao dataPointDao = DataPointDao.getInstance();
 
         String text = jsonObject.getString("handlerType");
         if (text != null) {

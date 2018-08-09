@@ -16,10 +16,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -65,7 +65,7 @@ public class PermissionsTest extends MangoTestBase {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditPermission(editPermission);
-        DataSourceDao.instance.save(dsVo);
+        DataSourceDao.getInstance().save(dsVo);
         return dsVo;
     }
 
@@ -76,7 +76,7 @@ public class PermissionsTest extends MangoTestBase {
         point.setReadPermission(readPermission);
         point.setSetPermission(setPermission);
         point.setPointLocator(new MockPointLocatorVO());
-        DataPointDao.instance.save(point);
+        DataPointDao.getInstance().save(point);
         return point;
     }
 

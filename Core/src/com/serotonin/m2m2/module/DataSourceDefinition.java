@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.EventDataSource;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
@@ -137,7 +137,7 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
     @Override
     public void postRuntimeManagerTerminate(boolean uninstall) {
         if(uninstall)
-            DataSourceDao.instance.deleteDataSourceType(getDataSourceTypeName());
+            DataSourceDao.getInstance().deleteDataSourceType(getDataSourceTypeName());
     }
 
     public String getStatusPagePath() {

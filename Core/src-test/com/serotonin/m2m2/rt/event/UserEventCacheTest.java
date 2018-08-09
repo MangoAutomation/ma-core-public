@@ -190,7 +190,7 @@ public class UserEventCacheTest extends MangoTestBase{
     }
     
     private void cleanup() {
-        EventDao.instance.purgeAllEvents();
+        EventDao.getInstance().purgeAllEvents();
         this.cache.purgeAllEvents();
         this.cache.terminate();
         this.timer.reset();
@@ -242,8 +242,8 @@ public class UserEventCacheTest extends MangoTestBase{
                         message,
                         context);
                 //Important
-                EventDao.instance.saveEvent(e);
-                EventDao.instance.insertUserEvents(e.getId(), new ArrayList<>(userIds), true);
+                EventDao.getInstance().saveEvent(e);
+                EventDao.getInstance().insertUserEvents(e.getId(), new ArrayList<>(userIds), true);
                 allEvents.add(e);
                 currentEventId = e.getId();
                 totalCreated++;

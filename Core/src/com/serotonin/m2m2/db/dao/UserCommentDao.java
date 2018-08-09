@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,10 +17,11 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.query.JoinClause;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 
@@ -30,18 +31,29 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
  * @author Terry Packer
  *
  */
-@Repository("userCommentDao")
+@Repository()
 public class UserCommentDao  extends AbstractDao<UserCommentVO>{
-	
-    @Deprecated
-	public static UserCommentDao instance;
-	
+
+    private static final LazyInitSupplier<UserCommentDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(UserCommentDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (UserCommentDao)o;
+    });
+
 	private UserCommentDao(){
 		super(AuditEventType.TYPE_USER_COMMENT, "uc", 
 				new String[]{ "u.username" }, false, null);
-		instance = this;
 	}
 
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static UserCommentDao getInstance() {
+        return springInstance.get();
+    }
+    
 	public static final String USER_COMMENT_SELECT = "select uc.id, uc.xid, uc.userId, uc.ts, uc.commentText, uc.commentType, uc.typeKey, u.username "
             + "from userComments uc left join users u on uc.userId = u.id ";
 

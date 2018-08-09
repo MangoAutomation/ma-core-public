@@ -147,7 +147,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
             }
 
             // Collect any Virtual Comm Ports from the DB and load them in
-            List<VirtualSerialPortConfig> list = VirtualSerialPortConfigDao.instance.getAll();
+            List<VirtualSerialPortConfig> list = VirtualSerialPortConfigDao.getInstance().getAll();
             if (list != null) {
                 for (VirtualSerialPortConfig config : list) {
                     if(!portOwnership.containsKey(config.getPortName())) {

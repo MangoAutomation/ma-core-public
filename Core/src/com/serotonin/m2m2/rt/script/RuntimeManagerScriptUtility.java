@@ -7,9 +7,9 @@ package com.serotonin.m2m2.rt.script;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -45,7 +45,7 @@ public class RuntimeManagerScriptUtility {
 	 */
 	public int refreshDataPoint(String xid){
 		
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		
 		if(vo != null){
 			
@@ -75,7 +75,7 @@ public class RuntimeManagerScriptUtility {
      */
     public int refreshDataSource(String xid){
         
-        DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
         
         if(vo != null){
             
@@ -101,7 +101,7 @@ public class RuntimeManagerScriptUtility {
 	 */
 	public boolean isDataSourceEnabled(String xid){
 		
-		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		
 		if(vo == null)
 			return false;
@@ -121,7 +121,7 @@ public class RuntimeManagerScriptUtility {
 	 * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
 	 */
 	public int enableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
@@ -143,7 +143,7 @@ public class RuntimeManagerScriptUtility {
 	 * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
 	 */
 	public int disableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.instance.getByXid(xid);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
@@ -168,12 +168,12 @@ public class RuntimeManagerScriptUtility {
 	 * @return true if it is, false if it is not
 	 */
 	public boolean isDataPointEnabled(String xid){
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null)
 			return false;
 		else{
 			if(Permissions.hasDataPointSetPermission(permissions, vo) || Permissions.hasDataPointReadPermission(permissions, vo)){
-				DataSourceVO<?> ds = DataSourceDao.instance.get(vo.getDataSourceId());
+				DataSourceVO<?> ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
 				if(ds == null)
 					return false;
 				return (ds.isEnabled() && vo.isEnabled());
@@ -188,12 +188,12 @@ public class RuntimeManagerScriptUtility {
 	 * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
 	 */
 	public int enableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || !Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
 			try{
-			    DataPointDao.instance.setEventDetectors(vo);
+			    DataPointDao.getInstance().setEventDetectors(vo);
 				Common.runtimeManager.enableDataPoint(vo, true);
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);
@@ -210,7 +210,7 @@ public class RuntimeManagerScriptUtility {
 	 * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
 	 */
 	public int disableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || !Permissions.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){

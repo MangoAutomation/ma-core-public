@@ -62,7 +62,7 @@ public class UserEventsTest extends MangoTestBase {
         
         //Acknowledge
         List<MockEventTypeTime> acknowledged = new ArrayList<>();
-        List<EventInstance> instances = EventDao.instance.getActiveEvents();
+        List<EventInstance> instances = EventDao.getInstance().getActiveEvents();
         for(EventInstance event : instances) {
             MockEventTypeTime rtn = new MockEventTypeTime((MockEventType)event.getEventType(), this.timer.currentTimeMillis());
             acknowledged.add(rtn);

@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -22,6 +21,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -383,6 +383,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
 	@SuppressWarnings("unchecked")
 	@Override
 	protected AbstractDao<T> getDao() {
-		return (AbstractDao<T>) DataSourceDao.instance;
+		return (AbstractDao<T>) DataSourceDao.getInstance();
 	}
 }

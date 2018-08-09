@@ -39,6 +39,7 @@ import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
  * @author Jared Wiltshire
  */
 public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasicDao<T> {
+    
     public final String xidPrefix;
     
     protected final String typeName; //Type name for Audit Events

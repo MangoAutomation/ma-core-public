@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,10 +26,10 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
@@ -40,11 +40,17 @@ import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent.UpdatedFields;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
-@Repository("userDao")
+@Repository()
 public class UserDao extends AbstractDao<User> {
+    private static final Log LOG = LogFactory.getLog(UserDao.class);
 
-    @Deprecated
-    public static UserDao instance;
+    private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(UserDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (UserDao)o;
+    });
+
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
     /**
@@ -55,11 +61,16 @@ public class UserDao extends AbstractDao<User> {
      */
     private UserDao() {
         super(AuditEventType.TYPE_USER, new TranslatableMessage("internal.monitor.USER_COUNT"));
-        instance = this;
     }
-
-    private static final Log LOG = LogFactory.getLog(UserDao.class);
-
+    
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static UserDao getInstance() {
+        return springInstance.get();
+    }
+    
     public User getUser(int id) {
         return this.get(id);
     }

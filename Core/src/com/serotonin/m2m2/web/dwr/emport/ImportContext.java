@@ -6,15 +6,15 @@ package com.serotonin.m2m2.web.dwr.emport;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
-import com.infiniteautomation.mango.spring.dao.PublisherDao;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -22,13 +22,13 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.Translations;
 
 public class ImportContext {
-    private final UserDao userDao = UserDao.instance;
-    private final DataSourceDao<?> dataSourceDao = DataSourceDao.instance;
-    private final DataPointDao dataPointDao = DataPointDao.instance;
-    private final EventDao eventDao = EventDao.instance;
-    private final MailingListDao mailingListDao = MailingListDao.instance;
-    private final PublisherDao publisherDao = PublisherDao.instance;
-    private final EventHandlerDao eventHandlerDao = EventHandlerDao.instance;
+    private final UserDao userDao = UserDao.getInstance();
+    private final DataSourceDao<?> dataSourceDao = DataSourceDao.getInstance();
+    private final DataPointDao dataPointDao = DataPointDao.getInstance();
+    private final EventDao eventDao = EventDao.getInstance();
+    private final MailingListDao mailingListDao = MailingListDao.getInstance();
+    private final PublisherDao publisherDao = PublisherDao.getInstance();
+    private final EventHandlerDao eventHandlerDao = EventHandlerDao.getInstance();
 
     private final JsonReader reader;
     private final ProcessResult result;

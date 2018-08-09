@@ -9,8 +9,8 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointTagsDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -56,7 +56,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
         DataPointVO dataPointVo = vo.njbGetDataPoint();
         //Load the tags if they have not already been loaded
         if(dataPointVo.getTags() == null)
-            dataPointVo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(dataPointVo.getId()));
+            dataPointVo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPointVo.getId()));
         context.put("point", dataPointVo);
         return context;
     }

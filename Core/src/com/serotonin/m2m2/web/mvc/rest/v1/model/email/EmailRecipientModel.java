@@ -5,9 +5,9 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.email;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
@@ -88,12 +88,12 @@ public abstract class EmailRecipientModel<T extends EmailRecipient> extends Abst
 			break;
 		case EmailRecipient.TYPE_MAILING_LIST:
 			//This only comes back with an XID from the page
-			MailingList list = MailingListDao.instance.getMailingList(((MailingList)r).getXid());
+			MailingList list = MailingListDao.getInstance().getMailingList(((MailingList)r).getXid());
 			if(list != null)
 				bean.setReferenceId(list.getId());
 			break;
 		case EmailRecipient.TYPE_USER:
-			User u = UserDao.instance.getUser(((UserEntry)r).getUserId());
+			User u = UserDao.getInstance().getUser(((UserEntry)r).getUserId());
 			if(u != null)
 				bean.setReferenceId(u.getId());
 			break;

@@ -12,9 +12,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.AnnotatedPointValueTime;
@@ -90,7 +90,7 @@ public class ChartExportServlet extends HttpServlet {
      */
     private void exportCsv(HttpServletRequest request, HttpServletResponse response,long from, long to, DataExportDefinition def, User user) throws IOException{
         
-        DataPointDao dataPointDao = DataPointDao.instance;
+        DataPointDao dataPointDao = DataPointDao.getInstance();
         PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 
     	// Stream the content.
@@ -143,7 +143,7 @@ public class ChartExportServlet extends HttpServlet {
      */
     private void exportExcel(HttpServletResponse response,long from, long to, DataExportDefinition def, User user) throws IOException{
         
-        DataPointDao dataPointDao = DataPointDao.instance;
+        DataPointDao dataPointDao = DataPointDao.getInstance();
         PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 
     	// Stream the content.

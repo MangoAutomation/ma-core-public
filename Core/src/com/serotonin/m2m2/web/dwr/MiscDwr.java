@@ -29,11 +29,11 @@ import org.springframework.beans.propertyeditors.LocaleEditor;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -70,7 +70,7 @@ public class MiscDwr extends BaseDwr {
         List<Integer> silenced = new ArrayList<Integer>();
         User user = Common.getHttpUser();
         if (user != null) {
-            EventDao eventDao = EventDao.instance;
+            EventDao eventDao = EventDao.getInstance();
             for (EventInstance evt : eventDao.getPendingEvents(user.getId())) {
                 if (!evt.isSilenced()) {
                     Common.eventManager.toggleSilence(evt.getId(), user.getId());
@@ -100,7 +100,7 @@ public class MiscDwr extends BaseDwr {
     public void acknowledgeAllPendingEvents() {
         User user = Common.getHttpUser();
         if (user != null) {
-            EventDao eventDao = EventDao.instance;
+            EventDao eventDao = EventDao.getInstance();
             long now = Common.timer.currentTimeMillis();
             for (EventInstance evt : eventDao.getPendingEvents(user.getId()))
                 Common.eventManager.acknowledgeEventById(evt.getId(), now, user, null);
@@ -113,7 +113,7 @@ public class MiscDwr extends BaseDwr {
         User user = Common.getHttpUser();
         if (user != null) {
             user.setMuted(!user.isMuted());
-            UserDao.instance.saveMuted(user.getId(), user.isMuted());
+            UserDao.getInstance().saveMuted(user.getId(), user.isMuted());
             return user.isMuted();
         }
         return false;
@@ -182,7 +182,7 @@ public class MiscDwr extends BaseDwr {
     public ProcessResult sendTestEmail(List<RecipientListEntryBean> recipientList, String prefix, String message) {
         ProcessResult response = new ProcessResult();
 
-        String[] toAddrs = MailingListDao.instance.getRecipientAddresses(recipientList, null).toArray(new String[0]);
+        String[] toAddrs = MailingListDao.getInstance().getRecipientAddresses(recipientList, null).toArray(new String[0]);
         if (toAddrs.length == 0)
             response.addGenericMessage("js.email.noRecipForEmail");
         else {
@@ -242,14 +242,14 @@ public class MiscDwr extends BaseDwr {
 
         // Save the result
         User user = Common.getHttpUser();
-        UserDao.instance.saveHomeUrl(user.getId(), url);
+        UserDao.getInstance().saveHomeUrl(user.getId(), url);
         user.setHomeUrl(url);
     }
 
     @DwrPermission(user = true)
     public void deleteHomeUrl() {
         User user = Common.getHttpUser();
-        UserDao.instance.saveHomeUrl(user.getId(), null);
+        UserDao.getInstance().saveHomeUrl(user.getId(), null);
         user.setHomeUrl(null);
     }
 

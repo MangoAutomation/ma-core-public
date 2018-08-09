@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
 
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -23,9 +24,17 @@ import com.serotonin.m2m2.vo.FileStore;
  * @author Phillip Dunlap
  */
 public class FileStoreDao extends BaseDao {
-    public static final FileStoreDao instance = new FileStoreDao();
-    
     private static final String SELECT_FILE_STORE_DEFINITIONS = "SELECT storeName, readPermission, writePermission FROM fileStores ";
+
+    private static final LazyInitSupplier<FileStoreDao> instance = new LazyInitSupplier<>(() -> {
+        return new FileStoreDao();
+    });
+    
+    private FileStoreDao() { }
+    
+    public static FileStoreDao getInstance() {
+        return instance.get();
+    }
     
     public List<FileStore> getUserFileStores() {
         return ejt.query(SELECT_FILE_STORE_DEFINITIONS, new FileStoreRowMapper());

@@ -8,7 +8,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -61,14 +61,14 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	}
 	
 	public List<String> getHandlers() {
-	    return EventHandlerDao.instance.getEventHandlerXids(this.data.getEventType());
+	    return EventHandlerDao.getInstance().getEventHandlerXids(this.data.getEventType());
 	}
 	
     public void setHandlers(List<String> handlerXids) {
         if (handlerXids != null) {
             ProcessResult processResult = new ProcessResult();
             for (String xid : handlerXids) {
-                AbstractEventHandlerVO<?> eh = EventHandlerDao.instance.getByXid(xid);
+                AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(xid);
                 if (eh == null)
                     processResult.addContextualMessage("handlers",
                             "rest.validation.xidDoesNotExist", "EventHandler", xid);

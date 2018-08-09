@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -24,9 +25,6 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.EventDetectorRowMapper;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -39,12 +37,16 @@ import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
  * @author Terry Packer
  *
  */
-@Repository("eventDetectorDao")
+@Repository()
 public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
-    
-    @Deprecated
-    public static EventDetectorDao instance;
-    
+
+    private static final LazyInitSupplier<EventDetectorDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(EventDetectorDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (EventDetectorDao)o;
+    });
+
     /* Map of Source Type to Source ID Column Names */
     private LinkedHashMap<String, String> sourceTypeToColumnNameMap;
     
@@ -54,9 +56,15 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
                 new String[0],
                 false,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"));
-        instance = this;
     }
     
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static EventDetectorDao getInstance() {
+        return springInstance.get();
+    }
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
      */
@@ -181,7 +189,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
         if(vo.getAddedEventHandlers() != null) {
             EventTypeVO et = vo.getEventType();
             for(AbstractEventHandlerVO<?> ehVo : vo.getAddedEventHandlers())
-                EventHandlerDao.instance.addEventHandlerMappingIfMissing(ehVo.getId(), et.createEventType());
+                EventHandlerDao.getInstance().addEventHandlerMappingIfMissing(ehVo.getId(), et.createEventType());
         }
     }
     

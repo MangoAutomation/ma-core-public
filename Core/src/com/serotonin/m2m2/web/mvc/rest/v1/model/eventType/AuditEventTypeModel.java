@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.eventType;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.EventType.DuplicateHandling;
@@ -104,7 +104,7 @@ public class AuditEventTypeModel extends EventTypeModel{
 	public EventType getEventTypeInstance() {
 		User user = null;
 		if(this.raisingUsername != null)
-			user = UserDao.instance.getUser(this.raisingUsername);
+			user = UserDao.getInstance().getUser(this.raisingUsername);
 		return new AuditEventType(auditEventType, changeType, referenceId, user, auditEventId);
 	}
 	

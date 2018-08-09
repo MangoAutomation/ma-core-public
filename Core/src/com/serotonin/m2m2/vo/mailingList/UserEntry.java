@@ -9,11 +9,11 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.User;
 
@@ -76,7 +76,7 @@ public class UserEntry extends EmailRecipient {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         if (user == null)
-            user = UserDao.instance.getUser(userId);
+            user = UserDao.getInstance().getUser(userId);
         writer.writeEntry("username", user.getUsername());
     }
 
@@ -88,7 +88,7 @@ public class UserEntry extends EmailRecipient {
         if (username == null)
             throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
 
-        user = UserDao.instance.getUser(username);
+        user = UserDao.getInstance().getUser(username);
         if (user == null)
             throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "username", username);
 

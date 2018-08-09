@@ -71,7 +71,7 @@ public abstract class VirtualSerialPortConfig implements JsonSerializable, Valid
 		 if(portName != null && Common.serialPortManager.isPortNameRegexMatch(portName))
 			 response.addContextualMessage("virtualSerialPortName", "virtualSerialPorts.validate.portMatchesOsPort");
 		 
-		 if(!response.getHasMessages() && VirtualSerialPortConfigDao.instance.isPortNameUsed(xid, portName))
+		 if(!response.getHasMessages() && VirtualSerialPortConfigDao.getInstance().isPortNameUsed(xid, portName))
 			 response.addContextualMessage("virtualSerialPortName", "virtualSerialPorts.validate.portNameUsed");
 	}
 	

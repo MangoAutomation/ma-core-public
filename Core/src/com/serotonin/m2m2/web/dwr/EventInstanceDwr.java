@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.infiniteautomation.mango.db.query.SortOption;
-import com.infiniteautomation.mango.spring.dao.EventInstanceDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DojoQueryCallback;
+import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.ResultSetCounter;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -34,7 +34,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
 	 * @param keyName
 	 */
 	public EventInstanceDwr() {
-		super(EventInstanceDao.instance, "eventInstances");
+		super(EventInstanceDao.getInstance(), "eventInstances");
 	}
 	
     /**
@@ -155,7 +155,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
                 }
             };
             
-            EventInstanceDao.instance.exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
+            EventInstanceDao.getInstance().exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
 	
             resetLastAlarmLevelChange();
             response.addGenericMessage("events.acknowledgedEvents", counter.getCount());
@@ -192,7 +192,7 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
                 }
             };
             
-            EventInstanceDao.instance.exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
+            EventInstanceDao.getInstance().exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
 	
             resetLastAlarmLevelChange();
             response.addGenericMessage("events.silencedEvents", counter.getCount());

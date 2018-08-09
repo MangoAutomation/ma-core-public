@@ -4,8 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 
 /**
@@ -40,7 +40,7 @@ public class ScriptContextVariableModel {
 	 * @param variable
 	 */
 	public ScriptContextVariableModel(ScriptContextVariable variable){
-		this.dataPointXid = DataPointDao.instance.getXidById(variable.getDataPointId());
+		this.dataPointXid = DataPointDao.getInstance().getXidById(variable.getDataPointId());
 		this.variableName = variable.getVariableName();
 		this.contextUpdate = variable.isContextUpdate();
 	}
@@ -72,7 +72,7 @@ public class ScriptContextVariableModel {
 	public ScriptContextVariable createVariable(){
 		int dataPointId = Common.NEW_ID;
 		if(this.dataPointXid != null){
-			Integer id = DataPointDao.instance.getIdByXid(this.dataPointXid);
+			Integer id = DataPointDao.getInstance().getIdByXid(this.dataPointXid);
 			if(id != null)
 				dataPointId = id;
 		}

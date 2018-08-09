@@ -14,10 +14,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
@@ -107,7 +107,7 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
         //Lookup data points by tag
         List<Object> args = new ArrayList<>();
         args.add("typeRef1");
-        DataPointDao.instance.rqlQuery(rqlAstNode, new MappedRowCallback<DataPointVO>() {
+        DataPointDao.getInstance().rqlQuery(rqlAstNode, new MappedRowCallback<DataPointVO>() {
             @Override
             public void row(DataPointVO dp, int index) {
                 if(Permissions.hasDataPointReadPermission(user, dp)){

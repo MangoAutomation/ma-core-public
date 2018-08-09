@@ -14,11 +14,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.FiledataDefinition;
@@ -42,7 +42,7 @@ public class DataPurge {
 	
     private static final Log log = LogFactory.getLog(DataPurge.class);
     private long runtime;
-    private final DataPointDao dataPointDao = DataPointDao.instance;
+    private final DataPointDao dataPointDao = DataPointDao.getInstance();
     private final PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
     private long deletedSamples;
     private boolean anyDeletedSamples;
@@ -131,7 +131,7 @@ public class DataPurge {
             }
             else {
                 // Check the data source level.
-                DataSourceVO<?> ds = DataSourceDao.instance.getDataSource(dataPoint.getDataSourceId());
+                DataSourceVO<?> ds = DataSourceDao.getInstance().getDataSource(dataPoint.getDataSourceId());
                 if (ds.isPurgeOverride()) {
                     purgeType = ds.getPurgeType();
                     purgePeriod = ds.getPurgePeriod();

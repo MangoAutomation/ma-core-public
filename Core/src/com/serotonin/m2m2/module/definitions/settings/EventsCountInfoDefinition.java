@@ -30,7 +30,7 @@ public class EventsCountInfoDefinition extends SystemInfoDefinition<Integer>{
 	 */
 	@Override
 	public Integer getValue() {
-        return EventDao.instance.getEventCount();
+        return EventDao.getInstance().getEventCount();
 	}
 
 	/* (non-Javadoc)

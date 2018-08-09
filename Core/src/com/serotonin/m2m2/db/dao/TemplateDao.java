@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,10 +16,10 @@ import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
@@ -33,21 +33,33 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-@Repository("templateDao")
+@Repository()
 public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 
 	private static final String TEMPLATE_SELECT = "SELECT id, xid, name, templateType, readPermission, setPermission, data FROM templates ";
-	@Deprecated
-	public static TemplateDao instance;
-	
+
+    private static final LazyInitSupplier<TemplateDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(TemplateDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (TemplateDao)o;
+    });
+
 	/**
 	 * @param typeName
 	 */
-	protected TemplateDao() {
+	private TemplateDao() {
 		super(AuditEventType.TYPE_TEMPLATE, "t", new String[]{}, false, null);
-		instance = this;
 	}
 
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static TemplateDao getInstance() {
+        return springInstance.get();
+    }
+    
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
 	 */

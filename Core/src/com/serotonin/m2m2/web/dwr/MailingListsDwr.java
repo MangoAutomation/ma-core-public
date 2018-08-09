@@ -16,9 +16,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -36,8 +36,8 @@ public class MailingListsDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public ProcessResult init() {
         ProcessResult response = new ProcessResult();
-        response.addData("lists", MailingListDao.instance.getMailingLists());
-        response.addData("users", UserDao.instance.getUsers());
+        response.addData("lists", MailingListDao.getInstance().getMailingLists());
+        response.addData("users", UserDao.getInstance().getUsers());
         return response;
     }
 
@@ -46,18 +46,18 @@ public class MailingListsDwr extends BaseDwr {
         if (id == Common.NEW_ID) {
             MailingList ml = new MailingList();
             ml.setId(Common.NEW_ID);
-            ml.setXid(MailingListDao.instance.generateUniqueXid());
+            ml.setXid(MailingListDao.getInstance().generateUniqueXid());
             ml.setEntries(new LinkedList<EmailRecipient>());
             return ml;
         }
-        return MailingListDao.instance.getMailingList(id);
+        return MailingListDao.getInstance().getMailingList(id);
     }
 
     @DwrPermission(admin = true)
     public ProcessResult saveMailingList(int id, String xid, String name, int receiveAlarmEmails, List<RecipientListEntryBean> entryBeans,
             List<Integer> inactiveIntervals) {
         ProcessResult response = new ProcessResult();
-        MailingListDao mailingListDao = MailingListDao.instance;
+        MailingListDao mailingListDao = MailingListDao.getInstance();
 
         // Validate the given information. If there is a problem, return an appropriate error message.
         MailingList ml = createMailingList(id, xid, name, receiveAlarmEmails, entryBeans);
@@ -84,7 +84,7 @@ public class MailingListsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void deleteMailingList(int mlId) {
-        MailingListDao.instance.deleteMailingList(mlId);
+        MailingListDao.getInstance().deleteMailingList(mlId);
     }
 
     @DwrPermission(admin = true)
@@ -92,7 +92,7 @@ public class MailingListsDwr extends BaseDwr {
         ProcessResult response = new ProcessResult();
 
         MailingList ml = createMailingList(id, null, name, AlarmLevels.IGNORE, entryBeans);
-        MailingListDao.instance.populateEntrySubclasses(ml.getEntries());
+        MailingListDao.getInstance().populateEntrySubclasses(ml.getEntries());
 
         Set<String> addresses = new HashSet<String>();
         ml.appendAddresses(addresses, null);

@@ -6,7 +6,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.email;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.infiniteautomation.mango.spring.dao.UserDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
 
@@ -29,7 +29,7 @@ public class UserEntryModel extends EmailRecipientModel<UserEntry>{
 
 	@JsonGetter("username")
 	public String getUsername(){
-		User u = UserDao.instance.get(this.data.getUserId());
+		User u = UserDao.getInstance().get(this.data.getUserId());
 		if(u == null)
 			return "user missing";
 		else
@@ -37,7 +37,7 @@ public class UserEntryModel extends EmailRecipientModel<UserEntry>{
 	}
 	@JsonSetter("username")
 	public void setUsername(String username){
-		User u = UserDao.instance.getUser(username);
+		User u = UserDao.getInstance().getUser(username);
 		if(u != null){
 			this.data.setUserId(u.getId());
 			this.data.setUser(u);

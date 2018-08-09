@@ -12,11 +12,11 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -80,7 +80,7 @@ public class DataSourceListDwr extends BaseDwr {
     }
 
     public List<DataPointVO> getPointsForDataSource(int dataSourceId) {
-        return DataPointDao.instance.getDataPoints(dataSourceId, DataPointNameComparator.instance);
+        return DataPointDao.getInstance().getDataPoints(dataSourceId, DataPointNameComparator.instance);
     }
 
     @DwrPermission(user = true)
@@ -92,7 +92,7 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public ProcessResult toggleDataPoint(int dataPointId) {
-        DataPointVO dataPoint = DataPointDao.instance.getDataPoint(dataPointId);
+        DataPointVO dataPoint = DataPointDao.getInstance().getDataPoint(dataPointId);
         Permissions.ensureDataSourcePermission(Common.getUser(), dataPoint.getDataSourceId());
 
         dataPoint.setEnabled(!dataPoint.isEnabled());
@@ -106,7 +106,7 @@ public class DataSourceListDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public ProcessResult dataSourceInfo(int dataSourceId) {
-        DataSourceVO<?> ds = DataSourceDao.instance.getDataSource(dataSourceId);
+        DataSourceVO<?> ds = DataSourceDao.getInstance().getDataSource(dataSourceId);
         Permissions.ensureDataSourcePermission(Common.getUser(), ds);
         ProcessResult response = new ProcessResult();
 
@@ -114,7 +114,7 @@ public class DataSourceListDwr extends BaseDwr {
                 TranslatableMessage.translate(getTranslations(), "common.copyPrefix", ds.getName()), 40);
 
         response.addData("name", name);
-        response.addData("xid", DataSourceDao.instance.generateUniqueXid());
+        response.addData("xid", DataSourceDao.getInstance().generateUniqueXid());
         response.addData("deviceName", name);
 
         return response;
@@ -132,7 +132,7 @@ public class DataSourceListDwr extends BaseDwr {
         ds.validate(response);
 
         if (!response.getHasMessages()) {
-            int dsId = DataSourceDao.instance.copyDataSource(dataSourceId, name, xid, deviceName);
+            int dsId = DataSourceDao.getInstance().copyDataSource(dataSourceId, name, xid, deviceName);
             response.addData("newId", dsId);
         }
 
@@ -143,9 +143,9 @@ public class DataSourceListDwr extends BaseDwr {
     public String exportDataSourceAndPoints(int dataSourceId) {
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
-        dss.add(DataSourceDao.instance.getDataSource(dataSourceId));
+        dss.add(DataSourceDao.getInstance().getDataSource(dataSourceId));
         data.put(ConfigurationExportData.DATA_SOURCES, dss);
-        data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.instance.getDataPoints(dataSourceId, null));
+        data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.getInstance().getDataPoints(dataSourceId, null));
         return EmportDwr.export(data, 3);
     }
 }

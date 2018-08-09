@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -34,15 +34,12 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.FilterListCallback;
-import com.serotonin.m2m2.db.dao.IFilter;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -52,7 +49,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.util.SerializationHelper;
 
-@Repository("dataSourceDao")
+@Repository()
 public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
@@ -64,14 +61,26 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     private static final String DATA_SOURCE_SELECT = //
     "SELECT id, xid, name, dataSourceType, data, editPermission FROM dataSources ";
 
-    @Deprecated
-    public static DataSourceDao<DataSourceVO<?>> instance;
+    @SuppressWarnings("unchecked")
+    private static final LazyInitSupplier<DataSourceDao<DataSourceVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(DataSourceDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (DataSourceDao<DataSourceVO<?>>)o;
+    });
 
     private DataSourceDao() {
         super(AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
-        instance = (DataSourceDao<DataSourceVO<?>>) this;
     }
 
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static DataSourceDao<DataSourceVO<?>> getInstance() {
+        return springInstance.get();
+    }
+    
     public List<T> getDataSources() {
         List<T> dss = query(DATA_SOURCE_SELECT, new DataSourceExtractor());
         Collections.sort(dss, new DataSourceNameComparator());
@@ -184,7 +193,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         DataSourceVO<?> vo = getDataSource(dataSourceId);
         final ExtendedJdbcTemplate ejt2 = ejt;
 
-        DataPointDao.instance.deleteDataPoints(dataSourceId);
+        DataPointDao.getInstance().deleteDataPoints(dataSourceId);
 
         if (vo != null) {
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
@@ -225,7 +234,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = DataPointDao.instance;
+                DataPointDao dataPointDao = DataPointDao.getInstance();
 
                 // Copy the data source.
                 DataSourceVO<?> dataSourceCopy = getDataSource(newDataSourceId);
@@ -245,7 +254,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                     for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
                         ped.setId(Common.NEW_ID);
                         ped.njbSetDataPoint(dataPointCopy);
-                        ped.setXid(EventDetectorDao.instance.generateUniqueXid());
+                        ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
                     }
 
                     //dataPointDao.saveDataPoint(dataPointCopy);
@@ -270,7 +279,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = DataPointDao.instance;
+                DataPointDao dataPointDao = DataPointDao.getInstance();
 
                 DataSourceVO<?> dataSource = getDataSource(dataSourceId);
                 // Copy the data source.

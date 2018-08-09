@@ -28,13 +28,13 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringEscapeUtils;
 import org.joda.time.DateTime;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -123,7 +123,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     @Override
     public void eventRaised(EventInstance evt) {
         // Get the email addresses to send to
-        activeRecipients = MailingListDao.instance.getRecipientAddresses(vo.getActiveRecipients(),
+        activeRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getActiveRecipients(),
                 new DateTime(evt.getActiveTimestamp()));
 
         // Send an email to the active recipients.
@@ -132,7 +132,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         // If an inactive notification is to be sent, save the active recipients.
         if (vo.isSendInactive()) {
             if (vo.isInactiveOverride())
-                inactiveRecipients = MailingListDao.instance.getRecipientAddresses(vo.getInactiveRecipients(),
+                inactiveRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getInactiveRecipients(),
                         new DateTime(evt.getActiveTimestamp()));
             else
                 inactiveRecipients = activeRecipients;
@@ -150,7 +150,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     //
     synchronized public void scheduleTimeout(EventInstance evt, long fireTime) {
         // Get the email addresses to send to
-        Set<String> addresses = MailingListDao.instance.getRecipientAddresses(vo.getEscalationRecipients(), new DateTime(
+        Set<String> addresses = MailingListDao.getInstance().getRecipientAddresses(vo.getEscalationRecipients(), new DateTime(
                 fireTime));
 
         // Send the escalation.
@@ -164,7 +164,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         if (vo.isRepeatEscalations()) {
             //While evt will probably show ack'ed if ack'ed, the possibility exists for it to be deleted
             // and in which case we want to notice rather than send emails forever.
-            EventInstance dbEvent = EventDao.instance.get(evt.getId());
+            EventInstance dbEvent = EventDao.getInstance().get(evt.getId());
             if(dbEvent != null && !dbEvent.isAcknowledged() && dbEvent.isActive()) {
                 long delayMS = Common.getMillis(vo.getEscalationDelayType(), vo.getEscalationDelay());
                 escalationTask = new ModelTimeoutTask<EventInstance>(delayMS, this, dbEvent);
@@ -325,7 +325,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                                 renderedPointValues.add(rpvt);
             				}
             		} else {
-            			dpvo = DataPointDao.instance.get(pair.getKey());
+            			dpvo = DataPointDao.getInstance().get(pair.getKey());
             			if(dpvo == null)
             				continue;
             			
@@ -357,7 +357,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 for(IntStringPair pair : additionalContext) {
                     DataPointRT dprt = Common.runtimeManager.getDataPoint(pair.getKey());
                     if(dprt == null) {
-                        DataPointVO targetVo = DataPointDao.instance.getDataPoint(pair.getKey(), false);
+                        DataPointVO targetVo = DataPointDao.getInstance().getDataPoint(pair.getKey(), false);
                         if(targetVo == null) {
                             LOG.warn("Additional context point with ID: " + pair.getKey() + " and context name " + pair.getValue() + " could not be found.");
                             continue; //Not worth aborting the email, just warn it
@@ -365,7 +365,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                         
                         if(targetVo.getDefaultCacheSize() == 0)
                             targetVo.setDefaultCacheSize(1);
-                        dprt = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(targetVo.getDataSourceId()), null);
+                        dprt = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().getDataSource(targetVo.getDataSourceId()), null);
                         dprt.resetValues();
                     }
                     context.put(pair.getValue(), dprt);

@@ -14,10 +14,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.joda.time.DateTime;
 import org.springframework.dao.DataIntegrityViolationException;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -47,7 +47,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     //Map of XIDs to running data points
     private Map<String, DataPointRT> rtMap = new HashMap<String, DataPointRT>();
 
-    private DataPointDao dataPointDao = DataPointDao.instance;
+    private DataPointDao dataPointDao = DataPointDao.getInstance();
     private PointValueDao pointValueDao = Common.databaseProxy.newPointValueDao();
 	
     private String name;
@@ -280,7 +280,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
     DataSourceVO<?> getDataSource(int dataSourceId) {
         DataSourceVO<?> ds = cachedDataSources.get(dataSourceId);
         if (ds == null) {
-            ds = DataSourceDao.instance.get(dataSourceId);
+            ds = DataSourceDao.getInstance().get(dataSourceId);
             if (ds != null)
                 cachedDataSources.put(dataSourceId, ds);
         }

@@ -6,8 +6,8 @@ package com.serotonin.m2m2.web.dwr;
 
 import java.util.List;
 
-import com.infiniteautomation.mango.spring.dao.EventDetectorDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -199,7 +199,7 @@ public class DataPointEditDwr extends BaseDwr {
         EventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(typeName);
         
         AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) definition.baseCreateEventDetectorVO();
-        ped.setXid(EventDetectorDao.instance.generateUniqueXid());
+        ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
         ped.setName("");
         ped.setId(newId);
         

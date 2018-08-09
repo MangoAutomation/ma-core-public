@@ -14,9 +14,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DuplicateKeyException;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.TemplateDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.DataPointSummary;
@@ -37,7 +37,7 @@ public class TemplateDwr extends BaseDwr{
 	 private TemplateDao dao;
 	 
 	 public TemplateDwr(){
-		 this.dao = TemplateDao.instance;
+		 this.dao = TemplateDao.getInstance();
 	 }
 	 
 	/**
@@ -48,7 +48,7 @@ public class TemplateDwr extends BaseDwr{
     public ProcessResult getDataPointTemplates(int dataTypeId) {
     	ProcessResult result = new ProcessResult();
     	List<DataPointPropertiesTemplateVO> templates = dao.getDataPointTemplatesByDataTypeId(dataTypeId);
-    	result.addData(TemplateDao.instance.tableName, templates);
+    	result.addData(TemplateDao.getInstance().tableName, templates);
     	
     	return result;
     }
@@ -80,11 +80,11 @@ public class TemplateDwr extends BaseDwr{
     @DwrPermission(user = true)
     public ProcessResult findPointsWithTemplate(DataPointPropertiesTemplateVO vo){
     	ProcessResult response = new ProcessResult();
-    	List<DataPointVO> dataPoints = DataPointDao.instance.getByTemplate(vo.getId(), false);
+    	List<DataPointVO> dataPoints = DataPointDao.getInstance().getByTemplate(vo.getId(), false);
     	List<DataPointSummary> summaries = new ArrayList<DataPointSummary>(dataPoints.size());
     	for(DataPointVO dp: dataPoints)
     		summaries.add(new DataPointSummary(dp));
-    	response.addData(DataPointDao.instance.tableName, summaries);
+    	response.addData(DataPointDao.getInstance().tableName, summaries);
     	return response;
     }
     
@@ -148,7 +148,7 @@ public class TemplateDwr extends BaseDwr{
      */
 	protected void updateDataPointsUsingTemplate(DataPointPropertiesTemplateVO vo, ProcessResult response){
 		//Update all data points and let the user know which ones were updated
-		List<DataPointVO> templatedPoints = DataPointDao.instance.getByTemplate(vo.getId());
+		List<DataPointVO> templatedPoints = DataPointDao.getInstance().getByTemplate(vo.getId());
 		List<String> xidsUpdated = new ArrayList<String>();
 		Map<String,String> failedXidMap = new HashMap<String,String>(); //Map of XID to why
 		for(DataPointVO templatedPoint : templatedPoints){

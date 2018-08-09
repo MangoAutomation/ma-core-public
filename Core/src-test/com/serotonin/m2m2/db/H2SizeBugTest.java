@@ -24,12 +24,12 @@ import org.h2.jdbcx.JdbcConnectionPool;
 import org.junit.After;
 import org.junit.BeforeClass;
 
-import com.infiniteautomation.mango.spring.dao.PublisherDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.SimulationTimerProvider;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
@@ -78,7 +78,7 @@ public class H2SizeBugTest extends MangoTestBase {
         vo.setXid("PUB_TEST1");
         vo.setEnabled(false);
         
-        PublisherDao.instance.savePublisher(vo);
+        PublisherDao.getInstance().savePublisher(vo);
         
         Map<Integer, Long> data = getData(10000, 0);
         Map<String, Object> rtData = new HashMap<String, Object>();
@@ -87,7 +87,7 @@ public class H2SizeBugTest extends MangoTestBase {
         for(int i=0; i<200; i++) {
             id = updateDatabase(id, rtData);
             modifyData(data);
-            PublisherDao.instance.getPersistentData(id);
+            PublisherDao.getInstance().getPersistentData(id);
             if(i%10 == 0) {
                 if(useCheckpoint)
                     Common.databaseProxy.runScript(new String[] {"CHECKPOINT;"}, System.out);
@@ -129,7 +129,7 @@ public class H2SizeBugTest extends MangoTestBase {
             conn.close();
             return id;
         }else {
-            PublisherDao.instance.savePersistentData(id, rtData);
+            PublisherDao.getInstance().savePersistentData(id, rtData);
             return id;
         }
     }

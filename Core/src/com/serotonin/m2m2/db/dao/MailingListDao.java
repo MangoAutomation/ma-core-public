@@ -20,7 +20,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
-import com.infiniteautomation.mango.spring.dao.UserDao;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
@@ -36,16 +36,23 @@ import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
  */
 public class MailingListDao extends BaseDao implements ValueMonitorOwner{
 	
-	public static final MailingListDao instance = new MailingListDao();
-	
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
 
+    private static final LazyInitSupplier<MailingListDao> instance = new LazyInitSupplier<>(() -> {
+        return new MailingListDao();
+    });
+
+    
     private MailingListDao(){
 		this.countMonitor = new AtomicIntegerMonitor(this.getClass().getCanonicalName() + ".COUNT", new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"), this);
         this.countMonitor.setValue(this.count());
     	Common.MONITORED_VALUES.addIfMissingStatMonitor(this.countMonitor);
 	}
+    
+    public static MailingListDao getInstance() {
+        return instance.get();
+    }
     
     public String generateUniqueXid() {
         return generateUniqueXid(MailingList.XID_PREFIX, SchemaDefinition.MAILING_LISTS_TABLE);
@@ -175,7 +182,7 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
     
     public void populateEntrySubclasses(List<EmailRecipient> entries) {
         // Update the user type entries with their respective user objects.
-        UserDao userDao = UserDao.instance;
+        UserDao userDao = UserDao.getInstance();
         for (EmailRecipient e : entries) {
             if (e instanceof MailingList)
                 // NOTE: this does not set the mailing list name.

@@ -9,12 +9,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPointModel;
@@ -56,7 +56,7 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        String xid = DataPointDao.instance.getXidById(dataPointId);
+        String xid = DataPointDao.getInstance().getXidById(dataPointId);
         writer.writeEntry("dataPointId", xid);
     }
 
@@ -66,7 +66,7 @@ abstract public class PublishedPointVO implements Serializable, JsonSerializable
         if (xid == null)
             throw new TranslatableJsonException("emport.error.publishedPoint.missing", "dataPointId");
         
-        Integer id = DataPointDao.instance.getIdByXid(xid);
+        Integer id = DataPointDao.getInstance().getIdByXid(xid);
         if (id == null)
             throw new TranslatableJsonException("emport.error.missingPoint", xid);
         dataPointId = id;

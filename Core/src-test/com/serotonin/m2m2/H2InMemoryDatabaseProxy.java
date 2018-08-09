@@ -27,7 +27,6 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
@@ -40,6 +39,7 @@ import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -166,7 +166,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
                     user.setPhone("");
                     user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
                     user.setDisabled(false);
-                    UserDao.instance.saveUser(user);
+                    UserDao.getInstance().saveUser(user);
                     
                     DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
                     factory.saveDefaultTemplates();
@@ -539,7 +539,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         user.setPhone("");
         user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
         user.setDisabled(false);
-        UserDao.instance.saveUser(user);
+        UserDao.getInstance().saveUser(user);
         
         //Clean the noSQL database
         // Check if we are using NoSQL

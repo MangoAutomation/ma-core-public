@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -16,26 +16,27 @@ import java.util.Map;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.infiniteautomation.mango.util.LazyInitializer;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractBasicDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 
 /**
  * @author Terry Packer
  *
  */
-@Repository("auditEventDao")
+@Repository()
 public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 
     @Deprecated
 	public static AuditEventDao instance;
-	
+    private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
+
 	/**
 	 * @param tablePrefix
 	 * @param extraProperties
@@ -45,6 +46,19 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 		super("aud", new String[0]);
 		instance = this;
 	}
+	
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static AuditEventDao getInstance() {
+        return springInstance.get(() -> {
+            Object o = Common.getRuntimeContext().getBean(AuditEventDao.class);
+            if(o == null)
+                throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+            return (AuditEventDao)o;
+        });
+    }
 	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()

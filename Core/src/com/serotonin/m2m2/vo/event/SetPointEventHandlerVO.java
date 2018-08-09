@@ -14,7 +14,6 @@ import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -23,6 +22,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -161,7 +161,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     
     public void validate(ProcessResult response) {
     	super.validate(response);
-        DataPointVO dp = DataPointDao.instance.getDataPoint(targetPointId, false);
+        DataPointVO dp = DataPointDao.getInstance().getDataPoint(targetPointId, false);
 
         if (dp == null)
             response.addGenericMessage("eventHandlers.noTargetPoint");
@@ -189,7 +189,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
                 }
             }
             else if (activeAction == SET_ACTION_POINT_VALUE) {
-                DataPointVO dpActive = DataPointDao.instance.getDataPoint(activePointId, false);
+                DataPointVO dpActive = DataPointDao.getInstance().getDataPoint(activePointId, false);
 
                 if (dpActive == null)
                     response.addGenericMessage("eventHandlers.invalidActiveSource");
@@ -224,7 +224,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
                 }
             }
             else if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                DataPointVO dpInactive = DataPointDao.instance.getDataPoint(inactivePointId, false);
+                DataPointVO dpInactive = DataPointDao.getInstance().getDataPoint(inactivePointId, false);
 
                 if (dpInactive == null)
                     response.addGenericMessage("eventHandlers.invalidInactiveSource");
@@ -244,7 +244,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             List<String> varNameSpace = new ArrayList<String>();
             varNameSpace.add(TARGET_CONTEXT_KEY);
             for(IntStringPair cxt : additionalContext) {
-            	if(DataPointDao.instance.getDataPoint(cxt.getKey(), false) == null)
+            	if(DataPointDao.getInstance().getDataPoint(cxt.getKey(), false) == null)
             		response.addGenericMessage("event.script.contextPointMissing", cxt.getKey(), cxt.getValue());
             	
             	String varName = cxt.getValue();
@@ -337,13 +337,13 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
     	super.jsonWrite(writer);
     	
-    	String dpXid = DataPointDao.instance.getXidById(targetPointId);
+    	String dpXid = DataPointDao.getInstance().getXidById(targetPointId);
         writer.writeEntry("targetPointId", dpXid);
 
         // Active
         writer.writeEntry("activeAction", SET_ACTION_CODES.getCode(activeAction));
         if (activeAction == SET_ACTION_POINT_VALUE) {
-            dpXid = DataPointDao.instance.getXidById(activePointId);
+            dpXid = DataPointDao.getInstance().getXidById(activePointId);
             writer.writeEntry("activePointId", dpXid);
         }
         else if (activeAction == SET_ACTION_STATIC_VALUE)
@@ -354,7 +354,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         // Inactive
         writer.writeEntry("inactiveAction", SET_ACTION_CODES.getCode(inactiveAction));
         if (inactiveAction == SET_ACTION_POINT_VALUE) {
-            dpXid = DataPointDao.instance.getXidById(inactivePointId);
+            dpXid = DataPointDao.getInstance().getXidById(inactivePointId);
             writer.writeEntry("inactivePointId", dpXid);
         }
         else if (inactiveAction == SET_ACTION_STATIC_VALUE)
@@ -364,7 +364,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         
         JsonArray context = new JsonArray();
         for(IntStringPair pnt : additionalContext) {
-        	DataPointVO dpvo = DataPointDao.instance.getDataPoint(pnt.getKey(), false);
+        	DataPointVO dpvo = DataPointDao.getInstance().getDataPoint(pnt.getKey(), false);
         	if(dpvo != null) {
         		JsonObject point = new JsonObject();
         		point.put("dataPointXid", dpvo.getXid());
@@ -389,7 +389,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
         
-    	DataPointDao dataPointDao = DataPointDao.instance;
+    	DataPointDao dataPointDao = DataPointDao.getInstance();
         String xid = jsonObject.getString("targetPointId");
         if (xid != null) {
             Integer id = dataPointDao.getIdByXid(xid);
@@ -467,7 +467,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         		if(dataPointXid == null)
         			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
         		
-        		Integer id = DataPointDao.instance.getIdByXid(dataPointXid);
+        		Integer id = DataPointDao.getInstance().getIdByXid(dataPointXid);
         		if(id == null)
         			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
         		

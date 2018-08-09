@@ -24,10 +24,10 @@ import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.infiniteautomation.mango.db.query.SortOption;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -330,7 +330,7 @@ public class DeltamationCommon {
     }
     
     public static int parsePoint(JsonObject jsonObject, String name) throws TranslatableJsonException {
-        DataPointDao points = DataPointDao.instance;
+        DataPointDao points = DataPointDao.getInstance();
         
         String xid = jsonObject.getString(name);
         Integer dpid = points.getIdByXid(xid);
@@ -349,7 +349,7 @@ public class DeltamationCommon {
     }
     
     public static DataPointVO validatePoint(int pointId, String name, ProcessResult response, Integer dataType, boolean requireSettable) {
-        DataPointDao points = DataPointDao.instance;
+        DataPointDao points = DataPointDao.getInstance();
         
         DataPointVO point = points.getDataPoint(pointId);
         if (point == null) {

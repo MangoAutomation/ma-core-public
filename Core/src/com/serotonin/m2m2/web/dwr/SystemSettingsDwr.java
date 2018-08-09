@@ -19,10 +19,10 @@ import com.infiniteautomation.mango.io.serial.virtual.SerialServerSocketBridgeCo
 import com.infiniteautomation.mango.io.serial.virtual.SerialSocketBridgeConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -266,7 +266,7 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE));
         
         //Virtual Serial Ports
-        settings.put("virtualSerialPorts", VirtualSerialPortConfigDao.instance.getAll());
+        settings.put("virtualSerialPorts", VirtualSerialPortConfigDao.getInstance().getAll());
         
         //Site analytics
         settings.put(SystemSettingsDao.SITE_ANALYTICS_HEAD, SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
@@ -317,14 +317,14 @@ public class SystemSettingsDwr extends BaseDwr {
         data.put("totalSize", DirectoryUtils.bytesDescription(dbSize + filedataSize + noSqlSize));
 
         // Point history counts.
-        List<PointHistoryCount> counts = DataPointDao.instance.getTopPointHistoryCounts();
+        List<PointHistoryCount> counts = DataPointDao.getInstance().getTopPointHistoryCounts();
         int sum = 0;
         for (PointHistoryCount c : counts)
             sum += c.getCount();
 
         data.put("historyCount", sum);
         data.put("topPoints", counts);
-        data.put("eventCount", EventDao.instance.getEventCount());
+        data.put("eventCount", EventDao.getInstance().getEventCount());
 
         return data;
     }
@@ -837,12 +837,12 @@ public class SystemSettingsDwr extends BaseDwr {
     	
     	//If we don't have a unique XID then we need to generate one
     	if(StringUtils.isEmpty(config.getXid()))
-    		config.setXid(VirtualSerialPortConfigDao.instance.generateUniqueXid());
+    		config.setXid(VirtualSerialPortConfigDao.getInstance().generateUniqueXid());
     	
     	config.validate(response);
     	
     	if(!response.getHasMessages()){
-            response.addData("ports", VirtualSerialPortConfigDao.instance.save(config));
+            response.addData("ports", VirtualSerialPortConfigDao.getInstance().save(config));
     	}
     		
     	
@@ -861,7 +861,7 @@ public class SystemSettingsDwr extends BaseDwr {
     
     private ProcessResult removeVirtualSerialPortConfig(VirtualSerialPortConfig config) {
     	ProcessResult response = new ProcessResult();
-    	response.addData("ports", VirtualSerialPortConfigDao.instance.remove(config));
+    	response.addData("ports", VirtualSerialPortConfigDao.getInstance().remove(config));
     	
     	return response;
     }

@@ -12,13 +12,13 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
@@ -132,7 +132,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     @SuppressWarnings("unchecked")
 	@Override
     protected AbstractDao<T> getDao(){
-    	return (AbstractDao<T>)EventHandlerDao.instance;
+    	return (AbstractDao<T>)EventHandlerDao.getInstance();
     }
     //
     //
@@ -160,7 +160,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
         writer.writeEntry("xid", xid);
         writer.writeEntry("alias", name);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
-        writer.writeEntry("eventTypes", EventHandlerDao.instance.getEventTypesForHandler(id));
+        writer.writeEntry("eventTypes", EventHandlerDao.getInstance().getEventTypesForHandler(id));
     }
 
     @Override

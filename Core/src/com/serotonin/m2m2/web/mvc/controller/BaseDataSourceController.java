@@ -18,10 +18,10 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.infiniteautomation.mango.io.serial.SerialPortConfigException;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -91,7 +91,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                 return new ModelAndView(new RedirectView(errorViewName));
             dataSourceVO = def.baseCreateDataSourceVO();
             dataSourceVO.setId(Common.NEW_ID);
-            dataSourceVO.setXid(DataSourceDao.instance.generateUniqueXid());
+            dataSourceVO.setXid(DataSourceDao.getInstance().generateUniqueXid());
         }
 
         //Are we going to be making a copy?
@@ -100,7 +100,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
         //Are we editing a point?
         if (pidStr != null) {
             int pid = Integer.parseInt(pidStr);
-            DataPointVO dp = DataPointDao.instance.getDataPoint(pid);
+            DataPointVO dp = DataPointDao.getInstance().getDataPoint(pid);
             if (dp == null) {
                 // The requested data point doesn't exist. Return to the list page.
                 model.put("key", "dsEdit.error.pointDNE");
@@ -124,7 +124,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                     DataPointVO copyDp = dp.copy();
                     copyDp.setId(Common.NEW_ID);
                     copyDp.setName(name);
-                    copyDp.setXid(DataPointDao.instance.generateUniqueXid());
+                    copyDp.setXid(DataPointDao.getInstance().generateUniqueXid());
                     model.put("dataPoint", copyDp);
                 }
 
@@ -154,7 +154,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                     dataSourceVO = dataSourceVO.copy();
                     dataSourceVO.setId(Common.NEW_ID);
                     dataSourceVO.setName(name);
-                    dataSourceVO.setXid(DataSourceDao.instance.generateUniqueXid());
+                    dataSourceVO.setXid(DataSourceDao.getInstance().generateUniqueXid());
                 }
             }
 
@@ -187,7 +187,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             model.put("commPortError", e.getMessage());
         }
 
-        List<DataPointVO> allPoints = DataPointDao.instance.getDataPoints(DataPointExtendedNameComparator.instance, false);
+        List<DataPointVO> allPoints = DataPointDao.getInstance().getDataPoints(DataPointExtendedNameComparator.instance, false);
         List<DataPointVO> userPoints = new LinkedList<>();
         List<DataPointVO> analogPoints = new LinkedList<>();
         for (DataPointVO dp : allPoints) {

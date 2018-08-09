@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -34,7 +34,7 @@ public class MangoUserDetailsService implements UserDetailsService {
 	 */
 	@Override
 	public User loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = UserDao.instance.getUser(username);
+		User user = UserDao.getInstance().getUser(username);
 		if (user == null)
 		    throw new UsernameNotFoundException(username);
 		else

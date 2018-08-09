@@ -12,8 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 
 import com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -71,7 +71,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 		User user =  (User) this.getPrincipal();
 		if(user.isAdmin())
 			return true;
-		DataSourceVO<?> dsvo = DataSourceDao.instance.getByXid(xid);
+		DataSourceVO<?> dsvo = DataSourceDao.getInstance().getByXid(xid);
 		if((dsvo == null)||(!Permissions.hasDataSourcePermission(user, dsvo)))
 			return false;
 		return true;
@@ -125,7 +125,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 */
 	public boolean hasDataPointXidReadPermission(String xid){
 		User user =  (User) this.getPrincipal();
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		
 		return (vo != null) && Permissions.hasDataPointReadPermission(user, vo);
 	}
@@ -138,7 +138,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	public boolean hasDataPointXidsReadPermission(String[] xids){
 		User user =  (User) this.getPrincipal();
 		for(String xid : xids){
-			DataPointVO vo = DataPointDao.instance.getByXid(xid);
+			DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 			if((vo == null)||(!Permissions.hasDataPointReadPermission(user, vo)))
 				return false;
 				
@@ -153,7 +153,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 */
 	public boolean hasDataPointXidSetPermission(String xid){
 		User user =  (User) this.getPrincipal();
-		DataPointVO vo = DataPointDao.instance.getByXid(xid);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		
 		return (vo != null) && Permissions.hasDataPointSetPermission(user, vo);
 	}
@@ -167,7 +167,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	public boolean hasDataPointXidsSetPermission(String[] xids){
 		User user =  (User) this.getPrincipal();
 		for(String xid : xids){
-			DataPointVO vo = DataPointDao.instance.getByXid(xid);
+			DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 			if((vo == null)||(!Permissions.hasDataPointSetPermission(user, vo)))
 				return false;
 				

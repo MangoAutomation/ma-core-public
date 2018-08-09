@@ -8,10 +8,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.infiniteautomation.mango.spring.dao.EventInstanceDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DojoQueryCallback;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
@@ -74,7 +74,7 @@ public class EventExportServlet extends HttpServlet {
             }
         };
         
-        EventInstanceDao.instance.exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
+        EventInstanceDao.getInstance().exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
 
        emporter.finishExport();
 	}
@@ -89,7 +89,7 @@ public class EventExportServlet extends HttpServlet {
 			EventExportDefinition def, User user) throws IOException {
         
         final Translations translations = Common.getTranslations();
-        List<EventInstance> events = EventDao.instance.search(def.getEventId(), def.getEventType(), def.getStatus(),
+        List<EventInstance> events = EventDao.getInstance().search(def.getEventId(), def.getEventType(), def.getStatus(),
                 def.getAlarmLevel(), def.getKeywords(), def.getDateFrom(), def.getDateTo(), user.getId(), translations,
                 0, Integer.MAX_VALUE, null);
         // Stream the content.

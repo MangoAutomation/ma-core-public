@@ -24,8 +24,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
-import com.infiniteautomation.mango.spring.dao.AuditEventDao;
-import com.infiniteautomation.mango.spring.dao.UserCommentDao;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
@@ -50,10 +49,16 @@ import com.serotonin.m2m2.web.dwr.EventsDwr;
 public class EventDao extends BaseDao {
 	private static final Log LOG = LogFactory.getLog(EventDao.class);
 	
-	public static final EventDao instance = new EventDao();
-	
+    private static final LazyInitSupplier<EventDao> instance = new LazyInitSupplier<>(() -> {
+        return new EventDao();
+    });
+    
 	private EventDao(){
 		
+	}
+	
+	public static EventDao getInstance() {
+	    return instance.get();
 	}
 	
     private static final int MAX_PENDING_EVENTS = 100;
@@ -77,7 +82,7 @@ public class EventDao extends BaseDao {
                 LOG.error(e.getMessage(), e);
             }
             vo.setMessage(event.getMessage());
-            AuditEventDao.instance.save(vo);
+            AuditEventDao.getInstance().save(vo);
             // Save for use in the cache
             type.setReferenceId2(vo.getId());
         } else {
@@ -365,11 +370,11 @@ public class EventDao extends BaseDao {
     void attachRelationalInfo(EventInstance event) {
         if (event.isHasComments())
             event.setEventComments(query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
-                    UserCommentDao.instance.getRowMapper()));
+                    UserCommentDao.getInstance().getRowMapper()));
     }
 
     public EventInstance insertEventComment(UserCommentVO comment) {
-        UserCommentDao.instance.save(comment);
+        UserCommentDao.getInstance().save(comment);
         return getEventInstance(comment.getReferenceId());
     }
 

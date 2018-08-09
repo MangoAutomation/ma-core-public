@@ -14,9 +14,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
@@ -96,7 +96,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
         //Lookup data points by tag
         List<Object> args = new ArrayList<>();
         args.add("typeRef1");
-        DataPointDao.instance.dataPointsForTags(tags, user, new MappedRowCallback<DataPointVO>() {
+        DataPointDao.getInstance().dataPointsForTags(tags, user, new MappedRowCallback<DataPointVO>() {
             @Override
             public void row(DataPointVO dp, int index) {
                 if(Permissions.hasDataPointReadPermission(user, dp)){

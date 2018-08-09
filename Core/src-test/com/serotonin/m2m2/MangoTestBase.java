@@ -25,11 +25,11 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.Module;
@@ -233,7 +233,7 @@ public class MangoTestBase {
             user.setDisabled(false);
             validate(user);
             
-            UserDao.instance.saveUser(user);
+            UserDao.getInstance().saveUser(user);
             users.add(user);
         }
         return users;

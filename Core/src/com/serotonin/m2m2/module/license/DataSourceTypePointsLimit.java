@@ -6,7 +6,7 @@ package com.serotonin.m2m2.module.license;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.license.LicenseFeature;
@@ -39,7 +39,7 @@ public class DataSourceTypePointsLimit implements LicenseEnforcement {
 
                 if (pointLimit != -1) {
                     // Find out how many points there are for this type of data source.
-                    int count = DataPointDao.instance.countPointsForDataSourceType(dataSourceType);
+                    int count = DataPointDao.getInstance().countPointsForDataSourceType(dataSourceType);
 
                     // Apply count restriction.
                     if (count > pointLimit)

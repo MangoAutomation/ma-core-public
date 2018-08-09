@@ -14,13 +14,13 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.Period;
 
 import com.infiniteautomation.mango.db.query.SortOption;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -57,7 +57,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      * Default Constructor
      */
     public DataSourceDwr() {
-        super(DataSourceDao.instance, DataSourceDao.instance.tableName, (DataSourceRTM<DataSourceVO<?>>) DataSourceRTM.instance, DataSourceDao.instance.tableName);
+        super(DataSourceDao.getInstance(), DataSourceDao.getInstance().tableName, (DataSourceRTM<DataSourceVO<?>>) DataSourceRTM.instance, DataSourceDao.getInstance().tableName);
         LOG = LogFactory.getLog(DataSourceDwr.class);
     }
 
@@ -98,7 +98,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
             try {
                 vo = def.baseCreateDataSourceVO();
                 vo.setId(Common.NEW_ID);
-                vo.setXid(DataSourceDao.instance.generateUniqueXid());
+                vo.setXid(DataSourceDao.getInstance().generateUniqueXid());
                 User user = Common.getUser();
                 if (!Permissions.hasAdminPermission(user))
                     // Default the permissions of the data source to that of the user so that 
@@ -138,13 +138,13 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
                                 .getDataSourceTypeName())) {
                     DataPointVO dp = new DataPointVO();
 
-                    dp.setXid(DataPointDao.instance.generateUniqueXid());
+                    dp.setXid(DataPointDao.getInstance().generateUniqueXid());
                     dp.setDataSourceId(vo.getId());
                     dp.setDataSourceTypeName(vo.getDefinition().getDataSourceTypeName());
                     dp.setDeviceName(vo.getName());
                     dp.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
                     dp.defaultTextRenderer();
-                    dp.setXid(DataPointDao.instance.generateUniqueXid());
+                    dp.setXid(DataPointDao.getInstance().generateUniqueXid());
                     dp.setPointLocator(vo.createPointLocator());
                     Common.getUser().setEditPoint(dp);
                 }
@@ -178,9 +178,9 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
 
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
-        dss.add(DataSourceDao.instance.getDataSource(id));
+        dss.add(DataSourceDao.getInstance().getDataSource(id));
         data.put(ConfigurationExportData.DATA_SOURCES, dss);
-        data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.instance.getDataPoints(id, null));
+        data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.getInstance().getDataPoints(id, null));
         return EmportDwr.export(data, 3);
     }
 
@@ -255,7 +255,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         List<EventInstanceBean> beans = new ArrayList<>();
 
         if (ds != null) {
-            List<EventInstance> events = EventDao.instance.getPendingEventsForDataSource(ds.getId(), Common.getUser()
+            List<EventInstance> events = EventDao.getInstance().getPendingEventsForDataSource(ds.getId(), Common.getUser()
                     .getId());
             if (events != null) {
                 for (EventInstance event : events)
@@ -381,7 +381,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
             if (Permissions.hasDataSourcePermission(user, vo)) {
                 vos.add(vo);
                 //Not doing this yet, might look weird to user
-                //data.put(EmportDwr.DATA_POINTS, DataPointDao.instance.getDataPoints(vo.getId(), null));
+                //data.put(EmportDwr.DATA_POINTS, DataPointDao.getInstance().getDataPoints(vo.getId(), null));
             }
         }
 

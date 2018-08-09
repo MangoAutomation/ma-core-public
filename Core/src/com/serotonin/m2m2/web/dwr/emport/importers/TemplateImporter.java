@@ -6,9 +6,9 @@ package com.serotonin.m2m2.web.dwr.emport.importers;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.TemplateDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -32,9 +32,9 @@ public class TemplateImporter extends Importer {
         String xid = json.getString("xid");
 
         if (StringUtils.isBlank(xid))
-            xid = TemplateDao.instance.generateUniqueXid();
+            xid = TemplateDao.getInstance().generateUniqueXid();
 
-        BaseTemplateVO<?> vo = TemplateDao.instance.getByXid(xid);
+        BaseTemplateVO<?> vo = TemplateDao.getInstance().getByXid(xid);
         if (vo == null) {
             String typeStr = json.getString("templateType");
             if (StringUtils.isBlank(typeStr))
@@ -65,7 +65,7 @@ public class TemplateImporter extends Importer {
                 else {
                     // Sweet. Save it.
                     boolean isnew = vo.isNew();
-                    TemplateDao.instance.save(vo);
+                    TemplateDao.getInstance().save(vo);
                     addSuccessMessage(isnew, "emport.template.prefix", xid);
                 }
             }

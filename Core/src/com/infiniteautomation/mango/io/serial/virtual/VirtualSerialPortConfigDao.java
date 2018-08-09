@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -20,9 +21,17 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
  *
  */
 public class VirtualSerialPortConfigDao {
-	
-	public static VirtualSerialPortConfigDao instance = new VirtualSerialPortConfigDao();
 
+    private static final LazyInitSupplier<VirtualSerialPortConfigDao> instance = new LazyInitSupplier<>(() -> {
+        return new VirtualSerialPortConfigDao();
+    });
+
+    private VirtualSerialPortConfigDao() {}
+    
+    public static VirtualSerialPortConfigDao getInstance() {
+        return instance.get();
+    }
+    
 	/**
 	 * Insert new configs or update existing ones 
 	 * @param config

@@ -16,11 +16,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.servlet.View;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.EventDetectorDao;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
@@ -44,7 +44,7 @@ public class DataPointDetailsController implements UrlHandler {
         if (user.getEditPoint() != null)
             id = user.getEditPoint().getId();
 
-        DataPointDao dataPointDao = DataPointDao.instance;
+        DataPointDao dataPointDao = DataPointDao.getInstance();
         String idStr = request.getParameter("dpid");
         DataPointVO point = null;
         if(StringUtils.equals(idStr,"exception"))
@@ -66,7 +66,7 @@ public class DataPointDetailsController implements UrlHandler {
             }
             else {
                 int pedid = Integer.parseInt(pedStr);
-                id = EventDetectorDao.instance.getSourceId(pedid, EventType.EventTypeNames.DATA_POINT);
+                id = EventDetectorDao.getInstance().getSourceId(pedid, EventType.EventTypeNames.DATA_POINT);
             }
         }
         else
@@ -96,7 +96,7 @@ public class DataPointDetailsController implements UrlHandler {
             model.put("point", point);
 
             // Get the users that have access to this point.
-            List<User> allUsers = UserDao.instance.getUsers();
+            List<User> allUsers = UserDao.getInstance().getUsers();
             List<Map<String, Object>> users = new LinkedList<>();
             Map<String, Object> userData;
             int accessType;
@@ -115,7 +115,7 @@ public class DataPointDetailsController implements UrlHandler {
             model.put("pointEditor", Permissions.hasDataSourcePermission(user, point.getDataSourceId()));
 
             // Put the events in the model.
-            model.put("events", EventDao.instance.getEventsForDataPoint(id, user.getId()));
+            model.put("events", EventDao.getInstance().getEventsForDataPoint(id, user.getId()));
 
             // Put the default history table count into the model. Default to 10.
             int historyLimit = 10;
@@ -164,7 +164,7 @@ public class DataPointDetailsController implements UrlHandler {
     //        if (user.getEditPoint() != null)
     //            id = user.getEditPoint().getId();
     //
-    //        DataPointDao dataPointDao = DataPointDao.instance;
+    //        DataPointDao dataPointDao = DataPointDao.getInstance();
     //        String idStr = request.getParameter("dpid");
     //        DataPointVO point = null;
     //
@@ -206,7 +206,7 @@ public class DataPointDetailsController implements UrlHandler {
     //            model.put("point", point);
     //
     //            // Get the users that have access to this point.
-    //            List<User> allUsers = UserDao.instance.getUsers();
+    //            List<User> allUsers = UserDao.getInstance().getUsers();
     //            List<Map<String, Object>> users = new LinkedList<Map<String, Object>>();
     //            Map<String, Object> userData;
     //            int accessType;

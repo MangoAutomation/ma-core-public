@@ -8,12 +8,12 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -80,7 +80,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 	@Override
     public EventTypeVO getEventType() {
 	    if(this.dataPoint == null)
-	        this.dataPoint = DataPointDao.instance.get(sourceId);
+	        this.dataPoint = DataPointDao.getInstance().get(sourceId);
         return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, sourceId, id, getDescription(),
                 alarmLevel);
     }
@@ -93,7 +93,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 		super.validate(response);
 		
 		if(this.dataPoint == null)
-			this.dataPoint = DataPointDao.instance.get(sourceId);
+			this.dataPoint = DataPointDao.getInstance().get(sourceId);
 		
 		//We currently don't check to see if the point exists
 		// because of SQL constraints
@@ -126,7 +126,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         //TODO Some configuration descriptions will throw NPE if dataPoint isn't set
-        //this.dataPoint = DataPointDao.instance.get(sourceId);
+        //this.dataPoint = DataPointDao.getInstance().get(sourceId);
         
     	super.jsonRead(reader, jsonObject);
     	

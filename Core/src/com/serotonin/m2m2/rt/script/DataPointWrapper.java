@@ -8,8 +8,8 @@ import java.util.Map;
 
 import javax.measure.unit.Unit;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataPointTagsDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 
@@ -56,7 +56,7 @@ public class DataPointWrapper {
     }
     
     public String getPath() {
-        return PointHierarchy.getFlatPath(vo.getId(), DataPointDao.instance.getPointHierarchy(true).getRoot());
+        return PointHierarchy.getFlatPath(vo.getId(), DataPointDao.getInstance().getPointHierarchy(true).getRoot());
     }
     
     public Unit<?> getUnit(){
@@ -74,7 +74,7 @@ public class DataPointWrapper {
     public Map<String, String> getTags() {
         Map<String, String> tags = vo.getTags();
         if(tags == null) {
-            vo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(vo.getId()));
+            vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
             return vo.getTags();
         } else
             return tags;

@@ -17,9 +17,9 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
@@ -48,7 +48,7 @@ public class ScriptExecutor {
         for (ScriptContextVariable contextEntry : context) {
             DataPointRT point = Common.runtimeManager.getDataPoint(contextEntry.getDataPointId());
             if (point == null){
-            	DataPointVO vo = DataPointDao.instance.get(contextEntry.getDataPointId());
+            	DataPointVO vo = DataPointDao.getInstance().get(contextEntry.getDataPointId());
             	if(vo == null)
             		throw new DataPointStateException(contextEntry.getDataPointId(), new TranslatableMessage(
                         "event.script.contextPointMissing", contextEntry.getVariableName(), contextEntry.getDataPointId()));
@@ -68,13 +68,13 @@ public class ScriptExecutor {
         for (ScriptContextVariable contextEntry : context) {
             DataPointRT point = Common.runtimeManager.getDataPoint(contextEntry.getDataPointId());
             if (point == null){
-                DataPointVO vo = DataPointDao.instance.get(contextEntry.getDataPointId());
+                DataPointVO vo = DataPointDao.getInstance().get(contextEntry.getDataPointId());
                 if(vo == null)
                     throw new DataPointStateException(contextEntry.getDataPointId(), new TranslatableMessage(
                         "event.script.contextPointMissing", contextEntry.getVariableName(), contextEntry.getDataPointId()));
                 if(vo.getDefaultCacheSize() == 0)
                     vo.setDefaultCacheSize(1);
-                point = new DataPointRT(vo, vo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(vo.getDataSourceId()), null);
+                point = new DataPointRT(vo, vo.getPointLocator().createRuntime(), DataSourceDao.getInstance().getDataSource(vo.getDataSourceId()), null);
                 point.resetValues();
             }
             converted.put(contextEntry.getVariableName(), point);

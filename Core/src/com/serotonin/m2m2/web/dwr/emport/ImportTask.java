@@ -14,13 +14,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.Translations;
@@ -294,7 +294,7 @@ public class ImportTask extends ProgressiveTask {
         if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null) 
             root = hierarchyImporter.getHierarchy().getRoot();
         else if(dpPathPairs.size() > 0)
-            root = DataPointDao.instance.getPointHierarchy(false).getRoot();
+            root = DataPointDao.getInstance().getPointHierarchy(false).getRoot();
         else
             return;
         
@@ -325,7 +325,7 @@ public class ImportTask extends ProgressiveTask {
 
             starting.addDataPoint(dpp.getDataPointSummary());
         }
-        DataPointDao.instance.savePointHierarchy(root);
+        DataPointDao.getInstance().savePointHierarchy(root);
         importContext.addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
     }
     
@@ -334,8 +334,8 @@ public class ImportTask extends ProgressiveTask {
             //We can't really guarantee that the import didnt' also ocntain event detectors on the point or that the
             // Data Point VO's we retrieved are still correct, so mix in the detectors to the point out of the database.
             boolean isNew = true;
-            DataPointVO saved = DataPointDao.instance.getDataPoint(dpvo.getId(), false);
-            DataPointDao.instance.setEventDetectors(saved);
+            DataPointVO saved = DataPointDao.getInstance().getDataPoint(dpvo.getId(), false);
+            DataPointDao.getInstance().setEventDetectors(saved);
             for(AbstractPointEventDetectorVO<?> eventDetector : dpvo.getEventDetectors()) {
                 Iterator<AbstractPointEventDetectorVO<?>> iter = saved.getEventDetectors().iterator();
                 while(iter.hasNext()) {

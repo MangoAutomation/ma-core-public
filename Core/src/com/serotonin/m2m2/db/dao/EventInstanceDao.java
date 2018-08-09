@@ -2,7 +2,7 @@
  * Copyright (C) 2013 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,15 +19,12 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.query.JoinClause;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.BaseDao;
-import com.serotonin.m2m2.db.dao.IFilter;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
-import com.serotonin.m2m2.db.dao.AbstractDao.PropertyArguments;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -44,12 +41,16 @@ import com.serotonin.m2m2.vo.event.EventInstanceVO;
  * @author Terry Packer
  *
  */
-@Repository("eventInstanceDao")
+@Repository()
 public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 
-    @Deprecated
-	public static EventInstanceDao instance;
-	
+    private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(EventInstanceDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (EventInstanceDao)o;
+    });
+
 	/**
 	 * @param typeName
 	 */
@@ -59,9 +60,16 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 					"u.username",
 					"(select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
 					"ue.silenced"}, false, null);
-		instance = this;
 	}
 
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static EventInstanceDao getInstance() {
+        return springInstance.get();
+    }
+    
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
 	 */
@@ -366,8 +374,8 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 
         void attachRelationalInfo(EventInstanceVO event) {
             if (event.isHasComments())
-                event.setEventComments(EventInstanceDao.instance.query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
-                        UserCommentDao.instance.getRowMapper()));
+                event.setEventComments(EventInstanceDao.getInstance().query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
+                        UserCommentDao.getInstance().getRowMapper()));
         }
 
         

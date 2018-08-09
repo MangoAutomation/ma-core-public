@@ -32,11 +32,11 @@ public class VirtualSerialPortImporter extends Importer {
 
         boolean isNew = false;
         if (StringUtils.isBlank(xid)){
-            xid = VirtualSerialPortConfigDao.instance.generateUniqueXid();
+            xid = VirtualSerialPortConfigDao.getInstance().generateUniqueXid();
             isNew = true;
         }
             
-        VirtualSerialPortConfig vo = VirtualSerialPortConfigDao.instance.getByXid(xid);
+        VirtualSerialPortConfig vo = VirtualSerialPortConfigDao.getInstance().getByXid(xid);
         if (vo == null) {
         	isNew = true;
             String typeStr = json.getString("type");
@@ -70,7 +70,7 @@ public class VirtualSerialPortImporter extends Importer {
                     setValidationMessages(voResponse, "emport.virtualserialport.prefix", xid);
                 else {
                     // Sweet. Save it.
-                    VirtualSerialPortConfigDao.instance.save(vo);
+                    VirtualSerialPortConfigDao.getInstance().save(vo);
                     addSuccessMessage(isNew, "emport.virtualserialport.prefix", xid);
                 }
             }

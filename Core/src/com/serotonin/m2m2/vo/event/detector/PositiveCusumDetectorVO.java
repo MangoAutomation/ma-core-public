@@ -4,9 +4,9 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -73,7 +73,7 @@ public class PositiveCusumDetectorVO extends TimeoutDetectorVO<PositiveCusumDete
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
 	    if(dataPoint == null)
-            dataPoint = DataPointDao.instance.getDataPoint(sourceId);
+            dataPoint = DataPointDao.getInstance().getDataPoint(sourceId);
         TranslatableMessage durationDesc = getDurationDescription();
         
         if (durationDesc == null)

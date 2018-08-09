@@ -19,9 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -62,7 +62,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        User user = UserDao.instance.getUser(username);
+        User user = UserDao.getInstance().getUser(username);
         if (user == null) {
             throw new NotFoundException();
         }
@@ -147,7 +147,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         User user = this.verify(token);
         user.setPlainTextPassword(newPassword);
         user.ensureValid();
-        UserDao.instance.saveUser(user);
+        UserDao.getInstance().saveUser(user);
         return user;
     }
 

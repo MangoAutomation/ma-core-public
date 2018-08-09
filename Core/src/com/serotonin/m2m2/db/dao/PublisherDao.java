@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -27,13 +27,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -45,19 +44,29 @@ import com.serotonin.util.SerializationHelper;
 /**
  * @author Matthew Lohbihler
  */
-@Repository("publisherDao")
+@Repository()
 public class PublisherDao extends AbstractDao<PublisherVO<?>> {
 	
-    @Deprecated
-	public static PublisherDao instance;
-	
+    private static final LazyInitSupplier<PublisherDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(PublisherDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (PublisherDao)o;
+    });
+
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
     private PublisherDao(){
     	super(AuditEventType.TYPE_PUBLISHER, new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
-    	instance = this;
     }
     
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static PublisherDao getInstance() {
+        return springInstance.get();
+    }
     
     public String generateUniqueXid() {
         return generateUniqueXid(PublisherVO.XID_PREFIX, SchemaDefinition.PUBLISHERS_TABLE);

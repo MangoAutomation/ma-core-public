@@ -6,13 +6,13 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
@@ -87,7 +87,7 @@ public class AnalogRangeDetectorVO extends TimeoutDetectorVO<AnalogRangeDetector
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
 	    if(dataPoint == null)
-            dataPoint = DataPointDao.instance.getDataPoint(sourceId);
+            dataPoint = DataPointDao.getInstance().getDataPoint(sourceId);
 		TranslatableMessage durationDesc = getDurationDescription();
 		
         //For within range

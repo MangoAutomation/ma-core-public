@@ -6,11 +6,11 @@ package com.serotonin.m2m2.vo.template;
 
 import java.util.List;
 
-import com.infiniteautomation.mango.spring.dao.TemplateDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
@@ -58,7 +58,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		ProcessResult response = new ProcessResult();
 		template.validate(response);
 		if(!response.getHasMessages()){
-			TemplateDao.instance.save(template);
+			TemplateDao.getInstance().save(template);
 		}else{
 			String output = new String();
 			List<ProcessMessage> messages = response.getMessages();

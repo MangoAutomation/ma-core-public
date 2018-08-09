@@ -7,13 +7,13 @@ package com.serotonin.m2m2.vo.json;
 import java.io.IOException;
 import java.io.Serializable;
 
-import com.infiniteautomation.mango.spring.dao.JsonDataDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -74,7 +74,7 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 		super.validate(response);
 		
 		try{
-			JsonDataDao.instance.writeValueAsString(this.jsonData);
+			JsonDataDao.getInstance().writeValueAsString(this.jsonData);
 		}catch(Exception e){
 			response.addMessage("jsonData", new TranslatableMessage("common.default", e.getMessage()));
 		}
@@ -83,14 +83,14 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        writer.writeEntry("jsonData", JsonDataDao.instance.writeValueAsString(jsonData));
+        writer.writeEntry("jsonData", JsonDataDao.getInstance().writeValueAsString(jsonData));
     }
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
     	super.jsonRead(reader, jsonObject);
     	String json = jsonObject.getString("jsonData");
     	try{
-    		jsonData = JsonDataDao.instance.readValueFromString(json);
+    		jsonData = JsonDataDao.getInstance().readValueFromString(json);
     	}catch(Exception e){
             throw new TranslatableJsonException("emport.error.parseError", "jsonData");
     	}
@@ -108,7 +108,7 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 	 */
 	@Override
 	protected JsonDataDao getDao() {
-		return JsonDataDao.instance;
+		return JsonDataDao.getInstance();
 	}
 
 }

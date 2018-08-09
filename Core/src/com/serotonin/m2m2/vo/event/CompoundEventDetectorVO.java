@@ -11,8 +11,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -21,6 +19,8 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -94,11 +94,11 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
             List<String> keys = l.getDetectorKeys();
 
             // Get all of the point event detectors.
-            List<DataPointVO> dataPoints = DataPointDao.instance.getDataPoints(null, true);
+            List<DataPointVO> dataPoints = DataPointDao.getInstance().getDataPoints(null, true);
 
             // Create a lookup of data sources.
             Map<Integer, DataSourceVO<?>> dss = new HashMap<>();
-            for (DataSourceVO<?> ds : DataSourceDao.instance.getAll())
+            for (DataSourceVO<?> ds : DataSourceDao.getInstance().getAll())
                 dss.put(ds.getId(), ds);
 
             for (String key : keys) {

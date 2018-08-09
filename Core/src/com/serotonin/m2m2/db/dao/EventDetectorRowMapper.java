@@ -12,7 +12,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
-import com.infiniteautomation.mango.spring.dao.EventDetectorDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -73,7 +72,7 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
 		//Extract the source id
         int sourceIdColumnIndex;
         if(this.sourceIdColumnOffset < 0)
-            sourceIdColumnIndex= this.firstColumn + 5 + EventDetectorDao.instance.getSourceIdIndex(definition.getSourceTypeName());
+            sourceIdColumnIndex= this.firstColumn + 5 + EventDetectorDao.getInstance().getSourceIdIndex(definition.getSourceTypeName());
         else
             sourceIdColumnIndex = this.firstColumn + this.sourceIdColumnOffset;
         vo.setSourceId(rs.getInt(sourceIdColumnIndex));

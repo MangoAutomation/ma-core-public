@@ -6,9 +6,9 @@ package com.serotonin.m2m2.web.dwr.emport.importers;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.JsonDataDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
@@ -29,11 +29,11 @@ public class JsonDataImporter extends Importer {
 
         boolean isNew = false;
         if (StringUtils.isBlank(xid)){
-            xid = JsonDataDao.instance.generateUniqueXid();
+            xid = JsonDataDao.getInstance().generateUniqueXid();
             isNew = true;
         }
             
-        JsonDataVO vo = JsonDataDao.instance.getByXid(xid);
+        JsonDataVO vo = JsonDataDao.getInstance().getByXid(xid);
         if (vo == null) {
         	isNew = true;
         	vo = new JsonDataVO();
@@ -53,7 +53,7 @@ public class JsonDataImporter extends Importer {
                     setValidationMessages(voResponse, "emport.jsondata.prefix", xid);
                 else {
                     // Sweet. Save it.
-                    JsonDataDao.instance.save(vo);
+                    JsonDataDao.getInstance().save(vo);
                     addSuccessMessage(isNew, "emport.jsondata.prefix", xid);
                 }
             }

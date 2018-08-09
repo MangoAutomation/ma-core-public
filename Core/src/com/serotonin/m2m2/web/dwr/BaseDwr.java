@@ -28,15 +28,15 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.IllegalFieldValueException;
 
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.UserCommentDao;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserCommentDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.LongPollDefinition;
@@ -223,7 +223,7 @@ abstract public class BaseDwr {
     @DwrPermission(user = true)
     public int setPoint(int pointId, int componentId, String valueStr) {
         User user = Common.getUser();
-        DataPointVO point = DataPointDao.instance.getDataPoint(pointId);
+        DataPointVO point = DataPointDao.getInstance().getDataPoint(pointId);
 
         if (!point.getPointLocator().isSettable())
             throw new ShouldNeverHappenException("Point is not settable");
@@ -266,7 +266,7 @@ abstract public class BaseDwr {
     @DwrPermission(user = true)
     public void forcePointRead(int pointId) {
         User user = Common.getUser();
-        DataPointVO point = DataPointDao.instance.getDataPoint(pointId, false);
+        DataPointVO point = DataPointDao.getInstance().getDataPoint(pointId, false);
 
         // Check permissions.
         Permissions.ensureDataPointReadPermission(user, point);
@@ -289,7 +289,7 @@ abstract public class BaseDwr {
 
         User user = Common.getHttpUser();
         UserCommentVO c = new UserCommentVO();
-        c.setXid(UserCommentDao.instance.generateUniqueXid());
+        c.setXid(UserCommentDao.getInstance().generateUniqueXid());
         c.setComment(comment);
         c.setTs(Common.timer.currentTimeMillis());
         c.setUserId(user.getId());
@@ -298,10 +298,10 @@ abstract public class BaseDwr {
 
         if (typeId == UserCommentVO.TYPE_EVENT){
             c.setCommentType(UserCommentVO.TYPE_EVENT);
-            EventDao.instance.insertEventComment(c);
+            EventDao.getInstance().insertEventComment(c);
         }else if (typeId == UserCommentVO.TYPE_POINT){
             c.setCommentType(UserCommentVO.TYPE_POINT);
-            UserCommentDao.instance.save(c);
+            UserCommentDao.getInstance().save(c);
         }else
             throw new ShouldNeverHappenException("Invalid comment type: "
                     + typeId);
@@ -312,7 +312,7 @@ abstract public class BaseDwr {
     protected List<DataPointBean> getReadablePoints() {
         User user = Common.getHttpUser();
 
-        List<DataPointVO> points = DataPointDao.instance.getDataPoints(
+        List<DataPointVO> points = DataPointDao.getInstance().getDataPoints(
                 DataPointExtendedNameComparator.instance, false);
         if (!Permissions.hasAdminPermission(user)) {
             List<DataPointVO> userPoints = new ArrayList<>();
@@ -395,7 +395,7 @@ abstract public class BaseDwr {
 
     protected List<User> getShareUsers(User excludeUser) {
         List<User> users = new ArrayList<>();
-        for (User u : UserDao.instance.getUsers()) {
+        for (User u : UserDao.getInstance().getUsers()) {
             if (u.getId() != excludeUser.getId())
                 users.add(u);
         }
@@ -424,7 +424,7 @@ abstract public class BaseDwr {
         HttpServletRequest httpRequest = WebContextFactory.get()
                 .getHttpServletRequest();
         User user = Common.getUser(httpRequest);
-        EventDao eventDao = EventDao.instance;
+        EventDao eventDao = EventDao.getInstance();
 
         LongPollData data = getLongPollData(pollSessionId, false);
         data.updateTimestamp();
@@ -797,7 +797,7 @@ abstract public class BaseDwr {
     public List<PermissionDetails> getUserPermissionInfo(String query) {
         List<PermissionDetails> ds = new ArrayList<>();
         User currentUser = Common.getUser();
-        for (User user : UserDao.instance.getActiveUsers()) {
+        for (User user : UserDao.getInstance().getActiveUsers()) {
             PermissionDetails deets = Permissions.getPermissionDetails(
                     currentUser, query, user);
             if (deets != null)
@@ -810,7 +810,7 @@ abstract public class BaseDwr {
     public static Set<String> getAllUserGroups(String exclude) {
         Set<String> result = new TreeSet<>();
 
-        for (User user : UserDao.instance.getActiveUsers())
+        for (User user : UserDao.getInstance().getActiveUsers())
             result.addAll(Permissions.explodePermissionGroups(user
                     .getPermissions()));
 

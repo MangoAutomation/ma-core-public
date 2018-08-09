@@ -2,9 +2,9 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
-import static com.infiniteautomation.mango.spring.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -59,6 +59,7 @@ import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -67,12 +68,6 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.EventDetectorRowMapper;
-import com.serotonin.m2m2.db.dao.FilterListCallback;
-import com.serotonin.m2m2.db.dao.IFilter;
-import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -109,11 +104,16 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-@Repository("dataPointDao")
+@Repository()
 public class DataPointDao extends AbstractDao<DataPointVO>{
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
-    @Deprecated
-    public static DataPointDao instance;
+
+    private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(DataPointDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (DataPointDao)o;
+    });
 
     public static final Name DATA_POINTS_ALIAS = DSL.name("dp");
     public static final Table<Record> DATA_POINTS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTS_TABLE)).as(DATA_POINTS_ALIAS);
@@ -129,9 +129,16 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         super(EventType.EventTypeNames.DATA_POINT, "dp",
                 new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
                 false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
-        instance = this;
     }
 
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static DataPointDao getInstance() {
+        return springInstance.get();
+    }
+    
     //
     //
     // Data Points
@@ -523,7 +530,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * @param dp
      */
     public void setEventDetectors(DataPointVO dp) {
-        List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.instance.getWithSourceId(
+        List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.getInstance().getWithSourceId(
                 EventType.EventTypeNames.DATA_POINT, dp.getId());
         List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
         for(AbstractEventDetectorVO<?> ed : detectors){
@@ -536,7 +543,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
-        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.instance.getWithSourceId(
+        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.getInstance().getWithSourceId(
                 EventType.EventTypeNames.DATA_POINT, dp.getId());
 
         // Insert or update each detector in the point.
@@ -548,7 +555,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 ped.setId(Common.NEW_ID);
             }
             ped.setSourceId(dp.getId());
-            EventDetectorDao.instance.saveFull(ped);
+            EventDetectorDao.getInstance().saveFull(ped);
         }
 
         // Delete detectors for any remaining ids in the list of existing
@@ -557,7 +564,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             //Set the data point so the detector can get its event type when it is deleted
             AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
             ped.njbSetDataPoint(dp);
-            EventDetectorDao.instance.delete(ed);
+            EventDetectorDao.getInstance().delete(ed);
         }
     }
 
@@ -585,7 +592,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * @param dp
      */
     private void setPointComments(DataPointVO dp) {
-        dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, UserCommentDao.instance.getRowMapper()));
+        dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, UserCommentDao.getInstance().getRowMapper()));
     }
 
 
@@ -1168,7 +1175,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void loadPartialRelationalData(DataPointVO vo) {
         this.setEventDetectors(vo);
         this.setPointComments(vo);
-        vo.setTags(DataPointTagsDao.instance.getTagsForDataPointId(vo.getId()));
+        vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
     }
 
     private void loadPartialRelationalData(List<DataPointVO> dps) {
@@ -1197,15 +1204,15 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         if (tags == null) {
             if (!insert) {
                 // only delete the name and device tags, leave existing tags intact
-                DataPointTagsDao.instance.deleteNameAndDeviceTagsForDataPointId(vo.getId());
+                DataPointTagsDao.getInstance().deleteNameAndDeviceTagsForDataPointId(vo.getId());
             }
             tags = Collections.emptyMap();
         } else if (!insert) {
             // we only need to delete tags when doing an update
-            DataPointTagsDao.instance.deleteTagsForDataPointId(vo.getId());
+            DataPointTagsDao.getInstance().deleteTagsForDataPointId(vo.getId());
         }
 
-        DataPointTagsDao.instance.insertTagsForDataPoint(vo, tags);
+        DataPointTagsDao.getInstance().insertTagsForDataPoint(vo, tags);
     }
 
     @Override
@@ -1226,7 +1233,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 copy.getComments().clear();
 
                 // Copy the event detectors
-                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.instance.getWithSourceId(
+                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.getInstance().getWithSourceId(
                         EventType.EventTypeNames.DATA_POINT, dataPoint.getId());
                 List<AbstractPointEventDetectorVO<?>> detectors = new ArrayList<AbstractPointEventDetectorVO<?>>(existing.size());
 
@@ -1257,7 +1264,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         //Get the values from the datasource table
         //TODO Could speed this up if necessary...
-        DataSourceVO<?> dsVo = DataSourceDao.instance.get(vo.getDataSourceId());
+        DataSourceVO<?> dsVo = DataSourceDao.getInstance().get(vo.getDataSourceId());
         vo.setDataSourceName(dsVo.getName());
         vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
         vo.setDataSourceXid(dsVo.getXid());
@@ -1272,7 +1279,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     public void setTemplateName(DataPointVO vo){
         if(vo.getTemplateId() != null){
-            BaseTemplateVO<?> template = TemplateDao.instance.get(vo.getTemplateId());
+            BaseTemplateVO<?> template = TemplateDao.getInstance().get(vo.getTemplateId());
             if(template != null) {
                 vo.setTemplateName(template.getName());
                 vo.setTemplateXid(template.getXid());
@@ -1572,7 +1579,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
         Condition condition = null;
         if (!user.isAdmin()) {
-            condition = DataPointDao.instance.userHasPermission(user);
+            condition = DataPointDao.getInstance().userHasPermission(user);
         }
         SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
         this.customizedQuery(select, condition, sort, limit, offset, callback);
@@ -1617,17 +1624,17 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             throw new IllegalArgumentException("restrictions should not be empty");
         }
 
-        Map<String, Name> tagKeyToColumn = DataPointTagsDao.instance.tagKeyToColumn(restrictions.keySet());
+        Map<String, Name> tagKeyToColumn = DataPointTagsDao.getInstance().tagKeyToColumn(restrictions.keySet());
 
         List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
             return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
         }).collect(Collectors.toCollection(ArrayList::new));
 
         if (!user.isAdmin()) {
-            conditions.add(DataPointDao.instance.userHasPermission(user));
+            conditions.add(DataPointDao.getInstance().userHasPermission(user));
         }
 
-        Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+        Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
         SelectOnConditionStep<Record> select = this.create.select(this.fields).from(this.joinedTable).leftJoin(pivotTable)
                 .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
@@ -1646,7 +1653,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> pivotTable = DataPointTagsDao.instance.createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+                Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
                 return select.leftJoin(pivotTable)
                         .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));

@@ -6,11 +6,11 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -127,7 +127,7 @@ public class DataSourceEventType extends EventType {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        DataSourceVO<?> ds = DataSourceDao.instance.getDataSource(dataSourceId);
+        DataSourceVO<?> ds = DataSourceDao.getInstance().getDataSource(dataSourceId);
         writer.writeEntry("XID", ds.getXid());
         writer.writeEntry("dataSourceEventType", ds.getEventCodes().getCode(dataSourceEventTypeId));
     }
@@ -142,7 +142,7 @@ public class DataSourceEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user) {
-        DataSourceVO<?> ds = DataSourceDao.instance.get(dataSourceId);
+        DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataSourceId);
         if(ds == null)
             return false;
         return Permissions.hasDataSourcePermission(user, ds);

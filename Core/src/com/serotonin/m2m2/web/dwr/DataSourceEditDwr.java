@@ -12,14 +12,14 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DuplicateKeyException;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
-import com.infiniteautomation.mango.spring.dao.TemplateDao;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.LicenseViolatedException;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
@@ -101,7 +101,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (ds.getId() == Common.NEW_ID)
             return null;
 
-        List<DataPointVO> points = DataPointDao.instance
+        List<DataPointVO> points = DataPointDao.getInstance()
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
         return points;
     }
@@ -131,7 +131,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             	deviceName = ds.getName();
             }
             dp = new DataPointVO();
-            dp.setXid(DataPointDao.instance.generateUniqueXid());
+            dp.setXid(DataPointDao.getInstance().generateUniqueXid());
        	 	dp.setDeviceName(deviceName);
             dp.setId(pointId);
             dp.setDataSourceId(ds.getId());
@@ -146,7 +146,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         	//Only get a new point if it doesn't match our editing point as there are modifications we want to 
         	// retain in the user's editing point
         	if(dp.getId() != pointId)
-        		dp = DataPointDao.instance.getFull(pointId);
+        		dp = DataPointDao.getInstance().getFull(pointId);
         }
 
         //Use the defaulter
@@ -185,7 +185,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         dp.setPointLocator(locator);
 
         //Confirm that we are assinging a point to the correct data source
-        DataSourceVO<?> ds = DataSourceDao.instance.get(dp.getDataSourceId());
+        DataSourceVO<?> ds = DataSourceDao.getInstance().get(dp.getDataSourceId());
         PointLocatorVO<?> plvo = ds.createPointLocator();
         if (plvo.getClass() != locator.getClass()) {
             response.addGenericMessage("validate.invalidType");
@@ -198,14 +198,14 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 response.addContextualMessage("xid", "validate.required");
             else if (StringValidation.isLengthGreaterThan(xid, 100))
                 response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 100));
-            else if (!DataPointDao.instance.isXidUnique(xid, id))
+            else if (!DataPointDao.getInstance().isXidUnique(xid, id))
                 response.addContextualMessage("xid", "validate.xidUsed");
 
             if (StringUtils.isBlank(name))
                 response.addContextualMessage("name", "validate.required");
 
             //Load in the default Template
-            DataPointPropertiesTemplateVO template = TemplateDao.instance.getDefaultDataPointTemplate(locator.getDataTypeId());
+            DataPointPropertiesTemplateVO template = TemplateDao.getInstance().getDefaultDataPointTemplate(locator.getDataTypeId());
             if(template != null){
             	template.updateDataPointVO(dp);
             }
@@ -219,7 +219,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 response.addContextualMessage("xid", "validate.required");
             else if (StringValidation.isLengthGreaterThan(xid, 100))
                 response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 100));
-            else if (!DataPointDao.instance.isXidUnique(xid, id))
+            else if (!DataPointDao.getInstance().isXidUnique(xid, id))
                 response.addContextualMessage("xid", "validate.xidUsed");
 
             if (StringUtils.isBlank(name))
@@ -253,7 +253,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             //If we have the need to copy permissions then do it now
             // Dirty kludge but whatever for now this all needs reworking.
             //if(dp.getCopyPermissionsFrom() > 0){
-            //	DataPointDao.instance.copyPermissions(dp.getCopyPermissionsFrom(), dp.getId());
+            //	DataPointDao.getInstance().copyPermissions(dp.getCopyPermissionsFrom(), dp.getId());
             //}
 
             if (defaulter != null)
@@ -296,7 +296,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     @DwrPermission(user = true)
     public List<EventInstanceBean> getAlarms() {
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-        List<EventInstance> events = EventDao.instance.getPendingEventsForDataSource(ds.getId(), Common.getUser().getId());
+        List<EventInstance> events = EventDao.getInstance().getPendingEventsForDataSource(ds.getId(), Common.getUser().getId());
         List<EventInstanceBean> beans = new ArrayList<>();
         if (events != null) {
             for (EventInstance event : events)
@@ -324,7 +324,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     @DwrPermission(user = true)
     public String exportDataPoint(int dataPointId) {
         DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-        DataPointVO dp = DataPointDao.instance.getDataPoint(dataPointId);
+        DataPointVO dp = DataPointDao.getInstance().getDataPoint(dataPointId);
         if (dp == null)
             return null;
         if (dp.getDataSourceId() != ds.getId())
@@ -367,7 +367,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         if (ds.getId() == Common.NEW_ID)
             return 0;
 
-        List<DataPointVO> points = DataPointDao.instance
+        List<DataPointVO> points = DataPointDao.getInstance()
                 .getDataPoints(ds.getId(), DataPointNameComparator.instance, false);
 
         Long count = 0L;

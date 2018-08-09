@@ -23,16 +23,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.WebContextFactory;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
-import com.infiniteautomation.mango.spring.dao.PublisherDao;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
@@ -92,7 +92,7 @@ public class EventHandlersDwr extends BaseDwr {
         Map<String, Object> model = new HashMap<>();
 
         // Get the data sources.
-        List<DataSourceVO<?>> dss = DataSourceDao.instance.getDataSources();
+        List<DataSourceVO<?>> dss = DataSourceDao.getInstance().getDataSources();
 
         // Create a lookup of data sources to quickly determine data point permissions.
         Map<Integer, DataSourceVO<?>> dslu = new HashMap<>();
@@ -102,7 +102,7 @@ public class EventHandlersDwr extends BaseDwr {
         // Get the data points
         List<DataPointBean> allPoints = new ArrayList<>();
         List<EventSourceBean> dataPoints = new ArrayList<>();
-        List<DataPointVO> dps = DataPointDao.instance.getDataPoints(DataPointExtendedNameComparator.instance, true);
+        List<DataPointVO> dps = DataPointDao.getInstance().getDataPoints(DataPointExtendedNameComparator.instance, true);
         final boolean admin = Permissions.hasAdminPermission(user);
 
         for (DataPointVO dp : dps) {
@@ -118,7 +118,7 @@ public class EventHandlersDwr extends BaseDwr {
 
                 for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
                     EventTypeVO dpet = ped.getEventType();
-                    dpet.setHandlers(EventHandlerDao.instance.getEventHandlers(dpet));
+                    dpet.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dpet));
                     source.getEventTypes().add(dpet);
                 }
 
@@ -138,7 +138,7 @@ public class EventHandlersDwr extends BaseDwr {
                 source.setName(ds.getName());
 
                 for (EventTypeVO dset : ds.getEventTypes()) {
-                    dset.setHandlers(EventHandlerDao.instance.getEventHandlers(dset));
+                    dset.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dset));
                     source.getEventTypes().add(dset);
                 }
 
@@ -153,7 +153,7 @@ public class EventHandlersDwr extends BaseDwr {
                 List<EventTypeVO> vos = def.getEventTypeVOs();
 
                 for (EventTypeVO vo : vos)
-                    vo.setHandlers(EventHandlerDao.instance.getEventHandlers(vo));
+                    vo.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo));
 
                 Map<String, Object> info = new HashMap<>();
                 info.put("vos", vos);
@@ -167,7 +167,7 @@ public class EventHandlersDwr extends BaseDwr {
         if (admin) {
             // Get the publishers
             List<EventSourceBean> publishers = new ArrayList<>();
-            for (PublisherVO<? extends PublishedPointVO> p : PublisherDao.instance
+            for (PublisherVO<? extends PublishedPointVO> p : PublisherDao.getInstance()
                     .getPublishers(new PublisherDao.PublisherNameComparator())) {
                 if (p.getEventTypes().size() > 0) {
                     EventSourceBean source = new EventSourceBean();
@@ -175,7 +175,7 @@ public class EventHandlersDwr extends BaseDwr {
                     source.setName(p.getName());
 
                     for (EventTypeVO pet : p.getEventTypes()) {
-                        pet.setHandlers(EventHandlerDao.instance.getEventHandlers(pet));
+                        pet.setHandlers(EventHandlerDao.getInstance().getEventHandlers(pet));
                         source.getEventTypes().add(pet);
                     }
 
@@ -187,7 +187,7 @@ public class EventHandlersDwr extends BaseDwr {
             // Get the system events
             List<EventTypeVO> systemEvents = new ArrayList<>();
             for (EventTypeVO sets : SystemEventType.EVENT_TYPES) {
-                sets.setHandlers(EventHandlerDao.instance.getEventHandlers(sets));
+                sets.setHandlers(EventHandlerDao.getInstance().getEventHandlers(sets));
                 systemEvents.add(sets);
             }
             model.put("systemEvents", systemEvents);
@@ -195,7 +195,7 @@ public class EventHandlersDwr extends BaseDwr {
             // Get the audit events
             List<EventTypeVO> auditEvents = new ArrayList<>();
             for (EventTypeVO aets : AuditEventType.EVENT_TYPES) {
-                aets.setHandlers(EventHandlerDao.instance.getEventHandlers(aets));
+                aets.setHandlers(EventHandlerDao.getInstance().getEventHandlers(aets));
                 auditEvents.add(aets);
             }
             model.put("auditEvents", auditEvents);
@@ -207,7 +207,7 @@ public class EventHandlersDwr extends BaseDwr {
                     List<EventTypeVO> vos = def.getEventTypeVOs();
 
                     for (EventTypeVO vo : vos)
-                        vo.setHandlers(EventHandlerDao.instance.getEventHandlers(vo));
+                        vo.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo));
 
                     Map<String, Object> info = new HashMap<>();
                     info.put("vos", vos);
@@ -223,10 +223,10 @@ public class EventHandlersDwr extends BaseDwr {
         model.put("userNewScriptPermissions", new ScriptPermissions(user));
 
         // Get the mailing lists.
-        model.put(SchemaDefinition.MAILING_LISTS_TABLE, MailingListDao.instance.getMailingLists());
+        model.put(SchemaDefinition.MAILING_LISTS_TABLE, MailingListDao.getInstance().getMailingLists());
 
         // Get the users.
-        model.put(SchemaDefinition.USERS_TABLE, UserDao.instance.getUsers());
+        model.put(SchemaDefinition.USERS_TABLE, UserDao.getInstance().getUsers());
 
         model.put("allPoints", allPoints);
         model.put(SchemaDefinition.DATAPOINTS_TABLE, dataPoints);
@@ -237,7 +237,7 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public String createSetValueContent(int pointId, String valueStr, String idSuffix) {
-        DataPointVO pointVO = DataPointDao.instance.getDataPoint(pointId);
+        DataPointVO pointVO = DataPointDao.getInstance().getDataPoint(pointId);
         Permissions.ensureDataSourcePermission(Common.getHttpUser(), pointVO.getDataSourceId());
 
         DataValue value = DataValue.stringToValue(valueStr, pointVO.getPointLocator().getDataTypeId());
@@ -322,7 +322,7 @@ public class EventHandlersDwr extends BaseDwr {
         Permissions.ensureEventTypePermission(Common.getHttpUser(), type);
 
         vo.setId(handlerId);
-        vo.setXid(StringUtils.isBlank(xid) ? EventHandlerDao.instance.generateUniqueXid() : xid);
+        vo.setXid(StringUtils.isBlank(xid) ? EventHandlerDao.getInstance().generateUniqueXid() : xid);
         vo.setAlias(alias);
         vo.setDisabled(disabled);
 
@@ -332,7 +332,7 @@ public class EventHandlersDwr extends BaseDwr {
         vo.validate(response);
 
         if (!response.getHasMessages()) {
-            EventHandlerDao.instance.saveFull(vo);
+            EventHandlerDao.getInstance().saveFull(vo);
             response.addData("handler", vo);
         }
 
@@ -342,10 +342,10 @@ public class EventHandlersDwr extends BaseDwr {
     @DwrPermission(user = true)
     public void deleteEventHandler(int handlerId) {
         User user = Common.getHttpUser();
-        List<EventType> eventTypes = EventHandlerDao.instance.getEventTypesForHandler(handlerId);
+        List<EventType> eventTypes = EventHandlerDao.getInstance().getEventTypesForHandler(handlerId);
         for(EventType et : eventTypes)
             Permissions.ensureEventTypePermission(user, et);
-        EventHandlerDao.instance.delete(handlerId);
+        EventHandlerDao.getInstance().delete(handlerId);
     }
 
     @DwrPermission(user = true)
@@ -378,7 +378,7 @@ public class EventHandlersDwr extends BaseDwr {
         if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE || type == SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE) {
             DataPointRT target = targetPointId == null ? null : Common.runtimeManager.getDataPoint(targetPointId.intValue());
             if(target == null){
-                DataPointVO targetVo = targetPointId == null ? null : DataPointDao.instance.getDataPoint(targetPointId.intValue(), false);
+                DataPointVO targetVo = targetPointId == null ? null : DataPointDao.getInstance().getDataPoint(targetPointId.intValue(), false);
                 if(targetVo == null) {
                     if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE) //These are passed in the validateScript of eventHandlers.jsp
                         response.addMessage("activeScript", new TranslatableMessage("eventHandlers.noTargetPoint"));
@@ -388,7 +388,7 @@ public class EventHandlersDwr extends BaseDwr {
                 }
                 if(targetVo.getDefaultCacheSize() == 0)
                     targetVo.setDefaultCacheSize(1);
-                target = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(targetVo.getDataSourceId()), null);
+                target = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().getDataSource(targetVo.getDataSourceId()), null);
                 target.resetValues();
                 context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, target);
             }
@@ -400,7 +400,7 @@ public class EventHandlersDwr extends BaseDwr {
         for(IntStringPair cxt : additionalContext) {
             DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
             if(dprt == null) {
-                DataPointVO dpvo = DataPointDao.instance.getDataPoint(cxt.getKey(), false);
+                DataPointVO dpvo = DataPointDao.getInstance().getDataPoint(cxt.getKey(), false);
                 if(dpvo == null) {
                     if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE)
                         response.addMessage("activeScript", new TranslatableMessage("event.script.contextPointMissing", cxt.getValue(), cxt.getKey()));
@@ -412,7 +412,7 @@ public class EventHandlersDwr extends BaseDwr {
                 }
                 if(dpvo.getDefaultCacheSize() == 0)
                     dpvo.setDefaultCacheSize(1);
-                dprt = new DataPointRT(dpvo, dpvo.getPointLocator().createRuntime(), DataSourceDao.instance.getDataSource(dpvo.getDataSourceId()), null);
+                dprt = new DataPointRT(dpvo, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().getDataSource(dpvo.getDataSourceId()), null);
                 dprt.resetValues();
             }
             context.put(cxt.getValue(), dprt);

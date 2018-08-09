@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -87,7 +87,7 @@ public class Permissions {
     // Data source admin
     //
     public static void ensureDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
-        ensureDataSourcePermission(user, DataSourceDao.instance.get(dsId));
+        ensureDataSourcePermission(user, DataSourceDao.getInstance().get(dsId));
     }
 
     public static void ensureDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
@@ -96,7 +96,7 @@ public class Permissions {
     }
 
     public static boolean hasDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
-        String dsPermission = DataSourceDao.instance.getEditPermission(dsId);
+        String dsPermission = DataSourceDao.getInstance().getEditPermission(dsId);
         return hasAnyPermission(user, explodePermissionGroups(dsPermission));
     }
 

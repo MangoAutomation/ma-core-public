@@ -19,11 +19,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -182,7 +182,7 @@ public class EventManagerImpl implements EventManager {
 		    Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, true, false, false, false));
 		
 		DateTime now = new DateTime(Common.timer.currentTimeMillis());
-		for(MailingList ml : MailingListDao.instance.getAlarmMailingLists(alarmLevel)) {
+		for(MailingList ml : MailingListDao.getInstance().getAlarmMailingLists(alarmLevel)) {
 			ml.appendAddresses(emailUsers, now);
 		}
 
@@ -496,7 +496,7 @@ public class EventManagerImpl implements EventManager {
     @Override
     public boolean toggleSilence(int eventId, int userId) {
         EventInstance cachedEvent = getById(eventId);
-        boolean silenced = EventDao.instance.toggleSilence(eventId, userId);
+        boolean silenced = EventDao.getInstance().toggleSilence(eventId, userId);
         if (cachedEvent != null) {
             cachedEvent.setSilenced(silenced);
             //The cache holds un-silenced events
@@ -512,7 +512,7 @@ public class EventManagerImpl implements EventManager {
             if(silenced) {
                 this.userEventCache.removeUser(userId, eventId);
             }else {
-                EventInstance dbEvent = EventDao.instance.get(eventId);
+                EventInstance dbEvent = EventDao.getInstance().get(eventId);
                 if(dbEvent != null) {
                     Set<Integer> userIds = new HashSet<>(1);
                     userIds.add(userId);
@@ -828,8 +828,8 @@ public class EventManagerImpl implements EventManager {
 			return;
 		state = INITIALIZE;
 		
-		eventDao = EventDao.instance;
-		userDao = UserDao.instance;
+		eventDao = EventDao.getInstance();
+		userDao = UserDao.getInstance();
 
 		// Get all active events from the database.
 		activeEventsLock.writeLock().lock();
@@ -995,7 +995,7 @@ public class EventManagerImpl implements EventManager {
 	}
 
 	private void setHandlers(EventInstance evt) {
-		List<AbstractEventHandlerVO<?>> vos = EventHandlerDao.instance.getEventHandlers(evt.getEventType());
+		List<AbstractEventHandlerVO<?>> vos = EventHandlerDao.getInstance().getEventHandlers(evt.getEventType());
 		List<EventHandlerRT<?>> rts = null;
 		for (AbstractEventHandlerVO<?> vo : vos) {
 			if (!vo.isDisabled()) {

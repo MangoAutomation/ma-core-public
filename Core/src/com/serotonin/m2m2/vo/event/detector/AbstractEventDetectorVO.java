@@ -10,13 +10,13 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.EventDetectorDao;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -155,7 +155,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	@SuppressWarnings("unchecked")
 	@Override
 	protected AbstractDao<T> getDao(){
-		return (AbstractDao<T>) EventDetectorDao.instance;
+		return (AbstractDao<T>) EventDetectorDao.getInstance();
 	}
 
 	/*
@@ -179,7 +179,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         //Verify that they each exist as we will create a mapping when we save
         if(addedEventHandlers != null)
             for(AbstractEventHandlerVO<?> eh : addedEventHandlers) {
-                if(EventHandlerDao.instance.getXidById(eh.getId()) == null)
+                if(EventHandlerDao.getInstance().getXidById(eh.getId()) == null)
                     response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", eh.getXid()));
             }
 	}
@@ -196,7 +196,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         *  the more versatile. One can create handler mappings through this array, but you cannot have both 
         *  items refer to one another in the JSON if both are new, so this is not exported.
         */
-        //writer.writeEntry("handlers", EventHandlerDao.instance.getEventHandlerXids(getEventType()));
+        //writer.writeEntry("handlers", EventHandlerDao.getInstance().getEventHandlerXids(getEventType()));
     }
 
     @Override

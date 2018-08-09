@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,13 +19,11 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.db.query.JoinClause;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -38,11 +36,15 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-@Repository("eventHandlerDao")
+@Repository()
 public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 
-    @Deprecated
-	public static EventHandlerDao instance;
+    private static final LazyInitSupplier<EventHandlerDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(EventHandlerDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (EventHandlerDao)o;
+    });
 	
 	private static final boolean H2_SYNTAX;
 	private static final boolean MYSQL_SYNTAX;
@@ -59,11 +61,18 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
 	    }
 	}
 	
-	protected EventHandlerDao() {
+	private EventHandlerDao() {
 		super(AuditEventType.TYPE_EVENT_HANDLER, "eh", new String[0], false, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
-		instance = this;
 	}
 
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static EventHandlerDao getInstance() {
+        return springInstance.get();
+    }
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
 	 */

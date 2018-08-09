@@ -173,7 +173,7 @@ public class UserEventCache extends TimeoutClient{
     public List<EventInstance> getAllEvents(Integer userId) {
         if(!isActive(userId)) {
             //Collect events and add to our list
-            List<EventInstance> userEvents = EventDao.instance.getAllUnsilencedEvents(userId);
+            List<EventInstance> userEvents = EventDao.getInstance().getAllUnsilencedEvents(userId);
             List<EventInstance> view = new ArrayList<>(userEvents.size());
             userEvents.forEach(e -> {
                 cache.compute(e.getActiveTimestamp(), (k,v) ->{

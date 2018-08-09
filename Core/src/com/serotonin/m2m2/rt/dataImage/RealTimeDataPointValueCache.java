@@ -16,8 +16,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.db.query.SortOption;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointSummary;
@@ -119,8 +119,8 @@ public class RealTimeDataPointValueCache {
     private static PointHierarchy createPointHierarchy(Translations translations) {
 
         // Create a point hierarchy for the user.
-        PointHierarchy ph = DataPointDao.instance.getPointHierarchy(true).copyFoldersOnly();
-        List<DataPointVO> points = DataPointDao.instance
+        PointHierarchy ph = DataPointDao.getInstance().getPointHierarchy(true).copyFoldersOnly();
+        List<DataPointVO> points = DataPointDao.getInstance()
                 .getDataPoints(DataPointExtendedNameComparator.instance, false);
         for (DataPointVO point : points) {
             ph.addDataPoint(point.getPointFolderId(), new DataPointSummary(point));

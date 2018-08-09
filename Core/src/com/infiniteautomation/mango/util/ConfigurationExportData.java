@@ -12,17 +12,17 @@ import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
-import com.infiniteautomation.mango.spring.dao.JsonDataDao;
-import com.infiniteautomation.mango.spring.dao.PublisherDao;
-import com.infiniteautomation.mango.spring.dao.TemplateDao;
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.db.pair.StringStringPair;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
+import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.TemplateDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
@@ -114,27 +114,27 @@ public class ConfigurationExportData {
         Map<String, Object> data = new LinkedHashMap<>();
         
         if (ArrayUtils.contains(exportElements, DATA_SOURCES))
-            data.put(DATA_SOURCES, DataSourceDao.instance.getDataSources());
+            data.put(DATA_SOURCES, DataSourceDao.getInstance().getDataSources());
         if (ArrayUtils.contains(exportElements, DATA_POINTS))
-            data.put(DATA_POINTS, DataPointDao.instance.getDataPoints(null, true));
+            data.put(DATA_POINTS, DataPointDao.getInstance().getDataPoints(null, true));
         if (ArrayUtils.contains(exportElements, USERS))
-            data.put(USERS, UserDao.instance.getUsers());
+            data.put(USERS, UserDao.getInstance().getUsers());
         if (ArrayUtils.contains(exportElements, MAILING_LISTS))
-            data.put(MAILING_LISTS, MailingListDao.instance.getMailingLists());
+            data.put(MAILING_LISTS, MailingListDao.getInstance().getMailingLists());
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
-            data.put(PUBLISHERS, PublisherDao.instance.getPublishers());
+            data.put(PUBLISHERS, PublisherDao.getInstance().getPublishers());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
-            data.put(EVENT_HANDLERS, EventHandlerDao.instance.getEventHandlers());
+            data.put(EVENT_HANDLERS, EventHandlerDao.getInstance().getEventHandlers());
         if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
-            data.put(POINT_HIERARCHY, DataPointDao.instance.getPointHierarchy(true).getRoot().getSubfolders());
+            data.put(POINT_HIERARCHY, DataPointDao.getInstance().getPointHierarchy(true).getRoot().getSubfolders());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
             data.put(SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
         if (ArrayUtils.contains(exportElements, TEMPLATES))
-            data.put(TEMPLATES, TemplateDao.instance.getAll());
+            data.put(TEMPLATES, TemplateDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))
-            data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.instance.getAll());
+            data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, JSON_DATA))
-            data.put(JSON_DATA, JsonDataDao.instance.getAll());
+            data.put(JSON_DATA, JsonDataDao.getInstance().getAll());
         
         //TODO Add EVENT_DETECTORS
         //TODO Write the ImportTask properly for EventDetectors...

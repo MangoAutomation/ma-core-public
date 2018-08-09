@@ -13,9 +13,9 @@ import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -51,8 +51,8 @@ public class DataPointQuery{
 	public List<DataPointWrapper> query(String query){
 		ASTNode root = parser.parse(query);
 		List<DataPointVO> dataPoints = new ArrayList<>();
-		ConditionSortLimitWithTagKeys conditions = DataPointDao.instance.rqlToCondition(root);
-		DataPointDao.instance.customizedQuery(conditions, new MappedRowCallback<DataPointVO>() {
+		ConditionSortLimitWithTagKeys conditions = DataPointDao.getInstance().rqlToCondition(root);
+		DataPointDao.getInstance().customizedQuery(conditions, new MappedRowCallback<DataPointVO>() {
             @Override
             public void row(DataPointVO item, int index) {
                 dataPoints.add(item);
@@ -81,7 +81,7 @@ public class DataPointQuery{
 	}
 	
 	public DataPointWrapper byXid(String xid) {
-	    DataPointVO dp = DataPointDao.instance.getByXid(xid);
+	    DataPointVO dp = DataPointDao.getInstance().getByXid(xid);
 	    if(dp == null)
 	        return null;
 	    

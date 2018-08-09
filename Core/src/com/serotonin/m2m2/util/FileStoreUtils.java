@@ -12,10 +12,8 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.http.HttpStatus;
 
 import com.google.common.io.Files;
-import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
 import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -31,7 +29,7 @@ public class FileStoreUtils {
     public static boolean fileStoreExists(String fileStoreName) {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(fileStoreName);
         if(fsd == null)
-            fsd = FileStoreDao.instance.getFileStoreDefinition(fileStoreName);
+            fsd = FileStoreDao.getInstance().getFileStoreDefinition(fileStoreName);
         if(fsd == null)
             return false;
         return fsd.getRoot().exists();
@@ -40,7 +38,7 @@ public class FileStoreUtils {
     public static boolean ensureFileStoreExists(String fileStoreName) {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(fileStoreName);
         if(fsd == null)
-            fsd = FileStoreDao.instance.getFileStoreDefinition(fileStoreName);
+            fsd = FileStoreDao.getInstance().getFileStoreDefinition(fileStoreName);
         if(fsd == null)
             return false;
         if(!fsd.getRoot().exists())
@@ -49,7 +47,7 @@ public class FileStoreUtils {
     }
     
     public static void deleteFileStore(FileStore fs, boolean purgeFiles) throws IOException {
-        FileStoreDao.instance.deleteFileStore(fs.getStoreName());
+        FileStoreDao.getInstance().deleteFileStore(fs.getStoreName());
         if(purgeFiles) {
             File root = fs.toDefinition().getRoot();
             FileUtils.deleteDirectory(root);
@@ -105,7 +103,7 @@ public class FileStoreUtils {
     }
     
     public static File findUniqueFileName(String storeName, String filename, boolean overwrite) throws TranslatableException, IOException {
-        FileStoreDefinition fsd = FileStoreDao.instance.getFileStoreDefinition(storeName);
+        FileStoreDefinition fsd = FileStoreDao.getInstance().getFileStoreDefinition(storeName);
         if(fsd == null)
             throw new TranslatableException(new TranslatableMessage("filestore.noSuchFileStore"));
         

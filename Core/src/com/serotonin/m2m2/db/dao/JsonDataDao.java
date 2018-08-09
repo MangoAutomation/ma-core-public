@@ -2,7 +2,7 @@
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -19,9 +19,10 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
@@ -30,21 +31,32 @@ import com.serotonin.m2m2.vo.json.JsonDataVO;
  * @author Terry Packer
  *
  */
-@Repository("jsonDataDao")
+@Repository()
 public class JsonDataDao extends AbstractDao<JsonDataVO>{
 
-    @Deprecated
-	public static JsonDataDao instance;
-	
+    private static final LazyInitSupplier<JsonDataDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(JsonDataDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (JsonDataDao)o;
+    });
+
 	/**
 	 * @param handler
 	 * @param typeName
 	 */
 	private JsonDataDao() {
 		super(AuditEventType.TYPE_JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"));
-		instance = this;
 	}
 
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static JsonDataDao getInstance() {
+        return springInstance.get();
+    }
+    
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
 	 */

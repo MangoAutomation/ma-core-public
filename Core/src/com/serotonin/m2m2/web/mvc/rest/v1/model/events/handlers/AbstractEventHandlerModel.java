@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.infiniteautomation.mango.spring.dao.EventHandlerDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
@@ -49,7 +49,7 @@ public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerV
 	}
 	
 	public List<EventTypeModel> getEventTypes() {
-	    List<EventType> events = EventHandlerDao.instance.getEventTypesForHandler(this.data.getId());
+	    List<EventType> events = EventHandlerDao.getInstance().getEventTypesForHandler(this.data.getId());
 	    List<EventTypeModel> models = new ArrayList<>(events.size());
 	    for(EventType e : events)
 	        models.add(e.asModel());

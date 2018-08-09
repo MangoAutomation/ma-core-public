@@ -19,8 +19,6 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.PublisherDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -31,6 +29,8 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -207,7 +207,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
         if (StringUtils.isBlank(xid))
             response.addContextualMessage("xid", "validate.required");
-        else if (!PublisherDao.instance.isXidUnique(xid, id))
+        else if (!PublisherDao.getInstance().isXidUnique(xid, id))
             response.addContextualMessage("xid", "validate.xidUsed");
         else if (StringValidation.isLengthGreaterThan(xid, 50))
             response.addContextualMessage("xid", "validate.notLongerThan", 50);
@@ -235,11 +235,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             //Does this point even exist?
             
             if (set.contains(pointId)) {
-                DataPointVO vo = DataPointDao.instance.getDataPoint(pointId, false);
+                DataPointVO vo = DataPointDao.getInstance().getDataPoint(pointId, false);
                 response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
             }
             else{
-                String dpXid = DataPointDao.instance.getXidById(pointId);
+                String dpXid = DataPointDao.getInstance().getXidById(pointId);
                 if(dpXid == null)
                 	it.remove();
                 else
@@ -458,7 +458,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 	 */
 	@Override
 	protected AbstractDao<PublisherVO<?>> getDao() {
-		return PublisherDao.instance;
+		return PublisherDao.getInstance();
 	}
 
 

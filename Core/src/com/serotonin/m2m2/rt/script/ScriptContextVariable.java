@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonArray;
@@ -21,6 +20,7 @@ import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonString;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -96,7 +96,7 @@ public class ScriptContextVariable implements Serializable{
     }
 
     public static String contextToString(List<ScriptContextVariable> context) {
-        DataPointDao dataPointDao = DataPointDao.instance;
+        DataPointDao dataPointDao = DataPointDao.getInstance();
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (ScriptContextVariable ivp : context) {
@@ -117,7 +117,7 @@ public class ScriptContextVariable implements Serializable{
 
     public static void jsonWriteVarContext(ObjectWriter writer, List<ScriptContextVariable> context) throws IOException,
             JsonException {
-        DataPointDao dataPointDao = DataPointDao.instance;
+        DataPointDao dataPointDao = DataPointDao.getInstance();
         JsonArray pointList = new JsonArray();
         for (ScriptContextVariable p : context) {
             String xid = dataPointDao.getXidById(p.getDataPointId());
@@ -141,7 +141,7 @@ public class ScriptContextVariable implements Serializable{
     	JsonArray jsonContext = json.getJsonArray("context");
         if (jsonContext != null) {
             context.clear();
-            DataPointDao dataPointDao = DataPointDao.instance;
+            DataPointDao dataPointDao = DataPointDao.getInstance();
 
             for (JsonValue jv : jsonContext) {
                 JsonObject jo = jv.toJsonObject();

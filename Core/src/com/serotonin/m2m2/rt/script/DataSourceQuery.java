@@ -13,9 +13,9 @@ import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
-import com.infiniteautomation.mango.spring.dao.DataSourceDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -46,7 +46,7 @@ public class DataSourceQuery{
 	
 	public List<DataSourceWrapper> query(String query){
 		ASTNode root = parser.parse(query);
-		BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.instance.createQuery(root, true);
+		BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.getInstance().createQuery(root, true);
 		
 		List<DataSourceVO<?>> dataSources = sqlQuery.immediateQuery();
 		List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();
@@ -62,7 +62,7 @@ public class DataSourceQuery{
 	}
 	
 	public DataSourceWrapper byXid(String xid) {
-	    DataSourceVO ds = DataSourceDao.instance.getByXid(xid);
+	    DataSourceVO ds = DataSourceDao.getInstance().getByXid(xid);
 	    if(ds == null)
 	        return null;
 	    
@@ -81,7 +81,7 @@ public class DataSourceQuery{
 	private List<DataPointWrapper> getPointsForSource(DataSourceVO<?> ds) {
 		List<DataPointWrapper> points = new ArrayList<DataPointWrapper>();
 		
-		List<DataPointVO> dataPoints = DataPointDao.instance.getDataPoints(ds.getId(), null, false);
+		List<DataPointVO> dataPoints = DataPointDao.getInstance().getDataPoints(ds.getId(), null, false);
 		
 		for(DataPointVO vo : dataPoints){
 			DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getId());

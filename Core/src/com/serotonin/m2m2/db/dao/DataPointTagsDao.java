@@ -2,7 +2,7 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  */
 
-package com.infiniteautomation.mango.spring.dao;
+package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,8 +33,9 @@ import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.util.LazyInitializer;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -44,10 +45,11 @@ import net.jazdw.rql.parser.ASTNode;
 /**
  * @author Jared Wiltshire
  */
-@Repository("dataPointTagsDao")
+@Repository()
 public class DataPointTagsDao extends BaseDao {
     static final Log LOG = LogFactory.getLog(DataPointTagsDao.class);
-    
+    private static final LazyInitializer<DataPointTagsDao> springInstance = new LazyInitializer<>();
+
     @Deprecated
     public static DataPointTagsDao instance;
 
@@ -67,6 +69,19 @@ public class DataPointTagsDao extends BaseDao {
     
     private DataPointTagsDao() {
         instance = this;
+    }
+    
+    /**
+     * Get cached instance from Spring Context
+     * @return
+     */
+    public static DataPointTagsDao getInstance() {
+        return springInstance.get(() -> {
+            Object o = Common.getRuntimeContext().getBean(DataPointTagsDao.class);
+            if(o == null)
+                throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+            return (DataPointTagsDao)o;
+        });
     }
     
     /**
@@ -147,12 +162,12 @@ public class DataPointTagsDao extends BaseDao {
                 rtVo.setTags(tags);
             }
 
-            DataPointDao.instance.notifyTagsUpdated(dataPoint);
+            DataPointDao.getInstance().notifyTagsUpdated(dataPoint);
         });
     }
 
     TableOnConditionStep<Record> joinPointPermissions(Table<Record> table, Field<Integer> dataPointIdField, User user) {
-        Condition userHasPermission = DataPointDao.instance.userHasPermission(user);
+        Condition userHasPermission = DataPointDao.getInstance().userHasPermission(user);
         
         return table
                 .join(DataPointDao.DATA_POINTS).on(dataPointIdField.eq(DataPointDao.ID))

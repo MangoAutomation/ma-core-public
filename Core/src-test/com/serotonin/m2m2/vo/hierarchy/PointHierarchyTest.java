@@ -18,11 +18,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockRuntimeManager;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -49,7 +49,7 @@ public class PointHierarchyTest extends MangoTestBase{
     @Test
     public void testSynchronization() {
         
-       PointHierarchy ph = DataPointDao.instance.getPointHierarchy(true);
+       PointHierarchy ph = DataPointDao.getInstance().getPointHierarchy(true);
 
         //First confirm the PH is correct
         assertEquals(0, ph.getRoot().getPoints().size());
@@ -89,7 +89,7 @@ public class PointHierarchyTest extends MangoTestBase{
             try {
                 for(int i=0; i<10; i++) {
                     
-                    PointHierarchy ph = DataPointDao.instance.getPointHierarchy(false);
+                    PointHierarchy ph = DataPointDao.getInstance().getPointHierarchy(false);
                     
                     //Mess around by traversing the hierarchy
                     traverse(ph.getRoot());
@@ -114,12 +114,12 @@ public class PointHierarchyTest extends MangoTestBase{
                        
                     }else {
                         ph = new PointHierarchy();
-                        List<DataPointVO> dataPoints = DataPointDao.instance.getAll();
+                        List<DataPointVO> dataPoints = DataPointDao.getInstance().getAll();
                         for(DataPointVO vo : dataPoints)
                             ph.getRoot().addDataPoint(new DataPointSummary(vo));
                     }
                     
-                    DataPointDao.instance.savePointHierarchy(ph.getRoot());
+                    DataPointDao.getInstance().savePointHierarchy(ph.getRoot());
                     try {
                         Thread.sleep(10);
                     } catch (InterruptedException e) {
@@ -168,8 +168,8 @@ public class PointHierarchyTest extends MangoTestBase{
             try {
                 for(int i=0; i<10; i++) {
                     
-                    PointHierarchy pointHierarchy = DataPointDao.instance.getPointHierarchy(false);
-                    List<DataPointVO> points = DataPointDao.instance.getAll();
+                    PointHierarchy pointHierarchy = DataPointDao.getInstance().getPointHierarchy(false);
+                    List<DataPointVO> points = DataPointDao.getInstance().getAll();
                     boolean changes = false;
                     
                     for(DataPointVO vo : points) {
@@ -198,7 +198,7 @@ public class PointHierarchyTest extends MangoTestBase{
                     }
     
                     if(changes)
-                        DataPointDao.instance.savePointHierarchy(pointHierarchy.getRoot());
+                        DataPointDao.getInstance().savePointHierarchy(pointHierarchy.getRoot());
     
                     try {
                         Thread.sleep(10);

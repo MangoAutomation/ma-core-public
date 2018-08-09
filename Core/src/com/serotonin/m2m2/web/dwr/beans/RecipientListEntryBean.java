@@ -11,7 +11,6 @@ import java.util.ListIterator;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.dao.UserDao;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -19,6 +18,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
@@ -79,9 +79,9 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("recipientType", EmailRecipient.TYPE_CODES.getCode(recipientType));
         if (recipientType == EmailRecipient.TYPE_MAILING_LIST)
-            writer.writeEntry("mailingList", MailingListDao.instance.getMailingList(referenceId).getXid());
+            writer.writeEntry("mailingList", MailingListDao.getInstance().getMailingList(referenceId).getXid());
         else if (recipientType == EmailRecipient.TYPE_USER)
-            writer.writeEntry("username", UserDao.instance.getUser(referenceId).getUsername());
+            writer.writeEntry("username", UserDao.getInstance().getUser(referenceId).getUsername());
         else if (recipientType == EmailRecipient.TYPE_ADDRESS)
             writer.writeEntry("address", referenceAddress);
     }
@@ -103,7 +103,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
             if (text == null)
                 throw new TranslatableJsonException("emport.error.recipient.missing.reference", "mailingList");
 
-            MailingList ml = MailingListDao.instance.getMailingList(text);
+            MailingList ml = MailingListDao.getInstance().getMailingList(text);
             if (ml == null)
                 throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "mailingList", text);
 
@@ -114,7 +114,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
             if (text == null)
                 throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
 
-            User user = UserDao.instance.getUser(text);
+            User user = UserDao.getInstance().getUser(text);
             if (user == null)
                 throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "user", text);
 
@@ -169,7 +169,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     		return;
     	
     	ListIterator<RecipientListEntryBean> it = list.listIterator();
-    	MailingListDao mlDao = MailingListDao.instance;
+    	MailingListDao mlDao = MailingListDao.getInstance();
     	
     	while(it.hasNext()){
     		RecipientListEntryBean bean = it.next();
@@ -183,7 +183,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     				it.remove();
     			break;
     		case EmailRecipient.TYPE_USER:
-    			if(!UserDao.instance.userExists(bean.referenceId))
+    			if(!UserDao.getInstance().userExists(bean.referenceId))
     				it.remove();
     			break;
     		}

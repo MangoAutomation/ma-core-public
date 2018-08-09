@@ -26,7 +26,7 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
  *     try {
  *        	
  *        	//First read from DB
- *        	List<AuditEventInstanceVO> auditData = AuditEventDao.instance.getAllForObject(AuditEventType.TYPE_TEMPLATE, 2);
+ *        	List<AuditEventInstanceVO> auditData = AuditEventDao.getInstance().getAllForObject(AuditEventType.TYPE_TEMPLATE, 2);
  *        	TemplateRestorer restorer = new TemplateRestorer(auditData, new ProcessResult());
  *			BaseTemplateVO<?> data1 = restorer.restore();
  *

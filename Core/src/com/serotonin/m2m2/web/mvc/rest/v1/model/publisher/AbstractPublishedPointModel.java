@@ -5,8 +5,8 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.publisher;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.infiniteautomation.mango.spring.dao.DataPointDao;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
@@ -42,11 +42,11 @@ public abstract class AbstractPublishedPointModel<T extends PublishedPointVO> ex
 	
 	@CSVColumnGetter(order=1, header="dataPointXid")
 	public String getDataPointXid(){
-		return DataPointDao.instance.getXidById(this.data.getDataPointId());
+		return DataPointDao.getInstance().getXidById(this.data.getDataPointId());
 	}
 	@CSVColumnSetter(order=1, header="dataPointXid")
 	public void setDataPointXid(String dataPointXid){
-	    Integer dpid = DataPointDao.instance.getIdByXid(dataPointXid);
+	    Integer dpid = DataPointDao.getInstance().getIdByXid(dataPointXid);
 	    if(dpid == null) { //also the case if dataPointId is null
 	        this.data.setDataPointId(Common.NEW_ID);
 	        missingXid = dataPointXid;
