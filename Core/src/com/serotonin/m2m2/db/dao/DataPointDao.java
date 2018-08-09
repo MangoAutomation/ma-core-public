@@ -487,7 +487,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
                 @Override
                 protected void doInTransactionWithoutResult(TransactionStatus status) {
-                    deleteDataPointImpl(Integer.toString(dataPointId));
+                    deleteDataPointImpl(dataPointId);
                 }
             });
 
@@ -510,6 +510,15 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         ejt.update("delete from eventDetectors where dataPointId in " + dataPointIdList);
         ejt.update("delete from dataPoints where id in " + dataPointIdList);
 
+        clearPointHierarchyCache();
+    }
+    
+    void deleteDataPointImpl(int dataPointId) {
+        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1 = " + dataPointId,
+                new Object[] { EventType.EventTypeNames.DATA_POINT });
+        ejt.update("delete from userComments where commentType=2 and typeKey = " + dataPointId);
+        ejt.update("delete from eventDetectors where dataPointId = " + dataPointId);
+        ejt.update("delete from dataPoints where id = " + dataPointId);
         clearPointHierarchyCache();
     }
 
@@ -872,27 +881,22 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         // Update the folder references in the points.
         if (!folder.getPoints().isEmpty()) {
-            List<Object> ids = new ArrayList<>(folder.getPoints().size() + 1);
-            ids.add(folder.getId());
+            Object[] ids = new Object[folder.getPoints().size() + 1];
+            ids[0] = folder.getId();
             StringBuilder sql = new StringBuilder();
             sql.append("UPDATE dataPoints SET pointFolderId=? WHERE id in (");
             boolean first = true;
+            int pos = 1;
             for (DataPointSummary p : folder.getPoints()) {
                 if (first)
                     first = false;
                 else
                     sql.append(",");
                 sql.append("?");
-                ids.add(p.getId());
+                ids[pos++] = p.getId();
             }
             sql.append(")");
-            try {
-                PreparedStatement ps = createPreparedStatement(sql.toString(), ids, false);
-                ps.executeUpdate();
-                ps.close();
-            } catch (SQLException e) {
-                LOG.error(e.getMessage(), e);
-            }
+            ejt.update(sql.toString(), ids);
         }
     }
 
