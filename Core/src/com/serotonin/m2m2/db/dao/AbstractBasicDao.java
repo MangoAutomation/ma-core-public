@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -143,6 +145,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected final Table<? extends Record> joinedTable;
     protected final List<Field<?>> fields;
     protected final Map<String, Field<Object>> propertyToField;
+    protected final Map<String, Function<Object, Object>> valueConverterMap;
     protected final RQLToCondition rqlToCondition;
 
     /**
@@ -245,6 +248,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         }
 
         this.propertyToField = this.createPropertyToField();
+        this.valueConverterMap = this.createValueConverterMap();
         this.rqlToCondition = this.createRqlToCondition();
 
         // Setup the Joins
@@ -1072,8 +1076,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return propertyToField;
     }
 
+    protected Map<String, Function<Object, Object>> createValueConverterMap() {
+        return Collections.emptyMap();
+    }
+
     protected RQLToCondition createRqlToCondition() {
-        return new RQLToCondition(propertyToField);
+        return new RQLToCondition(this.propertyToField, this.valueConverterMap);
     }
 
     public ConditionSortLimit rqlToCondition(ASTNode rql) {

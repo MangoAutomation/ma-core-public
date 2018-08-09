@@ -1665,7 +1665,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     @Override
     public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
-        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(propertyToField);
+        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.propertyToField, this.valueConverterMap);
         return rqlToSelect.visit(rql);
     }
 
