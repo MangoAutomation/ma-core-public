@@ -13,15 +13,20 @@ public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 	}
 	
 	@Override
-	public void doImport(String json) {
-		//No import in testing!
+	public void doImport(String json) throws Exception {
+		//No import in testing! Unless...
+	    if(importDuringValidation)
+	        super.doImport(json);
 	}
 	
 	@Override
-	public List<ProcessMessage> doImportGetStatus(String json) {
-		List<ProcessMessage> result = new ArrayList<>(1);
-		result.add(new ProcessMessage(new TranslatableMessage("literal", "Cannot run or test imports during validation.")));
-		return result;
+	public List<ProcessMessage> doImportGetStatus(String json) throws Exception {
+	    if(!importDuringValidation) {
+    		List<ProcessMessage> result = new ArrayList<>(1);
+    		result.add(new ProcessMessage(new TranslatableMessage("literal", "Cannot run or test imports during validation.")));
+    		return result;
+	    } else
+	        return super.doImportGetStatus(json);
 	}
 
 }

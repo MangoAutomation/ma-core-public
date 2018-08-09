@@ -33,6 +33,7 @@ public class JsonEmportScriptUtility {
     private final boolean admin;
     private final RQLParser parser;
     private final List<JsonImportExclusion> importExclusions;
+    protected boolean importDuringValidation = false;
 
     public JsonEmportScriptUtility(ScriptPermissions permissions, List<JsonImportExclusion> importExclusions) {
         admin = Permissions.explodePermissionGroups(permissions.getDataSourcePermissions()).contains(SuperadminPermissionDefinition.GROUP_NAME) &&
@@ -147,6 +148,10 @@ public class JsonEmportScriptUtility {
             }
         }
     }
+    
+    public void setImportDuringValidation(boolean importDuringValidation) {
+        this.importDuringValidation = importDuringValidation;
+    }
 
     class ScriptImportTask extends ImportTask {
 
@@ -169,6 +174,7 @@ public class JsonEmportScriptUtility {
         builder.append("dataSourceQuery(rql): String, \n");
         builder.append("doImport(String): void, \n");
         builder.append("doImportGetStatus(String): List<ProcessMessage> \n");
+        builder.append("setImportDuringValidation(boolean): void");
         builder.append("}\n");
         return builder.toString();
     }
