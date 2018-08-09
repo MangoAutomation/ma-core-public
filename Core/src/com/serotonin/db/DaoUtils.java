@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -21,14 +20,12 @@ import org.jooq.conf.RenderNameStyle;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.tools.StopWatchListener;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -220,154 +217,54 @@ public class DaoUtils {
 
     //
     // Insert with int increment
-    @Deprecated
     protected int doInsert(String sql, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, keyHolder);
-        return getIntIdKey(keyHolder);
+        return ejt.doInsert(sql, params);
     }
 
-    @Deprecated
     protected int doInsert(String sql, Object[] params, int[] types) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, types, keyHolder);
-        return getIntIdKey(keyHolder);
+        return ejt.doInsert(sql, params, types);
     }
 
-    @Deprecated
     protected int doInsert(String sql, PreparedStatementSetter pss) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, pss, keyHolder);
-        return getIntIdKey(keyHolder);
+        return ejt.doInsert(sql, pss);
     }
 
-    @Deprecated
     protected int doInsert(String sql, String genField, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, keyHolder);
-        return getIntIdKey(keyHolder, genField);
+        return ejt.doInsert(sql, genField, params);
     }
 
-    @Deprecated
     protected int doInsert(String sql, String genField, Object[] params, int[] types) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, types, keyHolder);
-        return getIntIdKey(keyHolder, genField);
+        return ejt.doInsert(sql, genField, params, types);
     }
 
-    @Deprecated
     protected int doInsert(String sql, String genField, PreparedStatementSetter pss) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, pss, keyHolder);
-        return getIntIdKey(keyHolder, genField);
+        return ejt.doInsert(sql, genField, pss);
     }
 
     //
     // Insert with long increment
-    @Deprecated
     protected long doInsertLong(String sql, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, keyHolder);
-        return getLongIdKey(keyHolder);
+        return ejt.doInsertLong(sql, params);
     }
 
-    @Deprecated
     protected long doInsertLong(String sql, Object[] params, int[] types) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, types, keyHolder);
-        return getLongIdKey(keyHolder);
+        return ejt.doInsertLong(sql, params, types);
     }
 
-    @Deprecated
     protected long doInsertLong(String sql, PreparedStatementSetter pss) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, pss, keyHolder);
-        return getLongIdKey(keyHolder);
+        return ejt.doInsert(sql, pss);
     }
 
-    @Deprecated
     protected long doInsertLong(String sql, String genField, Object... params) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, keyHolder);
-        return getLongIdKey(keyHolder, genField);
+        return ejt.doInsertLong(sql, genField, params);
     }
 
-    @Deprecated
     protected long doInsertLong(String sql, String genField, Object[] params, int[] types) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, params, types, keyHolder);
-        return getLongIdKey(keyHolder, genField);
+        return ejt.doInsertLong(sql, genField, params, types);
     }
 
-    @Deprecated
     protected long doInsertLong(String sql, String genField, PreparedStatementSetter pss) {
-        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        ejt.update(sql, pss, keyHolder);
-        return getLongIdKey(keyHolder, genField);
-    }
-
-    @Deprecated
-    private int getIntIdKey(GeneratedKeyHolder keyHolder) {
-        Object key = getIdKey(keyHolder);
-        if (key == null)
-            return -1;
-        return ((Number) key).intValue();
-    }
-
-    @Deprecated
-    private long getLongIdKey(GeneratedKeyHolder keyHolder) {
-        Object key = getIdKey(keyHolder);
-        if (key == null)
-            return -1;
-        return ((Number) key).longValue();
-    }
-
-    @Deprecated
-    private Object getIdKey(GeneratedKeyHolder keyHolder) {
-        List<Map<String, Object>> keyList = keyHolder.getKeyList();
-        if (keyList.size() == 0)
-            return null;
-        if (keyList.size() > 1)
-            throw new InvalidDataAccessApiUsageException("Multiple key records returned from insert");
-        Map<String, Object> keys = keyList.get(0);
-        if (keys.size() == 0)
-            return null;
-        if (keys.size() == 1)
-            return keys.values().iterator().next();
-
-        // Look for "id"
-        Object key = keys.get("id");
-        if (key == null)
-            key = keys.get("ID");
-        if (key == null)
-            throw new InvalidDataAccessApiUsageException("No obvious id field found in keys: " + keys);
-        return key;
-    }
-
-    @Deprecated
-    private int getIntIdKey(GeneratedKeyHolder keyHolder, String name) {
-        Object key = getIdKey(keyHolder, name);
-        if (key == null)
-            return -1;
-        return ((Number) key).intValue();
-    }
-
-    @Deprecated
-    private long getLongIdKey(GeneratedKeyHolder keyHolder, String name) {
-        Object key = getIdKey(keyHolder, name);
-        if (key == null)
-            return -1;
-        return ((Number) key).longValue();
-    }
-
-    @Deprecated
-    private Object getIdKey(GeneratedKeyHolder keyHolder, String name) {
-        List<Map<String, Object>> keyList = keyHolder.getKeyList();
-        if (keyList.size() == 0)
-            return null;
-        if (keyList.size() > 1)
-            throw new InvalidDataAccessApiUsageException("Multiple key records returned from insert");
-        return keyList.get(0).get(name);
+        return ejt.doInsertLong(sql, genField, pss);
     }
 
     protected Timestamp now() {
