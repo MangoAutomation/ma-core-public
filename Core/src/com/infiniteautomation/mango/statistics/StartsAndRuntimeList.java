@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -25,6 +26,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     // Configuration values.
     private final long periodStart;
     private final long periodEnd;
+    private boolean done = false;
 
     // Calculated values.
     private DataValue startValue;
@@ -87,7 +89,10 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
 
     @Override
     public void done() {
-
+        if(done)
+            throw new ShouldNeverHappenException("Should not call done() more than once.");
+        done = true;
+        
         // If there is a current SAR, update 
         // if (endValue != null && sar != null)
         if (sar != null)

@@ -7,6 +7,7 @@ package com.infiniteautomation.mango.statistics;
 import java.util.List;
 import java.util.Objects;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -18,6 +19,7 @@ public class ValueChangeCounter implements StatisticsGenerator {
     // Configuration values.
     private final long periodStart;
     private final long periodEnd;
+    private boolean done = false;
 
     // Calculated values
     private DataValue startValue;
@@ -75,7 +77,9 @@ public class ValueChangeCounter implements StatisticsGenerator {
 
     @Override
     public void done() {
-        // no op
+        if(done)
+            throw new ShouldNeverHappenException("Should not call done() more than once.");
+        done = true;
     }
 
     @Override

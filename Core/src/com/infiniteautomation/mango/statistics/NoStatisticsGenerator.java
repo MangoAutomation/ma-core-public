@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.statistics;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 
@@ -16,6 +17,8 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  */
 public class NoStatisticsGenerator implements StatisticsGenerator {
 
+    private boolean done = false;
+    
     private long periodStart;
     private long periodEnd;
     private List<IValueTime> values;
@@ -33,7 +36,9 @@ public class NoStatisticsGenerator implements StatisticsGenerator {
 
     @Override
     public void done() {
-    
+        if(done)
+            throw new ShouldNeverHappenException("Should not call done() more than once.");
+        done = true;
     }
 
     @Override

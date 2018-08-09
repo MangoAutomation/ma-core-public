@@ -7,6 +7,7 @@ package com.infiniteautomation.mango.statistics;
 
 import java.util.List;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.view.stats.StatisticsGenerator;
@@ -17,10 +18,12 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  * @author Matthew Lohbihler, Terry Packer
  */
 public class AnalogStatistics implements StatisticsGenerator {
+    
     // Configuration values.
     private final long periodStart;
     private final long periodEnd;
-
+    private boolean done = false;
+    
     // Calculated values.
     private Double minimumValue = Double.NaN;
     private Long minimumTime;
@@ -100,6 +103,10 @@ public class AnalogStatistics implements StatisticsGenerator {
 
     @Override
     public void done() {
+        if(done)
+            throw new ShouldNeverHappenException("Should not call done() more than once.");
+        done = true;
+        
         updateAverage(Double.NaN, periodEnd);
         // Average will not be NaN when we have at least one value in period AND an end value
         // OR more than 1 value in the period
