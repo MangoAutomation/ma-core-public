@@ -68,8 +68,10 @@ public class RQLToCondition {
     }
 
     protected Condition visitConditionNode(ASTNode node) {
-        Field<Object> field = getField(node);
-        Function<Object, Object> valueConverter = getValueConverter(node);
+        String property = (String) node.getArgument(0);
+
+        Field<Object> field = getField(property);
+        Function<Object, Object> valueConverter = getValueConverter(field);
         Object firstArg = valueConverter.apply(node.getArgument(1));
 
         switch (node.getName().toLowerCase()) {
@@ -129,11 +131,6 @@ public class RQLToCondition {
         return conditions;
     }
 
-    protected Field<Object> getField(ASTNode node) {
-        String property = (String) node.getArgument(0);
-        return getField(property);
-    }
-
     protected Field<Object> getField(String property) {
         if (this.fieldMapping.containsKey(property)) {
             return this.fieldMapping.get(property);
@@ -141,16 +138,10 @@ public class RQLToCondition {
         throw new RQLVisitException(String.format("Unknown property '%s', valid properties are %s", property, fieldMapping.keySet().toString()));
     }
 
-    protected Function<Object, Object> getValueConverter(ASTNode node) {
-        String property = (String) node.getArgument(0);
-        return getValueConverter(property);
-    }
-
-    protected Function<Object, Object> getValueConverter(String property) {
-        if (this.valueConverterMap.containsKey(property)) {
-            return this.valueConverterMap.get(property);
-        }
-        return Function.identity();
+    protected Function<Object, Object> getValueConverter(Field<Object> field) {
+        String name = field.getName();
+        Function<Object, Object> converter = this.valueConverterMap.get(name);
+        return converter == null ? Function.identity() : converter;
     }
 
     protected List<SortField<Object>> getSortFields(ASTNode node) {
