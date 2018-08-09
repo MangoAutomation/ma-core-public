@@ -22,6 +22,7 @@
 * Adding system setting for HTTP session timeout
 * Adding module definition to let modules add 'utilities' to the Mango Javascript context
 * Remove static 'instance' member of Dao classes replace with lazy loading getInstance() class so Mango Javascript calls don't change
+* Check before NPE in CSV message converters
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP

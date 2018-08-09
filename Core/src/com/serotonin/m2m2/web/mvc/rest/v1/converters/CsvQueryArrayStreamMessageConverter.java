@@ -54,7 +54,7 @@ public class CsvQueryArrayStreamMessageConverter extends AbstractGenericHttpMess
     private boolean supports(Type type) {
         ResolvableType resolvedType = ResolvableType.forType(type);
 
-        return QueryArrayStream.class.isAssignableFrom(resolvedType.getRawClass());
+        return resolvedType.getRawClass() != null && QueryArrayStream.class.isAssignableFrom(resolvedType.getRawClass());
     }
 
     @Override
