@@ -60,7 +60,9 @@ public class UserDao extends AbstractDao<User> {
      * @param extraSQL
      */
     private UserDao() {
-        super(AuditEventType.TYPE_USER, new TranslatableMessage("internal.monitor.USER_COUNT"));
+        super(AuditEventType.TYPE_USER, "u", 
+                new String[0], false, 
+                new TranslatableMessage("internal.monitor.USER_COUNT"));
     }
     
     /**

@@ -114,6 +114,31 @@ public class RQLToCondition {
                             .collect(Collectors.toList());
                 }
                 return field.in(inArray);
+            case "permissionscontainsany":
+            case "csvcontainsany":
+                List<?> csvContainsAnyPermissionsArray;
+                if (firstArg instanceof List) {
+                    csvContainsAnyPermissionsArray = (List<?>) firstArg;
+                } else {
+                    csvContainsAnyPermissionsArray = node.getArguments().subList(1, node.getArgumentsSize())
+                            .stream()
+                            .map(valueConverter)
+                            .collect(Collectors.toList());
+                }
+                return fieldMatchesAnyPermission(field, csvContainsAnyPermissionsArray);
+            case "permissionscontainsall":
+            case "csvcontainsall":
+                List<?> csvContainsAllPermissionsArray;
+                if (firstArg instanceof List) {
+                    csvContainsAllPermissionsArray = (List<?>) firstArg;
+                } else {
+                    csvContainsAllPermissionsArray = node.getArguments().subList(1, node.getArgumentsSize())
+                            .stream()
+                            .map(valueConverter)
+                            .collect(Collectors.toList());
+                }
+                return fieldMatchesAllPermissions(field, csvContainsAllPermissionsArray);
+ 
             default:
                 throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
         }
@@ -164,6 +189,65 @@ public class RQLToCondition {
         return fields;
     }
 
+    public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
+    public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
+    
+    /**
+     * Match any permission
+     * @param field
+     * @param userPermission
+     * @return
+     */
+    protected Condition fieldMatchesAnyPermission(Field<Object> field, List<?> permissions) {
+        if(permissions.size() == 0) {
+            return DSL.trueCondition();
+        }else {
+            Condition or = null;
+            for(Object permission : permissions) {
+                if(or == null)
+                    or = fieldMatchesPermission(field, permission);
+                else
+                    or = DSL.or(or, fieldMatchesPermission(field, permission));
+            }
+            return or;
+        }
+    }
+    
+    /**
+     * Must match all permissions
+     * @param field
+     * @param userPermission
+     * @return
+     */
+    protected Condition fieldMatchesAllPermissions(Field<Object> field, List<?> permissions) {
+        if(permissions.size() == 0) {
+            return DSL.trueCondition();
+        }else {
+            Condition and = null;
+            for(Object permission : permissions) {
+                if(and == null)
+                    and = fieldMatchesPermission(field, permission);
+                else
+                    and = DSL.and(and, fieldMatchesPermission(field, permission));
+            }
+            return and;
+        }
+    }
+    
+    private Condition fieldMatchesPermission(Field<Object> field, Object permission) {
+        //For now only support strings
+        if(!(permission instanceof String))
+            return DSL.falseCondition();
+        return DSL.or(
+                field.eq(permission),
+                DSL.and(
+                        field.isNotNull(),
+                        field.notEqual(""),
+                        field.likeRegex(PERMISSION_START_REGEX + permission + PERMISSION_END_REGEX)
+                        )
+                );
+    }
+    
     static class RQLVisitException extends RuntimeException {
         private static final long serialVersionUID = 1L;
 
