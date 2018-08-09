@@ -161,36 +161,7 @@ public class DaoUtils {
         }
         return sb.toString();
     }
-
-    /**
-     * Bad practice, should be using prepared statements. This is being used to do WHERE x IN(a,b,c)
-     */
-    @Deprecated
-    protected String createDelimitedList(List<?> values, int from, int to, String delimeter, String quote) {
-        if (from < 0)
-            from = 0;
-        if (to > values.size())
-            to = values.size();
-
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        for (int i = from; i < to; i++) {
-            if (first)
-                first = false;
-            else
-                sb.append(delimeter);
-
-            if (quote != null)
-                sb.append(quote);
-
-            sb.append(values.get(i));
-
-            if (quote != null)
-                sb.append(quote);
-        }
-        return sb.toString();
-    }
-
+    
     protected int[] batchUpdate(String sql, final Object[][] args) {
         final List<ArgPreparedStatementSetter> apsss = new ArrayList<ArgPreparedStatementSetter>(args.length);
         for (int i = 0; i < args.length; i++)

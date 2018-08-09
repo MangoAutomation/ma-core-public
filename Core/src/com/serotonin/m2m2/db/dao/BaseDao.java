@@ -73,14 +73,6 @@ public class BaseDao extends DaoUtils implements SQLConstants{
         return Y.equals(s);
     }
 
-    protected void deleteInChunks(String sql, List<Integer> ids) {
-        int chunk = 1000;
-        for (int i = 0; i < ids.size(); i += chunk) {
-            String idStr = createDelimitedList(ids, i, i + chunk, ",", null);
-            ejt.update(sql + " (" + idStr + ")");
-        }
-    }
-
     //
     // XID convenience methods
     //

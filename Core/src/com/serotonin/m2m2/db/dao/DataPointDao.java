@@ -872,11 +872,27 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         // Update the folder references in the points.
         if (!folder.getPoints().isEmpty()) {
-            List<Integer> ids = new ArrayList<>(folder.getPoints().size());
-            for (DataPointSummary p : folder.getPoints())
+            List<Object> ids = new ArrayList<>(folder.getPoints().size() + 1);
+            ids.add(folder.getId());
+            StringBuilder sql = new StringBuilder();
+            sql.append("UPDATE dataPoints SET pointFolderId=? WHERE id in (");
+            boolean first = true;
+            for (DataPointSummary p : folder.getPoints()) {
+                if (first)
+                    first = false;
+                else
+                    sql.append(",");
+                sql.append("?");
                 ids.add(p.getId());
-            ejt.update("UPDATE dataPoints SET pointFolderId=? WHERE id in (" + createDelimitedList(ids, ",", null)
-            + ")", folder.getId());
+            }
+            sql.append(")");
+            try {
+                PreparedStatement ps = createPreparedStatement(sql.toString(), ids, false);
+                ps.executeUpdate();
+                ps.close();
+            } catch (SQLException e) {
+                LOG.error(e.getMessage(), e);
+            }
         }
     }
 
