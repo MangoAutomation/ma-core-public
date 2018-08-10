@@ -73,7 +73,6 @@ import com.serotonin.m2m2.vo.event.detector.PointChangeDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
-import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.util.SerializationHelper;
 /**
  * Upgrade to add template system
@@ -89,7 +88,7 @@ public class Upgrade12 extends DBUpgrade {
 	private String mysqlDatabaseName = "";
 	
 	public Upgrade12(){
-		mapper = MangoRestSpringConfiguration.getObjectMapper();
+
 		String databaseUrl = Common.envProps.getString("db.url", "");
 		if(databaseUrl.contains("mysql")) {
 			int endingSlash = databaseUrl.lastIndexOf("/");

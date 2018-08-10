@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import jdk.nashorn.api.scripting.JSObject;
-
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -31,8 +29,9 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.web.http.HttpUtils4;
+
+import jdk.nashorn.api.scripting.JSObject;
 
 //import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 
@@ -147,7 +146,7 @@ public class HttpBuilderScriptUtility {
             if(request.containsKey("content") && request.get("content") instanceof String)
                 content = (String)request.get("content");
             else if(request.containsKey("content")) {
-                content = MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(request.get("content"));
+                content = Common.objectMapper.getRestObjectWriter().writeValueAsString(request.get("content"));
             } else
                 content = "";
             
@@ -166,9 +165,6 @@ public class HttpBuilderScriptUtility {
                 put(path, headers, content, false);
             else if(HttpMethod.DELETE.name().equals(method))
                 delete(path, headers);
-            
-//            if(checkContentType)
-//                checkJsonContentTypeHeader();
             
             return execute();
         } catch(ClassCastException e) {
@@ -206,8 +202,7 @@ public class HttpBuilderScriptUtility {
             if(content instanceof String)
                 post.setEntity(new StringEntity((String)content));
             else {
-                post.setEntity(new StringEntity(MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(content)));
-//                checkJsonContentTypeHeader(post);
+                post.setEntity(new StringEntity(Common.objectMapper.getRestObjectWriter().writeValueAsString(content)));
             }
             request = post;
         } catch(UnsupportedEncodingException e) {
@@ -236,8 +231,7 @@ public class HttpBuilderScriptUtility {
             if(content instanceof String)
                 put.setEntity(new StringEntity((String)content));
             else {
-                put.setEntity(new StringEntity(MangoRestSpringConfiguration.getObjectMapper().writeValueAsString(content)));
-//                checkJsonContentTypeHeader(put);
+                put.setEntity(new StringEntity(Common.objectMapper.getRestObjectWriter().writeValueAsString(content)));
             }
             request = put;
         } catch(UnsupportedEncodingException|JsonProcessingException e) {

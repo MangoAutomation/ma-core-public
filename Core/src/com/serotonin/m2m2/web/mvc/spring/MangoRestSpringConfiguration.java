@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +32,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -55,28 +56,9 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
 public class MangoRestSpringConfiguration implements WebMvcConfigurer {
 
-
-    private static ObjectMapper objectMapper;
-
-    /**
-     * Public access to our Object Mapper.  Must Be Initialized to use.
-     * @return
-     */
-    @Deprecated //TODO Mango 3.5 see MangoRuntimeContextConfiguration
-    public static ObjectMapper getObjectMapper(){
-        if(objectMapper == null)
-            throw new ShouldNeverHappenException("Object Mapper not initialized.");
-        else
-            return objectMapper;
-    }
-
-    /**
-     * To be called After all Module Definitions are loaded
-     */
-    public static void initializeObjectMapper(){
-        objectMapper = createNewObjectMapper();
-    }
-
+    @Qualifier(value="restObjectMapper")
+    @Autowired()
+    private ObjectMapper objectMapper;
 
     /**
      * Create a Path helper that will not URL Decode
@@ -137,7 +119,7 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
             List<HttpMessageConverter<?>> converters) {
 
         converters.add(new ResourceHttpMessageConverter());
-        converters.add(new MappingJackson2HttpMessageConverter(getObjectMapper()));
+        converters.add(new MappingJackson2HttpMessageConverter(objectMapper));
         converters.add(new CsvMessageConverter());
         converters.add(new CsvRowMessageConverter());
         converters.add(new CsvQueryArrayStreamMessageConverter());

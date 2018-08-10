@@ -37,7 +37,6 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
-import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.AbstractTimer;
@@ -106,8 +105,6 @@ public class MockMangoLifecycle implements IMangoLifecycle{
 
         //Make sure that Common and other classes are properly loaded
         Common.envProps = getEnvProps();
-
-        MangoRestSpringConfiguration.initializeObjectMapper();
 
         Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
         Common.JSON_CONTEXT.addResolver(new BaseChartRenderer.Resolver(), ChartRenderer.class);

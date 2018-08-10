@@ -11,7 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.web.mvc.spring.MangoRestSpringConfiguration;
+import com.serotonin.m2m2.Common;
 
 /**
  * 
@@ -48,7 +48,7 @@ public class IntArrayPropertyEditor  extends CSVPropertyEditor{
 	public String getAsText() {
 		StringWriter writer = new StringWriter();
 		try {
-			MangoRestSpringConfiguration.getObjectMapper().writeValue(writer, data);
+		    Common.objectMapper.getRestObjectWriter(int[].class).writeValue(writer, data);
 			return writer.toString();
 		} catch (IOException e) {
 			LOG.error(e.getMessage(),e);
@@ -62,7 +62,7 @@ public class IntArrayPropertyEditor  extends CSVPropertyEditor{
 	@Override
 	public void setAsText(String text) throws IllegalArgumentException {
 		try {
-			this.data = MangoRestSpringConfiguration.getObjectMapper().readValue(text, int[].class);
+			this.data = Common.objectMapper.getRestObjectReader(int[].class).readValue(text);
 		} catch (IOException e) {
 			LOG.error(e.getMessage(),e);
 			throw new ShouldNeverHappenException(e);
