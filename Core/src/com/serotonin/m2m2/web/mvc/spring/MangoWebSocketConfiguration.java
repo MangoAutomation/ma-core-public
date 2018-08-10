@@ -4,14 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
-import javax.servlet.ServletContext;
-
-import org.eclipse.jetty.websocket.api.WebSocketBehavior;
-import org.eclipse.jetty.websocket.api.WebSocketPolicy;
-import org.eclipse.jetty.websocket.server.WebSocketServerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
@@ -20,18 +14,15 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistration;
 import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 import org.springframework.web.socket.handler.PerConnectionWebSocketHandler;
-import org.springframework.web.socket.server.HandshakeHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-import org.springframework.web.socket.server.jetty.JettyRequestUpgradeStrategy;
-import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PerConnectionWebSocketDefinition;
 import com.serotonin.m2m2.module.WebSocketDefinition;
-import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
+import com.serotonin.m2m2.web.mvc.websocket.MangoWebSocketHandshakeHandler;
 
 /**
  *
@@ -48,32 +39,16 @@ import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.websocket"})
 public class MangoWebSocketConfiguration implements WebSocketConfigurer {
 
-    public static final int DEFAULT_INPUT_BUFFER_SIZE = 8192;
-    public static final long DEFAULT_IDLE_TIMEOUT_MS = 60000L;
-
     @Autowired
     private ConfigurableListableBeanFactory beanFactory;
-    @Autowired
-    private ServletContext servletContext;
-
-    @Bean
-    public HandshakeHandler handshakeHandler() {
-        int inputBufferSize = Common.envProps.getInt("web.websocket.inputBufferSize", DEFAULT_INPUT_BUFFER_SIZE);
-        long idleTimeout = Common.envProps.getLong("web.websocket.idleTimeoutMs", DEFAULT_IDLE_TIMEOUT_MS);
-
-        WebSocketPolicy policy = new WebSocketPolicy(WebSocketBehavior.SERVER);
-        policy.setInputBufferSize(inputBufferSize);
-        // ping pong mechanism will keep socket alive, web.websocket.pingTimeoutMs should be set lower than the idle timeout
-        policy.setIdleTimeout(idleTimeout);
-        WebSocketServerFactory factory = new WebSocketServerFactory(servletContext, policy);
-
-        return new DefaultHandshakeHandler(
-                new JettyRequestUpgradeStrategy(factory));
-    }
 
     @Autowired
     private HandshakeInterceptor handshakeInterceptor;
 
+    @Autowired
+    private MangoWebSocketHandshakeHandler handshakeHandler;
+    
+    
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
 
@@ -101,7 +76,7 @@ public class MangoWebSocketConfiguration implements WebSocketConfigurer {
                 }
             }
             WebSocketHandlerRegistration registration = registry.addHandler(handler, def.getUrl())
-                    .setHandshakeHandler(handshakeHandler())
+                    .setHandshakeHandler(handshakeHandler)
                     .addInterceptors(handshakeInterceptor);
 
             if(hasOrigins)

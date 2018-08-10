@@ -56,6 +56,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         // Create the dispatcher servlet's Spring application context
         AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
         dispatcherContext.setId(DISPATCHER_CONTEXT_ID);
+        dispatcherContext.setParent(rootContext); //Setting this but it seems to get set elsewhere to the same value
         dispatcherContext.register(MangoCoreSpringConfiguration.class);
 
         boolean enableRest = Common.envProps.getBoolean("rest.enabled", false);
@@ -84,7 +85,6 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out
         context.addListener(HttpSessionEventPublisher.class);
         context.addListener(new MangoSessionListener());
-
         if (contextListener != null) {
             rootContext.addApplicationListener(contextListener);
         }
