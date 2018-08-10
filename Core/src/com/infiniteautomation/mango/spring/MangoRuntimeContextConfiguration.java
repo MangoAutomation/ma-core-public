@@ -7,6 +7,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -18,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
+import com.infiniteautomation.mango.spring.components.MangoExecutors;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -29,15 +32,17 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
  * @author Terry Packer
  */
 @Configuration
-@ComponentScan(basePackages = { 
+@ComponentScan(basePackages = {
         "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
-        "com.serotonin.m2m2.db.dao" //DAOs 
-        })
+        "com.serotonin.m2m2.db.dao" //DAOs
+})
 public class MangoRuntimeContextConfiguration {
 
     public static final String REST_OBJECT_MAPPER_NAME = "restObjectMapper";
     public static final String COMMON_OBJECT_MAPPER_NAME = "commonObjectMapper";
-    
+    public static final String SCHEDULED_EXECUTOR_SERVICE_NAME = "scheduledExecutorService";
+    public static final String EXECUTOR_SERVICE_NAME = "executorService";
+
     @Primary
     @Bean(REST_OBJECT_MAPPER_NAME)
     public static ObjectMapper getObjectMapper() {
@@ -75,13 +80,13 @@ public class MangoRuntimeContextConfiguration {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return objectMapper;
     }
-    
+
     @Bean(COMMON_OBJECT_MAPPER_NAME)
     public ObjectMapper getCommonObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setTimeZone(TimeZone.getDefault());
-        
+
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
         for(JacksonModuleDefinition def : defs) {
@@ -90,5 +95,17 @@ public class MangoRuntimeContextConfiguration {
         }
         return mapper;
     }
-    
+
+    // ScheduledExecutorService cannot be annotated with @Primary as it is also a ExecutorService
+    @Bean(SCHEDULED_EXECUTOR_SERVICE_NAME)
+    public ScheduledExecutorService scheduledExecutorService(MangoExecutors executors) {
+        return executors.getScheduledExecutor();
+    }
+
+    @Primary
+    @Bean(EXECUTOR_SERVICE_NAME)
+    public ExecutorService executorService(MangoExecutors executors) {
+        return executors.getExecutor();
+    }
+
 }
