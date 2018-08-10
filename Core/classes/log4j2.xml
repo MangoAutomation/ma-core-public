@@ -46,7 +46,7 @@
 	<Loggers>
 		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2" level="info"/>
 		<AsyncLogger includeLocation="true" name="com.infiniteautomation" level="info"/>
-		<AsyncRoot includeLocationInfo="true" level="error">
+		<AsyncRoot includeLocation="true" level="error">
 			<AppenderRef ref="logfile"/>
 			<AppenderRef ref="stdout" />
 			<AppenderRef ref="frontend" />

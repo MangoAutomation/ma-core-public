@@ -64,7 +64,7 @@
 		<AsyncLogger includeLocation="true" name="com.serotonin.bacnet4j" level="debug"/>
 		<AsyncLogger includeLocation="true" name="org.apache.logging" level="debug"/>
 		<AsyncLogger includeLocation="true" name="org.jooq.tools" level="debug"/>
-		<AsyncRoot includeLocationInfo="true" level="error">
+		<AsyncRoot includeLocation="true" level="error">
 			<AppenderRef ref="logfile"/>
 			<AppenderRef ref="stdout" />
 			<AppenderRef ref="frontend" />
