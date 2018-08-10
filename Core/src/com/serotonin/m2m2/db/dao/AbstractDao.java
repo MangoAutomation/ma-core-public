@@ -458,8 +458,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 			Collections.sort(results,chain);
 	}
     /**
-     * TODO This needs to be reworked to use the args list
-     * to avoid SQL Injection Attacks
      * @param sql
      * @param args
      * @param query
