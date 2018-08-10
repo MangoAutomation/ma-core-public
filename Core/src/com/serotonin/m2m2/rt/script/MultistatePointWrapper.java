@@ -19,7 +19,7 @@ public class MultistatePointWrapper extends DistinctPointWrapper {
         super(point, engine, setter);
     }
 
-    public Integer getValue() {
+    public Integer getValue() { //always use cache here, last() for no cache
         DataValue value = getValueImpl();
         if (value == null)
             return null;
@@ -27,12 +27,25 @@ public class MultistatePointWrapper extends DistinctPointWrapper {
     }
 
     public Integer ago(int periodType) {
-        return ago(periodType, 1);
+        return ago(periodType, 1, false);
+    }
+    
+    public Integer ago(int periodType, boolean cache) {
+        return ago(periodType, 1, cache);
     }
 
     public Integer ago(int periodType, int count) {
+        return ago(periodType, count, false);
+    }
+    
+    public Integer ago(int periodType, int count, boolean cache) {
         long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
-        PointValueTime pvt = point.getPointValueBefore(from);
+        PointValueTime pvt;
+        if(cache)
+            pvt = point.getPointValueBefore(from);
+        else
+            pvt = valueFacade.getPointValueBefore(from);
+        
         if (pvt == null)
             return null;
         return pvt.getIntegerValue();
@@ -43,8 +56,8 @@ public class MultistatePointWrapper extends DistinctPointWrapper {
 	 */
 	@Override
 	protected void helpImpl(StringBuilder builder) {
-		builder.append("ago(periodType): int,\n ");		
-    	builder.append("ago(periodType, periods): int,\n ");
+		builder.append("ago(periodType, cache): int,\n ");		
+    	builder.append("ago(periodType, periods, cache): int,\n ");
     	super.helpImpl(builder);
 	}
 }

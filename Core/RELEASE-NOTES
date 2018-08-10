@@ -25,6 +25,8 @@
 * Check before NPE in CSV message converters
 * Enable JSON import during script validation if set via JsonEmport.setImportDuringValidation(true); in the script
 * Adding RQL keywords csvContainsAll, csvContainsAny, permissionsContainsAll, permissionsContainsAny to query a permissions member, only available in v2 endpoints
+* Control if the point value cache is considered in JavaScript statistics functions, default to not using the cache
+* Fix print( contextPoint ) in script environments to print getStats as function name instead of stats
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP

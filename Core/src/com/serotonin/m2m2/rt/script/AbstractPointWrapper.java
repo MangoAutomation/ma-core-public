@@ -11,6 +11,7 @@ import java.util.List;
 import javax.script.ScriptEngine;
 
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
+import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
@@ -19,12 +20,14 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  */
 abstract public class AbstractPointWrapper {
     protected final IDataPointValueSource point;
+    protected final PointValueFacade valueFacade;
     protected final ScriptEngine engine;
     protected final ScriptPointValueSetter setter;
     private DataPointWrapper voWrapper = null;
 
     AbstractPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
         this.point = point;
+        this.valueFacade = new PointValueFacade(point.getVO().getId(), false);
         this.engine = engine;
         this.setter = setter;
     }
@@ -33,7 +36,7 @@ abstract public class AbstractPointWrapper {
         return (WrapperContext) engine.get(ScriptUtils.WRAPPER_CONTEXT_KEY);
     }
 
-    protected DataValue getValueImpl() {
+    protected DataValue getValueImpl() { //Doesn't need no-cache complement as that's the last value
         PointValueTime pvt = point.getPointValue();
         if (pvt == null)
             return null;
@@ -85,20 +88,42 @@ abstract public class AbstractPointWrapper {
     public Integer getYear() {
         return getCalendar(Calendar.YEAR);
     }
-
+    
     public List<PointValueTime> last(int limit) {
-        return point.getLatestPointValues(limit);
+        return last(limit, false);
+    }
+
+    public List<PointValueTime> last(int limit, boolean cache) {
+        if(cache)
+            return point.getLatestPointValues(limit);
+        else
+            return valueFacade.getLatestPointValues(limit);
     }
 
     public PointValueTime lastValue() {
-        return lastValue(0);
+        return lastValue(0, false);
+    }
+    
+    public PointValueTime lastValue(boolean cache) {
+        return lastValue(0, cache);
+    }
+    
+    public PointValueTime lastValue(int index) {
+        return lastValue(index, false);
     }
 
-    public PointValueTime lastValue(int index) {
-        List<PointValueTime> list = point.getLatestPointValues(index + 1);
-        if (list.size() <= index)
-            return null;
-        return list.get(index);
+    public PointValueTime lastValue(int index, boolean cache) {
+        if(cache) {
+            List<PointValueTime> list = point.getLatestPointValues(index + 1);
+            if (list.size() <= index)
+                return null;
+            return list.get(index);
+        } else {
+            List<PointValueTime> list = valueFacade.getLatestPointValues(index + 1);
+            if (list.size() <= index)
+                return null;
+            return list.get(index);
+        }
     }
 
     private Integer getCalendar(int calendarAttribute) {
@@ -127,50 +152,116 @@ abstract public class AbstractPointWrapper {
     
     /**
      * Get point values between the times.  
-     * Inclusive of the value at from, exclusive of the value at to
+     * Inclusive of the value at from, exclusive of the value at to, not using the cache
      * @param from
      * @param to
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesBetween(long from, long to){
-    	return point.getPointValuesBetween(from, to);
+        return pointValuesBetween(from, to, false);
     }
     
     /**
-     * Get point values since timestamp
+     * Get point values between the times.  
+     * Inclusive of the value at from, exclusive of the value at to, optionally using the cache
+     * @param from
+     * @param to
+     * @param cache
+     * @return List of PointValueTime objects or empty list
+     */
+    public List<PointValueTime> pointValuesBetween(long from, long to, boolean cache){
+        if(cache)
+            return point.getPointValuesBetween(from, to);
+        else
+            return valueFacade.getPointValuesBetween(from, to);
+    }
+    
+    /**
+     * Get point values since timestamp, not using cache
      * @param since
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesSince(long since){
-    	return point.getPointValues(since);
+        return pointValuesSince(since, false);
     	
     }
     
     /**
-     * Get the nearest point value before the timestamp
+     * Get point values since timestamp, optionally using cache
+     * @param since
+     * @param cache
+     * @return List of PointValueTime objects or empty list
+     */
+    public List<PointValueTime> pointValuesSince(long since, boolean cache){
+        if(cache) 
+            return point.getPointValues(since);
+        else
+            return valueFacade.getPointValues(since);
+    }
+    
+    /**
+     * Get the nearest point value before the timestamp, not using cache
      * @param timestamp
      * @return nearest value OR null
      */
     public PointValueTime pointValueBefore(long timestamp){
-    	return point.getPointValueBefore(timestamp);
+    	return pointValueBefore(timestamp, false);
     }
     
     /**
-     * Get the nearest point value after the timestamp
+     * Get the nearest point value before the timestamp, optionally using cache
+     * @param timestamp
+     * @param cache
+     * @return nearest value OR null
+     */
+    public PointValueTime pointValueBefore(long timestamp, boolean cache){
+        if(cache)
+            return point.getPointValueBefore(timestamp);
+        else
+            return valueFacade.getPointValueBefore(timestamp);
+    }
+    
+    /**
+     * Get the nearest point value after the timestamp, not using cache
      * @param timestamp
      * @return nearest value OR null
      */
     public PointValueTime pointValueAfter(long timestamp){
-    	return point.getPointValueAfter(timestamp);
+    	return pointValueAfter(timestamp, false);
+    }
+    
+    /**
+     * Get the nearest point value after the timestamp, optionally using cache
+     * @param timestamp
+     * @param cache
+     * @return nearest value OR null
+     */
+    public PointValueTime pointValueAfter(long timestamp, boolean cache){
+        if(cache)
+            return point.getPointValueAfter(timestamp);
+        else
+            return valueFacade.getPointValueAfter(timestamp);
     }    
     
     /**
-     * Get the point value AT this time
+     * Get the point value AT this time, not using cache
      * @param timestamp
      * @return value at exactly this time OR null
      */
     public PointValueTime pointValueAt(long timestamp){
-    	return point.getPointValueAt(timestamp);
+    	return pointValueAt(timestamp, false);
+    }
+    
+    /**
+     * Get the point value AT this time, optionally using cache
+     * @param timestamp
+     * @return value at exactly this time OR null
+     */
+    public PointValueTime pointValueAt(long timestamp, boolean cache){
+        if(cache)
+            return point.getPointValueAt(timestamp);
+        else
+            return valueFacade.getPointValueAt(timestamp);
     }
     
     /**
@@ -197,6 +288,7 @@ abstract public class AbstractPointWrapper {
     
     public String toString(){
     	StringBuilder builder = new StringBuilder();
+    	builder.append("/* cache argument is true / false and false if omitted */");
     	builder.append("{\n");
     	builder.append("value: ").append(getValueImpl()).append(",\n ");
     	long time = getTime();
@@ -212,18 +304,17 @@ abstract public class AbstractPointWrapper {
 	    	builder.append("month: ").append(getMonth()).append(",\n ");
 	    	builder.append("year: ").append(getYear()).append(",\n ");
     	}
-    	builder.append("last(count): ").append("PointValueTime[count]").append(",\n ");
-    	builder.append("lastValue: ").append(lastValue()).append(",\n ");
-    	builder.append("lastValue(count): ").append("PointValueTime").append(",\n ");
+    	builder.append("last(count, cache): ").append("PointValueTime[count]").append(",\n ");
+    	builder.append("lastValue(cache): ").append(lastValue()).append(",\n ");
+    	builder.append("lastValue(count, cache): ").append("PointValueTime").append(",\n ");
     	builder.append("set(value): ").append(",\n ");
     	builder.append("set(value, timestamp): ").append(",\n ");
     	builder.append("set(value, timestamp, annotation): ").append(",\n ");
-    	builder.append("pointValuesBetween(timestamp, timestamp): PointValueTime[],\n ");
-    	builder.append("pointValuesSince(timestamp): PointValueTime[],\n ");
-    	builder.append("pointValuesBefore(timestamp): PointValueTime[],\n ");
-    	builder.append("pointValuesAfter(timestamp): PointValueTime[],\n ");
-    	builder.append("pointValueAt(timestamp): PointValueTime,\n ");
-    	builder.append("pointValueAt(timestamp): PointValueTime,\n ");
+    	builder.append("pointValuesBetween(timestamp, timestamp, cache): PointValueTime[],\n ");
+    	builder.append("pointValuesSince(timestamp, cache): PointValueTime[],\n ");
+    	builder.append("pointValuesBefore(timestamp, cache): PointValueTime[],\n ");
+    	builder.append("pointValuesAfter(timestamp, cache): PointValueTime[],\n ");
+    	builder.append("pointValueAt(timestamp, cache): PointValueTime,\n ");
     	builder.append("getDataPointWrapper(): DataPointWrapper,\n ");
 
     	this.helpImpl(builder);

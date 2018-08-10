@@ -23,36 +23,72 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
     }
 
     public StartsAndRuntimeListWrapper past(int periodType) {
-        return past(periodType, 1);
+        return past(periodType, 1, false);
     }
 
+    public StartsAndRuntimeListWrapper past(int periodType, boolean cache) {
+        return past(periodType, 1, cache);
+    }
+    
     public StartsAndRuntimeListWrapper past(int periodType, int count) {
+        return past(periodType, count, false);
+    }
+    
+    public StartsAndRuntimeListWrapper past(int periodType, int count, boolean cache) {
         long to = getContext().getRuntime();
         long from = DateUtils.minus(to, periodType, count);
-        return getStats(from, to);
+        return getStats(from, to, cache);
     }
 
     public StartsAndRuntimeListWrapper prev(int periodType) {
-        return previous(periodType, 1);
+        return previous(periodType, 1, false);
+    }
+    
+    public StartsAndRuntimeListWrapper prev(int periodType, boolean cache) {
+        return previous(periodType, 1, cache);
     }
 
     public StartsAndRuntimeListWrapper prev(int periodType, int count) {
-        return previous(periodType, count);
+        return previous(periodType, count, false);
+    }
+    
+    public StartsAndRuntimeListWrapper prev(int periodType, int count, boolean cache) {
+        return previous(periodType, count, cache);
     }
 
     public StartsAndRuntimeListWrapper previous(int periodType) {
-        return previous(periodType, 1);
+        return previous(periodType, 1, false);
+    }
+    
+    public StartsAndRuntimeListWrapper previous(int periodType, boolean cache) {
+        return previous(periodType, 1, cache);
     }
 
     public StartsAndRuntimeListWrapper previous(int periodType, int count) {
+        return previous(periodType, count, false);
+    }
+    
+    public StartsAndRuntimeListWrapper previous(int periodType, int count, boolean cache) {
         long to = DateUtils.truncate(getContext().getRuntime(), periodType);
         long from = DateUtils.minus(to, periodType, count);
-        return getStats(from, to);
+        return getStats(from, to, cache);
+    }
+    
+    public StartsAndRuntimeListWrapper getStats(long from, long to) {
+        return getStats(from, to, false);
     }
 
-    public StartsAndRuntimeListWrapper getStats(long from, long to) {
-        PointValueTime start = point.getPointValueBefore(from + 1);
-        List<PointValueTime> values = point.getPointValuesBetween(from + 1, to);
+    public StartsAndRuntimeListWrapper getStats(long from, long to, boolean cache) {
+        PointValueTime start;
+        List<PointValueTime> values;
+        if(cache) {
+            start = point.getPointValueBefore(from + 1);
+            values = point.getPointValuesBetween(from + 1, to);
+        } else {
+            start = valueFacade.getPointValueBefore(from+1);
+            values = valueFacade.getPointValuesBetween(from + 1, to);
+        }
+        
         if(start != null && start.getTime() == from)
             values.add(0, start);
         StartsAndRuntimeList stats = new StartsAndRuntimeList(from, to, start, values);
@@ -64,12 +100,12 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
     
     @Override
 	protected void helpImpl(StringBuilder builder) {
-    	builder.append("past(periodType): StartsAndRuntimeList,\n ");	
-    	builder.append("past(periodType, periods): StartsAndRuntimeList,\n ");	
-    	builder.append("prev(periodType): StartsAndRuntimeList,\n ");	
-    	builder.append("prev(periodType, periods): StartsAndRuntimeList,\n ");	
-    	builder.append("previous(periodType): StartsAndRuntimeList,\n ");	
-    	builder.append("previous(periodType, periods): StartsAndRuntimeList,\n ");	
-    	builder.append("stats(from, to): StartsAndRuntimeList,\n ");	
+    	builder.append("past(periodType, cache): StartsAndRuntimeList,\n ");	
+    	builder.append("past(periodType, periods, cache): StartsAndRuntimeList,\n ");	
+    	builder.append("prev(periodType, cache): StartsAndRuntimeList,\n ");	
+    	builder.append("prev(periodType, periods, cache): StartsAndRuntimeList,\n ");	
+    	builder.append("previous(periodType, cache): StartsAndRuntimeList,\n ");	
+    	builder.append("previous(periodType, periods, cache): StartsAndRuntimeList,\n ");	
+    	builder.append("getStats(from, to, cache): StartsAndRuntimeList,\n ");	
     }
 }

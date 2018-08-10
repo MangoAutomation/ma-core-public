@@ -19,7 +19,7 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
         super(point, engine, setter);
     }
 
-    public Boolean getValue() {
+    public Boolean getValue() { //always use cache here, last() for no cache
         DataValue value = getValueImpl();
         if (value == null)
             return null;
@@ -27,12 +27,25 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
     }
 
     public Boolean ago(int periodType) {
-        return ago(periodType, 1);
+        return ago(periodType, 1, false);
+    }
+    
+    public Boolean ago(int periodType, boolean cache) {
+        return ago(periodType, 1, cache);
     }
 
     public Boolean ago(int periodType, int count) {
+        return ago(periodType, count, false);
+    }
+    
+    public Boolean ago(int periodType, int count, boolean cache) {
         long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
-        PointValueTime pvt = point.getPointValueBefore(from);
+        PointValueTime pvt;
+        if(cache)
+            pvt = point.getPointValueBefore(from);
+        else
+            pvt = valueFacade.getPointValueBefore(from);
+        
         if (pvt == null)
             return null;
         return pvt.getBooleanValue();
@@ -43,8 +56,8 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
 	 */
 	@Override
 	protected void helpImpl(StringBuilder builder) {
-		builder.append("ago(periodType): Boolean,\n ");		
-    	builder.append("ago(periodType, periods): Boolean,\n ");
+		builder.append("ago(periodType, cache): Boolean,\n ");		
+    	builder.append("ago(periodType, periods, cache): Boolean,\n ");
     	super.helpImpl(builder);
 	}
 }
