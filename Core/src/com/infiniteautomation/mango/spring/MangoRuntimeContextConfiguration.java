@@ -34,11 +34,12 @@ import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
         "com.serotonin.m2m2.db.dao" //DAOs 
         })
 public class MangoRuntimeContextConfiguration {
-    
-    //TODO Mango 3.5 setup common object mapper here too
+
+    public static final String REST_OBJECT_MAPPER_NAME = "restObjectMapper";
+    public static final String COMMON_OBJECT_MAPPER_NAME = "commonObjectMapper";
     
     @Primary
-    @Bean("restObjectMapper")
+    @Bean(REST_OBJECT_MAPPER_NAME)
     public static ObjectMapper getObjectMapper() {
         // For raw Jackson
         ObjectMapper objectMapper = new ObjectMapper();
@@ -73,6 +74,21 @@ public class MangoRuntimeContextConfiguration {
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return objectMapper;
+    }
+    
+    @Bean(COMMON_OBJECT_MAPPER_NAME)
+    public ObjectMapper getCommonObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setTimeZone(TimeZone.getDefault());
+        
+        //Setup Module Defined JSON Modules
+        List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
+        for(JacksonModuleDefinition def : defs) {
+            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.COMMON)
+                mapper.registerModule(def.getJacksonModule());
+        }
+        return mapper;
     }
     
 }

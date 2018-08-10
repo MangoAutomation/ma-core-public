@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -67,7 +69,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
             result.addRequiredError("tags");
         else {
             //Ensure the format of tags is a Map<String,String>
-            ObjectReader reader = Common.objectMapper.getObjectReader(Map.class);
+            ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(Map.class);
             try {
                 reader.readValue(parameters.get("tags"));
             }catch(IOException e) {
@@ -91,7 +93,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
     @Override
     public ASTNode createQuery(User user, JsonNode parameters) throws IOException {
         JsonNode tagsNode = parameters.get("tags");
-        ObjectReader reader = Common.objectMapper.getObjectReader(Map.class);
+        ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(Map.class);
         Map<String, String> tags = reader.readValue(tagsNode);
         //Lookup data points by tag
         List<Object> args = new ArrayList<>();

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
@@ -183,6 +184,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
         return false;
     }
 
+    @JsonIgnore //Because Jackson will try to use this and its unmodifiable
     @Override
     public Set<String> getPermissionsSet() {
         //TODO Fix this, due to serialization this is null when read back out of the database

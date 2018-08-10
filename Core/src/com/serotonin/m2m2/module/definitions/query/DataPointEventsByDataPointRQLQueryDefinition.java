@@ -11,9 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
@@ -71,7 +73,7 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
         else {
             try {
                 JsonNode rqlNode = parameters.get("rql");
-                ObjectReader reader = Common.objectMapper.getObjectReader(String.class);
+                ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(String.class);
                 String rql = reader.readValue(rqlNode);
                 if (rql != null && !rql.isEmpty()) {
                     RQLParser parser = new RQLParser();
@@ -89,7 +91,7 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
     @Override
     public ASTNode createQuery(User user, JsonNode parameters) throws IOException {
         JsonNode rqlNode = parameters.get("rql");
-        ObjectReader reader = Common.objectMapper.getObjectReader(String.class);
+        ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(String.class);
         String rql = reader.readValue(rqlNode);
         
         ASTNode rqlAstNode;

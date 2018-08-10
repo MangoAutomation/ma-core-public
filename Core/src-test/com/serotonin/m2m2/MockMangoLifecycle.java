@@ -15,7 +15,6 @@ import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.util.CommonObjectMapper;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
@@ -145,9 +144,6 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         EventType.initialize();
         SystemEventType.initialize();
         AuditEventType.initialize();
-
-        //Setup Common Object Mapper
-        Common.objectMapper = new CommonObjectMapper();
 
         //Do this last as Event Types have listeners
         for (SystemSettingsListenerDefinition def : ModuleRegistry.getSystemSettingListenerDefinitions())

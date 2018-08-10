@@ -28,6 +28,7 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
 import com.serotonin.web.http.HttpUtils4;
 
@@ -146,7 +147,7 @@ public class HttpBuilderScriptUtility {
             if(request.containsKey("content") && request.get("content") instanceof String)
                 content = (String)request.get("content");
             else if(request.containsKey("content")) {
-                content = Common.objectMapper.getRestObjectWriter().writeValueAsString(request.get("content"));
+                content = Common.getBean(ObjectMapper.class).writeValueAsString(request.get("content"));
             } else
                 content = "";
             
@@ -202,7 +203,7 @@ public class HttpBuilderScriptUtility {
             if(content instanceof String)
                 post.setEntity(new StringEntity((String)content));
             else {
-                post.setEntity(new StringEntity(Common.objectMapper.getRestObjectWriter().writeValueAsString(content)));
+                post.setEntity(new StringEntity(Common.getBean(ObjectMapper.class).writeValueAsString(content)));
             }
             request = post;
         } catch(UnsupportedEncodingException e) {
@@ -231,7 +232,7 @@ public class HttpBuilderScriptUtility {
             if(content instanceof String)
                 put.setEntity(new StringEntity((String)content));
             else {
-                put.setEntity(new StringEntity(Common.objectMapper.getRestObjectWriter().writeValueAsString(content)));
+                put.setEntity(new StringEntity(Common.getBean(ObjectMapper.class).writeValueAsString(content)));
             }
             request = put;
         } catch(UnsupportedEncodingException|JsonProcessingException e) {

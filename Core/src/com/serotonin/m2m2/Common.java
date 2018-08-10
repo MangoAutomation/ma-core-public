@@ -49,7 +49,6 @@ import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.CompiledCoreVersion;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
-import com.infiniteautomation.mango.util.CommonObjectMapper;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.json.JsonContext;
@@ -105,7 +104,6 @@ public class Common {
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
     public static SerialPortManager serialPortManager;
-    public static CommonObjectMapper objectMapper; //Common Jackson Object Mapper Source
 
     //Used to determine the given size of all Task Queues
     //TODO Remove this and replace with varying size queues

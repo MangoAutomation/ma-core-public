@@ -10,6 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 
@@ -45,7 +46,9 @@ public class ScriptPermissionsPropertyEditor extends CSVPropertyEditor{
 	@Override
 	public String getAsText() {
 		try {
-			return Common.objectMapper.getRestObjectWriter(ScriptPermissions.class).writeValueAsString(this.permissions);
+	        return Common.getBean(ObjectMapper.class)
+	                .writerFor(ScriptPermissions.class)
+	                .writeValueAsString(this.permissions);
 		} catch (JsonProcessingException e) {
 			LOG.error(e.getMessage(), e);
 			return "";
@@ -58,7 +61,7 @@ public class ScriptPermissionsPropertyEditor extends CSVPropertyEditor{
 	@Override
 	public void setAsText(String text) throws IllegalArgumentException {
 		try {
-			this.permissions = Common.objectMapper.getRestObjectReader(ScriptPermissions.class).readValue(text);
+			this.permissions = Common.getBean(ObjectMapper.class).readerFor(ScriptPermissions.class).readValue(text);
 		} catch (IOException e) {
 			LOG.error(e.getMessage(), e);
 		}
