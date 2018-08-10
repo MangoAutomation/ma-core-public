@@ -895,7 +895,7 @@ public class SystemSettingsDao extends BaseDao {
      * @param response
      */
     private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
-        validatePeriodType(key, settings, response);
+        validatePeriodType(key, settings, response, null);
     }
     
     private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response, int...excludeIds) {
