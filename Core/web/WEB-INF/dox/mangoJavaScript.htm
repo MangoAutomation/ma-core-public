@@ -36,7 +36,6 @@ The following fields can be useful for conversions:</p>
   <li>p.year - four digits</li>
 </ul>
 
-
 <h1>Context objects</h1>
 <p>The script var that represents a point in a script is actually an 'object', in JavaScript terminology. An object is a container of values and functions that can be referenced by their property names. To get a description of the properties available for use in a script var, use the help property, e.g.:</p>
 <pre>return x.help;</pre>
@@ -47,7 +46,7 @@ The following fields can be useful for conversions:</p>
 <p>The <b>past()</b> function returns an object containing statistics over the given period ending now. See below for a description of the various statistics objects.</p>
 <p>The <b>prev()</b> and <b>previous()</b> functions are identical; the latter is provided for its linguistic completeness. The functions return the same statistically object as past(), but over a different time span. The start and end times are quantized such that they correspond to the period type. For example, if the period type is HOURLY and periods is 1, and the function runs at 18:05, the time span that will be used is from 17:00 (inclusive) to 18:00 (exclusive). If the periods were, say, 3, the time span would be from 15:00 to 18:00. Similarly, MONTH starts the time span at midnight on the first day of the previous month and ends it on the last day of the previous month (when periods is 1). Other period types work the same. A WEEK starts on Monday at midnight in accordance with ISO standards.</p>
 <p>
-  The <b>last()</b> function return a list of the latest point value/time objects up to the given limit. The list will 
+  The <b>last(limit, cache)</b> function return a list of the latest point value/time objects up to the given limit. The list will 
   never be null, but could have a size from 0 to n depending on how many historical values there actually are. Values 
   are sorted from most newest to oldest so that list.get(0) will return the most recent value. The list is a 
   java.util.List object, and so has all of the methods available in that interface, including get(index) and size(). 
@@ -55,12 +54,12 @@ The following fields can be useful for conversions:</p>
   sure to check the list size before using get. Point value/time objects have "value" and "time" properties.
 </p>
 <p>
-  The <b>lastValue()</b> function returns a single point value/time object, or null if the index is invalid. (Size checking
+  The <b>lastValue(index, cache)</b> function returns a single point value/time object, or null if the index is invalid. (Size checking
   in the list is done automatically, so an ArrayIndexOutOfBoundsException will never be thrown.) lastValue() and 
-  lastValue(0) will return the most recent value, lastValue(1) will return the second-most recent value, etc.
+  lastValue(0) will return the most recent logged value, lastValue(1, true) will return the second-most recent value (including cached values), etc.
 </p>
 <p>
-  The <b>pointValuesBetween(from, to)</b> function return a list of point value/time objects between the given timestamps.
+  The <b>pointValuesBetween(from, to, cache)</b> function return a list of point value/time objects between the given timestamps.
   The returned values are <b>inclusive of the from time</b> and <b>exclusive of the end time</b>.
    The list will never be null, but could have a size from 0 to n depending on how many historical values there actually are. Values 
   are sorted in time order so that list.get(0) will return the oldest value. The list is a 
@@ -69,7 +68,7 @@ The following fields can be useful for conversions:</p>
   sure to check the list size before using get. Point value/time objects have "value" and "time" properties.
 </p>
 <p>
-  The <b>pointValuesSince(timestamp)</b> function return a list of point value/time objects since the given timestamp.
+  The <b>pointValuesSince(timestamp, cache)</b> function return a list of point value/time objects since the given timestamp.
   The returned values are <b>inclusive of the timestamp</b>.
    The list will never be null, but could have a size from 0 to n depending on how many historical values there actually are. Values 
   are sorted in time order so that list.get(0) will return the oldest value. The list is a 
@@ -78,13 +77,13 @@ The following fields can be useful for conversions:</p>
   sure to check the list size before using get. Point value/time objects have "value" and "time" properties.
 </p>
 <p>
-  The <b>pointValueBefore(timestamp)</b> function returns the nearest point value/time object prior to timestamp, or null if there is not one.
+  The <b>pointValueBefore(timestamp, cache)</b> function returns the nearest point value/time object prior to timestamp, or null if there is not one.
 </p>
 <p>
-  The <b>pointValueAfter(timestamp)</b> function returns the nearest point value/time object after to timestamp, or null if there is not one.
+  The <b>pointValueAfter(timestamp, cache)</b> function returns the nearest point value/time object after to timestamp, or null if there is not one.
 </p>
 <p>
-  The <b>pointValueAt(timestamp)</b> function returns the a point value/time object that was recorded exactly at the timestamp, or null if there is not one.
+  The <b>pointValueAt(timestamp, cache)</b> function returns the a point value/time object that was recorded exactly at the timestamp, or null if there is not one.
 </p>
 <p>
   The <b>set(value)</b> function attempts to set the value to the context point through the point's data source (i.e. sending the set out to the device).
@@ -98,7 +97,12 @@ The following fields can be useful for conversions:</p>
 
 
 <h1>Statistics objects</h1>
-<p>Statistics objects are returned from the past(), prev(), and previous(), getStats(from, to) functions. (See "Context objects" above.) The properties of the object returned depend upon the data type of point upon which they were generated. Time values in objects are stored as integers, but but represent the number of milliseconds since midnight Jan 1, 1970.</p>
+<p>
+  Statistics objects are returned from the past(PeriodType[, Periods][, cache]), prev(PeriodType[, Periods][, cache]), and 
+  previous(PeriodType[, Periods][, cache]), getStats(from, to[, cache]) functions. (See "Context objects" above.) The properties 
+  of the object returned depend upon the data type of point upon which they were generated. Time values in objects are stored as integers,
+  but represent the number of milliseconds since midnight Jan 1, 1970.
+</p>
 <p><b>Note 1:</b> getStats(from, to) operates on timestamps, usage:</p>
 <pre>//Get the stats for the past 20 minutes
     var end = new Date();
@@ -127,7 +131,7 @@ The following fields can be useful for conversions:</p>
   <li><b>periodEndTime</b> (integer) the end time used for the calculation </li>
 </ul>
 <p>
-  For example, the following returns the minimum value of 'n' over the past hour:
+  For example, the following returns the minimum value of 'n' over the past hour without considering cached values:
 </p>
 <pre>n.past(HOUR).minimumValue;</pre>
 <p>
@@ -156,7 +160,7 @@ Each StartAndRuntime object has the following properties:
 
 <p>
   To access a specific StartAndRuntime object in the list, you will first need to test to see if the state exists, as states that the point was not in during the period will not exist. 
-  For example, the following returns the proportion of time that 'b' was in state 'false' over the previous 2 months.  Note 
+  For example, the following returns the proportion of time that 'b' was in state 'false' over the previous 2 months without considering the cache.  Note 
   that any states that have not occurred in this period will be null and must be checked first as we cannot know this before asking for the state information.
 </p>
 <pre>
@@ -170,9 +174,9 @@ Each StartAndRuntime object has the following properties:
 <p>
   The <b>ValueChangeCounter</b> object is returned by Alphanumeric points. 
   It contains a property <b>changes</b>, which is the number of times the point changed during the period. 
-  For example, the following returns the number of times 'a' changed during the previous 45 minutes.
+  For example, the following returns the number of times 'a' changed during the previous 45 minutes, including cached values.
 </p>
-<pre>b.previous(MINUTE, 45);</pre>
+<pre>b.previous(MINUTE, 45, true);</pre>
 Each ValueChangeCounter has the following properties:
 <ul>
   <li><b>periodStartTime</b> (integer) the start time used for the calculation </li>
@@ -190,6 +194,14 @@ Each ValueChangeCounter has the following properties:
   startValue, firstValue, firstTime, lastValue, and lastTime can readily be null if there is no value before or especially in the period.
   Null values are cast by the JavaScript engine when used, typically to false or 0. When cast to a string, it will be "null" . Other statistics
   may have NaN, 0, or null values when there is no data in the period.
+</p>
+
+<h1>Cache Control</h1>
+<p>
+  The cache argument can always be omitted to imply not using the point value cache. If using the cache, one may notice the cache may expand
+  through use of the last and lastValue functions. Then new update will fill the cache even if the point is interval logging, which
+  results in inconsistent data density if you then do a statistics calculation over the period of the cached values, which can lead
+  to slightly different values than if you regenerated the point history after the fact.
 </p>
 
 <h1>Global Utilities</h1>
