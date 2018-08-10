@@ -772,11 +772,19 @@ public class Common {
     public static ApplicationContext getRuntimeContext() {
         return runtimeContext;
     }
-    
+
     public static void setRuntimeContext(ApplicationContext context) {
         runtimeContext = context;
     }
-    
+
+    public static <T> T getBean(Class<T> clazz) {
+        return runtimeContext.getBean(clazz);
+    }
+
+    public static <T> T getBean(Class<T> clazz, String name) {
+        return runtimeContext.getBean(name, clazz);
+    }
+
     /**
      * Gets the spring root application context, only set after the context has started (refreshed).
      * If its not null, its safe to use.
