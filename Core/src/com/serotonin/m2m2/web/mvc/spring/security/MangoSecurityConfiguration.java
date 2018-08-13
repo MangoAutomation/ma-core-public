@@ -24,6 +24,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
@@ -324,8 +325,8 @@ public class MangoSecurityConfiguration {
             http.securityContext().disable();
             // .securityContextRepository(new NullSecurityContextRepository())
 
-            http.authorizeRequests()
-            .antMatchers(HttpMethod.OPTIONS).permitAll()
+            ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authRequests = http.authorizeRequests();
+            authRequests.antMatchers(HttpMethod.OPTIONS).permitAll()
             .antMatchers("/rest/*/login/**").denyAll()
             .antMatchers("/rest/*/logout/**").denyAll()
             .antMatchers(HttpMethod.POST, "/rest/*/login/su").denyAll()
@@ -340,12 +341,13 @@ public class MangoSecurityConfiguration {
             .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
             .antMatchers("/modules/**").denyAll()
             .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
-            .antMatchers("/protected/**").authenticated() // protected folder requires authentication
-            .anyRequest().permitAll(); // default to permit all
+            .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
 
-            if(swaggerApiDocsProtected)
-                http.authorizeRequests().antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
+            if (swaggerApiDocsProtected) {
+                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
+            }
 
+            authRequests.anyRequest().permitAll(); // default to permit all
 
             http.csrf().disable();
 
@@ -410,8 +412,8 @@ public class MangoSecurityConfiguration {
             .sessionFixation()
             .newSession();
 
-            http.authorizeRequests()
-            .antMatchers(HttpMethod.OPTIONS).permitAll()
+            ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authRequests = http.authorizeRequests();
+            authRequests.antMatchers(HttpMethod.OPTIONS).permitAll()
             .antMatchers("/rest/*/login").permitAll()
             .antMatchers("/rest/*/exception/**").permitAll() //For exception info for a user's session...
             .antMatchers(HttpMethod.POST, "/rest/*/login/su").hasRole("ADMIN")
@@ -425,11 +427,13 @@ public class MangoSecurityConfiguration {
             .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
             .antMatchers("/modules/**").denyAll()
             .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
-            .antMatchers("/protected/**").authenticated() // protected folder requires authentication
-            .anyRequest().permitAll(); // default to permit all
+            .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
 
-            if(swaggerApiDocsProtected)
-                http.authorizeRequests().antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
+            if (swaggerApiDocsProtected) {
+                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
+            }
+
+            authRequests.anyRequest().permitAll(); // default to permit all
 
             http.csrf()
             .requireCsrfProtectionMatcher(mangoRequiresCsrfMatcher)

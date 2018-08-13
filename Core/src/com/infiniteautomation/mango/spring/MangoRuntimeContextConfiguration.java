@@ -14,6 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +31,7 @@ import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
+import com.serotonin.m2m2.web.mvc.spring.MangoPropertySource;
 
 /**
  *
@@ -108,4 +114,22 @@ public class MangoRuntimeContextConfiguration {
         return executors.getExecutor();
     }
 
+    /**
+     * J.W. This is used to convert properties from strings into lists of integers etc when they are injected by Spring
+     * @return
+     */
+    @Bean
+    public static ConversionService conversionService() {
+        return new DefaultConversionService();
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env) {
+        env.getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
+        env.setConversionService((ConfigurableConversionService) conversionService());
+
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        configurer.setIgnoreUnresolvablePlaceholders(false);
+        return configurer;
+    }
 }
