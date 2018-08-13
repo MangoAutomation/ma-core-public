@@ -94,7 +94,7 @@
       </td>
       <td align="right">
         <select id="publisherTypes"></select>
-        <tag:img png="transmit_add" title="common.add" onclick="addPublisher()"/>
+        <span tabindex="0" onkeypress="if(event.keyCode == 13 || event.keyCode == 32) addPublisher();"><tag:img png="transmit_add" title="common.add" onclick="addPublisher()"/></span>
       </td>
     </tr>
     

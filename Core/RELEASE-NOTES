@@ -11,7 +11,7 @@
 * Improve performance and memory footprint of User Event Cache which is used to speed up recent alarm access
 * Fix for class cast error due to annotated point value classes in cache
 * Change JavaScript wrappers to supply null if there is no value, instead of default values false, 0, "" and null on times is no value, like p.past(MINUTE).firstTime could now be null where previously -1
-* Give "add data source" button a tabindex, click it on enter or spacebar when selected
+* Give "add data source" and "add publisher" buttons a tabindex, click it on enter or spacebar when selected
 * Fix for ValueChangeCounter discrete statistic to not assume a value at exactly the period start as a change within the period
 * Fix for Mango JavaScript statistics to handle edge case where a value existing at the from time may have been missed
 * Use XIDs in publisher REST endpoints for points lists
