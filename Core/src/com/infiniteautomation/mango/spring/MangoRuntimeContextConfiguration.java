@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
-import com.infiniteautomation.mango.spring.components.MangoExecutors;
+import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;

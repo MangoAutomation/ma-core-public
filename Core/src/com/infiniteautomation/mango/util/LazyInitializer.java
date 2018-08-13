@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.util;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -19,7 +20,7 @@ public class LazyInitializer<T> {
     /**
      * Get the already initialized value or use the provided supplier to initialize it.
      *
-     * @param supplier must not return null or the supplier will be called on every get()
+     * @param supplier must not return null
      * @return
      */
     public T get(final Supplier<T> supplier) {
@@ -30,7 +31,7 @@ public class LazyInitializer<T> {
             synchronized(this) {
                 result = value;
                 if (result == null) {
-                    value = result = supplier.get();
+                    value = result = Objects.requireNonNull(supplier.get());
                 }
             }
         }
@@ -40,8 +41,8 @@ public class LazyInitializer<T> {
     /**
      * @return the value if it is already initialized, otherwise null
      */
-    public T getIfInitialized() {
-        return value;
+    public Optional<T> getIfInitialized() {
+        return Optional.ofNullable(this.value);
     }
 
     /**

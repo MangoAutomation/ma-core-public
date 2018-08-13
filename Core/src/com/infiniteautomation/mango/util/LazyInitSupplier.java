@@ -18,7 +18,7 @@ public class LazyInitSupplier<T> extends LazyInitializer<T> implements Supplier<
     volatile T value;
 
     /**
-     * @param delegate must not return null or the delegate will be called on every get()
+     * @param delegate must not return null
      */
     public LazyInitSupplier(Supplier<T> delegate) {
         Objects.requireNonNull(delegate);
