@@ -81,7 +81,8 @@ public class MangoSecurityConfiguration {
             @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled
             ) throws Exception {
 
-        auth.userDetailsService(userDetails);
+        // causes DaoAuthenticationProvider to be added which we don't want
+        //auth.userDetailsService(userDetails);
 
         for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
             auth.authenticationProvider(def.authenticationProvider());
