@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jared Wiltshire
  */
-public class FutureConverter implements Runnable {
+class FutureConverter implements Runnable {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
     private final long pollInterval = 1;
     private final TimeUnit pollIntervalUnit = TimeUnit.MILLISECONDS;
@@ -30,7 +30,10 @@ public class FutureConverter implements Runnable {
     private final Executor executor;
     private volatile Thread thread;
 
-    public FutureConverter(Executor executor) {
+    /**
+     * @param executor used to complete the CompletableFutures
+     */
+    FutureConverter(Executor executor) {
         this.executor = executor;
     }
 
@@ -104,7 +107,7 @@ public class FutureConverter implements Runnable {
                 }
 
                 try {
-                    // dont ever want to complete the future's in our loop thread
+                    // dont ever want to complete the Future in our loop thread
                     completeFutureAsync(job.completableFuture, result, exception);
                 } catch (RejectedExecutionException e) {
                     // retry later
