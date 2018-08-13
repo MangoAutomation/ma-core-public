@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2018 Infinite Automation Software. All rights reserved. 
+ * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
  *
  */
 package com.serotonin.m2m2.util;
@@ -34,7 +34,7 @@ public class FileStoreUtils {
             return false;
         return fsd.getRoot().exists();
     }
-    
+
     public static boolean ensureFileStoreExists(String fileStoreName) {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(fileStoreName);
         if(fsd == null)
@@ -45,7 +45,7 @@ public class FileStoreUtils {
             return fsd.getRoot().mkdirs();
         return fsd.getRoot().isDirectory();
     }
-    
+
     public static void deleteFileStore(FileStore fs, boolean purgeFiles) throws IOException {
         FileStoreDao.getInstance().deleteFileStore(fs.getStoreName());
         if(purgeFiles) {
@@ -53,20 +53,20 @@ public class FileStoreUtils {
             FileUtils.deleteDirectory(root);
         }
     }
-    
+
     public static File moveFileOrFolder(String fileStoreName, File root, File fileOrFolder, String moveTo) throws TranslatableException, IOException, URISyntaxException {
         Path srcPath = fileOrFolder.toPath();
-        
+
         File dstFile = new File(fileOrFolder.getParentFile(), moveTo).getCanonicalFile();
         Path dstPath = dstFile.toPath();
         if (!dstPath.startsWith(root.toPath())) {
             throw new TranslatableException(new TranslatableMessage("filestore.belowRoot", moveTo));
         }
-        
+
         if (dstFile.isDirectory()) {
             dstPath = dstPath.resolve(srcPath.getFileName());
         }
-    
+
         Path movedPath;
         try {
             movedPath = java.nio.file.Files.move(srcPath, dstPath);
@@ -75,20 +75,20 @@ public class FileStoreUtils {
         }
         return new File(movedPath.toUri());
     }
-    
+
     public static File copyFileOrFolder(String fileStoreName, File root, File srcFile, String dst) throws TranslatableException, IOException, URISyntaxException {
         if (srcFile.isDirectory()) {
             throw new TranslatableException(new TranslatableMessage("filestore.cantCopyDirectory"));
         }
 
         Path srcPath = srcFile.toPath();
-        
+
         File dstFile = new File(srcFile.getParentFile(), dst).getCanonicalFile();
         Path dstPath = dstFile.toPath();
         if (!dstPath.startsWith(root.toPath())) {
             throw new TranslatableException(new TranslatableMessage("filestore.belowRoot", dst));
         }
-        
+
         if (dstFile.isDirectory()) {
             dstPath = dstPath.resolve(srcPath.getFileName());
         }
@@ -101,23 +101,19 @@ public class FileStoreUtils {
         }
         return new File(copiedPath.toUri());
     }
-    
-    public static File findUniqueFileName(String storeName, String filename, boolean overwrite) throws TranslatableException, IOException {
-        FileStoreDefinition fsd = FileStoreDao.getInstance().getFileStoreDefinition(storeName);
-        if(fsd == null)
-            throw new TranslatableException(new TranslatableMessage("filestore.noSuchFileStore"));
-        
-        File file = new File(fsd.getRoot(), filename).getCanonicalFile();
+
+    public static File findUniqueFileName(File directory, String filename, boolean overwrite) throws TranslatableException, IOException {
+        File file = new File(directory, filename).getCanonicalFile();
         if (overwrite) {
             return file;
         }
-        
+
         File parent = file.getParentFile();
-        
+
         String originalName = Files.getNameWithoutExtension(filename);
         String extension = Files.getFileExtension(filename);
         int i = 1;
-        
+
         while (file.exists()) {
             if (extension.isEmpty()) {
                 file = new File(parent, String.format("%s_%03d", originalName, i++));
@@ -125,21 +121,21 @@ public class FileStoreUtils {
                 file = new File(parent, String.format("%s_%03d.%s", originalName, i++, extension));
             }
         }
-        
+
         return file;
     }
-    
+
     public static String relativePath(File relativeTo, File file) {
         Path relativePath = relativeTo.toPath().relativize(file.toPath());
         return relativePath.toString().replace(File.separatorChar, '/');
     }
-    
+
     /**
      * Remove the path up to the root folder
      * @param root
      * @param file
      * @return
-     * @throws UnsupportedEncodingException 
+     * @throws UnsupportedEncodingException
      */
     public static String removeToRoot(File root, File file) throws UnsupportedEncodingException {
         Path relativePath = root.toPath().relativize(file.toPath());
