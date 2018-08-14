@@ -4,10 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,23 +23,15 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
-import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.JacksonModuleDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.AbstractRestModelConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.HtmlHttpMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.SerotoninJsonMessageConverter;
-import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
-import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
 /**
@@ -131,52 +120,5 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
         //Now is a good time to register our Sero Json Converter
         Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
 
-    }
-
-
-    /**
-     * Create an instance of the Object Mapper.
-     * Used locally when starting Spring but may also be used for testing.
-     *
-     * Note: This is NOT the same Object Mapper instance used within a running Mango.
-     * XXX J.W. Seems to be used inside the REST controller to me?
-     *
-     * @return
-     */
-    @Deprecated //Mango 3.5 remove see MangoRuntimeContextConfiguration
-    public static ObjectMapper createNewObjectMapper() {
-        // For raw Jackson
-        ObjectMapper objectMapper = new ObjectMapper();
-        if(Common.envProps.getBoolean("rest.indentJSON", false))
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        // JScience
-        JScienceModule jScienceModule = new JScienceModule();
-        objectMapper.registerModule(jScienceModule);
-
-        // Mango Core JSON Modules
-        MangoCoreModule mangoCore = new MangoCoreModule();
-        objectMapper.registerModule(mangoCore);
-        MangoRestV2JacksonModule mangoCoreV2 = new MangoRestV2JacksonModule();
-        objectMapper.registerModule(mangoCoreV2);
-
-        //Setup Module Defined JSON Modules
-        List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
-        for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.REST)
-                objectMapper.registerModule(def.getJacksonModule());
-        }
-
-        //Always output dates in ISO 8601
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-        objectMapper.setDateFormat(dateFormat);
-
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
-
-        //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return objectMapper;
     }
 }
