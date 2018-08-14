@@ -217,6 +217,9 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
     
     @Override
     public void forcePoll() {
+        //After discussion this is left as is but does not guarantee any ordering of multiple calls.
+        // Potentially add a poll to the front of this tasks queue if a poll is already running or execute now.  This would
+        // allow rejection of multiple force polls in the scenario that they are called too fast.
         scheduleTimeoutImpl(Common.timer.currentTimeMillis());
     }
 
