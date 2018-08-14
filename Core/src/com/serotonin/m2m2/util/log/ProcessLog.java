@@ -1,9 +1,15 @@
 package com.serotonin.m2m2.util.log;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,7 +23,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 
-public class ProcessLog {
+public class ProcessLog implements Closeable {
     private static final Log LOG = LogFactory.getLog(ProcessLog.class);
 
     private static List<ProcessLog> processLogs = new CopyOnWriteArrayList<ProcessLog>();
@@ -47,7 +53,7 @@ public class ProcessLog {
     }
 
     public static enum LogLevel {
-        TRACE("TRACE"), DEBUG("DEBUG"), INFO("INFO "), WARN("WARN "), ERROR("ERROR"), FATAL("FATAL");
+        TRACE("TRACE"), DEBUG("DEBUG"), INFO("INFO"), WARN("WARN"), ERROR("ERROR"), FATAL("FATAL");
 
         public final String logName;
 
@@ -63,24 +69,77 @@ public class ProcessLog {
     protected PrintWriter out;
     protected LogLevel logLevel;
     protected File file;
+    protected final boolean includeLocationInfo;  //Write class, method and line numbers
+    
+    //Rolling Members
+    protected boolean roll;
+    protected int fileSize;
+    protected int maxFiles;
+    protected int currentFileNumber;
 
-    public ProcessLog(String id, LogLevel logLevel) {
-        this(id, logLevel, null);
+    /**
+     * Shortcut for Null Writer
+     * @param id
+     */
+    public ProcessLog(String id) {
+        this("processLog.", id, ProcessLog.LogLevel.FATAL, false, new PrintWriter(new NullWriter()) ,true);
     }
     
-    public ProcessLog(String id, LogLevel logLevel, PrintWriter out) {
-    	this(id, logLevel, out, false);
+    /**
+     * Create a Log Writer using the supplied writer
+     * 
+     * @param id
+     * @param logLevel
+     * @param includeLocationInfo
+     * @param out
+     */
+    public ProcessLog(String id, LogLevel logLevel, boolean includeLocationInfo, PrintWriter out) {
+    	this("processLog.", id, logLevel, includeLocationInfo, out, false);
     }
     
-    public ProcessLog(String id, LogLevel logLevel, PrintWriter out, boolean deleteExisting) {
+    public ProcessLog(String id, LogLevel logLevel, boolean includeLocationInfo, int fileSize, int maxFiles) {
+        this("processLog.", id, logLevel, includeLocationInfo, fileSize, maxFiles);
+    }
+    
+    /**
+     * Construct a rolling Process Log in the {ma.home}/logs
+     * Name: prefix + id + ".log"
+     * 
+     * @param prefix
+     * @param id
+     * @param logLevel
+     * @param includeLocation
+     * @param fileSize
+     * @param maxFiles
+     */
+    public ProcessLog(String prefix, String id, LogLevel logLevel, boolean includeLocationInfo, int fileSize, int maxFiles) {
+        this(prefix, id, logLevel, includeLocationInfo, null, false);
+        this.roll = true;
+        this.fileSize = fileSize;
+        this.maxFiles = maxFiles;
+    }
+    
+    /**
+     * Create a non-rolling Process Log in the {ma.home}/logs
+     * 
+     * Name: prefix + id + ".log"
+     * 
+     * @param prefix
+     * @param id
+     * @param logLevel
+     * @param includeLocation
+     * @param out
+     * @param deleteExisting
+     */
+    public ProcessLog(String prefix, String id, LogLevel logLevel, boolean includeLocationInfo, PrintWriter out, boolean deleteExisting) {
         this.id = id;
-
+        this.includeLocationInfo = includeLocationInfo;
         if (logLevel == null)
             this.logLevel = LogLevel.INFO;
         else
             this.logLevel = logLevel;
 
-        file = new File(Common.getLogsDir(), "processLog." + id + ".log");
+        file = new File(Common.getLogsDir(), prefix == null ? id + ".log" : prefix + id + ".log");
         if (file.exists() && deleteExisting)
             file.delete();
         
@@ -91,9 +150,17 @@ public class ProcessLog {
 
         processLogs.add(this);
     }
-
+    
+    /**
+     * Get the file currently being written to
+     * @return
+     */
     public File getFile(){
     	return file;
+    }
+    
+    public PrintWriter getPrintWriter() {
+        return out;
     }
     
     public void close() {
@@ -111,10 +178,6 @@ public class ProcessLog {
 
     public void setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
-    }
-
-    public boolean trouble() {
-        return out.checkError();
     }
 
     //
@@ -225,20 +288,28 @@ public class ProcessLog {
         log(s, t, LogLevel.FATAL);
     }
 
-    private void log(String s, Throwable t, LogLevel level) {
+    protected void log(String s, Throwable t, LogLevel level) {
         if (level.ordinal() < logLevel.ordinal())
             return;
         
         synchronized (out) {
             //Check to roll
-            sizeCheck();
+            if(roll)
+                sizeCheck();
             
-            out.append(level.logName).append(' ');
-            out.append(sdf.format(new Date())).append(" (");
-            StackTraceElement e = new RuntimeException().getStackTrace()[2];
-            out.append(e.getClassName()).append('.').append(e.getMethodName()).append(':')
-                    .append(Integer.toString(e.getLineNumber())).append(") - ");
-            out.println(s);
+            out.append(level.logName);
+            out.append(' ');
+            out.append(sdf.format(new Date()));
+            if(includeLocationInfo) {
+                out.append(" (");
+                StackTraceElement e = new RuntimeException().getStackTrace()[2];
+                out.append(e.getClassName()).append('.').append(e.getMethodName()).append(':')
+                        .append(Integer.toString(e.getLineNumber())).append(") - ");
+            }else {
+                out.append(" - ");
+            }
+            
+            out.println(s == null ? "null" : s.toString());
             if (t != null)
                 t.printStackTrace(out);
             out.flush();
@@ -249,7 +320,35 @@ public class ProcessLog {
      * Check the size of the log file and perform adjustments
      * as necessary
      */
-    protected void sizeCheck() { }
+    protected void sizeCheck() {
+        // Check if the file should be rolled.
+        if (file.length() > this.fileSize) {
+            out.close();
+
+            try{
+                //Do rollover
+                for(int i=this.currentFileNumber; i>0; i--){
+                    Path source = Paths.get( this.file.getAbsolutePath() + "." + i);
+                    Path target = Paths.get(this.file.getAbsolutePath() + "." + (i + 1));
+                    Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+                }
+                
+                Path source = Paths.get(this.file.toURI());
+                Path target = Paths.get(this.file.getAbsolutePath() + "." + 1);
+                Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+                
+                if(this.currentFileNumber < this.maxFiles - 1){
+                    //Use file number
+                    this.currentFileNumber++;
+                }
+                
+            }catch(IOException e){
+                LOG.error(e.getMessage(), e);
+            }
+             
+            createOut();
+        }
+    }
     
     /**
      * Create the Print Writer output
@@ -264,7 +363,42 @@ public class ProcessLog {
         }
     }
     
-    public static void main(String[] args) {
-        new ProcessLog("test", LogLevel.DEBUG, new PrintWriter(System.out)).info("test");
+    public boolean trouble() {
+        synchronized (out) {
+            return out.checkError();
+        }
+    }
+    
+    /**
+     * List all the files
+     * @return
+     */
+    public File[] getFiles(){
+        if(roll) {
+            File[] files = Common.getLogsDir().listFiles(new LogFilenameFilter(file.getName()));
+            return files;
+        }else {
+            return new File [] {file};
+        }
+    }
+    
+    /**
+     * Class to filter log filenames from a directory listing
+     * @author Terry Packer
+     *
+     */
+    class LogFilenameFilter implements FilenameFilter{
+        
+        private String nameToMatch;
+        
+        public LogFilenameFilter(String nameToMatch){
+            this.nameToMatch = nameToMatch;
+        }
+
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.startsWith(this.nameToMatch);
+        }
+        
     }
 }

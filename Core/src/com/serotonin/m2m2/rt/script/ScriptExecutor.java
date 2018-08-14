@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.rt.script;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +124,7 @@ public class ScriptExecutor {
      */
     protected static Bindings prepareEngine(ScriptEngine engine, Map<String, 
     		IDataPointValueSource> context, Map<String, Object> additionalContext,
-    		long runtime, long timestamp, ScriptPermissions permissions, PrintWriter scriptWriter,
+    		long runtime, long timestamp, ScriptPermissions permissions, 
     		ScriptLog log, ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun){
         
     	ScriptUtils.prepareEngine(engine);
@@ -152,11 +151,10 @@ public class ScriptExecutor {
         
         engineScope.put(ScriptUtils.POINTS_MAP_KEY, context);
         
-        //Set the print writer if necessary
-        if(scriptWriter != null){
-        	engine.getContext().setWriter(scriptWriter);
-        	engineScope.put(ScriptLog.CONTEXT_KEY, log);
-        }
+        //Set the print writer and log
+    	engine.getContext().setWriter(log.getStdOutWriter());
+    	engineScope.put(ScriptLog.CONTEXT_KEY, log);
+
         return engineScope;
     }
     

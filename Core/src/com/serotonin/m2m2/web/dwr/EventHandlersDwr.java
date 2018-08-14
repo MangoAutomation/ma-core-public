@@ -47,7 +47,6 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
-import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -56,7 +55,6 @@ import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
 import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
-import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
@@ -428,36 +426,34 @@ public class EventHandlersDwr extends BaseDwr {
 
         final StringWriter scriptOut = new StringWriter();
         final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-
         final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/YYY HH:mm:ss");
-        ScriptPointValueSetter loggingSetter = new ScriptPointValueSetter(scriptPermissions) {
-            @Override
-            public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
-                DataPointRT dprt = (DataPointRT) point;
-                if(!dprt.getVO().getPointLocator().isSettable()) {
-                    scriptOut.append("Point " + dprt.getVO().getExtendedName() + " not settable.");
-                    return;
+        try(ScriptLog scriptLog = new ScriptLog("eventHandlerScriptTest", ScriptLog.LogLevel.TRACE, scriptWriter)){
+            ScriptPointValueSetter loggingSetter = new ScriptPointValueSetter(scriptPermissions) {
+                @Override
+                public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
+                    DataPointRT dprt = (DataPointRT) point;
+                    if(!dprt.getVO().getPointLocator().isSettable()) {
+                        scriptOut.append("Point " + dprt.getVO().getExtendedName() + " not settable.");
+                        return;
+                    }
+    
+                    if(!Permissions.hasDataPointSetPermission(permissions, dprt.getVO())) {
+                        scriptOut.write(new TranslatableMessage("pointLinks.setTest.permissionDenied", dprt.getVO().getXid()).translate(Common.getTranslations()));
+                        return;
+                    }
+    
+                    scriptOut.append("Setting point " + dprt.getVO().getName() + " to " + value + " @" + sdf.format(new Date(timestamp)) + "\r\n");
                 }
-
-                if(!Permissions.hasDataPointSetPermission(permissions, dprt.getVO())) {
-                    scriptOut.write(new TranslatableMessage("pointLinks.setTest.permissionDenied", dprt.getVO().getXid()).translate(Common.getTranslations()));
-                    return;
+    
+                @Override
+                protected void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation) {
+                    // not really setting
                 }
-
-                scriptOut.append("Setting point " + dprt.getVO().getName() + " to " + value + " @" + sdf.format(new Date(timestamp)) + "\r\n");
-            }
-
-            @Override
-            protected void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation) {
-                // not really setting
-            }
-        };
-
-        try {
+            };
             CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-            PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
-                    targetDataType, System.currentTimeMillis(), scriptPermissions, scriptWriter,
-                    new ScriptLog(SetPointHandlerRT.NULL_WRITER, LogLevel.FATAL), loggingSetter, null, true);
+                PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
+                        targetDataType, System.currentTimeMillis(), scriptPermissions,
+                        scriptLog, loggingSetter, null, true);
             if (pvt.getValue() == null)
                 message = new TranslatableMessage("eventHandlers.script.nullResult");
             else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue()) {

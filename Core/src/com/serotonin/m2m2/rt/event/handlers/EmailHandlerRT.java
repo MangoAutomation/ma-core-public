@@ -59,7 +59,6 @@ import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
-import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
@@ -380,12 +379,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     }
                 });
                 
-                try {
+                try (ScriptLog scriptLog = new ScriptLog("emailScript-" + evt.getId())){
                     CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
                     PointValueTime result = CompiledScriptExecutor.execute(compiledScript, context, modelContext, Common.timer.currentTimeMillis(), 
                             DataTypes.ALPHANUMERIC, evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp(), 
-                            permissions, SetPointHandlerRT.NULL_WRITER, new ScriptLog(SetPointHandlerRT.NULL_WRITER,
-                            LogLevel.FATAL), setCallback, importExclusions, false);
+                            permissions, scriptLog,
+                            setCallback, importExclusions, false);
                     if(result != null && result.getValue() == CompiledScriptExecutor.UNCHANGED) //The script cancelled the email
                         return;
                     

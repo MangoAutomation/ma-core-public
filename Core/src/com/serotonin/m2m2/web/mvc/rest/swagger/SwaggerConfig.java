@@ -56,7 +56,7 @@ public class SwaggerConfig {
 	@Autowired
 	private TypeResolver typeResolver;
 	
-	@Value("${springfox.documentation.swagger.v2.path}")
+	@Value("${springfox.documentation.swagger.v2.path:/swagger/v2/api-docs}")
 	private String swagger2Endpoint;
 	
 	@Bean

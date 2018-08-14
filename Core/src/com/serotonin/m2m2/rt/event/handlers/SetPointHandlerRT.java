@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.rt.event.handlers;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +19,6 @@ import org.apache.commons.logging.LogFactory;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.io.NullWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -40,7 +38,6 @@ import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptLog;
-import com.serotonin.m2m2.rt.script.ScriptLog.LogLevel;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
@@ -53,7 +50,6 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
     private CompiledScript activeScript;
     private CompiledScript inactiveScript;
     private final List<JsonImportExclusion> importExclusions;
-    public static final PrintWriter NULL_WRITER = new PrintWriter(new NullWriter());
     private final SetCallback setCallback;
 
     public SetPointHandlerRT(SetPointEventHandlerVO vo) {
@@ -148,14 +144,14 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, targetPoint);
         	Map<String, Object> additionalContext = new HashMap<String, Object>();
         	additionalContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, new EventInstanceWrapper(evt));
-        	try {
+        	try (ScriptLog scriptLog = new ScriptLog("setPointHandler-" + evt.getId())){
         		for(IntStringPair cxt : vo.getAdditionalContext()) {
         			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
         			if(dprt != null)
         				context.put(cxt.getValue(), dprt);
         		}
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, additionalContext, evt.getActiveTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), vo.getScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL), 
+	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), vo.getScriptPermissions(), scriptLog, 
 	        			setCallback, importExclusions, false);
 
 	        	value = pvt.getValue();
@@ -238,7 +234,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                         context.put(cxt.getValue(), dprt);
                 }
 	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, additionalContext, evt.getRtnTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), vo.getScriptPermissions(), NULL_WRITER, new ScriptLog(NULL_WRITER, LogLevel.FATAL),
+	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), vo.getScriptPermissions(), new ScriptLog("setPointHandler-" + evt.getId()),
 	        			setCallback, importExclusions, false);
 	        	value = pvt.getValue();
         	} catch(ScriptPermissionsException e) {
@@ -272,10 +268,10 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         }
 
         SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, vo.getId());
-        if (StringUtils.isBlank(vo.getAlias()))
+        if (StringUtils.isBlank(vo.getName()))
             message = new TranslatableMessage("event.setPointFailed", message);
         else
-            message = new TranslatableMessage("event.setPointFailed.alias", vo.getAlias(), message);
+            message = new TranslatableMessage("event.setPointFailed.alias", vo.getName(), message);
         SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
     }
 
