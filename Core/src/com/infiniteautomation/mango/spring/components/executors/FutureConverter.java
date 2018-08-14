@@ -28,7 +28,6 @@ class FutureConverter implements Runnable {
     private final TimeUnit pollIntervalUnit = TimeUnit.MILLISECONDS;
     private final LinkedBlockingQueue<ConversionJob<Object>> queue = new LinkedBlockingQueue<>();
     private final Executor executor;
-    private volatile Thread thread;
 
     /**
      * @param executor used to complete the CompletableFutures
@@ -55,17 +54,9 @@ class FutureConverter implements Runnable {
         return job.completableFuture;
     }
 
-    public void stop() throws InterruptedException {
-        Thread thread = this.thread;
-        if (thread != null) {
-            thread.interrupt();
-            thread.join();
-        }
-    }
-
     @Override
     public void run() {
-        this.thread = Thread.currentThread();
+        Thread.currentThread().setName("Mango FutureConverter loop");
 
         while (true) {
             try {
@@ -73,7 +64,7 @@ class FutureConverter implements Runnable {
                 try {
                     job = queue.take();
                 } catch (InterruptedException e) {
-                    // thread interrupted (shutdown)
+                    // thread interrupted (terminated)
                     // nothing in the queue so just break the loop
                     break;
                 }
@@ -96,7 +87,7 @@ class FutureConverter implements Runnable {
                         continue;
                     }
                 } catch (InterruptedException e) {
-                    // thread interrupted (shutdown)
+                    // thread interrupted (terminated)
                     // complete all the CompletableFutures from this thread and break the loop
 
                     job.completableFuture.completeExceptionally(e);
