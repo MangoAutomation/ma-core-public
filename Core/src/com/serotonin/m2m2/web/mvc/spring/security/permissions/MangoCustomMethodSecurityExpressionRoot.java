@@ -45,7 +45,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	    
 	    if (principal instanceof User) {
 	        User user = (User) this.getPrincipal();
-	        return user.isAdmin();
+	        return user.hasAdminPermission();
 	    }
 	    
 	    // principal is probably a string "anonymousUser"
@@ -69,7 +69,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 */
 	public boolean hasDataSourceXidPermission(String xid){
 		User user =  (User) this.getPrincipal();
-		if(user.isAdmin())
+		if(user.hasAdminPermission())
 			return true;
 		DataSourceVO<?> dsvo = DataSourceDao.getInstance().getByXid(xid);
 		if((dsvo == null)||(!Permissions.hasDataSourcePermission(user, dsvo)))
@@ -84,7 +84,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 */
 	public boolean hasAllPermissions(String...permissions){
 		User user =  (User) this.getPrincipal();
-		if(user.isAdmin())
+		if(user.hasAdminPermission())
 			return true;
 		
 		Set<String> userPermissions = user.getPermissionsSet();
@@ -103,7 +103,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 	 */
 	public boolean hasPermissionType(String permissionType){
 		User user =  (User) this.getPrincipal();
-		if(user.isAdmin())
+		if(user.hasAdminPermission())
 			return true;
 		Set<String> userPermissions = user.getPermissionsSet();
 		for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
