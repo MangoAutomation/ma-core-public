@@ -113,25 +113,6 @@ public class MangoRuntimeContextConfiguration {
     public ExecutorService executorService(MangoExecutors executors) {
         return executors.getExecutor();
     }
-    
-    /**
-     * J.W. This is used to convert properties from strings into lists of integers etc when they are injected by Spring
-     * @return
-     */
-    @Bean
-    public static ConversionService conversionService() {
-        return new DefaultConversionService();
-    }
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env) {
-        env.getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
-        env.setConversionService((ConfigurableConversionService) conversionService());
-
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        configurer.setIgnoreUnresolvablePlaceholders(false);
-        return configurer;
-    }
 
     /**
      * J.W. This is used to convert properties from strings into lists of integers etc when they are injected by Spring
