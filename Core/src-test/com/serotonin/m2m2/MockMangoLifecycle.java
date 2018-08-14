@@ -6,8 +6,10 @@ package com.serotonin.m2m2;
 
 import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
@@ -376,5 +378,12 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         this.backgroundProcessing = backgroundProcessing;
     }
     
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.IMangoLifecycle#verifyProperties(java.io.InputStream, boolean, java.util.Map)
+     */
+    @Override
+    public boolean verifyProperties(InputStream in, boolean signed, Map<String, String> verify) {
+        return true;
+    }
     
 }

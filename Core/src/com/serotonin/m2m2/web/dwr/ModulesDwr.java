@@ -524,20 +524,21 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         expectedProperties.put("name", name);
                         expectedProperties.put("version", version.toString());
                         boolean signed = true;
-                        try {
-                            ZipFile module = new ZipFile(outFile);
+                        try (ZipFile module = new ZipFile(outFile)){
                             ZipEntry propertiesFile = module.getEntry(ModuleUtils.Constants.MODULE_SIGNED);
                             if(propertiesFile == null) {
                                 signed = false;
                                 propertiesFile = module.getEntry(ModuleUtils.Constants.MODULE_PROPERTIES);
-                                if(propertiesFile == null) //TODO consider failure here?
-                                    continue;
+                                if(propertiesFile == null) {
+                                    LOG.warn("Module missing properties file.");
+                                    throw new ShouldNeverHappenException("Module missing properties file.");
+                                }
                             }
-                        
                             InputStream in = module.getInputStream(propertiesFile);
                             Common.verifyProperties(in, signed, expectedProperties);
                         } catch(Exception e) {
-                            //TODO consider failure here?
+                            LOG.warn(e);
+                            throw new ShouldNeverHappenException(e);
                         }
                     }
                 }
