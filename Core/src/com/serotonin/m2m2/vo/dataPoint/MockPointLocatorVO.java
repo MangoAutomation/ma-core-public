@@ -5,6 +5,8 @@
 package com.serotonin.m2m2.vo.dataPoint;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -15,7 +17,10 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
 /**
@@ -76,15 +81,6 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 	}
 
 	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-	@Override
-	public void validate(ProcessResult response) {
-		// TODO Implement when needed for testing
-		
-	}
-
-	/* (non-Javadoc)
 	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
 	 */
 	@Override
@@ -112,5 +108,26 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO#validateImpl(com.serotonin.m2m2.i18n.ProcessResult, com.serotonin.m2m2.vo.DataPointVO, com.serotonin.m2m2.vo.dataSource.DataSourceVO)
+     */
+    @Override
+    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO<?> dsvo) {
+        if(!(dsvo instanceof MockDataSourceVO))
+            response.addContextualMessage("dataSourceId", "dpEdit.validate.invalidDataSourceType");
+    }
+    
+    private static final long serialVersionUID = -1;
+    private static final int version = 1;
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(version);
+    }
+    private void readObject(ObjectInputStream in) throws IOException {
+        in.readInt();
+    }
+    
 
 }

@@ -69,7 +69,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     protected ProcessResult tryDataSourceSave(DataSourceVO<?> ds) {
         ProcessResult response = new ProcessResult();
 
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         if(!Permissions.hasPermission(user, ds.getEditPermission())) {
         	response.addContextualMessage("dataSource.editPermission", "validate.mustHaveEditPermission");
         	return response;
@@ -88,12 +88,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     @DwrPermission(user = true)
     public void cancelTestingUtility() {
-        Common.getUser().cancelTestingUtility();
+        Common.getHttpUser().cancelTestingUtility();
     }
 
     @DwrPermission(user = true)
     public List<DataPointVO> getPoints() {
-        User user = Common.getUser();
+        User user = Common.getHttpUser();
         if (user == null)
             return null;
 
@@ -113,8 +113,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     protected DataPointVO getPoint(int pointId, DataPointDefaulter defaulter) {
         //Added to allow saving point settings from data point edit view
-        DataPointVO dp = Common.getUser().getEditPoint();
-        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        DataPointVO dp = Common.getHttpUser().getEditPoint();
+        DataSourceVO<?> ds = Common.getHttpUser().getEditDataSource();
 
         if(ds.getId() == Common.NEW_ID)
         	throw new ShouldNeverHappenException("Please Save Data Source First.");
@@ -164,7 +164,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             throw new RuntimeException("Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
         }
         
-        Common.getUser().setEditPoint(dp);
+        Common.getHttpUser().setEditPoint(dp);
         return dp;
     }
 
@@ -236,7 +236,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 dp.getTextRenderer().validate(response);
         }
         //Validate Locator
-        locator.validate(response, dp);
+        locator.validate(response, dp, ds);
 
         if (!response.getHasMessages()) {
 
@@ -263,7 +263,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             if (includePointList)
                 response.addData("points", getPoints());
             //Set the User Point
-            Common.getUser().setEditPoint(dp);
+            Common.getHttpUser().setEditPoint(dp);
         }
 
         return response;
@@ -280,7 +280,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     @DwrPermission(user = true)
     public Map<String, Object> toggleEditDataSource() {
-        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        DataSourceVO<?> ds = Common.getHttpUser().getEditDataSource();
         Map<String, Object> result = super.toggleDataSource(ds.getId());
         ds.setEnabled((Boolean) result.get("enabled"));
         return result;
@@ -295,8 +295,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     @DwrPermission(user = true)
     public List<EventInstanceBean> getAlarms() {
-        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
-        List<EventInstance> events = EventDao.getInstance().getPendingEventsForDataSource(ds.getId(), Common.getUser().getId());
+        DataSourceVO<?> ds = Common.getHttpUser().getEditDataSource();
+        List<EventInstance> events = EventDao.getInstance().getPendingEventsForDataSource(ds.getId(), Common.getHttpUser().getId());
         List<EventInstanceBean> beans = new ArrayList<>();
         if (events != null) {
             for (EventInstance event : events)
@@ -308,7 +308,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     @DwrPermission(user = true)
     public void updateEventAlarmLevel(int eventId, int alarmLevel) {
-        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        DataSourceVO<?> ds = Common.getHttpUser().getEditDataSource();
         ds.setAlarmLevel(eventId, alarmLevel);
     }
 
@@ -316,19 +316,19 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     public String exportDataSource() {
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
-        dss.add(Common.getUser().getEditDataSource());
+        dss.add(Common.getHttpUser().getEditDataSource());
         data.put(ConfigurationExportData.DATA_SOURCES, dss);
         return EmportDwr.export(data);
     }
 
     @DwrPermission(user = true)
     public String exportDataPoint(int dataPointId) {
-        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        DataSourceVO<?> ds = Common.getHttpUser().getEditDataSource();
         DataPointVO dp = DataPointDao.getInstance().getDataPoint(dataPointId);
         if (dp == null)
             return null;
         if (dp.getDataSourceId() != ds.getId())
-            throw new PermissionException(new TranslatableMessage("common.default", "Wrong data source"), Common.getUser());
+            throw new PermissionException(new TranslatableMessage("common.default", "Wrong data source"), Common.getHttpUser());
 
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataPointVO> dss = new ArrayList<>();
@@ -341,7 +341,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     public final ProcessResult getGeneralStatusMessages() {
         ProcessResult result = new ProcessResult();
 
-        DataSourceVO<?> vo = Common.getUser().getEditDataSource();
+        DataSourceVO<?> vo = Common.getHttpUser().getEditDataSource();
         DataSourceRT<?> rt = Common.runtimeManager.getRunningDataSource(vo.getId());
 
         List<TranslatableMessage> messages = new ArrayList<>();
@@ -363,7 +363,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     @DwrPermission(user = true)
     public long purgeNow(int purgeType, int purgePeriod, boolean allData) {
 
-        DataSourceVO<?> ds = Common.getUser().getEditDataSource();
+        DataSourceVO<?> ds = Common.getHttpUser().getEditDataSource();
         if (ds.getId() == Common.NEW_ID)
             return 0;
 

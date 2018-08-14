@@ -68,7 +68,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (DataSourceDao<DataSourceVO<?>>)o;
     });
-
+    
     private DataSourceDao() {
         super(AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }

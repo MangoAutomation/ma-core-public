@@ -1,5 +1,8 @@
 package com.serotonin.m2m2.vo.dataSource.mock;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.List;
 
 import com.serotonin.m2m2.db.dao.AbstractDao;
@@ -15,7 +18,6 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.MockDataSourceModel;
  * Useful for things like validation and testing
  */
 public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
-    private static final long serialVersionUID = 1L;
     
     public MockDataSourceVO(){
     	    this.setDefinition(new MockDataSourceDefinition());
@@ -61,4 +63,13 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
 		return null;
 	}
     
+    private static final long serialVersionUID = -1;
+    private static final int version = 1;
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(version);
+    }
+    private void readObject(ObjectInputStream in) throws IOException {
+        in.readInt();
+    }
 }

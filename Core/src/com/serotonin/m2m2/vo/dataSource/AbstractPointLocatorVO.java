@@ -13,15 +13,15 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.vo.DataPointVO;
 
 //Required to prevent properties from being written
 @JsonEntity
 abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<VO>> implements PointLocatorVO<VO> {
+    
+    
     @Override
     public TranslatableMessage getDataTypeMessage() {
         return DataTypes.getDataTypeMessage(getDataTypeId());
@@ -64,27 +64,11 @@ abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<V
     }
 
     /**
-     * Defaults to returning null. Override to return something else.
-     */
-    @Override
-    public DataPointSaveHandler getDataPointSaveHandler() {
-        return null;
-    }
-
-    /**
      * Defaults to returning false. Override to return something else.
      */
     @Override
     public boolean isRelinquishable() {
         return false;
-    }
-
-    /**
-     * Defaults to calling the response only version of the method so that subclasses are not forced to implement.
-     */
-    @Override
-    public void validate(ProcessResult response, DataPointVO dpvo) {
-        validate(response);
     }
     
     public String getClassName(){

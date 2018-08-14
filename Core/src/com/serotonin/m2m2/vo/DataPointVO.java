@@ -36,6 +36,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
@@ -972,7 +973,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         else if(!validateRollup())
         	response.addContextualMessage("rollup", "validate.rollup.incompatible", rollup);
 
-        pointLocator.validate(response, this);
+        DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(dataSourceId);
+        if(dsvo == null) {
+            response.addContextualMessage("dataSourceId", "validate.invalidValue");
+            return;
+        }
+        pointLocator.validate(response, this, dsvo);
 
         // Check text renderer type
         if (textRenderer != null && !textRenderer.getDef().supports(pointLocator.getDataTypeId()))
