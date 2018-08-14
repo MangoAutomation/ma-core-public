@@ -490,6 +490,7 @@
                 for(var k = 0; k < handler.additionalContext.length; k+=1)
                 	addToContextArray(handler.additionalContext[k].key, handler.additionalContext[k].value)
                 writeContextArray("emailContextTable");
+                emailScriptEditor.setValue(handler.script);
             }
             else if (handler.handlerType == '<c:out value="<%= ProcessEventHandlerDefinition.TYPE_NAME %>"/>') {
                 $set("activeProcessCommand", handler.activeProcessCommand);
