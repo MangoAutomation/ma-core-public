@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -16,13 +17,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MangoSwitchUserFilter extends SwitchUserFilter {
+    
     RequestMatcher suMatcher = new AntPathRequestMatcher("/rest/*/login/su", HttpMethod.POST.name());
     RequestMatcher exitSuMatcher = new AntPathRequestMatcher("/rest/*/login/exit-su", HttpMethod.POST.name());
 
     @Autowired
-    public MangoSwitchUserFilter(UserDetailsService userDetailsService, AuthenticationSuccessHandler authenticationSuccessHandler) {
+    public MangoSwitchUserFilter(UserDetailsService userDetailsService, AuthenticationSuccessHandler authenticationSuccessHandler, ApplicationEventPublisher eventPublisher) {
         this.setUserDetailsService(userDetailsService);
         this.setSuccessHandler(authenticationSuccessHandler);
+        this.setApplicationEventPublisher(eventPublisher);
         this.setUsernameParameter("username");
     }
 
@@ -35,4 +38,5 @@ public class MangoSwitchUserFilter extends SwitchUserFilter {
     protected boolean requiresExitUser(HttpServletRequest request) {
         return exitSuMatcher.matches(request);
     }
+
 }

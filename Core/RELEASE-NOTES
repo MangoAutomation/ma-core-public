@@ -28,6 +28,7 @@
 * Control if the point value cache is considered in JavaScript statistics functions, default to not using the cache
 * Fix print( contextPoint ) in script environments to print getStats as function name instead of stats
 * Allow using LOG statements in Event Handler script evaluation
+* Log Switch User events when a user switches to another and back
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
