@@ -253,6 +253,8 @@ public class AnalogRenderer extends ConvertingRenderer {
             for(int i=0; i<parts[1].length(); i++)
                 if(parts[1].charAt(i) == '0')
                     digits++;
+                else
+                    result.addContextualMessage("format", "validate.invalidValue");
             if(digits < 1)
                 result.addContextualMessage("format", "validate.invalidValue");
 		}
