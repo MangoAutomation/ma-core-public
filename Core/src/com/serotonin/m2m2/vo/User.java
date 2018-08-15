@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.IllformedLocaleException;
@@ -20,10 +21,15 @@ import javax.servlet.http.HttpSessionBindingListener;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
+import org.passay.LengthRule;
+import org.passay.PasswordData;
+import org.passay.PasswordValidator;
+import org.passay.RuleResult;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.common.base.Joiner;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -591,6 +597,16 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
                 if ((PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
                     response.addMessage("password", new TranslatableMessage("validate.required"));
+                }
+                
+                //Validate against our rules
+                if (PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)){
+                    PasswordValidator validator = new PasswordValidator(Arrays.asList(
+                            new LengthRule(8, 255)));
+                    RuleResult result = validator.validate(new PasswordData(hashOrPassword));
+                    if(!result.isValid()) {
+                        response.addContextualMessage("password", "common.default", Joiner.on(",").join(validator.getMessages(result)));
+                    }
                 }
             }
         }
