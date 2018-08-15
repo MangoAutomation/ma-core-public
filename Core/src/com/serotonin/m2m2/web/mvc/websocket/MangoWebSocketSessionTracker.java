@@ -79,14 +79,17 @@ public class MangoWebSocketSessionTracker {
 
     @PostConstruct
     private void postConstruct() {
-        // SessionDestroyedEvent from root context are not propagated to the child web context. Register as a listener
-        // on the parent.
-        ConfigurableApplicationContext parent = (ConfigurableApplicationContext) context.getParent();
+        // events from root context are not propagated to the child contexts. Register as a listener
+        // on the upper most context.
+        ConfigurableApplicationContext context = this.context;
+        while (context.getParent() != null) {
+            context = (ConfigurableApplicationContext) context.getParent();
+        }
 
-        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::sessionDestroyed, SessionDestroyedEvent.class));
-        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::userUpdated, UserUpdatedEvent.class));
-        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::userDeleted, UserDeletedEvent.class));
-        parent.addApplicationListener(new ApplicationListenerAdapter<>(this::allAuthTokensRevoked, AuthTokensRevokedEvent.class));
+        context.addApplicationListener(new ApplicationListenerAdapter<>(this::sessionDestroyed, SessionDestroyedEvent.class));
+        context.addApplicationListener(new ApplicationListenerAdapter<>(this::userUpdated, UserUpdatedEvent.class));
+        context.addApplicationListener(new ApplicationListenerAdapter<>(this::userDeleted, UserDeletedEvent.class));
+        context.addApplicationListener(new ApplicationListenerAdapter<>(this::allAuthTokensRevoked, AuthTokensRevokedEvent.class));
     }
 
     private String httpSessionIdForSession(WebSocketSession session) {

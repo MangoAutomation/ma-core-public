@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -52,6 +53,7 @@ public class UserDao extends AbstractDao<User> {
     });
 
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
+    private final ApplicationContext context;
 
     /**
      * @param typeName
@@ -59,12 +61,14 @@ public class UserDao extends AbstractDao<User> {
      * @param extraProperties
      * @param extraSQL
      */
-    private UserDao() {
-        super(AuditEventType.TYPE_USER, "u", 
-                new String[0], false, 
+    @Autowired
+    private UserDao(ApplicationContext context) {
+        super(AuditEventType.TYPE_USER, "u",
+                new String[0], false,
                 new TranslatableMessage("internal.monitor.USER_COUNT"));
+        this.context = context;
     }
-    
+
     /**
      * Get cached instance from Spring Context
      * @return
@@ -72,7 +76,7 @@ public class UserDao extends AbstractDao<User> {
     public static UserDao getInstance() {
         return springInstance.get();
     }
-    
+
     public User getUser(int id) {
         return this.get(id);
     }
@@ -150,11 +154,11 @@ public class UserDao extends AbstractDao<User> {
                         new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                                 boolToChar(user.isDisabled()), user.getHomeUrl(),
                                 user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
-                                boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(), 
+                                boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
                                 user.getPasswordVersion()},
                         new int[] { Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, 
+                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.INTEGER, Types.INTEGER }
                         );
             }
@@ -167,10 +171,7 @@ public class UserDao extends AbstractDao<User> {
         if (handler != null)
             handler.notify("add", user);
 
-        ApplicationContext context = Common.getRootContext();
-        if (context != null) {
-            context.publishEvent(new UserCreatedEvent(this, user));
-        }
+        this.context.publishEvent(new UserCreatedEvent(this, user));
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -234,17 +235,14 @@ public class UserDao extends AbstractDao<User> {
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
             boolean passwordChanged = user.getPasswordVersion() > originalPwVersion;
 
-            ApplicationContext context = Common.getRootContext();
-            if (context != null) {
-                EnumSet<UpdatedFields> fields = EnumSet.noneOf(UserUpdatedEvent.UpdatedFields.class);
-                if (passwordChanged) {
-                    fields.add(UserUpdatedEvent.UpdatedFields.PASSWORD);
-                }
-                if (permissionsChanged) {
-                    fields.add(UserUpdatedEvent.UpdatedFields.PERMISSIONS);
-                }
-                context.publishEvent(new UserUpdatedEvent(this, user, fields));
+            EnumSet<UpdatedFields> fields = EnumSet.noneOf(UserUpdatedEvent.UpdatedFields.class);
+            if (passwordChanged) {
+                fields.add(UserUpdatedEvent.UpdatedFields.PASSWORD);
             }
+            if (permissionsChanged) {
+                fields.add(UserUpdatedEvent.UpdatedFields.PERMISSIONS);
+            }
+            this.context.publishEvent(new UserUpdatedEvent(this, user, fields));
 
             if (passwordChanged || permissionsChanged || user.isDisabled()) {
                 exireSessionsForUser(old);
@@ -263,6 +261,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     private void exireSessionsForUser(User user) {
+        // web context may not be initialized, can't inject this context
         ApplicationContext context = Common.getRootContext();
         if (context != null) {
             MangoSessionRegistry sessionRegistry = context.getBean(MangoSessionRegistry.class);
@@ -293,10 +292,7 @@ public class UserDao extends AbstractDao<User> {
         if (handler != null)
             handler.notify("delete", user);
 
-        ApplicationContext context = Common.getRootContext();
-        if (context != null) {
-            context.publishEvent(new UserDeletedEvent(this, user));
-        }
+        this.context.publishEvent(new UserDeletedEvent(this, user));
 
         // expire the user's sessions
         exireSessionsForUser(user);
@@ -316,10 +312,7 @@ public class UserDao extends AbstractDao<User> {
 
         user.setTokenVersion(newTokenVersion);
 
-        ApplicationContext context = Common.getRootContext();
-        if (context != null) {
-            context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.AUTH_TOKEN)));
-        }
+        this.context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.AUTH_TOKEN)));
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
     }
@@ -341,10 +334,7 @@ public class UserDao extends AbstractDao<User> {
         user.setPassword(LOCKED_PASSWORD);
         user.setPasswordVersion(newPasswordVersion);
 
-        ApplicationContext context = Common.getRootContext();
-        if (context != null) {
-            context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.PASSWORD)));
-        }
+        this.context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.PASSWORD)));
 
         // expire the user's sessions
         exireSessionsForUser(user);

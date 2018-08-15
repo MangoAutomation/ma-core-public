@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.web.mvc.spring.components;
+package com.infiniteautomation.mango.spring.components;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -52,6 +53,13 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public static final String USER_ID_CLAIM = "id";
     public static final String USER_PASSWORD_VERSION_CLAIM = "v";
 
+    private final UserDao userDao;
+
+    @Autowired
+    public PasswordResetService(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
     @Override
     protected String tokenType() {
         return TOKEN_TYPE_VALUE;
@@ -62,7 +70,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        User user = UserDao.getInstance().getUser(username);
+        User user = this.userDao.getUser(username);
         if (user == null) {
             throw new NotFoundException();
         }
@@ -147,7 +155,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         User user = this.verify(token);
         user.setPlainTextPassword(newPassword);
         user.ensureValid();
-        UserDao.getInstance().saveUser(user);
+        this.userDao.saveUser(user);
         return user;
     }
 

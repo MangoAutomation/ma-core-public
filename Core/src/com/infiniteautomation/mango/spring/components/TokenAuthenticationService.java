@@ -1,15 +1,13 @@
 /**
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.web.mvc.spring.components;
+package com.infiniteautomation.mango.spring.components;
 
 import java.security.KeyPair;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
@@ -37,12 +35,12 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
 
     private static final int DEFAULT_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
-    private final UserDetailsService userDetailsService;
+    private final UserDao userDao;
     private final ApplicationContext context;
 
     @Autowired
-    public TokenAuthenticationService(UserDetailsService userDetailsService, ApplicationContext context) {
-        this.userDetailsService = userDetailsService;
+    public TokenAuthenticationService(UserDao userDao, ApplicationContext context) {
+        this.userDao = userDao;
         this.context = context;
     }
 
@@ -101,13 +99,11 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
         if (username == null) {
             throw new NotFoundException();
         }
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        if (!(userDetails instanceof User)) {
-            throw new RuntimeException("Expected user details to be instance of User");
+        User user = this.userDao.getUser(username);
+        if (user == null) {
+            throw new NotFoundException();
         }
-
-        User user = (User) userDetails;
 
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);

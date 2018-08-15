@@ -15,9 +15,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.components.TokenAuthenticationService;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.exception.NotFoundException;
-import com.serotonin.m2m2.web.mvc.spring.components.TokenAuthenticationService;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
