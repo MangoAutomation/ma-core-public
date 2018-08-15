@@ -95,7 +95,7 @@ public class MockEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user) {
-        return true;
+        return user.hasAdminPermission() || user.hasSinglePermission("MOCK");
     }
 
     /* (non-Javadoc)
