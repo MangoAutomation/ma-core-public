@@ -896,6 +896,12 @@ public class SystemSettingsDao extends BaseDao {
                 response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
             }
         }
+        
+        
+        validatePeriodType(PASSWORD_EXPIRATION_PERIOD_TYPE, settings, response);
+        Integer passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);
+        if(passwordExpirationPeriods != null && passwordExpirationPeriods < 1)
+            response.addContextualMessage(PASSWORD_EXPIRATION_PERIODS, "validate.greaterThanZero");
     }
 
 
