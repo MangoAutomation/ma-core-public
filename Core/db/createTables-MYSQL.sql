@@ -48,6 +48,7 @@ create table users (
   locale varchar(50),
   tokenVersion int not null,
   passwordVersion int not null,
+  passwordChangeTimestamp bigint NOT NULL,
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);

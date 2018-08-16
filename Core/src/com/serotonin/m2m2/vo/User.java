@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Joiner;
 import com.infiniteautomation.mango.util.LazyInitializer;
+import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -40,6 +42,7 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -99,6 +102,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     private int tokenVersion;
     private int passwordVersion;
+    private long passwordChangeTimestamp;
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -534,6 +538,13 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
         this.remoteAddr = ipAddress;
     }
 
+    public void setPasswordChangeTimestamp(long timestamp){
+        this.passwordChangeTimestamp = timestamp;
+    }
+    
+    public long getPasswordChangeTimestamp() {
+        return this.passwordChangeTimestamp;
+    }
     /*
      * (non-Javadoc)
      * @see org.springframework.security.core.userdetails.UserDetails#getAuthorities()
@@ -566,7 +577,18 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
      */
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; //Don't have this feature
+        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.PASSWORD_EXPIRATION_ENABLED)) {
+            int resetPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE);
+            int resetPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
+            NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(resetPeriodType, resetPeriods);
+            Instant lastChange = Instant.ofEpochMilli(this.passwordChangeTimestamp);
+            Instant now = Instant.ofEpochMilli(Common.timer.currentTimeMillis());
+            Instant nextChange = (Instant) adjuster.adjustInto(lastChange);
+            if(nextChange.isAfter(now))
+                return true;
+            return false;
+        }
+        return true;
     }
 
     /* (non-Javadoc)

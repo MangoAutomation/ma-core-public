@@ -45,6 +45,7 @@ CREATE TABLE users (
   locale varchar(50),
   tokenVersion integer NOT NULL,
   passwordVersion integer NOT NULL,
+  passwordChangeTimestamp bigint NOT NULL,
   PRIMARY KEY (id)
 );
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE (username);

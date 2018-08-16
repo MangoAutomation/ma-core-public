@@ -182,6 +182,11 @@ public class SystemSettingsDao extends BaseDao {
     public static final String HTTP_SESSION_TIMEOUT_PERIOD_TYPE = "httpSessionTimeoutPeriodType";
     public static final String HTTP_SESSION_TIMEOUT_PERIODS = "httpSessionTimeoutPeriods";
 
+    // Password expiration settings
+    public static final String PASSWORD_EXPIRATION_ENABLED = "passwordExpirationEnabled";
+    public static final String PASSWORD_EXPIRATION_PERIOD_TYPE = "passwordExpirationPeriodType";
+    public static final String PASSWORD_EXPIRATION_PERIODS = "passwordExpirationPeriods";
+    
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
@@ -483,6 +488,11 @@ public class SystemSettingsDao extends BaseDao {
 
         DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, Common.TimePeriods.HOURS);
         DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIODS, 24);
+        
+        DEFAULT_VALUES.put(PASSWORD_EXPIRATION_ENABLED, false);
+        DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIOD_TYPE, Common.TimePeriods.MONTHS);
+        DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIODS, 6);
+        
         
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {

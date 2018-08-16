@@ -30,6 +30,7 @@
 * Allow using LOG statements in Event Handler script evaluation
 * Log Switch User events when a user switches to another and back
 * Adding initial support for Passay (www.passay.org) password validation to the backend for full release during the 3.5.x stream
+* Adding ability to set password expiration period
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
