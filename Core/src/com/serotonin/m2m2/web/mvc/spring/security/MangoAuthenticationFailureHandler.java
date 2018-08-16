@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -79,10 +80,16 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
         if (log.isWarnEnabled()) {
             this.logException(request, exception);
         }
-
+        
         saveExceptionImpl(request, exception);
 
         if (browserHtmlRequestMatcher.matches(request)) {
+            if (exception instanceof CredentialsExpiredException) {
+                String uri = DefaultPagesDefinition.getPasswordResetUri();
+                uri = UriComponentsBuilder.fromUriString(uri).build().toUriString();
+                this.getRedirectStrategy().sendRedirect(request, response, uri);
+                return;
+            }
             String uri = DefaultPagesDefinition.getLoginUri(request, response);
 
             uri = UriComponentsBuilder.fromUriString(uri)
