@@ -570,7 +570,7 @@ public class Common {
             throw new ShouldNeverHappenException(e);
         }
     }
-    
+
     public static boolean verifyProperties(InputStream in, boolean signed, Map<String, String> properties) {
         return Providers.get(IMangoLifecycle.class).verifyProperties(in, signed, properties);
     }
@@ -746,7 +746,7 @@ public class Common {
      * @return
      */
     public static String getCookieName() {
-        if (Common.envProps.getBoolean("sessionCookie.useGuid", false)) {
+        if (Common.envProps.getBoolean("sessionCookie.useGuid", true)) {
             return Providers.get(ICoreLicense.class).getGuid();
         }
 
