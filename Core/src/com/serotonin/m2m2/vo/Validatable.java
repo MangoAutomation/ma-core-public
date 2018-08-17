@@ -3,8 +3,8 @@
  */
 package com.serotonin.m2m2.vo;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.vo.exception.ValidationException;
 
 /**
  * @author Jared Wiltshire

@@ -36,63 +36,65 @@ import com.infiniteautomation.mango.rest.v2.exception.ResourceNotFoundException;
 import com.infiniteautomation.mango.rest.v2.exception.ServerErrorException;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.infiniteautomation.mango.util.exception.InvalidRQLException;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableIllegalStateException;
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.exception.NotFoundException;
-import com.serotonin.m2m2.vo.exception.ValidationException;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 
 /**
- * 
+ *
  * @author Terry Packer
  */
 @ControllerAdvice
 public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
 
     private final String REST_DEVELOPMENT_MODE = "development";  //Used to show exceptions during development instead of redirects
-	private final Log LOG = LogFactory.getLog(MangoSpringExceptionHandler.class);
-	
-	final RequestMatcher browserHtmlRequestMatcher;
-	
-	@Autowired
-	public MangoSpringExceptionHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
-		this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
-	}
-	
-	//Anything that extends our Base Exception
+    private final Log LOG = LogFactory.getLog(MangoSpringExceptionHandler.class);
+
+    final RequestMatcher browserHtmlRequestMatcher;
+
+    @Autowired
+    public MangoSpringExceptionHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
+        this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
+    }
+
+    //Anything that extends our Base Exception
     @ExceptionHandler({AbstractRestV2Exception.class})
     protected ResponseEntity<Object> handleMangoError(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
-    	    //Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
-    	    AbstractRestV2Exception e = (AbstractRestV2Exception)ex;
-    	    return handleExceptionInternal(ex, ex, new HttpHeaders(), e.getStatus(), req);
+        //Since all Exceptions handled by this method extend AbstractRestV2Exception we don't need to check type
+        AbstractRestV2Exception e = (AbstractRestV2Exception)ex;
+        return handleExceptionInternal(ex, ex, new HttpHeaders(), e.getStatus(), req);
     }
-    
+
     //TODO Handle Permission Exception Here
 
-	private final String ACCESS_DENIED = "/exception/accessDenied.jsp";
-	@SuppressWarnings("unused")
-	// XXX Previous code used this page if it was a CSRF exception, but this is not really an invalid session
+    private final String ACCESS_DENIED = "/exception/accessDenied.jsp";
+    @SuppressWarnings("unused")
+    // XXX Previous code used this page if it was a CSRF exception, but this is not really an invalid session
     private final String INVALID_SESSION = "/exception/invalidSession.jsp";
-	
+
     @ExceptionHandler({
         org.springframework.security.access.AccessDeniedException.class,
-    	    PermissionException.class
-    	})
+        PermissionException.class
+    })
     public ResponseEntity<Object> handleAccessDenied(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
         Object model;
-        
+
         if (ex instanceof PermissionException) {
             PermissionException permissionException = (PermissionException) ex;
             model = new AccessDeniedException(permissionException.getTranslatableMessage(), ex);
         } else {
             model = new AccessDeniedException(ex);
         }
-        
+
         return handleExceptionInternal(ex, model, new HttpHeaders(), HttpStatus.FORBIDDEN, req);
     }
-    
+
     @ExceptionHandler({
         ValidationException.class
     })
@@ -100,7 +102,7 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
         ValidationException validationException = (ValidationException) ex;
         return handleExceptionInternal(ex, new ValidationFailedRestException(validationException.getValidationResult()), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, req);
     }
-    
+
     @ExceptionHandler({
         NotFoundException.class,
         ResourceNotFoundException.class
@@ -108,31 +110,46 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
     public ResponseEntity<Object> handleNotFoundException(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req) {
         return handleExceptionInternal(ex, new NotFoundRestException(ex), new HttpHeaders(), HttpStatus.NOT_FOUND, req);
     }
-       
+
     @ExceptionHandler({
         InvalidRQLException.class
     })
     public ResponseEntity<Object> handleInvalidRQLException(HttpServletRequest request, HttpServletResponse response, InvalidRQLException ex, WebRequest req) {
-        return handleExceptionInternal(ex, new InvalidRQLRestException(ex.getQuery(), ex.getParserMessage()), new HttpHeaders(), HttpStatus.NOT_FOUND, req);
+        return handleExceptionInternal(ex, new InvalidRQLRestException(ex.getQuery(), ex.getParserMessage()), new HttpHeaders(), HttpStatus.BAD_REQUEST, req);
     }
-    
+
     @ExceptionHandler({
         TranslatableIllegalStateException.class
     })
     public ResponseEntity<Object> handleTranslatableIllegalStateException(HttpServletRequest request, HttpServletResponse response, TranslatableIllegalStateException ex, WebRequest req) {
-        return handleExceptionInternal(ex, new IllegalStateRestException(ex.getTranslatableMessage(), ex), new HttpHeaders(), HttpStatus.NOT_FOUND, req);
+        return handleExceptionInternal(ex, new IllegalStateRestException(ex.getTranslatableMessage(), ex), new HttpHeaders(), HttpStatus.BAD_REQUEST, req);
     }
-    
+
     @ExceptionHandler({
-    	Exception.class
+        TranslatableRuntimeException.class
+    })
+    public ResponseEntity<Object> handleTranslatableRuntimeException(HttpServletRequest request, HttpServletResponse response, TranslatableRuntimeException ex, WebRequest req) {
+
+        GenericRestException body = new GenericRestException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getTranslatableMessage(), ex.getCause());
+        return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
+    }
+
+    @ExceptionHandler({
+        TranslatableException.class
+    })
+    public ResponseEntity<Object> handleTranslatableException(HttpServletRequest request, HttpServletResponse response, TranslatableException ex, WebRequest req) {
+
+        GenericRestException body = new GenericRestException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getTranslatableMessage(), ex.getCause());
+        return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
+    }
+
+    @ExceptionHandler({
+        Exception.class
     })
     public ResponseEntity<Object> handleAllOtherErrors(HttpServletRequest request, HttpServletResponse response, Exception ex, WebRequest req){
         return handleExceptionInternal(ex, new ServerErrorException(ex), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
     }
-    
-    /* (non-Javadoc)
-     * @see org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler#handleExceptionInternal(java.lang.Exception, java.lang.Object, org.springframework.http.HttpHeaders, org.springframework.http.HttpStatus, org.springframework.web.context.request.WebRequest)
-     */
+
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex,
             Object body, HttpHeaders headers, HttpStatus status, WebRequest request) {
@@ -185,18 +202,18 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
             return new ResponseEntity<Object>(body, headers, status);
         }
     }
-    
+
     /**
      * Store the exception into the session if one exists
-     * 
+     *
      * @param request
      * @param ex
      */
     protected void storeException(HttpServletRequest request, Exception ex, HttpStatus status){
-    	    // Set Exception into Context
-		HttpSession sesh = request.getSession(false);
-		if (sesh != null)
-			sesh.setAttribute(Common.SESSION_USER_EXCEPTION, ex);
+        // Set Exception into Context
+        HttpSession sesh = request.getSession(false);
+        if (sesh != null)
+            sesh.setAttribute(Common.SESSION_USER_EXCEPTION, ex);
     }
-    
+
 }

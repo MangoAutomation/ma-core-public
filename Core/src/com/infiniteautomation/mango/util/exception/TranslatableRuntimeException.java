@@ -1,33 +1,33 @@
 /*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+ * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.i18n;
+package com.infiniteautomation.mango.util.exception;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
- * @author Matthew Lohbihler
+ * @author Jared Wiltshire
  */
-public class TranslatableException extends Exception {
+public class TranslatableRuntimeException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     private TranslatableMessage translatableMessage = null;
 
-    public TranslatableException() {
+    public TranslatableRuntimeException() {
         super();
     }
 
-    public TranslatableException(TranslatableMessage message, Throwable cause) {
+    public TranslatableRuntimeException(TranslatableMessage message, Throwable cause) {
         super(cause);
         this.translatableMessage = message;
     }
 
-    public TranslatableException(TranslatableMessage message) {
+    public TranslatableRuntimeException(TranslatableMessage message) {
         this.translatableMessage = message;
     }
 
-    public TranslatableException(Throwable cause) {
+    public TranslatableRuntimeException(Throwable cause) {
         super(cause);
     }
 

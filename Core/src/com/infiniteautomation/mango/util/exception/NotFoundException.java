@@ -1,24 +1,26 @@
 /*
  * Copyright (C) 2017 Infinite Automation Systems Inc. All rights reserved.
  */
-package com.serotonin.m2m2.vo.exception;
+package com.infiniteautomation.mango.util.exception;
+
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
  * Thrown when a VO object can't be found.
- * 
+ *
  * This exception is caught and converted to a {@link com.infiniteautomation.mango.rest.v2.exception.NotFoundRestException} for REST.
- * 
+ *
  * @author Jared Wiltshire
  * @see com.serotonin.m2m2.web.mvc.spring.exception.MangoSpringExceptionHandler
  */
-public class NotFoundException extends RuntimeException {
+public class NotFoundException extends TranslatableRuntimeException {
     private static final long serialVersionUID = 1L;
 
     public NotFoundException() {
-        super("Not found");
+        super(new TranslatableMessage("translatableException.notFound"));
     }
-    
+
     public NotFoundException(Throwable cause) {
-        super("Not found", cause);
+        super(new TranslatableMessage("translatableException.notFound"), cause);
     }
 }

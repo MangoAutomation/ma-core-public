@@ -28,13 +28,13 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.exception.NotFoundException;
 import com.serotonin.m2m2.web.mvc.spring.events.UserCreatedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserDeletedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
