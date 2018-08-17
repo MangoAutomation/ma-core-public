@@ -112,9 +112,13 @@ public class DataSourceEditDwr extends DataSourceListDwr {
     }
 
     protected DataPointVO getPoint(int pointId, DataPointDefaulter defaulter) {
-        //Added to allow saving point settings from data point edit view
-        DataPointVO dp = Common.getHttpUser().getEditPoint();
-        DataSourceVO<?> ds = Common.getHttpUser().getEditDataSource();
+        //Added to allow saving point settings from data point edit view, this can be called by a background thread
+        // so we must be sure to get the user from there if necessary
+        User user = Common.getHttpUser();
+        if(user == null)
+            user = Common.getBackgroundContextUser();
+        DataPointVO dp = user.getEditPoint();
+        DataSourceVO<?> ds = user.getEditDataSource();
 
         if(ds.getId() == Common.NEW_ID)
         	throw new ShouldNeverHappenException("Please Save Data Source First.");
@@ -164,7 +168,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             throw new RuntimeException("Data point type mismatch to data source type, unable to save.  Are you working with multiple tabs open?");
         }
         
-        Common.getHttpUser().setEditPoint(dp);
+        user.setEditPoint(dp);
         return dp;
     }
 
@@ -262,8 +266,12 @@ public class DataSourceEditDwr extends DataSourceListDwr {
             response.addData("vo", dp);
             if (includePointList)
                 response.addData("points", getPoints());
-            //Set the User Point
-            Common.getHttpUser().setEditPoint(dp);
+            //Set the User Point, this can be called by a background thread
+            // so we must be sure to get the user from there if necessary
+            User user = Common.getHttpUser();
+            if(user == null)
+                user = Common.getBackgroundContextUser();
+            user.setEditPoint(dp);
         }
 
         return response;
