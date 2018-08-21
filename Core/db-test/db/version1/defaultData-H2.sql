@@ -47,3 +47,58 @@ INSERT INTO dataPoints(id, xid, dataSourceId, name, deviceName, enabled, pointFo
 	
 -- Data point hierarchy
 INSERT INTO dataPointHierarchy (id, parentId, name) VALUES (1, 2, 'Folder 1');
+
+-- Events of all types
+INSERT INTO events (id,typename,subtypename,typeref1,typeref2,activets,rtnapplicable,rtnts,rtncause,alarmlevel,message,ackts,ackuserid,alternateacksource) VALUES
+(1,'SYSTEM','SYSTEM_STARTUP',0,0,1449880069262,'N',0,0,1,'event.system.startup|',null,null,null),
+(2,'SYSTEM','LICENSE_CHECK',0,0,1449880069281,'Y',1449880504905,4,2,'modules.event.freeMode|[modules.event.freeMode.reason.missingLicense|]',null,null,null),
+(3,'SYSTEM','MAX_ALARM_LEVEL_CHANGED',0,0,1449880069281,'N',0,0,0,'event.alarmMaxIncreased|[common.alarmLevel.none|][common.alarmLevel.urgent|]',1449880069281,null,null),
+(4,'SYSTEM','USER_LOGIN',1,0,1449880445234,'Y',1449880504929,1,1,'event.login|admin|192.168.1.20|',null,null,null),
+(5,'SYSTEM','MAX_ALARM_LEVEL_CHANGED',0,0,1449880504905,'N',0,0,0,'event.alarmMaxDecreased|[common.alarmLevel.urgent|][common.alarmLevel.info|]',1449880504905,null,null),
+(6,'SYSTEM','SYSTEM_SHUTDOWN',0,0,1449880504911,'N',0,0,1,'event.system.shutdown|',null,null,null),
+(7,'SYSTEM','MAX_ALARM_LEVEL_CHANGED',0,0,1449880504929,'N',0,0,0,'event.alarmMaxDecreased|[common.alarmLevel.info|][common.alarmLevel.none|]',1449880504929,null,null),
+(8,'SYSTEM','SYSTEM_STARTUP',0,0,1534878033198,'N',0,0,1,'event.system.startup|',null,null,null),
+(9,'SYSTEM','LICENSE_CHECK',0,0,1534878033249,'Y',1534878243472,4,2,'modules.event.freeMode|[modules.event.freeMode.reason.missingLicense|]',null,null,null),
+(10,'SYSTEM','MAX_ALARM_LEVEL_CHANGED',0,0,1534878033249,'N',0,0,0,'event.alarmMaxIncreased|[common.alarmLevel.none|][common.alarmLevel.urgent|]',1534878033249,null,null),
+(11,'SYSTEM','USER_LOGIN',1,0,1534878069808,'Y',1534878243514,1,1,'event.login|admin|10.55.55.233|',null,null,null),
+(12,'SYSTEM','USER_LOGIN',1,0,1534878119135,'Y',1534878243514,1,1,'event.login|admin|10.55.55.233|',null,null,null),
+(13,'AUDIT','DATA_SOURCE',1,0,1534878136753,'N',0,0,1,'event.audit.added|admin(1)|[event.audit.dataSource|]1|[event.audit.propertyList.6|[event.audit.property|[common.xid|]DS_249200|][event.audit.property|[common.name|]asshoels|][event.audit.property|[common.enabled|][common.false|]][event.audit.property|[dsEdit.logging.purgeOverride|][common.true|]][event.audit.property|[dsEdit.logging.purge|][common.tp.description|1|[common.tp.years|]]][event.audit.property|[dsEdit.updatePeriod|][common.tp.description|5|[common.tp.minutes|]]]]',null,null,null),
+(14,'AUDIT','DATA_POINT',1,0,1534878154732,'N',0,0,1,'event.audit.added|admin(1)|[event.audit.dataPoint|]1|[event.audit.propertyList.23|[event.audit.property|[common.xid|]DP_055067|][event.audit.property|[common.name|]asdf|][event.audit.property|[common.enabled|][common.false|]][event.audit.property|[pointEdit.logging.type|][pointEdit.logging.type.change|]][event.audit.property|[pointEdit.logging.period|][common.tp.description|15|[common.tp.minutes|]]][event.audit.property|[pointEdit.logging.valueType|][pointEdit.logging.valueType.instant|]][event.audit.property|[pointEdit.logging.tolerance|]0.0|][event.audit.property|[pointEdit.logging.purgeOverride|][common.true|]][event.audit.property|[pointEdit.logging.purge|][common.tp.description|1|[common.tp.years|]]][event.audit.property|[pointEdit.logging.defaultCache|]1|][event.audit.property|[pointEdit.logging.discard|][common.false|]][event.audit.property|[pointEdit.logging.discardLow|]0.0|][event.audit.property|[pointEdit.props.engineeringUnits|]95|][event.audit.property|[pointEdit.props.chartColour|]|][event.audit.property|[pointEdit.plotType|][pointEdit.plotType.step|]][event.audit.property|[pointEdit.props.overrideIntervalLoggingSamples|][common.false|]][event.audit.property|[pointEdit.props.intervalLoggingSampleWindowSize|]0|][event.audit.property|[dsEdit.settable|][common.false|]][event.audit.property|[dsEdit.pointDataType|][common.dataTypes.numeric|]][event.audit.property|[dsEdit.virtual.changeType|][dsEdit.virtual.changeType.random|]][event.audit.property|[dsEdit.virtual.startValue|]50|][event.audit.property|[dsEdit.virtual.min|]0.0|][event.audit.property|[dsEdit.virtual.max|]1000.0|]]',null,null,null),
+(15,'AUDIT','DATA_POINT',1,0,1534878159426,'N',0,0,1,'event.audit.changed|admin(1)|[event.audit.dataPoint|]1|[event.audit.propertyList.1|[event.audit.changedProperty|[common.enabled|][common.false|][common.true|]]]',null,null,null),
+(16,'AUDIT','DATA_SOURCE',1,0,1534878162316,'N',0,0,1,'event.audit.changed|admin(1)|[event.audit.dataSource|]1|[event.audit.propertyList.1|[event.audit.changedProperty|[common.enabled|][common.false|][common.true|]]]',null,null,null),
+(17,'SYSTEM','MAX_ALARM_LEVEL_CHANGED',0,0,1534878243472,'N',0,0,0,'event.alarmMaxDecreased|[common.alarmLevel.urgent|][common.alarmLevel.info|]',1534878243472,null,null),
+(18,'SYSTEM','SYSTEM_SHUTDOWN',0,0,1534878243483,'N',0,0,1,'event.system.shutdown|',null,null,null),
+(19,'SYSTEM','MAX_ALARM_LEVEL_CHANGED',0,0,1534878243514,'N',0,0,0,'event.alarmMaxDecreased|[common.alarmLevel.info|][common.alarmLevel.none|]',1534878243514,null,null),
+(20,'SYSTEM','SYSTEM_STARTUP',0,0,1534880772657,'N',0,0,1,'event.system.startup|',null,null,null),
+(21,'SYSTEM','LICENSE_CHECK',0,0,1534880772713,'Y',0,2,1,'modules.event.freeMode|[modules.event.freeMode.reason.missingLicense|]',null,null,null),
+(22,'SYSTEM','MAX_ALARM_LEVEL_CHANGED',0,0,1534880772713,'N',0,0,0,'event.alarmMaxIncreased|[common.alarmLevel.none|][common.alarmLevel.urgent|]',1534880772713,null,null),
+(23,'SYSTEM','USER_LOGIN',1,0,1534880965239,'Y',0,1,1,'event.login|admin|10.55.55.233|',null,null,null),
+(24,'SYSTEM','USER_LOGIN',1,0,1534881679005,'Y',0,1,1,'event.login|admin|10.55.55.233|',null,null,null),
+(25,'AUDIT','DATA_POINT',1,0,1534881709116,'N',0,0,1,'event.audit.changed|admin(1)|[event.audit.dataPoint|]1|[event.audit.propertyList.1|[event.audit.changedProperty|[pointEdit.props.chartColour|]||]]',null,null,null),
+(26,'AUDIT','POINT_EVENT_DETECTOR',1,0,1534881709125,'N',0,0,1,'event.audit.added|admin(1)|[event.audit.pointEventDetector|]1|[event.audit.propertyList.6|[event.audit.property|[common.xid|]PED_906913|][event.audit.property|[pointEdit.detectors.alias|]|][event.audit.property|[pointEdit.detectors.type|]pointEdit.detectors.change|][event.audit.property|[common.alarmLevel|][common.alarmLevel.critical|]][event.audit.property|[common.configuration|][event.detectorVo.change|]][event.audit.property|[pointEdit.detectors.weight|]0.0|]]',null,null,null),
+(27,'DATA_POINT',null,1,1,1534881711512,'N',0,0,3,'event.detector.changeCount|asdf|792.4720020555209|953.6426159206546|',null,null,null),
+(28,'AUDIT','DATA_SOURCE',1,0,1534881714788,'N',0,0,1,'event.audit.changed|admin(1)|[event.audit.dataSource|]1|[event.audit.propertyList.1|[event.audit.changedProperty|[common.enabled|][common.true|][common.false|]]]',null,null,null);
+
+-- Non-audit events need userEvent entries for our admin user
+INSERT INTO userEvents (eventId, userId, silenced) VALUES
+(1,1,'N'),
+(2,1,'N'),
+(3,1,'Y'),
+(4,1,'N'),
+(5,1,'Y'),
+(6,1,'N'),
+(7,1,'Y'),
+(8,1,'N'),
+(9,1,'N'),
+(10,1,'Y'),
+(11,1,'N'),
+(12,1,'N'),
+(17,1,'Y'),
+(18,1,'N'),
+(19,1,'Y'),
+(20,1,'N'),
+(21,1,'N'),
+(22,1,'Y'),
+(23,1,'N'),
+(24,1,'N'),
+(27,1,'N');

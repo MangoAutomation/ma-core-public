@@ -44,7 +44,12 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
     @Override
     public void setPointValue(PointValueTime newValue, SetPointSource source) {
-        throw new NotImplementedException();
+        //throw new NotImplementedException();
+        DataPointRT dprt = Common.runtimeManager.getDataPoint(vo.getId());
+        if(dprt == null) //point isn't running, we can save the value through the DAO
+            pointValueDao.savePointValueAsync(vo.getId(), newValue, source);
+        else //Give the point a chance to cache the new value
+            dprt.savePointValueDirectToCache(newValue, source, true, true);
     }
 
     @Override
