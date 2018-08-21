@@ -84,7 +84,7 @@ public class Upgrade12 extends DBUpgrade {
 
 	private static final Log LOG = LogFactory.getLog(Upgrade12.class);
 	
-	private ObjectMapper mapper;
+	private ObjectMapper mapper = new ObjectMapper();
 	private String mysqlDatabaseName = "";
 	
 	public Upgrade12(){
