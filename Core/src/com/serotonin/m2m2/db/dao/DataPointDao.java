@@ -138,7 +138,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public static DataPointDao getInstance() {
         return springInstance.get();
     }
-    
+
     //
     //
     // Data Points
@@ -512,7 +512,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         clearPointHierarchyCache();
     }
-    
+
     void deleteDataPointImpl(int dataPointId) {
         ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1 = " + dataPointId,
                 new Object[] { EventType.EventTypeNames.DATA_POINT });
@@ -1598,8 +1598,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
         Condition condition = null;
-        if (!user.isAdmin()) {
-            condition = DataPointDao.getInstance().userHasPermission(user);
+        if (!user.hasAdminPermission()) {
+            condition = this.userHasPermission(user);
         }
         SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
         this.customizedQuery(select, condition, sort, limit, offset, callback);
@@ -1650,8 +1650,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
         }).collect(Collectors.toCollection(ArrayList::new));
 
-        if (!user.isAdmin()) {
-            conditions.add(DataPointDao.getInstance().userHasPermission(user));
+        if (!user.hasAdminPermission()) {
+            conditions.add(this.userHasPermission(user));
         }
 
         Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
@@ -1739,9 +1739,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 );
     }
 
-    public static final String TAGS_UPDATED = "tagsUpdated";
-
     protected void notifyTagsUpdated(DataPointVO dataPoint) {
-        this.handler.notify(TAGS_UPDATED, dataPoint);
+        this.eventPublisher.publishEvent(new DataPointTagsUpdatedEvent(this, dataPoint));
     }
 }

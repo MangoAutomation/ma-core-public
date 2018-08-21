@@ -56,7 +56,7 @@ public class DataPointTagsDao extends BaseDao {
     public static final Name DATA_POINT_TAGS_ALIAS = DSL.name("tags");
     public static final Table<Record> DATA_POINT_TAGS_NO_ALIAS = DSL.table(DSL.name("dataPointTags"));
     public static final Table<Record> DATA_POINT_TAGS = DATA_POINT_TAGS_NO_ALIAS.as(DATA_POINT_TAGS_ALIAS);
-    
+
     public static final Field<Integer> DATA_POINT_ID = DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<String> TAG_KEY = DSL.field(DATA_POINT_TAGS_ALIAS.append("tagKey"), SQLDataType.VARCHAR(255).nullable(false));
     public static final Field<String> TAG_VALUE = DSL.field(DATA_POINT_TAGS_ALIAS.append("tagValue"), SQLDataType.VARCHAR(255).nullable(false));
@@ -66,11 +66,11 @@ public class DataPointTagsDao extends BaseDao {
 
     public static final String DEVICE_TAG_KEY = "device";
     public static final String NAME_TAG_KEY = "name";
-    
+
     private DataPointTagsDao() {
         instance = this;
     }
-    
+
     /**
      * Get cached instance from Spring Context
      * @return
@@ -83,30 +83,30 @@ public class DataPointTagsDao extends BaseDao {
             return (DataPointTagsDao)o;
         });
     }
-    
+
     /**
      * Retrieves all tag keys and values from the database for a datapoint.
      * Contains a "name" and "device" key as opposed to the tags retrieved via DataPointVO.getTags().
-     * 
+     *
      * @param dataPointId
      * @return
      */
     public Map<String, String> getTagsForDataPointId(int dataPointId) {
         Select<Record2<String, String>> query = this.create.select(TAG_KEY, TAG_VALUE)
-            .from(DATA_POINT_TAGS)
-            .where(DATA_POINT_ID.eq(dataPointId));
+                .from(DATA_POINT_TAGS)
+                .where(DATA_POINT_ID.eq(dataPointId));
 
         try (Stream<Record2<String, String>> stream = query.stream()) {
             return stream.collect(Collectors.toMap(r -> r.value1(), r -> r.value2()));
         }
     }
-    
+
     public int deleteTagsForDataPointId(int dataPointId) {
         return this.create.deleteFrom(DATA_POINT_TAGS)
                 .where(DATA_POINT_ID.eq(dataPointId))
                 .execute();
     }
-    
+
     public int deleteNameAndDeviceTagsForDataPointId(int dataPointId) {
         return this.create.deleteFrom(DATA_POINT_TAGS)
                 .where(DATA_POINT_ID.eq(dataPointId))
@@ -116,7 +116,7 @@ public class DataPointTagsDao extends BaseDao {
 
     /**
      * Inserts tags into the database for a DataPointVO. Also inserts the "name" and "device" tags from the data point properties.
-     * 
+     *
      * @param dataPoint
      * @param tags Should not contain tag keys "name" or "device"
      */
@@ -126,12 +126,12 @@ public class DataPointTagsDao extends BaseDao {
         String deviceName = dataPoint.getDeviceName();
 
         BatchBindStep b = this.create.batch(
-            this.create.insertInto(DATA_POINT_TAGS_NO_ALIAS)
+                this.create.insertInto(DATA_POINT_TAGS_NO_ALIAS)
                 .columns(DATA_POINT_ID, TAG_KEY, TAG_VALUE)
                 .values((Integer) null, null, null)
-        );
+                );
         tags.entrySet().forEach(e -> b.bind(dataPointId, e.getKey(), e.getValue()));
-        
+
         if (name != null && !name.isEmpty()) {
             b.bind(dataPointId, NAME_TAG_KEY, name);
         }
@@ -145,13 +145,13 @@ public class DataPointTagsDao extends BaseDao {
     /**
      * Only to be used when saving data point tags independently from the DataPointVO itself.
      * The DataPointVO tags must not be null.
-     * 
+     *
      * @param dataPoint
      */
     public void saveDataPointTags(DataPointVO dataPoint) {
         Map<String, String> tags = dataPoint.getTags();
         if (tags == null) throw new IllegalArgumentException("Data point tags cannot be null");
-        
+
         this.doInTransaction(txStatus -> {
             this.deleteTagsForDataPointId(dataPoint.getId());
             this.insertTagsForDataPoint(dataPoint, tags);
@@ -168,32 +168,32 @@ public class DataPointTagsDao extends BaseDao {
 
     TableOnConditionStep<Record> joinPointPermissions(Table<Record> table, Field<Integer> dataPointIdField, User user) {
         Condition userHasPermission = DataPointDao.getInstance().userHasPermission(user);
-        
+
         return table
                 .join(DataPointDao.DATA_POINTS).on(dataPointIdField.eq(DataPointDao.ID))
                 .join(DataSourceDao.DATA_SOURCES).on(DSL.and(DataPointDao.DATA_SOURCE_ID.eq(DataSourceDao.ID), userHasPermission));
     }
-    
+
     public Set<String> getTagKeys(User user) {
         Table<Record> fromTable = DATA_POINT_TAGS;
-        if (!user.isAdmin()) {
+        if (!user.hasAdminPermission()) {
             fromTable = joinPointPermissions(fromTable, DATA_POINT_ID, user);
         }
-        
+
         Select<Record1<String>> query = this.create.selectDistinct(TAG_KEY)
                 .from(fromTable);
-        
+
         try (Stream<Record1<String>> stream = query.stream()) {
             return stream.map(r -> r.value1()).collect(Collectors.toSet());
         }
     }
-    
+
     public Set<String> getTagValuesForKey(String tagKey, User user) {
         Table<Record> fromTable = DATA_POINT_TAGS;
-        if (!user.isAdmin()) {
+        if (!user.hasAdminPermission()) {
             fromTable = joinPointPermissions(fromTable, DATA_POINT_ID, user);
         }
-        
+
         Select<Record1<String>> query = this.create.selectDistinct(TAG_VALUE)
                 .from(fromTable)
                 .where(TAG_KEY.eq(tagKey));
@@ -207,12 +207,12 @@ public class DataPointTagsDao extends BaseDao {
         if (restrictions.isEmpty()) {
             return getTagValuesForKey(tagKey, user);
         }
-        
+
         Set<String> keys = new HashSet<>();
         keys.addAll(restrictions.keySet());
         keys.add(tagKey);
         Map<String, Name> tagKeyToColumn = tagKeyToColumn(keys);
-        
+
         Name tagKeyColumn = tagKeyToColumn.get(tagKey);
 
         List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
@@ -220,7 +220,7 @@ public class DataPointTagsDao extends BaseDao {
         }).collect(Collectors.toCollection(ArrayList::new));
 
         Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-        if (!user.isAdmin()) {
+        if (!user.hasAdminPermission()) {
             from = joinPointPermissions(from, PIVOT_ALIAS_DATA_POINT_ID, user);
         }
 
@@ -243,17 +243,17 @@ public class DataPointTagsDao extends BaseDao {
         if (conditions.getCondition() != null) {
             conditionList.add(conditions.getCondition());
         }
-        
+
         Map<String, Name> tagKeyToColumn = conditions.getTagKeyToColumn();
-        
+
         Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-        if (!user.isAdmin()) {
+        if (!user.hasAdminPermission()) {
             from = joinPointPermissions(from, PIVOT_ALIAS_DATA_POINT_ID, user);
         }
 
         SelectJoinStep<Record1<String>> query = this.create
-            .selectDistinct(DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyColumn), String.class))
-            .from(from);
+                .selectDistinct(DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyColumn), String.class))
+                .from(from);
 
         Select<Record1<String>> result = query;
 
@@ -269,7 +269,7 @@ public class DataPointTagsDao extends BaseDao {
     /**
      * This method does not filter the tags based on the data point permissions. It should only be used
      * when joining onto the data points table (the filtering happens there post-join).
-     * 
+     *
      * @param tagKeyToColumn
      * @return
      */
@@ -280,7 +280,7 @@ public class DataPointTagsDao extends BaseDao {
         for (Entry<String, Name> entry : tagKeyToColumn.entrySet()) {
             fields.add(DSL.max(DSL.when(TAG_KEY.eq(entry.getKey()), TAG_VALUE)).as(entry.getValue()));
         }
-        
+
         return DSL.select(fields).from(DATA_POINT_TAGS).groupBy(DATA_POINT_ID);
     }
 

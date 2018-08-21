@@ -11,12 +11,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.session.SessionDestroyedEvent;
 import org.springframework.stereotype.Service;
@@ -29,7 +26,6 @@ import com.google.common.collect.SetMultimap;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.spring.ApplicationListenerAdapter;
 import com.serotonin.m2m2.web.mvc.spring.events.AuthTokensRevokedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserDeletedEvent;
 import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
@@ -42,7 +38,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.JwtAuthenticati
  * @author Jared Wiltshire
  */
 @Service
-public class MangoWebSocketSessionTracker {
+public final class MangoWebSocketSessionTracker {
 
     public final static CloseStatus SESSION_DESTROYED = new CloseStatus(4101, "Session destroyed");
     public final static CloseStatus USER_UPDATED = new CloseStatus(4102, "User updated (deleted/disabled/password or permissions changed)");
@@ -74,24 +70,6 @@ public class MangoWebSocketSessionTracker {
      */
     private final Set<WebSocketSession> jwtSessions = ConcurrentHashMap.newKeySet();
 
-    @Autowired
-    private ConfigurableApplicationContext context;
-
-    @PostConstruct
-    private void postConstruct() {
-        // events from root context are not propagated to the child contexts. Register as a listener
-        // on the upper most context.
-        ConfigurableApplicationContext context = this.context;
-        while (context.getParent() != null) {
-            context = (ConfigurableApplicationContext) context.getParent();
-        }
-
-        context.addApplicationListener(new ApplicationListenerAdapter<>(this::sessionDestroyed, SessionDestroyedEvent.class));
-        context.addApplicationListener(new ApplicationListenerAdapter<>(this::userUpdated, UserUpdatedEvent.class));
-        context.addApplicationListener(new ApplicationListenerAdapter<>(this::userDeleted, UserDeletedEvent.class));
-        context.addApplicationListener(new ApplicationListenerAdapter<>(this::allAuthTokensRevoked, AuthTokensRevokedEvent.class));
-    }
-
     private String httpSessionIdForSession(WebSocketSession session) {
         return (String) session.getAttributes().get(MangoWebSocketHandshakeInterceptor.HTTP_SESSION_ID_ATTR);
     }
@@ -120,7 +98,9 @@ public class MangoWebSocketSessionTracker {
         }
     }
 
+    @EventListener
     private void sessionDestroyed(SessionDestroyedEvent event) {
+        System.out.println(event.toString());
         String httpSessionId = event.getId();
 
         Set<WebSocketSession> sessions = sessionsByHttpSessionId.removeAll(httpSessionId);
@@ -129,6 +109,7 @@ public class MangoWebSocketSessionTracker {
         }
     }
 
+    @EventListener
     private void userDeleted(UserDeletedEvent event) {
         int userId = event.getUser().getId();
 
@@ -143,6 +124,7 @@ public class MangoWebSocketSessionTracker {
         }
     }
 
+    @EventListener
     private void userUpdated(UserUpdatedEvent event) {
         User updatedUser = event.getUser();
         int userId = updatedUser.getId();
@@ -183,6 +165,7 @@ public class MangoWebSocketSessionTracker {
         }
     }
 
+    @EventListener
     private void allAuthTokensRevoked(AuthTokensRevokedEvent event) {
         Iterator<WebSocketSession> it = jwtSessions.iterator();
         while (it.hasNext()) {

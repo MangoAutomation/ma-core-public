@@ -36,6 +36,8 @@ import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -65,7 +67,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.web.mvc.websocket.DaoNotificationWebSocketHandler;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -77,17 +78,19 @@ import net.jazdw.rql.parser.ASTNode;
  *
  * @author Jared Wiltshire
  */
-public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao implements ValueMonitorOwner{
+public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao implements ValueMonitorOwner {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
     public static final int DEFAULT_LIMIT = 100;
-
-    protected DaoNotificationWebSocketHandler<T> handler;
 
     public static final String WHERE = " WHERE ";
     public static final String OR = " OR ";
     public static final String AND = " AND ";
     public static final String LIMIT = " LIMIT ";
+
+    // TODO Mango 3.5 add to constructor and make final
+    @Autowired
+    protected ApplicationEventPublisher eventPublisher;
 
     // Map UI or Model member names to the Database Column Names they will get
     // translated when the query is generated
@@ -149,36 +152,21 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected final RQLToCondition rqlToCondition;
 
     /**
-     *
-     * @param handler - Web Socket Notifications
-     * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
-     * @param extraProperties - Other SQL for use in Queries
-     */
-    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties) {
-        this(handler, tablePrefix, extraProperties, false, null);
-    }
-
-    /**
-     *
-     * @param def - Definition of Websocket
      * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
      * @param extraProperties - Other SQL for use in Queries
      */
     public AbstractBasicDao(String tablePrefix, String[] extraProperties) {
-        this(null, tablePrefix, extraProperties, false, null);
+        this(tablePrefix, extraProperties, false, null);
     }
 
     /**
-     *
-     * @param handler - Web Socket Notifications
      * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
      * @param extraProperties - Other SQL for use in Queries
      * @param useSubQuery - Compute and use subqueries for performance
      * @param countMonitorName - If not null create a monitor to track table row count
      */
-    public AbstractBasicDao(DaoNotificationWebSocketHandler<T> handler, String tablePrefix, String[] extraProperties,
-            boolean useSubQuery, TranslatableMessage countMonitorName) {
-        this.handler = handler;
+    public AbstractBasicDao(String tablePrefix, String[] extraProperties,boolean useSubQuery, TranslatableMessage countMonitorName) {
+
         TABLE_PREFIX = tablePrefix;
         if (tablePrefix != null)
             this.tablePrefix = tablePrefix + ".";
@@ -416,10 +404,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     }
 
-    public void setHandler(DaoNotificationWebSocketHandler<T> handler) {
-        this.handler = handler;
-    }
-    
     /**
      * Override as necessary Can be null if no Pk Exists
      *
@@ -508,8 +492,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             if(this.countMonitor != null)
                 this.countMonitor.decrement();
         }
-        if(handler != null)
-            handler.notify("delete", vo, initiatorId);
+
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.DELETE, vo, initiatorId, null));
     }
 
     /**
@@ -589,8 +573,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         else
             id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
         vo.setId(id);
-        if(handler != null)
-            handler.notify("add", vo, initiatorId);
+
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, initiatorId, null));
+
         if(this.countMonitor != null)
             this.countMonitor.increment();
     }
@@ -629,8 +614,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             ejt.update(UPDATE, list.toArray());
         else
             ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-        if(handler != null)
-            handler.notify("update", vo, initiatorId, originalXid);
+
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, initiatorId, originalXid));
     }
 
     /**
@@ -1096,5 +1081,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public int rqlCount(ASTNode rql) {
         ConditionSortLimit result = this.rqlToCondition(rql);
         return this.customizedCount(result);
+    }
+
+    protected void publishEvent(DaoEvent<T> event) {
+        if (this.eventPublisher != null) {
+            this.eventPublisher.publishEvent(event);
+        }
     }
 }

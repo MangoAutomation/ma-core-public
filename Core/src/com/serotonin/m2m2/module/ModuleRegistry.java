@@ -113,13 +113,13 @@ import com.serotonin.provider.Providers;
 
 /**
  * The registry of all modules in an MA instance.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class ModuleRegistry {
-	
-	public static final String SYSTEM_SETTINGS_URL = "/system_settings.shtm";
-	
+
+    public static final String SYSTEM_SETTINGS_URL = "/system_settings.shtm";
+
     private static final Object LOCK = new Object();
     private static final Map<String, Module> MODULES = new LinkedHashMap<String, Module>();
     private static final Map<String, String> MISSING_DEPENDENCIES = new LinkedHashMap<>();
@@ -135,25 +135,24 @@ public class ModuleRegistry {
     private static Map<String, EventHandlerDefinition<?>> EVENT_HANDLER_DEFINITIONS;
     private static Map<String, EventDetectorDefinition<?>> EVENT_DETECTOR_DEFINITIONS;
     private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
-    private static Map<String, WebSocketDefinition> WEB_SOCKET_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
     private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
-    private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS; 
+    private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS;
     private static Map<String, SystemInfoDefinition<?>> SYSTEM_INFO_DEFINITIONS;
     private static List<SystemSettingsListenerDefinition> SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
     private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
-    private static Map<String, ModuleQueryDefinition> MODULE_QUERY_DEFINITIONS; 
+    private static Map<String, ModuleQueryDefinition> MODULE_QUERY_DEFINITIONS;
     private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
-    
+
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
     private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();
 
-    
+
     /**
-     * Helper Method to create a Module with Core Information 
+     * Helper Method to create a Module with Core Information
      * @return
      */
     public static Module getCoreModule(){
@@ -161,14 +160,14 @@ public class ModuleRegistry {
                 "Infinite Automation Systems, Inc.", "https://www.infiniteautomation.com", null, -1, Common.isCoreSigned());
 
         if(Common.isInvalid())
-        	core.setLicenseType("Invalid");
+            core.setLicenseType("Invalid");
         else
-        	core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
+            core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
 
-    	return core;
+        return core;
     }
-    
+
     /**
      * @return a list of all available modules in the instance.
      */
@@ -178,7 +177,7 @@ public class ModuleRegistry {
 
     /**
      * Returns the instance of the module or null if not found for the given module name.
-     * 
+     *
      * @param name
      *            the name of the module
      * @return the module instance or null if not found.
@@ -197,19 +196,19 @@ public class ModuleRegistry {
     public static void addModule(Module module) {
         MODULES.put(module.getName(), module);
     }
-    
+
     /**
      * Modules that could not be loaded are added here, only add one at a time
      * @param module
      * @return
      */
     public static void addUnloadedModule(Module module){
-    	if(!UNLOADED_MODULES.contains(module))
-   			UNLOADED_MODULES.add(module);
+        if(!UNLOADED_MODULES.contains(module))
+            UNLOADED_MODULES.add(module);
     }
-    
+
     public static List<Module> getUnloadedModules(){
-    	return UNLOADED_MODULES;
+        return UNLOADED_MODULES;
     }
 
     /**
@@ -218,19 +217,19 @@ public class ModuleRegistry {
      * @param version
      */
     public static void addMissingDependency(String moduleName, String version){
-    	MISSING_DEPENDENCIES.put(moduleName, version);
+        MISSING_DEPENDENCIES.put(moduleName, version);
     }
-    
+
     /**
      * List all missing dependencies
-     * 
+     *
      * Users must not modify this list.
      * @return
      */
     public static Map<String, String> getMissingDependencies(){
-    	return MISSING_DEPENDENCIES;
+        return MISSING_DEPENDENCIES;
     }
-    
+
     //
     //
     // Data source special handling
@@ -360,7 +359,7 @@ public class ModuleRegistry {
             }
         }
     }
-    
+
     //
     //
     // Template special handling
@@ -381,21 +380,21 @@ public class ModuleRegistry {
                 if (TEMPLATE_DEFINITIONS == null) {
                     Map<String, TemplateDefinition> map = new HashMap<String, TemplateDefinition>();
                     for(TemplateDefinition def : Module.getDefinitions(preDefaults, TemplateDefinition.class)){
-                    	map.put(def.getTemplateTypeName(), def);
+                        map.put(def.getTemplateTypeName(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (TemplateDefinition def : module.getDefinitions(TemplateDefinition.class))
                             map.put(def.getTemplateTypeName(), def);
                     }
                     for(TemplateDefinition def : Module.getDefinitions(postDefaults, TemplateDefinition.class)){
-                    	map.put(def.getTemplateTypeName(), def);
+                        map.put(def.getTemplateTypeName(), def);
                     }
                     TEMPLATE_DEFINITIONS = map;
                 }
             }
         }
     }
-    
+
     //
     //
     // Model special handling
@@ -404,7 +403,7 @@ public class ModuleRegistry {
         ensureModelDefinitions();
         return MODEL_DEFINITIONS.get(type);
     }
-    
+
     public static List<ModelDefinition> getModelDefinitions(){
         ensureModelDefinitions();
         return new ArrayList<ModelDefinition>(MODEL_DEFINITIONS.values());
@@ -421,21 +420,21 @@ public class ModuleRegistry {
                 if (MODEL_DEFINITIONS == null) {
                     Map<String, ModelDefinition> map = new HashMap<String, ModelDefinition>();
                     for(ModelDefinition def : Module.getDefinitions(preDefaults, ModelDefinition.class)){
-                    	map.put(def.getModelTypeName(), def);
+                        map.put(def.getModelTypeName(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (ModelDefinition def : module.getDefinitions(ModelDefinition.class))
                             map.put(def.getModelTypeName(), def);
                     }
                     for(ModelDefinition def : Module.getDefinitions(postDefaults, ModelDefinition.class)){
-                    	map.put(def.getModelTypeName(), def);
+                        map.put(def.getModelTypeName(), def);
                     }
                     MODEL_DEFINITIONS = map;
                 }
             }
         }
     }
-    
+
     //
     //
     // Event Handler special handling
@@ -444,14 +443,14 @@ public class ModuleRegistry {
         ensureEventHandlerDefinitions();
         return EVENT_HANDLER_DEFINITIONS.get(type);
     }
-    
+
     public static List<EventHandlerDefinition<?>> getEventHandlerDefinitions(){
-    	ensureEventHandlerDefinitions();
+        ensureEventHandlerDefinitions();
         return new ArrayList<EventHandlerDefinition<?>>(EVENT_HANDLER_DEFINITIONS.values());
     }
 
     public static Set<String> getEventHandlerDefinitionTypes() {
-    	ensureEventHandlerDefinitions();
+        ensureEventHandlerDefinitions();
         return EVENT_HANDLER_DEFINITIONS.keySet();
     }
 
@@ -461,21 +460,21 @@ public class ModuleRegistry {
                 if (EVENT_HANDLER_DEFINITIONS == null) {
                     Map<String, EventHandlerDefinition<?>> map = new HashMap<String, EventHandlerDefinition<?>>();
                     for(EventHandlerDefinition<?> def : Module.getDefinitions(preDefaults, EventHandlerDefinition.class)){
-                    	map.put(def.getEventHandlerTypeName(), def);
+                        map.put(def.getEventHandlerTypeName(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (EventHandlerDefinition<?> def : module.getDefinitions(EventHandlerDefinition.class))
                             map.put(def.getEventHandlerTypeName(), def);
                     }
                     for(EventHandlerDefinition<?> def : Module.getDefinitions(postDefaults, EventHandlerDefinition.class)){
-                    	map.put(def.getEventHandlerTypeName(), def);
+                        map.put(def.getEventHandlerTypeName(), def);
                     }
                     EVENT_HANDLER_DEFINITIONS = map;
                 }
             }
         }
     }
-    
+
     //
     //
     // Event Detector special handling
@@ -484,14 +483,14 @@ public class ModuleRegistry {
         ensureEventDetectorDefinitions();
         return EVENT_DETECTOR_DEFINITIONS.get(type);
     }
-    
+
     public static List<EventDetectorDefinition<?>> getEventDetectorDefinitions(){
-    	ensureEventDetectorDefinitions();
+        ensureEventDetectorDefinitions();
         return new ArrayList<EventDetectorDefinition<?>>(EVENT_DETECTOR_DEFINITIONS.values());
     }
 
     public static Set<String> getEventDetectorDefinitionTypes() {
-    	ensureEventDetectorDefinitions();
+        ensureEventDetectorDefinitions();
         return EVENT_DETECTOR_DEFINITIONS.keySet();
     }
 
@@ -501,33 +500,33 @@ public class ModuleRegistry {
                 if (EVENT_DETECTOR_DEFINITIONS == null) {
                     Map<String, EventDetectorDefinition<?>> map = new HashMap<String, EventDetectorDefinition<?>>();
                     for(EventDetectorDefinition<?> def : Module.getDefinitions(preDefaults, EventDetectorDefinition.class)){
-                    	map.put(def.getEventDetectorTypeName(), def);
+                        map.put(def.getEventDetectorTypeName(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (EventDetectorDefinition<?> def : module.getDefinitions(EventDetectorDefinition.class))
                             map.put(def.getEventDetectorTypeName(), def);
                     }
                     for(EventDetectorDefinition<?> def : Module.getDefinitions(postDefaults, EventDetectorDefinition.class)){
-                    	map.put(def.getEventDetectorTypeName(), def);
+                        map.put(def.getEventDetectorTypeName(), def);
                     }
                     EVENT_DETECTOR_DEFINITIONS = map;
                 }
             }
         }
     }
-    
+
     //
     //
     // Permission Definitions special handling
     //
     public static Map<String, PermissionDefinition> getPermissionDefinitions() {
-    	ensurePermissionDefinitions();
+        ensurePermissionDefinitions();
         return new HashMap<String, PermissionDefinition>(PERMISSION_DEFINITIONS);
     }
-    
+
     public static PermissionDefinition getPermissionDefinition(String key){
-    	ensurePermissionDefinitions();
-    	return PERMISSION_DEFINITIONS.get(key);
+        ensurePermissionDefinitions();
+        return PERMISSION_DEFINITIONS.get(key);
     }
 
     private static void ensurePermissionDefinitions() {
@@ -536,62 +535,27 @@ public class ModuleRegistry {
                 if (PERMISSION_DEFINITIONS == null) {
                     Map<String, PermissionDefinition> map = new HashMap<String, PermissionDefinition>();
                     for(PermissionDefinition def : Module.getDefinitions(preDefaults, PermissionDefinition.class)){
-                    	map.put(def.getPermissionTypeName(), def);
+                        map.put(def.getPermissionTypeName(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (PermissionDefinition def : module.getDefinitions(PermissionDefinition.class))
-                        	map.put(def.getPermissionTypeName(), def);
+                            map.put(def.getPermissionTypeName(), def);
                     }
                     for(PermissionDefinition def : Module.getDefinitions(postDefaults, PermissionDefinition.class)){
-                    	map.put(def.getPermissionTypeName(), def);
+                        map.put(def.getPermissionTypeName(), def);
                     }
                     PERMISSION_DEFINITIONS = map;
                 }
             }
         }
     }
-    
-    //
-    //
-    // WebSocketHandler special handling
-    //
-    public static WebSocketDefinition getWebSocketHandlerDefinition(String type) {
-    	ensureWebSocketDefinitions();
-        return WEB_SOCKET_DEFINITIONS.get(type);
-    }
 
-    public static Set<String> getWebSocketDefinitionTypes() {
-        ensureWebSocketDefinitions();
-        return WEB_SOCKET_DEFINITIONS.keySet();
-    }
-
-    private static void ensureWebSocketDefinitions() {
-        if (WEB_SOCKET_DEFINITIONS == null) {
-            synchronized (LOCK) {
-                if (WEB_SOCKET_DEFINITIONS == null) {
-                    Map<String, WebSocketDefinition> map = new HashMap<String, WebSocketDefinition>();
-                    for(WebSocketDefinition def : Module.getDefinitions(preDefaults, WebSocketDefinition.class)){
-                    	map.put(def.getTypeName(), def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (WebSocketDefinition def : module.getDefinitions(WebSocketDefinition.class))
-                            map.put(def.getTypeName(), def);
-                    }
-                    for(WebSocketDefinition def : Module.getDefinitions(postDefaults, WebSocketDefinition.class)){
-                    	map.put(def.getTypeName(), def);
-                    }
-                    WEB_SOCKET_DEFINITIONS = map;
-                }
-            }
-        }
-    }
-    
     //
     //
     // AngularJS Module special handling
     //
     public static List<AngularJSModuleDefinition> getAngularJSDefinitions() {
-    	ensureAngularJSModuleDefinitions();
+        ensureAngularJSModuleDefinitions();
         return ANGULARJS_MODULE_DEFINITIONS;
     }
 
@@ -601,27 +565,27 @@ public class ModuleRegistry {
                 if (ANGULARJS_MODULE_DEFINITIONS == null) {
                     List<AngularJSModuleDefinition> list = new ArrayList<AngularJSModuleDefinition>();
                     for(AngularJSModuleDefinition def : Module.getDefinitions(preDefaults, AngularJSModuleDefinition.class)){
-                    	list.add(def);
+                        list.add(def);
                     }
                     for (Module module : MODULES.values()) {
                         for (AngularJSModuleDefinition def : module.getDefinitions(AngularJSModuleDefinition.class))
-                        	list.add(def);
+                            list.add(def);
                     }
                     for(AngularJSModuleDefinition def : Module.getDefinitions(postDefaults, AngularJSModuleDefinition.class)){
-                    	list.add(def);
+                        list.add(def);
                     }
                     ANGULARJS_MODULE_DEFINITIONS = list;
                 }
             }
         }
     }
-    
+
     //
     //
     // System Settings special handling
     //
     public static List<SystemSettingsDefinition> getSystemSettingsDefinitions() {
-    	ensureSystemSettingsDefinitions();
+        ensureSystemSettingsDefinitions();
         return SYSTEM_SETTINGS_DEFINITIONS;
     }
 
@@ -631,27 +595,27 @@ public class ModuleRegistry {
                 if (SYSTEM_SETTINGS_DEFINITIONS == null) {
                     List<SystemSettingsDefinition> list = new ArrayList<SystemSettingsDefinition>();
                     for(SystemSettingsDefinition def : Module.getDefinitions(preDefaults, SystemSettingsDefinition.class)){
-                    	list.add(def);
+                        list.add(def);
                     }
                     for (Module module : MODULES.values()) {
                         for (SystemSettingsDefinition def : module.getDefinitions(SystemSettingsDefinition.class))
-                        	list.add(def);
+                            list.add(def);
                     }
                     for(SystemSettingsDefinition def : Module.getDefinitions(postDefaults, SystemSettingsDefinition.class)){
-                    	list.add(def);
+                        list.add(def);
                     }
                     SYSTEM_SETTINGS_DEFINITIONS = list;
                 }
             }
         }
     }
-    
+
     //
     //
     // Read Only Settings special handling
     //
     public static List<SystemSettingsListenerDefinition> getSystemSettingListenerDefinitions() {
-    	ensureSystemSettingsListenerDefinitions();
+        ensureSystemSettingsListenerDefinitions();
         return SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
     }
 
@@ -661,33 +625,33 @@ public class ModuleRegistry {
                 if (SYSTEM_SETTINGS_LISTENER_DEFINITIONS == null) {
                     List<SystemSettingsListenerDefinition> list = new ArrayList<SystemSettingsListenerDefinition>();
                     for(SystemSettingsListenerDefinition def : Module.getDefinitions(preDefaults, SystemSettingsListenerDefinition.class)){
-                    	list.add(def);
+                        list.add(def);
                     }
                     for (Module module : MODULES.values()) {
                         for (SystemSettingsListenerDefinition def : module.getDefinitions(SystemSettingsListenerDefinition.class))
-                        	list.add(def);
+                            list.add(def);
                     }
                     for(SystemSettingsListenerDefinition def : Module.getDefinitions(postDefaults, SystemSettingsListenerDefinition.class)){
-                    	list.add(def);
+                        list.add(def);
                     }
                     SYSTEM_SETTINGS_LISTENER_DEFINITIONS = list;
                 }
             }
         }
     }
-    
+
     //
     //
     // System Info Settings special handling
     //
     public static Map<String, SystemInfoDefinition<?>> getSystemInfoDefinitions() {
-    	ensureSystemInfoDefinitions();
+        ensureSystemInfoDefinitions();
         return new HashMap<String, SystemInfoDefinition<?>>(SYSTEM_INFO_DEFINITIONS);
     }
-    
+
     public static SystemInfoDefinition<?> getSystemInfoDefinition(String key){
-    	ensureSystemInfoDefinitions();
-    	return SYSTEM_INFO_DEFINITIONS.get(key);
+        ensureSystemInfoDefinitions();
+        return SYSTEM_INFO_DEFINITIONS.get(key);
     }
 
     private static void ensureSystemInfoDefinitions() {
@@ -696,33 +660,33 @@ public class ModuleRegistry {
                 if (SYSTEM_INFO_DEFINITIONS == null) {
                     Map<String, SystemInfoDefinition<?>> map = new HashMap<String, SystemInfoDefinition<?>>();
                     for(SystemInfoDefinition<?> def : Module.getDefinitions(preDefaults, SystemInfoDefinition.class)){
-                    	map.put(def.getKey(), def);
+                        map.put(def.getKey(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (SystemInfoDefinition<?> def : module.getDefinitions(SystemInfoDefinition.class))
-                        	map.put(def.getKey(), def);
+                            map.put(def.getKey(), def);
                     }
                     for(SystemInfoDefinition<?> def : Module.getDefinitions(postDefaults, SystemInfoDefinition.class)){
-                    	map.put(def.getKey(), def);
+                        map.put(def.getKey(), def);
                     }
                     SYSTEM_INFO_DEFINITIONS = map;
                 }
             }
         }
     }
-    
+
     //
     //
     // System Action Settings special handling
     //
     public static Map<String, SystemActionDefinition> getSystemActionDefinitions() {
-    	ensureSystemActionDefinitions();
+        ensureSystemActionDefinitions();
         return new HashMap<String, SystemActionDefinition>(SYSTEM_ACTION_DEFINITIONS);
     }
-    
+
     public static SystemActionDefinition getSystemActionDefinition(String key){
-    	ensureSystemActionDefinitions();
-    	return SYSTEM_ACTION_DEFINITIONS.get(key);
+        ensureSystemActionDefinitions();
+        return SYSTEM_ACTION_DEFINITIONS.get(key);
     }
 
     private static void ensureSystemActionDefinitions() {
@@ -731,33 +695,33 @@ public class ModuleRegistry {
                 if (SYSTEM_ACTION_DEFINITIONS == null) {
                     Map<String, SystemActionDefinition> map = new HashMap<>();
                     for(SystemActionDefinition def : Module.getDefinitions(preDefaults, SystemActionDefinition.class)){
-                    	map.put(def.getKey(), def);
+                        map.put(def.getKey(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (SystemActionDefinition def : module.getDefinitions(SystemActionDefinition.class))
-                        	map.put(def.getKey(), def);
+                            map.put(def.getKey(), def);
                     }
                     for(SystemActionDefinition def : Module.getDefinitions(postDefaults, SystemActionDefinition.class)){
-                    	map.put(def.getKey(), def);
+                        map.put(def.getKey(), def);
                     }
                     SYSTEM_ACTION_DEFINITIONS = map;
                 }
             }
         }
     }
-    
+
     //
     //
     // File Store special handling
     //
     public static Map<String, FileStoreDefinition> getFileStoreDefinitions() {
-    	ensureFileStoreDefinitions();
+        ensureFileStoreDefinitions();
         return new HashMap<String, FileStoreDefinition>(FILE_STORE_DEFINITIONS);
     }
-    
+
     public static FileStoreDefinition getFileStoreDefinition(String name){
-    	ensureFileStoreDefinitions();
-    	return FILE_STORE_DEFINITIONS.get(name);
+        ensureFileStoreDefinitions();
+        return FILE_STORE_DEFINITIONS.get(name);
     }
 
     private static void ensureFileStoreDefinitions() {
@@ -766,23 +730,23 @@ public class ModuleRegistry {
                 if (FILE_STORE_DEFINITIONS == null) {
                     Map<String, FileStoreDefinition> map = new HashMap<>();
                     for(FileStoreDefinition def : Module.getDefinitions(preDefaults, FileStoreDefinition.class)){
-                    	map.put(def.getStoreName(), def);
+                        map.put(def.getStoreName(), def);
                     }
                     for (Module module : MODULES.values()) {
                         for (FileStoreDefinition def : module.getDefinitions(FileStoreDefinition.class)) {
                             def.ensureExists();
-                        	map.put(def.getStoreName(), def);
+                            map.put(def.getStoreName(), def);
                         }
                     }
                     for(FileStoreDefinition def : Module.getDefinitions(postDefaults, FileStoreDefinition.class)){
-                    	map.put(def.getStoreName(), def);
+                        map.put(def.getStoreName(), def);
                     }
                     FILE_STORE_DEFINITIONS = map;
                 }
             }
         }
     }
-    
+
     //
     //
     // Module Query special handling
@@ -791,7 +755,7 @@ public class ModuleRegistry {
         ensureModuleQueryDefinitions();
         return new HashMap<String, ModuleQueryDefinition>(MODULE_QUERY_DEFINITIONS);
     }
-    
+
     public static ModuleQueryDefinition getModuleQueryDefinition(String name){
         ensureModuleQueryDefinitions();
         return MODULE_QUERY_DEFINITIONS.get(name);
@@ -817,7 +781,7 @@ public class ModuleRegistry {
             }
         }
     }
-    
+
     //
     //
     // Read Only Settings special handling
@@ -847,7 +811,7 @@ public class ModuleRegistry {
             }
         }
     }
-    
+
     //
     //
     // Generic handling
@@ -960,32 +924,32 @@ public class ModuleRegistry {
             public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
                 return "/unauthorized.htm";
             }
-            
+
             @Override
             public String getErrorPageUri(HttpServletRequest request, HttpServletResponse response) {
-            	return "/error.htm";
+                return "/error.htm";
             }
-            
+
             @Override
             public String getNotFoundPageUri(HttpServletRequest request, HttpServletResponse response) {
-            	return "/not-found.htm";
+                return "/not-found.htm";
             }
         });
-        
+
         //Add in core Models
         preDefaults.add(new RestErrorModelDefinition());
-        
+
         //TODO Add env property to load the Demo Swagger Endpoint then re-enable the demo controller
         //preDefaults.add(new DemoModelDefinition());
 
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());
-        
+
         //Add in Core Event Handlers
         preDefaults.add(new EmailEventHandlerDefinition());
         preDefaults.add(new ProcessEventHandlerDefinition());
         preDefaults.add(new SetPointEventHandlerDefinition());
-        
+
         //Add in Core Event Detectors
         preDefaults.add(new AlphanumericRegexStateEventDetectorDefinition());
         preDefaults.add(new AlphanumericStateEventDetectorDefinition());
@@ -1002,11 +966,11 @@ public class ModuleRegistry {
         preDefaults.add(new SmoothnessEventDetectorDefinition());
         preDefaults.add(new StateChangeCountEventDetectorDefinition());
         preDefaults.add(new NoUpdateEventDetectorDefinition());
-        
+
         preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",
                 "/data_point_details.shtm", LegacyPointDetailsViewPermissionDefinition.PERMISSION));
-        
+
         preDefaults.add(new EventsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("eventsMi", Visibility.USER, "header.alarms", "flag_white",
                 "/events.shtm", EventsViewPermissionDefinition.PERMISSION));
@@ -1015,9 +979,9 @@ public class ModuleRegistry {
         preDefaults.add(createMenuItemDefinition("usersMi", Visibility.USER, "header.users", "user",
                 "/users.shtm", UsersViewPermissionDefinition.PERMISSION));
 
-         preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
+        preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
                 "cog", "/event_handlers.shtm"));
-        
+
         preDefaults.add(createMenuItemDefinition("dataSourcesMi", Visibility.DATA_SOURCE, "header.dataSources",
                 "icon_ds", "/data_sources.shtm"));
 
@@ -1036,11 +1000,11 @@ public class ModuleRegistry {
 
         preDefaults.add(createUriMappingDefinition(Permission.CUSTOM, "/data_point_details.shtm",
                 new DataPointDetailsController(), "/WEB-INF/jsp/dataPointDetails.jsp", LegacyPointDetailsViewPermissionDefinition.PERMISSION));
-        
+
         //Mappings for Event Report and Legacy Alarms Page
         preDefaults.add(createUriMappingDefinition(Permission.CUSTOM, "/events.shtm", null, "/WEB-INF/jsp/eventsReport.jsp", EventsViewPermissionDefinition.PERMISSION));
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/pending_alarms.shtm", null, "/WEB-INF/jsp/events.jsp"));
-        
+
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/event_handlers.shtm", null,
                 "/WEB-INF/jsp/eventHandlers.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/data_sources.shtm", null,
@@ -1061,17 +1025,17 @@ public class ModuleRegistry {
         preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/error.htm", null, "/exception/error.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/not-found.htm", null, "/exception/404.jsp"));
         preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", null, "/exception/accessDenied.jsp"));
-        
+
         /* Emport Mappings */
         preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
                 null));
-        
+
         /* MOBILE MAPPINGS */
         preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",
                 new DataPointDetailsController(), "/WEB-INF/jsp/mobile/dataPointDetails.jsp"));
 
         preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.htm"));
-    
+
         /* Controller Mappings */
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_point_edit.shtm", new DataPointEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_properties.shtm", new DataSourcePropertiesController()));
@@ -1082,7 +1046,7 @@ public class ModuleRegistry {
         preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
         preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
         preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
-        
+
         /* Permissions Settings */
         preDefaults.add(new SuperadminPermissionDefinition());
         preDefaults.add(new ConfigurationBackupActionPermissionDefinition());
@@ -1090,7 +1054,7 @@ public class ModuleRegistry {
         preDefaults.add(new PurgeAllPointValuesActionPermissionDefinition());
         preDefaults.add(new PurgeWithPurgeSettingsActionPermissionDefinition());
         preDefaults.add(new SqlBackupActionPermissionDefinition());
-        preDefaults.add(new SqlRestoreActionPermissionDefinition());        
+        preDefaults.add(new SqlRestoreActionPermissionDefinition());
         preDefaults.add(new CoreFileStoreReadPermissionDefinition());
         preDefaults.add(new CoreFileStoreWritePermissionDefinition());
         preDefaults.add(new PublicFileStoreWritePermissionDefinition());
@@ -1098,7 +1062,7 @@ public class ModuleRegistry {
         preDefaults.add(new DocsFileStoreWritePermissionDefinition());
         preDefaults.add(new UserFileStoreCreatePermissionDefinition());
         preDefaults.add(new JsonDataCreatePermissionDefinition());
-        
+
         /* Read Only Settings */
         preDefaults.add(new TimezoneInfoDefinition());
         preDefaults.add(new DatabaseTypeInfoDefinition());
@@ -1112,7 +1076,7 @@ public class ModuleRegistry {
         preDefaults.add(new LoadAverageInfoDefinition());
         preDefaults.add(new OperatingSystemInfoDefinition());
         preDefaults.add(new DiskInfoDefinition());
-        
+
         /* System Settings Listeners */
         // Do NOT Use the ThreadPoolListener as if the pools are full we can't spawn threads to update the settings...
         // preDefaults.add(new ThreadPoolSettingsListenerDefinition());
@@ -1123,7 +1087,7 @@ public class ModuleRegistry {
         preDefaults.add(new AuditEventTypeSettingsListenerDefinition());
         preDefaults.add(new SystemEventTypeSettingsListenerDefinition());
         preDefaults.add(new LastUpgradeSettingsListenerDefinition());
-        
+
         /* System Actions */
         preDefaults.add(new PurgeAllPointValuesActionDefinition());
         preDefaults.add(new PurgeAllEventsActionDefinition());
@@ -1136,7 +1100,7 @@ public class ModuleRegistry {
         preDefaults.add(new CoreFileStoreDefinition());
         preDefaults.add(new PublicFileStoreDefinition());
         preDefaults.add(new DocsFileStoreDefinition());
-        
+
         /* Module Queries */
         preDefaults.add(new DataPointEventsByTagQueryDefinition());
         preDefaults.add(new DataPointEventsByDataPointRQLQueryDefinition());
@@ -1176,7 +1140,7 @@ public class ModuleRegistry {
             }
         };
     }
-  
+
     /**
      * Create with custom level permissions
      * @param id
@@ -1194,12 +1158,12 @@ public class ModuleRegistry {
             public Visibility getVisibility() {
                 return visibility;
             }
-            
+
             @Override
             public boolean isVisible(HttpServletRequest request, HttpServletResponse response) {
-            	return Permissions.hasPermission(Common.getHttpUser(), SystemSettingsDao.instance.getValue(permission));
+                return Permissions.hasPermission(Common.getHttpUser(), SystemSettingsDao.instance.getValue(permission));
             }
-            
+
             @Override
             public String getId(HttpServletRequest request, HttpServletResponse response) {
                 return id;
@@ -1271,9 +1235,9 @@ public class ModuleRegistry {
 
             @Override
             public boolean hasCustomPermission(User user){
-            	return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
+                return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
             }
-            
+
             @Override
             public String getPath() {
                 return path;
@@ -1290,7 +1254,7 @@ public class ModuleRegistry {
             }
         };
     }
-    
+
     static ControllerMappingDefinition createControllerMappingDefinition(final Permission level, final String path,
             final Controller controller) {
         return new ControllerMappingDefinition() {
@@ -1298,7 +1262,7 @@ public class ModuleRegistry {
             public Permission getPermission() {
                 return level;
             }
-            
+
             @Override
             public String getPath() {
                 return path;
@@ -1310,7 +1274,7 @@ public class ModuleRegistry {
             }
         };
     }
-    
+
     static ControllerMappingDefinition createControllerMappingDefinition(final Permission level, final String path,
             final Controller controller, final String permission) {
         return new ControllerMappingDefinition() {
@@ -1318,7 +1282,7 @@ public class ModuleRegistry {
             public Permission getPermission() {
                 return level;
             }
-            
+
             @Override
             public String getPath() {
                 return path;
@@ -1333,8 +1297,8 @@ public class ModuleRegistry {
              */
             @Override
             public boolean hasCustomPermission(User user)
-            		throws PermissionException {
-            	return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
+                    throws PermissionException {
+                return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
             }
         };
     }

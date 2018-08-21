@@ -7,12 +7,13 @@ import java.util.EnumSet;
 
 import org.springframework.context.ApplicationEvent;
 
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.serotonin.m2m2.vo.User;
 
 /**
  * @author Jared Wiltshire
  */
-public class UserUpdatedEvent extends ApplicationEvent {
+public class UserUpdatedEvent extends ApplicationEvent implements PropagatingEvent {
 
     private static final long serialVersionUID = 1L;
 

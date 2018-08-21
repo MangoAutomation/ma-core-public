@@ -29,7 +29,7 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
  * @author Jared Wiltshire
  */
 @Component
-public class MangoExecutors {
+public final class MangoExecutors {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1, new ThreadFactory() {
@@ -61,7 +61,7 @@ public class MangoExecutors {
     });
 
     @PreDestroy
-    public void destroy() {
+    private void destroy() {
         if (log.isInfoEnabled()) {
             log.info("Shutting down shared executor and scheduled exectutor");
         }

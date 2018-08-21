@@ -18,7 +18,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -53,7 +52,6 @@ public class UserDao extends AbstractDao<User> {
     });
 
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
-    private final ApplicationContext context;
 
     /**
      * @param typeName
@@ -61,12 +59,10 @@ public class UserDao extends AbstractDao<User> {
      * @param extraProperties
      * @param extraSQL
      */
-    @Autowired
-    private UserDao(ApplicationContext context) {
+    private UserDao() {
         super(AuditEventType.TYPE_USER, "u",
                 new String[0], false,
                 new TranslatableMessage("internal.monitor.USER_COUNT"));
-        this.context = context;
     }
 
     /**
@@ -169,10 +165,10 @@ public class UserDao extends AbstractDao<User> {
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
 
-        if (handler != null)
-            handler.notify("add", user);
+        this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.CREATE, user, null, null));
 
-        this.context.publishEvent(new UserCreatedEvent(this, user));
+        // TODO Mango 3.5 remove and replace with DaoEvent
+        this.eventPublisher.publishEvent(new UserCreatedEvent(this, user));
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -245,7 +241,9 @@ public class UserDao extends AbstractDao<User> {
             if (permissionsChanged) {
                 fields.add(UserUpdatedEvent.UpdatedFields.PERMISSIONS);
             }
-            this.context.publishEvent(new UserUpdatedEvent(this, user, fields));
+
+            // TODO Mango 3.5 remove, replace with DaoEvent
+            this.eventPublisher.publishEvent(new UserUpdatedEvent(this, user, fields));
 
             if (passwordChanged || permissionsChanged || user.isDisabled()) {
                 exireSessionsForUser(old);
@@ -253,8 +251,7 @@ public class UserDao extends AbstractDao<User> {
 
             userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
 
-            if (handler != null)
-                handler.notify("update", user);
+            this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, old.getUsername()));
 
         } catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -292,10 +289,11 @@ public class UserDao extends AbstractDao<User> {
 
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
         countMonitor.decrement();
-        if (handler != null)
-            handler.notify("delete", user);
 
-        this.context.publishEvent(new UserDeletedEvent(this, user));
+        this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.DELETE, user, null, null));
+
+        // TODO Mango 3.5 remove, replace with DaoEvent
+        this.eventPublisher.publishEvent(new UserDeletedEvent(this, user));
 
         // expire the user's sessions
         exireSessionsForUser(user);
@@ -315,7 +313,7 @@ public class UserDao extends AbstractDao<User> {
 
         user.setTokenVersion(newTokenVersion);
 
-        this.context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.AUTH_TOKEN)));
+        this.eventPublisher.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.AUTH_TOKEN)));
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
     }
@@ -337,7 +335,7 @@ public class UserDao extends AbstractDao<User> {
         user.setPassword(LOCKED_PASSWORD);
         user.setPasswordVersion(newPasswordVersion);
 
-        this.context.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.PASSWORD)));
+        this.eventPublisher.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.PASSWORD)));
 
         // expire the user's sessions
         exireSessionsForUser(user);

@@ -11,7 +11,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
-import org.springframework.context.ApplicationListener;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -33,47 +32,46 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 public class MangoWebApplicationInitializer implements ServletContainerInitializer {
 
     public static final String ROOT_CONTEXT_ID = "rootContext";
+    // TODO remove this and its getter in Common
     public static final String DISPATCHER_CONTEXT_ID = "dispatcherContext";
-    private ApplicationListener<?> contextListener;
-
-    public MangoWebApplicationInitializer(ApplicationListener<?> contextListener) {
-        this.contextListener = contextListener;
-    }
 
     @Override
     public void onStartup(Set<Class<?>> c, ServletContext context) throws ServletException {
-        
+
         // Create the 'root' Spring application context
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
         rootContext.setId(ROOT_CONTEXT_ID);
         rootContext.setParent(Common.getRuntimeContext());
         rootContext.register(MangoApplicationContextConfiguration.class);
         rootContext.register(MangoSecurityConfiguration.class);
-        
+
         // Manage the lifecycle of the root application context
         context.addListener(new ContextLoaderListener(rootContext));
 
+        // TODO Mango 3.5 verify that it works without this context
         // Create the dispatcher servlet's Spring application context
-        AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
-        dispatcherContext.setId(DISPATCHER_CONTEXT_ID);
-        dispatcherContext.setParent(rootContext); //Setting this but it seems to get set elsewhere to the same value
-        dispatcherContext.register(MangoCoreSpringConfiguration.class);
+        //AnnotationConfigWebApplicationContext dispatcherContext = new AnnotationConfigWebApplicationContext();
+        //dispatcherContext.setId(DISPATCHER_CONTEXT_ID);
+        //dispatcherContext.setParent(rootContext); //Setting this but it seems to get set elsewhere to the same value
+
+        // TODO Mango 3.5 merge this config and remove common dispatcher config
+        rootContext.register(MangoCoreSpringConfiguration.class);
 
         boolean enableRest = Common.envProps.getBoolean("rest.enabled", false);
         boolean enableSwagger = Common.envProps.getBoolean("swagger.enabled", false);
 
         if(enableRest){
-            dispatcherContext.register(MangoRestSpringConfiguration.class);
-            dispatcherContext.register(MangoWebSocketConfiguration.class);
+            rootContext.register(MangoRestSpringConfiguration.class);
+            rootContext.register(MangoWebSocketConfiguration.class);
         }
 
         if(enableSwagger&&enableRest){
-            dispatcherContext.register(SwaggerConfig.class);
+            rootContext.register(SwaggerConfig.class);
         }
 
         // Register and map the dispatcher servlet
         ServletRegistration.Dynamic dispatcher =
-                context.addServlet("springDispatcher", new DispatcherServlet(dispatcherContext));
+                context.addServlet("springDispatcher", new DispatcherServlet(rootContext));
         dispatcher.setLoadOnStartup(1);
         dispatcher.addMapping("*.htm", "*.shtm", "/rest/*",
                 "/swagger/v2/api-docs",
@@ -85,8 +83,6 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out
         context.addListener(HttpSessionEventPublisher.class);
         context.addListener(new MangoSessionListener());
-        if (contextListener != null) {
-            rootContext.addApplicationListener(contextListener);
-        }
+
     }
 }

@@ -26,7 +26,7 @@ public class MangoSecurityEventListener {
      * @param event
      */
     @EventListener
-    public void handleAuthenticationSwitchUserEvent(AuthenticationSwitchUserEvent event) {
+    private void handleAuthenticationSwitchUserEvent(AuthenticationSwitchUserEvent event) {
         LOG.info("Switch User: '" + ((User)event.getAuthentication().getPrincipal()).getUsername() + "' switched to '" + event.getTargetUser().getUsername() + "'");
     }
     

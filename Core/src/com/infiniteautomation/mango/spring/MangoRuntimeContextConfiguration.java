@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
@@ -26,6 +28,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
+import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -102,7 +106,7 @@ public class MangoRuntimeContextConfiguration {
         return mapper;
     }
 
-    // ScheduledExecutorService cannot be annotated with @Primary as it is also a ExecutorService
+    // ScheduledExecutorService cannot be annotated with @Primary as it is also an ExecutorService
     @Bean(SCHEDULED_EXECUTOR_SERVICE_NAME)
     public ScheduledExecutorService scheduledExecutorService(MangoExecutors executors) {
         return executors.getScheduledExecutor();
@@ -131,5 +135,15 @@ public class MangoRuntimeContextConfiguration {
         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setIgnoreUnresolvablePlaceholders(false);
         return configurer;
+    }
+
+    @Bean
+    public EventMulticasterRegistry eventMulticasterRegistry() {
+        return new EventMulticasterRegistry();
+    }
+
+    @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
+    public ApplicationEventMulticaster eventMulticaster(EventMulticasterRegistry eventMulticasterRegistry) {
+        return new PropagatingEventMulticaster(eventMulticasterRegistry);
     }
 }

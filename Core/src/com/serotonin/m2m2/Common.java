@@ -22,6 +22,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -762,31 +763,31 @@ public class Common {
         }
     }
 
-
+    // TODO Mango 3.5 move these into the configuration class where they are initialized and remove the setters
     /* Spring application contexts */
     public static String RUNTIME_CONTEXT_ID = "runtimeContext";
-    private static ApplicationContext runtimeContext;
-    private static ApplicationContext rootContext;
-    private static ApplicationContext dispatcherContext;
+    private static final AtomicReference<ApplicationContext> runtimeContext = new AtomicReference<>();
+    private static final AtomicReference<ApplicationContext> rootContext = new AtomicReference<>();;
+    private static final AtomicReference<ApplicationContext> dispatcherContext = new AtomicReference<>();;
 
     /**
      * Set in the Lifecycle after Database Initialize, if not null its safe to use
      * @return
      */
     public static ApplicationContext getRuntimeContext() {
-        return runtimeContext;
+        return runtimeContext.get();
     }
 
     public static void setRuntimeContext(ApplicationContext context) {
-        runtimeContext = context;
+        runtimeContext.compareAndSet(null, context);
     }
 
     public static <T> T getBean(Class<T> clazz) {
-        return runtimeContext.getBean(clazz);
+        return runtimeContext.get().getBean(clazz);
     }
 
     public static <T> T getBean(Class<T> clazz, String name) {
-        return runtimeContext.getBean(name, clazz);
+        return runtimeContext.get().getBean(name, clazz);
     }
 
     /**
@@ -796,11 +797,11 @@ public class Common {
      * @return
      */
     public static ApplicationContext getRootContext() {
-        return rootContext;
+        return rootContext.get();
     }
 
-    protected static void setRootContext(ApplicationContext context) {
-        rootContext = context;
+    public static void setRootContext(ApplicationContext context) {
+        rootContext.compareAndSet(null, context);
     }
 
     /**
@@ -809,11 +810,11 @@ public class Common {
      * @return
      */
     public static ApplicationContext getDispatcherContext() {
-        return dispatcherContext;
+        return dispatcherContext.get();
     }
 
-    protected static void setDispatcherContext(ApplicationContext context) {
-        dispatcherContext = context;
+    public static void setDispatcherContext(ApplicationContext context) {
+        dispatcherContext.compareAndSet(null, context);
     }
 
     // TODO Mango 3.5 - Dont use in modules until Mango 3.5
