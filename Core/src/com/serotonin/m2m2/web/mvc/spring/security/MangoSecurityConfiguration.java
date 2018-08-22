@@ -112,9 +112,8 @@ public class MangoSecurityConfiguration {
     }
 
     // used to dectect if we should do redirects on login/authentication failure/logout etc
-    // TODO Mango 3.5 remove static, fix UI module
     @Bean(name="browserHtmlRequestMatcher")
-    public static RequestMatcher browserHtmlRequestMatcher() {
+    public RequestMatcher browserHtmlRequestMatcher() {
         return BrowserRequestMatcher.INSTANCE;
     }
 
