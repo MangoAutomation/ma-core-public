@@ -38,9 +38,9 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
      * You must annotate the overridden method with @EventListener in order for this to work
      * @param event
      */
-    abstract protected void handleDaoEvent(DaoEvent<T> event);
+    abstract protected void handleDaoEvent(DaoEvent<? extends T> event);
 
-    protected void notify(DaoEvent<T> event) {
+    protected void notify(DaoEvent<? extends T> event) {
         this.notify(event.getType().getAction(), event.getVo(), event.getInitiatorId(), event.getOriginalXid());
     }
 

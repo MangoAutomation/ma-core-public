@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.events;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         this.vo = Objects.requireNonNull(vo);
         this.initiatorId = initiatorId;
         this.originalXid = originalXid;
-        this.updatedFields = null;
+        this.updatedFields = Collections.emptySet();
     }
 
     public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String initiatorId, String originalXid, Set<?> updatedFields) {
@@ -44,7 +45,7 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         this.vo = Objects.requireNonNull(vo);
         this.initiatorId = initiatorId;
         this.originalXid = originalXid;
-        this.updatedFields = updatedFields;
+        this.updatedFields = Objects.requireNonNull(updatedFields);
     }
 
     public DaoEventType getType() {
@@ -69,7 +70,7 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
      */
     @Override
     public ResolvableType getResolvableType() {
-        return ResolvableType.forClassWithGenerics(this.getClass(), this.vo.getClass());
+        return ResolvableType.forClassWithGenerics(this.getClass(), ResolvableType.forClass(this.vo.getClass()));
     }
 
     public Set<?> getUpdatedFields() {
