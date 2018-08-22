@@ -86,10 +86,12 @@ public class MockMangoLifecycle implements IMangoLifecycle{
      * Startup a dummy Mango with a basic infrastructure
      */
     public void initialize() {
-
-        Common.MA_HOME =  System.getProperty("ma.home");
-        if(Common.MA_HOME == null)
-            Common.MA_HOME = ".";
+        String maHome = System.getProperty("ma.home");
+        if(maHome == null) {
+            maHome = ".";
+            System.setProperty("ma.home", ".");
+        }
+        Common.MA_HOME =  maHome;
 
         //Add in modules
         for(Module module : modules)
