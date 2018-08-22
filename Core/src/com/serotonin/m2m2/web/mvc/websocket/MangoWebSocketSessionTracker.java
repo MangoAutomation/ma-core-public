@@ -100,7 +100,6 @@ public final class MangoWebSocketSessionTracker {
 
     @EventListener
     private void sessionDestroyed(SessionDestroyedEvent event) {
-        System.out.println(event.toString());
         String httpSessionId = event.getId();
 
         Set<WebSocketSession> sessions = sessionsByHttpSessionId.removeAll(httpSessionId);

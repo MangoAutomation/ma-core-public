@@ -4,15 +4,6 @@
  */
 package com.serotonin.m2m2.web.mvc.websocket;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
-import org.springframework.context.event.ApplicationEventMulticaster;
-import org.springframework.context.event.GenericApplicationListener;
-import org.springframework.core.Ordered;
-import org.springframework.core.ResolvableType;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.serotonin.m2m2.db.dao.DaoEvent;
@@ -24,53 +15,6 @@ import com.serotonin.m2m2.vo.User;
  * @author Jared Wiltshire
  */
 public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO> extends MultiSessionWebSocketHandler {
-
-    // TODO Mango 3.5 add to constructor and make final
-    @Autowired
-    protected ApplicationEventMulticaster eventMulticaster;
-
-    protected final DaoEventListener daoEventListener;
-    private final ResolvableType eventType;
-
-    protected DaoNotificationWebSocketHandler() {
-        super();
-        this.daoEventListener = new DaoEventListener();
-        this.eventType = ResolvableType.forClassWithGenerics(DaoEvent.class, supportedClass());
-    }
-
-    @PostConstruct
-    protected void init() {
-        this.eventMulticaster.addApplicationListener(this.daoEventListener);
-    }
-
-    @PreDestroy
-    protected void destroy() {
-        this.eventMulticaster.removeApplicationListener(this.daoEventListener);
-    }
-
-    protected class DaoEventListener implements GenericApplicationListener {
-        @SuppressWarnings("unchecked")
-        @Override
-        public void onApplicationEvent(ApplicationEvent event) {
-            DaoEvent<?> daoEvent = (DaoEvent<?>) event;
-            DaoNotificationWebSocketHandler.this.notify(daoEvent.getType().getAction(), (T) daoEvent.getVo(), daoEvent.getInitiatorId(), daoEvent.getOriginalXid());
-        }
-
-        @Override
-        public int getOrder() {
-            return Ordered.LOWEST_PRECEDENCE;
-        }
-
-        @Override
-        public boolean supportsEventType(ResolvableType eventType) {
-            return DaoNotificationWebSocketHandler.this.eventType.isAssignableFrom(eventType);
-        }
-
-        @Override
-        public boolean supportsSourceType(Class<?> sourceType) {
-            return true;
-        }
-    }
 
     /**
      * @param action add, update or delete
@@ -89,7 +33,16 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
 
     abstract protected boolean hasPermission(User user, T vo);
     abstract protected Object createModel(T vo);
-    abstract protected Class<? extends T> supportedClass();
+
+    /**
+     * You must annotate the overridden method with @EventListener in order for this to work
+     * @param event
+     */
+    abstract protected void handleDaoEvent(DaoEvent<T> event);
+
+    protected void notify(DaoEvent<T> event) {
+        this.notify(event.getType().getAction(), event.getVo(), event.getInitiatorId(), event.getOriginalXid());
+    }
 
     protected void notify(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
         try {
