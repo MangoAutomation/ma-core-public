@@ -12,7 +12,6 @@ import org.springframework.core.ResolvableTypeProvider;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
-import com.serotonin.m2m2.db.dao.DaoEventType;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
