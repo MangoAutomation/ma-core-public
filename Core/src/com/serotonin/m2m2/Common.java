@@ -105,7 +105,11 @@ public class Common {
     /**
      * <p>The Mango Automation installation directory. This is specified by the ma.home environment variable.</p>
      */
-    public static final Path MA_HOME_PATH = Paths.get(System.getProperty("ma.home")).toAbsolutePath();
+    public static final Path MA_HOME_PATH;
+    static {
+        String maHomeProperty = System.getProperty("ma.home");
+        MA_HOME_PATH = Paths.get(maHomeProperty != null ? maHomeProperty : ".").toAbsolutePath();
+    }
 
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
