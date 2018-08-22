@@ -35,8 +35,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
 
     //Root directory within core
     public static final String ROOT = "filestore";
-    // TODO Mango 3.5 rename, not system setting, this is an env prop
-    public static final String FILE_STORE_LOCATION_SYSTEM_SETTING = "filestore.location";
+    public static final String FILE_STORE_LOCATION_ENV_PROPERTY = "filestore.location";
 
     /**
      * The name of the store.  Should be unique across all Modules and Mango Core
@@ -113,7 +112,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @return
      */
     public File getRoot() {
-        String location = Common.envProps.getString(FILE_STORE_LOCATION_SYSTEM_SETTING);
+        String location = Common.envProps.getString(FILE_STORE_LOCATION_ENV_PROPERTY);
         if (location == null || location.isEmpty()) {
             location = ROOT;
         }
