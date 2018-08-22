@@ -92,19 +92,26 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
 
-    // Map UI or Model member names to the Database Column Names they will get
-    // translated when the query is generated
+    /**
+     * Map UI or Model member names to the Database Column Names. They will get
+     * translated when the query is generated
+     */
     protected final Map<String, IntStringPair> propertiesMap;
 
-    // Map of Database Column Names to Column SQL Type
+    /**
+     * Map of Database Column Names to Column SQL Type
+     */
     protected final LinkedHashMap<String, Integer> propertyTypeMap;
 
-    // List of our Joins
+    /**
+     * List of our Joins
+     */
     protected final List<JoinClause> joins;
 
-    // List of our Indexes
+    /**
+     * List of our Indexes
+     */
     protected final List<Index> indexes;
-
 
     /*
      * SQL templates
