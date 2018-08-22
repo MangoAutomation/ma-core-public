@@ -14,7 +14,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 public class Upgrade9 extends DBUpgrade {
-    private static final Log LOG = LogFactory.getLog(Upgrade9.class);
+    private final Log LOG = LogFactory.getLog(Upgrade9.class);
 
     @Override
     public void upgrade() throws Exception {

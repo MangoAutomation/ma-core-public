@@ -4,11 +4,16 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.util.DirectoryUtils;
 
 /**
  * 3.5.0 Schema Update
@@ -18,7 +23,8 @@ import com.serotonin.m2m2.db.DatabaseProxy;
  * @author Terry Packer
  */
 public class Upgrade25 extends DBUpgrade {
-
+    private final Log LOG = LogFactory.getLog(Upgrade25.class);
+    
     @Override
     protected void upgrade() throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
@@ -39,6 +45,13 @@ public class Upgrade25 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sqlAlterUserPasswordChangeTimestamp);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlAlterUserPasswordChangeTimestamp);
         runScript(scripts);
+        
+        File swaggerDirectory = new File(Common.getWebPath("/swagger"));
+        try {
+            DirectoryUtils.deleteDirectory(swaggerDirectory);
+        } catch(Exception e) {
+            LOG.error("Error deleting V1 swagger directory: " + e.getMessage(), e);
+        }
     }
 
     @Override

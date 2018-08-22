@@ -23,7 +23,7 @@ import com.serotonin.util.SerializationHelper;
 
 public class Upgrade19 extends DBUpgrade {
 
-    private static final Log LOG = LogFactory.getLog(Upgrade19.class);
+    private final Log LOG = LogFactory.getLog(Upgrade19.class);
     
     @Override
     protected void upgrade() throws Exception {

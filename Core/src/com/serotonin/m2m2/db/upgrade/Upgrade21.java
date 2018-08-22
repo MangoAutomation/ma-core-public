@@ -23,7 +23,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
  */
 public class Upgrade21 extends DBUpgrade {
 
-    private static final Log LOG = LogFactory.getLog(Upgrade21.class);
+    private final Log LOG = LogFactory.getLog(Upgrade21.class);
     
     @Override
     protected void upgrade() throws Exception {

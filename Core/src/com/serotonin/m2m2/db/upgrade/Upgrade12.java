@@ -82,7 +82,7 @@ import com.serotonin.util.SerializationHelper;
  */
 public class Upgrade12 extends DBUpgrade {
 
-	private static final Log LOG = LogFactory.getLog(Upgrade12.class);
+	private final Log LOG = LogFactory.getLog(Upgrade12.class);
 	
 	private ObjectMapper mapper = new ObjectMapper();
 	private String mysqlDatabaseName = "";
