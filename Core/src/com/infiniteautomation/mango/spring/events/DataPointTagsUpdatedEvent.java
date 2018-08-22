@@ -1,11 +1,12 @@
 /*
  * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.events;
 
 import org.springframework.context.ApplicationEvent;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 public class DataPointTagsUpdatedEvent extends ApplicationEvent implements PropagatingEvent {

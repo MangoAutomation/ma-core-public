@@ -6,7 +6,6 @@ package com.serotonin.m2m2.web.mvc.websocket;
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,13 +22,12 @@ import org.springframework.web.socket.WebSocketSession;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
+import com.infiniteautomation.mango.spring.events.AuthTokensRevokedEvent;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.serotonin.m2m2.db.dao.UserDao.UpdatedFields;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.spring.events.AuthTokensRevokedEvent;
-import com.serotonin.m2m2.web.mvc.spring.events.UserDeletedEvent;
-import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
-import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent.UpdatedFields;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.JwtAuthentication;
 
 /**
@@ -109,8 +107,8 @@ public final class MangoWebSocketSessionTracker {
     }
 
     @EventListener
-    private void userDeleted(UserDeletedEvent event) {
-        int userId = event.getUser().getId();
+    private void userDeleted(DaoEvent<User> event) {
+        int userId = event.getVo().getId();
 
         Set<WebSocketSession> jwtSessions = jwtSessionsByUserId.removeAll(userId);
         for (WebSocketSession session : jwtSessions) {
@@ -124,10 +122,12 @@ public final class MangoWebSocketSessionTracker {
     }
 
     @EventListener
-    private void userUpdated(UserUpdatedEvent event) {
-        User updatedUser = event.getUser();
+    private void userUpdated(DaoEvent<User> event) {
+        User updatedUser = event.getVo();
         int userId = updatedUser.getId();
-        EnumSet<UpdatedFields> fields = event.getUpdatedFields();
+
+        @SuppressWarnings("unchecked")
+        Set<UpdatedFields> fields = (Set<UpdatedFields>) event.getUpdatedFields();
 
         boolean disabledOrPermissionsChanged = updatedUser.isDisabled() || fields.contains(UpdatedFields.PERMISSIONS);
         boolean authTokensRevoked = fields.contains(UpdatedFields.AUTH_TOKEN);

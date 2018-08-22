@@ -26,6 +26,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.ShouldNeverHappenException;
@@ -34,13 +35,9 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.mvc.spring.events.UserCreatedEvent;
-import com.serotonin.m2m2.web.mvc.spring.events.UserDeletedEvent;
-import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent;
-import com.serotonin.m2m2.web.mvc.spring.events.UserUpdatedEvent.UpdatedFields;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
-@Repository()
+@Repository
 public class UserDao extends AbstractDao<User> {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
@@ -50,6 +47,10 @@ public class UserDao extends AbstractDao<User> {
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (UserDao)o;
     });
+
+    public static enum UpdatedFields {
+        AUTH_TOKEN, PASSWORD, PERMISSIONS
+    }
 
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
@@ -166,9 +167,6 @@ public class UserDao extends AbstractDao<User> {
         this.countMonitor.increment();
 
         this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.CREATE, user, null, null));
-
-        // TODO Mango 3.5 remove and replace with DaoEvent
-        this.eventPublisher.publishEvent(new UserCreatedEvent(this, user));
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
@@ -234,24 +232,20 @@ public class UserDao extends AbstractDao<User> {
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
             boolean passwordChanged = user.getPasswordVersion() > originalPwVersion;
 
-            EnumSet<UpdatedFields> fields = EnumSet.noneOf(UserUpdatedEvent.UpdatedFields.class);
+            EnumSet<UpdatedFields> fields = EnumSet.noneOf(UpdatedFields.class);
             if (passwordChanged) {
-                fields.add(UserUpdatedEvent.UpdatedFields.PASSWORD);
+                fields.add(UpdatedFields.PASSWORD);
             }
             if (permissionsChanged) {
-                fields.add(UserUpdatedEvent.UpdatedFields.PERMISSIONS);
+                fields.add(UpdatedFields.PERMISSIONS);
             }
-
-            // TODO Mango 3.5 remove, replace with DaoEvent
-            this.eventPublisher.publishEvent(new UserUpdatedEvent(this, user, fields));
 
             if (passwordChanged || permissionsChanged || user.isDisabled()) {
                 exireSessionsForUser(old);
             }
 
             userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
-
-            this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, old.getUsername()));
+            eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, old.getUsername(), fields));
 
         } catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -290,14 +284,11 @@ public class UserDao extends AbstractDao<User> {
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
         countMonitor.decrement();
 
-        this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.DELETE, user, null, null));
-
-        // TODO Mango 3.5 remove, replace with DaoEvent
-        this.eventPublisher.publishEvent(new UserDeletedEvent(this, user));
-
         // expire the user's sessions
         exireSessionsForUser(user);
+
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.DELETE, user, null, null));
     }
 
     public void revokeTokens(User user) {
@@ -313,9 +304,8 @@ public class UserDao extends AbstractDao<User> {
 
         user.setTokenVersion(newTokenVersion);
 
-        this.eventPublisher.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.AUTH_TOKEN)));
-
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, username, EnumSet.of(UpdatedFields.AUTH_TOKEN)));
     }
 
     public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
@@ -335,11 +325,10 @@ public class UserDao extends AbstractDao<User> {
         user.setPassword(LOCKED_PASSWORD);
         user.setPasswordVersion(newPasswordVersion);
 
-        this.eventPublisher.publishEvent(new UserUpdatedEvent(this, user, EnumSet.of(UserUpdatedEvent.UpdatedFields.PASSWORD)));
-
         // expire the user's sessions
         exireSessionsForUser(user);
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, username, EnumSet.of(UpdatedFields.PASSWORD)));
     }
 
     public void recordLogin(User user) {

@@ -541,7 +541,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     public void setPasswordChangeTimestamp(long timestamp){
         this.passwordChangeTimestamp = timestamp;
     }
-    
+
     public long getPasswordChangeTimestamp() {
         return this.passwordChangeTimestamp;
     }
@@ -620,7 +620,7 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
                 if ((PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
                     response.addMessage("password", new TranslatableMessage("validate.required"));
                 }
-                
+
                 //Validate against our rules
                 if (PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)){
                     PasswordValidator validator = new PasswordValidator(Arrays.asList(

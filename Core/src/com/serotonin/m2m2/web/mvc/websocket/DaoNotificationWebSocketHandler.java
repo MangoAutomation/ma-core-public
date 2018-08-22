@@ -6,7 +6,7 @@ package com.serotonin.m2m2.web.mvc.websocket;
 
 import org.springframework.web.socket.WebSocketSession;
 
-import com.serotonin.m2m2.db.dao.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;

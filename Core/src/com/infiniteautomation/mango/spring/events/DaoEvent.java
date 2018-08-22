@@ -1,15 +1,18 @@
 /*
  * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.db.dao;
+package com.infiniteautomation.mango.spring.events;
 
 import java.util.Objects;
+import java.util.Set;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.ResolvableTypeProvider;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.db.dao.DaoEventType;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 
 /**
@@ -22,6 +25,7 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
     private final T vo;
     private final String initiatorId;
     private final String originalXid;
+    private final Set<?> updatedFields;
 
     /**
      * @param source
@@ -32,6 +36,16 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         this.vo = Objects.requireNonNull(vo);
         this.initiatorId = initiatorId;
         this.originalXid = originalXid;
+        this.updatedFields = null;
+    }
+
+    public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String initiatorId, String originalXid, Set<?> updatedFields) {
+        super(source);
+        this.type = Objects.requireNonNull(type);
+        this.vo = Objects.requireNonNull(vo);
+        this.initiatorId = initiatorId;
+        this.originalXid = originalXid;
+        this.updatedFields = updatedFields;
     }
 
     public DaoEventType getType() {
@@ -57,6 +71,10 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
     @Override
     public ResolvableType getResolvableType() {
         return ResolvableType.forClassWithGenerics(this.getClass(), this.vo.getClass());
+    }
+
+    public Set<?> getUpdatedFields() {
+        return updatedFields;
     }
 
 }
