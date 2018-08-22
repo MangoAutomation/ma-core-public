@@ -81,7 +81,7 @@ public class SwaggerConfig {
 
 		docket.apiInfo(new ApiInfoBuilder()
 	              .title("Mango REST API")
-	              .description("Support: <a href='http://infiniteautomation.com/forum'>Forum</a> or <a href='http://infiniteautomation.com/wiki/doku.php?id=graphics:api:intro'>Wiki</a>")
+	              .description("Support: <a href='http://infiniteautomation.com/forum'>Forum</a> or <a href='https://help-infinite-automation.squarespace.com/explore-the-api/'>Help</a>")
 	              .version("2.0")
 	              .termsOfServiceUrl("https://infiniteautomation.com/terms/")
 	              .contact(new Contact("IAS", "https://infiniteautomation.com", "support@infiniteautomation.com"))
