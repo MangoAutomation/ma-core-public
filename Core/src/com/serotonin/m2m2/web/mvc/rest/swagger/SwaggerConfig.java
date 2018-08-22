@@ -66,7 +66,7 @@ public class SwaggerConfig {
 		        .ignoredParameterTypes(AuthenticationPrincipal.class)
 		        .select()
 		          .apis(RequestHandlerSelectors.any())
-		          .paths(PathSelectors.regex("/" + Common.envProps.getString("swagger.mangoApiVersion", "v1") + "/.*"))
+		          .paths(PathSelectors.regex("/" + Common.envProps.getString("swagger.mangoApiVersion", "v[12]") + "/.*"))
 		          .build()
 		          .securitySchemes(Arrays.asList(new ApiKey(SECURITY_TOKEN_REFERENCE, HttpHeaders.AUTHORIZATION, In.HEADER.name())))
 		          .securityContexts(Arrays.asList(securityContext()))
