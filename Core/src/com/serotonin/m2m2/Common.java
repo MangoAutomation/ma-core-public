@@ -7,6 +7,8 @@ package com.serotonin.m2m2;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
@@ -92,7 +94,19 @@ public class Common {
     // Note the start time of the application.
     public static final long START_TIME = System.currentTimeMillis();
 
+    /**
+     * <p>Prefer {@link Common#MA_HOME_PATH}</p>
+     *
+     * <p>The Mango Automation installation directory. This is specified by the ma.home environment variable.</p>
+     */
+    @Deprecated
     public static String MA_HOME;
+
+    /**
+     * <p>The Mango Automation installation directory. This is specified by the ma.home environment variable.</p>
+     */
+    public static final Path MA_HOME_PATH = Paths.get(System.getProperty("ma.home")).toAbsolutePath();
+
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
     public static final Charset ASCII_CS = Charset.forName("ASCII");

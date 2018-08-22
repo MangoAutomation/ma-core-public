@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -110,50 +109,58 @@ public class Module {
     }
 
     /**
-     * TODO Mango 3.5 deprecate/remove
-     * @return the path from the MA home to the module's directory. Suitable for creating File objects within Java
-     *         code
+     * <p>Prefer the {@link #modulePath()} method.</p>
+     * <p>Suitable for creating File objects within Java code.</p>
+     *
+     * TODO Mango 3.5 remove
+     *
+     * @return the path from the MA home to the module's directory.
      */
+    @Deprecated
     public String getDirectoryPath() {
         return "/" + Constants.DIR_WEB + getWebPath();
     }
 
     /**
-     * TODO Mango 3.5 deprecate/remove
-     * @return the path from MA's web root to the module's directory. Suitable for creating URLs to module assets.
+     * <p>Prefer the {@link #webPath()} method.</p>
+     * <p>Suitable for creating URLs to module assets.</p>
+     *
+     * TODO Mango 3.5 remove
+     *
+     * @return the path from MA's web root to the module's directory
      */
+    @Deprecated
     public String getWebPath() {
         return "/" + Constants.DIR_MODULES + "/" + name;
     }
 
     /**
-     * Do not use in modules until Mango 3.5, new API.
-     * TODO Mango 3.5 remove @Deprecated
-     * @return
+     * <p>Suitable for creating URLs to module assets.</p>
+     *
+     * @return relative URI from MA web root to the module's web directory
      */
-    @Deprecated
     public URI webPath() {
         return URI.create("/" + Constants.DIR_MODULES).resolve(name);
     }
 
     /**
-     * TODO Mango 3.5 Do not use in modules until Mango 3.5, new API.
-     * @return
+     * <p>Suitable for creating File objects within Java code.</p>
+     *
+     * @return absolute path to the module's installation directory
      */
     public Path modulePath() {
-        return Paths.get(Common.MA_HOME, Constants.DIR_WEB, Constants.DIR_MODULES, name);
+        return Common.MA_HOME_PATH.resolve(Constants.DIR_WEB).resolve(Constants.DIR_MODULES).resolve(name);
     }
 
     /**
-     * TODO Mango 3.5 Do not use in modules until Mango 3.5, new API.
-     * @return
+     * @return absolute path to the module's data directory
      */
     public Path moduleDataPath() {
         String location = Common.envProps.getString(MODULE_DATA_ENV_PROP);
         if (location == null || location.isEmpty()) {
             location = MODULE_DATA_ENV_PROP_DEFAULT;
         }
-        Path dataPath = Paths.get(Common.MA_HOME).resolve(location).resolve(name);
+        Path dataPath = Common.MA_HOME_PATH.resolve(location).resolve(name);
 
         try {
             Files.createDirectories(dataPath);
