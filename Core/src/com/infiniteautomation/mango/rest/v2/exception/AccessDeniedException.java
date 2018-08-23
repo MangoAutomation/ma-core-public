@@ -13,20 +13,20 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  */
 public class AccessDeniedException extends AbstractRestV2Exception {
     private static final long serialVersionUID = 1L;
-    
+
     public AccessDeniedException() {
         super(HttpStatus.FORBIDDEN, MangoRestErrorCode.ACCESS_DENIED);
     }
 
-    public AccessDeniedException(Exception e) {
-        super(HttpStatus.FORBIDDEN, MangoRestErrorCode.ACCESS_DENIED, e);
+    public AccessDeniedException(Throwable cause) {
+        super(HttpStatus.FORBIDDEN, MangoRestErrorCode.ACCESS_DENIED, cause);
     }
 
     public AccessDeniedException(TranslatableMessage message) {
         super(HttpStatus.FORBIDDEN, MangoRestErrorCode.ACCESS_DENIED, message);
     }
-    
-    public AccessDeniedException(TranslatableMessage message, Exception e) {
-        super(HttpStatus.FORBIDDEN, MangoRestErrorCode.ACCESS_DENIED, message, e);
+
+    public AccessDeniedException(TranslatableMessage message, Throwable cause) {
+        super(HttpStatus.FORBIDDEN, MangoRestErrorCode.ACCESS_DENIED, message, cause);
     }
 }

@@ -44,7 +44,6 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
      */
     private final RateLimiter<String> usernameRateLimiter;
 
-    @SuppressWarnings("deprecation")
     @Autowired
     public MangoPasswordAuthenticationProvider(UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker) {
         this.userDetailsService = userDetailsService;
@@ -91,11 +90,11 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
             boolean usernameRateExceeded = this.usernameRateLimiter != null && this.usernameRateLimiter.checkRateExceeded(username);
 
             if (ipRateExceeded) {
-                throw new IpAddressAuthenticationRateException();
+                throw new IpAddressAuthenticationRateException(ip);
             }
 
             if (usernameRateExceeded) {
-                throw new UsernameAuthenticationRateException();
+                throw new UsernameAuthenticationRateException(username);
             }
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
@@ -132,19 +131,40 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
         return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
     }
 
-    public static class IpAddressAuthenticationRateException extends AccountStatusException {
+
+    public static class AuthenticationRateException extends AccountStatusException {
         private static final long serialVersionUID = 1L;
 
-        public IpAddressAuthenticationRateException() {
-            super("Authentication attempt rate limit exceeded for IP");
+        public AuthenticationRateException(String msg) {
+            super(msg);
         }
     }
 
-    public static class UsernameAuthenticationRateException extends AccountStatusException {
+    public static class IpAddressAuthenticationRateException extends AuthenticationRateException {
         private static final long serialVersionUID = 1L;
+        private final String ip;
 
-        public UsernameAuthenticationRateException() {
-            super("Authentication attempt rate limit exceeded against username");
+        public IpAddressAuthenticationRateException(String ip) {
+            super("Authentication attempt rate limit exceeded for IP " + ip);
+            this.ip = ip;
+        }
+
+        public String getIp() {
+            return ip;
+        }
+    }
+
+    public static class UsernameAuthenticationRateException extends AuthenticationRateException {
+        private static final long serialVersionUID = 1L;
+        private final String username;
+
+        public UsernameAuthenticationRateException(String username) {
+            super("Authentication attempt rate limit exceeded against username " + username);
+            this.username = username;
+        }
+
+        public String getUsername() {
+            return username;
         }
     }
 }

@@ -13,20 +13,20 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  */
 public class ServerErrorException extends AbstractRestV2Exception {
     private static final long serialVersionUID = 1L;
-    
+
     public ServerErrorException() {
         super(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    public ServerErrorException(Exception e) {
-        super(HttpStatus.INTERNAL_SERVER_ERROR, null, e);
+    public ServerErrorException(Throwable cause) {
+        super(HttpStatus.INTERNAL_SERVER_ERROR, null, cause);
     }
 
     public ServerErrorException(TranslatableMessage message) {
         super(HttpStatus.INTERNAL_SERVER_ERROR, null, message);
     }
-    
-    public ServerErrorException(TranslatableMessage message, Exception e) {
-        super(HttpStatus.INTERNAL_SERVER_ERROR, null, message, e);
+
+    public ServerErrorException(TranslatableMessage message, Throwable cause) {
+        super(HttpStatus.INTERNAL_SERVER_ERROR, null, message, cause);
     }
 }

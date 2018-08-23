@@ -18,6 +18,7 @@ import org.springframework.core.NestedRuntimeException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -28,10 +29,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
 import com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException;
+import com.infiniteautomation.mango.rest.v2.exception.AuthenticationFailedRestException;
 import com.infiniteautomation.mango.rest.v2.exception.GenericRestException;
 import com.infiniteautomation.mango.rest.v2.exception.IllegalStateRestException;
 import com.infiniteautomation.mango.rest.v2.exception.InvalidRQLRestException;
 import com.infiniteautomation.mango.rest.v2.exception.NotFoundRestException;
+import com.infiniteautomation.mango.rest.v2.exception.RateLimitedRestException;
 import com.infiniteautomation.mango.rest.v2.exception.ResourceNotFoundException;
 import com.infiniteautomation.mango.rest.v2.exception.ServerErrorException;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
@@ -45,6 +48,7 @@ import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.AuthenticationRateException;
 
 /**
  *
@@ -141,6 +145,18 @@ public class MangoSpringExceptionHandler extends ResponseEntityExceptionHandler{
 
         GenericRestException body = new GenericRestException(HttpStatus.INTERNAL_SERVER_ERROR, ex.getTranslatableMessage(), ex.getCause());
         return handleExceptionInternal(ex, body, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, req);
+    }
+
+    @ExceptionHandler(AuthenticationRateException.class)
+    public ResponseEntity<Object> handleIpAddressAuthenticationRateException(HttpServletRequest request, HttpServletResponse response, AuthenticationRateException ex, WebRequest req) {
+        RateLimitedRestException body = RateLimitedRestException.restExceptionFor(ex);
+        return handleExceptionInternal(ex, body, new HttpHeaders(), body.getStatus(), req);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Object> handleUsernameAuthenticationRateException(HttpServletRequest request, HttpServletResponse response, AuthenticationException ex, WebRequest req) {
+        AuthenticationFailedRestException body = AuthenticationFailedRestException.restExceptionFor(ex);
+        return handleExceptionInternal(ex, body, new HttpHeaders(), body.getStatus(), req);
     }
 
     @ExceptionHandler({

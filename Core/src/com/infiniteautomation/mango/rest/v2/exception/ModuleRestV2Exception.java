@@ -9,18 +9,18 @@ import org.springframework.http.HttpStatus;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
- * 
+ *
  * @author Terry Packer
  */
 public class ModuleRestV2Exception extends AbstractRestV2Exception{
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-    public ModuleRestV2Exception(HttpStatus httpCode, Exception e) {
-        super(httpCode, e);
+    public ModuleRestV2Exception(HttpStatus httpCode, Throwable cause) {
+        super(httpCode, cause);
     }
 
-    public ModuleRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Exception e) {
-        super(httpCode, mangoCode, e);
+    public ModuleRestV2Exception(HttpStatus httpCode, IMangoRestErrorCode mangoCode, Throwable cause) {
+        super(httpCode, mangoCode, cause);
         if (mangoCode == null || mangoCode.getCode() >= 1000) {
             throw new IllegalArgumentException ("Module status codes must be < 1000");
         }

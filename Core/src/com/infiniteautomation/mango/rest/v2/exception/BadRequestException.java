@@ -13,20 +13,20 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  */
 public class BadRequestException extends AbstractRestV2Exception {
     private static final long serialVersionUID = 1L;
-    
+
     public BadRequestException() {
         super(HttpStatus.BAD_REQUEST, MangoRestErrorCode.BAD_REQUEST);
     }
 
-    public BadRequestException(Exception e) {
-        super(HttpStatus.BAD_REQUEST, MangoRestErrorCode.BAD_REQUEST, e);
+    public BadRequestException(Throwable cause) {
+        super(HttpStatus.BAD_REQUEST, MangoRestErrorCode.BAD_REQUEST, cause);
     }
 
     public BadRequestException(TranslatableMessage message) {
         super(HttpStatus.BAD_REQUEST, MangoRestErrorCode.BAD_REQUEST, message);
     }
-    
-    public BadRequestException(TranslatableMessage message, Exception e) {
-        super(HttpStatus.BAD_REQUEST, MangoRestErrorCode.BAD_REQUEST, message, e);
+
+    public BadRequestException(TranslatableMessage message, Throwable cause) {
+        super(HttpStatus.BAD_REQUEST, MangoRestErrorCode.BAD_REQUEST, message, cause);
     }
 }
