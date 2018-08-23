@@ -24,6 +24,7 @@ import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.infiniteautomation.mango.spring.events.AuthTokensRevokedEvent;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.db.dao.UserDao.UpdatedFields;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
@@ -98,6 +99,10 @@ public final class MangoWebSocketSessionTracker {
 
     @EventListener
     private void sessionDestroyed(SessionDestroyedEvent event) {
+        if (log.isDebugEnabled()) {
+            log.debug("Session destroyed, closing any websockets associated with the session " + event.getId());
+        }
+
         String httpSessionId = event.getId();
 
         Set<WebSocketSession> sessions = sessionsByHttpSessionId.removeAll(httpSessionId);
@@ -107,21 +112,44 @@ public final class MangoWebSocketSessionTracker {
     }
 
     @EventListener
+    private void userDaoEvent(DaoEvent<User> event) {
+        if (log.isDebugEnabled()) {
+            log.debug("User DAO event received " + event.toString());
+        }
+
+        if (event.getType() == DaoEventType.DELETE) {
+            userDeleted(event);
+        } else if (event.getType() == DaoEventType.UPDATE) {
+            userUpdated(event);
+        }
+    }
+
     private void userDeleted(DaoEvent<User> event) {
         int userId = event.getVo().getId();
 
         Set<WebSocketSession> jwtSessions = jwtSessionsByUserId.removeAll(userId);
-        for (WebSocketSession session : jwtSessions) {
-            closeSession(session, USER_UPDATED);
+        if (!jwtSessions.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Closing JWT authenticated WebSocket sessions for deleted user " + event.getVo().getUsername());
+            }
+
+            for (WebSocketSession session : jwtSessions) {
+                closeSession(session, USER_UPDATED);
+            }
         }
 
         Set<WebSocketSession> otherSessions = otherSessionsByUserId.removeAll(userId);
-        for (WebSocketSession session : otherSessions) {
-            closeSession(session, USER_UPDATED);
+        if (!otherSessions.isEmpty()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Closing session/basic authenticated WebSocket sessions for deleted user " + event.getVo().getUsername());
+            }
+
+            for (WebSocketSession session : otherSessions) {
+                closeSession(session, USER_UPDATED);
+            }
         }
     }
 
-    @EventListener
     private void userUpdated(DaoEvent<User> event) {
         User updatedUser = event.getVo();
         int userId = updatedUser.getId();
@@ -135,12 +163,20 @@ public final class MangoWebSocketSessionTracker {
 
         if (disabledOrPermissionsChanged || authTokensRevoked) {
             Set<WebSocketSession> sessions = jwtSessionsByUserId.removeAll(userId);
+            if (!sessions.isEmpty() && log.isDebugEnabled()) {
+                log.debug("Closing JWT authenticated WebSocket sessions for updated user '" + updatedUser.getUsername() + "', changed fields " + fields);
+            }
+
             for (WebSocketSession session : sessions) {
                 closeSession(session, authTokensRevoked ? USER_AUTH_TOKENS_REVOKED : USER_UPDATED);
             }
         } else {
             Set<WebSocketSession> sessions = jwtSessionsByUserId.get(userId);
             synchronized (jwtSessionsByUserId) {
+                if (!sessions.isEmpty() && log.isDebugEnabled()) {
+                    log.debug("Storing updated user '" + updatedUser.getUsername() + "' in JWT authenticated WebSocket sessions, changed fields " + fields);
+                }
+
                 for (WebSocketSession session : sessions) {
                     // store the updated user in the session attributes
                     session.getAttributes().put(MangoWebSocketHandshakeInterceptor.USER_ATTR, updatedUser);
@@ -150,12 +186,20 @@ public final class MangoWebSocketSessionTracker {
 
         if (disabledOrPermissionsChanged || passwordChanged) {
             Set<WebSocketSession> sessions = otherSessionsByUserId.removeAll(userId);
+            if (!sessions.isEmpty() && log.isDebugEnabled()) {
+                log.debug("Closing session/basic authenticated WebSocket sessions for updated user '" + updatedUser.getUsername() + "', changed fields " + fields);
+            }
+
             for (WebSocketSession session : sessions) {
                 closeSession(session, USER_UPDATED);
             }
         } else {
             Set<WebSocketSession> sessions = otherSessionsByUserId.get(userId);
             synchronized (otherSessionsByUserId) {
+                if (!sessions.isEmpty() && log.isDebugEnabled()) {
+                    log.debug("Storing updated user '" + updatedUser.getUsername() + "' in session/basic authenticated WebSocket sessions, changed fields " + fields);
+                }
+
                 for (WebSocketSession session : sessions) {
                     // store the updated user in the session attributes
                     session.getAttributes().put(MangoWebSocketHandshakeInterceptor.USER_ATTR, updatedUser);
@@ -166,6 +210,10 @@ public final class MangoWebSocketSessionTracker {
 
     @EventListener
     private void allAuthTokensRevoked(AuthTokensRevokedEvent event) {
+        if (log.isDebugEnabled()) {
+            log.debug("All JWT authentication tokens have been revoked (key changed), closing all JWT authenticated WebSocket sessions");
+        }
+
         Iterator<WebSocketSession> it = jwtSessions.iterator();
         while (it.hasNext()) {
             WebSocketSession session = it.next();

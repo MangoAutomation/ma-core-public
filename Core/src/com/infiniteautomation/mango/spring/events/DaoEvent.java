@@ -77,4 +77,9 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         return updatedFields;
     }
 
+    @Override
+    public String toString() {
+        return "DaoEvent [type=" + type + ", vo=" + vo + ", originalXid=" + originalXid + ", updatedFields=" + updatedFields + "]";
+    }
+
 }
