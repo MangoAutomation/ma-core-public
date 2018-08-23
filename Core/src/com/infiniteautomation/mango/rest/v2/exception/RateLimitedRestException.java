@@ -24,11 +24,11 @@ public class RateLimitedRestException extends AbstractRestV2Exception {
     public static RateLimitedRestException restExceptionFor(AuthenticationRateException cause) {
         if (cause instanceof IpAddressAuthenticationRateException) {
             return new RateLimitedRestException(MangoRestErrorCode.IP_RATE_LIMITED,
-                    new TranslatableMessage("rest.exception.ipRateLimited", ((IpAddressAuthenticationRateException) cause).getIp()),
+                    new TranslatableMessage("rest.exception.authenticationIpRateLimited", ((IpAddressAuthenticationRateException) cause).getIp()),
                     cause);
         } else if (cause instanceof UsernameAuthenticationRateException) {
             return new RateLimitedRestException(MangoRestErrorCode.USER_RATE_LIMITED,
-                    new TranslatableMessage("rest.exception.userRateLimited", ((UsernameAuthenticationRateException) cause).getUsername()),
+                    new TranslatableMessage("rest.exception.authenticationUsernameRateLimited", ((UsernameAuthenticationRateException) cause).getUsername()),
                     cause);
         } else {
             throw new IllegalArgumentException("Unknown AuthenticationRateException");

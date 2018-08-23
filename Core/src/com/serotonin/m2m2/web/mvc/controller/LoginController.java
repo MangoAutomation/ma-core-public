@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
@@ -18,10 +17,14 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.infiniteautomation.mango.rest.v2.exception.AuthenticationFailedRestException;
+import com.infiniteautomation.mango.rest.v2.exception.RateLimitedRestException;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.form.LoginForm;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.AuthenticationRateException;
 
 /**
- * 
+ *
  * @author Matthew Lohbihler and Terry Packer
  *
  */
@@ -31,30 +34,37 @@ public class LoginController {
 
     @RequestMapping(method=RequestMethod.GET)
     public String initForm(HttpServletRequest request, HttpServletResponse response, @ModelAttribute("login") LoginForm loginForm, BindingResult result) {
-    	BindException errors = new BindException(result);
-    	HttpSession session = request.getSession(false);
+        BindException errors = new BindException(result);
+        HttpSession session = request.getSession(false);
         if (session != null) {
             AuthenticationException ex = (AuthenticationException) session.getAttribute(WebAttributes.AUTHENTICATION_EXCEPTION);
             if (ex != null) {
-                if (ex instanceof DisabledException) {
-                    errors.reject("login.validation.accountDisabled", ex.getMessage());
+                TranslatableMessage message;
+
+                if (ex instanceof AuthenticationRateException) {
+                    RateLimitedRestException restException = RateLimitedRestException.restExceptionFor((AuthenticationRateException) ex);
+                    message = restException.getTranslatableMessage();
                 } else {
-                    errors.reject("login.validation.invalidLogin", ex.getMessage());
+                    AuthenticationFailedRestException restException = AuthenticationFailedRestException.restExceptionFor(ex);
+                    message = restException.getTranslatableMessage();
                 }
+
+                errors.reject(message.getKey(), message.getArgs(), ex.getMessage());
             }
+
             String username = (String)session.getAttribute("username");
             if (username != null && !username.isEmpty()) {
                 loginForm.setUsername(username);
             }
         }
-        
+
         //TODO What if this is a forwarded request?  There shan't be a session....
-        
+
         // display errors on the form or next to inputs like so
         // errors.reject("translation.key", "Fall back text");
         // errors.rejectValue("password", "translation.key", "Fall back text");
-	
-    	
+
+
         return "/WEB-INF/jsp/login.jsp";
     }
 

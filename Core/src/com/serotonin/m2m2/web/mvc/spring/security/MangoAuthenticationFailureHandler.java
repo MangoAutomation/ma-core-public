@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.WebAttributes;
@@ -80,7 +81,7 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
         if (log.isWarnEnabled()) {
             this.logException(request, exception);
         }
-        
+
         saveExceptionImpl(request, exception);
 
         if (browserHtmlRequestMatcher.matches(request)) {
@@ -90,7 +91,22 @@ public class MangoAuthenticationFailureHandler extends SimpleUrlAuthenticationFa
                 this.getRedirectStrategy().sendRedirect(request, response, uri);
                 return;
             }
-            String uri = DefaultPagesDefinition.getLoginUri(request, response);
+
+            String uri;
+
+            String referrer = request.getHeader(HttpHeaders.REFERER);
+            String referrerPath = null;
+
+            if (referrer != null) {
+                referrerPath = UriComponentsBuilder.fromUriString(referrer).build().getPath();
+            }
+
+            // redirect back to the referrer for browser requests, stops logins at /login.htm being directed back to /ui/login everytime
+            if (referrerPath != null) {
+                uri = referrerPath;
+            } else {
+                uri = DefaultPagesDefinition.getLoginUri(request, response);
+            }
 
             uri = UriComponentsBuilder.fromUriString(uri)
                     .build()
