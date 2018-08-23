@@ -138,7 +138,8 @@
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_FILE_COUNT %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>", settings.<c:out value="<%= SystemSettingsDao.BACKUP_ENABLED %>"/>);                
 
-            $set("<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>", settings.<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>);                
+            $set("<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>", settings.<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>);
+            $set("<c:out value="<%=SystemSettingsDao.JFREE_CHART_FONT%>"/>", settings.<c:out value="<%= SystemSettingsDao.JFREE_CHART_FONT %>"/>);
 
             $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION %>"/>);
             $set("<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/>", settings.<c:out value="<%= SystemSettingsDao.DATABASE_BACKUP_PERIOD_TYPE %>"/>);
@@ -617,6 +618,7 @@
         hideContextualMessages("chartSettingsTab"); //Clear out any existing msgs
         SystemSettingsDwr.saveChartSettings(
                 $get("<c:out value="<%= SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.JFREE_CHART_FONT %>"/>"),
             function(response) {
                 setDisabled("saveChartSettingsBtn", false);
                 if (response.hasMessages)
@@ -626,6 +628,10 @@
             });
         setUserMessage("chartSettingsMessage");
         setDisabled("saveChartSettingsBtn", true);
+    }
+    
+    function setChartFont() {
+    	$set("<c:out value="<%=SystemSettingsDao.JFREE_CHART_FONT%>"/>", $get("font-selector"));
     }
     
     /**
@@ -1649,6 +1655,18 @@
         <td class="formLabelRequired"><fmt:message key="systemSettings.allowAnonymousChartView"/></td>
         <td class="formField">
           <input id="<c:out value="<%=SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW%>"/>" type="checkbox" />
+        </td>
+      </tr>
+      
+      <tr>
+        <td class="formLabelRequired"><fmt:message key="systemSettings.chartFont"/></td>
+        <td class="formField">
+          <input id="<c:out value="<%=SystemSettingsDao.JFREE_CHART_FONT%>"/>" type="text" />
+          <tag:img png="bullet_go_left" onclick='setChartFont()'/>
+          <select id="font-selector">
+            <option value=""><fmt:message key="systemSettings.chartFont.default"/></option>
+            <option value="Open Sans, Lucida Sans"><fmt:message key="systemSettings.chartFont.openSans"/></option>
+          </select>
         </td>
       </tr>
 

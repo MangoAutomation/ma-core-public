@@ -141,7 +141,9 @@ public class SystemSettingsDao extends BaseDao {
     public static final String BACKUP_FILE_COUNT = "backupFileCount";
     public static final String BACKUP_ENABLED = "backupEnabled";
 
+    // Chart API settings, null defaults
     public static final String ALLOW_ANONYMOUS_CHART_VIEW = "allowAnonymousGraphicViews";
+    public static final String JFREE_CHART_FONT = "jfreeChartFont";
 
     public static final String DATABASE_BACKUP_FILE_LOCATION = "databaseBackupFileLocation";
     public static final String DATABASE_BACKUP_PERIOD_TYPE = "databaseBackupPeriodType";
@@ -431,7 +433,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(PLOT_GRIDLINE_COLOUR, "rgba(0,0,0,0.4)");
 
         //Default Backup Settings
-        DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.MA_HOME + "/backup/");
+        DEFAULT_VALUES.put(BACKUP_FILE_LOCATION, Common.MA_HOME_PATH.resolve("backup").toString());
         DEFAULT_VALUES.put(BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
         DEFAULT_VALUES.put(BACKUP_PERIODS, 1);
         DEFAULT_VALUES.put(BACKUP_FILE_COUNT, 10);
@@ -439,7 +441,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_MINUTE, 5);
         //Can't use boolean here... DEFAULT_VALUES.put(BACKUP_ENABLED, true);
         //DEFAULT_VALUES.put(ALLOW_ANONYMOUS_GRAPHIC_VIEWS, false);
-        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_LOCATION, Common.MA_HOME + "/backup/");
+        DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_LOCATION, Common.MA_HOME_PATH.resolve("backup").toString());
         DEFAULT_VALUES.put(DATABASE_BACKUP_PERIOD_TYPE, Common.TimePeriods.DAYS); //Backup Daily
         DEFAULT_VALUES.put(DATABASE_BACKUP_PERIODS, 1);
         DEFAULT_VALUES.put(DATABASE_BACKUP_FILE_COUNT, 10);

@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.util.chart;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import org.jfree.chart.renderer.AbstractRenderer;
 import org.jfree.chart.renderer.xy.AbstractXYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.chart.renderer.xy.XYStepRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.general.SeriesException;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
@@ -72,6 +74,13 @@ public class ImageChartUtils {
             OutputStream out, int width, int height, long from, long to) throws IOException {
         JFreeChart chart = ChartFactory.createTimeSeriesChart(null, null, null, null, showLegend, false, false);
         chart.setBackgroundPaint(SystemSettingsDao.instance.getColour(SystemSettingsDao.CHART_BACKGROUND_COLOUR));
+        
+        String font = SystemSettingsDao.instance.getValue(SystemSettingsDao.JFREE_CHART_FONT);
+        if(!StringUtils.isEmpty(font)) {
+            LegendTitle lt = chart.getLegend();
+            if(lt != null)
+                lt.setItemFont(new Font(font, Font.PLAIN, 12));
+        }
 
         XYPlot plot = chart.getXYPlot();
         ((DateAxis) plot.getDomainAxis()).setTimeZone(pointTimeSeriesCollection.getTimeZone());

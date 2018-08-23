@@ -211,6 +211,8 @@ public class SystemSettingsDwr extends BaseDwr {
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,
                 SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false));
+        settings.put(SystemSettingsDao.JFREE_CHART_FONT, 
+                SystemSettingsDao.instance.getValue(SystemSettingsDao.JFREE_CHART_FONT, ""));
 
         //Database Backup Settings
         settings.put(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION,
@@ -705,8 +707,12 @@ public class SystemSettingsDwr extends BaseDwr {
      * @param backupPeriod
      */
     @DwrPermission(admin = true)
-    public ProcessResult saveChartSettings(boolean allowAnonymousChartView) {
+    public ProcessResult saveChartSettings(boolean allowAnonymousChartView, String chartFont) {
         SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, allowAnonymousChartView);
+        if(!StringUtils.isEmpty(chartFont))
+            SystemSettingsDao.instance.setValue(SystemSettingsDao.JFREE_CHART_FONT, chartFont);
+        else
+            SystemSettingsDao.instance.removeValue(SystemSettingsDao.JFREE_CHART_FONT);
 
         return new ProcessResult();
     }
