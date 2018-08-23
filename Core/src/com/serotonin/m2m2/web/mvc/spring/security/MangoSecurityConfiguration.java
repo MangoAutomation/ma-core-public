@@ -389,7 +389,7 @@ public class MangoSecurityConfiguration {
             }
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
-                http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null), honorXForwardedFor), ExceptionTranslationFilter.class);
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null), honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
             //Configure the headers
@@ -486,7 +486,7 @@ public class MangoSecurityConfiguration {
             http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
-                http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null), honorXForwardedFor), ExceptionTranslationFilter.class);
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null), honorXForwardedFor), ExceptionTranslationFilter.class);
             }
 
             //Configure headers
