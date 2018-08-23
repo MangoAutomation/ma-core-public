@@ -38,9 +38,6 @@ public interface MangoProperties {
 
     void setDefaultValue(String key, String value);
 
-    // TODO Mango 3.5 remove Deprecated
-    // Dont use in modules for now
-    @Deprecated
     default TimeUnit getTimeUnitValue(String key, TimeUnit defaultValue) {
         String value = this.getString(key);
         if (value == null) {
