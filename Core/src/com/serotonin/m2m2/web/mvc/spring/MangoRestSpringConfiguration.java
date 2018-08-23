@@ -95,7 +95,8 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
         .mediaType("xml", MediaType.APPLICATION_XML)
         .mediaType("json", MediaType.APPLICATION_JSON_UTF8)
         .mediaType("sjson", Common.MediaTypes.SEROTONIN_JSON_OLD)
-        .mediaType("csv", Common.MediaTypes.CSV_V1) // TODO Mango 3.5 change to V2
+        .mediaType("csv", Common.MediaTypes.CSV_V2)
+        .mediaType("csv1", Common.MediaTypes.CSV_V1)
         .mediaType("csv2", Common.MediaTypes.CSV_V2);
     }
 
