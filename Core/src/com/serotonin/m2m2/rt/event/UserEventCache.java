@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.jetty.util.ConcurrentHashSet;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -31,12 +31,12 @@ import com.serotonin.timer.TimerTask;
  * Cache for events for each user, used to improve event access performance for logged in users at 
  * the expense of memory use.
  * 
- * The events cache is a map of timestamps to a list of events since mulitple events can exist
- * at the same timestamp.
+ * The events cache is a map of time stamps to a list of events since multiple events can exist
+ * at the same times stamp.
  * 
  * Events in this list are:
  * 
- * 1.  Inserted for any user that has recently accessed thier recent events
+ * 1.  Inserted for any user that has recently accessed their recent events
  * 2.  Removed when they are acknowledged by a user
  * 3.  Updated when they RTN or are Deactivated
  * 
@@ -60,9 +60,9 @@ public class UserEventCache extends TimeoutClient{
 	
     private long timeToLive;
     //List of events to Users in ActiveTs descending order, there can be > 1 event at any given time
-    private Map<Long, List<MultiUserEvent>> cache;
+    private ConcurrentMap<Long, List<MultiUserEvent>> cache;
     //Track users that have accessed the cache for a read
-    private Map<Integer, Long> activeUsers;
+    private ConcurrentMap<Integer, Long> activeUsers;
     private TimerTask timerTask;
     
     //Task management
@@ -160,7 +160,10 @@ public class UserEventCache extends TimeoutClient{
     public void removeEvent(EventInstance evt) {
         this.cache.computeIfPresent(evt.getActiveTimestamp(), (k,v)->{
             v.removeIf(mue -> mue.event.getId() == evt.getId());
-            return v;
+            if(v.size() == 0)
+                return null;
+            else
+                return v;
         });
     }
 
@@ -227,7 +230,9 @@ public class UserEventCache extends TimeoutClient{
     }
     
     /**
-     * Remove a user from a cached event (when user silences an event)
+     * Remove a user from a cached event (when user silences an event),
+     *   if no users remain for this event it will eventually be removed by 
+     *   the cleaner.
      * @param userId
      * @param eventId
      */
@@ -408,14 +413,14 @@ public class UserEventCache extends TimeoutClient{
 	    
         public MultiUserEvent(EventInstance event, Set<Integer> users) {
             this.event = event;
-            this.users = new ConcurrentHashSet<Integer>();
+            this.users = ConcurrentHashMap.newKeySet();
             for(Integer user : users)
                 this.users.add(user);
         }
 
 	    public MultiUserEvent(EventInstance event, Integer userId) {
 	        this.event = event;
-	        this.users = new ConcurrentHashSet<>();
+	        this.users = ConcurrentHashMap.newKeySet();
 	        this.users.add(userId);
 	    }
 	    
