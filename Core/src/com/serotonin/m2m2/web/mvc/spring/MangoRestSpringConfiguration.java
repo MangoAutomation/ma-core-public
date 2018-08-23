@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.AbstractRestModelConverter;
+import com.serotonin.m2m2.web.MediaTypes;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
@@ -94,10 +95,10 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
         //.mediaType("html", MediaType.TEXT_HTML) TODO should we re-enable this?
         .mediaType("xml", MediaType.APPLICATION_XML)
         .mediaType("json", MediaType.APPLICATION_JSON_UTF8)
-        .mediaType("sjson", Common.MediaTypes.SEROTONIN_JSON_OLD)
-        .mediaType("csv", Common.MediaTypes.CSV_V2)
-        .mediaType("csv1", Common.MediaTypes.CSV_V1)
-        .mediaType("csv2", Common.MediaTypes.CSV_V2);
+        .mediaType("sjson", MediaTypes.SEROTONIN_JSON)
+        .mediaType("csv", MediaTypes.CSV_V1)
+        .mediaType("csv1", MediaTypes.CSV_V1)
+        .mediaType("csv2", MediaTypes.CSV_V2);
     }
 
 

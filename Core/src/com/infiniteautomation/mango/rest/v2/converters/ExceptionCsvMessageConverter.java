@@ -24,7 +24,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema.ColumnType;
 import com.infiniteautomation.mango.rest.v2.exception.AbstractRestV2Exception;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.web.MediaTypes;
 
 /**
  * Class to map Exceptions to CSV output, reading in not supported
@@ -45,7 +45,7 @@ public class ExceptionCsvMessageConverter extends AbstractJackson2HttpMessageCon
     }
 
     public ExceptionCsvMessageConverter(CsvMapper csvMapper) {
-        super(csvMapper, Common.MediaTypes.CSV_V1);
+        super(csvMapper, MediaTypes.CSV_V1);
         this.csvMapper = csvMapper;
 
         CsvSchema.Builder builder = CsvSchema.builder();

@@ -24,6 +24,7 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ModelDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.web.MediaTypes;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 
@@ -38,7 +39,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 public class SerotoninJsonMessageConverter extends AbstractHttpMessageConverter<Object>{
 
     public SerotoninJsonMessageConverter(){
-        super(Common.MediaTypes.SEROTONIN_JSON, Common.MediaTypes.SEROTONIN_JSON_OLD);
+        super(MediaTypes.SEROTONIN_JSON);
     }
 
     /* (non-Javadoc)
