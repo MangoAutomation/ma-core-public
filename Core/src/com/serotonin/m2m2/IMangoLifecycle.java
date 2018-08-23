@@ -52,7 +52,7 @@ public interface IMangoLifecycle extends Provider {
      * @return
      */
     public Integer dataPointLimit();
-    
+
     /**
      * Check that the properties file the input stream is from contains the properties described in verify
      * @return
@@ -74,10 +74,7 @@ public interface IMangoLifecycle extends Provider {
     /**
      * (Re)load ssl certificates and keys
      */
-    public default void reloadSslContext() {
-        // TODO Mango 3.5, remove default implementation
-        // do nothing
-    }
+    public void reloadSslContext();
 
     //The Various States
     //States of the Lifecycle
