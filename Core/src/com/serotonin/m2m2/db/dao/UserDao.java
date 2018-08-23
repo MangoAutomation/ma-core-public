@@ -257,7 +257,7 @@ public class UserDao extends AbstractDao<User> {
 
     private void exireSessionsForUser(User user) {
         // web context may not be initialized, can't inject this context
-        ApplicationContext context = Common.getRootContext();
+        ApplicationContext context = Common.getRootWebContext();
         if (context != null) {
             MangoSessionRegistry sessionRegistry = context.getBean(MangoSessionRegistry.class);
             sessionRegistry.exireSessionsForUser(user);

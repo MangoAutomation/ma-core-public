@@ -65,8 +65,8 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     protected RuntimeManager runtimeManager;
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
-    
-    
+
+
     /**
      * Create a default lifecycle with an H2 web console on port 9001
      *   to view the in-memory database.
@@ -80,8 +80,8 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         this.webPort = webPort;
         this.modules = modules;
     }
-    
-    
+
+
     /**
      * Startup a dummy Mango with a basic infrastructure
      */
@@ -128,10 +128,10 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         if(Common.databaseProxy == null) {
             Common.databaseProxy = getDatabaseProxy();
         }
-        
+
         if(Common.databaseProxy != null)
             Common.databaseProxy.initialize(null);
-        
+
         //Setup the Spring Context
         springRuntimeContextInitialize();
 
@@ -179,14 +179,14 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         }
 
     }
-    
+
     protected void springRuntimeContextInitialize() {
+        @SuppressWarnings("resource")
         AnnotationConfigWebApplicationContext runtimeContext = new AnnotationConfigWebApplicationContext();
+        runtimeContext.setId(MangoRuntimeContextConfiguration.RUNTIME_CONTEXT_ID);
         runtimeContext.register(MangoRuntimeContextConfiguration.class);
-        runtimeContext.setId(Common.RUNTIME_CONTEXT_ID);
         runtimeContext.refresh();
         runtimeContext.start();
-        Common.setRuntimeContext(runtimeContext);
     }
 
     /* (non-Javadoc)
@@ -294,7 +294,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     protected TimerProvider<AbstractTimer>  getSimulationTimerProvider() {
         if(this.timer == null)
             return new SimulationTimerProvider();
-        else 
+        else
             return this.timer;
     }
 
@@ -315,7 +315,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     protected H2InMemoryDatabaseProxy getDatabaseProxy() {
         if(this.db == null)
             return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
-        else 
+        else
             return this.db;
     }
 
@@ -379,7 +379,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     public void setBackgroundProcessing(MockBackgroundProcessing backgroundProcessing) {
         this.backgroundProcessing = backgroundProcessing;
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.IMangoLifecycle#verifyProperties(java.io.InputStream, boolean, java.util.Map)
      */
@@ -387,5 +387,5 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     public boolean verifyProperties(InputStream in, boolean signed, Map<String, String> verify) {
         return true;
     }
-    
+
 }

@@ -15,6 +15,7 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.mvc.rest.swagger.SwaggerConfig;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
@@ -30,17 +31,14 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
  */
 public class MangoWebApplicationInitializer implements ServletContainerInitializer {
 
-    public static final String ROOT_CONTEXT_ID = "rootContext";
-    // TODO remove this and its getter in Common
-    public static final String DISPATCHER_CONTEXT_ID = "dispatcherContext";
 
     @Override
     public void onStartup(Set<Class<?>> c, ServletContext context) throws ServletException {
 
         // Create the 'root' Spring application context
         AnnotationConfigWebApplicationContext rootContext = new AnnotationConfigWebApplicationContext();
-        rootContext.setId(ROOT_CONTEXT_ID);
-        rootContext.setParent(Common.getRuntimeContext());
+        rootContext.setId(MangoRuntimeContextConfiguration.ROOT_WEB_CONTEXT_ID);
+        rootContext.setParent(MangoRuntimeContextConfiguration.getRuntimeContext());
         rootContext.register(MangoApplicationContextConfiguration.class);
         rootContext.register(MangoSecurityConfiguration.class);
 
@@ -59,12 +57,12 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         boolean enableRest = Common.envProps.getBoolean("rest.enabled", false);
         boolean enableSwagger = Common.envProps.getBoolean("swagger.enabled", false);
 
-        if(enableRest){
+        if (enableRest) {
             rootContext.register(MangoRestSpringConfiguration.class);
             rootContext.register(MangoWebSocketConfiguration.class);
         }
 
-        if(enableSwagger&&enableRest){
+        if (enableSwagger && enableRest) {
             rootContext.register(SwaggerConfig.class);
         }
 
@@ -72,12 +70,15 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         ServletRegistration.Dynamic dispatcher =
                 context.addServlet("springDispatcher", new DispatcherServlet(rootContext));
         dispatcher.setLoadOnStartup(1);
-        dispatcher.addMapping("*.htm", "*.shtm", "/rest/*",
-                "/swagger/v2/api-docs",
-                "/swagger-resources/configuration/ui",
-                "/swagger-resources/configuration/security",
-                "/swagger-resources"
-                );
+        dispatcher.addMapping("*.htm", "*.shtm", "/rest/*");
+
+        if (enableSwagger && enableRest) {
+            dispatcher.addMapping(
+                    "/swagger/v2/api-docs",
+                    "/swagger-resources/configuration/ui",
+                    "/swagger-resources/configuration/security",
+                    "/swagger-resources");
+        }
 
         // MangoSessionListener now publishes the events as there is a bug in Spring
         //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out

@@ -9,12 +9,19 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicReference;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.ContextStartedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.ConversionService;
@@ -47,11 +54,66 @@ import com.serotonin.m2m2.web.mvc.spring.MangoPropertySource;
         "com.serotonin.m2m2.db.dao" //DAOs
 })
 public class MangoRuntimeContextConfiguration {
+    public static final String RUNTIME_CONTEXT_ID = "runtimeContext";
+    public static final String ROOT_WEB_CONTEXT_ID = "rootWebContext";
+    private static final AtomicReference<ApplicationContext> RUNTIME_CONTEXT_HOLDER = new AtomicReference<>();
+    private static final AtomicReference<ApplicationContext> ROOT_WEB_CONTEXT_HOLDER = new AtomicReference<>();
+
+    /**
+     * Gets the spring runtime application context, only set after the context is refreshed (started).
+     * If its not null, its safe to use.
+     *
+     * @return
+     */
+    public static ApplicationContext getRuntimeContext() {
+        return RUNTIME_CONTEXT_HOLDER.get();
+    }
+
+    /**
+     * Gets the spring root web application context, only set after the context is refreshed (started).
+     * If its not null, its safe to use.
+     *
+     * @return
+     */
+    public static ApplicationContext getRootWebContext() {
+        return ROOT_WEB_CONTEXT_HOLDER.get();
+    }
 
     public static final String REST_OBJECT_MAPPER_NAME = "restObjectMapper";
     public static final String COMMON_OBJECT_MAPPER_NAME = "commonObjectMapper";
     public static final String SCHEDULED_EXECUTOR_SERVICE_NAME = "scheduledExecutorService";
     public static final String EXECUTOR_SERVICE_NAME = "executorService";
+
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
+
+    /**
+     * ContextStartedEvent is not fired for root web context, only ContextRefreshedEvent.
+     * Initialize our static holders in this event handler.
+     *
+     * @param event
+     */
+    @EventListener
+    private void contextRefreshed(ContextRefreshedEvent event) {
+        ApplicationContext context = event.getApplicationContext();
+
+        if (log.isInfoEnabled()) {
+            log.info("Spring context '" + context.getId() +"' refreshed: " + context.getDisplayName());
+        }
+
+        if (RUNTIME_CONTEXT_ID.equals(context.getId())) {
+            RUNTIME_CONTEXT_HOLDER.compareAndSet(null, context);
+        } else if (ROOT_WEB_CONTEXT_ID.equals(context.getId())) {
+            ROOT_WEB_CONTEXT_HOLDER.compareAndSet(null, context);
+        }
+    }
+
+    @EventListener
+    private void contextStarted(ContextStartedEvent event) {
+        ApplicationContext context = event.getApplicationContext();
+        if (log.isInfoEnabled()) {
+            log.info("Spring context '" + context.getId() +"' started: " + context.getDisplayName());
+        }
+    }
 
     @Primary
     @Bean(REST_OBJECT_MAPPER_NAME)

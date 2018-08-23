@@ -190,7 +190,7 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         uptime.setValue(bd.doubleValue());
 
         //Collect Active User Sessions
-        ConfigurableApplicationContext context = (ConfigurableApplicationContext)Common.getRootContext();
+        ConfigurableApplicationContext context = (ConfigurableApplicationContext) Common.getRootWebContext();
         if (context != null && context.isActive()) {
             MangoSessionRegistry sessionRegistry = context.getBean(MangoSessionRegistry.class);
             userSessions.setValue(sessionRegistry.getActiveSessionCount());
