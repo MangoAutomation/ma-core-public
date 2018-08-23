@@ -44,6 +44,7 @@
 * Improve bulk permissions editing accuracy for data points
 * Fix database upgrade 21 to not fail when deleting a duplicate user that has foreign key entries in linked tables.  IMPORTANT: if you have duplicate users with the same username the user created most recently will be deleted.
 * Improve performance of the overrides system
+* Better handling of special doubles, i.e. NaN and Infinity for Configuration Export/Import 
 
 *Version 3.4.4*
 * More HTML escapes

@@ -36,6 +36,17 @@ public class JsonTypeWriter {
             return null;
 
         try {
+            if(value instanceof Double) {
+                Double d = (Double)value;
+                if(d.isInfinite()) {
+                    if(d == Double.POSITIVE_INFINITY)
+                        return new JsonString("Infinity");
+                    if(d == Double.NEGATIVE_INFINITY)
+                        return new JsonString("-Infinity");
+                }
+                if(d.isNaN())
+                    return new JsonString("NaN");
+            }
             return context.getConverter(value.getClass()).jsonWrite(this, value);
         }
         catch (RuntimeException e) {
