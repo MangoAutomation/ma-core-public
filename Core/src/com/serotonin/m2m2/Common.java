@@ -86,8 +86,6 @@ import com.serotonin.util.properties.MangoProperties;
 import freemarker.template.Configuration;
 
 public class Common {
-    // TODO Mango 3.5 remove, no longer used, attribute is set on page in tags/page.tag etc
-    public static final String SESSION_USER = "sessionUser";
     public static final String SESSION_USER_EXCEPTION  = "MANGO_USER_LAST_EXCEPTION";
 
     public static OverridingWebAppContext owac;

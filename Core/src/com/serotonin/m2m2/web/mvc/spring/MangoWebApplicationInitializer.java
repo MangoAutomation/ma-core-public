@@ -11,7 +11,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
-import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
@@ -80,8 +79,11 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
                 "/swagger-resources"
                 );
 
+        // MangoSessionListener now publishes the events as there is a bug in Spring
         //Setup the Session Listener to Help the MangoSessionRegistry know when users login/out
-        context.addListener(HttpSessionEventPublisher.class);
+        //context.addListener(HttpSessionEventPublisher.class);
+
+        // sets the session timeout
         context.addListener(new MangoSessionListener());
 
     }

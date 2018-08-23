@@ -6,21 +6,30 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.security.web.context.support.SecurityWebApplicationContextUtils;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.security.web.session.HttpSessionDestroyedEvent;
+
+import com.infiniteautomation.mango.spring.events.MangoHttpSessionDestroyedEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 
 /**
- * 
+ *
  * Nice place to modify an HTTP session, i.e. set the timeout.
+ *
+ * <p>Also performs the work of {@link org.springframework.security.web.session.HttpSessionEventPublisher HttpSessionEventPublisher}</p>
  *
  * @author Terry Packer
  */
 public class MangoSessionListener implements HttpSessionListener, SystemSettingsListener {
-    
+
     private int timeoutPeriods;
     private int timeoutPeriodType;
     private int timeoutSeconds;
@@ -30,24 +39,25 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
         timeoutPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
         timeoutSeconds = (int)(Common.getMillis(timeoutPeriodType, timeoutPeriods)/1000L);
     }
-    
-    /* (non-Javadoc)
-     * @see javax.servlet.http.HttpSessionListener#sessionCreated(javax.servlet.http.HttpSessionEvent)
-     */
-    @Override
-    public void sessionCreated(HttpSessionEvent se) {
-        se.getSession().setMaxInactiveInterval(timeoutSeconds);
+
+    ApplicationContext getContext(ServletContext servletContext) {
+        return SecurityWebApplicationContextUtils.findRequiredWebApplicationContext(servletContext);
     }
 
-    /* (non-Javadoc)
-     * @see javax.servlet.http.HttpSessionListener#sessionDestroyed(javax.servlet.http.HttpSessionEvent)
-     */
     @Override
-    public void sessionDestroyed(HttpSessionEvent se) {    }
+    public void sessionCreated(HttpSessionEvent event) {
+        event.getSession().setMaxInactiveInterval(timeoutSeconds);
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsSaved(java.lang.String, java.lang.String, java.lang.String)
-     */
+        HttpSessionCreatedEvent e = new HttpSessionCreatedEvent(event.getSession());
+        getContext(event.getSession().getServletContext()).publishEvent(e);
+    }
+
+    @Override
+    public void sessionDestroyed(HttpSessionEvent event) {
+        HttpSessionDestroyedEvent e = new MangoHttpSessionDestroyedEvent(event.getSession());
+        getContext(event.getSession().getServletContext()).publishEvent(e);
+    }
+
     @Override
     public void SystemSettingsSaved(String key, String oldValue, String newValue) {
         switch(key) {
@@ -58,25 +68,19 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
                     //Must be a code
                     timeoutPeriodType = Common.TIME_PERIOD_CODES.getId(newValue);
                 }
-            break;
+                break;
             case SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS:
                 timeoutPeriods = Integer.parseInt(newValue);
-            break;
+                break;
         }
         timeoutSeconds = (int)(Common.getMillis(timeoutPeriodType, timeoutPeriods)/1000L);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsRemoved(java.lang.String, java.lang.String)
-     */
     @Override
     public void SystemSettingsRemoved(String key, String lastValue) {
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#getKeys()
-     */
     @Override
     public List<String> getKeys() {
         List<String> keys = new ArrayList<>();
@@ -84,5 +88,4 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
         keys.add(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
         return keys;
     }
-
 }

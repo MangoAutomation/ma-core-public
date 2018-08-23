@@ -17,9 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 
-import javax.servlet.http.HttpSessionBindingEvent;
-import javax.servlet.http.HttpSessionBindingListener;
-
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
 import org.passay.LengthRule;
@@ -50,7 +47,6 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -63,7 +59,7 @@ import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 import com.serotonin.validation.StringValidation;
 
-public class User extends AbstractVO<User> implements SetPointSource, HttpSessionBindingListener, JsonSerializable, UserDetails, PermissionHolder {
+public class User extends AbstractVO<User> implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
 
     public final static String PLAIN_TEXT_ALGORITHM = "PLAINTEXT";
     public final static String NONE_ALGORITHM = "NONE";
@@ -121,9 +117,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
     private transient final LazyInitializer<Set<String>> permissionsSet = new LazyInitializer<>();
-
-    // TODO Mango 3.5 remove
-    private transient String remoteAddr; //remote address we are logged in from
 
     private transient boolean admin;
 
@@ -201,29 +194,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
 
     public <T> T getAttribute(String key, Class<T> requiredClass) {
         return requiredClass.cast(attributes.get(key));
-    }
-
-    //
-    //
-    // HttpSessionBindingListener implementation
-    //
-    // TODO Mango 3.5 remove
-    @Override
-    public void valueBound(HttpSessionBindingEvent evt) {
-        // User is bound to a session when logged in. Notify the event manager.
-        SystemEventType.raiseEvent(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, id), Common.timer.currentTimeMillis(), true, new TranslatableMessage("event.login", username, remoteAddr));
-    }
-
-    // TODO Mango 3.5 remove
-    @Override
-    public void valueUnbound(HttpSessionBindingEvent evt) {
-        // User is unbound from a session when logged out or the session expires.
-        SystemEventType.returnToNormal(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, id),
-                Common.timer.currentTimeMillis());
-
-        // Terminate any testing utility
-        if (testingUtility != null)
-            testingUtility.cancel();
     }
 
     // Convenience method for JSPs
@@ -521,21 +491,6 @@ public class User extends AbstractVO<User> implements SetPointSource, HttpSessio
     public void setLocale(String locale) {
         this.locale = locale;
         this.localeObject.reset();
-    }
-
-    /**
-     * @return the ipAddress
-     */
-    public String getRemoteAddr() {
-        return remoteAddr;
-    }
-
-    /**
-     * @param ipAddress
-     *            the ipAddress to set
-     */
-    public void setRemoteAddr(String ipAddress) {
-        this.remoteAddr = ipAddress;
     }
 
     public void setPasswordChangeTimestamp(long timestamp){

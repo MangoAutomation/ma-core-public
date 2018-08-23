@@ -12,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
+import org.springframework.security.authentication.AuthenticationEventPublisher;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -79,14 +83,18 @@ public class MangoSecurityConfiguration {
             MangoUserDetailsService userDetails,
             MangoPasswordAuthenticationProvider passwordAuthenticationProvider,
             MangoTokenAuthenticationProvider tokenAuthProvider,
-            @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled
+            @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled,
+            AuthenticationEventPublisher authenticationEventPublisher
             ) throws Exception {
 
         // causes DaoAuthenticationProvider to be added which we don't want
         //auth.userDetailsService(userDetails);
 
         for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
-            auth.authenticationProvider(def.authenticationProvider());
+            AuthenticationProvider provider = def.authenticationProvider();
+            if (provider != null) {
+                auth.authenticationProvider(provider);
+            }
         }
 
         auth.authenticationProvider(passwordAuthenticationProvider);
@@ -94,6 +102,13 @@ public class MangoSecurityConfiguration {
         if (tokenAuthEnabled) {
             auth.authenticationProvider(tokenAuthProvider);
         }
+
+        auth.authenticationEventPublisher(authenticationEventPublisher);
+    }
+
+    @Bean
+    public AuthenticationEventPublisher authenticationEventPublisher(ApplicationEventPublisher eventPublisher) {
+        return new DefaultAuthenticationEventPublisher(eventPublisher);
     }
 
     @Bean

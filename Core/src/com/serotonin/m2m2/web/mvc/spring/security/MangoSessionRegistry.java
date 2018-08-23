@@ -34,6 +34,11 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
 public class MangoSessionRegistry extends SessionRegistryImpl {
 
     /**
+     * Used to indicate that a user was migrated to a new session
+     */
+    public static final String USER_MIGRATED_TO_NEW_SESSION_ATTRIBUTE = "MANGO_MIGRATED_TO_NEW_SESSION";
+
+    /**
      * Return a count of all active sessions.
      *
      * @return
@@ -100,9 +105,13 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
                 }
 
                 this.removeSessionInformation(session.getId());
+
+                session.setAttribute(USER_MIGRATED_TO_NEW_SESSION_ATTRIBUTE, Boolean.TRUE);
                 session.invalidate();
 
                 HttpSession newSession = request.getSession(true);
+
+
                 this.registerNewSession(newSession.getId(), user);
 
                 for (Entry<String, Object> entry : attributes.entrySet()) {
@@ -111,9 +120,6 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
 
                 session = newSession;
             }
-
-            // update the session attribute for legacy pages with the new user
-            session.setAttribute(Common.SESSION_USER, user);
         }
 
         // Set the spring security context (thread local) to a new Authentication with the updated user and authorities.

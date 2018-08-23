@@ -50,7 +50,7 @@ public class UserDao extends AbstractDao<User> {
     });
 
     public static enum UpdatedFields {
-        AUTH_TOKEN, PASSWORD, PERMISSIONS
+        AUTH_TOKEN, PASSWORD, PERMISSIONS, LAST_LOGIN, HOME_URL, MUTED
     }
 
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
@@ -336,6 +336,8 @@ public class UserDao extends AbstractDao<User> {
         long loginTime = Common.timer.currentTimeMillis();
         user.setLastLogin(loginTime);
         ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });
+        userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
@@ -344,6 +346,7 @@ public class UserDao extends AbstractDao<User> {
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -352,6 +355,7 @@ public class UserDao extends AbstractDao<User> {
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
     }
 
     @Override

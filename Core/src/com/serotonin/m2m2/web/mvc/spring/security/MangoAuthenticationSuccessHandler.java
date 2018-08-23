@@ -8,7 +8,6 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -33,12 +32,16 @@ import com.serotonin.m2m2.vo.User;
 public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
     final RequestMatcher browserHtmlRequestMatcher;
     RequestCache requestCache;
+    final UserDao userDao;
 
     @Autowired
-    public MangoAuthenticationSuccessHandler(RequestCache requestCache,
-            @Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher) {
+    public MangoAuthenticationSuccessHandler(
+            RequestCache requestCache,
+            @Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher,
+            UserDao userDao) {
         this.setRequestCache(requestCache);
         this.browserHtmlRequestMatcher = browserHtmlRequestMatcher;
+        this.userDao = userDao;
     }
 
     @Override
@@ -59,27 +62,10 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        User user = Common.getHttpUser();
+        User user = (User) authentication.getPrincipal();
 
-        HttpSession session = request.getSession(false);
-        if (session != null && user != null) {
-
-            // Update the last login time.
-            UserDao.getInstance().recordLogin(user);
-
-            // Set the IP Address for the session
-            user.setRemoteAddr(request.getRemoteAddr());
-
-            // For legacy pages also update the session (NOTE This calls ValueBound in the user which raises the Login event
-            // so we MUST have all the information for the event set in the user by this point.
-            // Mango 3.5 move the login event code elsewhere and dont set session attribute
-            session.setAttribute(Common.SESSION_USER, user);
-        }
-
-        if (user != null) {
-            for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
-                def.postLogin(user);
-            }
+        for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
+            def.authenticationSuccess(authentication, user);
         }
 
         if (browserHtmlRequestMatcher.matches(request)) {
