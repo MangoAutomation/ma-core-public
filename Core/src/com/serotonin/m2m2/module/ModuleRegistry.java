@@ -719,6 +719,14 @@ public class ModuleRegistry {
         return new HashMap<String, FileStoreDefinition>(FILE_STORE_DEFINITIONS);
     }
 
+    /**
+     * This function returns a FileStoreDefinition if it exists in a module element definition.
+     *  It is preferred to go through the FileStoreDao.getInstance().getfileStoreDefinition method
+     *  as that will also resolve any user defined filestores with that file store name. This is
+     *  an acceptable method to call in a module if the module doesn't permit use of custom filestores. 
+     * @param name
+     * @return
+     */
     public static FileStoreDefinition getFileStoreDefinition(String name){
         ensureFileStoreDefinitions();
         return FILE_STORE_DEFINITIONS.get(name);
