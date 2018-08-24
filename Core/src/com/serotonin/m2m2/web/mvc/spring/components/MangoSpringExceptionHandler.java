@@ -2,7 +2,7 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  *
  */
-package com.serotonin.m2m2.web.mvc.spring.exception;
+package com.serotonin.m2m2.web.mvc.spring.components;
 
 import java.io.IOException;
 
@@ -48,6 +48,7 @@ import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.web.mvc.spring.exception.ExceptionUtils;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.AuthenticationRateException;
 
 /**

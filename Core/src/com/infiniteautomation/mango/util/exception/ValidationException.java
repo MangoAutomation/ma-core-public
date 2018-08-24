@@ -12,7 +12,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
  * This exception is caught and converted to a {@link com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException} for REST.
  *
  * @author Jared Wiltshire
- * @see com.serotonin.m2m2.web.mvc.spring.exception.MangoSpringExceptionHandler
+ * @see com.serotonin.m2m2.web.mvc.spring.components.MangoSpringExceptionHandler
  */
 public class ValidationException extends TranslatableRuntimeException {
     private static final long serialVersionUID = 1L;

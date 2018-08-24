@@ -44,8 +44,8 @@ public class ControllerUtils {
 
     public static Locale getLocale(HttpServletRequest request) {
         WebApplicationContext webApplicationContext = WebApplicationContextUtils
-                .getRequiredWebApplicationContext(request.getSession().getServletContext());
-        LocaleResolver localeResolver = (LocaleResolver) webApplicationContext.getBean("localeResolver");
+                .getRequiredWebApplicationContext(request.getServletContext());
+        LocaleResolver localeResolver = webApplicationContext.getBean(LocaleResolver.class);
         return localeResolver.resolveLocale(request);
     }
 

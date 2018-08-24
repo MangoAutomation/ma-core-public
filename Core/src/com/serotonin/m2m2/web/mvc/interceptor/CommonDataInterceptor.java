@@ -21,6 +21,7 @@ import com.serotonin.provider.Providers;
  * @author Matthew Lohbihler
  */
 public class CommonDataInterceptor implements HandlerInterceptor {
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         request.setAttribute("availableLanguages", Common.getLanguages());
@@ -39,6 +40,7 @@ public class CommonDataInterceptor implements HandlerInterceptor {
         request.setAttribute("NEW_ID", Common.NEW_ID);
 
         request.setAttribute("lastUpgrade", Common.getLastUpgradeTime());
+        request.setAttribute("sessionUser", Common.getHttpUser());
 
         return true;
     }

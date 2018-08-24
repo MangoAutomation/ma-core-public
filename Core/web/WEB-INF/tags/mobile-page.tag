@@ -10,8 +10,6 @@
 <%@attribute name="js" %>
 <%@attribute name="onload" %>
 
-<c:set var="sessionUser" value="<%= Common.getHttpUser() %>" scope="request" />
-
 <c:set var="theme">claro</c:set>
 <%-- <c:set var="theme">nihilo</c:set> --%>
 <%-- <c:set var="theme">soria</c:set> --%>

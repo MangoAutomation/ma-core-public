@@ -8,23 +8,32 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.AbstractRestModelConverter;
 import com.serotonin.m2m2.web.MediaTypes;
@@ -43,12 +52,25 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  *
  */
 @Configuration
-@ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" }, excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX) })
+@EnableWebMvc
+@ComponentScan(
+        basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" },
+        excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX)})
 public class MangoRestSpringConfiguration implements WebMvcConfigurer {
 
-    @Qualifier(value="restObjectMapper")
-    @Autowired()
-    private ObjectMapper objectMapper;
+    @Autowired
+    @Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
+    private ObjectMapper restObjectMapper;
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env, ConfigurableConversionService conversionService, MangoPropertySource mangoPropertySource) {
+        env.getPropertySources().addLast(mangoPropertySource);
+        env.setConversionService(conversionService);
+
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        configurer.setIgnoreUnresolvablePlaceholders(false);
+        return configurer;
+    }
 
     /**
      * Create a Path helper that will not URL Decode
@@ -56,18 +78,10 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
      * decode the path variables...
      *
      */
-    public UrlPathHelper getUrlPathHelper(){
+    public UrlPathHelper getUrlPathHelper() {
         UrlPathHelper helper = new UrlPathHelper();
         helper.setUrlDecode(false);
         return helper;
-    }
-
-    @Bean
-    public CommonsMultipartResolver multipartResolver(){
-        CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
-        commonsMultipartResolver.setDefaultEncoding("utf-8");
-        commonsMultipartResolver.setMaxUploadSize(Common.envProps.getLong("web.fileUpload.maxSize", 50000000));
-        return commonsMultipartResolver;
     }
 
     @Override
@@ -101,16 +115,14 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
         .mediaType("csv2", MediaTypes.CSV_V2);
     }
 
-
     /**
      * Configure the Message Converters for the API for now only JSON
      */
     @Override
-    public void configureMessageConverters(
-            List<HttpMessageConverter<?>> converters) {
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 
         converters.add(new ResourceHttpMessageConverter());
-        converters.add(new MappingJackson2HttpMessageConverter(objectMapper));
+        converters.add(new MappingJackson2HttpMessageConverter(restObjectMapper));
         converters.add(new CsvMessageConverter());
         converters.add(new CsvRowMessageConverter());
         converters.add(new CsvQueryArrayStreamMessageConverter());
@@ -122,5 +134,10 @@ public class MangoRestSpringConfiguration implements WebMvcConfigurer {
         //Now is a good time to register our Sero Json Converter
         Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
 
+    }
+
+    @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
+    public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
+        return new PropagatingEventMulticaster(context, eventMulticasterRegistry);
     }
 }

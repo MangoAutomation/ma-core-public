@@ -13,8 +13,6 @@
 <%@attribute name="showHeader" %>
 <%@attribute name="showToolbar" %>
 
-<c:set var="sessionUser" value="<%= Common.getHttpUser() %>" scope="request" />
-
 <c:set var="theme">claro</c:set>
 <%-- <c:set var="theme">nihilo</c:set> --%>
 <%-- <c:set var="theme">soria</c:set> --%>

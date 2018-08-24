@@ -44,6 +44,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.web.context.WebApplicationContext;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.CompiledCoreVersion;
@@ -797,7 +798,7 @@ public class Common {
      *
      * @return
      */
-    public static ApplicationContext getRootWebContext() {
+    public static WebApplicationContext getRootWebContext() {
         return MangoRuntimeContextConfiguration.getRootWebContext();
     }
 

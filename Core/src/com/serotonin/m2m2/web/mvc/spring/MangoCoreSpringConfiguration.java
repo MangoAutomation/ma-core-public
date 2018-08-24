@@ -4,27 +4,25 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.convert.support.ConfigurableConversionService;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
-import com.infiniteautomation.mango.spring.eventMulticaster.MangoEventMulticaster;
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 import com.serotonin.m2m2.web.mvc.BlabberUrlHandlerMapping;
 import com.serotonin.m2m2.web.mvc.interceptor.CommonDataInterceptor;
-import com.serotonin.m2m2.web.mvc.spring.exception.MangoSpringExceptionHandler;
-import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoMethodSecurityExpressionHandler;
-import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEvaluator;
 import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 
 /**
@@ -34,12 +32,20 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
  * @author Terry Packer
  *
  */
-@SuppressWarnings("deprecation")
 @Configuration
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @EnableWebMvc
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.controller" })
-public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfiguration {
+public class MangoCoreSpringConfiguration implements WebMvcConfigurer {
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env, ConfigurableConversionService conversionService, MangoPropertySource mangoPropertySource) {
+        env.getPropertySources().addLast(mangoPropertySource);
+        env.setConversionService(conversionService);
+
+        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
+        configurer.setIgnoreUnresolvablePlaceholders(false);
+        return configurer;
+    }
 
     @Bean(name="viewResolver")
     public InternalResourceViewResolver internalResourceViewResolver(){
@@ -60,27 +66,18 @@ public class MangoCoreSpringConfiguration extends GlobalMethodSecurityConfigurat
 
     @Bean(name="mappings")
     public BlabberUrlHandlerMapping blabberUrlHandlerMapping(CommonDataInterceptor commonDataInterceptor){
-
         BlabberUrlHandlerMapping mapping = new BlabberUrlHandlerMapping();
         mapping.addInterceptor(commonDataInterceptor);
-
         return mapping;
     }
 
-    @Bean
-    public MangoSpringExceptionHandler exceptionHandler(@Qualifier("browserHtmlRequestMatcher") RequestMatcher browserHtmlRequestMatcher){
-        return new MangoSpringExceptionHandler(browserHtmlRequestMatcher);
+    @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
+    public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
+        return new PropagatingEventMulticaster(context, eventMulticasterRegistry);
     }
 
     @Override
-    protected MethodSecurityExpressionHandler createExpressionHandler() {
-        MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler();
-        expressionHandler.setPermissionEvaluator(new MangoPermissionEvaluator());
-        return expressionHandler;
-    }
-
-    @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
-    public ApplicationEventMulticaster eventMulticaster(EventMulticasterRegistry eventMulticasterRegistry) {
-        return new MangoEventMulticaster(eventMulticasterRegistry);
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(commonDataInterceptor());
     }
 }

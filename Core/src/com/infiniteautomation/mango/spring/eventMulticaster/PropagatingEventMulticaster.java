@@ -8,7 +8,9 @@ import java.util.concurrent.ForkJoinPool;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.core.ResolvableType;
@@ -22,12 +24,14 @@ import org.springframework.core.ResolvableType;
 
 public class PropagatingEventMulticaster extends SimpleApplicationEventMulticaster {
 
+    private final ApplicationContext context;
     private final EventMulticasterRegistry registry;
 
-    public PropagatingEventMulticaster(EventMulticasterRegistry registry) {
+    public PropagatingEventMulticaster(ApplicationContext context, EventMulticasterRegistry registry) {
         super();
         this.setTaskExecutor(ForkJoinPool.commonPool());
         this.registry = registry;
+        this.context = context;
     }
 
     @PostConstruct
@@ -42,49 +46,24 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
 
     @Override
     public void multicastEvent(ApplicationEvent event, ResolvableType eventType) {
-        // event has already been propagated, don't send it to other multicasters, just notify our listeners of the original event
-        if (event instanceof PropagatedEvent) {
-            PropagatedEvent propagatedEvent = (PropagatedEvent) event;
-            super.multicastEvent(propagatedEvent.event, propagatedEvent.eventType);
+        if (event instanceof ApplicationContextEvent) {
+            this.doMulticastEvent(event, eventType);
             return;
         }
 
-        // notify our listeners
-        super.multicastEvent(event, eventType);
-
-        // propagate the event to other multicasters
-        if (event instanceof PropagatingEvent) {
-            PropagatedEvent propagatedEvent = null;
-
+        // the multicast only happens from the root context, i.e. when the context has no parent
+        if (this.context.getParent() == null) {
             for (ApplicationEventMulticaster registeredMulticaster : this.registry.getMulticasters()) {
-                // dont want to propagate to ourself
-                if (registeredMulticaster == this) {
-                    continue;
-                }
-
                 if (registeredMulticaster instanceof PropagatingEventMulticaster) {
-                    if (propagatedEvent == null) {
-                        propagatedEvent = new PropagatedEvent(this, event, eventType);
-                    }
-                    registeredMulticaster.multicastEvent(propagatedEvent, null);
+                    ((PropagatingEventMulticaster) registeredMulticaster).doMulticastEvent(event, eventType);
                 } else {
-                    // if the child isn't a MangoEventMulticaster it wont unwrap the PropagatedEvent, notify it of original event
                     registeredMulticaster.multicastEvent(event, eventType);
                 }
             }
         }
     }
 
-    private static final class PropagatedEvent extends ApplicationEvent {
-        private static final long serialVersionUID = 1L;
-
-        private final ApplicationEvent event;
-        private final ResolvableType eventType;
-
-        public PropagatedEvent(PropagatingEventMulticaster source, ApplicationEvent event, ResolvableType eventType) {
-            super(source);
-            this.event = event;
-            this.eventType = eventType;
-        }
+    private void doMulticastEvent(ApplicationEvent event, ResolvableType eventType) {
+        super.multicastEvent(event, eventType);
     }
 }
