@@ -45,15 +45,62 @@
 		<MangoFrontendAppender name="frontend">
 			<PatternLayout pattern="%-5p %d{ISO8601} %m %n"/>
 		</MangoFrontendAppender>
+		<!-- IasTsdb Logging -->
+		<RollingRandomAccessFile name="corruption" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log" fileName="${sys:ma.home}/logs/iastsdb-corruption.log">
+			<PatternLayout pattern="%m"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="5MB"/>
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${sys:ma.home}/logs" >
+					<IfFileName regex=".*.iastsdb-corruption.log" />
+					<IfAccumulatedFileCount exceeds="20"/>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="compression" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-compression.log" fileName="${sys:ma.home}/logs/iastsdb-compression.log">
+			<PatternLayout pattern="%m"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="5MB"/>
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${sys:ma.home}/logs" >
+					<IfFileName regex=".*.iastsdb-compression.log" />
+					<IfAccumulatedFileCount exceeds="20"/>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="${sys:ma.home}/reverser" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-reverse.log" fileName="${sys:ma.home}/logs/iastsdb-reverse.log">
+			<PatternLayout pattern="%m"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="5MB"/>
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="logs" >
+					<IfFileName regex=".*.iastsdb-reverse.log" />
+					<IfAccumulatedFileCount exceeds="20"/>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>		
 	</Appenders>
 	<Loggers>
-		<Logger name="org" level="error"/>
-		<Logger name="com.serotonin.m2m2" level="info"/>
-		<Logger name="com.infiniteautomation" level="info"/>
-        <Root level="error" >
+		<AsyncLogger name="com.infiniteautomation.tsdb.corruption" level="info" additivity="false">
+		  <AppenderRef ref="corruption"/>
+		</AsyncLogger>
+		<AsyncLogger name="com.infiniteautomation.tsdb.compression" level="info" additivity="false">
+		  <AppenderRef ref="compression"/>
+		</AsyncLogger>
+		<AsyncLogger name="com.infiniteautomation.tsdb.reverser" level="info" additivity="false">
+		  <AppenderRef ref="reverser"/>
+		</AsyncLogger>
+	
+		<AsyncLogger name="org" level="error"/>
+		<AsyncLogger name="com.serotonin.m2m2" level="info"/>
+		<AsyncLogger name="com.infiniteautomation" level="info"/>
+        <AsyncRoot level="error" >
             <AppenderRef ref="stdout" />
             <AppenderRef ref="logfile"/>
             <AppenderRef ref="frontend"/>
-        </Root>
+        </AsyncRoot>
 	</Loggers>
 </Configuration>

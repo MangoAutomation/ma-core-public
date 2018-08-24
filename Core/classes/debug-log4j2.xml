@@ -42,8 +42,54 @@
 		<MangoFrontendAppender name="frontend">
 			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
 		</MangoFrontendAppender>
+		<!-- IasTsdb Logging -->
+		<RollingRandomAccessFile name="corruption" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log" fileName="${sys:ma.home}/logs/iastsdb-corruption.log">
+			<PatternLayout pattern="%m"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="5MB"/>
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${sys:ma.home}/logs" >
+					<IfFileName regex=".*.iastsdb-corruption.log" />
+					<IfAccumulatedFileCount exceeds="20"/>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="compression" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-compression.log" fileName="${sys:ma.home}/logs/iastsdb-compression.log">
+			<PatternLayout pattern="%m"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="5MB"/>
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${sys:ma.home}/logs" >
+					<IfFileName regex=".*.iastsdb-compression.log" />
+					<IfAccumulatedFileCount exceeds="20"/>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>
+		<RollingRandomAccessFile name="${sys:ma.home}/reverser" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-reverse.log" fileName="${sys:ma.home}/logs/iastsdb-reverse.log">
+			<PatternLayout pattern="%m"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="5MB"/>
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="logs" >
+					<IfFileName regex=".*.iastsdb-reverse.log" />
+					<IfAccumulatedFileCount exceeds="20"/>
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingRandomAccessFile>
 	</Appenders>
 	<Loggers>
+		<AsyncLogger name="com.infiniteautomation.tsdb.corruption" level="debug" additivity="false">
+		  <AppenderRef ref="corruption"/>
+		</AsyncLogger>
+		<AsyncLogger name="com.infiniteautomation.tsdb.compression" level="debug" additivity="false">
+		  <AppenderRef ref="compression"/>
+		</AsyncLogger>
+		<AsyncLogger name="com.infiniteautomation.tsdb.reverser" level="debug" additivity="false">
+		  <AppenderRef ref="reverser"/>
+		</AsyncLogger>
 		<AsyncLogger includeLocation="true" name="org.directwebremoting" level="warn"/>
 		<AsyncLogger includeLocation="true" name="org.springframework" level="error"/>
 		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2" level="debug"/>
