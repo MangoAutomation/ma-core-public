@@ -56,7 +56,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         AnnotationConfigWebApplicationContext rootWebContext = new AnnotationConfigWebApplicationContext();
         rootWebContext.setId(ROOT_WEB_CONTEXT_ID);
         rootWebContext.setParent(MangoRuntimeContextConfiguration.getRuntimeContext());
-        rootWebContext.register(MangoApplicationContextConfiguration.class);
+        rootWebContext.register(MangoRootWebContextConfiguration.class);
         rootWebContext.register(MangoSecurityConfiguration.class);
 
         // Manage the lifecycle of the root application context
@@ -70,7 +70,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         AnnotationConfigWebApplicationContext jspDispatcherContext = new AnnotationConfigWebApplicationContext();
         jspDispatcherContext.setId(JSP_DISPATCHER_CONTEXT);
         jspDispatcherContext.setParent(rootWebContext);
-        jspDispatcherContext.register(MangoCoreSpringConfiguration.class);
+        jspDispatcherContext.register(MangoJspDispatcherConfiguration.class);
 
         // Register and map the JSP dispatcher servlet
         ServletRegistration.Dynamic jspDispatcher =
@@ -91,7 +91,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
             restDispatcherContext.setId(REST_DISPATCHER_CONTEXT);
             restDispatcherContext.setParent(rootWebContext);
 
-            restDispatcherContext.register(MangoRestSpringConfiguration.class);
+            restDispatcherContext.register(MangoRestDispatcherConfiguration.class);
             restDispatcherContext.register(MangoWebSocketConfiguration.class);
 
             if (enableSwagger) {

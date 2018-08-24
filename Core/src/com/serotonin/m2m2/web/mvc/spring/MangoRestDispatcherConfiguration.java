@@ -56,7 +56,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 @ComponentScan(
         basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" },
         excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX)})
-public class MangoRestSpringConfiguration implements WebMvcConfigurer {
+public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)

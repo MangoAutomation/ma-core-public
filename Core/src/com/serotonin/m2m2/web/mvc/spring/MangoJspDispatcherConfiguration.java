@@ -35,7 +35,7 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.controller" })
-public class MangoCoreSpringConfiguration implements WebMvcConfigurer {
+public class MangoJspDispatcherConfiguration implements WebMvcConfigurer {
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env, ConfigurableConversionService conversionService, MangoPropertySource mangoPropertySource) {

@@ -27,7 +27,7 @@ import com.serotonin.m2m2.i18n.TranslatedMessageSource;
  */
 @Configuration
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.components"})
-public class MangoApplicationContextConfiguration {
+public class MangoRootWebContextConfiguration {
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env, ConfigurableConversionService conversionService, MangoPropertySource mangoPropertySource) {
