@@ -37,6 +37,11 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
  */
 public class MangoWebApplicationInitializer implements ServletContainerInitializer {
 
+    public static final String RUNTIME_CONTEXT_ID = "runtimeContext";
+    public static final String ROOT_WEB_CONTEXT_ID = "rootWebContext";
+    public static final String JSP_DISPATCHER_CONTEXT = "jspDispatcherContext";
+    public static final String REST_DISPATCHER_CONTEXT = "restDispatcherContext";
+
     public static final String JSP_DISPATCHER_NAME = "JSP_DISPATCHER";
     public static final String REST_DISPATCHER_NAME = "REST_DISPATCHER";
 
@@ -49,7 +54,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
 
         // Create the Spring 'root' web application context
         AnnotationConfigWebApplicationContext rootWebContext = new AnnotationConfigWebApplicationContext();
-        rootWebContext.setId(MangoRuntimeContextConfiguration.ROOT_WEB_CONTEXT_ID);
+        rootWebContext.setId(ROOT_WEB_CONTEXT_ID);
         rootWebContext.setParent(MangoRuntimeContextConfiguration.getRuntimeContext());
         rootWebContext.register(MangoApplicationContextConfiguration.class);
         rootWebContext.register(MangoSecurityConfiguration.class);
@@ -63,7 +68,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
 
         // Create the dispatcher servlet's Spring application context
         AnnotationConfigWebApplicationContext jspDispatcherContext = new AnnotationConfigWebApplicationContext();
-        jspDispatcherContext.setId(MangoRuntimeContextConfiguration.JSP_DISPATCHER_CONTEXT);
+        jspDispatcherContext.setId(JSP_DISPATCHER_CONTEXT);
         jspDispatcherContext.setParent(rootWebContext);
         jspDispatcherContext.register(MangoCoreSpringConfiguration.class);
 
@@ -83,7 +88,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         if (enableRest) {
             // Create the dispatcher servlet's Spring application context
             AnnotationConfigWebApplicationContext restDispatcherContext = new AnnotationConfigWebApplicationContext();
-            restDispatcherContext.setId(MangoRuntimeContextConfiguration.REST_DISPATCHER_CONTEXT);
+            restDispatcherContext.setId(REST_DISPATCHER_CONTEXT);
             restDispatcherContext.setParent(rootWebContext);
 
             restDispatcherContext.register(MangoRestSpringConfiguration.class);

@@ -43,6 +43,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 import com.serotonin.m2m2.web.mvc.spring.MangoPropertySource;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
 
 /**
  *
@@ -54,10 +55,6 @@ import com.serotonin.m2m2.web.mvc.spring.MangoPropertySource;
         "com.serotonin.m2m2.db.dao" //DAOs
 })
 public class MangoRuntimeContextConfiguration {
-    public static final String RUNTIME_CONTEXT_ID = "runtimeContext";
-    public static final String ROOT_WEB_CONTEXT_ID = "rootWebContext";
-    public static final String JSP_DISPATCHER_CONTEXT = "jspDispatcherContext";
-    public static final String REST_DISPATCHER_CONTEXT = "restDispatcherContext";
     private static final AtomicReference<ApplicationContext> RUNTIME_CONTEXT_HOLDER = new AtomicReference<>();
     private static final AtomicReference<WebApplicationContext> ROOT_WEB_CONTEXT_HOLDER = new AtomicReference<>();
 
@@ -105,9 +102,9 @@ public class MangoRuntimeContextConfiguration {
             log.info("Spring context '" + context.getId() +"' refreshed: " + context.getDisplayName());
         }
 
-        if (RUNTIME_CONTEXT_ID.equals(context.getId())) {
+        if (MangoWebApplicationInitializer.RUNTIME_CONTEXT_ID.equals(context.getId())) {
             RUNTIME_CONTEXT_HOLDER.compareAndSet(null, context);
-        } else if (ROOT_WEB_CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
+        } else if (MangoWebApplicationInitializer.ROOT_WEB_CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
             ROOT_WEB_CONTEXT_HOLDER.compareAndSet(null, (WebApplicationContext) context);
         }
     }

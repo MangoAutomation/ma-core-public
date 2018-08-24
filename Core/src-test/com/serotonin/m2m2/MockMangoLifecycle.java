@@ -38,6 +38,7 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
+import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.AbstractTimer;
@@ -183,7 +184,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
     protected void springRuntimeContextInitialize() {
         @SuppressWarnings("resource")
         AnnotationConfigWebApplicationContext runtimeContext = new AnnotationConfigWebApplicationContext();
-        runtimeContext.setId(MangoRuntimeContextConfiguration.RUNTIME_CONTEXT_ID);
+        runtimeContext.setId(MangoWebApplicationInitializer.RUNTIME_CONTEXT_ID);
         runtimeContext.register(MangoRuntimeContextConfiguration.class);
         runtimeContext.refresh();
         runtimeContext.start();
