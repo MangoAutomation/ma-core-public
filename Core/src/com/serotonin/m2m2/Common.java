@@ -50,6 +50,7 @@ import com.infiniteautomation.mango.CompiledCoreVersion;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.json.JsonContext;
@@ -142,8 +143,21 @@ public class Common {
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
 
-    // epoch time in seconds of last upgrade/install of core or modules
-    public static int lastUpgrade = 0;
+    public static final LazyInitSupplier<Integer> LAST_UPGRADE = new LazyInitSupplier<>(() -> {
+        return SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LAST_UPGRADE, 0);
+    });
+
+    /**
+     * @return epoch time in seconds of last upgrade/install of core or modules
+     */
+    public static int getLastUpgradeTime() {
+        try {
+            return LAST_UPGRADE.get();
+        } catch (Exception e) {
+            // possibly due to database not being started
+            return 0;
+        }
+    }
 
     //
     // License

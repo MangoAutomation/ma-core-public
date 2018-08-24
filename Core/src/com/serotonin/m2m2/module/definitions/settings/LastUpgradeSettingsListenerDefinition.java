@@ -17,22 +17,22 @@ import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
  */
 public class LastUpgradeSettingsListenerDefinition extends SystemSettingsListenerDefinition{
 
-	@Override
-	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
-	    if (SystemSettingsDao.LAST_UPGRADE.equals(key)) {
-	        Common.lastUpgrade = Integer.parseInt(newValue);
-	    }
-	}
+    @Override
+    public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+        if (SystemSettingsDao.LAST_UPGRADE.equals(key)) {
+            Common.LAST_UPGRADE.reset();
+        }
+    }
 
-	@Override
-	public void SystemSettingsRemoved(String key, String lastValue) {
-	    
-	}
+    @Override
+    public void SystemSettingsRemoved(String key, String lastValue) {
 
-	@Override
-	public List<String> getKeys() {
-		List<String> keys = new ArrayList<String>();
-		keys.add(SystemSettingsDao.LAST_UPGRADE);
-		return keys;
-	}
+    }
+
+    @Override
+    public List<String> getKeys() {
+        List<String> keys = new ArrayList<String>();
+        keys.add(SystemSettingsDao.LAST_UPGRADE);
+        return keys;
+    }
 }
