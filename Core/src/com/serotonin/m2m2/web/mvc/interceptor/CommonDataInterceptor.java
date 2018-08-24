@@ -28,18 +28,18 @@ public class CommonDataInterceptor implements HandlerInterceptor {
         //If database isn't ready we can't do this
         //TODO Maybe do this differently?
         IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-    	if(lifecycle.getStartupProgress() >= 100f){
-    		request.setAttribute("instanceDescription", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
-    		//Only output the site analytics if we are NOT on the system settings page
-    		if(!request.getRequestURL().toString().endsWith(ModuleRegistry.SYSTEM_SETTINGS_URL)){
-	    		request.setAttribute("siteAnalyticsHead", SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
-	    		request.setAttribute("siteAnalyticsBody", SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
-    		}
-    	}
-    	request.setAttribute("NEW_ID", Common.NEW_ID);
-    	
-        request.setAttribute("lastUpgrade", Common.lastUpgrade);
-        
+        if(lifecycle.getStartupProgress() >= 100f){
+            request.setAttribute("instanceDescription", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+            //Only output the site analytics if we are NOT on the system settings page
+            if(!request.getRequestURL().toString().endsWith(ModuleRegistry.SYSTEM_SETTINGS_URL)){
+                request.setAttribute("siteAnalyticsHead", SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
+                request.setAttribute("siteAnalyticsBody", SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
+            }
+        }
+        request.setAttribute("NEW_ID", Common.NEW_ID);
+
+        request.setAttribute("lastUpgrade", Common.getLastUpgradeTime());
+
         return true;
     }
 
