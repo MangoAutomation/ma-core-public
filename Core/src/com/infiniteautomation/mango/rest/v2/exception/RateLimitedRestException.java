@@ -17,8 +17,12 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
 public class RateLimitedRestException extends AbstractRestV2Exception {
     private static final long serialVersionUID = 1L;
 
-    private RateLimitedRestException(MangoRestErrorCode code, TranslatableMessage message, AuthenticationRateException cause) {
+    public RateLimitedRestException(MangoRestErrorCode code, TranslatableMessage message, Throwable cause) {
         super(HttpStatus.TOO_MANY_REQUESTS, code, message, cause);
+    }
+
+    public RateLimitedRestException(MangoRestErrorCode code, TranslatableMessage message) {
+        super(HttpStatus.TOO_MANY_REQUESTS, code, message);
     }
 
     public static RateLimitedRestException restExceptionFor(AuthenticationRateException cause) {
