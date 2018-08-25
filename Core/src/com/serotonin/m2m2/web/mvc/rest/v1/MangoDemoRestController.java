@@ -11,17 +11,22 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.infiniteautomation.mango.db.query.pojo.RQLToObjectListQuery;
+import com.infiniteautomation.mango.util.RQLUtils;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModel.Demo;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -54,19 +59,30 @@ public class MangoDemoRestController extends MangoRestController{
     })
     @RequestMapping(method = RequestMethod.GET, value = "/list")
     public ResponseEntity<List<DemoModel>> getAllDemos(HttpServletRequest request,
-            @ApiParam(value = "Limit the number of results", required=false)
-    @RequestParam(value="limit", required=false, defaultValue="100")int limit){
-
+        @ApiParam(value = "Limit the number of results", required=false)
+        @RequestParam(value="limit", required=false, defaultValue="100")int limit,
+        @AuthenticationPrincipal User user){
         RestProcessResult<List<DemoModel>> result = new RestProcessResult<List<DemoModel>>(HttpStatus.OK);
-        this.checkUser(request, result);
-
-        if(result.isOk()){
-            ASTNode root = new ASTNode("limit", limit);
-            List<DemoModel> models = queryStore(root);
-            return result.createResponseEntity(models);
-        }
-
-        return result.createResponseEntity();
+        ASTNode root = new ASTNode("limit", limit);
+        List<DemoModel> models = queryStore(root);
+        return result.createResponseEntity(models);
+    }
+    
+    
+    @ApiOperation(
+            value = "Query Demos",
+            notes = "Notes for getting all demos"
+            )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Ok"),
+            @ApiResponse(code = 403, message = "User does not have access")
+    })
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<DemoModel>> queryDemos(
+            HttpServletRequest request,
+            @AuthenticationPrincipal User user){
+        List<DemoModel> result = queryStore(RQLUtils.parseRQLtoAST(request.getQueryString()));
+        return ResponseEntity.ok(result);
     }
 
     /**
