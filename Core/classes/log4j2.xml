@@ -67,7 +67,7 @@
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
-		<RollingRandomAccessFile name="${sys:ma.home}/reverser" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-reverse.log" fileName="${sys:ma.home}/logs/iastsdb-reverse.log">
+		<RollingRandomAccessFile name="reverser" filePattern="${sys:ma.home}/logs/%d{MM-dd-yyyy}-%i.iastsdb-reverse.log" fileName="${sys:ma.home}/logs/iastsdb-reverse.log">
 			<PatternLayout pattern="%m"/>
 			<Policies>
 				<SizeBasedTriggeringPolicy size="5MB"/>
