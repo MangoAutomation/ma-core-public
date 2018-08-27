@@ -19,7 +19,7 @@
 * Fix additional context and unchange point value for inactive scripts on set point handlers
 * Add byXid method to DataPointQuery and DataSourceQuery in script environments
 * Making Log4J configuration fully asynchronous to improve performance
-* Adding system setting for HTTP session timeout
+* Adding system setting for HTTP session timeout, default 48 Hours
 * Adding module definition to let modules add 'utilities' to the Mango Javascript context
 * Remove static 'instance' member of Dao classes replace with lazy loading getInstance() class so Mango Javascript calls don't change
 * Check before NPE in CSV message converters
@@ -30,7 +30,7 @@
 * Allow using LOG statements in Event Handler script evaluation
 * Log Switch User events when a user switches to another and back
 * Adding initial support for Passay (www.passay.org) password validation to the backend for full release during the 3.5.x stream
-* Adding ability to set password expiration period
+* Adding ability to set password expiration period, default is to be disabled
 * Implement setPointValue in HistoricalDataPoint, save value unconditionally
 
 *Version 3.4.5*

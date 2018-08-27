@@ -489,7 +489,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION);
 
         DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, Common.TimePeriods.HOURS);
-        DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIODS, 24);
+        DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIODS, 48);
         
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_ENABLED, false);
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIOD_TYPE, Common.TimePeriods.MONTHS);
@@ -900,7 +900,7 @@ public class SystemSettingsDao extends BaseDao {
         }
         
         
-        validatePeriodType(PASSWORD_EXPIRATION_PERIOD_TYPE, settings, response);
+        validatePeriodType(PASSWORD_EXPIRATION_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.SECONDS);
         Integer passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);
         if(passwordExpirationPeriods != null && passwordExpirationPeriods < 1)
             response.addContextualMessage(PASSWORD_EXPIRATION_PERIODS, "validate.greaterThanZero");
@@ -1027,6 +1027,8 @@ public class SystemSettingsDao extends BaseDao {
             case BACKUP_PERIOD_TYPE:
             case DATABASE_BACKUP_PERIOD_TYPE:
             case FUTURE_DATE_LIMIT_PERIOD_TYPE:
+            case HTTP_SESSION_TIMEOUT_PERIOD_TYPE:
+            case PASSWORD_EXPIRATION_PERIOD_TYPE:
                 return Common.TIME_PERIOD_CODES.getId(code);
             case UPGRADE_VERSION_STATE:
                 return Common.VERSION_STATE_CODES.getId(code);
@@ -1074,6 +1076,8 @@ public class SystemSettingsDao extends BaseDao {
             case BACKUP_PERIOD_TYPE:
             case DATABASE_BACKUP_PERIOD_TYPE:
             case FUTURE_DATE_LIMIT_PERIOD_TYPE:
+            case HTTP_SESSION_TIMEOUT_PERIOD_TYPE:
+            case PASSWORD_EXPIRATION_PERIOD_TYPE:
                 return Common.TIME_PERIOD_CODES.getCode(value);
             case UPGRADE_VERSION_STATE:
                 return Common.VERSION_STATE_CODES.getCode(value);

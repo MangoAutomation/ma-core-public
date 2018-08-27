@@ -41,7 +41,7 @@
   <item id="siteAnalyticsSettings" key="dox.siteAnalyticsSettings" filename="analyticsSettings.htm"/>
   
   <item id="httpSettings" key="dox.httpSettings" filename="httpSettings.htm"/>
-
+  <item id="httpServerSettings" key="dox.httpServerSettings" filename="httpServerSettings.htm"/>
   <item id="nmeaListenerDS" key="dox.nmeaListenerDS" filename="nmeaListenerDS.htm">
     <relation id="nmeaListenerPP"/>
   </item>

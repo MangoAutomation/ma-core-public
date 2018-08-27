@@ -86,7 +86,7 @@ public class SystemSettingsDwr extends BaseDwr {
         // System event types
         settings.put("auditEventTypes", AuditEventType.EVENT_TYPES);
 
-        // Http
+        // Http Client
         settings.put(SystemSettingsDao.HTTP_CLIENT_USE_PROXY,
                 SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY));
         settings.put(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER,
@@ -281,7 +281,7 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.EXPORT_HIERARCHY_PATH, SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH));
         settings.put(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, SystemSettingsDao.instance.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR));
         
-        //Http Session
+        //Http Server
         settings.put(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE));
         settings.put(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS));
         
@@ -465,13 +465,18 @@ public class SystemSettingsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    public void saveHttpSettings(boolean useProxy, String host, int port, String username, String password, int httpSessionTimeoutPeriods, int httpSessionTimeoutPeriodType) {
+    public void saveHttpSettings(boolean useProxy, String host, int port, String username, String password) {
         SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
         systemSettingsDao.setBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY, useProxy);
         systemSettingsDao.setValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER, host);
         systemSettingsDao.setIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT, port);
         systemSettingsDao.setValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, username);
         systemSettingsDao.setValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, password);
+    }
+    
+    @DwrPermission(admin = true)
+    public void saveHttpServerSettings(int httpSessionTimeoutPeriods, int httpSessionTimeoutPeriodType) {
+        SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
         systemSettingsDao.setIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS, httpSessionTimeoutPeriods);
         systemSettingsDao.setIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE, httpSessionTimeoutPeriodType);
     }

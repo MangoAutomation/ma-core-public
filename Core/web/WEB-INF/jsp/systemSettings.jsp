@@ -435,14 +435,24 @@
                 $get("<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_PORT %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME %>"/>"),
                 $get("<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD %>"/>"),
-                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS %>"/>"),
-                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE %>"/>"),
                 function() {
                     setDisabled("saveHttpSettingsBtn", false);
                     setUserMessage("httpMessage", "<fmt:message key="systemSettings.httpSaved"/>");
                 });
         setUserMessage("httpMessage");
         setDisabled("saveHttpSettingsBtn", true);
+    }
+    
+    function saveHttpServerSettings() {
+        SystemSettingsDwr.saveHttpServerSettings(
+                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS %>"/>"),
+                $get("<c:out value="<%= SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE %>"/>"),
+                function() {
+                    setDisabled("saveHttpServerSettingsBtn", false);
+                    setUserMessage("httpServerMessage", "<fmt:message key="systemSettings.httpSaved"/>");
+                });
+        setUserMessage("httpServerMessage");
+        setDisabled("saveHttpServerSettingsBtn", true);
     }
     
     function httpUseProxyChange() {
@@ -1282,7 +1292,18 @@
         <td class="formLabel"><fmt:message key="systemSettings.proxyPassword"/></td>
         <td class="formField"><input id="<c:out value="<%= SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD %>"/>" type="password"/></td>
       </tr>
+      <tr>
+        <td colspan="2" align="center">
+          <input id="saveHttpSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveHttpSettings()"/>
+          <tag:help id="httpSettings"/>
+        </td>
+      </tr>
+      <tr><td colspan="2" id="httpMessage" class="formError"></td></tr>
+    </table>
+  </tag:labelledSection>
 
+  <tag:labelledSection labelKey="systemSettings.httpServerSettings" closed="true">
+    <table>
       <tr>
         <td class="formLabelRequired"><fmt:message key="systemSettings.httpSessionTimeout"/></td>
         <td class="formField">
@@ -1293,11 +1314,11 @@
       </tr>
       <tr>
         <td colspan="2" align="center">
-          <input id="saveHttpSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveHttpSettings()"/>
-          <tag:help id="httpSettings"/>
+          <input id="saveHttpServerSettingsBtn" type="button" value="<fmt:message key="common.save"/>" onclick="saveHttpServerSettings()"/>
+          <tag:help id="httpServerSettings"/>
         </td>
       </tr>
-      <tr><td colspan="2" id="httpMessage" class="formError"></td></tr>
+      <tr><td colspan="2" id="httpServerMessage" class="formError"></td></tr>
     </table>
   </tag:labelledSection>
 

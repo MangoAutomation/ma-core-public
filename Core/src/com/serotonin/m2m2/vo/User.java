@@ -6,6 +6,8 @@ package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -536,9 +538,10 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             int resetPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIOD_TYPE);
             int resetPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PASSWORD_EXPIRATION_PERIODS);
             NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(resetPeriodType, resetPeriods);
-            Instant lastChange = Instant.ofEpochMilli(this.passwordChangeTimestamp);
-            Instant now = Instant.ofEpochMilli(Common.timer.currentTimeMillis());
-            Instant nextChange = (Instant) adjuster.adjustInto(lastChange);
+            ZoneId zoneId = this.getTimeZoneInstance().toZoneId();
+            ZonedDateTime lastChange = ZonedDateTime.ofInstant(Instant.ofEpochMilli(this.passwordChangeTimestamp), zoneId);
+            ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(Common.timer.currentTimeMillis()), zoneId);
+            ZonedDateTime nextChange = (ZonedDateTime) adjuster.adjustInto(lastChange);
             if(nextChange.isAfter(now))
                 return true;
             return false;
