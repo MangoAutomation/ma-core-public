@@ -11,13 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
@@ -39,7 +36,7 @@ import net.jazdw.rql.parser.RQLParserException;
 public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDefinition {
 
     public static final String QUERY_TYPE_NAME = "DATA_POINT_EVENTS_BY_DATA_POINT_RQL";
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.module.ModuleQueryDefinition#getQueryTypeName()
      */
@@ -73,14 +70,14 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
         else {
             try {
                 JsonNode rqlNode = parameters.get("rql");
-                ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(String.class);
+                ObjectReader reader = this.readerFor(String.class);
                 String rql = reader.readValue(rqlNode);
                 if (rql != null && !rql.isEmpty()) {
                     RQLParser parser = new RQLParser();
                     parser.parse(rql);
                 }
             }catch(IOException | RQLParserException | IllegalArgumentException e) {
-               result.addInvalidValueError("rql"); 
+                result.addInvalidValueError("rql");
             }
         }
     }
@@ -91,21 +88,21 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
     @Override
     public ASTNode createQuery(User user, JsonNode parameters) throws IOException {
         JsonNode rqlNode = parameters.get("rql");
-        ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(String.class);
+        ObjectReader reader = this.readerFor(String.class);
         String rql = reader.readValue(rqlNode);
-        
+
         ASTNode rqlAstNode;
         if (rql == null || rql.isEmpty()) {
             rqlAstNode = new ASTNode("limit", AbstractBasicDao.DEFAULT_LIMIT);
         }
-        
+
         RQLParser parser = new RQLParser();
         try {
             rqlAstNode = parser.parse(rql);
         } catch (RQLParserException | IllegalArgumentException e) {
             throw new IOException(e.getMessage());
         }
-        
+
         //Lookup data points by tag
         List<Object> args = new ArrayList<>();
         args.add("typeRef1");
@@ -123,7 +120,7 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
             ASTNode query = new ASTNode("in", args);
             query = addAndRestriction(query, new ASTNode("eq", "userId", user.getId()));
             query = addAndRestriction(query, new ASTNode("eq", "typeName", EventTypeNames.DATA_POINT));
-    
+
             return query;
         }else {
             return new ASTNode("limit", 0, 0);

@@ -11,13 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -36,7 +33,7 @@ import net.jazdw.rql.parser.ASTNode;
 public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
 
     public static final String QUERY_TYPE_NAME = "DATA_POINT_EVENTS_BY_TAG";
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.module.ModuleQueryDefinition#getQueryTypeName()
      */
@@ -69,11 +66,11 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
             result.addRequiredError("tags");
         else {
             //Ensure the format of tags is a Map<String,String>
-            ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(Map.class);
+            ObjectReader reader = this.readerFor(Map.class);
             try {
                 reader.readValue(parameters.get("tags"));
             }catch(IOException e) {
-               result.addInvalidValueError("tags"); 
+                result.addInvalidValueError("tags");
             }
         }
         if(parameters.has("limit")) {
@@ -93,7 +90,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
     @Override
     public ASTNode createQuery(User user, JsonNode parameters) throws IOException {
         JsonNode tagsNode = parameters.get("tags");
-        ObjectReader reader = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(Map.class);
+        ObjectReader reader = this.readerFor(Map.class);
         Map<String, String> tags = reader.readValue(tagsNode);
         //Lookup data points by tag
         List<Object> args = new ArrayList<>();
@@ -112,7 +109,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
             ASTNode query = new ASTNode("in", args);
             query = addAndRestriction(query, new ASTNode("eq", "userId", user.getId()));
             query = addAndRestriction(query, new ASTNode("eq", "typeName", EventTypeNames.DATA_POINT));
-    
+
             if(parameters.has("limit")) {
                 int offset = 0;
                 int limit = parameters.get("limit").asInt();

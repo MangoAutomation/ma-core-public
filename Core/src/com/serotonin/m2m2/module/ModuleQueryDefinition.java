@@ -11,8 +11,11 @@ import org.springframework.security.access.AccessDeniedException;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
 import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -27,57 +30,61 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  */
 public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
-    
+
     /**
      * An internal identifier for this type of module query. Must be unique within an MA instance, and is recommended
      * to be unique inasmuch as possible across all modules.
-     * 
+     *
      * @return the data source type name.
      */
     abstract public String getQueryTypeName();
-    
+
     /**
      * Get the TypeName of the permission definition
      * @return
      */
     abstract protected String getPermissionTypeName();
-    
+
     /**
      * Get the name of the table that the query from createQuery will be used on
      * @return
      */
     abstract public String getTableName();
-    
+
     /**
      * Validate the inputs for the query
-     * 
+     *
      * @param parameters
      */
     abstract protected void validateImpl(final User user, final JsonNode parameters, final RestValidationResult result);
-    
+
     /**
      * Return information about the parameters and types for the query
      * @return
      */
     abstract public JsonNode getExplainInfo();
-    
+
     /**
      * Create an AST Node for this query.
      * @param parameters
      * @return
      */
     abstract public ASTNode createQuery(User user, JsonNode parameters) throws IOException;
-    
+
+    protected ObjectReader readerFor(Class<?> clazz) {
+        return Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(clazz);
+    }
+
     public void validate(final User user, final String tableName, final JsonNode input, final RestValidationResult result) throws ValidationFailedRestException {
         if(!StringUtils.equals(getTableName(), tableName)) {
             //This definition doesn't match the table it is going to run on, abort
             result.addInvalidValueError("queryTypeName");
             return;
         }
-        
+
         validateImpl(user, input, result);
     }
-    
+
     /**
      * Ensure that a User has read permission
      * @throws PermissionException
@@ -89,7 +96,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
         if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
             throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
     }
-    
+
     /**
      * Append an AND Restriction to a query
      * @param query - can be null
@@ -99,7 +106,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
     protected static ASTNode addAndRestriction(ASTNode query, ASTNode restriction){
         //Root query node
         ASTNode root = null;
-        
+
         if(query == null){
             root = restriction;
         }else if(query.getName().equalsIgnoreCase("and")){
@@ -109,7 +116,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
         }
         return root;
     }
-    
+
     /**
      * Append an OR restriction to the query
      * @param query - can be null
@@ -119,7 +126,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
     protected static ASTNode addOrRestriction(ASTNode query, ASTNode restriction){
         //Root query node
         ASTNode root = null;
-        
+
         if(query == null){
             root = restriction;
         }else if(query.getName().equalsIgnoreCase("or")){
@@ -129,7 +136,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
         }
         return root;
     }
-    
+
     public class ParameterInfo {
 
         final String type;
@@ -143,7 +150,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
             this.defaultValue = defaultValue;
             this.description = description;
         }
-        
+
         public boolean isRequired() {
             return required;
         }
@@ -158,5 +165,5 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
             return description;
         }
     }
-    
+
 }
