@@ -22,14 +22,15 @@ import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
 public class BaseDao extends DaoUtils implements SQLConstants{
-    
-    //ObjectMapper to Serialize JSON to/from the database
+
+    // TODO Mango 3.6 Make this a bean
+    // ObjectMapper to Serialize JSON to/from the database
     private final static ObjectMapper mapper;
     static {
         mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setTimeZone(TimeZone.getTimeZone("UTC")); //Set to UTC in case timezone change while data is in database
-        
+
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
         for(JacksonModuleDefinition def : defs) {
@@ -38,7 +39,7 @@ public class BaseDao extends DaoUtils implements SQLConstants{
         }
     }
 
-    
+
     /**
      * Public constructor for code that needs to get stuff from the database.
      */
@@ -53,7 +54,7 @@ public class BaseDao extends DaoUtils implements SQLConstants{
     public ObjectWriter getObjectWriter(Class<?> type) {
         return mapper.writerFor(type);
     }
-    
+
     /**
      * Get a reader for use de-serializing JSON
      * @return
@@ -61,7 +62,7 @@ public class BaseDao extends DaoUtils implements SQLConstants{
     public ObjectReader getObjectReader(Class<?> type) {
         return mapper.readerFor(type);
     }
-    
+
     //
     // Convenience methods for storage of booleans.
     //
