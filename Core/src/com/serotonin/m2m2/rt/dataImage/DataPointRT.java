@@ -699,7 +699,8 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
 
     class EventNotifyWorkItem implements WorkItem {
-    	private final String prefix = "EN-";
+        private static final String descriptionPrefix = "Point event for: ";
+    	private static final String prefix = "EN-";
     	private final String sourceXid;
         private final DataPointListener listener;
         private final PointValueTime oldValue;
@@ -768,7 +769,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
 		 */
 		@Override
 		public String getDescription() {
-			return "Point event for: " + sourceXid + ", telling: " + listener.getListenerName();
+			return descriptionPrefix + sourceXid;
 		}
 
 		/* (non-Javadoc)
