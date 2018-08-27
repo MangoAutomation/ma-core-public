@@ -519,6 +519,7 @@ public class MangoSecurityConfiguration {
             // only enable "requiresSecure" for browser requests (not for XHR/REST requests)
             // this options sets the REQUIRES_SECURE_CHANNEL attribute and causes ChannelProcessingFilter
             // to perform a 302 redirect to https://
+            http.portMapper().http(Common.envProps.getInt("web.port", 8080)).mapsTo(Common.envProps.getInt("ssl.port", 443));
             http.requiresChannel().requestMatchers(browserHtmlRequestMatcher).requiresSecure();
             hsts.maxAgeInSeconds(sslHstsMaxAge).includeSubDomains(sslHstsIncludeSubDomains);
         } else {
