@@ -257,6 +257,9 @@ public class MangoSecurityConfiguration {
     @Value("${swagger.apidocs.protected:true}") boolean swaggerApiDocsProtected;
     @Value("${springfox.documentation.swagger.v2.path}") String swagger2Endpoint;
 
+    @Value("${web.port:8080}") int webPort;
+    @Value("${ssl.port:8443}") int sslPort;
+
     final static String[] SRC_TYPES = new String[] {"default", "script", "style", "connect", "img", "font", "media", "object", "frame", "worker", "manifest"};
 
     @Configuration
@@ -519,7 +522,7 @@ public class MangoSecurityConfiguration {
             // only enable "requiresSecure" for browser requests (not for XHR/REST requests)
             // this options sets the REQUIRES_SECURE_CHANNEL attribute and causes ChannelProcessingFilter
             // to perform a 302 redirect to https://
-            http.portMapper().http(Common.envProps.getInt("web.port", 8080)).mapsTo(Common.envProps.getInt("ssl.port", 443));
+            http.portMapper().http(webPort).mapsTo(sslPort);
             http.requiresChannel().requestMatchers(browserHtmlRequestMatcher).requiresSecure();
             hsts.maxAgeInSeconds(sslHstsMaxAge).includeSubDomains(sslHstsIncludeSubDomains);
         } else {
