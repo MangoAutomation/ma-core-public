@@ -8,16 +8,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
-import org.springframework.context.event.ApplicationEventMulticaster;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.convert.support.ConfigurableConversionService;
-import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -32,8 +26,6 @@ import org.springframework.web.util.UrlPathHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
-import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.AbstractRestModelConverter;
 import com.serotonin.m2m2.web.MediaTypes;
@@ -43,6 +35,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.HtmlHttpMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.SerotoninJsonMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoMethodSecurityConfiguration;
 
 /**
  * Scan the rest packages and create a Spring Context for them
@@ -52,6 +45,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  *
  */
 @Configuration
+@Import({MangoCommonConfiguration.class, MangoMethodSecurityConfiguration.class, MangoWebSocketConfiguration.class})
 @EnableWebMvc
 @ComponentScan(
         basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" },
@@ -61,16 +55,6 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
     private ObjectMapper restObjectMapper;
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env, ConfigurableConversionService conversionService, MangoPropertySource mangoPropertySource) {
-        env.getPropertySources().addLast(mangoPropertySource);
-        env.setConversionService(conversionService);
-
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        configurer.setIgnoreUnresolvablePlaceholders(false);
-        return configurer;
-    }
 
     /**
      * Create a Path helper that will not URL Decode
@@ -136,8 +120,4 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
     }
 
-    @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
-    public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
-        return new PropagatingEventMulticaster(context, eventMulticasterRegistry);
-    }
 }

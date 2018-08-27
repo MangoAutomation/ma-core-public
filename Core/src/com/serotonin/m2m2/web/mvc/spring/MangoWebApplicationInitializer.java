@@ -17,7 +17,6 @@ import org.springframework.web.servlet.DispatcherServlet;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.web.mvc.rest.swagger.SwaggerConfig;
-import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**
@@ -57,7 +56,6 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         rootWebContext.setId(ROOT_WEB_CONTEXT_ID);
         rootWebContext.setParent(MangoRuntimeContextConfiguration.getRuntimeContext());
         rootWebContext.register(MangoRootWebContextConfiguration.class);
-        rootWebContext.register(MangoSecurityConfiguration.class);
 
         // Manage the lifecycle of the root application context
         context.addListener(new ContextLoaderListener(rootWebContext));
@@ -90,9 +88,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
             AnnotationConfigWebApplicationContext restDispatcherContext = new AnnotationConfigWebApplicationContext();
             restDispatcherContext.setId(REST_DISPATCHER_CONTEXT);
             restDispatcherContext.setParent(rootWebContext);
-
             restDispatcherContext.register(MangoRestDispatcherConfiguration.class);
-            restDispatcherContext.register(MangoWebSocketConfiguration.class);
 
             if (enableSwagger) {
                 restDispatcherContext.register(SwaggerConfig.class);

@@ -25,8 +25,6 @@ import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -76,16 +74,14 @@ import com.serotonin.m2m2.web.mvc.spring.security.permissions.MangoPermissionEva
 /**
  * @author Jared Wiltshire
  */
-@Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.security"})
-public class MangoSecurityConfiguration extends GlobalMethodSecurityConfiguration {
+public class MangoSecurityConfiguration {
 
     public static final String IS_PROXY_REQUEST_ATTRIBUTE = "MANGO_IS_PROXY_REQUEST";
 
-    @Override
-    protected MethodSecurityExpressionHandler createExpressionHandler() {
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
         MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler();
         expressionHandler.setPermissionEvaluator(new MangoPermissionEvaluator());
         return expressionHandler;

@@ -17,16 +17,13 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -36,13 +33,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
-import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
-import com.serotonin.m2m2.web.mvc.spring.MangoPropertySource;
+import com.serotonin.m2m2.web.mvc.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
 
 /**
@@ -50,6 +46,7 @@ import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
  * @author Terry Packer
  */
 @Configuration
+@Import(MangoCommonConfiguration.class)
 @ComponentScan(basePackages = {
         "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
         "com.serotonin.m2m2.db.dao" //DAOs
@@ -192,27 +189,8 @@ public class MangoRuntimeContextConfiguration {
     }
 
     @Bean
-    public static MangoPropertySource propertySource() {
-        return new MangoPropertySource("envProps", Common.envProps);
-    }
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env, ConfigurableConversionService conversionService, MangoPropertySource mangoPropertySource) {
-        env.getPropertySources().addLast(mangoPropertySource);
-        env.setConversionService(conversionService);
-
-        PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
-        configurer.setIgnoreUnresolvablePlaceholders(false);
-        return configurer;
-    }
-
-    @Bean
     public EventMulticasterRegistry eventMulticasterRegistry() {
         return new EventMulticasterRegistry();
     }
 
-    @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
-    public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
-        return new PropagatingEventMulticaster(context, eventMulticasterRegistry);
-    }
 }
