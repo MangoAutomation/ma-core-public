@@ -49,7 +49,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	private String setPermission;
 	private int dataTypeId;
 	
-	public RealTimeDataPointValue(DataPointSummary summary, List<String> paths){
+	RealTimeDataPointValue(DataPointSummary summary, List<String> paths){
 		
 		this.dataPointId = summary.getId();
 		Common.runtimeManager.addDataPointListener(dataPointId, this);
@@ -183,6 +183,13 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
         }
     }
 	
+    /**
+     * Terminate our listener
+     */
+    public void destroy() {
+        Common.runtimeManager.removeDataPointListener(dataPointId, this);
+    }
+    
 	/* (non-Javadoc)
 	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
 	 */

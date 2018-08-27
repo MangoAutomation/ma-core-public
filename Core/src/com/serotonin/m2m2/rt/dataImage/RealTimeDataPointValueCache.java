@@ -8,6 +8,7 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -69,12 +70,22 @@ public class RealTimeDataPointValueCache {
         PointHierarchyEventDispatcher.addListener(new PointHierarchyListener() {
             @Override
             public void pointHierarchyCleared() {
+                //Make sure we remove all the listeners before we clear this
+                Iterator<RealTimeDataPointValue> it = realTimeData.iterator();
+                while(it.hasNext()) {
+                    it.next().destroy();
+                }
                 realTimeData.clear();
                 cleared = true;
             }
 
             @Override
             public void pointHierarchySaved(PointFolder root) {
+                //Make sure we remove all the listeners before we clear this
+                Iterator<RealTimeDataPointValue> it = realTimeData.iterator();
+                while(it.hasNext()) {
+                    it.next().destroy();
+                }
                 realTimeData.clear();
                 // Fill the cache now
                 fillCache(root, realTimeData);
