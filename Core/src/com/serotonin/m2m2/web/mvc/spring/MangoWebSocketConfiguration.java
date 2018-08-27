@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +46,8 @@ public class MangoWebSocketConfiguration implements WebSocketConfigurer {
     @Value("${rest.cors.allowedOrigins}")
     private String[] allowedOrigins;
 
-    @Autowired
-    private Set<WebSocketHandler> handlers;
+    @Autowired(required = false)
+    private Set<WebSocketHandler> handlers = Collections.emptySet();
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
