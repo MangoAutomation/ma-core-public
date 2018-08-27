@@ -32,10 +32,10 @@ import com.serotonin.m2m2.vo.User;
 /**
  * A benchmarking test to validate changes to the UserEventCache
  * 
- * TODO Mango 3.5 Test multiple inserters 
+ * TODO Mango 3.6 Test multiple inserters 
  * 
- * TODO Mango 3.5 Test ack times 
- * TODO Mango 3.5 Test rnt times TODO Mango 3.5 Test removeUser
+ * TODO Mango 3.6 Test ack times 
+ * TODO Mango 3.6 Test rnt times TODO Mango 3.6 Test removeUser
  * 
  * @author Terry Packer
  *

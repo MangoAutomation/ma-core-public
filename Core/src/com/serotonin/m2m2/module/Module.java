@@ -112,7 +112,7 @@ public class Module {
      * <p>Prefer the {@link #modulePath()} method.</p>
      * <p>Suitable for creating File objects within Java code.</p>
      *
-     * TODO Mango 3.5 remove
+     * TODO Mango 3.6 remove
      *
      * @return the path from the MA home to the module's directory.
      */
@@ -125,7 +125,7 @@ public class Module {
      * <p>Prefer the {@link #webPath()} method.</p>
      * <p>Suitable for creating URLs to module assets.</p>
      *
-     * TODO Mango 3.5 remove
+     * TODO Mango 3.6 remove
      *
      * @return the path from MA's web root to the module's directory
      */
