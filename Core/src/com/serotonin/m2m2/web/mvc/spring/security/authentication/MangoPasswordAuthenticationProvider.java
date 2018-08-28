@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.RateLimiter;
 
@@ -43,11 +47,13 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
      * Limits the rate at which authentication attempts can occur against a username
      */
     private final RateLimiter<String> usernameRateLimiter;
+    private final UserDao userDao;
 
     @Autowired
-    public MangoPasswordAuthenticationProvider(UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker) {
+    public MangoPasswordAuthenticationProvider(UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker, UserDao userDao) {
         this.userDetailsService = userDetailsService;
         this.userDetailsChecker = userDetailsChecker;
+        this.userDao = userDao;
 
         if (Common.envProps.getBoolean("rateLimit.authentication.ip.enabled", true)) {
             this.ipRateLimiter = new RateLimiter<>(
@@ -98,18 +104,46 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
             }
 
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            this.userDetailsChecker.check(userDetails);
-
-            // Validating the password against the database.
-            if (!Common.checkPassword((String) authentication.getCredentials(), userDetails.getPassword())) {
-                throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
-            }
 
             if (!(userDetails instanceof User)) {
                 throw new InternalAuthenticationServiceException("Expected user details to be instance of User");
             }
 
-            return new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), Collections.unmodifiableCollection(userDetails.getAuthorities()));
+            User user = (User) userDetails;
+
+            String newPassword = null;
+            if (authentication instanceof PasswordResetAuthenticationToken) {
+                newPassword = ((PasswordResetAuthenticationToken) authentication).getNewPassword();
+            }
+
+            try {
+                this.userDetailsChecker.check(user);
+            } catch (CredentialsExpiredException e) {
+                if (newPassword == null) {
+                    throw e;
+                }
+            }
+
+            String credentials = (String) authentication.getCredentials();
+
+            // Validating the password against the database.
+            if (!Common.checkPassword(credentials, user.getPassword())) {
+                throw new BadCredentialsException(Common.translate("login.validation.invalidLogin"));
+            }
+
+            if (newPassword != null) {
+                if (newPassword.equals(credentials)) {
+                    throw new PasswordChangeException(new TranslatableMessage("rest.exception.samePassword"));
+                }
+
+                try {
+                    userDao.updatePassword(user, newPassword);
+                } catch (ValidationException e) {
+                    throw new PasswordChangeException(new TranslatableMessage("rest.exception.complexityRequirementsFailed"));
+                }
+            }
+
+            return new UsernamePasswordAuthenticationToken(user, user.getPassword(), Collections.unmodifiableCollection(user.getAuthorities()));
         } catch (AuthenticationException e) {
             if (this.ipRateLimiter != null) {
                 this.ipRateLimiter.hit(ip);
@@ -131,6 +165,20 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
         return new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
     }
 
+    public static class PasswordChangeException extends AuthenticationException {
+        private static final long serialVersionUID = 1L;
+
+        private final TranslatableMessage translatableMessage;
+
+        public PasswordChangeException(TranslatableMessage message) {
+            super(message.translate(Common.getTranslations()));
+            this.translatableMessage = message;
+        }
+
+        public TranslatableMessage getTranslatableMessage() {
+            return translatableMessage;
+        }
+    }
 
     public static class AuthenticationRateException extends AccountStatusException {
         private static final long serialVersionUID = 1L;

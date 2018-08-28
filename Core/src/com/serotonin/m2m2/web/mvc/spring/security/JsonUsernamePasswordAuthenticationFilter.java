@@ -22,6 +22,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.PasswordResetAuthenticationToken;
 
 /**
  * Attempts authentication for a POST request with a JSON body
@@ -80,6 +81,8 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
 
         String username = usernameAndPassword.getUsername();
         String password = usernameAndPassword.getPassword();
+        String newPassword = usernameAndPassword.getNewPassword();
+
         if (username == null) {
             username = "";
         }
@@ -88,8 +91,12 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
         }
         username = username.trim();
 
-        UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
-                username, password);
+        UsernamePasswordAuthenticationToken authRequest;
+        if (newPassword == null) {
+            authRequest = new UsernamePasswordAuthenticationToken(username, password);
+        } else {
+            authRequest = new PasswordResetAuthenticationToken(username, password, newPassword);
+        }
 
         // store the username so we can access it in the failure handler
         request.setAttribute(USERNAME_ATTRIBUTE, username);
@@ -101,6 +108,8 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
     public static class UsernameAndPassword {
         String username;
         String password;
+        String newPassword;
+
         public String getUsername() {
             return username;
         }
@@ -112,6 +121,12 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
         }
         public void setPassword(String password) {
             this.password = password;
+        }
+        public String getNewPassword() {
+            return newPassword;
+        }
+        public void setNewPassword(String newPassword) {
+            this.newPassword = newPassword;
         }
     }
 }

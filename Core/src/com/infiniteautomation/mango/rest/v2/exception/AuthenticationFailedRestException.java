@@ -12,6 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.PasswordChangeException;
 
 /**
  * @author Jared Wiltshire
@@ -35,6 +36,10 @@ public class AuthenticationFailedRestException extends AbstractRestV2Exception {
         } else if (cause instanceof DisabledException) {
             return new AuthenticationFailedRestException(MangoRestErrorCode.ACCOUNT_DISABLED,
                     new TranslatableMessage("rest.exception.accountDisabled"),
+                    cause);
+        } else if (cause instanceof PasswordChangeException) {
+            return new AuthenticationFailedRestException(MangoRestErrorCode.PASSWORD_CHANGE_FAILED,
+                    ((PasswordChangeException) cause).getTranslatableMessage(),
                     cause);
         } else {
             return new AuthenticationFailedRestException(MangoRestErrorCode.GENERIC_AUTHENTICATION_FAILED,

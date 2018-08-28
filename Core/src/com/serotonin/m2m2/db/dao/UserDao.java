@@ -30,6 +30,7 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -312,18 +313,37 @@ public class UserDao extends AbstractDao<User> {
     public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
 
     public void lockPassword(User user) {
+        updatePasswordHash(user, LOCKED_PASSWORD);
+    }
+
+    /**
+     * @param user
+     * @param newPassword plain text password
+     * @throws ValidationException if password is not valid
+     */
+    public void updatePassword(User user, String newPassword) throws ValidationException {
+        // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
+        User copy = this.get(user.getId());
+        copy.setPlainTextPassword(newPassword);
+        copy.ensureValid();
+        copy.hashPlainText();
+
+        this.updatePasswordHash(user, copy.getPassword());
+    }
+
+    private void updatePasswordHash(User user, String newPasswordHash) {
         int userId = user.getId();
         int currentPasswordVersion = user.getPasswordVersion();
         int newPasswordVersion = currentPasswordVersion + 1;
         String username = user.getUsername();
 
         int count = ejt.update("UPDATE users SET password = ?, passwordVersion = ? WHERE id = ? AND passwordVersion = ? AND username = ?",
-                new Object[] { LOCKED_PASSWORD, newPasswordVersion, userId, currentPasswordVersion, username });
+                new Object[] { newPasswordHash, newPasswordVersion, userId, currentPasswordVersion, username });
         if (count == 0) {
             throw new EmptyResultDataAccessException("Updated no rows", 1);
         }
 
-        user.setPassword(LOCKED_PASSWORD);
+        user.setPassword(newPasswordHash);
         user.setPasswordVersion(newPasswordVersion);
 
         // expire the user's sessions
