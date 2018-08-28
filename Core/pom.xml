@@ -307,6 +307,11 @@
       		<artifactId>http2-server</artifactId>
       		<version>${jettyVersion}</version>
     	</dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-client</artifactId>
+            <version>${jettyVersion}</version>
+        </dependency>
     	<!-- ALPN Support for Java 9+ -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
