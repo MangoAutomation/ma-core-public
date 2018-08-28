@@ -335,16 +335,18 @@ public class UserDao extends AbstractDao<User> {
         int userId = user.getId();
         int currentPasswordVersion = user.getPasswordVersion();
         int newPasswordVersion = currentPasswordVersion + 1;
+        long passwordChangeTimestamp = Common.timer.currentTimeMillis();
         String username = user.getUsername();
 
-        int count = ejt.update("UPDATE users SET password = ?, passwordVersion = ? WHERE id = ? AND passwordVersion = ? AND username = ?",
-                new Object[] { newPasswordHash, newPasswordVersion, userId, currentPasswordVersion, username });
+        int count = ejt.update("UPDATE users SET password = ?, passwordVersion = ?, passwordChangeTimestamp = ? WHERE id = ? AND passwordVersion = ? AND username = ?",
+                new Object[] { newPasswordHash, newPasswordVersion, passwordChangeTimestamp, userId, currentPasswordVersion, username });
         if (count == 0) {
             throw new EmptyResultDataAccessException("Updated no rows", 1);
         }
 
         user.setPassword(newPasswordHash);
         user.setPasswordVersion(newPasswordVersion);
+        user.setPasswordChangeTimestamp(passwordChangeTimestamp);
 
         // expire the user's sessions
         exireSessionsForUser(user);
