@@ -32,7 +32,7 @@
 	<Loggers>
 		<Logger name="org.directwebremoting" level="warn"/>
 		<Logger name="org.springframework" level="error"/>
-		<Logger name="com.serotonin.m2m2" level="debug"/>
+		<Logger name="com.serotonin.m2m2" level="info"/>
 		<Logger name="com.serotonin.ma" level="debug"/>
 		<Logger name="com.serotonin.m2m2.persistent" level="debug"/>
 		<Logger name="com.serotonin" level="warn"/>
