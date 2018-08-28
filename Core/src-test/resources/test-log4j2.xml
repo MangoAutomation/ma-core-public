@@ -25,30 +25,28 @@
 		<Console name="stdout" target="SYSTEM_OUT">
 			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
 		</Console>
-		<Async name="async" includeLocation="true">
-			<AppenderRef ref="stdout" />
-		</Async>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.directwebremoting" level="warn"/>
-		<Logger name="org.springframework" level="error"/>
-		<Logger name="com.serotonin.m2m2" level="info"/>
-		<Logger name="com.serotonin.ma" level="debug"/>
-		<Logger name="com.serotonin.m2m2.persistent" level="debug"/>
-		<Logger name="com.serotonin" level="warn"/>
-		<Logger name="com.infiniteautomation" level="debug"/>
-		<Logger name="com.serotonin.log.LogStopWatch" level="info"/>
-		<Logger name="com.serotonin.modbus4j" level="info"/>
-		<Logger name="org.tinytsdb" level="debug"/>
-		<Logger name="com.mangofactory" level="debug"/>
-		<Logger name="org.eclipse.jetty" level="info"/>
-		<Logger name="org.springframework.web" level="debug"/>
-		<Logger name="com.fasterxml" level="debug"/>
-		<Logger name="com.infiniteautomation.brewersdashboard.rt" level="debug"/>
-		<Logger name="com.serotonin.bacnet4j" level="debug"/>
-		<Logger name="org.apache.logging" level="debug"/>
-		<Root level="error">
-			<AppenderRef ref="async"/>
-		</Root>
+		<AsyncLogger includeLocation="true" name="org.directwebremoting" level="warn"/>
+		<AsyncLogger includeLocation="true" name="org.springframework" level="error"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2.i18n" level="info"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin.ma" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2.persistent" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin" level="warn"/>
+		<AsyncLogger includeLocation="true" name="com.infiniteautomation" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin.log.LogStopWatch" level="info"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin.modbus4j" level="info"/>
+		<AsyncLogger includeLocation="true" name="org.tinytsdb" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.mangofactory" level="debug"/>
+		<AsyncLogger includeLocation="true" name="org.eclipse.jetty" level="info"/>
+		<AsyncLogger includeLocation="true" name="org.springframework.web" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.fasterxml" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.infiniteautomation.brewersdashboard.rt" level="debug"/>
+		<AsyncLogger includeLocation="true" name="com.serotonin.bacnet4j" level="debug"/>
+		<AsyncLogger includeLocation="true" name="org.apache.logging" level="debug"/>
+		<AsyncRoot includeLocation="true" level="error">
+			<AppenderRef ref="stdout"/>
+		</AsyncRoot>
 	</Loggers>
 </Configuration>
