@@ -383,8 +383,8 @@ public class PointValueTimeStreamScriptUtility {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("{ \n");
-        builder.append("query([dataPointIds], long from, long to, boolean bookend, IdPointValueTime callback): void, \n");
-        builder.append("rollupQuery([dataPointIds], long from, long to, Object callback, int rollupType, int rollupPeriods, int rollupPeriodType): void \n");
+        builder.append("query([dataPointIds], long from, long to, boolean bookend, ScriptPointValueTimeCallback callback): void, \n");
+        builder.append("rollupQuery([dataPointIds], long from, long to, ScriptPointValueTimeCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType): void \n");
         builder.append("}\n");
         return builder.toString();
     }
