@@ -9,6 +9,11 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
 
@@ -35,6 +40,60 @@ public class UserEventsTest extends MangoTestBase {
     private final int userCount = 5;
     private final int eventCount = 1000;
 
+    @Test
+    public void testListenerAddRemoveSyncrhonization() throws InterruptedException {
+        List<User> users = createUsers(1, SuperadminPermissionDefinition.GROUP_NAME);
+        
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+        SynchronousQueue<MockUserEventListener> queue = new SynchronousQueue<>();
+        MockUserEventListener l = new MockUserEventListener(users.get(0));
+
+        AtomicBoolean removerRunning = new AtomicBoolean(true);
+        AtomicBoolean generatorRunning = new AtomicBoolean(true);
+        Runnable adder = () -> {
+            while(removerRunning.get()) {
+                try {
+                    MockUserEventListener adding = queue.take();
+                    Common.eventManager.addUserEventListener(adding);
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        Runnable remover = () -> {
+            while(generatorRunning.get()) {
+                try {
+                    queue.put(l);
+                    Common.eventManager.removeUserEventListener(l);
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            removerRunning.set(false);
+        };
+        
+        //Event Generator Thread
+        Runnable generator = () -> {
+
+            //Raise some events
+            List<MockEventTypeTime> raised = new ArrayList<>();
+            for(int i=0; i<1000; i++) {
+                MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId);
+                raised.add(new MockEventTypeTime(event, timer.currentTimeMillis()));
+                Common.eventManager.raiseEvent(event, 
+                        timer.currentTimeMillis(), true, AlarmLevels.URGENT, 
+                        new TranslatableMessage("common.default", "Mock Event"), null);
+                timer.fastForwardTo(timer.currentTimeMillis() + 1);
+            }
+            generatorRunning.set(false);
+        };
+        executor.execute(adder);
+        executor.execute(remover);
+        executor.execute(generator);
+        executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
+        executor.shutdown();
+    }
+    
     @Test
     public void testRaiseEvents() throws InterruptedException {
         

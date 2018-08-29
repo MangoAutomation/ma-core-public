@@ -1062,7 +1062,12 @@ public class EventManagerImpl implements EventManager {
 
 
     class EventNotifyWorkItem implements WorkItem {
-        private static final String prefix = "EVENT_EVENT_NOTIFY";
+        private static final String prefix = "EVENT_EVENT_NOTIFY-";
+        private static final String RAISE = "_RAISE";
+        private static final String RTN = "_RTN";
+        private static final String DEACTIVATED = "_DEACTIVATED";
+        private static final String ACK = "_ACK";
+        private static final String UNK = "_UNK";
 
         private final List<Integer> userIds;
         private final UserEventListener listener;
@@ -1131,15 +1136,15 @@ public class EventManagerImpl implements EventManager {
         @Override
         public String getTaskId() {
             if(raised)
-                return prefix + "-"  + event.getId() + "_RAISE";
+                return prefix + event.getId() + RAISE;
             else if(returnToNormal)
-                return prefix + "-"  + event.getId() +  "_RTN";
+                return prefix + event.getId() +  RTN;
             else if(deactivated)
-                return prefix + "-"  + event.getId() + "_DEACTIVATED";
+                return prefix + event.getId() + DEACTIVATED;
             else if(acknowledged)
-                return prefix + "-"  + event.getId() + "_ACK";
+                return prefix + event.getId() + ACK;
             else
-                return prefix + "-"  + event.getId() + "_UNK";
+                return prefix + event.getId() + UNK;
         }
 
         /* (non-Javadoc)
