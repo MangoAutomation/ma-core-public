@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
@@ -52,18 +53,18 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 public class RuntimeManagerImpl implements RuntimeManager{
     private static final Log LOG = LogFactory.getLog(RuntimeManagerImpl.class);
 
-    private final Map<Integer, DataSourceRT<? extends DataSourceVO<?>>> runningDataSources = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, DataSourceRT<? extends DataSourceVO<?>>> runningDataSources = new ConcurrentHashMap<>();
 
     /**
      * Provides a quick lookup map of the running data points.
      */
-    private final Map<Integer, DataPointRT> dataPoints = new ConcurrentHashMap<Integer, DataPointRT>();
+    private final ConcurrentMap<Integer, DataPointRT> dataPoints = new ConcurrentHashMap<Integer, DataPointRT>();
 
     /**
      * The list of point listeners, kept here such that listeners can be notified of point initializations (i.e. a
      * listener can register itself before the point is enabled).
      */
-    private final Map<Integer, DataPointListener> dataPointListeners = new ConcurrentHashMap<Integer, DataPointListener>();
+    private final ConcurrentMap<Integer, DataPointListener> dataPointListeners = new ConcurrentHashMap<Integer, DataPointListener>();
 
     /**
      * Store of enabled publishers
@@ -82,18 +83,13 @@ public class RuntimeManagerImpl implements RuntimeManager{
      */
     private int state = PRE_INITIALIZE;
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getState()
-     */
     @Override
     public int getState(){
     	return state;
     }
     //
     // Lifecycle
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#initialize(boolean)
-     */
+
     @Override
     synchronized public void initialize(boolean safe) {
         if (state != PRE_INITIALIZE)
@@ -185,9 +181,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         this.state = RUNNING;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#terminate()
-     */
     @Override
     synchronized public void terminate() {
         if (state != RUNNING)
@@ -237,9 +230,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#joinTermination()
-     */
     @Override
     public void joinTermination() {
     	if(state != TERMINATE)
@@ -274,41 +264,26 @@ public class RuntimeManagerImpl implements RuntimeManager{
     //
     // Data sources
     //
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getRunningDataSource(int)
-     */
     @Override
     public DataSourceRT<? extends DataSourceVO<?>> getRunningDataSource(int dataSourceId) {
         return runningDataSources.get(dataSourceId);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#isDataSourceRunning(int)
-     */
     @Override
     public boolean isDataSourceRunning(int dataSourceId) {
         return getRunningDataSource(dataSourceId) != null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getDataSources()
-     */
     @Override
     public List<DataSourceVO<?>> getDataSources() {
         return DataSourceDao.getInstance().getDataSources();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getDataSource(int)
-     */
     @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
         return DataSourceDao.getInstance().getDataSource(dataSourceId);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#deleteDataSource(int)
-     */
     @Override
     public void deleteDataSource(int dataSourceId) {
         stopDataSource(dataSourceId);
@@ -316,9 +291,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         Common.eventManager.cancelEventsForDataSource(dataSourceId);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#saveDataSource(com.serotonin.m2m2.vo.dataSource.DataSourceVO)
-     */
     @Override
     public void saveDataSource(DataSourceVO<?> vo) {
         // If the data source is running, stop it.
@@ -458,9 +430,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     //
     // Data points
     //
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#saveDataPoint(com.serotonin.m2m2.vo.DataPointVO)
-     */
+    
     @Override
     public void saveDataPoint(DataPointVO point) {    	
         stopDataPoint(point.getId());
@@ -493,10 +463,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
         if (point.isEnabled())
             startDataPoint(point, null);
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#toggleDataPoint(com.serotonin.m2m2.vo.DataPointVO)
-     */
+
     @Override
     public void enableDataPoint(DataPointVO dp, boolean enabled) {
         boolean running = isDataPointRunning(dp.getId());
@@ -516,9 +483,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         DataPointDao.getInstance().saveEnabledColumn(dp);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#deleteDataPoint(com.serotonin.m2m2.vo.DataPointVO)
-     */
     @Override
     public void deleteDataPoint(DataPointVO point) {
         if (point.isEnabled())
@@ -672,9 +636,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
 
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#restartDataPoint(com.serotonin.m2m2.vo.DataPointVO)
-     */
     @Override
     public void restartDataPoint(DataPointVO vo){
         boolean restarted = false;
@@ -716,25 +677,16 @@ public class RuntimeManagerImpl implements RuntimeManager{
         }
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#isDataPointRunning(int)
-     */
     @Override
     public boolean isDataPointRunning(int dataPointId) {
         return dataPoints.get(dataPointId) != null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getDataPoint(int)
-     */
     @Override
     public DataPointRT getDataPoint(int dataPointId) {
         return dataPoints.get(dataPointId);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#addDataPointListener(int, com.serotonin.m2m2.rt.dataImage.DataPointListener)
-     */
     @Override
     public void addDataPointListener(int dataPointId, DataPointListener l) {
     	dataPointListeners.compute(dataPointId, (k, v) -> {
@@ -742,9 +694,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
     	});
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#removeDataPointListener(int, com.serotonin.m2m2.rt.dataImage.DataPointListener)
-     */
     @Override
     public void removeDataPointListener(int dataPointId, DataPointListener l) {
     	dataPointListeners.compute(dataPointId, (k, v) -> {
@@ -752,9 +701,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
     	});
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getDataPointListeners(int)
-     */
     @Override
     public DataPointListener getDataPointListeners(int dataPointId) {
         return dataPointListeners.get(dataPointId);
@@ -762,17 +708,11 @@ public class RuntimeManagerImpl implements RuntimeManager{
 
     //
     // Point values
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#setDataPointValue(int, com.serotonin.m2m2.rt.dataImage.types.DataValue, com.serotonin.m2m2.rt.dataImage.SetPointSource)
-     */
     @Override
     public void setDataPointValue(int dataPointId, DataValue value, SetPointSource source) {
         setDataPointValue(dataPointId, new PointValueTime(value, Common.timer.currentTimeMillis()), source);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#setDataPointValue(int, com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
-     */
     @Override
     public void setDataPointValue(int dataPointId, PointValueTime valueTime, SetPointSource source) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
@@ -789,9 +729,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
             ds.setPointValue(dataPoint, valueTime, source);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#relinquish(int)
-     */
     @Override
     public void relinquish(int dataPointId) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
@@ -810,9 +747,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
             ds.relinquish(dataPoint);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#forcePointRead(int)
-     */
     @Override
     public void forcePointRead(int dataPointId) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
@@ -826,9 +760,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
             ds.forcePointRead(dataPoint);
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#forceDataSourcePoll(int)
-     */
     @Override
     public void forceDataSourcePoll(int dataSourceId) {
         DataSourceRT<? extends DataSourceVO<?>> dataSource = runningDataSources.get(dataSourceId);
@@ -838,9 +769,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         dataSource.forcePoll();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValues()
-     */
     @Override
     public long purgeDataPointValues() {
         long count = Common.databaseProxy.newPointValueDao().deleteAllPointData();
@@ -849,9 +777,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         return count;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValuesWithoutCount()
-     */
     @Override
     public void purgeDataPointValuesWithoutCount() {
         Common.databaseProxy.newPointValueDao().deleteAllPointDataWithoutCount();
@@ -860,28 +785,19 @@ public class RuntimeManagerImpl implements RuntimeManager{
         return;
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValues(int, int, int)
-     */
     @Override
     public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
         long before = DateUtils.minus(Common.timer.currentTimeMillis(), periodType, periodCount);
         return purgeDataPointValues(dataPointId, before);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValues(int)
-     */
     @Override
     public long purgeDataPointValues(int dataPointId) {
         long count = Common.databaseProxy.newPointValueDao().deletePointValues(dataPointId);
         updateDataPointValuesRT(dataPointId, Long.MAX_VALUE);
         return count;
     }
-    
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValuesWithoutCount(int)
-     */
+
 	@Override
     public boolean purgeDataPointValuesWithoutCount(int dataPointId) {
 		if(Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(dataPointId)){
@@ -890,10 +806,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
 		}else
 			return false;
 	}
-	
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValue(int, long)
-     */
+
     @Override
     public long purgeDataPointValue(int dataPointId, long ts){
     	long count = Common.databaseProxy.newPointValueDao().deletePointValue(dataPointId, ts);
@@ -903,9 +816,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
     	
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValues(int, long)
-     */
     @Override
     public long purgeDataPointValues(int dataPointId, long before) {
        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
@@ -913,10 +823,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
             updateDataPointValuesRT(dataPointId, before);
         return count;
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValuesBetween(int, long, long)
-     */
+
     @Override
     public long purgeDataPointValuesBetween(int dataPointId, long startTime, long endTime) {
         long count = Common.databaseProxy.newPointValueDao().deletePointValuesBetween(dataPointId, startTime, endTime);
@@ -925,9 +832,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         return count;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#purgeDataPointValuesWithoutCount(int, long)
-     */
     @Override
     public boolean purgeDataPointValuesWithoutCount(int dataPointId, long before) {
         if(Common.databaseProxy.newPointValueDao().deletePointValuesBeforeWithoutCount(dataPointId, before)){
@@ -956,9 +860,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
     //
     // Publishers
     //
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getRunningPublisher(int)
-     */
     @Override
     public PublisherRT<?> getRunningPublisher(int publisherId) {
         for (PublisherRT<?> publisher : runningPublishers) {
@@ -968,25 +869,16 @@ public class RuntimeManagerImpl implements RuntimeManager{
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#isPublisherRunning(int)
-     */
     @Override
     public boolean isPublisherRunning(int publisherId) {
         return getRunningPublisher(publisherId) != null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#getPublisher(int)
-     */
     @Override
     public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
         return PublisherDao.getInstance().getPublisher(publisherId);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#deletePublisher(int)
-     */
     @Override
     public void deletePublisher(int publisherId) {
         stopPublisher(publisherId);
@@ -994,9 +886,6 @@ public class RuntimeManagerImpl implements RuntimeManager{
         Common.eventManager.cancelEventsForPublisher(publisherId);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.RuntimeManager#savePublisher(com.serotonin.m2m2.vo.publish.PublisherVO)
-     */
     @Override
     public void savePublisher(PublisherVO<? extends PublishedPointVO> vo) {
         // If the publisher is running, stop it.

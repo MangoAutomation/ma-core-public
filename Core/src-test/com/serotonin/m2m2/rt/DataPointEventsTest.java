@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.rt;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 
@@ -22,7 +22,6 @@ import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.module.Module;
-import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -34,89 +33,50 @@ import com.serotonin.m2m2.vo.DataPointVO;
 public class DataPointEventsTest extends MangoTestBase {
 
     @Test
-    public void testListenerAddRemoveSyncrhonization() throws InterruptedException, JsonException, IOException, URISyntaxException {
-        
-        loadDefaultConfiguration();
-        AtomicInteger eventCount = new AtomicInteger();
+    public void testListenerAddRemoveSyncrhonization()
+            throws InterruptedException, JsonException, IOException, URISyntaxException {
+
+        File jsonFile =
+                new File(MangoTestBase.class.getResource("/oneSourceOnePoint.json").toURI());
+        loadConfiguration(jsonFile);
+
         int inserted = 1000;
-        DataPointVO point = DataPointDao.getInstance().getByXid("temperature");
+        DataPointVO point = DataPointDao.getInstance().getByXid("DP_TEST");
         ExecutorService executor = Executors.newFixedThreadPool(3);
-        SynchronousQueue<DataPointListener> queue = new SynchronousQueue<>();
-        
-        DataPointListener l = new DataPointListener() {
-            
-            @Override
-            public String getListenerName() {
-                return "test listener";
-            }
+        SynchronousQueue<TestDataPointListener> queue = new SynchronousQueue<>();
 
-            @Override
-            public void pointInitialized() {
-                eventCount.incrementAndGet();
-            }
-
-            @Override
-            public void pointUpdated(PointValueTime newValue) {
-                eventCount.incrementAndGet();
-            }
-
-            @Override
-            public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-                eventCount.incrementAndGet();
-            }
-
-            @Override
-            public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
-                eventCount.incrementAndGet();
-            }
-
-            @Override
-            public void pointBackdated(PointValueTime value) {
-                eventCount.incrementAndGet();
-            }
-
-            @Override
-            public void pointTerminated() {
-                eventCount.incrementAndGet();
-            }
-
-            @Override
-            public void pointLogged(PointValueTime value) {
-                eventCount.incrementAndGet();
-            }
-            
-        };
+        TestDataPointListener l = new TestDataPointListener("Listener One", point.getId());
 
         AtomicBoolean removerRunning = new AtomicBoolean(true);
         AtomicBoolean generatorRunning = new AtomicBoolean(true);
         Runnable adder = () -> {
-            while(removerRunning.get()) {
+            while (removerRunning.get()) {
                 try {
-                    queue.take();
-                    Common.runtimeManager.addDataPointListener(point.getId(), l);
-                }catch(Exception e) {
+                    TestDataPointListener listener = queue.take();
+                    Common.runtimeManager.addDataPointListener(listener.dataPointId, listener);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         };
         Runnable remover = () -> {
-            while(generatorRunning.get()) {
+            while (generatorRunning.get()) {
                 try {
                     queue.put(l);
-                    Common.runtimeManager.removeDataPointListener(point.getId(), l);
-                }catch(Exception e) {
+                    Common.runtimeManager.removeDataPointListener(l.dataPointId, l);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
             removerRunning.set(false);
         };
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(point.getId());
-        //Value Generator Thread
+        // Value Generator Thread
         Runnable generator = () -> {
-            //Save some values
+            // Save some values
             List<PointValueTime> values = new ArrayList<>();
-            for(int i=0; i<inserted; i++) {
+            for (int i = 0; i < inserted; i++) {
                 PointValueTime newValue = new PointValueTime(1.0, timer.currentTimeMillis());
                 rt.setPointValue(newValue, null);
                 values.add(newValue);
@@ -131,12 +91,14 @@ public class DataPointEventsTest extends MangoTestBase {
         executor.shutdown();
     }
     
+    
     @Override
     protected MockMangoLifecycle getLifecycle() {
-        RuntimeManagerMockMangoLifecycle lifecycle = new RuntimeManagerMockMangoLifecycle(modules, enableH2Web, h2WebPort);
+        RuntimeManagerMockMangoLifecycle lifecycle =
+                new RuntimeManagerMockMangoLifecycle(modules, enableH2Web, h2WebPort);
         return lifecycle;
     }
-    
+
     class RuntimeManagerMockMangoLifecycle extends MockMangoLifecycle {
 
         /**
@@ -148,10 +110,11 @@ public class DataPointEventsTest extends MangoTestBase {
                 int webPort) {
             super(modules, enableWebConsole, webPort);
         }
+
         @Override
         protected RuntimeManager getRuntimeManager() {
             return new RuntimeManagerImpl();
         }
-        
+
     }
 }
