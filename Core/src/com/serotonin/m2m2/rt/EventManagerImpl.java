@@ -52,7 +52,6 @@ public class EventManagerImpl implements EventManager {
     // minutes.
 
     private final List<EventManagerListenerDefinition> listeners = new CopyOnWriteArrayList<EventManagerListenerDefinition>();
-    private final List<UserEventListener> userEventListeners = new CopyOnWriteArrayList<UserEventListener>();
     private final ReadWriteLock activeEventsLock = new ReentrantReadWriteLock();
     private final List<EventInstance> activeEvents = new ArrayList<EventInstance>();
     private final ReadWriteLock recentEventsLock = new ReentrantReadWriteLock();
@@ -62,6 +61,7 @@ public class EventManagerImpl implements EventManager {
     private long lastAlarmTimestamp = 0;
     private int highestActiveAlarmLevel = 0;
     private UserEventListener userEventMulticaster = null;
+    
     /**
      * State machine allowed order:
      * PRE_INITIALIZE
@@ -152,6 +152,9 @@ public class EventManagerImpl implements EventManager {
 
         List<Integer> userIdsToNotify = new ArrayList<Integer>();
         Set<Integer> userIdsForCache = new HashSet<Integer>();
+        UserEventListener multicaster = userEventMulticaster;
+        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
+
         for (User user : userDao.getActiveUsers()) {
             // Do not create an event for this user if the event type says the
             // user should be skipped.
@@ -165,7 +168,7 @@ public class EventManagerImpl implements EventManager {
 
                 //Notify All User Event Listeners of the new event
                 if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
-                    for(UserEventListener l : this.userEventListeners){
+                    for(UserEventListener l : userEventListeners){
                         if(l.getUserId() == user.getId()){
                             userIdsToNotify.add(user.getId());
                         }
@@ -179,9 +182,8 @@ public class EventManagerImpl implements EventManager {
         if(userIdsForCache.size() > 0)
             this.userEventCache.addEvent(userIdsForCache, evt);
 
-
-        if(userEventMulticaster != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, true, false, false, false));
+        if(multicaster != null)
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
         DateTime now = new DateTime(Common.timer.currentTimeMillis());
         for(MailingList ml : MailingListDao.getInstance().getAlarmMailingLists(alarmLevel)) {
@@ -303,6 +305,9 @@ public class EventManagerImpl implements EventManager {
         if(evt == null)
             return;
         List<User> activeUsers = userDao.getActiveUsers();
+        UserEventListener multicaster = userEventMulticaster;
+        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
+        
         // Loop in case of multiples
         while (evt != null) {
             evt.returnToNormal(time, cause);
@@ -318,7 +323,7 @@ public class EventManagerImpl implements EventManager {
                 if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
                     if (Permissions.hasEventTypePermission(user, type)) {
                         //Notify All User Event Listeners of the new event
-                        for(UserEventListener l : this.userEventListeners){
+                        for(UserEventListener l : userEventListeners){
                             if((l.getUserId() == user.getId())){
                                 userIdsToNotify.add(user.getId());
 
@@ -333,8 +338,8 @@ public class EventManagerImpl implements EventManager {
             if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
                 this.userEventCache.updateEvent(userIdsForCache, evt);
 
-            if(userEventMulticaster != null && Common.backgroundProcessing != null)
-                Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, true, false, false));
+            if(multicaster != null && Common.backgroundProcessing != null)
+                Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, true, false, false));
 
             resetHighestAlarmLevel(time);
             if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
@@ -362,6 +367,9 @@ public class EventManagerImpl implements EventManager {
         List<User> activeUsers = userDao.getActiveUsers();
 
         List<Integer> eventIds = new ArrayList<Integer>();
+        UserEventListener multicaster = userEventMulticaster;
+        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
+
         for(EventInstance evt : evts){
             if(evt.isActive())
                 eventIds.add(evt.getId());
@@ -378,7 +386,7 @@ public class EventManagerImpl implements EventManager {
 
                 if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
                     //Notify All User Event Listeners of the new event
-                    for(UserEventListener l : this.userEventListeners){
+                    for(UserEventListener l : userEventListeners){
                         if(l.getUserId() == user.getId()){
                             userIdsToNotify.add(user.getId());
                         }
@@ -390,8 +398,8 @@ public class EventManagerImpl implements EventManager {
             if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
                 this.userEventCache.updateEvent(userIdsForCache, evt);
 
-            if(userEventMulticaster != null)
-                Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, false, true, false));
+            if(multicaster != null)
+                Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, true, false));
 
             // Call inactiveEvent handlers.
             handleInactiveEvent(evt);
@@ -430,6 +438,9 @@ public class EventManagerImpl implements EventManager {
         evt.setAlternateAckSource(alternateAckSource);
 
         List<Integer> userIdsToNotify = new ArrayList<Integer>();
+        UserEventListener multicaster = userEventMulticaster;
+        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
+
         for (User user : userDao.getActiveUsers()) {
             // Do not create an event for this user if the event type says the
             // user should be skipped.
@@ -439,7 +450,7 @@ public class EventManagerImpl implements EventManager {
 
             if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
                 //Notify All User Event Listeners of the new event
-                for(UserEventListener l : this.userEventListeners){
+                for(UserEventListener l : userEventListeners){
                     if(l.getUserId() == user.getId()){
                         userIdsToNotify.add(user.getId());
                     }
@@ -449,8 +460,8 @@ public class EventManagerImpl implements EventManager {
         //Remove the event totally
         this.userEventCache.removeEvent(evt);
 
-        if(userEventMulticaster != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, userEventMulticaster, evt, false, false, false, true));
+        if(multicaster != null)
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, false, true));
         return true;
     }
 
@@ -890,15 +901,21 @@ public class EventManagerImpl implements EventManager {
     }
     @Override
     public synchronized void addUserEventListener(UserEventListener l){
-        userEventListeners.add(l);
         userEventMulticaster = UserEventMulticaster.add(l, userEventMulticaster);
     }
     @Override
     public synchronized void removeUserEventListener(UserEventListener l){
-        userEventListeners.remove(l);
         userEventMulticaster = UserEventMulticaster.remove(l, userEventMulticaster);
     }
 
+    private UserEventListener[] getUserEventListeners(UserEventListener m) {
+        //Collect the listeners
+        if(m != null)
+            return UserEventMulticaster.getListeners(m);
+        else
+            return new UserEventListener[0];
+    }
+    
     //
     // User Event Cache Access
     //

@@ -11,6 +11,7 @@ import com.serotonin.m2m2.util.ExceptionListWrapper;
  * @author Phillip Dunlap
  */
 public class UserEventMulticaster implements UserEventListener {
+    
     private int MULTICASTER_ID = -100;
     protected final UserEventListener a, b;
     
@@ -48,6 +49,38 @@ public class UserEventMulticaster implements UserEventListener {
         
         return l;
     }
+    
+    private static int getListenerCount(UserEventListener l) {
+        if (l instanceof UserEventMulticaster) {
+            UserEventMulticaster mc = (UserEventMulticaster) l;
+            return getListenerCount(mc.a) + getListenerCount(mc.b);
+        }
+
+        return 1;
+    }
+
+    private static int populateListenerArray(UserEventListener[] a, UserEventListener l, int index) {
+        if (l instanceof UserEventMulticaster) {
+            UserEventMulticaster mc = (UserEventMulticaster) l;
+            int lhs = populateListenerArray(a, mc.a, index);
+            return populateListenerArray(a, mc.b, lhs);
+        }
+
+        if (a.getClass().getComponentType().isInstance(l)) {
+            a[index] = l;
+            return index + 1;
+        }
+
+        return index;
+    }
+
+    public static UserEventListener[] getListeners(UserEventListener l) {
+        int n = getListenerCount(l);
+        UserEventListener[] result = new UserEventListener[n];
+        populateListenerArray(result, l, 0);
+        return result;
+    }
+    
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.event.UserEventListener#getUserId()
      */
