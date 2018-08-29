@@ -33,6 +33,9 @@
 * Implement setPointValue in HistoricalDataPoint, save value unconditionally
 * Bugfix for repeatedly saving the Point Hierarchy creating many data point listeners
 * Shorten description for Data Point event notify work items to reduce memory footprint in large systems.  
+* Improve performance/stability when multi-casting User notifications of alarms
+* Add ability to change password after it expires if password is known
+* Upgrade Spring and Jetty dependencies for compatibility with java 9/10
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
