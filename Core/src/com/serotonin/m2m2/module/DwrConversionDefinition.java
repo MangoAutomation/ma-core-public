@@ -145,6 +145,9 @@ abstract public class DwrConversionDefinition extends ModuleElementDefinition {
     	//Ugly Hack for now to ensure all module conversions are javascript enabled
     	if(conversions != null)
 	    	for(DwrClassConversion conversion : conversions){
+	    	    //type of enum is covered by the DWR EnumConverter
+	    	    if("enum".equals(conversion.getConverterType()))
+	    	        continue;
 	    		String js = conversion.getClazz().getCanonicalName().substring(conversion.getClazz().getCanonicalName().lastIndexOf(".")+1);
 	    		conversion.addParameter("javascript", js);
 	    	}

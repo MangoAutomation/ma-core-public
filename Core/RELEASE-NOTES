@@ -36,6 +36,7 @@
 * Improve performance/stability when multi-casting User notifications of alarms
 * Add ability to change password after it expires if password is known
 * Upgrade Spring and Jetty dependencies for compatibility with java 9/10
+* Fix DWR Warning LOG messages about enum's not having a Javascript property
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
