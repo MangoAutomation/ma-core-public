@@ -153,7 +153,6 @@ public class EventManagerImpl implements EventManager {
         List<Integer> userIdsToNotify = new ArrayList<Integer>();
         Set<Integer> userIdsForCache = new HashSet<Integer>();
         UserEventListener multicaster = userEventMulticaster;
-        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
 
         for (User user : userDao.getActiveUsers()) {
             // Do not create an event for this user if the event type says the
@@ -168,11 +167,7 @@ public class EventManagerImpl implements EventManager {
 
                 //Notify All User Event Listeners of the new event
                 if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
-                    for(UserEventListener l : userEventListeners){
-                        if(l.getUserId() == user.getId()){
-                            userIdsToNotify.add(user.getId());
-                        }
-                    }
+                    userIdsToNotify.add(user.getId());
                     userIdsForCache.add(user.getId());
                 }
             }
@@ -306,7 +301,6 @@ public class EventManagerImpl implements EventManager {
             return;
         List<User> activeUsers = userDao.getActiveUsers();
         UserEventListener multicaster = userEventMulticaster;
-        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
         
         // Loop in case of multiples
         while (evt != null) {
@@ -322,13 +316,7 @@ public class EventManagerImpl implements EventManager {
 
                 if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
                     if (Permissions.hasEventTypePermission(user, type)) {
-                        //Notify All User Event Listeners of the new event
-                        for(UserEventListener l : userEventListeners){
-                            if((l.getUserId() == user.getId())){
-                                userIdsToNotify.add(user.getId());
-
-                            }
-                        }
+                        userIdsToNotify.add(user.getId());
                         userIdsForCache.add(user.getId());
                     }
                 }
@@ -368,7 +356,6 @@ public class EventManagerImpl implements EventManager {
 
         List<Integer> eventIds = new ArrayList<Integer>();
         UserEventListener multicaster = userEventMulticaster;
-        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
 
         for(EventInstance evt : evts){
             if(evt.isActive())
@@ -385,12 +372,7 @@ public class EventManagerImpl implements EventManager {
                     continue;
 
                 if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
-                    //Notify All User Event Listeners of the new event
-                    for(UserEventListener l : userEventListeners){
-                        if(l.getUserId() == user.getId()){
-                            userIdsToNotify.add(user.getId());
-                        }
-                    }
+                    userIdsToNotify.add(user.getId());
                     userIdsForCache.add(user.getId());
                 }
             }
@@ -439,7 +421,6 @@ public class EventManagerImpl implements EventManager {
 
         List<Integer> userIdsToNotify = new ArrayList<Integer>();
         UserEventListener multicaster = userEventMulticaster;
-        UserEventListener[] userEventListeners = getUserEventListeners(multicaster);
 
         for (User user : userDao.getActiveUsers()) {
             // Do not create an event for this user if the event type says the
@@ -450,11 +431,7 @@ public class EventManagerImpl implements EventManager {
 
             if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
                 //Notify All User Event Listeners of the new event
-                for(UserEventListener l : userEventListeners){
-                    if(l.getUserId() == user.getId()){
-                        userIdsToNotify.add(user.getId());
-                    }
-                }
+                userIdsToNotify.add(user.getId());
             }
         }
         //Remove the event totally
@@ -900,20 +877,12 @@ public class EventManagerImpl implements EventManager {
         listeners.remove(l);
     }
     @Override
-    public synchronized void addUserEventListener(UserEventListener l){
+    public synchronized void addUserEventListener(UserEventListener l) {
         userEventMulticaster = UserEventMulticaster.add(l, userEventMulticaster);
     }
     @Override
-    public synchronized void removeUserEventListener(UserEventListener l){
+    public synchronized void removeUserEventListener(UserEventListener l) {
         userEventMulticaster = UserEventMulticaster.remove(l, userEventMulticaster);
-    }
-
-    private UserEventListener[] getUserEventListeners(UserEventListener m) {
-        //Collect the listeners
-        if(m != null)
-            return UserEventMulticaster.getListeners(m);
-        else
-            return new UserEventListener[0];
     }
     
     //
