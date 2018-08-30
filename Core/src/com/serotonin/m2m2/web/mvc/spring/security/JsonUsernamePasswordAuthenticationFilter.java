@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.MediaType;
@@ -22,6 +23,7 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.PasswordResetAuthenticationToken;
 
 /**
@@ -38,7 +40,7 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
     private ObjectMapper mapper;
 
     @Autowired
-    protected JsonUsernamePasswordAuthenticationFilter(ObjectMapper mapper) {
+    protected JsonUsernamePasswordAuthenticationFilter(@Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME) ObjectMapper mapper) {
         super(new AntPathRequestMatcher("/rest/*/login", "POST"));
         this.mapper = mapper;
     }
