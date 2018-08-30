@@ -29,6 +29,7 @@ import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.web.http.HttpUtils4;
 
@@ -40,7 +41,7 @@ import jdk.nashorn.api.scripting.JSObject;
 @SuppressWarnings("restriction")
 public class HttpBuilderScriptUtility {
     public static final String CONTEXT_KEY = "HttpBuilder";
-    
+
     private int retried = 0;
     private HttpUriRequest request = null;
     private HttpResponse response;
@@ -49,33 +50,33 @@ public class HttpBuilderScriptUtility {
     private ScriptExceptionCallback exceptionCallback;
     private Exception thrown;
     private List<Integer> okayStatus = new ArrayList<Integer>(1);
-    
+
     public HttpBuilderScriptUtility(ScriptPermissions permissions) {
         okayStatus.add(HttpStatus.OK.value());
     }
-    
+
     public HttpResponse getResponse() {
         return response;
     }
-    
+
     public HttpUriRequest getStagedRequest() {
         return request;
     }
-    
+
     public void setStagedRequest(HttpUriRequest request) {
         this.request = request;
     }
-    
+
     public int getRetried() {
         return retried;
     }
-    
+
     public void setOkayStatusArray(int[] statusCodes) {
         okayStatus.clear();
         for(int i : statusCodes)
             okayStatus.add(i);
     }
-    
+
     /*
      * Provided properly named functions and spicy JavaScript shorthands
      */
@@ -83,32 +84,32 @@ public class HttpBuilderScriptUtility {
         this.errorCallback = errorCallback;
         return this;
     }
-    
+
     public HttpBuilderScriptUtility resp(ScriptHttpCallback responseCallback) {
         this.responseCallback = responseCallback;
         return this;
     }
-    
+
     public HttpBuilderScriptUtility excp(ScriptExceptionCallback exceptionCallback) {
         this.exceptionCallback = exceptionCallback;
         return this;
     }
-    
+
     public HttpBuilderScriptUtility setErrorCallback(ScriptHttpCallback errorCallback) {
         this.errorCallback = errorCallback;
         return this;
     }
-    
+
     public HttpBuilderScriptUtility setResponseCallback(ScriptHttpCallback responseCallback) {
         this.responseCallback = responseCallback;
         return this;
     }
-    
+
     public HttpBuilderScriptUtility setExceptionCallback(ScriptExceptionCallback exceptionCallback) {
         this.exceptionCallback = exceptionCallback;
         return this;
     }
-    
+
     @SuppressWarnings({"unchecked"})
     public Object request(Map<String, Object> request) {
         reset();
@@ -117,47 +118,47 @@ public class HttpBuilderScriptUtility {
                 exceptionCallback = (ScriptExceptionCallback)request.get("excp");
             else if(request.containsKey("exceptionCallback"))
                 exceptionCallback = (ScriptExceptionCallback)request.get("exceptionCallback");
-            
+
             if(request.containsKey("err"))
                 errorCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("err"));
             else if(request.containsKey("errorCallback"))
                 errorCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("errorCallback"));
-            
+
             if(request.containsKey("resp"))
                 responseCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("resp"));
             else if(request.containsKey("responseCallback"))
                 responseCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("responseCallback"));
-            
+
             if(!request.containsKey("path")) {
                 thrown = new Exception("Must have 'path' attribute to make request.");
                 return execute();
             }
-            
+
             String path = (String)request.get("path");
-            
+
             Map<String, Object> headers = null;
             if(request.containsKey("headers"))
                 headers = (Map<String, Object>)request.get("headers");
-            
+
             Map<String, Object> parameters = null;
             if(request.containsKey("parameters"))
                 parameters = (Map<String, Object>)request.get("parameters");
-            
+
             String content;
             if(request.containsKey("content") && request.get("content") instanceof String)
                 content = (String)request.get("content");
             else if(request.containsKey("content")) {
-                content = Common.getBean(ObjectMapper.class).writeValueAsString(request.get("content"));
+                content = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.COMMON_OBJECT_MAPPER_NAME).writeValueAsString(request.get("content"));
             } else
                 content = "";
-            
+
             String method;
             if(!request.containsKey("method")) {
                 thrown = new Exception("Must have 'method' attribute to make request.");
                 return execute();
             } else
                 method = (String)request.get("method");
-            
+
             if(HttpMethod.POST.name().equals(method))
                 post(path, headers, content, false);
             else if(HttpMethod.GET.name().equals(method))
@@ -166,7 +167,7 @@ public class HttpBuilderScriptUtility {
                 put(path, headers, content, false);
             else if(HttpMethod.DELETE.name().equals(method))
                 delete(path, headers);
-            
+
             return execute();
         } catch(ClassCastException e) {
             thrown = e;
@@ -184,26 +185,26 @@ public class HttpBuilderScriptUtility {
         }
         return null;
     }
-    
+
     public HttpBuilderScriptUtility post(String loc, Map<String, Object> headers, Object content) {
         return post(loc, headers, content, true);
     }
-    
+
     private HttpBuilderScriptUtility post(String loc, Map<String, Object> headers, Object content, boolean reset) {
         if(reset)
             reset();
-        
+
         URI uri = buildUri(loc);
         if(uri == null)
             return this;
-        
+
         HttpPost post = new HttpPost(uri);
         putHeaders(post, headers);
         try {
             if(content instanceof String)
                 post.setEntity(new StringEntity((String)content));
             else {
-                post.setEntity(new StringEntity(Common.getBean(ObjectMapper.class).writeValueAsString(content)));
+                post.setEntity(new StringEntity(Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.COMMON_OBJECT_MAPPER_NAME).writeValueAsString(content)));
             }
             request = post;
         } catch(UnsupportedEncodingException e) {
@@ -213,79 +214,79 @@ public class HttpBuilderScriptUtility {
         }
         return this;
     }
-    
+
     public HttpBuilderScriptUtility put(String loc, Map<String, Object> headers, Object content) {
         return put(loc, headers, content, true);
     }
-    
+
     private HttpBuilderScriptUtility put(String loc, Map<String, Object> headers, Object content, boolean reset) {
         if(reset)
             reset();
-        
+
         URI uri = buildUri(loc);
         if(uri == null)
             return this;
-        
+
         HttpPut put = new HttpPut(uri);
         putHeaders(put, headers);
         try {
             if(content instanceof String)
                 put.setEntity(new StringEntity((String)content));
             else {
-                put.setEntity(new StringEntity(Common.getBean(ObjectMapper.class).writeValueAsString(content)));
+                put.setEntity(new StringEntity(Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.COMMON_OBJECT_MAPPER_NAME).writeValueAsString(content)));
             }
             request = put;
         } catch(UnsupportedEncodingException|JsonProcessingException e) {
             thrown = e;
         }
-        
+
         return this;
     }
-    
+
     public HttpBuilderScriptUtility get(String loc, Map<String, Object> headers, Map<String, Object> parameters) {
         return get(loc, headers, parameters, true);
     }
-    
+
     private HttpBuilderScriptUtility get(String loc, Map<String, Object> headers, Map<String, Object> parameters, boolean reset) {
         if(reset)
             reset();
-        
+
         URI uri = buildUri(loc, parameters);
         if(uri == null)
             return this;
-        
+
         HttpGet get = new HttpGet(uri);
         putHeaders(get, headers);
         request = get;
         return this;
     }
-    
+
     public HttpBuilderScriptUtility delete(String loc, Map<String, Object> headers) {
         return delete(loc, headers, true);
     }
-    
+
     private HttpBuilderScriptUtility delete(String loc, Map<String, Object> headers, boolean reset) {
         if(reset)
             reset();
-        
+
         URI uri = buildUri(loc);
         if(uri == null)
             return this;
-        
+
         HttpDelete delete = new HttpDelete(uri);
         putHeaders(delete, headers);
         request = delete;
         return this;
     }
-    
+
     public Object execute() {
         return execute(false);
     }
-    
+
     public Object retry() {
         return execute(true);
     }
-    
+
     private Object execute(boolean retry) {
         if(!retry && retried > 0) {
             if(exceptionCallback != null)
@@ -293,16 +294,16 @@ public class HttpBuilderScriptUtility {
             if(errorCallback != null)
                 return errorCallback.invoke(-1, null, "Request was already executed.");
         }
-        
+
         retried += 1;
-        
+
         if(thrown != null) {
             if(exceptionCallback != null)
                 return exceptionCallback.exception(thrown);
             if(errorCallback != null)
                 return errorCallback.invoke(-1, null, thrown.getMessage());
         }
-        
+
         try {
             if(request.getHeaders("Content-Type").length == 0)
                 request.setHeader("Content-Type", "application/json");
@@ -313,15 +314,15 @@ public class HttpBuilderScriptUtility {
             else if(errorCallback != null)
                 return errorCallback.invoke(-1, null, e.getMessage());
         }
-        
-        try {   
+
+        try {
             for(Integer status : okayStatus)
                 if(status.intValue() == response.getStatusLine().getStatusCode()) {
                     if(responseCallback != null)
                         return responseCallback.invoke(status.intValue(), extractHeaders(response), HttpUtils4.readFullResponseBody(response));
                     return null;
                 }
-            
+
             if(errorCallback != null)
                 return errorCallback.invoke(response.getStatusLine().getStatusCode(), extractHeaders(response), HttpUtils4.readFullResponseBody(response));
         }  catch(IOException e) {
@@ -332,11 +333,11 @@ public class HttpBuilderScriptUtility {
         }
         return null;
     }
-    
+
     private URI buildUri(String loc) {
         return buildUri(loc, null);
     }
-    
+
     private URI buildUri(String loc, Map<String, Object> parameters) {
         try {
             URIBuilder urib = new URIBuilder(loc);
@@ -350,13 +351,13 @@ public class HttpBuilderScriptUtility {
             return null;
         }
     }
-    
+
     private void putHeaders(HttpRequest request, Map<String, Object> headers) {
         if(headers != null)
             for(Entry<String, Object> header : headers.entrySet())
                 request.addHeader(header.getKey(), header.getValue().toString());
     }
-    
+
     private Map<String, String> extractHeaders(HttpResponse response) {
         if(response == null)
             return new HashMap<String, String>();
@@ -365,7 +366,7 @@ public class HttpBuilderScriptUtility {
             headers.put(h.getName(), h.getValue());
         return headers;
     }
-    
+
     private void reset() {
         retried = 0;
         thrown = null;
@@ -375,7 +376,7 @@ public class HttpBuilderScriptUtility {
         response = null;
         request = null;
     }
-    
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -398,19 +399,19 @@ public class HttpBuilderScriptUtility {
         builder.append("}");
         return builder.toString();
     }
-    
+
     private class ScriptObjectMirrorCallbackWrapper implements ScriptHttpCallback {
 
-        private final JSObject jso; 
-        
+        private final JSObject jso;
+
         ScriptObjectMirrorCallbackWrapper(JSObject jso) {
             this.jso = jso;
         }
-        
+
         @Override
         public Object invoke(int status, Map<String, String> headers, String content) {
             return jso.call(HttpBuilderScriptUtility.this, status, headers, content);
         }
-        
+
     }
 }

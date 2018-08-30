@@ -151,7 +151,6 @@ public class MangoRuntimeContextConfiguration {
         return objectMapper;
     }
 
-    @Primary
     @Bean(COMMON_OBJECT_MAPPER_NAME)
     public ObjectMapper getCommonObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
