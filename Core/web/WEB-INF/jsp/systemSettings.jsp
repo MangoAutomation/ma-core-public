@@ -276,6 +276,7 @@
     }
     
     function saveSystemPermissions() {
+        hideContextualMessages("systemPermissionsTab");
         // Gather the module permissions
         var modulePermissions = [];
         require(["dojo/query"], function(query) {
@@ -287,9 +288,12 @@
         SystemSettingsDwr.saveSystemPermissions(
                 $get("<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>"),
                 modulePermissions,
-                function() {
+                function(response) {
                     setDisabled("systemPermissionsBtn", false);
-                    setUserMessage("systemPermissionsMessage", "<fmt:message key="systemSettings.systemPermissionsSaved"/>");
+                    if(response.hasMessages)
+                        showDwrMessages(response.messages);
+                    else
+                    	setUserMessage("systemPermissionsMessage", "<fmt:message key="systemSettings.systemPermissionsSaved"/>");
                 });
         setUserMessage("systemPermissionsMessage");
         setDisabled("systemPermissionsBtn", true);
@@ -1117,7 +1121,7 @@
   </tag:labelledSection>
   
   <tag:labelledSection labelKey="systemSettings.systemPermissions" closed="true">
-    <table>
+    <table id="systemPermissionsTab">
       <tr>
         <td class="formLabel"><fmt:message key="systemSettings.permissions.superadmin"/></td>
         <td class="formField"><input type="text" value="<c:out value="<%= SuperadminPermissionDefinition.GROUP_NAME %>"/>" disabled="disabled"></input></td>

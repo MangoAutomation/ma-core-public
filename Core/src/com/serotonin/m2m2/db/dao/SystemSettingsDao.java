@@ -46,6 +46,8 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.util.ColorUtils;
+import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
 public class SystemSettingsDao extends BaseDao {
@@ -568,7 +570,7 @@ public class SystemSettingsDao extends BaseDao {
      * @param settings
      * @param voResponse
      */
-    public void validate(Map<String, Object> settings, ProcessResult response) {
+    public void validate(Map<String, Object> settings, ProcessResult response, User user) {
 
         Object setting = null;
 
@@ -858,6 +860,19 @@ public class SystemSettingsDao extends BaseDao {
             }
         }
 
+        setting = settings.get(PERMISSION_DATASOURCE);
+        if(setting != null) {
+            Permissions.validateAddedPermissions((String)setting, user, response, PERMISSION_DATASOURCE);
+        }
+        
+        //Check all permissions
+        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
+            setting = settings.get(def.getPermissionTypeName());
+            if(setting != null) {
+                Permissions.validateAddedPermissions((String)setting, user, response, def.getPermissionTypeName());
+            }
+        }
+                
         //Validate system alarm levels
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, settings, response);
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, settings, response);
@@ -888,17 +903,11 @@ public class SystemSettingsDao extends BaseDao {
             validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), settings, response);
         
         validatePeriodType(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS);
-        Object o = settings.get(HTTP_SESSION_TIMEOUT_PERIODS);
-        if(o != null) {
-            if(o instanceof Integer) {
-                Integer timeoutPeriods = (Integer)o;
-                if(timeoutPeriods < 1)
-                    response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
-            }else {
+        Integer timeoutPeriods = getIntValue(HTTP_SESSION_TIMEOUT_PERIODS, settings);
+        if(timeoutPeriods != null) {
+            if(timeoutPeriods < 1)
                 response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
-            }
         }
-        
         
         validatePeriodType(PASSWORD_EXPIRATION_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.SECONDS);
         Integer passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);

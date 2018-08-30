@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -46,6 +48,9 @@ public class Permissions {
         ACCESS_TYPE_CODES.addElement(DataPointAccessTypes.ADMIN, "ADMIN");
     }
 
+    //To check permissions for spaces
+    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s");
+    
     private Permissions() {
         // no op
     }
@@ -243,13 +248,11 @@ public class Permissions {
      * Returns all permissions in the string that the user does not hold.
      *
      * @param user
-     * @param permissions
+     * @param itemPermissions
      * @return
      */
-    public static Set<String> findInvalidPermissions(PermissionHolder user, String permissions) {
+    public static Set<String> findInvalidPermissions(PermissionHolder user, Set<String> itemPermissions) {
         Set<String> notHeld = new HashSet<String>();
-        Set<String> itemPermissions = explodePermissionGroups(permissions);
-
         for (String itemPermission : itemPermissions) {
             if (!hasSinglePermission(user, itemPermission)) {
                 notHeld.add(itemPermission);
@@ -257,6 +260,17 @@ public class Permissions {
         }
 
         return notHeld;
+    }
+    /**
+     * Returns all permissions in the string that the user does not hold.
+     *
+     * @param user
+     * @param permissions
+     * @return
+     */
+    public static Set<String> findInvalidPermissions(PermissionHolder user, String permissions) {
+        Set<String> itemPermissions = explodePermissionGroups(permissions);
+        return findInvalidPermissions(user, itemPermissions);
     }
 
     /**
@@ -305,7 +319,15 @@ public class Permissions {
             return;
         }
 
-        Set<String> invalid = findInvalidPermissions(user, itemPermissions);
+        Set<String> itemPermissionsSet = explodePermissionGroups(itemPermissions);
+        for(String permission : itemPermissionsSet) {
+            Matcher matcher = SPACE_PATTERN.matcher(permission);
+            if(matcher.find()) {
+                response.addContextualMessage(contextKey, "validate.invalidPermissionWithSpace", permission);
+                return;
+            }
+        }
+        Set<String> invalid = findInvalidPermissions(user, itemPermissionsSet);
         if (invalid.size() > 0) {
             String notGranted = implodePermissionGroups(invalid);
             response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);

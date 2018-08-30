@@ -26,6 +26,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -43,6 +44,7 @@ import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.pair.StringIntPair;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
@@ -547,14 +549,26 @@ public class SystemSettingsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    public void saveSystemPermissions(String datasource, List<StringStringPair> modulePermissions) {
+    public ProcessResult saveSystemPermissions(String datasource, List<StringStringPair> modulePermissions) {
         SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
-        systemSettingsDao.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
+        ProcessResult result = new ProcessResult();
+        List<ProcessMessage> messages = new ArrayList<>();
+        Permissions.validateAddedPermissions(datasource, Common.getHttpUser(), result, SystemSettingsDao.PERMISSION_DATASOURCE);
+        if(!result.getHasMessages())
+            systemSettingsDao.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
         for (StringStringPair p : modulePermissions) {
             //Don't allow saving the superadmin permission as it doesn't do anything it's hard coded
-            if(!p.getKey().equals(SuperadminPermissionDefinition.PERMISSION))
-                systemSettingsDao.setValue(p.getKey(), p.getValue());
+            if(!p.getKey().equals(SuperadminPermissionDefinition.PERMISSION)) {
+                ProcessResult partial = new ProcessResult();
+                Permissions.validateAddedPermissions(p.getValue(), Common.getHttpUser(), partial, p.getKey());
+                if(!partial.getHasMessages())
+                    systemSettingsDao.setValue(p.getKey(), p.getValue());
+                else
+                    messages.addAll(partial.getMessages());
+            }
         }
+        result.getMessages().addAll(messages);
+        return result;
     }
 
     

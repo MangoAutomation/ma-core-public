@@ -13,6 +13,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.util.BackgroundContext;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 /**
@@ -59,7 +61,10 @@ public class SystemSettingsImporter extends Importer{
             // Now validate it. Use a new response object so we can distinguish errors in this vo from
             // other errors.
             ProcessResult voResponse = new ProcessResult();
-            SystemSettingsDao.instance.validate(settings, voResponse);
+            User user = Common.getHttpUser();
+            if(user == null)
+                user = BackgroundContext.get().getUser();
+            SystemSettingsDao.instance.validate(settings, voResponse, user);
             if (voResponse.getHasMessages())
                 setValidationMessages(voResponse, "emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()));
             else {
