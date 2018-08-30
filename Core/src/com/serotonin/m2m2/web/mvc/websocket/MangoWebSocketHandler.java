@@ -9,6 +9,7 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.PongMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -18,6 +19,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
@@ -51,7 +53,9 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
     protected final Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
+    @Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
     protected ObjectMapper jacksonMapper;
+
     @Autowired
     protected MangoWebSocketSessionTracker sessionTracker;
 
