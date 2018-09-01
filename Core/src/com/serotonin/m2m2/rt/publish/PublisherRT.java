@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -41,6 +43,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     private final PublisherVO<T> vo;
     protected final List<PublishedPointRT<T>> pointRTs = new ArrayList<PublishedPointRT<T>>();
     protected final PublishQueue<T> queue;
+    protected final Queue<AttributesChangedQueueEntry<T>> attributesChangedQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
     private SendThread sendThread;
@@ -49,7 +52,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     public PublisherRT(PublisherVO<T> vo) {
         this.vo = vo;
         queue = createPublishQueue(vo);
-
+        attributesChangedQueue = new ConcurrentLinkedQueue<>();
         pointDisabledEventType = new PublisherEventType(getId(), POINT_DISABLED_EVENT);
         queueSizeWarningEventType = new PublisherEventType(getId(), QUEUE_SIZE_WARNING_EVENT);
     }
@@ -120,6 +123,16 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     protected void pointTerminated(PublishedPointRT<T> rt) {
         checkForDisabledPoints();
     }
+    
+    protected void attributeChanged(PublishedPointRT<T> rt, Map<String, Object> attributes) {
+        if(vo.isPublishAttributeChanges()) {
+            attributesChangedQueue.add(new AttributesChangedQueueEntry<T>(rt, attributes));
+            synchronized (sendThread) {
+                sendThread.notify();
+            }
+        }
+    }
+
 
     synchronized private void checkForDisabledPoints() {
         int badPointId = -1;
@@ -267,5 +280,4 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
 	public String getTaskId() {
 		return "PUB-" + vo.getXid();
 	}
-
 }

@@ -4,8 +4,11 @@
  */
 package com.serotonin.m2m2.rt.publish;
 
+import java.util.Map;
+
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO.PublishType;
@@ -22,7 +25,9 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
         this.vo = vo;
         this.parent = parent;
         Common.runtimeManager.addDataPointListener(vo.getDataPointId(), this);
-        pointEnabled = Common.runtimeManager.isDataPointRunning(vo.getDataPointId());
+        DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getDataPointId());
+        pointEnabled = rt != null;
+        parent.attributeChanged(this, rt.getAttributes());
     }
 
     public void terminate() {
@@ -61,6 +66,11 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
         parent.pointTerminated(this);
     }
 
+    @Override
+    public void attributeChanged(Map<String, Object> attributes) {
+        parent.attributeChanged(this, attributes);
+    }
+    
 	@Override
 	public void pointLogged(PointValueTime value) {
 		if(parent.getVo().getPublishType() == PublishType.LOGGED_ONLY)

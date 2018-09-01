@@ -123,6 +123,8 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     private int snapshotSendPeriodType = Common.TimePeriods.MINUTES;
     @JsonProperty
     private int snapshotSendPeriods = 5;
+    @JsonProperty
+    private boolean publishAttributeChanges;
 
     public final PublisherDefinition getDefinition() {
         return definition;
@@ -198,6 +200,13 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     public void setSnapshotSendPeriods(int snapshotSendPeriods) {
         this.snapshotSendPeriods = snapshotSendPeriods;
     }
+    
+    public boolean isPublishAttributeChanges() {
+        return publishAttributeChanges;
+    }
+    public void setPublishAttributeChanges(boolean publish) {
+        this.publishAttributeChanges = publish;
+    }
 
     public void validate(ProcessResult response) {
         if (StringUtils.isBlank(name))
@@ -265,7 +274,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 5;
+    private static final int version = 6;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -279,6 +288,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         out.writeBoolean(sendSnapshot);
         out.writeInt(snapshotSendPeriodType);
         out.writeInt(snapshotSendPeriods);
+        out.writeBoolean(publishAttributeChanges);
     }
 
     @SuppressWarnings("unchecked")
@@ -301,6 +311,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
             alarmLevels = new HashMap<Integer,Integer>();
+            publishAttributeChanges = false;
         }
         else if (ver == 2) {
             name = SerializationHelper.readSafeUTF(in);
@@ -317,6 +328,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
             alarmLevels = new HashMap<Integer,Integer>();
+            publishAttributeChanges = false;
         }else if(ver == 3){
         	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
         	for(Entry<Integer, Integer> item : alarmLevels.entrySet())
@@ -335,6 +347,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
+            publishAttributeChanges = false;
         }else if(ver == 4){
         	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
         	for(Entry<Integer, Integer> item : alarmLevels.entrySet())
@@ -349,6 +362,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
+            publishAttributeChanges = false;
         }else if(ver == 5){
         	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
             name = SerializationHelper.readSafeUTF(in);
@@ -360,6 +374,19 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
+            publishAttributeChanges = false;
+        }else if(ver == 6){
+            alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            name = SerializationHelper.readSafeUTF(in);
+            enabled = in.readBoolean();
+            points = (List<T>) in.readObject();
+            publishType = in.readInt();
+            cacheWarningSize = in.readInt();
+            cacheDiscardSize = in.readInt();
+            sendSnapshot = in.readBoolean();
+            snapshotSendPeriodType = in.readInt();
+            snapshotSendPeriods = in.readInt();
+            publishAttributeChanges = in.readBoolean();
         }
     }
 
