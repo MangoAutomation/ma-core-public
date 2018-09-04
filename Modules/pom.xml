@@ -264,17 +264,17 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                     <version>1.6</version>
                     <executions>
                         <execution>
-                            <id>Install node and npm</id>
+                            <id>Install node and yarn</id>
                             <goals>
                                 <goal>install-node-and-yarn</goal>
                             </goals>
                             <configuration>
-                                <nodeVersion>v8.9.4</nodeVersion>
-                                <yarnVersion>v1.7.0</yarnVersion>
+                                <nodeVersion>v8.11.4</nodeVersion>
+                                <yarnVersion>v1.9.4</yarnVersion>
                             </configuration>
                         </execution>
                         <execution>
-                            <id>Run npm install</id>
+                            <id>Run yarn install</id>
                             <goals>
                                 <goal>yarn</goal>
                             </goals>
