@@ -296,6 +296,8 @@
     
     <convert converter="translatableMessage" match="com.serotonin.m2m2.i18n.TranslatableMessage"/>
     
+    <convert converter="enum" match="com.serotonin.m2m2.module.ModuleNotificationListener$UpgradeState"/>
+    
     <convert converter="exception" match="java.lang.Exception">
       <param name="include" value="message"/>
     </convert>
