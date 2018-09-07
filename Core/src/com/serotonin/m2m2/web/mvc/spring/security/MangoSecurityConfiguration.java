@@ -376,7 +376,13 @@ public class MangoSecurityConfiguration {
 
             authRequests.anyRequest().permitAll(); // default to permit all
 
-            http.csrf().disable();
+            //http.csrf().disable();
+            // used to just disable the CSRF filter altogether but then the JSP pages behind a proxy do not get the CSRF token from
+            // the cookie set as a request parameter and therefore the hidden inputs are not filled out on JSP pages.
+            // if we enable CSRF but just say no pages require protection it solves the issue
+            http.csrf()
+            .requireCsrfProtectionMatcher(request -> false)
+            .csrfTokenRepository(csrfTokenRepository);
 
             http.rememberMe().disable();
             http.logout().disable();
