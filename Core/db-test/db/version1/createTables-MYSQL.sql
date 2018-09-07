@@ -31,7 +31,6 @@ create table users (
   homeUrl varchar(255),
   receiveAlarmEmails int not null,
   receiveOwnAuditEvents char(1) not null,
-  timezone varchar(50),
   primary key (id)
 ) engine=InnoDB;
 
@@ -108,35 +107,11 @@ create table dataPoints (
   id int not null auto_increment,
   xid varchar(50) not null,
   dataSourceId int not null,
-  name varchar(255),
-  deviceName varchar(255),
-  enabled char(1),
-  pointFolderId int,
-  loggingType int,
-  intervalLoggingPeriodType int,
-  intervalLoggingPeriod int,
-  intervalLoggingType int,
-  tolerance double,
-  purgeOverride char(1),
-  purgeType int,
-  purgePeriod int,
-  defaultCacheSize int,
-  discardExtremeValues char(1),
-  engineeringUnits int,
   data longblob not null,
   primary key (id)
 ) engine=InnoDB;
 alter table dataPoints add constraint dataPointsUn1 unique (xid);
 alter table dataPoints add constraint dataPointsFk1 foreign key (dataSourceId) references dataSources(id);
-
-
--- Data point hierarchy
-CREATE TABLE dataPointHierarchy (
-  id int NOT NULL auto_increment,
-  parentId int,
-  name varchar(100),
-  PRIMARY KEY (id)
-) engine=InnoDB;
 
 
 -- Data point permissions
@@ -162,13 +137,14 @@ create table pointValues (
   primary key (id)
 ) engine=MyISAM;
 create index pointValuesIdx1 on pointValues (dataPointId, ts);
+-- This is an unknown index that was added because it is required to drop by upgrade 2
+create index pointValuesIdx2 on pointValues (pointValue, ts);
 
 create table pointValueAnnotations (
   pointValueId bigint not null,
   textPointValueShort varchar(128),
   textPointValueLong longtext,
-  sourceMessage longtext,
-  primary key (pointValueId)
+  sourceMessage longtext
 ) engine=MyISAM;
 
 

@@ -36,7 +36,6 @@ public class Upgrade3 extends DBUpgrade {
     "alter table dataPoints add column name varchar(255);", //
             "alter table dataPoints add column deviceName varchar(255);", //
             "alter table dataPoints add column enabled char(1);", //
-            "alter table dataPoints add column pointFolderId int;", //
             "alter table dataPoints add column loggingType int;", //
             "alter table dataPoints add column intervalLoggingPeriodType int;", //
             "alter table dataPoints add column intervalLoggingPeriod int;", //
@@ -53,7 +52,6 @@ public class Upgrade3 extends DBUpgrade {
     "alter table dataPoints add column name nvarchar(255);", //
             "alter table dataPoints add column deviceName nvarchar(255);", //
             "alter table dataPoints add column enabled char(1);", //
-            "alter table dataPoints add column pointFolderId int;", //
             "alter table dataPoints add column loggingType int;", //
             "alter table dataPoints add column intervalLoggingPeriodType int;", //
             "alter table dataPoints add column intervalLoggingPeriod int;", //
@@ -70,7 +68,6 @@ public class Upgrade3 extends DBUpgrade {
     "alter table dataPoints add column name varchar(255);", //
             "alter table dataPoints add column deviceName varchar(255);", //
             "alter table dataPoints add column enabled char(1);", //
-            "alter table dataPoints add column pointFolderId int;", //
             "alter table dataPoints add column loggingType int;", //
             "alter table dataPoints add column intervalLoggingPeriodType int;", //
             "alter table dataPoints add column intervalLoggingPeriod int;", //
