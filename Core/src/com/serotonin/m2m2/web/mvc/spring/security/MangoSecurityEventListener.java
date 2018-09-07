@@ -58,10 +58,10 @@ public class MangoSecurityEventListener {
             remoteAddress = webDetails.getRemoteAddress();
         }
 
-        // Update the last login time.
-        userDao.recordLogin(user);
-
         if (authentication instanceof UsernamePasswordAuthenticationToken) {
+            // Update the last login time.
+            userDao.recordLogin(user);
+
             SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_USER_LOGIN, user.getId());
             TranslatableMessage message = new TranslatableMessage("event.login", user.getUsername(), remoteAddress);
             SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), true, message);
