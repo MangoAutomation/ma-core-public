@@ -40,6 +40,7 @@
 * Do not allow spaces in permissions
 * Adding ability for publishers to publish a data point's runtime attributes.
 * Bugfix for status updates on legacy UI's Modules page not working when doing an upgrade
+* Bugfix for scripted event handlers import-export
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP

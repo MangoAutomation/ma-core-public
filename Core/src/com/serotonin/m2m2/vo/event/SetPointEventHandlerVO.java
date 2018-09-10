@@ -425,7 +425,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             text = jsonObject.getString("activeScript");
             if (text == null)
             	throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
-            activeValueToSet = text;
+            activeScript = text;
         }
 
         // Inactive
@@ -455,7 +455,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             text = jsonObject.getString("inactiveScript");
             if (text == null)
             	throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
-            inactiveValueToSet = text;
+            inactiveScript = text;
         }
 
         JsonArray context = jsonObject.getJsonArray("additionalContext");
