@@ -490,7 +490,7 @@ public class MangoSecurityConfiguration {
             .permitAll();
 
             http.logout()
-            .logoutRequestMatcher(new AntPathRequestMatcher("/rest/*/logout", "POST"))
+            .logoutRequestMatcher(new OrRequestMatcher(new AntPathRequestMatcher("/rest/*/logout", "POST"), new AntPathRequestMatcher("/logout", "POST")))
             .addLogoutHandler(logoutHandler)
             .invalidateHttpSession(true)
             // XSRF token is deleted but its own logout handler, session cookie doesn't really need to be deleted as its invalidated
