@@ -31,15 +31,10 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 	
 	public RQLToObjectListQuery(){	}
 	
-	
-	/* (non-Javadoc)
-	 * @see net.jazdw.rql.parser.ASTVisitor#visit(net.jazdw.rql.parser.ASTNode, java.lang.Object)
-	 */
-	@Override
-	public List<T> visit(ASTNode node, List<T> data) {
-		
-		QueryComparison comparison;
-		
+    @Override
+    public List<T> visit(ASTNode node, List<T> data) {
+        QueryComparison comparison;
+        
         switch (node.getName()) {
         
         case "and":
@@ -54,48 +49,56 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
             }
             return new ArrayList<T>(matched2);
         case "eq":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "gt":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.GREATER_THAN, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.GREATER_THAN, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "ge":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.GREATER_THAN_EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.GREATER_THAN_EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "lt":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.LESS_THAN, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.LESS_THAN, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "le":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.LESS_THAN_EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.LESS_THAN_EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "ne":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.NOT_EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.NOT_EQUAL_TO, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "match":
         case "like":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.LIKE, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.LIKE, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "in":
-        	comparison = new QueryComparison((String)node.getArgument(0), ComparisonEnum.IN, node.getArguments().subList(1, node.getArgumentsSize()));
-        	return compare(comparison, data);
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.IN, node.getArguments().subList(1, node.getArgumentsSize()));
+            return compare(comparison, data);
         case "sort":
             return applySort(node, data);
         case "limit":
             return applyLimit(node.getArguments(), data);
         default:
-        	throw new ShouldNeverHappenException("Unsupported comparison: " + node.getName());
+            throw new ShouldNeverHappenException("Unsupported comparison: " + node.getName());
         }
-		
-        //
-		
-	}
+    }
+
+    /**
+     * Override as necessary for custom comparisons
+     * @param field
+     * @param comparison
+     * @param args
+     * @return
+     */
+    protected QueryComparison createComparison(String field, ComparisonEnum comparison, List<Object> args) {
+        return new QueryComparison(field, comparison, args);
+    }	
 
 	/**
 	 * @param arguments
 	 * @param data
 	 * @return
 	 */
-	private List<T> applyLimit(List<Object> arguments, List<T> data) {
+	protected List<T> applyLimit(List<Object> arguments, List<T> data) {
 		
 		if(arguments.size() > 0){
 			if(arguments.size() == 1){
@@ -128,7 +131,7 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 	 * @param data
 	 * @return
 	 */
-	private List<T> applySort(ASTNode node, List<T> data) {
+	protected List<T> applySort(ASTNode node, List<T> data) {
 		
 		if(node.getArgumentsSize() == 0)
 			return data;
@@ -163,7 +166,7 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 	 * @param data
 	 * @return
 	 */
-	private List<T> compare(QueryComparison comparison, List<T> data) {
+	protected List<T> compare(QueryComparison comparison, List<T> data) {
 
 		List<T> keep = new ArrayList<T>();
 		for(T d : data){

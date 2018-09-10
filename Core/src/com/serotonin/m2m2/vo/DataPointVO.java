@@ -1908,7 +1908,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     }
 
     /**
-     * Note "name" and "device" keys are removed when setting the tags.
+     * Note "name" and "device" keys are removed when setting the tags.  The original map
+     *  is not modified and may still contain "name" and/or "device"
      * 
      * @param tags
      */

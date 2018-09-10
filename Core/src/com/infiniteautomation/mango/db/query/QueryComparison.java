@@ -18,9 +18,9 @@ import com.serotonin.ShouldNeverHappenException;
  */
 public class QueryComparison {
 	
-	private String attribute;
-	private ComparisonEnum comparisonType;
-	private List<Object> arguments;
+	protected String attribute;
+	protected ComparisonEnum comparisonType;
+	protected List<Object> arguments;
 	
 	public QueryComparison() { }
 	

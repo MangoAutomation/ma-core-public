@@ -173,6 +173,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
             if(tags == null) {
                 tags = DataPointTagsDao.getInstance().getTagsForDataPointId(dataPointId);
                 rt.getVO().setTags(tags);
+                tags = rt.getVO().getTags();
             }
             return tags;
         }else {
