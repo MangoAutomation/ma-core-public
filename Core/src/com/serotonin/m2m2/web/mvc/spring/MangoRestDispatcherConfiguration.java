@@ -34,6 +34,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvQueryArrayStreamMessageC
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.HtmlHttpMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.SerotoninJsonMessageConverter;
+import com.serotonin.m2m2.web.mvc.rest.v1.converters.SqlMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoMethodSecurityConfiguration;
 
@@ -114,7 +115,8 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
         converters.add(new HtmlHttpMessageConverter());
         converters.add(new SerotoninJsonMessageConverter());
         converters.add(new ExceptionCsvMessageConverter());
-
+        converters.add(new SqlMessageConverter());
+        
         //Now is a good time to register our Sero Json Converter
         Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
 

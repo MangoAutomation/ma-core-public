@@ -7,6 +7,9 @@ package com.serotonin.m2m2.web.mvc.interceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -41,6 +44,9 @@ public class CommonDataInterceptor implements HandlerInterceptor {
 
         request.setAttribute("lastUpgrade", Common.getLastUpgradeTime());
         request.setAttribute("sessionUser", Common.getHttpUser());
+        //Is this a stateless request
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        request.setAttribute("sessionAuthenticated", request.getSession(false) != null && auth instanceof UsernamePasswordAuthenticationToken);
 
         return true;
     }

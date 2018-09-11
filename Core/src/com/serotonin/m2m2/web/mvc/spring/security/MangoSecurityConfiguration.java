@@ -376,13 +376,17 @@ public class MangoSecurityConfiguration {
 
             authRequests.anyRequest().permitAll(); // default to permit all
 
-            //http.csrf().disable();
-            // used to just disable the CSRF filter altogether but then the JSP pages behind a proxy do not get the CSRF token from
+            http.csrf().disable();
+            // After testing, we found that only the Spring Form POST submission is rendered un-usable without CSRF being enabled.  It 
+            //  was decided that these pages will be re-written in the new UI and we will leave the leagcy pages broken for the CloudConnect proxy.
+            // Since the JSP pages behind a proxy do not get the CSRF token from
             // the cookie set as a request parameter and therefore the hidden inputs are not filled out on JSP pages.
-            // if we enable CSRF but just say no pages require protection it solves the issue
-            http.csrf()
-            .requireCsrfProtectionMatcher(request -> false)
-            .csrfTokenRepository(csrfTokenRepository);
+            // if we enable CSRF but just say no pages require protection it solves the issue of getting the cookie on the page but it causes the 
+            // submission to hang because the extraction of either URL or Body parameters reads the input stream of the body.  The only other way to do this 
+            // is to use Javascript to submit the forms with the X-XSRF-TOKEN header.
+//            http.csrf()
+//            .requireCsrfProtectionMatcher(request -> false)
+//            .csrfTokenRepository(csrfTokenRepository);
 
             http.rememberMe().disable();
             http.logout().disable();
