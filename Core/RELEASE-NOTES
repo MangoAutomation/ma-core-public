@@ -42,6 +42,7 @@
 * Bugfix for status updates on legacy UI's Modules page not working when doing an upgrade
 * Bugfix for scripted event handlers import-export
 * Add paged Object query to provide RQL query support for paged result sets on Lists of Objects
+* Improved IPv6 support in data sources with whitelists
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
