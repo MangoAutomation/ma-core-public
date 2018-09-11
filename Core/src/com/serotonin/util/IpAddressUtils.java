@@ -17,8 +17,12 @@ public class IpAddressUtils {
     
     public static boolean ipWhiteListCheck(String allowedIp, String remoteIp) throws IpWhiteListException {
         String[] remoteIpParts = remoteIp.split("\\.");
-        if (remoteIpParts.length != 4)
-            throw new IpWhiteListException("Invalid remote IP address: "+ remoteIp);
+        if (remoteIpParts.length != 4) {
+            remoteIpParts = remoteIp.split(":");
+            if(remoteIpParts.length != 8)
+                throw new IpWhiteListException("Invalid remote IP address: "+ remoteIp);
+            return ipv6WhiteListCheckImpl(allowedIp, remoteIp, remoteIpParts);
+        }
         return ipWhiteListCheckImpl(allowedIp, remoteIp, remoteIpParts);
     }
     
