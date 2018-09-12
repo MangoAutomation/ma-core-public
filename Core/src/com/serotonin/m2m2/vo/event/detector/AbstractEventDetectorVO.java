@@ -220,7 +220,7 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         writer.writeEntry("xid", xid);
         writer.writeEntry("name", name);
         writer.writeEntry("quiescentPeriods", quiescentPeriods);
-        writer.writeEntry("quiescentPeriodType", quiescentPeriodType);
+        writer.writeEntry("quiescentPeriodType", Common.TIME_PERIOD_CODES.getCode(quiescentPeriodType));
         
         /* Event handler references are not exported here because there would be a circular dependency
         *  with the eventTypes array in the handler, and since there are other event types that was deemed

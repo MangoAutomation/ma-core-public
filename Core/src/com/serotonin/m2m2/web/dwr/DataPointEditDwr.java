@@ -221,7 +221,8 @@ public class DataPointEditDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public void updateHighLimitDetector(int pedId, String xid, String alias, double limit, boolean notHigher,
-            boolean useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
+            boolean useResetLimit, double resetLimit, int duration, int durationType, int quiescentPeriods, 
+            int quiescentPeriodType, int alarmLevel) {
         AnalogHighLimitDetectorVO ped = (AnalogHighLimitDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
@@ -231,12 +232,15 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setResetLimit(resetLimit);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateLowLimitDetector(int pedId, String xid, String alias, double limit, boolean notLower,
-            boolean useResetLimit, double resetLimit, int duration, int durationType, int alarmLevel) {
+            boolean useResetLimit, double resetLimit, int duration, int durationType, int quiescentPeriods, 
+            int quiescentPeriodType, int alarmLevel) {
         AnalogLowLimitDetectorVO ped = (AnalogLowLimitDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
@@ -246,12 +250,15 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setResetLimit(resetLimit);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
     
     @DwrPermission(user = true)
     public void updateAnalogChangeDetector(int pedId, String xid, String alias, double limit, 
-            boolean checkIncrease, boolean checkDecrease, int duration, int durationType, int alarmLevel, int updateEvent) {
+            boolean checkIncrease, boolean checkDecrease, int duration, int durationType, 
+            int quiescentPeriods, int quiescentPeriodType, int alarmLevel, int updateEvent) {
         AnalogChangeDetectorVO ped = (AnalogChangeDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
@@ -260,103 +267,121 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setCheckDecrease(checkDecrease);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
         ped.setUpdateEvent(updateEvent);
     }
 
     @DwrPermission(user = true)
     public void updateBinaryStateDetector(int pedId, String xid, String alias, boolean state, int duration,
-            int durationType, int alarmLevel) {
+            int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
         BinaryStateDetectorVO ped = (BinaryStateDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
         ped.setState(state);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateMultistateStateDetector(int pedId, String xid, String alias, int state, int duration,
-            int durationType, int alarmLevel) {
+            int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
         MultistateStateDetectorVO ped = (MultistateStateDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
         ped.setState(state);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
-    public void updatePointChangeDetector(int pedId, String xid, String alias, int alarmLevel) {
+    public void updatePointChangeDetector(int pedId, String xid, String alias, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
         PointChangeDetectorVO ped = (PointChangeDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateStateChangeCountDetector(int pedId, String xid, String alias, int count, int duration,
-            int durationType, int alarmLevel) {
+            int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
         StateChangeCountDetectorVO ped = (StateChangeCountDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
         ped.setChangeCount(count);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateNoChangeDetector(int pedId, String xid, String alias, int duration, int durationType,
-            int alarmLevel) {
+            int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
         NoChangeDetectorVO ped = (NoChangeDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateNoUpdateDetector(int pedId, String xid, String alias, int duration, int durationType,
-            int alarmLevel) {
+            int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
         NoUpdateDetectorVO ped = (NoUpdateDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateAlphanumericStateDetector(int pedId, String xid, String alias, String state, int duration,
-            int durationType, int alarmLevel) {
+            int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
     	AlphanumericStateDetectorVO ped = (AlphanumericStateDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
         ped.setState(state);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateAlphanumericRegexStateDetector(int pedId, String xid, String alias, String state, int duration,
-            int durationType, int alarmLevel) {
+            int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
     	AlphanumericRegexStateDetectorVO ped = (AlphanumericRegexStateDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
         ped.setState(state);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updatePositiveCusumDetector(int pedId, String xid, String alias, double limit, double weight,
-            int duration, int durationType, int alarmLevel) {
+            int duration, int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
     	PositiveCusumDetectorVO ped = (PositiveCusumDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
@@ -364,12 +389,14 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setWeight(weight);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateNegativeCusumDetector(int pedId, String xid, String alias, double limit, double weight,
-            int duration, int durationType, int alarmLevel) {
+            int duration, int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
     	NegativeCusumDetectorVO ped = (NegativeCusumDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
@@ -377,12 +404,14 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setWeight(weight);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateAnalogRangeDetector(int pedId, String xid, String alias, double high, double low,
-            boolean withinRange, int duration, int durationType, int alarmLevel) {
+            boolean withinRange, int duration, int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
     	AnalogRangeDetectorVO ped = (AnalogRangeDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
@@ -391,12 +420,14 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setWithinRange(withinRange);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 
     @DwrPermission(user = true)
     public void updateSmoothnessDetector(int pedId, String xid, String alias, double limit, int boxcar, int duration,
-            int durationType, int alarmLevel) {
+            int durationType, int quiescentPeriods, int quiescentPeriodType, int alarmLevel) {
     	SmoothnessDetectorVO ped = (SmoothnessDetectorVO)getEventDetector(pedId);
         ped.setXid(xid);
         ped.setName(alias);
@@ -404,6 +435,8 @@ public class DataPointEditDwr extends BaseDwr {
         ped.setBoxcar(boxcar);
         ped.setDuration(duration);
         ped.setDurationType(durationType);
+        ped.setQuiescentPeriods(quiescentPeriods);
+        ped.setQuiescentPeriodType(quiescentPeriodType);
         ped.setAlarmLevel(alarmLevel);
     }
 

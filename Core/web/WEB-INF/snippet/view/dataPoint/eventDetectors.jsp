@@ -102,6 +102,13 @@
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.resetLimit"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -161,6 +168,13 @@
         <td class="formLabelRequired"><fmt:message key="pointEdit.detectors.resetLimit"/></td>
         <td class="formField"><input id="eventDetector_TEMPLATE_Weight" type="text" class="formShort"/></td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -217,6 +231,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -261,6 +282,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -300,6 +328,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -326,6 +361,13 @@
           <tag:alarmLevelOptions id="eventDetector_TEMPLATE_AlarmLevel"
                   onchange="pointEventDetectorEditor.updateAlarmLevelImage(this.value, getPedId(this))"/>
           <tag:img id="eventDetector_TEMPLATE_AlarmLevelImg" png="flag_grey" title="common.alarmLevel.none" style="display:none;"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
@@ -367,6 +409,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -402,6 +451,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -435,6 +491,13 @@
         <td class="formField">
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
@@ -476,6 +539,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -513,6 +583,13 @@
         <td class="formField">
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
@@ -558,6 +635,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -599,6 +683,13 @@
         <td class="formField">
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
@@ -652,6 +743,13 @@
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
     </tbody>
     
@@ -693,6 +791,13 @@
         <td class="formField">
           <input id="eventDetector_TEMPLATE_Duration" type="text" class="formShort"/>
           <tag:timePeriods id="eventDetector_TEMPLATE_DurationType" s="true" min="true" h="true" d="true"/>
+        </td>
+      </tr>
+      <tr>
+        <td class="formLabel"><fmt:message key="pointEdit.detectors.quiescentDuration"/></td>
+        <td class="formField">
+          <input id="eventDetector_TEMPLATE_QuiescentDuration" type="text" class="formShort"/>
+          <tag:timePeriods id="eventDetector_TEMPLATE_QuiescentDurationType" s="true" min="true" h="true" d="true"/>
         </td>
       </tr>
       <tr><td class="formError" id="eventDetector_TEMPLATE_ErrorMessage" colspan="2"></td></tr>
@@ -906,6 +1011,9 @@
               $set("eventDetector"+ detector.id +"DurationType", detector.durationType);
           }
           
+          //All types these options...
+          $set("eventDetector"+ detector.id +"QuiescentDuration", detector.quiescentPeriods);
+          $set("eventDetector"+ detector.id +"QuiescentDurationType", detector.quiescentPeriodType);
           $set("eventDetector"+ detector.id +"Xid", detector.xid);
           $set("eventDetector"+ detector.id +"Alias", detector.alias);
           $set("eventDetector"+ detector.id +"AlarmLevel", detector.alarmLevel);
@@ -948,6 +1056,8 @@
               var xid = $get("eventDetector"+ pedId +"Xid");
               var alias = $get("eventDetector"+ pedId +"Alias");
               var alarmLevel = parseInt($get("eventDetector"+ pedId +"AlarmLevel"));
+              var quiescentDuration = parseInt($get("eventDetector"+ pedId +"QuiescentDuration"));
+              var quiescentDurationType = parseInt($get("eventDetector"+ pedId +"QuiescentDurationType"));
               
               if (pedType == '<%= AnalogHighLimitEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State") === "true";
@@ -980,7 +1090,7 @@
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateHighLimitDetector(pedId, xid, alias, limit, state, useReset,
-                              weight, duration, durationType, alarmLevel, saveCB);
+                              weight, duration, durationType, quiescentDuration, quiescentDurationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == '<%= AnalogLowLimitEventDetectorDefinition.TYPE_NAME %>') {
@@ -1013,7 +1123,7 @@
                   }else {
                       saveCBCount++;
                       DataPointEditDwr.updateLowLimitDetector(pedId, xid, alias, limit, state, useReset,
-                              weight, duration, durationType, alarmLevel, saveCB);
+                              weight, duration, durationType, quiescentDuration, quiescentDurationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == '<%= AnalogChangeEventDetectorDefinition.TYPE_NAME %>') {
@@ -1033,7 +1143,8 @@
             		  errorMessage = "<fmt:message key="pointEdit.detectors.analogChange.invalidState"/>";
            		  else {
            			  saveCBCount++;
-           			  DataPointEditDwr.updateAnalogChangeDetector(pedId, xid, alias, limit, (state & 0x2) != 0, (state & 0x1) != 0, duration, durationType, alarmLevel, updateEvent, saveCB);
+           			  DataPointEditDwr.updateAnalogChangeDetector(pedId, xid, alias, limit, (state & 0x2) != 0, (state & 0x1) != 0, duration, durationType,
+           			   	quiescentDuration, quiescentDurationType, alarmLevel, updateEvent, saveCB);
            		  }
               }
               else if (pedType == '<%= BinaryStateEventDetectorDefinition.TYPE_NAME %>') {
@@ -1047,7 +1158,7 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateBinaryStateDetector(pedId, xid, alias, state, duration, durationType,
+                      DataPointEditDwr.updateBinaryStateDetector(pedId, xid, alias, state, duration, durationType, quiescentDuration, quiescentDurationType,
                               alarmLevel, saveCB);
                   }
               }
@@ -1064,13 +1175,13 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateMultistateStateDetector(pedId, xid, alias, state, duration, durationType,
+                      DataPointEditDwr.updateMultistateStateDetector(pedId, xid, alias, state, duration, durationType, quiescentDuration, quiescentDurationType,
                               alarmLevel, saveCB);
                   }
               }
               else if (pedType == '<%= PointChangeEventDetectorDefinition.TYPE_NAME %>') {
                   saveCBCount++;
-                  DataPointEditDwr.updatePointChangeDetector(pedId, xid, alias, alarmLevel, saveCB);
+                  DataPointEditDwr.updatePointChangeDetector(pedId, xid, alias, quiescentDuration, quiescentDurationType, alarmLevel, saveCB);
               }
               else if (pedType == '<%= StateChangeCountEventDetectorDefinition.TYPE_NAME %>') {
                   var count = parseInt($get("eventDetector"+ pedId +"ChangeCount"));
@@ -1087,7 +1198,7 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationOne"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateStateChangeCountDetector(pedId, xid, alias, count, duration, durationType, 
+                      DataPointEditDwr.updateStateChangeCountDetector(pedId, xid, alias, count, duration, durationType, quiescentDuration, quiescentDurationType,
                               alarmLevel, saveCB);
                   }
               }
@@ -1101,7 +1212,7 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationOne"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateNoChangeDetector(pedId, xid, alias, duration, durationType, alarmLevel,
+                      DataPointEditDwr.updateNoChangeDetector(pedId, xid, alias, duration, durationType, quiescentDuration, quiescentDurationType, alarmLevel,
                               saveCB);
                   }
               }
@@ -1115,7 +1226,7 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationOne"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateNoUpdateDetector(pedId, xid, alias, duration, durationType, alarmLevel,
+                      DataPointEditDwr.updateNoUpdateDetector(pedId, xid, alias, duration, durationType, quiescentDuration, quiescentDurationType, alarmLevel,
                               saveCB);
                   }
               }
@@ -1132,7 +1243,7 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateAlphanumericStateDetector(pedId, xid, alias, state, duration, durationType, 
+                      DataPointEditDwr.updateAlphanumericStateDetector(pedId, xid, alias, state, duration, durationType, quiescentDuration, quiescentDurationType,
                               alarmLevel, saveCB);
                   }
               }
@@ -1149,7 +1260,7 @@
                       errorMessage = "<fmt:message key="pointEdit.detectors.invalidDurationZero"/>";
                   else {
                       saveCBCount++;
-                      DataPointEditDwr.updateAlphanumericRegexStateDetector(pedId, xid, alias, state, duration, durationType, 
+                      DataPointEditDwr.updateAlphanumericRegexStateDetector(pedId, xid, alias, state, duration, durationType, quiescentDuration, quiescentDurationType,
                               alarmLevel, saveCB);
                   }
               }
@@ -1170,7 +1281,7 @@
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updatePositiveCusumDetector(pedId, xid, alias, limit, weight, duration,
-                              durationType, alarmLevel, saveCB);
+                              durationType, quiescentDuration, quiescentDurationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == '<%= NegativeCusumEventDetectorDefinition.TYPE_NAME %>') {
@@ -1190,7 +1301,7 @@
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateNegativeCusumDetector(pedId, xid, alias, limit, weight, duration,
-                              durationType, alarmLevel, saveCB);
+                              durationType, quiescentDuration, quiescentDurationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == '<%= AnalogRangeEventDetectorDefinition.TYPE_NAME %>') {
@@ -1211,7 +1322,7 @@
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateAnalogRangeDetector(pedId, xid, alias, limit, weight, state, duration,
-                              durationType, alarmLevel, saveCB);
+                              durationType, quiescentDuration, quiescentDurationType, alarmLevel, saveCB);
                   }
               }
               else if (pedType == '<%= SmoothnessEventDetectorDefinition.TYPE_NAME %>') {
@@ -1233,7 +1344,7 @@
                   else {
                       saveCBCount++;
                       DataPointEditDwr.updateSmoothnessDetector(pedId, xid, alias, limit, boxcar, duration,
-                              durationType, alarmLevel, saveCB);
+                              durationType, quiescentDuration, quiescentDurationType, alarmLevel, saveCB);
                   }
               }
 

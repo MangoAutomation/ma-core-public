@@ -60,12 +60,17 @@ public abstract class AbstractEventDetectorRT<T extends AbstractEventDetectorVO<
 	}
 	
 	protected void raiseEvent(long time, Map<String, Object> context) {
-	    if(quiescentMillis != 0 && quiescentTask != null) {
+	    //Events which can return to normal should immediately go active if their conditions were met when quiescence ends 
+	    if(quiescentMillis != 0 && (quiescentTask != null || !vo.isRtnApplicable())) {
 	        synchronized(this) { //get the lock and check
 	            if(quiescentTask != null) {
-	                quiescentState = true;
-	                quiescentContext = context;
+	                if(vo.isRtnApplicable()) {
+    	                quiescentState = true;
+    	                quiescentContext = context;
+	                }
 	                return;
+	            } else if(!vo.isRtnApplicable()){
+	                quiescentTask = new TimeoutTask(new OneTimeTrigger(quiescentMillis), quiescentClient);
 	            }
 	        }
 	    }
