@@ -162,9 +162,6 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     }
 
     private StartsAndRuntime get(DataValue value) {
-        if (startValue != null && startValue.getDataType() != value.getDataType())
-            throw new IllegalArgumentException("Wrong data type for nonempty StartsAndRuntimeList");
-        
         for (StartsAndRuntime sar : data) {
             if (Objects.equals(sar.value, value))
                 return sar;
