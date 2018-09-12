@@ -14,6 +14,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
@@ -39,6 +40,10 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	
 	/* Source of the detector */
 	protected int sourceId;
+	protected int quiescentPeriods;
+	protected int quiescentPeriodType = Common.TimePeriods.SECONDS;
+	
+	protected int alarmLevel;
 	
 	/**
 	 * Handlers that will be added to this detector upon save.
@@ -134,6 +139,24 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	public void setSourceId(int id){
 		sourceId = id;
 	}
+	public int getAlarmLevel() {
+        return alarmLevel;
+    }
+    public void setAlarmLevel(int alarmLevel) {
+        this.alarmLevel = alarmLevel;
+    }
+    public int getQuiescentPeriods() {
+        return quiescentPeriods;
+    }
+    public void setQuiescentPeriods(int quiescentPeriods) {
+        this.quiescentPeriods = quiescentPeriods;
+    }
+    public int getQuiescentPeriodType() {
+        return quiescentPeriodType;
+    }
+    public void setQuiescentPeriodType(int quiescentPeriodType) {
+        this.quiescentPeriodType = quiescentPeriodType;
+    }
 	public void addAddedEventHandler(AbstractEventHandlerVO<?> eventHandler) {
 	    if(addedEventHandlers == null)
 	        addedEventHandlers = new ArrayList<>();
@@ -182,6 +205,12 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
                 if(EventHandlerDao.getInstance().getXidById(eh.getId()) == null)
                     response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", eh.getXid()));
             }
+        
+        if(quiescentPeriods < 0)
+            response.addMessage("quiescentPeriods", new TranslatableMessage("validate.cannotBeNegative"));
+        
+        if(!Common.TIME_PERIOD_CODES.isValidId(quiescentPeriodType))
+            response.addMessage("quiescentPeriodType", new TranslatableMessage("validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList()));
 	}
 
 	@Override
@@ -190,6 +219,8 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         writer.writeEntry("sourceType", this.definition.getSourceTypeName());
         writer.writeEntry("xid", xid);
         writer.writeEntry("name", name);
+        writer.writeEntry("quiescentPeriods", quiescentPeriods);
+        writer.writeEntry("quiescentPeriodType", quiescentPeriodType);
         
         /* Event handler references are not exported here because there would be a circular dependency
         *  with the eventTypes array in the handler, and since there are other event types that was deemed
@@ -208,6 +239,14 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
             text = jsonObject.getString("alias");
             if(text != null)
                 name = text;
+        }
+        
+        if(jsonObject.containsKey("quiescentPeriods"))
+            quiescentPeriods = jsonObject.getInt("quiescentPeriods");
+        
+        text = jsonObject.getString("quiescentPeriodType");
+        if(text != null) {
+            quiescentPeriodType = Common.TIME_PERIOD_CODES.getId(text);
         }
     }
 }

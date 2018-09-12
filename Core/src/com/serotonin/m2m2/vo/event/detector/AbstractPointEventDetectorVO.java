@@ -12,7 +12,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -32,8 +31,6 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 	public static final String XID_PREFIX = "PED_";
 	protected static final String MISSING_PROP_TRANSLATION_KEY = "emport.error.ped.missingAttr";
 
-    private int alarmLevel;
-
     //Extra Fields
     protected DataPointVO dataPoint;
     private final int[] supportedDataTypes;
@@ -41,13 +38,6 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     public AbstractPointEventDetectorVO(int[] supportedDataTypes){
     	this.supportedDataTypes = supportedDataTypes;
     }
-    
-    public int getAlarmLevel() {
-		return alarmLevel;
-	}
-	public void setAlarmLevel(int alarmLevel) {
-		this.alarmLevel = alarmLevel;
-	}
 
 	public DataPointVO njbGetDataPoint() {
 		return dataPoint;
