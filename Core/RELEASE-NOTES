@@ -47,6 +47,7 @@
 * Add support for REST Mime Type: application/sql
 * Full support for RQL in(field,(value list)) for all REST endpoints, previously a few only supported in(field,item1,item2...)
 * Adding generic support for publishers queues to publish things other than only point values, no modules currently utilize this
+* Give event detectors the ability to define a period not to raise the event again, relative to its last occurrence
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
