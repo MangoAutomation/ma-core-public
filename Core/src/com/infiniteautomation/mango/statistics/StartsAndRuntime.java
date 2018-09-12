@@ -14,6 +14,17 @@ public class StartsAndRuntime {
     int starts;
     long runtime;
     double proportion;
+    
+    /**
+     * Constructs a StartsAndRuntime for a value that did not occur
+     * @param value
+     */
+    public StartsAndRuntime(DataValue value) {
+        this.value = value;
+        this.starts = 0;
+        this.runtime = 0;
+        this.proportion = 0;
+    }
 
     public Object getValue() {
         if (value == null)

@@ -162,13 +162,15 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
     }
 
     private StartsAndRuntime get(DataValue value) {
+        if (startValue != null && startValue.getDataType() != value.getDataType())
+            throw new IllegalArgumentException("Wrong data type for nonempty StartsAndRuntimeList");
+        
         for (StartsAndRuntime sar : data) {
             if (Objects.equals(sar.value, value))
                 return sar;
         }
 
-        StartsAndRuntime sar = new StartsAndRuntime();
-        sar.value = value;
+        StartsAndRuntime sar = new StartsAndRuntime(value);
         data.add(sar);
 
         return sar;
@@ -188,7 +190,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         		", firstValue: " + firstValue +
         		", firstTime: " + firstTime + 
         		", lastValue: " + lastValue +
-        		", lastTime: " + lastTime + 
+        		", lastTime: " + lastTime +
         		"}";
     }
 }
