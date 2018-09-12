@@ -27,7 +27,8 @@ public class MangoRequiresCsrfMatcher implements RequestMatcher {
     private final RequestMatcher isAllowedUrl = new OrRequestMatcher(
             new AntPathRequestMatcher("/httpds"),
             new AntPathRequestMatcher("/dwr/**"),
-            new AntPathRequestMatcher("/cloud-connect-proxy/dwr/**"));
+            new AntPathRequestMatcher("/cloud-connect-proxy/dwr/**"),
+            new AntPathRequestMatcher("/haystack/**"));
 
     @Override
     public boolean matches(HttpServletRequest request) {
