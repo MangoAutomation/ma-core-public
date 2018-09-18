@@ -4,6 +4,7 @@ import javax.script.ScriptEngine;
 
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
 import com.serotonin.m2m2.util.DateUtils;
 
@@ -15,10 +16,10 @@ public class ImagePointWrapper extends AbstractPointWrapper {
     }
     
     public byte[] getValue() { //always use cache here, last() for no cache
-        PointValueTime value = point.getPointValue();
+        DataValue value = getValueImpl();
         if(value == null)
             return null;
-        return ((ImageValue)value.getValue()).getData();
+        return ((ImageValue)value).getData();
     }
     
     public byte[] ago(int periodType) {
