@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -42,8 +40,8 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
 
     private final PublisherVO<T> vo;
     protected final List<PublishedPointRT<T>> pointRTs = new ArrayList<PublishedPointRT<T>>();
-    protected final PublishQueue<T> queue;
-    protected final Queue<AttributesChangedQueueEntry<T>> attributesChangedQueue;
+    protected final PublishQueue<T, PointValueTime> queue;
+    protected final PublishQueue<T, Map<String, Object>> attributesChangedQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
     private SendThread sendThread;
@@ -52,7 +50,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     public PublisherRT(PublisherVO<T> vo) {
         this.vo = vo;
         queue = createPublishQueue(vo);
-        attributesChangedQueue = new ConcurrentLinkedQueue<>();
+        attributesChangedQueue = createAttirbutesChangedQueue();
         pointDisabledEventType = new PublisherEventType(getId(), POINT_DISABLED_EVENT);
         queueSizeWarningEventType = new PublisherEventType(getId(), QUEUE_SIZE_WARNING_EVENT);
     }
@@ -61,8 +59,12 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         return vo.getId();
     }
 
-    protected PublishQueue<T> createPublishQueue(PublisherVO<T> vo) {
-        return new PublishQueue<T>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
+    protected PublishQueue<T, PointValueTime> createPublishQueue(PublisherVO<T> vo) {
+        return new PublishQueue<T, PointValueTime>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
+    }
+    
+    protected PublishQueue<T, Map<String, Object>> createAttirbutesChangedQueue() {
+        return new PublishQueue<T, Map<String, Object>>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
     public PublisherVO<T> getVo() {
@@ -124,9 +126,9 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         checkForDisabledPoints();
     }
     
-    protected void attributeChanged(PublishedPointRT<T> rt, Map<String, Object> attributes) {
-        if(vo.isPublishAttributeChanges()) {
-            attributesChangedQueue.add(new AttributesChangedQueueEntry<T>(rt, attributes));
+    protected void attributeChanged(T vo, Map<String, Object> attributes) {
+        if(this.vo.isPublishAttributeChanges()) {
+            attributesChangedQueue.add(vo, attributes);
             synchronized (sendThread) {
                 sendThread.notify();
             }

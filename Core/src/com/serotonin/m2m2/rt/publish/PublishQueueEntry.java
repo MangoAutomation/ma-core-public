@@ -4,26 +4,25 @@
  */
 package com.serotonin.m2m2.rt.publish;
 
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 /**
  * @author Matthew Lohbihler
  */
-public class PublishQueueEntry<T extends PublishedPointVO> {
+public class PublishQueueEntry<T extends PublishedPointVO, V> {
     private final T vo;
-    private final PointValueTime pvt;
+    private final V value;
 
-    public PublishQueueEntry(T vo, PointValueTime pvt) {
+    public PublishQueueEntry(T vo, V pvt) {
         this.vo = vo;
-        this.pvt = pvt;
+        this.value = pvt;
     }
 
     public T getVo() {
         return vo;
     }
 
-    public PointValueTime getPvt() {
-        return pvt;
+    public V getValue() {
+        return value;
     }
 }

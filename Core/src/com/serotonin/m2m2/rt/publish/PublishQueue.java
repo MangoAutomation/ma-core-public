@@ -14,17 +14,17 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 /**
+ * 
  * @author Matthew Lohbihler
  */
-public class PublishQueue<T extends PublishedPointVO> {
+public class PublishQueue<T extends PublishedPointVO, V> {
     private static final Log LOG = LogFactory.getLog(PublishQueue.class);
     private static final long SIZE_CHECK_DELAY = 5000;
 
-    protected final ConcurrentLinkedQueue<PublishQueueEntry<T>> queue = new ConcurrentLinkedQueue<PublishQueueEntry<T>>();
+    protected final ConcurrentLinkedQueue<PublishQueueEntry<T, V>> queue = new ConcurrentLinkedQueue<PublishQueueEntry<T, V>>();
     private final PublisherRT<T> owner;
     private final int warningSize;
     private final int dewarningSize;
@@ -39,39 +39,39 @@ public class PublishQueue<T extends PublishedPointVO> {
         this.discardSize = discardSize;
     }
 
-    public void add(T vo, PointValueTime pvt) {
-        queue.add(new PublishQueueEntry<T>(vo, pvt));
+    public void add(T vo, V pvt) {
+        queue.add(new PublishQueueEntry<T, V>(vo, pvt));
         sizeCheck();
     }
 
-    public void add(T vo, List<PointValueTime> pvts) {
-        for (PointValueTime pvt : pvts)
-            queue.add(new PublishQueueEntry<T>(vo, pvt));
+    public void add(T vo, List<V> pvts) {
+        for (V pvt : pvts)
+            queue.add(new PublishQueueEntry<T, V>(vo, pvt));
         sizeCheck();
     }
 
-    public PublishQueueEntry<T> next() {
+    public PublishQueueEntry<T,V> next() {
         return queue.peek();
     }
 
-    public List<PublishQueueEntry<T>> get(int max) {
+    public List<PublishQueueEntry<T,V>> get(int max) {
         if (queue.isEmpty())
             return null;
 
-        Iterator<PublishQueueEntry<T>> iter = queue.iterator();
-        List<PublishQueueEntry<T>> result = new ArrayList<PublishQueueEntry<T>>(max);
+        Iterator<PublishQueueEntry<T,V>> iter = queue.iterator();
+        List<PublishQueueEntry<T,V>> result = new ArrayList<PublishQueueEntry<T,V>>(max);
         while (iter.hasNext() && result.size() < max)
             result.add(iter.next());
 
         return result;
     }
 
-    public void remove(PublishQueueEntry<T> e) {
+    public void remove(PublishQueueEntry<T,V> e) {
         queue.remove(e);
         sizeCheck();
     }
 
-    public void removeAll(List<PublishQueueEntry<T>> list) {
+    public void removeAll(List<PublishQueueEntry<T,V>> list) {
         queue.removeAll(list);
         sizeCheck();
     }

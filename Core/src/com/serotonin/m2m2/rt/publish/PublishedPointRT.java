@@ -73,12 +73,12 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
         //Publish that its unreliable
         Map<String, Object> attributes = new HashMap<>();
         attributes.put(DataSourceRT.ATTR_UNRELIABLE_KEY, true);
-        parent.attributeChanged(this, attributes);
+        parent.attributeChanged(vo, attributes);
     }
 
     @Override
     public void attributeChanged(Map<String, Object> attributes) {
-        parent.attributeChanged(this, attributes);
+        parent.attributeChanged(vo, attributes);
     }
     
 	@Override
@@ -104,9 +104,9 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
             if(rt.getAttribute(DataSourceRT.ATTR_UNRELIABLE_KEY) == null) {
                 Map<String, Object> attributes = new HashMap<>(rt.getAttributes());
                 attributes.put(DataSourceRT.ATTR_UNRELIABLE_KEY, unreliable);
-                parent.attributeChanged(this, attributes);
+                parent.attributeChanged(vo, attributes);
             }else {
-                parent.attributeChanged(this, rt.getAttributes());
+                parent.attributeChanged(vo, rt.getAttributes());
             }
         }
     }
