@@ -5,16 +5,19 @@ package com.infiniteautomation.mango.db.query.pojo;
 
 import java.util.List;
 
+import net.jazdw.rql.parser.ASTNode;
+
 /**
  * 
  * @author Terry Packer
  */
 public class RQLToPagedObjectListQuery <T> extends RQLToObjectListQuery<T> {
 
+    protected boolean limited;
     protected int unlimitedSize;
     
-    public RQLToPagedObjectListQuery(int originalSize) {
-        this.unlimitedSize = originalSize;
+    public RQLToPagedObjectListQuery() {
+        this.limited = false;
     }
     
     public int getUnlimitedSize() {
@@ -22,8 +25,16 @@ public class RQLToPagedObjectListQuery <T> extends RQLToObjectListQuery<T> {
     }
     
     @Override
+    public List<T> visit(ASTNode node, List<T> data) {
+        List<T> result = super.visit(node, data);
+        if(!limited)
+            unlimitedSize = result.size();
+        return result;
+    }
+    
+    @Override
     protected List<T> applyLimit(List<Object> arguments, List<T> data) {
-        
+        limited = true;
         if(arguments.size() > 0){
             this.unlimitedSize = data.size();
             if(arguments.size() == 1){
