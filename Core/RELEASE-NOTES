@@ -45,6 +45,7 @@
 * Improved IPv6 support in data sources with whitelists
 * Hide logout button for proxied requests to legacy UI since they are stateless
 * Add support for REST Mime Type: application/sql
+* Full support for RQL in(field,(value list)) for all REST endpoints, previously a few only supported in(field,item1,item2...)
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP

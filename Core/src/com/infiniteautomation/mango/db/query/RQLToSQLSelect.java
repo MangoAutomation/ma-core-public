@@ -49,7 +49,8 @@ public class RQLToSQLSelect<T extends AbstractBasicVO> implements SQLConstants, 
 	/* (non-Javadoc)
 	 * @see net.jazdw.rql.parser.ASTVisitor#visit(net.jazdw.rql.parser.ASTNode, java.lang.Object)
 	 */
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public SQLStatement visit(ASTNode node, SQLStatement statement) {
 		
         switch (node.getName()) {
@@ -104,7 +105,14 @@ public class RQLToSQLSelect<T extends AbstractBasicVO> implements SQLConstants, 
     		}
         	return statement;
         case "in":
-        	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), node.getArguments().subList(1, node.getArgumentsSize()), ComparisonEnum.IN);
+            Object firstArg = node.getArgument(1);
+            List<Object> inArray;
+            if (firstArg instanceof List) {
+                inArray = (List<Object>) firstArg;
+            } else {
+               inArray = node.getArguments().subList(1, node.getArgumentsSize());
+            }
+        	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), inArray, ComparisonEnum.IN);
         	return statement;
         case "sort":
             return applySort(node, statement);

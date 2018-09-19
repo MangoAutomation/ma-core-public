@@ -31,6 +31,7 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 	
 	public RQLToObjectListQuery(){	}
 	
+    @SuppressWarnings("unchecked")
     @Override
     public List<T> visit(ASTNode node, List<T> data) {
         QueryComparison comparison;
@@ -71,7 +72,14 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
             comparison = createComparison((String)node.getArgument(0), ComparisonEnum.LIKE, node.getArguments().subList(1, node.getArgumentsSize()));
             return compare(comparison, data);
         case "in":
-            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.IN, node.getArguments().subList(1, node.getArgumentsSize()));
+            Object firstArg = node.getArgument(1);
+            List<Object> inArray;
+            if (firstArg instanceof List) {
+                inArray = (List<Object>) firstArg;
+            } else {
+               inArray = node.getArguments().subList(1, node.getArgumentsSize());
+            }
+            comparison = createComparison((String)node.getArgument(0), ComparisonEnum.IN, inArray);
             return compare(comparison, data);
         case "sort":
             return applySort(node, data);
