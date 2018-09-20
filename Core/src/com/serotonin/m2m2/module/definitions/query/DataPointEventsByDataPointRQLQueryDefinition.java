@@ -116,14 +116,14 @@ public class DataPointEventsByDataPointRQLQueryDefinition extends ModuleQueryDef
         });
 
         //Create Event Query for these Points
-        if(args.size() > 0) {
+        if(args.size() > 1) {
             ASTNode query = new ASTNode("in", args);
             query = addAndRestriction(query, new ASTNode("eq", "userId", user.getId()));
             query = addAndRestriction(query, new ASTNode("eq", "typeName", EventTypeNames.DATA_POINT));
 
             return query;
         }else {
-            return new ASTNode("limit", 0, 0);
+            return null;
         }
     }
 
