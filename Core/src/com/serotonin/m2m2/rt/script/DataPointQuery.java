@@ -7,12 +7,14 @@ package com.serotonin.m2m2.rt.script;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -27,20 +29,19 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Terry Packer
  *
  */
-public class DataPointQuery{
+public class DataPointQuery extends ScriptUtility{
 	
 	public static final String CONTEXT_KEY = "DataPointQuery";
 
-	private ScriptPermissions permissions;
 	private ScriptEngine engine;
 	private ScriptPointValueSetter setter;
-	private RQLParser parser;
+	private RQLParser parser = new RQLParser();;
 	
-	public DataPointQuery(ScriptPermissions permissions, ScriptEngine engine, ScriptPointValueSetter setter){
-		this.permissions = permissions;
-		this.engine = engine;
-		this.setter = setter;
-		this.parser = new RQLParser();
+	@Override
+	public void takeContext(ScriptEngine engine, Bindings engineScope, 
+            ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun) {
+	    this.engine = engine;
+	    this.setter = setter;
 	}
 	
 	/**

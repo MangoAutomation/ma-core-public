@@ -8,10 +8,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 
-	public JsonEmportScriptTestUtility(ScriptPermissions permissions, List<JsonImportExclusion> importExclusions) {
-		super(permissions, importExclusions);
-	}
-	
 	@Override
 	public void doImport(String json) throws Exception {
 		//No import in testing! Unless...

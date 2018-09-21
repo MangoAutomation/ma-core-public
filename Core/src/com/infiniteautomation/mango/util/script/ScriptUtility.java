@@ -4,7 +4,13 @@
 package com.infiniteautomation.mango.util.script;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+
+import com.serotonin.m2m2.rt.script.JsonImportExclusion;
+import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -59,13 +65,15 @@ public abstract class ScriptUtility {
         builder.append("}");
         return builder.toString();
     }
-    
-    /* (non-Javadoc)
-     * @see java.lang.Object#toString()
-     */
+
     @Override
     public String toString() {
         return getHelp();
+    }
+    
+    public void takeContext(ScriptEngine engine, Bindings engineScope, 
+            ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun) {
+        //because some utilities had other things in their constructor, offer this method to grab these al-a-carte
     }
 
 }

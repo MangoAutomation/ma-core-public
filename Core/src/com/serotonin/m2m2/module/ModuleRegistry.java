@@ -74,6 +74,12 @@ import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePerm
 import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.query.DataPointEventsByDataPointRQLQueryDefinition;
 import com.serotonin.m2m2.module.definitions.query.DataPointEventsByTagQueryDefinition;
+import com.serotonin.m2m2.module.definitions.script.DataPointQueryScriptUtilityDefinition;
+import com.serotonin.m2m2.module.definitions.script.DataSourceQueryScriptUtilityDefinition;
+import com.serotonin.m2m2.module.definitions.script.HttpBuilderScriptUtilityDefinition;
+import com.serotonin.m2m2.module.definitions.script.JsonEmportScriptUtilityDefinition;
+import com.serotonin.m2m2.module.definitions.script.PointValueTimeStreamScriptUtilityDefinition;
+import com.serotonin.m2m2.module.definitions.script.RuntimeManagerScriptUtilityDefinition;
 import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeInfoDefinition;
@@ -1112,6 +1118,14 @@ public class ModuleRegistry {
         /* Module Queries */
         preDefaults.add(new DataPointEventsByTagQueryDefinition());
         preDefaults.add(new DataPointEventsByDataPointRQLQueryDefinition());
+        
+        /* Script Utilities */
+        preDefaults.add(new DataPointQueryScriptUtilityDefinition());
+        preDefaults.add(new DataSourceQueryScriptUtilityDefinition());
+        preDefaults.add(new HttpBuilderScriptUtilityDefinition());
+        preDefaults.add(new JsonEmportScriptUtilityDefinition());
+        preDefaults.add(new PointValueTimeStreamScriptUtilityDefinition());
+        preDefaults.add(new RuntimeManagerScriptUtilityDefinition());
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,

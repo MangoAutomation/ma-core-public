@@ -13,6 +13,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
+import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -134,23 +135,14 @@ public class ScriptUtils {
      * @param engineScope
      */
     public static void prepareUtilities(ScriptPermissions permissions, ScriptEngine engine, Bindings engineScope, 
-    		ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun){
-    	if(testRun) {
-    		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptTestUtility(permissions));
-    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptTestUtility(permissions, importExclusions));
-    	} else {
-    		engineScope.put(RuntimeManagerScriptUtility.CONTEXT_KEY, new RuntimeManagerScriptUtility(permissions));
-    		engineScope.put(JsonEmportScriptUtility.CONTEXT_KEY, new JsonEmportScriptUtility(permissions, importExclusions));
-    	}
-    	engineScope.put(DataPointQuery.CONTEXT_KEY, new DataPointQuery(permissions, engine, setter));
-    	engineScope.put(DataSourceQuery.CONTEXT_KEY, new DataSourceQuery(permissions, engine, setter));
-    	engineScope.put(CompiledScriptExecutor.UNCHANGED_KEY, CompiledScriptExecutor.UNCHANGED);
-    	engineScope.put(HttpBuilderScriptUtility.CONTEXT_KEY, new HttpBuilderScriptUtility(permissions));
-    	engineScope.put(PointValueTimeStreamScriptUtility.CONTEXT_KEY, new PointValueTimeStreamScriptUtility(permissions));
+		ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun){
+		for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
+		    ScriptUtility util = testRun ? def.initializeTestContextObject(permissions) : def.initializeContextObject(permissions);
+		    util.takeContext(engine, engineScope, setter, importExclusions, testRun);
+            engineScope.put(def.getContextKey(), util);
+		}
     	
-    	for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
-    	    engineScope.put(def.getContextKey(), def.initializeContextObject(permissions));
-    	}
+        engineScope.put(CompiledScriptExecutor.UNCHANGED_KEY, CompiledScriptExecutor.UNCHANGED);
     }
 
     public static void wrapperContext(ScriptEngine engine, WrapperContext wrapperContext) {

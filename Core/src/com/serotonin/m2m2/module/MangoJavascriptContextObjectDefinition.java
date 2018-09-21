@@ -21,12 +21,22 @@ public abstract class MangoJavascriptContextObjectDefinition extends ModuleEleme
     abstract public String getContextKey();
     
     abstract protected Class<? extends ScriptUtility> getUtilityClass();
+    
+    abstract protected Class<? extends ScriptUtility> getTestUtilityClass();
     /**
      * Get the object to use in the context
      * @return
      */
     public ScriptUtility initializeContextObject(PermissionHolder holder) {
         Class<? extends ScriptUtility> utilityClass = getUtilityClass();
+        //Auto wire this guy
+        ScriptUtility utility = Common.getRuntimeContext().getAutowireCapableBeanFactory().createBean(utilityClass);
+        utility.setPermissions(holder);
+        return utility;
+    }
+    
+    public ScriptUtility initializeTestContextObject(PermissionHolder holder) {
+        Class<? extends ScriptUtility> utilityClass = getTestUtilityClass();
         //Auto wire this guy
         ScriptUtility utility = Common.getRuntimeContext().getAutowireCapableBeanFactory().createBean(utilityClass);
         utility.setPermissions(holder);
