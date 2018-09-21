@@ -50,7 +50,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
 
     protected void notify(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
         try {
-            sendMessage(session, this.createNotification(action, vo, initiatorId, originalXid));
+            sendMessage(session, this.createNotification(session, action, vo, initiatorId, originalXid));
         } catch(WebSocketSendException e) {
             log.warn("Error notifying websocket", e);
         } catch (Exception e) {
@@ -62,7 +62,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
         }
     }
 
-    protected Object createNotification(String action, T vo, String initiatorId, String originalXid) {
+    protected Object createNotification(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
         return new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);
     }
 }
