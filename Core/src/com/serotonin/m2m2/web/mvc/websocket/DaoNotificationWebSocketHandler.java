@@ -24,7 +24,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
     public void notify(String action, T vo, String initiatorId, String originalXid) {
         for (WebSocketSession session : sessions) {
             User user = getUser(session);
-            if (user != null && hasPermission(getUser(session), vo)) {
+            if (user != null && hasPermission(user, vo) && isSubscribed(action, vo, originalXid)) {
                 notify(session, action, vo, initiatorId, originalXid);
             }
         }
@@ -33,6 +33,10 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
 
     abstract protected boolean hasPermission(User user, T vo);
     abstract protected Object createModel(T vo);
+
+    protected boolean isSubscribed(String action, T vo, String originalXid) {
+        return true;
+    }
 
     /**
      * You must annotate the overridden method with @EventListener in order for this to work
