@@ -24,7 +24,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
     public void notify(String action, T vo, String initiatorId, String originalXid) {
         for (WebSocketSession session : sessions) {
             User user = getUser(session);
-            if (user != null && hasPermission(user, vo) && isSubscribed(action, vo, originalXid)) {
+            if (user != null && hasPermission(user, vo) && isSubscribed(session, action, vo, originalXid)) {
                 notify(session, action, vo, initiatorId, originalXid);
             }
         }
@@ -34,7 +34,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
     abstract protected boolean hasPermission(User user, T vo);
     abstract protected Object createModel(T vo);
 
-    protected boolean isSubscribed(String action, T vo, String originalXid) {
+    protected boolean isSubscribed(WebSocketSession session, String action, T vo, String originalXid) {
         return true;
     }
 
@@ -50,8 +50,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
 
     protected void notify(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
         try {
-            DaoNotificationModel notification = new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);
-            sendMessage(session, notification);
+            sendMessage(session, this.createNotification(action, vo, initiatorId, originalXid));
         } catch(WebSocketSendException e) {
             log.warn("Error notifying websocket", e);
         } catch (Exception e) {
@@ -61,5 +60,9 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
                 log.error(e1.getMessage(), e1);
             }
         }
+    }
+
+    protected Object createNotification(String action, T vo, String initiatorId, String originalXid) {
+        return new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);
     }
 }
