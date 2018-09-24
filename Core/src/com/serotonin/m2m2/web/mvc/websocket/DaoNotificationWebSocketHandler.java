@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.mvc.websocket;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
@@ -24,7 +25,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
     public void notify(String action, T vo, String initiatorId, String originalXid) {
         for (WebSocketSession session : sessions) {
             User user = getUser(session);
-            if (user != null && hasPermission(user, vo) && isSubscribed(action, vo, originalXid)) {
+            if (user != null && hasPermission(user, vo) && isSubscribed(session, action, vo, originalXid)) {
                 notify(session, action, vo, initiatorId, originalXid);
             }
         }
@@ -34,7 +35,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
     abstract protected boolean hasPermission(User user, T vo);
     abstract protected Object createModel(T vo);
 
-    protected boolean isSubscribed(String action, T vo, String originalXid) {
+    protected boolean isSubscribed(WebSocketSession session, String action, T vo, String originalXid) {
         return true;
     }
 
@@ -45,13 +46,19 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
     abstract protected void handleDaoEvent(DaoEvent<? extends T> event);
 
     protected void notify(DaoEvent<? extends T> event) {
-        this.notify(event.getType().getAction(), event.getVo(), event.getInitiatorId(), event.getOriginalXid());
+        DaoEventType type = event.getType();
+        String action = null;
+        switch(type) {
+            case CREATE: action = "create"; break;
+            case DELETE: action = "delete"; break;
+            case UPDATE: action = "update"; break;
+        }
+        this.notify(action, event.getVo(), event.getInitiatorId(), event.getOriginalXid());
     }
 
     protected void notify(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
         try {
-            DaoNotificationModel notification = new DaoNotificationModel(action, createModel(vo), initiatorId, originalXid);
-            sendMessage(session, notification);
+            this.sendRawMessage(session, this.createNotification(session, action, vo, initiatorId, originalXid));
         } catch(WebSocketSendException e) {
             log.warn("Error notifying websocket", e);
         } catch (Exception e) {
@@ -61,5 +68,10 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
                 log.error(e1.getMessage(), e1);
             }
         }
+    }
+
+    protected Object createNotification(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
+        DaoNotificationModel payload = new DaoNotificationModel("create".equals(action) ? "add" : action, createModel(vo), initiatorId, originalXid);
+        return new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.OK, payload);
     }
 }
