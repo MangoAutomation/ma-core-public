@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.websocket;
 
 import org.springframework.web.socket.WebSocketSession;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -23,10 +24,20 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
      * @param initiatorId random string to identify who initiated the event
      */
     public void notify(String action, T vo, String initiatorId, String originalXid) {
+        Object message = createNotification(action, vo, initiatorId, originalXid);
+        String jsonMessage;
+
+        try {
+            jsonMessage = this.jacksonMapper.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to write object as JSON", e);
+            return;
+        }
+
         for (WebSocketSession session : sessions) {
             User user = getUser(session);
             if (user != null && hasPermission(user, vo) && isSubscribed(session, action, vo, originalXid)) {
-                notify(session, action, vo, initiatorId, originalXid);
+                notify(session, jsonMessage);
             }
         }
     }
@@ -56,9 +67,9 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
         this.notify(action, event.getVo(), event.getInitiatorId(), event.getOriginalXid());
     }
 
-    protected void notify(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
+    protected void notify(WebSocketSession session, String jsonMessage) {
         try {
-            this.sendRawMessage(session, this.createNotification(session, action, vo, initiatorId, originalXid));
+            this.sendStringMessageAsync(session, jsonMessage);
         } catch(WebSocketSendException e) {
             log.warn("Error notifying websocket", e);
         } catch (Exception e) {
@@ -70,7 +81,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
         }
     }
 
-    protected Object createNotification(WebSocketSession session, String action, T vo, String initiatorId, String originalXid) {
+    protected Object createNotification(String action, T vo, String initiatorId, String originalXid) {
         DaoNotificationModel payload = new DaoNotificationModel("create".equals(action) ? "add" : action, createModel(vo), initiatorId, originalXid);
         return new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.OK, payload);
     }
