@@ -291,9 +291,9 @@ abstract public class AbstractPointWrapper {
     	builder.append("/* cache argument is true / false and false if omitted */");
     	builder.append("{\n");
     	builder.append("value: ").append(getValueImpl()).append(",\n ");
-    	long time = getTime();
+    	Long time = getTime();
     	builder.append("time: ").append(time).append(",\n ");
-    	if(time > 0){
+    	if(time != null){
 	    	builder.append("millis: ").append(getMillis()).append(",\n ");
 	    	builder.append("second: ").append(getSecond()).append(",\n ");
 	    	builder.append("minute: ").append(getMinute()).append(",\n ");
