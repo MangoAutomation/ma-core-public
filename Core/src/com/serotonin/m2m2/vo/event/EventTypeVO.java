@@ -9,6 +9,7 @@ import java.util.List;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.type.AnyEventType;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -71,6 +72,8 @@ public class EventTypeVO {
             return new PublisherEventType(typeRef1, typeRef2);
         if (type.equals(EventType.EventTypeNames.AUDIT))
         	return new AuditEventType(subtype, -1, typeRef1); //TODO allow tracking the various types of audit events...
+        if (type.equals(EventType.EventTypeNames.ANY))
+            return new AnyEventType(typeRef1, typeRef2);
 
         EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(type);
         if (def != null)

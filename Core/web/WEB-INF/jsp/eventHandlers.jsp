@@ -302,6 +302,22 @@
             }
             
             //
+            // Any events
+            if (data.anyEvents) {
+                anyRoot = {
+                        name: '<fmt:message key="eventHandlers.anyEvents"/>',
+                        children: [],
+                        anyEvent: true
+                };
+                storeItems.push(anyRoot);
+                
+                for (i=0; i<data.anyEvents.length; i++) {
+                    et = data.anyEvents[i];
+                    createEventTypeNode("any_" + et.typeRef1 + "_" + et.typeRef2, et, anyRoot);
+                }
+            }
+            
+            //
             // Make default script permissions for the user available
             userNewScriptPermissions = data.userNewScriptPermissions
             
@@ -340,15 +356,25 @@
                     if (item.eventTypeNode) {
                         selectedEventTypeNode = widget;
                         selectedHandlerNode = null;
+                        hide("newAnyEventTypeLevelSelector");
                         showHandlerEdit();
                     }
                     else if (item.handlerNode) {
                         selectedHandlerNode = widget;
                         selectedEventTypeNode = widget.getParent();
+                        hide("newAnyEventTypeLevelSelector");
                         showHandlerEdit();
                     }
-                    else
+                    else if (typeof item.anyEvent !== 'undefined') {
+                        selectedHandlerNode = null;
+                    	selectedEventTypeNode = newAnyEventTypeNode; //We may not have the event type
+                    	show("newAnyEventTypeLevelSelector");
+                    	showHandlerEdit();
+                    }
+                    else {
                         hide("handlerEditDiv");
+                        hide("newAnyEventTypeLevelSelector");
+                    }
                 },
                 _createTreeNode: function(args){
                     var tnode = new dijit._TreeNode(args);
@@ -428,6 +454,15 @@
     
     var selectedEventTypeNode;
     var selectedHandlerNode;
+    var newAnyEventTypeNode = {
+      item: {
+        type: "ANY",
+        subtype: null,
+        typeRef1: 0,
+        typeRef2: 7
+      }
+    };
+    var anyRoot;
     
     function showHandlerEdit() {
         show("handlerEditDiv");
@@ -682,7 +717,11 @@
         var xid = $get("xid");
         var alias = $get("alias");
         var disabled = $get("disabled");
-        var eventType = $$(selectedEventTypeNode.item, "object");
+        var eventType;
+        if(selectedEventTypeNode.item.type === 'ANY')
+            eventType = selectedEventTypeNode.item;
+        else
+            eventType = $$(selectedEventTypeNode.item, "object");
         if (handlerType == '<c:out value="<%= EmailEventHandlerDefinition.TYPE_NAME %>"/>') {
             var emailList = emailRecipients.createRecipientArray();
             var escalList = escalRecipients.createRecipientArray();
@@ -943,6 +982,17 @@
               </td>
             </tr>
             <tr><td class="formError" id="userMessage"></td></tr>
+          </table>
+          
+          <table id="newAnyEventTypeLevelSelector" width="100%">
+            <tr>
+              <td class="formLabelRequired"><fmt:message key="eventHandlers.minimumAlarmLevel"/></td>
+              <td class="formField"><html5:alarmLevelSelect useIds="true" required="true" onchange="newAnyEventTypeNode.item.typeRef1=this.value;"/></td>
+            </tr>
+            <tr>
+              <td class="formLabelRequired"><fmt:message key="eventHandlers.maximumAlarmLevel"/></td>
+              <td class="formField"><html5:alarmLevelSelect useIds="true" required="true" onchange="newAnyEventTypeNode.item.typeRef2=this.value;"/></td>
+            </tr>
           </table>
           
           <table width="100%">

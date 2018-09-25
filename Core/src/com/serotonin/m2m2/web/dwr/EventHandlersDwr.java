@@ -47,6 +47,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
+import com.serotonin.m2m2.rt.event.type.AnyEventType;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -116,7 +117,7 @@ public class EventHandlersDwr extends BaseDwr {
 
                 for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
                     EventTypeVO dpet = ped.getEventType();
-                    dpet.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dpet));
+                    dpet.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(dpet));
                     source.getEventTypes().add(dpet);
                 }
 
@@ -136,7 +137,7 @@ public class EventHandlersDwr extends BaseDwr {
                 source.setName(ds.getName());
 
                 for (EventTypeVO dset : ds.getEventTypes()) {
-                    dset.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dset));
+                    dset.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(dset));
                     source.getEventTypes().add(dset);
                 }
 
@@ -151,7 +152,7 @@ public class EventHandlersDwr extends BaseDwr {
                 List<EventTypeVO> vos = def.getEventTypeVOs();
 
                 for (EventTypeVO vo : vos)
-                    vo.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo));
+                    vo.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(vo));
 
                 Map<String, Object> info = new HashMap<>();
                 info.put("vos", vos);
@@ -173,7 +174,7 @@ public class EventHandlersDwr extends BaseDwr {
                     source.setName(p.getName());
 
                     for (EventTypeVO pet : p.getEventTypes()) {
-                        pet.setHandlers(EventHandlerDao.getInstance().getEventHandlers(pet));
+                        pet.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(pet));
                         source.getEventTypes().add(pet);
                     }
 
@@ -185,7 +186,7 @@ public class EventHandlersDwr extends BaseDwr {
             // Get the system events
             List<EventTypeVO> systemEvents = new ArrayList<>();
             for (EventTypeVO sets : SystemEventType.EVENT_TYPES) {
-                sets.setHandlers(EventHandlerDao.getInstance().getEventHandlers(sets));
+                sets.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(sets));
                 systemEvents.add(sets);
             }
             model.put("systemEvents", systemEvents);
@@ -193,7 +194,7 @@ public class EventHandlersDwr extends BaseDwr {
             // Get the audit events
             List<EventTypeVO> auditEvents = new ArrayList<>();
             for (EventTypeVO aets : AuditEventType.EVENT_TYPES) {
-                aets.setHandlers(EventHandlerDao.getInstance().getEventHandlers(aets));
+                aets.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(aets));
                 auditEvents.add(aets);
             }
             model.put("auditEvents", auditEvents);
@@ -205,7 +206,7 @@ public class EventHandlersDwr extends BaseDwr {
                     List<EventTypeVO> vos = def.getEventTypeVOs();
 
                     for (EventTypeVO vo : vos)
-                        vo.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo));
+                        vo.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(vo));
 
                     Map<String, Object> info = new HashMap<>();
                     info.put("vos", vos);
@@ -215,7 +216,17 @@ public class EventHandlersDwr extends BaseDwr {
                     adminEventTypes.put(def.getTypeName(), info);
                 }
             }
-
+            
+            List<EventTypeVO> anyEvents = new ArrayList<>();
+            for (EventType anyEventType : EventHandlerDao.getInstance().getDefinedAnyEventTypes()) {
+                EventTypeVO etvo = new EventTypeVO(anyEventType.getEventType(), anyEventType.getEventSubtype(), anyEventType.getReferenceId1(),
+                        anyEventType.getReferenceId2(), AnyEventType.getDescription(anyEventType), anyEventType.getReferenceId1());
+                //Issues exist with handlers for none type because of the select statement logic and none = 0
+                etvo.setHandlers(EventHandlerDao.getInstance().getExactEventHandlers(etvo));
+                anyEvents.add(etvo);
+            }
+            model.put("anyEvents", anyEvents);
+            
         }
 
         model.put("userNewScriptPermissions", new ScriptPermissions(user));

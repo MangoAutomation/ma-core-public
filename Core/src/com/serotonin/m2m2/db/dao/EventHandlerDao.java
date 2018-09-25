@@ -158,13 +158,30 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
      * Note: eventHandlers.eventTypeRef[1,2] match on both the given ref and 0. This is to allow a single set of event
      * handlers to be defined for user login events, rather than have to individually define them for each user.
      */
-    private static final String EVENT_HANDLER_SELECT_BY_TYPE_SUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, " +
+    private static final String EXACT_EVENT_HANDLER_SELECT_BY_TYPE_SUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, " +
             "eh.data FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE ehm.eventTypeName=? AND " +
             "ehm.eventSubtypeName=? AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? or ehm.eventTypeRef2=0)";
-    private static final String EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, eh.data " +
+    private static final String EXACT_EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, eh.data " +
             "FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE ehm.eventTypeName=? AND " +
             "ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
+    private static final String EVENT_HANDLER_SELECT_BY_TYPE_SUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, " +
+            "eh.data FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE (ehm.eventTypeName=? AND " +
+            "ehm.eventSubtypeName=? AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? or ehm.eventTypeRef2=0)) OR " +
+            "(ehm.eventTypeName='"+ EventType.EventTypeNames.ANY + "' AND ehm.eventTypeRef1>=? AND ehm.eventTypeRef2<=?)";
+    private static final String EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB = "SELECT eh.id, eh.xid, eh.alias, eh.eventHandlerType, eh.data " +
+            "FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE (ehm.eventTypeName=? AND " +
+            "ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)) OR " +
+            "(ehm.eventTypeName='"+ EventType.EventTypeNames.ANY + "' AND ehm.eventTypeRef1>=? AND ehm.eventTypeRef2<=?)";
 
+    public List<AbstractEventHandlerVO<?>> getExactEventHandlers(EventType type) {
+        return getExactEventHandlers(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(),
+                type.getReferenceId2());
+    }
+
+    public List<AbstractEventHandlerVO<?>> getExactEventHandlers(EventTypeVO type) {
+        return getExactEventHandlers(type.getType(), type.getSubtype(), type.getTypeRef1(), type.getTypeRef2());
+    }
+    
     public List<AbstractEventHandlerVO<?>> getEventHandlers(EventType type) {
         return getEventHandlers(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(),
                 type.getReferenceId2());
@@ -187,23 +204,42 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
         });
     }
     
+    public List<EventType> getDefinedAnyEventTypes() {
+        return ejt.query("SELECT DISTINCT eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2 FROM eventHandlersMapping WHERE eventTypeName='ANY'", new Object[0], new RowMapper<EventType>() {
+            @Override
+            public EventType mapRow(ResultSet rs, int rowNum) throws SQLException {
+                return EventDao.createEventType(rs, 1);
+            }
+        });
+    }
+    
     private static final String EVENT_HANDLER_XID_SELECT_SUB = "SELECT eh.xid FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE " +
-            "ehm.eventTypeName=? AND ehm.eventSubtypeName=? AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
+            "(ehm.eventTypeName=? AND ehm.eventSubtypeName=? AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)) OR " +
+            "(ehm.eventTypeName='"+ EventType.EventTypeNames.ANY + "' AND ehm.eventTypeRef1>=? AND ehm.eventTypeRef2<=?)";
     private static final String EVENT_HANDLER_XID_SELECT_NULLSUB = "select eh.xid FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE " +
-            "ehm.eventTypeName=? AND ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
+            "(ehm.eventTypeName=? AND ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)) OR " +
+            "(ehm.eventTypeName='"+ EventType.EventTypeNames.ANY + "' AND ehm.eventTypeRef1>=? AND ehm.eventTypeRef2<=?)";;
     public List<String> getEventHandlerXids(EventTypeVO type) {
         if(type.getSubtype() == null)
             return queryForList(EVENT_HANDLER_XID_SELECT_NULLSUB, new Object[] { type.getType(), 
-                    type.getTypeRef1(), type.getTypeRef2()}, String.class);
+                    type.getTypeRef1(), type.getTypeRef2(), type.getAlarmLevel(), type.getAlarmLevel()}, String.class);
         return queryForList(EVENT_HANDLER_XID_SELECT_SUB, new Object[] { type.getType(), type.getSubtype(),
-                type.getTypeRef1(), type.getTypeRef2()}, String.class);
+                type.getTypeRef1(), type.getTypeRef2(), type.getAlarmLevel(), type.getAlarmLevel()}, String.class);
     }
 
     private List<AbstractEventHandlerVO<?>> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
         if (subtypeName == null)
-            return query(EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB, new Object[] { typeName, ref1, ref2 },
+            return query(EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB, new Object[] { typeName, ref1, ref2, ref1, ref2 },
                     new EventHandlerRowMapper());
-        return query(EVENT_HANDLER_SELECT_BY_TYPE_SUB, new Object[] { typeName, subtypeName, ref1, ref2 },
+        return query(EVENT_HANDLER_SELECT_BY_TYPE_SUB, new Object[] { typeName, subtypeName, ref1, ref2, ref1, ref2 },
+                new EventHandlerRowMapper());
+    }
+    
+    private List<AbstractEventHandlerVO<?>> getExactEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
+        if (subtypeName == null)
+            return query(EXACT_EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB, new Object[] { typeName, ref1, ref2 },
+                    new EventHandlerRowMapper());
+        return query(EXACT_EVENT_HANDLER_SELECT_BY_TYPE_SUB, new Object[] { typeName, subtypeName, ref1, ref2 },
                 new EventHandlerRowMapper());
     }
 

@@ -83,6 +83,11 @@ abstract public class EventType implements JsonSerializable {
          * Missing event types are a placeholder to load events created by modules that have been un-installed and left events remaining.
          */
         String MISSING = "MISSING";
+        
+        /**
+         * Any event type is used in the mapping table for handlers that should service any event
+         */
+        String ANY = "ANY";
     }
 
     public static final ExportNames SOURCE_NAMES = new ExportNames();
@@ -95,6 +100,7 @@ abstract public class EventType implements JsonSerializable {
         SOURCE_NAMES.addElement(EventTypeNames.PUBLISHER);
         SOURCE_NAMES.addElement(EventTypeNames.AUDIT);
         SOURCE_NAMES.addElement(EventTypeNames.MISSING);
+        SOURCE_NAMES.addElement(EventTypeNames.ANY);
 
         for (EventTypeDefinition def : ModuleRegistry.getDefinitions(EventTypeDefinition.class))
             SOURCE_NAMES.addElement(def.getTypeName());

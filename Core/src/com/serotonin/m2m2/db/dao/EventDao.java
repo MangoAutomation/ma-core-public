@@ -34,6 +34,7 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.type.AnyEventType;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -341,6 +342,8 @@ public class EventDao extends BaseDao {
             type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
         else if (typeName.equals(EventType.EventTypeNames.AUDIT))
         	type = new AuditEventType(subtypeName, -1, rs.getInt(offset + 3)); //TODO allow tracking the various types of audit events...
+        else if (typeName.equals(EventType.EventTypeNames.ANY))
+            type = new AnyEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
             if (def == null) {
