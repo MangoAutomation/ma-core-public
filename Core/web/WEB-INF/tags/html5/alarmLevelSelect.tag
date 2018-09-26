@@ -13,6 +13,8 @@
   <c:if test="${allOption}"><sst:option value="-1"><fmt:message key="common.all"/></sst:option></c:if>
   <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.NONE) %>"><fmt:message key="<%= AlarmLevels.NONE_DESCRIPTION %>"/></option>
   <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.INFORMATION) %>"><fmt:message key="<%= AlarmLevels.INFORMATION_DESCRIPTION %>"/></option>
+  <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.IMPORTANT) %>"><fmt:message key="<%= AlarmLevels.IMPORTANT_DESCRIPTION %>"/></option>
+  <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.WARNING) %>"><fmt:message key="<%= AlarmLevels.WARNING_DESCRIPTION %>"/></option>
   <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.URGENT) %>"><fmt:message key="<%= AlarmLevels.URGENT_DESCRIPTION %>"/></option>
   <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.CRITICAL) %>"><fmt:message key="<%= AlarmLevels.CRITICAL_DESCRIPTION %>"/></option>
   <option value="<%= AlarmLevels.CODES.getCode(AlarmLevels.LIFE_SAFETY) %>"><fmt:message key="<%= AlarmLevels.LIFE_SAFETY_DESCRIPTION %>"/></option>
