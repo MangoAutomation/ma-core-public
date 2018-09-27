@@ -167,8 +167,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
                 return sar;
         }
 
-        StartsAndRuntime sar = new StartsAndRuntime();
-        sar.value = value;
+        StartsAndRuntime sar = new StartsAndRuntime(value);
         data.add(sar);
 
         return sar;
@@ -188,7 +187,7 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         		", firstValue: " + firstValue +
         		", firstTime: " + firstTime + 
         		", lastValue: " + lastValue +
-        		", lastTime: " + lastTime + 
+        		", lastTime: " + lastTime +
         		"}";
     }
 }

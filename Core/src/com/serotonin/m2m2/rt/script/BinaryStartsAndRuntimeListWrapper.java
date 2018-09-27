@@ -4,7 +4,11 @@
  */
 package com.serotonin.m2m2.rt.script;
 
+import java.util.Map;
+
+import com.infiniteautomation.mango.statistics.StartsAndRuntime;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
+import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
@@ -40,5 +44,16 @@ public class BinaryStartsAndRuntimeListWrapper extends StartsAndRuntimeListWrapp
             return null;
         else
             return value.getBooleanValue();
+    }
+    public StartsAndRuntime get(boolean value) {
+        Map<Object, StartsAndRuntime> values = statistics.getStartsAndRuntime();
+        if(values.containsKey(value))
+            return values.get(value);
+        else
+            return new StartsAndRuntime(new BinaryValue(value));
+    }
+    @Override
+    public String toString() {
+        return super.toString() + " get(boolean): StartsAndRuntime";
     }
 }
