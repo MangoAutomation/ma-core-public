@@ -149,7 +149,7 @@ The following fields can be useful for conversions:</p>
   <li><b>lastTime</b>: (integer) the time of the last value</li> 
   <li><b>data</b>: (array) the list of individual StartAndRuntime objects.</li>
 </ul>
-Each StartAndRuntime object has the following properties:
+Each StartsAndRuntime object has the following properties:
 <ul>
   <li><b>value</b>: (boolean for Binary, integer for Multistate) the point state to which the remaining properties apply</li>
   <li><b>starts</b>: (integer) the number of times the state was entered over the period</li>
@@ -161,14 +161,12 @@ Each StartAndRuntime object has the following properties:
 <p>
   To access a specific StartAndRuntime object in the list, you will first need to test to see if the state exists, as states that the point was not in during the period will not exist. 
   For example, the following returns the proportion of time that 'b' was in state 'false' over the previous 2 months without considering the cache.  Note 
-  that any states that have not occurred in this period will be null and must be checked first as we cannot know this before asking for the state information.
+  that any states that have not occurred in this period will still return a StartsAndRuntime object from get() with 0 starts, 0 runtime, and 0 proportion.
 </p>
 <pre>
-    var sar = b.past(MONTH, 2)[false];
-    if(sar != null)
-		return b.proportion;
-	else
-		return 0;
+    var stats = b.past(MONTH, 2);
+    var sar = stats.get(false).proportion; //get the proportion of time in false whether or not false occurred
+    var stateNotNull = stats.getStartsAndRuntime().containsKey(false); //see if false occurred
 </pre>
 
 <p>
