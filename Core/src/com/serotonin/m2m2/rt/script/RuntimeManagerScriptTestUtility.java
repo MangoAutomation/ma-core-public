@@ -10,10 +10,6 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility {
 	
-	public RuntimeManagerScriptTestUtility(ScriptPermissions permissions){
-		super(permissions);
-	}
-	
 	/**
 	 * Mock refresh a data point with the given XID.
 	 * 

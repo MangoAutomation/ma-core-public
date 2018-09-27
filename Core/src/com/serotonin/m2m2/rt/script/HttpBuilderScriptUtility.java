@@ -30,16 +30,14 @@ import org.springframework.http.HttpStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.web.http.HttpUtils4;
 
 import jdk.nashorn.api.scripting.JSObject;
 
-//import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
-
-
 @SuppressWarnings("restriction")
-public class HttpBuilderScriptUtility {
+public class HttpBuilderScriptUtility extends ScriptUtility {
     public static final String CONTEXT_KEY = "HttpBuilder";
 
     private int retried = 0;
@@ -51,7 +49,7 @@ public class HttpBuilderScriptUtility {
     private Exception thrown;
     private List<Integer> okayStatus = new ArrayList<Integer>(1);
 
-    public HttpBuilderScriptUtility(ScriptPermissions permissions) {
+    public HttpBuilderScriptUtility() {
         okayStatus.add(HttpStatus.OK.value());
     }
 

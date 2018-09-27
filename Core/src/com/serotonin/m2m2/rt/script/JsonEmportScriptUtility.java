@@ -5,9 +5,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -20,6 +24,7 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.EmportDwr;
 import com.serotonin.m2m2.web.dwr.emport.ImportTask;
@@ -27,18 +32,22 @@ import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 
-public class JsonEmportScriptUtility {
+public class JsonEmportScriptUtility extends ScriptUtility {
     public static String CONTEXT_KEY = "JsonEmport";
 
-    private final boolean admin;
-    private final RQLParser parser;
-    private final List<JsonImportExclusion> importExclusions;
+    private boolean admin;
+    private RQLParser parser = new RQLParser();;
+    private List<JsonImportExclusion> importExclusions;
     protected boolean importDuringValidation = false;
 
-    public JsonEmportScriptUtility(ScriptPermissions permissions, List<JsonImportExclusion> importExclusions) {
-        admin = Permissions.explodePermissionGroups(permissions.getDataSourcePermissions()).contains(SuperadminPermissionDefinition.GROUP_NAME) &&
-                Permissions.explodePermissionGroups(permissions.getDataPointSetPermissions()).contains(SuperadminPermissionDefinition.GROUP_NAME);
-        this.parser = new RQLParser();
+    @Override
+    public void setPermissions(PermissionHolder permissions) {
+        admin = Permissions.hasAdminPermission(permissions);
+    }
+    
+    @Override
+    public void takeContext(ScriptEngine engine, Bindings engineScope, 
+            ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun) {
         this.importExclusions = importExclusions;
     }
 

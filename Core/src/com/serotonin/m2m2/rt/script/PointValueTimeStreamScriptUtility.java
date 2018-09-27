@@ -27,6 +27,7 @@ import com.infiniteautomation.mango.quantize.ValueChangeCounterQuantizer;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.statistics.ValueChangeCounter;
+import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -43,16 +44,10 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * Will query a time range with a rollup period and a rollup, with callbacks always occuring in time order
  *  and bookeneds being included is optional.
  */
-public class PointValueTimeStreamScriptUtility {
+public class PointValueTimeStreamScriptUtility extends ScriptUtility {
 
     private static final Log LOG = LogFactory.getLog(PointValueTimeStreamScriptUtility.class);
     public static final String CONTEXT_KEY = "PointValueQuery";
-
-    private final ScriptPermissions scriptPermissions;
-
-    public PointValueTimeStreamScriptUtility(ScriptPermissions scriptPermissions) {
-        this.scriptPermissions = scriptPermissions;
-    }
 
     public void query(List<Integer> ids, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
         PointValueTimeStream pvts = new PointValueTimeStream(ids, from, to, bookend, callback);
@@ -258,9 +253,9 @@ public class PointValueTimeStreamScriptUtility {
                 DataPointVO vo = DataPointDao.getInstance().getDataPoint(id, false);
                 if(vo == null)
                     throw new RuntimeException("Data point with id " + id + " does not exist."); //TODO better error'ing
-                if(!Permissions.hasDataPointReadPermission(scriptPermissions, vo) &&
-                        !Permissions.hasDataPointSetPermission(scriptPermissions, vo) &&
-                        !Permissions.hasDataSourcePermission(scriptPermissions, DataSourceDao.getInstance().get(vo.getDataSourceId())))
+                if(!Permissions.hasDataPointReadPermission(permissions, vo) &&
+                        !Permissions.hasDataPointSetPermission(permissions, vo) &&
+                        !Permissions.hasDataSourcePermission(permissions, DataSourceDao.getInstance().get(vo.getDataSourceId())))
                     throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", vo.getXid()));
                 DataPointStatisticsQuantizer<?> quantizer;
                 switch(vo.getPointLocator().getDataTypeId()) {

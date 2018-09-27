@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.script;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -19,7 +20,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Terry Packer
  *
  */
-public class RuntimeManagerScriptUtility {
+public class RuntimeManagerScriptUtility extends ScriptUtility {
 	
 	public static final String CONTEXT_KEY = "RuntimeManager";
 	
@@ -28,11 +29,6 @@ public class RuntimeManagerScriptUtility {
 	protected static final int DOES_NOT_EXIST = -1;  //Point or Data Soure Does not exist
 	protected static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
 	protected static final int OPERATION_SUCCESSFUL = 1; //Operation worked
-	
-	protected ScriptPermissions permissions;
-	public RuntimeManagerScriptUtility(ScriptPermissions permissions){
-		this.permissions = permissions;
-	}
 	
 	/**
 	 * Refresh a data point with the given XID.
