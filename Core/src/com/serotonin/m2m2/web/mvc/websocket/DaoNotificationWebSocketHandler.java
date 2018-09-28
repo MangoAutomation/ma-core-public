@@ -24,6 +24,8 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
      * @param initiatorId random string to identify who initiated the event
      */
     public void notify(String action, T vo, String initiatorId, String originalXid) {
+        if (sessions.isEmpty()) return;
+
         Object message = createNotification(action, vo, initiatorId, originalXid);
         String jsonMessage;
 
