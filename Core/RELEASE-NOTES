@@ -48,6 +48,37 @@
 * Full support for RQL in(field,(value list)) for all REST endpoints, previously a few only supported in(field,item1,item2...)
 * Adding generic support for publishers queues to publish things other than only point values, no modules currently utilize this
 * Reinstate get(boolean) and get(int) functions for starts and runtime lists in JavaScript statistics for Binary and Multistate points
+* Allow modules to configure the web context during startup
+* Add a new Spring context that configures and provides the DAO objects and other singletons early in the startup (Runtime context)
+* Add Common.getBean() helper method to get Spring beans from Runtime context
+* Close Spring contexts and cleanly shutdown web app context when terminating
+* Add a executor pool and scheduled executor service which are available as Spring beans
+* Use shared executor pool to execute Spring event listeners which are now notified asynchronously
+* DAO singletons now fire Spring events (DaoEvent class) upon VO object create/update/delete
+* Decouple websockets from DAO instances by using DAO events to notify websockets
+* Use GUID as the default session cookie name
+* Allow configuring session cookie name via env.properties file
+* Add a module data directory whose location can be configured via env.properties file
+* Make legacy UI work when authenticated via a JWT authentication token
+* Change security configuration so it defines a configuration for stateless auth (JWT/basic) or session auth
+* Add security configuration for proxying HTTP
+* Only authentication hit rate limiter when authentication fails
+* Remove backport-util-concurrent library dependency
+* Add a system setting for public hostname
+* Add method to get Set of permissions to User
+* Clean up Permissions class and make easier and more obvious to use
+* Add PermissionHolder interface which is used on User and ScriptPermissions
+* Improve RQL based controllers so they map string names to integer codes when querying database
+* Fix subtle bug in 302 redirects from /
+* Remove WebSocketDefinition class
+* Register all WebSocket handlers from Spring beans
+* Remove session binding listener from User class, raise user logged in/out event handling to MangoSecurityEventListener
+* Better login error response codes and messages
+* Use separate Spring contexts for JSP/legacy dispatcher and REST dispatcher
+* Add way to change password upon logging in if old password is expired
+* Make the Jackson ObjectMappers available as Spring beans and require explicit name to inject them
+* Only serialize DAO WebSocket notification once before sending to all sessions
+* Ability for DAO WebSockets to check if a session is subscribed to an XID before sending the notification
 
 *Version 3.4.5*
 * Content Security Policy (CSP) is now disabled by default and the configuration options have changed, please review the new setting names and update your env.properties file if you want to continue using CSP
