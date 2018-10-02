@@ -4,31 +4,20 @@
  */
 package com.serotonin.m2m2.vo.permission;
 
-import com.serotonin.m2m2.Common;
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
-public class PermissionException extends RuntimeException {
+public class PermissionException extends TranslatableRuntimeException {
     private static final long serialVersionUID = -1;
 
-    private final TranslatableMessage translatableMessage;
     private final PermissionHolder permissionHolder;
 
     public PermissionException(TranslatableMessage translatableMessage, PermissionHolder permissionHolder) {
-        super();
-        this.translatableMessage = translatableMessage;
+        super(translatableMessage);
         this.permissionHolder = permissionHolder;
     }
 
     public PermissionHolder getPermissionHolder() {
         return permissionHolder;
-    }
-
-    public TranslatableMessage getTranslatableMessage() {
-        return translatableMessage;
-    }
-
-    @Override
-    public String getMessage() {
-        return this.translatableMessage.translate(Common.getTranslations());
     }
 }

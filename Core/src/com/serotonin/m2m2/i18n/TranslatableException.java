@@ -4,12 +4,12 @@
  */
 package com.serotonin.m2m2.i18n;
 
-import com.serotonin.m2m2.Common;
+import com.infiniteautomation.mango.util.exception.TranslatableExceptionI;
 
 /**
  * @author Matthew Lohbihler
  */
-public class TranslatableException extends Exception {
+public class TranslatableException extends Exception implements TranslatableExceptionI {
     private static final long serialVersionUID = 1L;
 
     private TranslatableMessage translatableMessage = null;
@@ -31,12 +31,13 @@ public class TranslatableException extends Exception {
         super(cause);
     }
 
+    @Override
     public TranslatableMessage getTranslatableMessage() {
         return translatableMessage;
     }
 
     @Override
     public String getMessage() {
-        return this.translatableMessage.translate(Common.getTranslations());
+        return super.getMessage();
     }
 }

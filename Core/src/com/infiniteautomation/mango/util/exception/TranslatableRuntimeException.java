@@ -9,7 +9,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 /**
  * @author Jared Wiltshire
  */
-public class TranslatableRuntimeException extends RuntimeException {
+public class TranslatableRuntimeException extends RuntimeException implements TranslatableExceptionI {
     private static final long serialVersionUID = 1L;
 
     private TranslatableMessage translatableMessage = null;
@@ -31,6 +31,7 @@ public class TranslatableRuntimeException extends RuntimeException {
         super(cause);
     }
 
+    @Override
     public TranslatableMessage getTranslatableMessage() {
         return translatableMessage;
     }
