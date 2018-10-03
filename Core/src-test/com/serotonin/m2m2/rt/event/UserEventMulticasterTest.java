@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.rt.event;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,45 @@ import com.serotonin.m2m2.vo.User;
 public class UserEventMulticasterTest {
 
     @Test
+    public void testAddRemoveListeners() {
+        int userCount = 3;
+        AtomicInteger idCounter = new AtomicInteger(1);
+        
+        List<User> users = createUsers(userCount, 0, idCounter);
+        List<MockUserEventListener> listenerSet1 = new ArrayList<>();
+        UserEventListener multicaster = null;
+        
+        //Add 3 listeners
+        for(User u : users) {
+            MockUserEventListener l = new MockUserEventListener(u);
+            listenerSet1.add(l);
+            multicaster = UserEventMulticaster.add(multicaster, l);
+        }
+        
+        //Ensure 3 listeners
+        assertEquals(3, UserEventMulticaster.getListenerCount(multicaster));
+        
+        //Remove 3 listeners
+        for(MockUserEventListener l : listenerSet1)
+            multicaster = UserEventMulticaster.remove(multicaster, l);
+        
+        //Ensure 0 listeners
+        assertNull(multicaster);
+                
+        //Add 3 listeners
+        List<MockUserEventListener> listenerSet2 = new ArrayList<>();
+        for(User u : users) {
+            MockUserEventListener l = new MockUserEventListener(u);
+            listenerSet2.add(l);
+            multicaster = UserEventMulticaster.add(multicaster, l);
+        }
+        
+        //Confirm 3 listeners
+        assertEquals(3, UserEventMulticaster.getListenerCount(multicaster));
+    }
+    
+    
+    @Test
     public void testMulticastEventsForUser() {
         
         int dataPointId = 1;
@@ -36,7 +76,7 @@ public class UserEventMulticasterTest {
         for(User u : users) {
             MockUserEventListener l = new MockUserEventListener(u);
             listeners.add(l);
-            multicaster = UserEventMulticaster.add(l, multicaster);
+            multicaster = UserEventMulticaster.add(multicaster, l);
         }
         
 
@@ -94,7 +134,7 @@ public class UserEventMulticasterTest {
             if(mockEventType.hasPermission(u)) //This work is normally done by the event manager handling the raiseEvent calls
                 idsToNotify.add(u.getId());    // through an EventNotifyWorkItem
             listeners.add(l);
-            multicaster = UserEventMulticaster.add(l, multicaster);
+            multicaster = UserEventMulticaster.add(multicaster, l);
         }
         
 
@@ -149,7 +189,7 @@ public class UserEventMulticasterTest {
     
     public List<User> createUsers(int size, int permType, AtomicInteger idCounter) {
         List<User> users = new ArrayList<>();
-        for(int i=0; i<2; i++) {
+        for(int i=0; i<size; i++) {
             User user = new User();
             user.setId(idCounter.getAndIncrement());
             user.setName("User" + i);

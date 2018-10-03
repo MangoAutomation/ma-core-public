@@ -878,11 +878,11 @@ public class EventManagerImpl implements EventManager {
     }
     @Override
     public synchronized void addUserEventListener(UserEventListener l) {
-        userEventMulticaster = UserEventMulticaster.add(l, userEventMulticaster);
+        userEventMulticaster = UserEventMulticaster.add(userEventMulticaster, l);
     }
     @Override
     public synchronized void removeUserEventListener(UserEventListener l) {
-        userEventMulticaster = UserEventMulticaster.remove(l, userEventMulticaster);
+        userEventMulticaster = UserEventMulticaster.remove(userEventMulticaster, l);
     }
     
     //

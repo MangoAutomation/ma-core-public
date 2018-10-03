@@ -32,6 +32,12 @@ public class UserEventMulticaster implements UserEventListener {
         return add(a2, b2);
     }
     
+    /**
+     * 
+     * @param a - Existing listener(s)
+     * @param b - new listener
+     * @return
+     */
     public static UserEventListener add(UserEventListener a, UserEventListener b) {
         if(a == null)
             return b;
@@ -40,17 +46,24 @@ public class UserEventMulticaster implements UserEventListener {
         return new UserEventMulticaster(a, b);
     }
     
-    public static UserEventListener remove(UserEventListener l, UserEventListener oldl) {
-        if (l == oldl || l == null)
+
+    /**
+     * 
+     * @param existing - Existing listener(s)
+     * @param toRemove - listener to remove from multicast
+     * @return
+     */
+    public static UserEventListener remove(UserEventListener existing, UserEventListener toRemove) {
+        if (existing == toRemove || existing == null)
             return null;
         
-        if (l instanceof UserEventMulticaster)
-            return ((UserEventMulticaster) l).remove(oldl);
+        if (existing instanceof UserEventMulticaster)
+            return ((UserEventMulticaster) existing).remove(toRemove);
         
-        return l;
+        return existing;
     }
     
-    private static int getListenerCount(UserEventListener l) {
+    static int getListenerCount(UserEventListener l) {
         if (l instanceof UserEventMulticaster) {
             UserEventMulticaster mc = (UserEventMulticaster) l;
             return getListenerCount(mc.a) + getListenerCount(mc.b);
