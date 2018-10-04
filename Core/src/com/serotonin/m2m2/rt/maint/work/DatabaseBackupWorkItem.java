@@ -38,7 +38,6 @@ public class DatabaseBackupWorkItem implements WorkItem {
 	private static final Log LOG = LogFactory.getLog(DatabaseBackupWorkItem.class);
 	// Used for filename and property value for last run
 	public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; 
-	public static final SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
 
 	// Lock to ensure we don't clobber files by running a backup
 	// during another one.
@@ -110,6 +109,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 			// Create the filename
 			String filename = "core-database-" + Common.databaseProxy.getType();
+			SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
 			String runtimeString = dateFormatter.format(new Date());
 			int maxFiles = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATABASE_BACKUP_FILE_COUNT);
 			// If > 1 then we will use a date in the filename
@@ -256,6 +256,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 				// Have we ever run?
 				if (lastRunDateString != null) {
+				    SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
 					Date lastRunDate = dateFormatter.parse(lastRunDateString);
 					DateTime lastRun = new DateTime(lastRunDate);
 					// Compute the next run time off of the last run time
