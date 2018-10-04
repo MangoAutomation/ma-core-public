@@ -40,6 +40,7 @@ public class Module {
 
     public static final String MODULE_DATA_ENV_PROP = "moduleData.location";
     public static final String MODULE_DATA_ENV_PROP_DEFAULT = "data";
+    public static final URI MODULES_BASE_URI = URI.create("/" + Constants.DIR_MODULES + "/");
 
     public static final ExportCodes VERSION_STATE_CODES = new ExportCodes();
     static {
@@ -140,7 +141,7 @@ public class Module {
      * @return relative URI from MA web root to the module's web directory
      */
     public URI webPath() {
-        return URI.create("/" + Constants.DIR_MODULES).resolve(name);
+        return MODULES_BASE_URI.resolve(name + "/");
     }
 
     /**
