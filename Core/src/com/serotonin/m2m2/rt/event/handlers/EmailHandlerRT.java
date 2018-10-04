@@ -121,16 +121,19 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
     @Override
     public void eventRaised(EventInstance evt) {
-        // Get the email addresses to send to
-        activeRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getActiveRecipients(),
-                new DateTime(evt.getActiveTimestamp()));
-
-        // Send an email to the active recipients.
-        sendEmail(evt, NotificationType.ACTIVE, activeRecipients);
+        
+        if(vo.getActiveRecipients() != null && !vo.getActiveRecipients().isEmpty()) {
+            // Get the email addresses to send to
+            activeRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getActiveRecipients(),
+                    new DateTime(evt.getActiveTimestamp()));
+    
+            // Send an email to the active recipients.
+            sendEmail(evt, NotificationType.ACTIVE, activeRecipients);
+        }
 
         // If an inactive notification is to be sent, save the active recipients.
         if (vo.isSendInactive()) {
-            if (vo.isInactiveOverride())
+            if (vo.isInactiveOverride() && vo.getInactiveRecipients() != null && !vo.getInactiveRecipients().isEmpty())
                 inactiveRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getInactiveRecipients(),
                         new DateTime(evt.getActiveTimestamp()));
             else
@@ -148,17 +151,21 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     // TimeoutClient
     //
     synchronized public void scheduleTimeout(EventInstance evt, long fireTime) {
-        // Get the email addresses to send to
-        Set<String> addresses = MailingListDao.getInstance().getRecipientAddresses(vo.getEscalationRecipients(), new DateTime(
-                fireTime));
-
-        // Send the escalation.
-        sendEmail(evt, NotificationType.ESCALATION, addresses);
-
-        // If an inactive notification is to be sent, save the escalation recipients, but only if inactive recipients
-        // have not been overridden.
-        if (vo.isSendInactive() && !vo.isInactiveOverride())
-            inactiveRecipients.addAll(addresses);
+        
+        if(vo.getEscalationRecipients() != null && !vo.getEscalationRecipients().isEmpty()) {
+            // Get the email addresses to send to
+            Set<String> addresses = MailingListDao.getInstance().getRecipientAddresses(vo.getEscalationRecipients(), new DateTime(
+                    fireTime));
+    
+            // Send the escalation.
+            sendEmail(evt, NotificationType.ESCALATION, addresses);
+            
+    
+            // If an inactive notification is to be sent, save the escalation recipients, but only if inactive recipients
+            // have not been overridden.
+            if (vo.isSendInactive() && !vo.isInactiveOverride())
+                inactiveRecipients.addAll(addresses);
+        }
         
         if (vo.isRepeatEscalations()) {
             //While evt will probably show ack'ed if ack'ed, the possibility exists for it to be deleted

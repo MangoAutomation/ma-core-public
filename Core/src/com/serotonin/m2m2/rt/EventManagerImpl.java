@@ -1025,9 +1025,11 @@ public class EventManagerImpl implements EventManager {
                 // so that the default users do not receive multiple
                 // notifications.
                 if (h instanceof EmailHandlerRT) {
-                    for (String addr : ((EmailHandlerRT) h)
-                            .getActiveRecipients())
-                        defaultAddresses.remove(addr);
+                    EmailHandlerRT eh = (EmailHandlerRT)h;
+                    if(eh.getActiveRecipients() != null) {
+                        for (String addr : eh.getActiveRecipients())
+                            defaultAddresses.remove(addr);
+                    }
                 }
             }
         }

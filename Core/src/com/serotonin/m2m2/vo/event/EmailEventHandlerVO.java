@@ -206,21 +206,12 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	@Override
 	public void validate(ProcessResult response) {
 		super.validate(response);
-        if (activeRecipients.isEmpty())
-            response.addGenericMessage("eventHandlers.noEmailRecips");
 
         if (sendEscalation) {
             if (escalationDelay <= 0)
                 response.addContextualMessage("escalationDelay", "eventHandlers.escalDelayError");
-            if (escalationRecipients.isEmpty())
-                response.addGenericMessage("eventHandlers.noEscalRecips");
         } else if(repeatEscalations)
             repeatEscalations = false;
-
-        if (sendInactive && inactiveOverride) {
-            if (inactiveRecipients == null || inactiveRecipients.isEmpty())
-                response.addGenericMessage("eventHandlers.noInactiveRecips");
-        }
         
         List<String> varNameSpace = new ArrayList<String>();
         if(additionalContext != null){
