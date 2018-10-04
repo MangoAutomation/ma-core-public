@@ -30,8 +30,30 @@ public class RestValidationResult {
 	public RestValidationResult(ProcessResult result){
 		this();
 		for(ProcessMessage message : result.getMessages()){
-			this.addError(message.getContextualMessage(), message.getContextKey());
+            TranslatableMessage msg;
+            if(message.getContextualMessage() != null)
+                msg = message.getContextualMessage();
+            else
+                msg = message.getGenericMessage();
+		    if(message.getLevel() != null) {
+		        switch(message.getLevel()) {
+                    case info:
+                        this.messages.add(new RestValidationMessage(msg, RestMessageLevel.ERROR, message.getContextKey()));
+                    break;
+                    case warning:
+                        this.messages.add(new RestValidationMessage(msg, RestMessageLevel.WARNING, message.getContextKey()));
+                    break;
+                    case error:
+                    default:
+                        this.messages.add(new RestValidationMessage(msg, RestMessageLevel.ERROR, message.getContextKey()));
+                    break;
+		        }
+		    }else {
+		        //Doubtful this will happen but whatever
+                this.messages.add(new RestValidationMessage(msg, RestMessageLevel.ERROR, message.getContextKey()));
+		    }
 		}
+		
 	}
 	
 	public RestValidationResult(){
