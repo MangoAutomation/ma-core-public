@@ -2,6 +2,7 @@
 * Fix bug in Event Manager's Event Listeners where listers were getting lost and not being removed when necessary
 * Fix bug where generic validation failure messages did not make it into the REST response
 * Relax requirement for email event handlers to have active/inactive/escalation recipients.  If no recipients exist then no email is sent.
+* Fix backup work items race conditions in system settings listeners
 
 *Version 3.5.0*
 * Adding data point tags to email template model
