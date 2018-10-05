@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -17,14 +18,16 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class MangoSwitchUserFilter extends SwitchUserFilter {
-    
+
     RequestMatcher suMatcher = new AntPathRequestMatcher("/rest/*/login/su", HttpMethod.POST.name());
     RequestMatcher exitSuMatcher = new AntPathRequestMatcher("/rest/*/login/exit-su", HttpMethod.POST.name());
 
     @Autowired
-    public MangoSwitchUserFilter(UserDetailsService userDetailsService, AuthenticationSuccessHandler authenticationSuccessHandler, ApplicationEventPublisher eventPublisher) {
+    public MangoSwitchUserFilter(UserDetailsService userDetailsService, AuthenticationSuccessHandler authenticationSuccessHandler,
+            AuthenticationFailureHandler failureHandler, ApplicationEventPublisher eventPublisher) {
         this.setUserDetailsService(userDetailsService);
         this.setSuccessHandler(authenticationSuccessHandler);
+        this.setFailureHandler(failureHandler);
         this.setApplicationEventPublisher(eventPublisher);
         this.setUsernameParameter("username");
     }
