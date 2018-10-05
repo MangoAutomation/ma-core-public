@@ -97,6 +97,9 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
     
     /**
      * Helper to publish attributes ensuring that the UNRELIABLE flag exists
+     *
+     * @param rt - can be null (nothing done if null)
+     * @param unreliable - if missing from rt's attributes what state to use
      */
     protected void publishAttributes(DataPointRT rt, boolean unreliable) {
         if(rt != null && parent.getVo().isPublishAttributeChanges()) {

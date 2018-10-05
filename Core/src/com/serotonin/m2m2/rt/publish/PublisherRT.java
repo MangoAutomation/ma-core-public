@@ -258,6 +258,10 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
                             PointValueTime pvt = dp.getPointValue();
                             if (pvt != null)
                                 publish(rt.getVo(), pvt);
+                            //Publish snapshot of attributes
+                            if(vo.isPublishAttributeChanges()) {
+                                rt.publishAttributes(dp, false);
+                            }
                         }
                     }
                 }
