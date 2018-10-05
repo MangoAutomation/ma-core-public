@@ -4,6 +4,7 @@
 * Relax requirement for email event handlers to have active/inactive/escalation recipients.  If no recipients exist then no email is sent.
 * Fix backup work items race conditions in system settings listeners
 * Publishers now publish attribute changes if configured to during snapshot send
+* Fix bug in very narrow case where if an exception occurred in a streamed REST query, failing to close a result set could leave a database connection zombied 
 
 *Version 3.5.0*
 * Adding data point tags to email template model

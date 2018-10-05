@@ -81,10 +81,10 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
         	 stopWatch = new LogStopWatch();
         try{
 	        PreparedStatement statement = this.dao.createPreparedStatement(selectSql, selectArgs, stream);
-	        ResultSet rs = statement.executeQuery();
 	        RowMapper<T> mapper = this.dao.getRowMapper();
 	        int index = 0;
         	try{
+                ResultSet rs = statement.executeQuery();
 		        while(rs.next()){
 	        		this.selectCallback.row(mapper.mapRow(rs, index), index);
 	        		index++;
@@ -94,7 +94,7 @@ public class StreamableSqlQuery<T  extends AbstractBasicVO> extends BaseSqlQuery
 	        	statement.cancel();
 	        	throw e;
 	        }finally{
-	        	statement.getConnection().close();
+	            statement.getConnection().close();
 	        	statement.close();
 	        }
         }catch(Exception e){
