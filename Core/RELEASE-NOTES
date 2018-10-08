@@ -8,6 +8,7 @@
 * Fix bug in Module.webPath()
 * Fix for returning error messages when switching user
 * Add edit-ui-pages as a default permission for creating JSON data items
+* Fix synchronization issue in virtual server serial sockets. 
 
 *Version 3.5.0*
 * Adding data point tags to email template model
