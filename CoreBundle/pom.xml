@@ -179,7 +179,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>point-links</artifactId>
-			<version>3.5.1-SNAPSHOT</version>
+			<version>3.5.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -336,7 +336,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>persistent-pub-ds</artifactId>
-			<version>3.5.1-SNAPSHOT</version>
+			<version>3.5.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
