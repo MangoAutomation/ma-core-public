@@ -100,6 +100,25 @@
 			</plugins>
 		</build>
     </profile>
+    <profile>
+        <id>commit-package-json</id>
+        <build>
+            <pluginManagement>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-scm-plugin</artifactId>
+                        <version>1.11.1</version>
+                        <configuration>
+                            <includes>package.json,pom.xml</includes>
+                            <message>[maven-release-plugin] ${project.name}-v${project.version}</message>
+                            <pushChanges>false</pushChanges>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </pluginManagement>
+        </build>
+    </profile>
  </profiles>
  <repositories>
     <repository>
@@ -326,9 +345,8 @@
                 but we have to do this in order to have modules
                 outside the core repo -->
             <commitByProject>true</commitByProject>
-            <!-- goals will evenually be used by the release:perform -->
-            <goals>install</goals>
-            <preparationGoals>install</preparationGoals>
+            <preparationGoals>-Pcommit-package-json clean install scm:add scm:checkin</preparationGoals>
+            <completionGoals>-Pcommit-package-json clean install scm:add scm:checkin</completionGoals>
             <tagNameFormat>${project.name}-v@{project.version}</tagNameFormat>
          </configuration>
       </plugin>
