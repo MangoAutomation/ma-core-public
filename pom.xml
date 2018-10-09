@@ -329,7 +329,7 @@
             <!-- goals will evenually be used by the release:perform -->
             <goals>install</goals>
             <preparationGoals>install</preparationGoals>
-            <tagNameFormat>@{project.groupId}-v@{project.version}</tagNameFormat>
+            <tagNameFormat>${project.name}-v@{project.version}</tagNameFormat>
          </configuration>
       </plugin>
       <plugin>
