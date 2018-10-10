@@ -16,7 +16,7 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 
-public class AddressEntry extends EmailRecipient {
+public class AddressEntry implements EmailRecipient {
     private String address;
 
     public String getAddress() {
@@ -59,13 +59,13 @@ public class AddressEntry extends EmailRecipient {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        super.jsonWrite(writer);
+        EmailRecipient.super.jsonWrite(writer);
         writer.writeEntry("address", address);
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        super.jsonRead(reader, jsonObject);
+        EmailRecipient.super.jsonRead(reader, jsonObject);
         address = jsonObject.getString("address");
         if (StringUtils.isBlank(address))
             throw new TranslatableJsonException("emport.error.recipient.missing.reference", "address");

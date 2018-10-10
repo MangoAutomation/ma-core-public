@@ -17,7 +17,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.User;
 
-public class UserEntry extends EmailRecipient {
+public class UserEntry implements EmailRecipient {
     private int userId;
     private User user;
 
@@ -74,7 +74,7 @@ public class UserEntry extends EmailRecipient {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        super.jsonWrite(writer);
+        EmailRecipient.super.jsonWrite(writer);
         if (user == null)
             user = UserDao.getInstance().getUser(userId);
         writer.writeEntry("username", user.getUsername());
@@ -82,7 +82,7 @@ public class UserEntry extends EmailRecipient {
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        super.jsonRead(reader, jsonObject);
+        EmailRecipient.super.jsonRead(reader, jsonObject);
 
         String username = jsonObject.getString("username");
         if (username == null)

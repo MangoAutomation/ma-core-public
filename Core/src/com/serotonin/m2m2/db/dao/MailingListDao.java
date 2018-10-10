@@ -7,24 +7,30 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
-import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
@@ -34,33 +40,25 @@ import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 /**
  * @author Matthew Lohbihler
  */
-public class MailingListDao extends BaseDao implements ValueMonitorOwner{
+@Repository
+public class MailingListDao extends AbstractDao<MailingList> {
 	
-    //Monitor for count of table
-    protected final AtomicIntegerMonitor countMonitor;
-
-    private static final LazyInitSupplier<MailingListDao> instance = new LazyInitSupplier<>(() -> {
-        return new MailingListDao();
+    private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
+        Object o = Common.getRuntimeContext().getBean(MailingListDao.class);
+        if(o == null)
+            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
+        return (MailingListDao)o;
     });
 
     
     private MailingListDao(){
-		this.countMonitor = new AtomicIntegerMonitor(this.getClass().getCanonicalName() + ".COUNT", new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"), this);
-        this.countMonitor.setValue(this.count());
-    	Common.MONITORED_VALUES.addIfMissingStatMonitor(this.countMonitor);
+        super(AuditEventType.TYPE_MAILING_LIST, "ml", new String[] {}, false, new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"));
 	}
     
     public static MailingListDao getInstance() {
-        return instance.get();
-    }
-    
-    public String generateUniqueXid() {
-        return generateUniqueXid(MailingList.XID_PREFIX, SchemaDefinition.MAILING_LISTS_TABLE);
+        return springInstance.get();
     }
 
-    public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, SchemaDefinition.MAILING_LISTS_TABLE);
-    }
 
     private static final String MAILING_LIST_SELECT = "select id, xid, name, receiveAlarmEmails from mailingLists ";
     private static final String COUNT = "SELECT COUNT(DISTINCT id) FROM mailingLists";
@@ -258,17 +256,51 @@ public class MailingListDao extends BaseDao implements ValueMonitorOwner{
         ejt.update("delete from mailingLists where id=?", new Object[] { mailingListId });
         this.countMonitor.decrement();
     }
+
+    @Override
+    protected String getXidPrefix() {
+        return MailingList.XID_PREFIX;
+    }
+
+    @Override
+    public MailingList getNewVo() {
+        return new MailingList();
+    }
+
+    @Override
+    protected String getTableName() {
+        return SchemaDefinition.MAILING_LISTS_TABLE;
+    }
+
+    @Override
+    protected Object[] voToObjectArray(MailingList vo) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+        map.put("id", Types.INTEGER);
+        map.put("xid", Types.VARCHAR);
+        map.put("name", Types.VARCHAR);
+        return map;
+    }
+
+    @Override
+    protected Map<String, IntStringPair> getPropertiesMap() {
+        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
+        return map;
+    }
+
+    @Override
+    public RowMapper<MailingList> getRowMapper() {
+        // TODO Auto-generated method stub
+        return null;
+    }
     
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
-	 */
-	@Override
-	public void reset(String monitorId) {
-		//We only have one monitor so:
-		this.countMonitor.setValue(this.count());
-	}
-	
-	public AtomicIntegerMonitor getMonitor(){
-		return this.countMonitor;
-	}
+    //TODO Mango 3.6 Remove this and fix Internal Module to use correct method
+    public AtomicIntegerMonitor getMonitor() {
+        return super.getCountMonitor();
+    }
 }

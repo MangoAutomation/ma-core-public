@@ -17,18 +17,19 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.validation.StringValidation;
 
-public class MailingList extends EmailRecipient {
+public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
+    
+    private static final long serialVersionUID = 1L;
+
     public static final String XID_PREFIX = "ML_";
 
-    private int id = Common.NEW_ID;
-    private String xid;
-    @JsonProperty
-    private String name;
     @JsonProperty
     private List<EmailRecipient> entries;
     private int receiveAlarmEmails = AlarmLevels.IGNORE;
@@ -157,5 +158,15 @@ public class MailingList extends EmailRecipient {
 		if(text != null){
 			receiveAlarmEmails = AlarmLevels.CODES.getId(text);
 		}
+    }
+
+    @Override
+    protected AbstractDao<MailingList> getDao() {
+        return MailingListDao.getInstance();
+    }
+
+    @Override
+    public String getTypeKey() {
+        return "event.audit.mailingList";
     }
 }

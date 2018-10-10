@@ -56,6 +56,7 @@ public class AuditEventType extends EventType{
     public static final String TYPE_JSON_DATA = "JSON_DATA";
     public static final String TYPE_EVENT_DETECTOR = "EVENT_DETECTOR";
     public static final String TYPE_PUBLISHER = "EVENT_PUBLISHER";
+    public static final String TYPE_MAILING_LIST = "MAILING_LIST";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
     public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
@@ -70,6 +71,7 @@ public class AuditEventType extends EventType{
         addEventType(TYPE_JSON_DATA, "event.audit.jsonData");
         addEventType(TYPE_EVENT_DETECTOR, "event.audit.eventDetector");
         addEventType(TYPE_PUBLISHER, "event.audit.publisher");
+        addEventType(TYPE_MAILING_LIST, "event.audit.mailingList");
 
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             addEventType(def.getTypeName(), def.getDescriptionKey());
