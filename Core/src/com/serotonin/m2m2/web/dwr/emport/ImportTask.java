@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -163,6 +164,34 @@ public class ImportTask extends ProgressiveTask {
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS)) 
         	addImporter(new EventDetectorImporter(jv.toJsonObject(), eventDetectorPoints));
 
+        //Quick hack to ensure the Global Scripts are imported first in case they are used in scripts that will be loaded during this import
+        final String globalScriptId = "sstGlobalScripts";
+        Iterator<ImportItem> it = importItems.iterator();
+        while(it.hasNext()) {
+            ImportItem item = it.next();
+            if(globalScriptId.equals(item.getEmportDefinition().getElementId())) {
+                it.remove();
+                Importer importer = new Importer(root) {
+                    
+                    private ImportItem gsImporter = item;
+                    
+                    @Override
+                    protected void importImpl() {
+                        try {
+                            if (!gsImporter.isComplete())
+                                gsImporter.importNext(ctx);
+                        } catch (JsonException e) {
+                            addException(e);
+                        }
+                    }
+                };
+                importer.setImportContext(importContext);
+                importer.setImporters(importers);
+                importers.add(0, importer);
+                break;
+            }
+        }
+        
         this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths 
 
         if(schedule)    

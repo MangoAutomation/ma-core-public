@@ -43,4 +43,11 @@ public class ImportItem {
         else if (list != null)
             emportDefinition.doImport(list.get(index++), importContext);
     }
+
+    /**
+     * @return
+     */
+    public EmportDefinition getEmportDefinition() {
+        return emportDefinition;
+    }
 }
