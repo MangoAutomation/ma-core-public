@@ -6,6 +6,8 @@ package com.serotonin.m2m2;
 
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,13 @@ import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.AbstractTimer;
 import com.serotonin.util.properties.MangoProperties;
+
+import freemarker.cache.FileTemplateLoader;
+import freemarker.cache.MultiTemplateLoader;
+import freemarker.cache.TemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.DefaultObjectWrapper;
+import freemarker.template.Version;
 
 /**
  * Dummy implementation for Mango Lifecycle for use in testing,
@@ -121,6 +130,8 @@ public class MockMangoLifecycle implements IMangoLifecycle{
             module.preInitialize(true, false);
         }
 
+        freemarkerInitialize();
+        
         //TODO This must be done only once because we have a static
         // final referece to the PointValueDao in the PointValueCache class
         // and so if you try to restart the database it doesn't get the new connection
@@ -190,6 +201,39 @@ public class MockMangoLifecycle implements IMangoLifecycle{
         runtimeContext.start();
     }
 
+    private void freemarkerInitialize() {
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
+
+        try {
+            List<TemplateLoader> loaders = new ArrayList<>();
+
+            // Add the overrides directory.
+            File override = new File(Common.MA_HOME, "overrides/ftl");
+            if (override.exists())
+                loaders.add(new FileTemplateLoader(override));
+
+            // Add the default template dir
+            loaders.add(new FileTemplateLoader(new File(Common.MA_HOME, "ftl")));
+
+            // Add template dirs defined by modules.
+            String path = Common.MA_HOME + "/" + Constants.DIR_WEB;
+            for (Module module : ModuleRegistry.getModules()) {
+                if (module.getEmailTemplateDirs() != null) {
+                    for(String templateDir : module.getEmailTemplateDirs())
+                        loaders.add(0, new FileTemplateLoader(new File(path + module.getWebPath(), templateDir)));
+                }
+            }
+
+            cfg.setTemplateLoader(new MultiTemplateLoader(loaders.toArray(new TemplateLoader[loaders.size()])));
+        }
+        catch (IOException e) {
+            throw new RuntimeException("Exception defining Freemarker template directory", e);
+        }
+
+        cfg.setObjectWrapper(new DefaultObjectWrapper());
+        Common.freemarkerConfiguration = cfg;
+    }
+    
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.IMangoLifecycle#isTerminated()
      */

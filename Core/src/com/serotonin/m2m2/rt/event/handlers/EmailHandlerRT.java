@@ -13,6 +13,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -126,10 +127,9 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             // Get the email addresses to send to
             activeRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getActiveRecipients(),
                     new DateTime(evt.getActiveTimestamp()));
-    
-            // Send an email to the active recipients.
-            sendEmail(evt, NotificationType.ACTIVE, activeRecipients);
         }
+        // Send an email to the active recipients.
+        sendEmail(evt, NotificationType.ACTIVE, activeRecipients);
 
         // If an inactive notification is to be sent, save the active recipients.
         if (vo.isSendInactive()) {
@@ -152,20 +152,23 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     //
     synchronized public void scheduleTimeout(EventInstance evt, long fireTime) {
         
+        Set<String> addresses;
         if(vo.getEscalationRecipients() != null && !vo.getEscalationRecipients().isEmpty()) {
             // Get the email addresses to send to
-            Set<String> addresses = MailingListDao.getInstance().getRecipientAddresses(vo.getEscalationRecipients(), new DateTime(
+            addresses = MailingListDao.getInstance().getRecipientAddresses(vo.getEscalationRecipients(), new DateTime(
                     fireTime));
-    
-            // Send the escalation.
-            sendEmail(evt, NotificationType.ESCALATION, addresses);
-            
-    
-            // If an inactive notification is to be sent, save the escalation recipients, but only if inactive recipients
-            // have not been overridden.
-            if (vo.isSendInactive() && !vo.isInactiveOverride())
-                inactiveRecipients.addAll(addresses);
+        }else {
+            addresses = new HashSet<>();
         }
+
+        // Send the escalation.
+        sendEmail(evt, NotificationType.ESCALATION, addresses);
+        
+
+        // If an inactive notification is to be sent, save the escalation recipients, but only if inactive recipients
+        // have not been overridden.
+        if (vo.isSendInactive() && !vo.isInactiveOverride())
+            inactiveRecipients.addAll(addresses);
         
         if (vo.isRepeatEscalations()) {
             //While evt will probably show ack'ed if ack'ed, the possibility exists for it to be deleted
@@ -184,9 +187,8 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         if (escalationTask != null)
             escalationTask.cancel();
 
-        if (inactiveRecipients != null && inactiveRecipients.size() > 0)
-            // Send an email to the inactive recipients.
-            sendEmail(evt, NotificationType.INACTIVE, inactiveRecipients);
+        // Send an email to the inactive recipients.
+        sendEmail(evt, NotificationType.INACTIVE, inactiveRecipients);
     }
 
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
@@ -247,7 +249,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         	subject = subject.substring(0,200);
         
         try {
-            String[] toAddrs = addresses.toArray(new String[0]);
+            String[] toAddrs;
+            if(addresses == null)
+                toAddrs = new String[0];
+            else
+                toAddrs = addresses.toArray(new String[0]);
+            
             UsedImagesDirective inlineImages = new UsedImagesDirective();
 
             // Send the email.
@@ -430,7 +437,8 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             for (String s : inlineImages.getImageList())
                 content.addInline(new EmailInline.FileInline(s, Common.getWebPath(s)));
 
-            EmailWorkItem.queueEmail(toAddrs, content, postEmail);
+            if(toAddrs.length > 0)
+                EmailWorkItem.queueEmail(toAddrs, content, postEmail);
         }
         catch (Exception e) {
             LOG.error("", e);

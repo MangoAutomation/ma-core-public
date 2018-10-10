@@ -1034,11 +1034,7 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        if (!defaultAddresses.isEmpty()) {
-            // If there are still any addresses left in the list, send them the
-            // notification.
-            EmailHandlerRT.sendActiveEmail(evt, defaultAddresses);
-        }
+        EmailHandlerRT.sendActiveEmail(evt, defaultAddresses);
     }
 
     private void handleInactiveEvent(EventInstance evt) {
