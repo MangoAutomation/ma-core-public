@@ -38,7 +38,7 @@ public class RestValidationResult {
 		    if(message.getLevel() != null) {
 		        switch(message.getLevel()) {
                     case info:
-                        this.messages.add(new RestValidationMessage(msg, RestMessageLevel.ERROR, message.getContextKey()));
+                        this.messages.add(new RestValidationMessage(msg, RestMessageLevel.INFORMATION, message.getContextKey()));
                     break;
                     case warning:
                         this.messages.add(new RestValidationMessage(msg, RestMessageLevel.WARNING, message.getContextKey()));
