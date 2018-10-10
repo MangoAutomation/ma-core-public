@@ -9,6 +9,7 @@
 * Fix for returning error messages when switching user
 * Add edit-ui-pages as a default permission for creating JSON data items
 * Fix synchronization issue in virtual server serial sockets. 
+* Ensure Global Scripts are imported first so that Meta point and Scripting data sources that are imported at the same time can use the scripts
 
 *Version 3.5.0*
 * Adding data point tags to email template model
