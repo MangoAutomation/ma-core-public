@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,6 +56,9 @@ public class MangoRuntimeContextConfiguration {
     private static final AtomicReference<ApplicationContext> RUNTIME_CONTEXT_HOLDER = new AtomicReference<>();
     private static final AtomicReference<WebApplicationContext> ROOT_WEB_CONTEXT_HOLDER = new AtomicReference<>();
 
+    private static final CompletableFuture<ApplicationContext> RUNTIME_CONTEXT_FUTURE = new CompletableFuture<>();
+    private static final CompletableFuture<WebApplicationContext> ROOT_WEB_CONTEXT_FUTURE = new CompletableFuture<>();
+
     /**
      * <p>Gets the spring runtime application context, only set after the context is refreshed (started).
      * If its not null, its safe to use.</p>
@@ -63,6 +67,15 @@ public class MangoRuntimeContextConfiguration {
      */
     public static ApplicationContext getRuntimeContext() {
         return RUNTIME_CONTEXT_HOLDER.get();
+    }
+
+    /**
+     * <p>Gets the spring runtime application context as a future that is completed when the context is refreshed</p>
+     *
+     * @return future which is completed when runtime context has refreshed
+     */
+    public static CompletableFuture<ApplicationContext> getFutureRuntimeContext() {
+        return RUNTIME_CONTEXT_FUTURE;
     }
 
     /**
@@ -76,6 +89,15 @@ public class MangoRuntimeContextConfiguration {
      */
     public static WebApplicationContext getRootWebContext() {
         return ROOT_WEB_CONTEXT_HOLDER.get();
+    }
+
+    /**
+     * <p>Gets the spring root web application context as a future that is completed when the context is refreshed</p>
+     *
+     * @return future which is completed when the root web application context has refreshed
+     */
+    public static CompletableFuture<WebApplicationContext> getFutureRootWebContext() {
+        return ROOT_WEB_CONTEXT_FUTURE;
     }
 
     public static final String REST_OBJECT_MAPPER_NAME = "restObjectMapper";
@@ -101,8 +123,10 @@ public class MangoRuntimeContextConfiguration {
 
         if (MangoWebApplicationInitializer.RUNTIME_CONTEXT_ID.equals(context.getId())) {
             RUNTIME_CONTEXT_HOLDER.compareAndSet(null, context);
+            RUNTIME_CONTEXT_FUTURE.complete(context);
         } else if (MangoWebApplicationInitializer.ROOT_WEB_CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
             ROOT_WEB_CONTEXT_HOLDER.compareAndSet(null, (WebApplicationContext) context);
+            ROOT_WEB_CONTEXT_FUTURE.complete((WebApplicationContext) context);
         }
     }
 
