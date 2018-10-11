@@ -74,6 +74,8 @@ create table mailingLists (
   xid varchar(100) not null,
   name varchar(40) not null,
   receiveAlarmEmails int not null,
+  readPermission varchar(255),
+  editPermission varchar(255),
   primary key (id)
 ) engine=InnoDB;
 alter table mailingLists add constraint mailingListsUn1 unique (xid);

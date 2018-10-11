@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import com.serotonin.json.JsonException;
@@ -22,7 +21,6 @@ import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.validation.StringValidation;
 
 public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
     
@@ -33,6 +31,10 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     @JsonProperty
     private List<EmailRecipient> entries;
     private int receiveAlarmEmails = AlarmLevels.IGNORE;
+    @JsonProperty
+    private Set<String> readPermissions;
+    @JsonProperty
+    private Set<String> editPermissions;
 
     /**
      * Integers that are present in the inactive intervals set are times at which the mailing list schedule is not to be
@@ -55,30 +57,6 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     @Override
     public int getReferenceId() {
         return id;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getXid() {
-        return xid;
-    }
-
-    public void setXid(String xid) {
-        this.xid = xid;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public List<EmailRecipient> getEntries() {
@@ -104,6 +82,34 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     public void setReceiveAlarmEmails(int receiveAlarmEmails) {
     	this.receiveAlarmEmails = receiveAlarmEmails;
     }
+ 
+    /**
+     * @return the readPermissions
+     */
+    public Set<String> getReadPermissions() {
+        return readPermissions;
+    }
+
+    /**
+     * @param readPermissions the readPermissions to set
+     */
+    public void setReadPermissions(Set<String> readPermissions) {
+        this.readPermissions = readPermissions;
+    }
+
+    /**
+     * @return the editPermissions
+     */
+    public Set<String> getEditPermissions() {
+        return editPermissions;
+    }
+
+    /**
+     * @param editPermissions the editPermissions to set
+     */
+    public void setEditPermissions(Set<String> editPermissions) {
+        this.editPermissions = editPermissions;
+    }
 
     @Override
     public void appendAddresses(Set<String> addresses, DateTime sendTime) {
@@ -127,13 +133,7 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     }
 
     public void validate(ProcessResult response) {
-        // Check that required fields are present.
-        if (StringUtils.isBlank(name))
-            response.addContextualMessage("name", "mailingLists.validate.nameRequired");
-
-        // Check field lengths
-        if (StringValidation.isLengthGreaterThan(name, 40))
-            response.addContextualMessage("name", "mailingLists.validate.nameGreaterThan40");
+        super.validate(response);
 
         // Check for entries.
         if (entries.size() == 0)

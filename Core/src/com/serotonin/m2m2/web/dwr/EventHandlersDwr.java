@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.ProcessEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -221,7 +223,12 @@ public class EventHandlersDwr extends BaseDwr {
         model.put("userNewScriptPermissions", new ScriptPermissions(user));
 
         // Get the mailing lists.
-        model.put(SchemaDefinition.MAILING_LISTS_TABLE, MailingListDao.getInstance().getMailingLists());
+        List<MailingList> lists = MailingListDao.getInstance().getAllFull();
+        Iterator<MailingList> it = lists.iterator();
+        while(it.hasNext())
+            if(!Permissions.hasAnyPermission(user, it.next().getReadPermissions()))
+                it.remove();
+        model.put(SchemaDefinition.MAILING_LISTS_TABLE, lists);
 
         // Get the users.
         model.put(SchemaDefinition.USERS_TABLE, UserDao.getInstance().getUsers());

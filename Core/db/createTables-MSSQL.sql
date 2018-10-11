@@ -69,6 +69,8 @@ create table mailingLists (
   xid nvarchar(100) not null,
   name nvarchar(40) not null,
   receiveAlarmEmails int not null,
+  readPermission nvarchar(255),
+  editPermission nvarchar(255),
   primary key (id)
 );
 alter table mailingLists add constraint mailingListsUn1 unique (xid);

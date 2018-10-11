@@ -21,7 +21,7 @@ public class MailingListImporter extends Importer {
         if (StringUtils.isBlank(xid))
             xid = ctx.getMailingListDao().generateUniqueXid();
 
-        MailingList vo = ctx.getMailingListDao().getMailingList(xid);
+        MailingList vo = ctx.getMailingListDao().getFullByXid(xid);
         if (vo == null) {
             vo = new MailingList();
             vo.setXid(xid);
@@ -38,7 +38,7 @@ public class MailingListImporter extends Importer {
             else {
                 // Sweet. Save it.
                 boolean isnew = vo.getId() == Common.NEW_ID;
-                ctx.getMailingListDao().saveMailingList(vo);
+                ctx.getMailingListDao().saveFull(vo);
                 addSuccessMessage(isnew, "emport.mailingList.prefix", xid);
             }
         }

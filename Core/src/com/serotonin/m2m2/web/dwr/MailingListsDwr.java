@@ -36,7 +36,7 @@ public class MailingListsDwr extends BaseDwr {
     @DwrPermission(admin = true)
     public ProcessResult init() {
         ProcessResult response = new ProcessResult();
-        response.addData("lists", MailingListDao.getInstance().getMailingLists());
+        response.addData("lists", MailingListDao.getInstance().getAllFull());
         response.addData("users", UserDao.getInstance().getUsers());
         return response;
     }
@@ -50,7 +50,7 @@ public class MailingListsDwr extends BaseDwr {
             ml.setEntries(new LinkedList<EmailRecipient>());
             return ml;
         }
-        return MailingListDao.getInstance().getMailingList(id);
+        return MailingListDao.getInstance().getFull(id);
     }
 
     @DwrPermission(admin = true)
@@ -72,7 +72,7 @@ public class MailingListsDwr extends BaseDwr {
 
         if (!response.getHasMessages()) {
             // Save the mailing list
-            mailingListDao.saveMailingList(ml);
+            mailingListDao.saveFull(ml);
             response.addData("mlId", ml.getId());
         }
         
@@ -84,7 +84,7 @@ public class MailingListsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void deleteMailingList(int mlId) {
-        MailingListDao.getInstance().deleteMailingList(mlId);
+        MailingListDao.getInstance().delete(mlId);
     }
 
     @DwrPermission(admin = true)

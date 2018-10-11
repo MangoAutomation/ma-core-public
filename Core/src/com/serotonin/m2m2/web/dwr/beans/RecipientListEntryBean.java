@@ -79,7 +79,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("recipientType", EmailRecipient.TYPE_CODES.getCode(recipientType));
         if (recipientType == EmailRecipient.TYPE_MAILING_LIST)
-            writer.writeEntry("mailingList", MailingListDao.getInstance().getMailingList(referenceId).getXid());
+            writer.writeEntry("mailingList", MailingListDao.getInstance().getFull(referenceId).getXid());
         else if (recipientType == EmailRecipient.TYPE_USER)
             writer.writeEntry("username", UserDao.getInstance().getUser(referenceId).getUsername());
         else if (recipientType == EmailRecipient.TYPE_ADDRESS)
@@ -103,7 +103,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
             if (text == null)
                 throw new TranslatableJsonException("emport.error.recipient.missing.reference", "mailingList");
 
-            MailingList ml = MailingListDao.getInstance().getMailingList(text);
+            MailingList ml = MailingListDao.getInstance().getFullByXid(text);
             if (ml == null)
                 throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "mailingList", text);
 
@@ -179,7 +179,7 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     				it.remove();
     			break;
     		case EmailRecipient.TYPE_MAILING_LIST:
-    			if(mlDao.getMailingList(bean.referenceId) == null)
+    			if(mlDao.get(bean.referenceId) == null)
     				it.remove();
     			break;
     		case EmailRecipient.TYPE_USER:

@@ -92,7 +92,7 @@ public abstract class EmailRecipientModel<T extends EmailRecipient> extends Abst
 			break;
 		case EmailRecipient.TYPE_MAILING_LIST:
 			//This only comes back with an XID from the page
-			MailingList list = MailingListDao.getInstance().getMailingList(((MailingList)r).getXid());
+			MailingList list = MailingListDao.getInstance().getFullByXid(((MailingList)r).getXid());
 			if(list != null)
 				bean.setReferenceId(list.getId());
 			break;
