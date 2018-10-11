@@ -84,4 +84,15 @@ public class ProcessResult {
     public void setData(Map<String, Object> data) {
         this.data = data;
     }
+    
+    /**
+     * A result is valid if there are no messages at the WARN or ERROR level
+     * @return
+     */
+    public boolean isValid() {
+        for(ProcessMessage m : messages)
+            if(m.getLevel() == Level.error || m.getLevel() == Level.warning)
+                return false;
+        return true;   
+    }
 }
