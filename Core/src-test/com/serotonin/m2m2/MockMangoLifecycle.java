@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
@@ -61,6 +63,7 @@ import freemarker.template.Version;
  */
 public class MockMangoLifecycle implements IMangoLifecycle{
 
+    static Log LOG = LogFactory.getLog(MockMangoLifecycle.class);
     protected boolean enableWebConsole;
     protected int webPort;
     protected List<Module> modules;
@@ -203,7 +206,12 @@ public class MockMangoLifecycle implements IMangoLifecycle{
 
     private void freemarkerInitialize() {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
-
+        File baseTemplateDir = new File(Common.MA_HOME, "ftl");
+        if(!baseTemplateDir.exists()) {
+            LOG.info("Not initializing Freemarker, this test is not running in Core source tree.  Requires ./ftl directory to initialize.");
+            return;
+        }
+            
         try {
             List<TemplateLoader> loaders = new ArrayList<>();
 
@@ -213,7 +221,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
                 loaders.add(new FileTemplateLoader(override));
 
             // Add the default template dir
-            loaders.add(new FileTemplateLoader(new File(Common.MA_HOME, "ftl")));
+            loaders.add(new FileTemplateLoader(baseTemplateDir));
 
             // Add template dirs defined by modules.
             String path = Common.MA_HOME + "/" + Constants.DIR_WEB;
