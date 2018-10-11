@@ -12,7 +12,7 @@ import com.serotonin.m2m2.util.ExceptionListWrapper;
  */
 public class UserEventMulticaster implements UserEventListener {
     
-    private int MULTICASTER_ID = -100;
+    private final int MULTICASTER_ID = -100;
     protected final UserEventListener a, b;
     
     protected UserEventMulticaster(UserEventListener a, UserEventListener b) {

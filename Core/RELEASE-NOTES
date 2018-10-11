@@ -11,6 +11,7 @@
 * Fix synchronization issue in virtual server serial sockets. 
 * Ensure Global Scripts are imported first so that Meta point and Scripting data sources that are imported at the same time can use the scripts
 * Allow emails event handlers to run without recipients to allow thier scripts to execute even though no email is sent
+* Fix bug where when only 1 User is logged in they recieve Audit and Do Not Log Events in the UI
 
 *Version 3.5.0*
 * Adding data point tags to email template model

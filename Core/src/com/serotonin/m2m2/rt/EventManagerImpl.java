@@ -1077,18 +1077,36 @@ public class EventManagerImpl implements EventManager {
         public void execute() {
             event.setIdsToNotify(userIds);
             try {
-                if(raised)
-                    listener.raised(event);
-                else if(returnToNormal)
-                    listener.returnToNormal(event);
-                else if(deactivated)
-                    listener.deactivated(event);
-                else if(acknowledged)
-                    listener.acknowledged(event);
+                if(listener instanceof UserEventMulticaster) {
+                    //Multi-cast
+                    if(raised)
+                        listener.raised(event);
+                    else if(returnToNormal)
+                        listener.returnToNormal(event);
+                    else if(deactivated)
+                        listener.deactivated(event);
+                    else if(acknowledged)
+                        listener.acknowledged(event);
+                }else {
+                    //Single listener, check ids first
+                    if(event.getIdsToNotify().contains(listener.getUserId())) {
+                        if(raised)
+                            listener.raised(event);
+                        else if(returnToNormal)
+                            listener.returnToNormal(event);
+                        else if(deactivated)
+                            listener.deactivated(event);
+                        else if(acknowledged)
+                            listener.acknowledged(event);
+                    }
+                }
+                
             } catch(ExceptionListWrapper e) {
-                log.warn("Exceptions in user event notify work item.");
+                log.error("Exceptions in user event notify work item.");
                 for(Exception e2 : e.getExceptions())
-                    log.warn("User event listener exception: " + e2.getMessage(), e2);
+                    log.error("User event listener exception: " + e2.getMessage(), e2);
+            }catch (Exception e) {
+                log.error(e.getMessage(), e);
             }
         }
 
