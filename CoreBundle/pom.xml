@@ -203,7 +203,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>sql-console</artifactId>
-			<version>3.5.1-SNAPSHOT</version>
+			<version>3.5.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -481,7 +481,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ui</artifactId>
-			<version>3.5.2-SNAPSHOT</version>
+			<version>3.5.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -505,7 +505,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>cloudConnect</artifactId>
-            <version>3.5.1-SNAPSHOT</version>
+            <version>3.5.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
         <dependency>
