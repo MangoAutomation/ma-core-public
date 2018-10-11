@@ -345,8 +345,8 @@
                 but we have to do this in order to have modules
                 outside the core repo -->
             <commitByProject>true</commitByProject>
-            <preparationGoals>-Pcommit-package-json clean install scm:add scm:checkin</preparationGoals>
-            <completionGoals>-Pcommit-package-json clean install scm:add scm:checkin</completionGoals>
+            <preparationGoals>-Pcommit-package-json clean deploy scm:add scm:checkin</preparationGoals>
+            <completionGoals>-Pcommit-package-json clean deploy scm:add scm:checkin</completionGoals>
             <tagNameFormat>${project.name}-v@{project.version}</tagNameFormat>
          </configuration>
       </plugin>
