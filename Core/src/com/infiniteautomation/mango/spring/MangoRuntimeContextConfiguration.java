@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +76,8 @@ public class MangoRuntimeContextConfiguration {
      * @return future which is completed when runtime context has refreshed
      */
     public static CompletableFuture<ApplicationContext> getFutureRuntimeContext() {
-        return RUNTIME_CONTEXT_FUTURE;
+        // thenApply() prevents the user of this API from completing the original CompletableFuture
+        return RUNTIME_CONTEXT_FUTURE.thenApply(Function.identity());
     }
 
     /**
@@ -97,7 +99,8 @@ public class MangoRuntimeContextConfiguration {
      * @return future which is completed when the root web application context has refreshed
      */
     public static CompletableFuture<WebApplicationContext> getFutureRootWebContext() {
-        return ROOT_WEB_CONTEXT_FUTURE;
+        // thenApply() prevents the user of this API from completing the original CompletableFuture
+        return ROOT_WEB_CONTEXT_FUTURE.thenApply(Function.identity());
     }
 
     public static final String REST_OBJECT_MAPPER_NAME = "restObjectMapper";
