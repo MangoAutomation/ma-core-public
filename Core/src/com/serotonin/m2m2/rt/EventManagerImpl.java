@@ -1034,7 +1034,9 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        EmailHandlerRT.sendActiveEmail(evt, defaultAddresses);
+        //Only run if there is are recipients
+        if(defaultAddresses.size() > 0)
+            EmailHandlerRT.sendActiveEmail(evt, defaultAddresses);
     }
 
     private void handleInactiveEvent(EventInstance evt) {
