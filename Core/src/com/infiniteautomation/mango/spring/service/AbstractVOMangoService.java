@@ -5,8 +5,10 @@ package com.infiniteautomation.mango.spring.service;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -15,6 +17,8 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.validation.StringValidation;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * Base Service
@@ -136,6 +140,42 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
         ensureEditPermission(user, vo);
         dao.delete(vo.getId());
         return vo;
+    }
+    
+    /**
+     * Query for VOs
+     * @param conditions
+     * @param callback
+     */
+    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
+        dao.customizedQuery(conditions, callback);
+    }
+    
+    /**
+     * Query for VOs
+     * @param conditions
+     * @param callback
+     */
+    public void customizedQuery(ASTNode conditions, MappedRowCallback<T> callback) {
+        dao.customizedQuery(dao.rqlToCondition(conditions), callback);
+    }
+    
+    /**
+     * Count VOs
+     * @param conditions
+     * @return
+     */
+    public int customizedCount(ConditionSortLimit conditions) {
+        return dao.customizedCount(conditions);
+    }
+    
+    /**
+     * Count VOs
+     * @param conditions - RQL AST Node
+     * @return
+     */
+    public int customizedCount(ASTNode conditions) {
+        return dao.customizedCount(dao.rqlToCondition(conditions));
     }
 
     /**
