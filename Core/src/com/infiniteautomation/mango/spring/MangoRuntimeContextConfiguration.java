@@ -10,7 +10,6 @@ import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 import org.slf4j.Logger;
@@ -54,9 +53,6 @@ import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
         "com.serotonin.m2m2.db.dao" //DAOs
 })
 public class MangoRuntimeContextConfiguration {
-    private static final AtomicReference<ApplicationContext> RUNTIME_CONTEXT_HOLDER = new AtomicReference<>();
-    private static final AtomicReference<WebApplicationContext> ROOT_WEB_CONTEXT_HOLDER = new AtomicReference<>();
-
     private static final CompletableFuture<ApplicationContext> RUNTIME_CONTEXT_FUTURE = new CompletableFuture<>();
     private static final CompletableFuture<WebApplicationContext> ROOT_WEB_CONTEXT_FUTURE = new CompletableFuture<>();
 
@@ -67,7 +63,7 @@ public class MangoRuntimeContextConfiguration {
      * @return
      */
     public static ApplicationContext getRuntimeContext() {
-        return RUNTIME_CONTEXT_HOLDER.get();
+        return RUNTIME_CONTEXT_FUTURE.getNow(null);
     }
 
     /**
@@ -90,7 +86,7 @@ public class MangoRuntimeContextConfiguration {
      * @return
      */
     public static WebApplicationContext getRootWebContext() {
-        return ROOT_WEB_CONTEXT_HOLDER.get();
+        return ROOT_WEB_CONTEXT_FUTURE.getNow(null);
     }
 
     /**
@@ -125,10 +121,8 @@ public class MangoRuntimeContextConfiguration {
         }
 
         if (MangoWebApplicationInitializer.RUNTIME_CONTEXT_ID.equals(context.getId())) {
-            RUNTIME_CONTEXT_HOLDER.compareAndSet(null, context);
             RUNTIME_CONTEXT_FUTURE.complete(context);
         } else if (MangoWebApplicationInitializer.ROOT_WEB_CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
-            ROOT_WEB_CONTEXT_HOLDER.compareAndSet(null, (WebApplicationContext) context);
             ROOT_WEB_CONTEXT_FUTURE.complete((WebApplicationContext) context);
         }
     }
