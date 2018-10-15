@@ -60,7 +60,7 @@ public class MangoRuntimeContextConfiguration {
      * <p>Gets the spring runtime application context, only set after the context is refreshed (started).
      * If its not null, its safe to use.</p>
      *
-     * @return
+     * @return the Spring runtime application context if it has been refreshed, otherwise null
      */
     public static ApplicationContext getRuntimeContext() {
         return RUNTIME_CONTEXT_FUTURE.getNow(null);
@@ -83,7 +83,7 @@ public class MangoRuntimeContextConfiguration {
      * Prefer getting the application context from the request/servlet context if possible:
      * <p><code>WebApplicationContext webApplicationContext = WebApplicationContextUtils.getRequiredWebApplicationContext(request.getServletContext());</code></p>
      *
-     * @return
+     * @return the Spring root web application context if it has been refreshed, otherwise null
      */
     public static WebApplicationContext getRootWebContext() {
         return ROOT_WEB_CONTEXT_FUTURE.getNow(null);
