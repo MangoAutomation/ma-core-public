@@ -67,10 +67,10 @@ public class DailySchedule {
                 TimeValue tv = ScheduleUtils.parseTimeValue(change);
                 long offset = tv.getSeconds();
                 if(offset <= lastOffset)
-                    response.addContextualMessage("offsets", "advancedScheduler.validate.offsetsOutOfOrder");
+                    response.addContextualMessage("offsets", "schedule.validate.offsetsOutOfOrder");
                 lastOffset = offset;
             }catch(Exception e) {
-                response.addContextualMessage("changes", "advancedScheduler.validate.invalidTimeFormat");
+                response.addContextualMessage("changes", "schedule.validate.invalidTimeFormat");
             }
         }
     }

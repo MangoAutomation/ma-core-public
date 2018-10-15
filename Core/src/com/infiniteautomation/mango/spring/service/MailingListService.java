@@ -9,11 +9,14 @@ import org.springframework.stereotype.Service;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
+import com.serotonin.m2m2.vo.mailingList.UserEntry;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -38,13 +41,37 @@ public class MailingListService extends AbstractVOMangoService<MailingList> {
         
         if(vo.getEntries() == null || vo.getEntries().size() == 0)
             result.addGenericMessage("mailingLists.validate.entries");
-        //TODO Validate each entry
+        else
+            for(EmailRecipient recipient : vo.getEntries()) {
+                //TODO SEE EXCEL REPORTS FOR HOW TO use Context Key
+                switch(recipient.getRecipientType()) {
+                    case EmailRecipient.TYPE_ADDRESS:
+                        //TODO Ensure valid email format...
+                        break;
+                    case EmailRecipient.TYPE_MAILING_LIST:
+                        result.addContextualMessage("recipients", "validate.invalidValue");
+                        break;
+                    case EmailRecipient.TYPE_USER:
+                        //Ensure the user exists
+                        UserEntry ue = (UserEntry)recipient;
+                        if(UserDao.getInstance().get(ue.getUserId()) == null)
+                            result.addContextualMessage("recipients", "validate.invalidValue");
+                        break;
+                }
+            }
         
+        Permissions.validateAddedPermissions(vo.getReadPermissions(), user, result, "readPermissions");
+        Permissions.validateAddedPermissions(vo.getEditPermissions(), user, result, "editPermissions");
+
+        if(vo.getInactiveIntervals() != null) {
+            if(vo.getInactiveIntervals().size() > 672)
+                result.addContextualMessage("inactiveSchedule", "validate.invalidValue");
+        }
         if(result.getHasMessages())
             throw new ValidationException(result);
     }
  
-
+    
     /**
      * Can this user create a mailing list
      * 

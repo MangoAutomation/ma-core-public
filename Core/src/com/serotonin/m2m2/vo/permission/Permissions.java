@@ -320,6 +320,25 @@ public class Permissions {
         }
 
         Set<String> itemPermissionsSet = explodePermissionGroups(itemPermissions);
+        validateAddedPermissions(itemPermissionsSet, user, response, contextKey);
+    }
+
+    /**
+     * Validate permissions that are being set on an item.
+     *
+     * Any permissions that the PermissionHolder does not have are invalid unless that user is an admin.
+     * 
+     * @param itemPermissionsSet
+     * @param user
+     * @param response
+     * @param contextKey
+     */
+    public static void validateAddedPermissions(Set<String> itemPermissionsSet, PermissionHolder user, ProcessResult response, String contextKey) {
+        if (user == null) {
+            response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
+            return;
+        }
+
         for(String permission : itemPermissionsSet) {
             Matcher matcher = SPACE_PATTERN.matcher(permission);
             if(matcher.find()) {
@@ -333,7 +352,7 @@ public class Permissions {
             response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
         }
     }
-
+    
     public static boolean hasSinglePermission(PermissionHolder user, String requiredPermission) {
         ensureValidPermissionHolder(user);
 

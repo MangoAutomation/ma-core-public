@@ -124,7 +124,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(vo, user);
-        dao.save(vo);
+        dao.saveFull(vo);
         return vo;
     }
     
