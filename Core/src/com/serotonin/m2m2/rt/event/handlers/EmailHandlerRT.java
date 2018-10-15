@@ -122,7 +122,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
     @Override
     public void eventRaised(EventInstance evt) {
-        
+
         if(vo.getActiveRecipients() != null && !vo.getActiveRecipients().isEmpty()) {
             // Get the email addresses to send to
             activeRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getActiveRecipients(),
@@ -150,8 +150,9 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     //
     // TimeoutClient
     //
+    @Override
     synchronized public void scheduleTimeout(EventInstance evt, long fireTime) {
-        
+
         Set<String> addresses;
         if(vo.getEscalationRecipients() != null && !vo.getEscalationRecipients().isEmpty()) {
             // Get the email addresses to send to
@@ -163,13 +164,13 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
         // Send the escalation.
         sendEmail(evt, NotificationType.ESCALATION, addresses);
-        
+
 
         // If an inactive notification is to be sent, save the escalation recipients, but only if inactive recipients
         // have not been overridden.
         if (vo.isSendInactive() && !vo.isInactiveOverride())
             inactiveRecipients.addAll(addresses);
-        
+
         if (vo.isRepeatEscalations()) {
             //While evt will probably show ack'ed if ack'ed, the possibility exists for it to be deleted
             // and in which case we want to notice rather than send emails forever.
@@ -191,14 +192,22 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         sendEmail(evt, NotificationType.INACTIVE, inactiveRecipients);
     }
 
+    /**
+     * Should only be called by EventManagerImpl. This method sends emails to all users and mailing lists
+     * which have been configured to receive events of this level.
+     *
+     * @param evt
+     * @param addresses  A set of email addresses that will be notified of all events over a certain level
+     * which is configured on each user or on a mailing list
+     */
     public static void sendActiveEmail(EventInstance evt, Set<String> addresses) {
         sendEmail(evt, NotificationType.ACTIVE, addresses, null, false, 0, false, null, null, null, null, null, null);
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
-        sendEmail(evt, notificationType, addresses, vo.getName(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(), 
-        		vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext(), vo.getScript(), 
-        		new SetCallback(vo.getScriptPermissions()), vo.getScriptPermissions());
+        sendEmail(evt, notificationType, addresses, vo.getName(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(),
+                vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext(), vo.getScript(),
+                new SetCallback(vo.getScriptPermissions()), vo.getScriptPermissions());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
@@ -213,22 +222,22 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             }
         }
 
-       Translations translations = Common.getTranslations();
-       if(StringUtils.isBlank(alias)){
-    	   //Just set the subject to the message
-    	   alias = evt.getMessage().translate(translations);
-    	   
-    	   //Strip out the HTML and the &nbsp
-    	   alias = StringEscapeUtils.unescapeHtml4(alias);
-           //Since we have <br/> in the code and that isn't proper HTML we need to remove it by hand
-           alias = alias.replace("<br/>", "\n");
-       }//end if alias was blank
-       
+        Translations translations = Common.getTranslations();
+        if(StringUtils.isBlank(alias)){
+            //Just set the subject to the message
+            alias = evt.getMessage().translate(translations);
+
+            //Strip out the HTML and the &nbsp
+            alias = StringEscapeUtils.unescapeHtml4(alias);
+            //Since we have <br/> in the code and that isn't proper HTML we need to remove it by hand
+            alias = alias.replace("<br/>", "\n");
+        }//end if alias was blank
+
         // Determine the subject to use.
         TranslatableMessage subjectMsg;
         TranslatableMessage notifTypeMsg = new TranslatableMessage(notificationType.getKey());
         if (StringUtils.isBlank(alias)) {
-        	//Make these more descriptive
+            //Make these more descriptive
             if (evt.getId() == Common.NEW_ID)
                 subjectMsg = new TranslatableMessage("ftl.subject.default", notifTypeMsg);
             else
@@ -246,15 +255,15 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
         //Trim the subject if its too long
         if(subject.length() > 200)
-        	subject = subject.substring(0,200);
-        
+            subject = subject.substring(0,200);
+
         try {
             String[] toAddrs;
             if(addresses == null)
                 toAddrs = new String[0];
             else
                 toAddrs = addresses.toArray(new String[0]);
-            
+
             UsedImagesDirective inlineImages = new UsedImagesDirective();
 
             // Send the email.
@@ -265,107 +274,107 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             model.put("img", inlineImages);
             model.put("instanceDescription", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
             if(includeSystemInfo){
-            	//Get the Work Items
-            	List<WorkItemModel> highPriorityWorkItems = Common.backgroundProcessing.getHighPriorityServiceItems();
-            	model.put("highPriorityWorkItems", highPriorityWorkItems);
-            	List<WorkItemModel> mediumPriorityWorkItems = Common.backgroundProcessing.getMediumPriorityServiceQueueItems();
-            	model.put("mediumPriorityWorkItems", mediumPriorityWorkItems);
-            	List<WorkItemModel> lowPriorityWorkItems = Common.backgroundProcessing.getLowPriorityServiceQueueItems();
-            	model.put("lowPriorityWorkItems", lowPriorityWorkItems);
-            	model.put("threadList", getThreadsList());
+                //Get the Work Items
+                List<WorkItemModel> highPriorityWorkItems = Common.backgroundProcessing.getHighPriorityServiceItems();
+                model.put("highPriorityWorkItems", highPriorityWorkItems);
+                List<WorkItemModel> mediumPriorityWorkItems = Common.backgroundProcessing.getMediumPriorityServiceQueueItems();
+                model.put("mediumPriorityWorkItems", mediumPriorityWorkItems);
+                List<WorkItemModel> lowPriorityWorkItems = Common.backgroundProcessing.getLowPriorityServiceQueueItems();
+                model.put("lowPriorityWorkItems", lowPriorityWorkItems);
+                model.put("threadList", getThreadsList());
             }
 
             int type = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
-            
+
             //If we are a point event then add the value
             if(evt.getEventType() instanceof DataPointEventType){
-            	DataPointVO dp = (DataPointVO)evt.getContext().get("point");
-            	if(dp != null){
-            		DataPointRT rt = Common.runtimeManager.getDataPoint(dp.getId());
-            		if(rt != null){
-            			List<PointValueTime> pointValues = null;
-            			if( pointValueCount > 0)
-            				pointValues = rt.getLatestPointValues(pointValueCount);
-            			if((pointValues != null)&&(pointValues.size() > 0)){
-            				
-            				if (type == MangoEmailContent.CONTENT_TYPE_HTML || type == MangoEmailContent.CONTENT_TYPE_BOTH){
-            					List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
-	            				for(PointValueTime pvt : pointValues){
-	            					RenderedPointValueTime rpvt = new RenderedPointValueTime();
-	            					
-	            					rpvt.setValue(Functions.getHtmlText(rt.getVO(), pvt));
-	                                rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
-	                                renderedPointValues.add(rpvt);
-	            				}
-	            				model.put("renderedHtmlPointValues", renderedPointValues);
-            				}
-            				
-            				if (type == MangoEmailContent.CONTENT_TYPE_TEXT || type == MangoEmailContent.CONTENT_TYPE_BOTH){
-            					List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
-	            				for(PointValueTime pvt : pointValues){
-	            					RenderedPointValueTime rpvt = new RenderedPointValueTime();
-	            					rpvt.setValue(Functions.getRenderedText(rt.getVO(), pvt));
-	                                rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
-	                                renderedPointValues.add(rpvt);
-	            				}
-            				model.put("renderedPointValues", renderedPointValues);
-            				}
-            			}
-            		}
-            	}
+                DataPointVO dp = (DataPointVO)evt.getContext().get("point");
+                if(dp != null){
+                    DataPointRT rt = Common.runtimeManager.getDataPoint(dp.getId());
+                    if(rt != null){
+                        List<PointValueTime> pointValues = null;
+                        if( pointValueCount > 0)
+                            pointValues = rt.getLatestPointValues(pointValueCount);
+                        if((pointValues != null)&&(pointValues.size() > 0)){
+
+                            if (type == MangoEmailContent.CONTENT_TYPE_HTML || type == MangoEmailContent.CONTENT_TYPE_BOTH){
+                                List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
+                                for(PointValueTime pvt : pointValues){
+                                    RenderedPointValueTime rpvt = new RenderedPointValueTime();
+
+                                    rpvt.setValue(Functions.getHtmlText(rt.getVO(), pvt));
+                                    rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
+                                    renderedPointValues.add(rpvt);
+                                }
+                                model.put("renderedHtmlPointValues", renderedPointValues);
+                            }
+
+                            if (type == MangoEmailContent.CONTENT_TYPE_TEXT || type == MangoEmailContent.CONTENT_TYPE_BOTH){
+                                List<RenderedPointValueTime> renderedPointValues = new ArrayList<RenderedPointValueTime>();
+                                for(PointValueTime pvt : pointValues){
+                                    RenderedPointValueTime rpvt = new RenderedPointValueTime();
+                                    rpvt.setValue(Functions.getRenderedText(rt.getVO(), pvt));
+                                    rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
+                                    renderedPointValues.add(rpvt);
+                                }
+                                model.put("renderedPointValues", renderedPointValues);
+                            }
+                        }
+                    }
+                }
             }
-            
+
             //Build the additional context for the email model
             if(additionalContext == null || pointValueCount <= 0)
-            	model.put("additionalContext", new HashMap<>(0));
+                model.put("additionalContext", new HashMap<>(0));
             else {
-            	Map<String, Map<String, Object>> context = new HashMap<>();
-            	for(IntStringPair pair : additionalContext) {
-            		Map<String, Object> point = new HashMap<String, Object>();
-            		DataPointRT rt = Common.runtimeManager.getDataPoint(pair.getKey());
-            		List<PointValueTime> pointValues;
-            		List<RenderedPointValueTime> renderedPointValues;
-            		DataPointVO dpvo;
-            		if(rt != null) {
-            			dpvo = rt.getVO();
-            			pointValues = rt.getLatestPointValues(pointValueCount);
-            			renderedPointValues = new ArrayList<RenderedPointValueTime>();
-            			if(pointValues != null && pointValues.size() > 0)
-            				for(PointValueTime pvt : pointValues) {
-            					RenderedPointValueTime rpvt = new RenderedPointValueTime();
-            					rpvt.setValue(Functions.getRenderedText(rt.getVO(), pvt));
+                Map<String, Map<String, Object>> context = new HashMap<>();
+                for(IntStringPair pair : additionalContext) {
+                    Map<String, Object> point = new HashMap<String, Object>();
+                    DataPointRT rt = Common.runtimeManager.getDataPoint(pair.getKey());
+                    List<PointValueTime> pointValues;
+                    List<RenderedPointValueTime> renderedPointValues;
+                    DataPointVO dpvo;
+                    if(rt != null) {
+                        dpvo = rt.getVO();
+                        pointValues = rt.getLatestPointValues(pointValueCount);
+                        renderedPointValues = new ArrayList<RenderedPointValueTime>();
+                        if(pointValues != null && pointValues.size() > 0)
+                            for(PointValueTime pvt : pointValues) {
+                                RenderedPointValueTime rpvt = new RenderedPointValueTime();
+                                rpvt.setValue(Functions.getRenderedText(rt.getVO(), pvt));
                                 rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
                                 renderedPointValues.add(rpvt);
-            				}
-            		} else {
-            			dpvo = DataPointDao.getInstance().get(pair.getKey());
-            			if(dpvo == null)
-            				continue;
-            			
-            			pointValues = Common.databaseProxy.newPointValueDao()
-            					.getLatestPointValues(pair.getKey(), pointValueCount);
-            			renderedPointValues = new ArrayList<RenderedPointValueTime>();
-        				for(PointValueTime pvt : pointValues) {
-        					RenderedPointValueTime rpvt = new RenderedPointValueTime();
-        					rpvt.setValue(Functions.getRenderedText(dpvo, pvt));
+                            }
+                    } else {
+                        dpvo = DataPointDao.getInstance().get(pair.getKey());
+                        if(dpvo == null)
+                            continue;
+
+                        pointValues = Common.databaseProxy.newPointValueDao()
+                                .getLatestPointValues(pair.getKey(), pointValueCount);
+                        renderedPointValues = new ArrayList<RenderedPointValueTime>();
+                        for(PointValueTime pvt : pointValues) {
+                            RenderedPointValueTime rpvt = new RenderedPointValueTime();
+                            rpvt.setValue(Functions.getRenderedText(dpvo, pvt));
                             rpvt.setTime(Functions.getFullSecondTime(pvt.getTime()));
                             renderedPointValues.add(rpvt);
-        				}
-            		}
-            		point.put("values", renderedPointValues);
-    				point.put("deviceName", dpvo.getDeviceName());
-    				point.put("name", dpvo.getName());
-    				point.put("contextKey", pair.getValue());
-    				context.put(pair.getValue(), point);
-            	}
-            	model.put("additionalContext", context);
+                        }
+                    }
+                    point.put("values", renderedPointValues);
+                    point.put("deviceName", dpvo.getDeviceName());
+                    point.put("name", dpvo.getName());
+                    point.put("contextKey", pair.getValue());
+                    context.put(pair.getValue(), point);
+                }
+                model.put("additionalContext", context);
             }
-            
+
             if(!StringUtils.isEmpty(script)) {
                 //Okay, a script is defined, let's pass it the model so that it may add to it
                 Map<String, Object> modelContext = new HashMap<String, Object>();
                 modelContext.put("model", model);
-                
+
                 Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
                 for(IntStringPair pair : additionalContext) {
                     DataPointRT dprt = Common.runtimeManager.getDataPoint(pair.getKey());
@@ -375,7 +384,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                             LOG.warn("Additional context point with ID: " + pair.getKey() + " and context name " + pair.getValue() + " could not be found.");
                             continue; //Not worth aborting the email, just warn it
                         }
-                        
+
                         if(targetVo.getDefaultCacheSize() == 0)
                             targetVo.setDefaultCacheSize(1);
                         dprt = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().getDataSource(targetVo.getDataSourceId()), null);
@@ -383,7 +392,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     }
                     context.put(pair.getValue(), dprt);
                 }
-                
+
                 modelContext.put(DO_NOT_SEND_KEY, CompiledScriptExecutor.UNCHANGED);
                 List<JsonImportExclusion> importExclusions = new ArrayList<JsonImportExclusion>(1);
                 importExclusions.add(new JsonImportExclusion("xid", handlerXid) {
@@ -392,48 +401,48 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                         return ConfigurationExportData.EVENT_HANDLERS;
                     }
                 });
-                
+
                 try (ScriptLog scriptLog = new ScriptLog("emailScript-" + evt.getId())){
                     CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-                    PointValueTime result = CompiledScriptExecutor.execute(compiledScript, context, modelContext, Common.timer.currentTimeMillis(), 
-                            DataTypes.ALPHANUMERIC, evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp(), 
-                            permissions, scriptLog,
-                            setCallback, importExclusions, false);
+                    PointValueTime result = CompiledScriptExecutor.execute(compiledScript, context, modelContext, Common.timer.currentTimeMillis(),
+                            DataTypes.ALPHANUMERIC, evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp(),
+                                    permissions, scriptLog,
+                                    setCallback, importExclusions, false);
                     if(result != null && result.getValue() == CompiledScriptExecutor.UNCHANGED) //The script cancelled the email
                         return;
-                    
+
                 } catch(ScriptPermissionsException|ScriptException|ResultTypeException e) {
                     LOG.error("Exception running email handler script: " + e.getMessage(), e);
                 }
             }
-            
+
             MangoEmailContent content;
             if(StringUtils.isEmpty(customTemplate))
-            	content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, Common.UTF8);
+                content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, Common.UTF8);
             else
-            	content = new MangoEmailContent(handlerXid, customTemplate, model, translations, subject);
-            
+                content = new MangoEmailContent(handlerXid, customTemplate, model, translations, subject);
+
             PostEmailRunnable[] postEmail = null;
             if(includeLogs){
-    	        final File logZip = getZippedLogfile(content, new File(Common.getLogsDir(), "ma.log"));
-    	        //Setup To delete the temp files from zip
-    	        if (logZip != null) {
-    	            // See that the temp file(s) gets deleted after the email is sent.
-    	        	PostEmailRunnable deleteTempFile = new PostEmailRunnable() {
-    	                @Override
-    	                public void run() {
-    	                    if (!logZip.delete())
-    	                        LOG.warn("Temp file " + logZip.getPath() + " not deleted");
-    	                    
-    	                    //Set our state to email failed if necessary
-    	                    //TODO Create an Event to notify of Failed Emails...
-    	                    //if(!this.isSuccess()){}
-    	                }
-    	            };
-    	            postEmail = new PostEmailRunnable[] { deleteTempFile };
-    	        }
+                final File logZip = getZippedLogfile(content, new File(Common.getLogsDir(), "ma.log"));
+                //Setup To delete the temp files from zip
+                if (logZip != null) {
+                    // See that the temp file(s) gets deleted after the email is sent.
+                    PostEmailRunnable deleteTempFile = new PostEmailRunnable() {
+                        @Override
+                        public void run() {
+                            if (!logZip.delete())
+                                LOG.warn("Temp file " + logZip.getPath() + " not deleted");
+
+                            //Set our state to email failed if necessary
+                            //TODO Create an Event to notify of Failed Emails...
+                            //if(!this.isSuccess()){}
+                        }
+                    };
+                    postEmail = new PostEmailRunnable[] { deleteTempFile };
+                }
             }
-            
+
             for (String s : inlineImages.getImageList())
                 content.addInline(new EmailInline.FileInline(s, Common.getWebPath(s)));
 
@@ -444,100 +453,100 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             LOG.error("", e);
         }
     }
-    
+
     private static List<Map<String,Object>> getThreadsList(){
-    	List<Map<String,Object>> models = new ArrayList<Map<String,Object>>();
-    	List<ThreadInfo> infos = Common.backgroundProcessing.getThreadsList(10);
-    	ThreadMXBean tmxb = ManagementFactory.getThreadMXBean();
-    	
-    	for(ThreadInfo info : infos){
-    		Map<String,Object> model = new HashMap<String,Object>();
-    		model.put("threadName", info.getThreadName());
-    		model.put("threadState", info.getThreadState().name());
-    		model.put("cpuTime", tmxb.getThreadCpuTime(info.getThreadId()));
-    		if(info.getBlockedTime() < 0)
-    			model.put("blockedTime", "n/a");
-    		else
-    			model.put("blockedTime", info.getBlockedTime());
-    		if(info.getWaitedTime() < 0)
-    			model.put("waitTime","n/a");
-    		else
-    			model.put("waitTime",info.getWaitedTime());
-    		String name = info.getLockName();
-    		if(name != null)
-    			model.put("lockName", name);
-    		else
-    			model.put("lockName", "none");
-    		name = info.getLockOwnerName();
-    		if(name != null)
-    			model.put("lockOwnerName", name);
-    		else
-    			model.put("lockOwnerName", "none");
-    		model.put("suspended", info.isSuspended());
-    		model.put("inNative", info.isInNative());
-    		models.add(model);
-    	}
-    	return models;
+        List<Map<String,Object>> models = new ArrayList<Map<String,Object>>();
+        List<ThreadInfo> infos = Common.backgroundProcessing.getThreadsList(10);
+        ThreadMXBean tmxb = ManagementFactory.getThreadMXBean();
+
+        for(ThreadInfo info : infos){
+            Map<String,Object> model = new HashMap<String,Object>();
+            model.put("threadName", info.getThreadName());
+            model.put("threadState", info.getThreadState().name());
+            model.put("cpuTime", tmxb.getThreadCpuTime(info.getThreadId()));
+            if(info.getBlockedTime() < 0)
+                model.put("blockedTime", "n/a");
+            else
+                model.put("blockedTime", info.getBlockedTime());
+            if(info.getWaitedTime() < 0)
+                model.put("waitTime","n/a");
+            else
+                model.put("waitTime",info.getWaitedTime());
+            String name = info.getLockName();
+            if(name != null)
+                model.put("lockName", name);
+            else
+                model.put("lockName", "none");
+            name = info.getLockOwnerName();
+            if(name != null)
+                model.put("lockOwnerName", name);
+            else
+                model.put("lockOwnerName", "none");
+            model.put("suspended", info.isSuspended());
+            model.put("inNative", info.isInNative());
+            models.add(model);
+        }
+        return models;
     }
 
-	private static File getZippedLogfile(EmailContent content, File file){
-		if (file != null) {
-			try{
-	            File zipFile = File.createTempFile("tempZIP", ".zip");
-	            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));
-	            zipOut.putNextEntry(new ZipEntry(file.getName()));
-	
-	            FileInputStream in = new FileInputStream(file);
-	            StreamUtils.transfer(in, zipOut);
-	            in.close();
-	
-	            zipOut.closeEntry();
-	            zipOut.close();
-	
-	            content.addAttachment(new EmailAttachment.FileAttachment(file.getName() + ".zip", zipFile));
-	
-	            return zipFile;
-	        }
-	        catch (IOException e) {
-	            LOG.error("Failed to create zip file", e);
-	        }
+    private static File getZippedLogfile(EmailContent content, File file){
+        if (file != null) {
+            try{
+                File zipFile = File.createTempFile("tempZIP", ".zip");
+                ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(zipFile));
+                zipOut.putNextEntry(new ZipEntry(file.getName()));
 
-		}
-		return null;
-	}
+                FileInputStream in = new FileInputStream(file);
+                StreamUtils.transfer(in, zipOut);
+                in.close();
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.ModelTimeoutClient#getName()
-	 */
-	@Override
-	public String getThreadName() {
-		return "Email handler " + vo.getXid(); 
-	}
+                zipOut.closeEntry();
+                zipOut.close();
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.ModelTimeoutClient#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		return "EmailHandler: " + this.vo.getXid();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-	 */
-	@Override
-	public int getQueueSize() {
-		return Common.defaultTaskQueueSize;
-	}
-    
-	class SetCallback extends ScriptPointValueSetter {
+                content.addAttachment(new EmailAttachment.FileAttachment(file.getName() + ".zip", zipFile));
+
+                return zipFile;
+            }
+            catch (IOException e) {
+                LOG.error("Failed to create zip file", e);
+            }
+
+        }
+        return null;
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.ModelTimeoutClient#getName()
+     */
+    @Override
+    public String getThreadName() {
+        return "Email handler " + vo.getXid();
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.ModelTimeoutClient#getTaskId()
+     */
+    @Override
+    public String getTaskId() {
+        return "EmailHandler: " + this.vo.getXid();
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+     */
+    @Override
+    public int getQueueSize() {
+        return Common.defaultTaskQueueSize;
+    }
+
+    class SetCallback extends ScriptPointValueSetter {
         public SetCallback(ScriptPermissions permissions) {
             super(permissions);
         }
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see
          * com.serotonin.mango.util.script.ScriptPointValueSetter#setImpl(com.serotonin.mango.rt.dataImage.IDataPointValueSource,
          * java.lang.Object, long)
@@ -555,7 +564,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     source = EmailHandlerRT.this;
                 else
                     source = new OneTimePointAnnotation(EmailHandlerRT.this, annotation);
-                
+
                 DataSourceRT<? extends DataSourceVO<?>> dsrt = Common.runtimeManager.getRunningDataSource(dprt.getDataSourceId());
                 dsrt.setPointValue(dprt, newValue, source);
             }

@@ -61,7 +61,7 @@ public class EventManagerImpl implements EventManager {
     private long lastAlarmTimestamp = 0;
     private int highestActiveAlarmLevel = 0;
     private UserEventListener userEventMulticaster = null;
-    
+
     /**
      * State machine allowed order:
      * PRE_INITIALIZE
@@ -148,6 +148,7 @@ public class EventManagerImpl implements EventManager {
 
         // Create user alarm records for all applicable users
         List<Integer> eventUserIds = new ArrayList<Integer>();
+        // set of email addresses which have been configured to receive events over a certain level
         Set<String> emailUsers = new HashSet<String>();
 
         List<Integer> userIdsToNotify = new ArrayList<Integer>();
@@ -162,6 +163,7 @@ public class EventManagerImpl implements EventManager {
 
             if (Permissions.hasEventTypePermission(user, type)) {
                 eventUserIds.add(user.getId());
+                // add email addresses for users which have been configured to receive events over a certain level
                 if (user.getReceiveAlarmEmails() > AlarmLevels.IGNORE && alarmLevel >= user.getReceiveAlarmEmails() && !StringUtils.isEmpty(user.getEmail()))
                     emailUsers.add(user.getEmail());
 
@@ -181,6 +183,7 @@ public class EventManagerImpl implements EventManager {
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
         DateTime now = new DateTime(Common.timer.currentTimeMillis());
+        // add email addresses for mailing lists which have been configured to receive events over a certain level
         for(MailingList ml : MailingListDao.getInstance().getAlarmMailingLists(alarmLevel)) {
             ml.appendAddresses(emailUsers, now);
         }
@@ -301,7 +304,7 @@ public class EventManagerImpl implements EventManager {
             return;
         List<User> activeUsers = userDao.getActiveUsers();
         UserEventListener multicaster = userEventMulticaster;
-        
+
         // Loop in case of multiples
         while (evt != null) {
             evt.returnToNormal(time, cause);
@@ -884,7 +887,7 @@ public class EventManagerImpl implements EventManager {
     public synchronized void removeUserEventListener(UserEventListener l) {
         userEventMulticaster = UserEventMulticaster.remove(userEventMulticaster, l);
     }
-    
+
     //
     // User Event Cache Access
     //
@@ -1014,8 +1017,15 @@ public class EventManagerImpl implements EventManager {
             evt.setHandlers(rts);
     }
 
-    private void handleRaiseEvent(EventInstance evt,
-            Set<String> defaultAddresses) {
+    /**
+     * Used to call eventRaised() on all EventHandlerRT instances, also sends emails to all users and mailing lists
+     * which have been configured to receive events of this level.
+     *
+     * @param evt
+     * @param defaultAddresses A set of email addresses that will be notified of all events over a certain level
+     * which is configured on each user or on a mailing list
+     */
+    private void handleRaiseEvent(EventInstance evt, Set<String> defaultAddresses) {
         if (evt.getHandlers() != null) {
             for (EventHandlerRT<?> h : evt.getHandlers()) {
                 h.eventRaised(evt);
@@ -1034,9 +1044,10 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        //Only run if there is are recipients
-        if(defaultAddresses.size() > 0)
+        //Only run if there are default recipients
+        if (defaultAddresses.size() > 0) {
             EmailHandlerRT.sendActiveEmail(evt, defaultAddresses);
+        }
     }
 
     private void handleInactiveEvent(EventInstance evt) {
@@ -1102,7 +1113,7 @@ public class EventManagerImpl implements EventManager {
                             listener.acknowledged(event);
                     }
                 }
-                
+
             } catch(ExceptionListWrapper e) {
                 log.error("Exceptions in user event notify work item.");
                 for(Exception e2 : e.getExceptions())
