@@ -338,7 +338,10 @@ public class Permissions {
             response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
             return;
         }
-
+        
+        if(itemPermissionsSet == null)
+            return;
+        
         for(String permission : itemPermissionsSet) {
             Matcher matcher = SPACE_PATTERN.matcher(permission);
             if(matcher.find()) {
