@@ -73,4 +73,19 @@ public class WeeklySchedule {
         }
         return count;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for(int i=0; i<dailySchedules.size(); i++) {
+            DailySchedule sched = dailySchedules.get(i);
+            builder.append(sched.toString());
+            if(i < dailySchedules.size()-1)
+                builder.append(",");
+            builder.append("\n");
+        }
+        builder.append("]");
+        return builder.toString();
+    }
 }

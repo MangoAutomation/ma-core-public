@@ -75,4 +75,17 @@ public class DailySchedule {
         }
     }
     
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("[");
+        for(int i=0; i<changes.size(); i++) {
+            String change = changes.get(i);
+            builder.append(change);
+            if(i < changes.size()-1)
+                builder.append(",");
+        }
+        builder.append("]");
+        return builder.toString();
+    }
 }
