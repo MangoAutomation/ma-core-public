@@ -68,16 +68,56 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws ValidationException
      */
     public T get(String xid, PermissionHolder user) throws NotFoundException, PermissionException, ValidationException {
-        T vo = dao.getFullByXid(xid);
+        return get(xid, user, false);
+    }
+    
+    /**
+     * Get relational data too
+     * @param xid
+     * @param user
+     * @return
+     * @throws NotFoundException
+     * @throws PermissionException
+     * @throws ValidationException
+     */
+    public T getFull(String xid, PermissionHolder user) throws NotFoundException, PermissionException, ValidationException {
+        return get(xid, user, true);
+    }
+    
+    /**
+     * 
+     * @param xid
+     * @param user
+     * @param full
+     * @return
+     */
+    protected T get(String xid, PermissionHolder user, boolean full) {
+        T vo;
+        if(full)
+            vo = dao.getFullByXid(xid);
+        else
+            vo = dao.getByXid(xid);
+           
         if(vo == null)
             throw new NotFoundException();
         ensureReadPermission(user, vo);
         return vo;
     }
-
-
+    
     /**
-     * 
+     * Insert a vo with its relational data
+     * @param vo
+     * @param user
+     * @return
+     * @throws PermissionException
+     * @throws ValidationException
+     */
+    public T insertFull(T vo, PermissionHolder user) throws PermissionException, ValidationException {
+        return insert(vo, user, true);
+    }
+    
+    /**
+     * Insert a vo without its relational data
      * @param vo
      * @param user
      * @return
@@ -85,6 +125,21 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws ValidationException
      */
     public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
+        return insert(vo, user, false);
+    }
+
+    
+    
+    /**
+     * 
+     * @param vo
+     * @param user
+     * @param full
+     * @return
+     * @throws PermissionException
+     * @throws ValidationException
+     */
+    protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         //Ensure they can create a list
         ensureCreatePermission(user);
         
@@ -93,12 +148,15 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
             vo.setXid(dao.generateUniqueXid());
         
         ensureValid(vo, user);
-        dao.saveFull(vo);
+        if(full)
+            dao.saveFull(vo);
+        else
+            dao.save(vo);
         return vo;
     }
 
     /**
-     * 
+     * Update a vo without its relational data
      * @param existingXid
      * @param vo
      * @param user
@@ -112,7 +170,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
 
 
     /**
-     * 
+     * Update a vo without its relational data
      * @param existing
      * @param vo
      * @param user
@@ -121,12 +179,47 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws ValidationException
      */
     public T update(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
+       return update(existing, vo, user, false);
+    }
+    
+    /**
+     * Update a vo and its relational data
+     * @param existingXid
+     * @param vo
+     * @param user
+     * @return
+     * @throws PermissionException
+     * @throws ValidationException
+     */
+    public T updateFull(String existingXid, T vo, User user) throws PermissionException, ValidationException {
+        return updateFull(get(existingXid, user), vo, user);
+    }
+
+
+    /**
+     * Update a vo and its relational data
+     * @param existing
+     * @param vo
+     * @param user
+     * @return
+     * @throws PermissionException
+     * @throws ValidationException
+     */
+    public T updateFull(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
+        return update(existing, vo, user, true);
+    }
+    
+    protected T update(T existing, T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(vo, user);
-        dao.saveFull(vo);
+        if(full)
+            dao.saveFull(vo);
+        else
+            dao.save(vo);
         return vo;
     }
+
     
     /**
      * 
@@ -143,7 +236,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
     }
     
     /**
-     * Query for VOs
+     * Query for VOs without returning the relational info
      * @param conditions
      * @param callback
      */
@@ -152,12 +245,36 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
     }
     
     /**
-     * Query for VOs
+     * Query for VOs and load the relational info
      * @param conditions
      * @param callback
      */
     public void customizedQuery(ASTNode conditions, MappedRowCallback<T> callback) {
         dao.customizedQuery(dao.rqlToCondition(conditions), callback);
+    }
+    
+    /**
+     * Query for VOs and load the relational info
+     * @param conditions
+     * @param callback
+     */
+    public void customizedQueryFull(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
+        dao.customizedQuery(conditions, (item, index) ->{
+            dao.loadRelationalData(item);
+            callback.row(item, index);
+        });
+    }
+    
+    /**
+     * Query for VOs and collect the relational info
+     * @param conditions
+     * @param callback
+     */
+    public void customizedQueryFull(ASTNode conditions, MappedRowCallback<T> callback) {
+        dao.customizedQuery(dao.rqlToCondition(conditions), (item, index) ->{
+            dao.loadRelationalData(item);
+            callback.row(item, index);
+        });
     }
     
     /**
