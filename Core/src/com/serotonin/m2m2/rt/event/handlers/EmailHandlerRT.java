@@ -187,9 +187,10 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         // Cancel the escalation job in case it's there
         if (escalationTask != null)
             escalationTask.cancel();
-
+        
         // Send an email to the inactive recipients.
-        sendEmail(evt, NotificationType.INACTIVE, inactiveRecipients);
+        if(vo.isSendInactive())
+            sendEmail(evt, NotificationType.INACTIVE, inactiveRecipients);
     }
 
     /**
