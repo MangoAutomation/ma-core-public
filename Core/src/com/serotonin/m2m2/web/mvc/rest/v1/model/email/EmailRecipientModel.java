@@ -64,7 +64,11 @@ public abstract class EmailRecipientModel<T extends EmailRecipient> extends Abst
 		case EmailRecipient.TYPE_USER:
 			return new UserEntryModel((UserEntry) recipient.createEmailRecipient());
 		case EmailRecipient.TYPE_MAILING_LIST:
-			return new MailingListModel((MailingList)recipient.createEmailRecipient());
+		    MailingList list = MailingListDao.getInstance().getMailingList(recipient.getReferenceId());
+		    if(list != null)
+		        return new MailingListModel(list);
+		    else
+		        return null;
 		default:
 			throw new ShouldNeverHappenException("Unsupported Email Recipient Type: " + recipient.getRecipientType());
 		}

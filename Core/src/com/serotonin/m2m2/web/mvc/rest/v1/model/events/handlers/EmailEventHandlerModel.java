@@ -33,8 +33,11 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 
     public List<EmailRecipientModel<?>> getActiveRecipients() {
     	List<EmailRecipientModel<?>> models = new ArrayList<EmailRecipientModel<?>>();
-        for(RecipientListEntryBean b : this.data.getActiveRecipients())
-        	models.add(EmailRecipientModel.createModel(b));
+        for(RecipientListEntryBean b : this.data.getActiveRecipients()) {
+            EmailRecipientModel<?> model = EmailRecipientModel.createModel(b);
+            if(model != null)
+                models.add(model);
+        }
     	return models;
     }
 
@@ -64,8 +67,11 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 
     public List<EmailRecipientModel<?>> getEscalationRecipients() {
     	List<EmailRecipientModel<?>> models = new ArrayList<EmailRecipientModel<?>>();
-        for(RecipientListEntryBean b : this.data.getEscalationRecipients())
-        	models.add(EmailRecipientModel.createModel(b));
+        for(RecipientListEntryBean b : this.data.getEscalationRecipients()) {
+            EmailRecipientModel<?> model = EmailRecipientModel.createModel(b);
+            if(model != null)
+                models.add(model);
+        }
     	return models;
     }
 
@@ -110,8 +116,11 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 
     public List<EmailRecipientModel<?>> getInactiveRecipients() {
     	List<EmailRecipientModel<?>> models = new ArrayList<EmailRecipientModel<?>>();
-        for(RecipientListEntryBean b : this.data.getInactiveRecipients())
-        	models.add(EmailRecipientModel.createModel(b));
+        for(RecipientListEntryBean b : this.data.getInactiveRecipients()) {
+            EmailRecipientModel<?> model = EmailRecipientModel.createModel(b);
+            if(model != null)
+                models.add(model);
+        }
     	return models;
     }
 
