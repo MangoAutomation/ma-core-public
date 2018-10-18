@@ -56,8 +56,6 @@ class FutureConverter implements Runnable {
 
     @Override
     public void run() {
-        Thread.currentThread().setName("Mango FutureConverter loop");
-
         while (true) {
             try {
                 ConversionJob<Object> job;
@@ -105,9 +103,9 @@ class FutureConverter implements Runnable {
                     queue.add(job);
                 }
 
-            } catch (Throwable t) {
+            } catch (Exception e) {
                 if (log.isErrorEnabled()) {
-                    log.error("Error in CompletableFuture conversion loop", t);
+                    log.error("Error in CompletableFuture conversion loop, jobs may have been lost", e);
                 }
             }
         }

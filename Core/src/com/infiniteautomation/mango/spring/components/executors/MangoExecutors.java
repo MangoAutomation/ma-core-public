@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.exceptionHandling.MangoUncaughtExceptionHandler;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 
 /**
@@ -50,12 +51,13 @@ public final class MangoExecutors {
         }
     });
 
-    private volatile Future<?> futureConverterTask;
+    private volatile Thread futureConverterThread;
     private final LazyInitSupplier<FutureConverter> futureConverter = new LazyInitSupplier<>(() -> {
         FutureConverter converter = new FutureConverter(ForkJoinPool.commonPool());
 
-        // this ties up a thread from the executor's cached thread pool
-        futureConverterTask = executor.submit(converter);
+        futureConverterThread = new Thread(converter, "Mango FutureConverter loop");
+        futureConverterThread.setUncaughtExceptionHandler(new MangoUncaughtExceptionHandler());
+        futureConverterThread.start();
 
         return converter;
     });
@@ -70,9 +72,9 @@ public final class MangoExecutors {
         executor.shutdown();
 
         // interrupt the FutureConverter thread
-        Future<?> futureConverterTask = this.futureConverterTask;
-        if (futureConverterTask != null) {
-            futureConverterTask.cancel(true);
+        Thread futureConverterThread = this.futureConverterThread;
+        if (futureConverterThread != null) {
+            futureConverterThread.interrupt();
         }
 
         awaitTermination(Arrays.asList(scheduledExecutor, executor));
