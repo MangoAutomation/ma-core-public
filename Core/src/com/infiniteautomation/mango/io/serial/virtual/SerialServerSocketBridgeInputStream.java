@@ -9,10 +9,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.infiniteautomation.mango.io.serial.SerialPortInputStream;
 import com.serotonin.ShouldNeverHappenException;
 
 public class SerialServerSocketBridgeInputStream extends SerialPortInputStream {
+    private static final Log LOG = LogFactory.getLog(SerialServerSocketBridgeInputStream.class);
+    
 	private InputStream stream = null;
 	private ByteArrayInputStream bufferStream = null;
 	private final int bufferSize;
@@ -42,6 +47,8 @@ public class SerialServerSocketBridgeInputStream extends SerialPortInputStream {
     		currentBuffered = read;
     		currentPosition.set(0);
     		bufferStream = new ByteArrayInputStream(data);
+    		if(LOG.isDebugEnabled())
+    		    LOG.debug("SSSBIS: received " + read + " characters into buffer: " + data);
     	    return read;
 		}
 	}

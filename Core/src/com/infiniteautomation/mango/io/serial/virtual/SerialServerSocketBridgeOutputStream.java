@@ -25,6 +25,8 @@ public class SerialServerSocketBridgeOutputStream extends SerialPortOutputStream
 	public void write(int arg0) throws IOException {
 		if(this.stream == null)
 			throw new IOException("Socket connection not established.");
+		if(LOG.isTraceEnabled())
+		    LOG.trace("SSSBOS: sending byte: " + arg0);
 		this.stream.write(arg0);
 	}
 
