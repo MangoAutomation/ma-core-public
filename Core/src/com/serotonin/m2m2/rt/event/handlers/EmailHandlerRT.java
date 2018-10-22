@@ -136,7 +136,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             if (vo.isInactiveOverride() && vo.getInactiveRecipients() != null && !vo.getInactiveRecipients().isEmpty())
                 inactiveRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getInactiveRecipients(),
                         new DateTime(evt.getActiveTimestamp()));
-            else
+            else if(!vo.isInactiveOverride())
                 inactiveRecipients = activeRecipients;
         }
 
