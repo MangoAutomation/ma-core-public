@@ -172,4 +172,12 @@ public class OverridingFileResource extends Resource {
         }
         return base.getAlias();
     }
+
+    public Resource getOverrideResource() {
+        return override;
+    }
+
+    public Resource getBaseResource() {
+        return base;
+    }
 }
