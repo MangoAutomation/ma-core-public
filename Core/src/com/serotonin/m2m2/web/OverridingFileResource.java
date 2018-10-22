@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.channels.ReadableByteChannel;
 import java.util.HashSet;
@@ -162,5 +163,13 @@ public class OverridingFileResource extends Resource {
         if (override.exists())
             return override.getReadableByteChannel();
         return base.getReadableByteChannel();
+    }
+
+    @Override
+    public URI getAlias() {
+        if (override.exists()) {
+            return override.getAlias();
+        }
+        return base.getAlias();
     }
 }
