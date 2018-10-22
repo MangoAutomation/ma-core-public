@@ -60,6 +60,6 @@ public class OverridingWebAppContext extends WebAppContext {
         this.getAliasChecks().clear();
         addAliasCheck(new ApproveNonExistentDirectoryAliases());
         if(Common.envProps.getBoolean("web.security.followSymlinks", true))
-            addAliasCheck(new AllowSymLinkAliasChecker());
+            addAliasCheck(new AllowOverridingSymLinkAliasChecker());
     }
 }
