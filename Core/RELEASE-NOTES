@@ -1,8 +1,11 @@
 *Version 3.5.3*
+* Fix critical vulnerability on Windows systems
 * Fix bug in Email Event Handler REST model where a Mailing List did not have the name or xid set
 * Fix bug in Email Event Handler where emails were being prepared for every inactive event even if they were not configured to be sent.
 * Monitor the SSL/TLS certificate keystore for changes, if the file changes reload the keystore. Can be disabled by setting ssl.keystore.watchFile=false in the env.properties file
 * Add debug logging to serial server socket bridge input stream, trace to serial server socket bridge output stream
+* Add env property web.security.followSymlinks to allow Jetty to follow symbolic links, default true
+* Case sensitivity for web resources is now enforced on Windows machines
 
 *Version 3.5.2*
 * Improve performance for events by only preparing emails that will be sent.

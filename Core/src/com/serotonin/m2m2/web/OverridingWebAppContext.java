@@ -3,6 +3,8 @@ package com.serotonin.m2m2.web;
 import java.io.File;
 import java.io.IOException;
 
+import org.eclipse.jetty.server.handler.AllowSymLinkAliasChecker;
+import org.eclipse.jetty.server.handler.ContextHandler.ApproveNonExistentDirectoryAliases;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -54,6 +56,10 @@ public class OverridingWebAppContext extends WebAppContext {
         
         //Setup error handling
         setErrorHandler(new MangoErrorHandler());
-
+        
+        this.getAliasChecks().clear();
+        addAliasCheck(new ApproveNonExistentDirectoryAliases());
+        if(Common.envProps.getBoolean("web.security.followSymlinks", true))
+            addAliasCheck(new AllowSymLinkAliasChecker());
     }
 }
