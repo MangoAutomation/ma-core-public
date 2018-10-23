@@ -54,7 +54,7 @@ public class DataPointTagsDao extends BaseDao {
     public static DataPointTagsDao instance;
 
     public static final Name DATA_POINT_TAGS_ALIAS = DSL.name("tags");
-    public static final Table<Record> DATA_POINT_TAGS_NO_ALIAS = DSL.table(DSL.name("dataPointTags"));
+    public static final Table<Record> DATA_POINT_TAGS_NO_ALIAS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTTAGS_TABLE));
     public static final Table<Record> DATA_POINT_TAGS = DATA_POINT_TAGS_NO_ALIAS.as(DATA_POINT_TAGS_ALIAS);
 
     public static final Field<Integer> DATA_POINT_ID = DSL.field(DATA_POINT_TAGS_ALIAS.append("dataPointId"), SQLDataType.INTEGER.nullable(false));

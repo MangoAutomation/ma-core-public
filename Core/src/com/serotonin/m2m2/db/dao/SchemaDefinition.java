@@ -13,6 +13,7 @@ public class SchemaDefinition {
 	
 	public static final String DATASOURCES_TABLE = "dataSources";
 	public static final String DATAPOINTS_TABLE = "dataPoints";
+	public static final String DATAPOINTTAGS_TABLE = "dataPointTags";
 	public static final String EVENTS_TABLE = "events";
 	public static final String USER_EVENTS_TABLE = "userEvents";
 	public static final String AUDIT_TABLE = "audit";

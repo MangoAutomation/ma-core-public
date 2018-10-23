@@ -70,6 +70,7 @@ public class DBConvert {
         tableNames.add(SchemaDefinition.TEMPLATES_TABLE);
         tableNames.add(SchemaDefinition.DATASOURCES_TABLE);
         tableNames.add(SchemaDefinition.DATAPOINTS_TABLE);
+        tableNames.add(SchemaDefinition.DATAPOINTTAGS_TABLE);
         tableNames.add("pointValues");
         tableNames.add("pointValueAnnotations");
         tableNames.add(SchemaDefinition.EVENT_DETECTOR_TABLE);
