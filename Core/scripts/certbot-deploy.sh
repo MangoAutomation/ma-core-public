@@ -23,9 +23,12 @@ then
     if [ -e "$MA_ENV_PROPERTIES" ]
     then
         MA_KEYSTORE=$(getProp "$MA_ENV_PROPERTIES" "ssl.keystore.location")
-    else
-        MA_KEYSTORE="$MA_HOME/overrides/keystore.jks"
     fi
+
+    if [ -z "$MA_KEYSTORE" ]
+	then
+	    MA_KEYSTORE="$MA_HOME/overrides/keystore.jks"
+	fi
 fi
 
 if [ -z "$MA_KEYSTORE_PASSWORD" ]
@@ -33,9 +36,30 @@ then
     if [ -e "$MA_ENV_PROPERTIES" ]
     then
         MA_KEYSTORE_PASSWORD=$(getProp "$MA_ENV_PROPERTIES" "ssl.keystore.password")
-    else
-        MA_KEYSTORE_PASSWORD=password
     fi
+
+    if [ -z "$MA_KEYSTORE_PASSWORD" ]
+    then
+        MA_KEYSTORE_PASSWORD=freetextpassword
+    fi
+fi
+
+if [ -z "$MA_KEY_PASSWORD" ]
+then
+    if [ -e "$MA_ENV_PROPERTIES" ]
+    then
+        MA_KEY_PASSWORD=$(getProp "$MA_ENV_PROPERTIES" "ssl.key.password")
+    fi
+
+    if [ -z "$MA_KEY_PASSWORD" ]
+    then
+        MA_KEY_PASSWORD="$MA_KEYSTORE_PASSWORD"
+    fi
+fi
+
+if [ -z "$MA_KEY_ALIAS" ]
+then
+    MA_KEY_ALIAS=mango
 fi
 
 keytool_cmd="$JAVA_HOME/bin/keytool"
@@ -56,12 +80,14 @@ then
 fi
 
 openssl pkcs12 -export \
-    -out "$RENEWED_LINEAGE/keystore.p12" -passout pass:"$MA_KEYSTORE_PASSWORD" \
-    -in "$RENEWED_LINEAGE/fullchain.pem" -inkey "$RENEWED_LINEAGE/privkey.pem"
+    -in "$RENEWED_LINEAGE/fullchain.pem" -inkey "$RENEWED_LINEAGE/privkey.pem" \
+    -out "$RENEWED_LINEAGE/keystore.p12" -name "$MA_KEY_ALIAS" -passout pass:"$MA_KEYSTORE_PASSWORD"
 
 "$keytool_cmd" -importkeystore -noprompt \
     -srckeystore "$RENEWED_LINEAGE/keystore.p12" -srcstoretype PKCS12 -srcstorepass "$MA_KEYSTORE_PASSWORD" \
+    -srcalias "$MA_KEY_ALIAS" \
     -destkeystore "$RENEWED_LINEAGE/keystore.jks" -deststorepass "$MA_KEYSTORE_PASSWORD" \
+    -destkeypass "$MA_KEY_PASSWORD" -destalias "$MA_KEY_ALIAS" \
     2> /dev/null
 
 # remove interim file
