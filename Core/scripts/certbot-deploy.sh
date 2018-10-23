@@ -52,7 +52,7 @@ fi
 
 if [ -z "$MA_GROUP" ]
 then
-    MA_GROUP=mango
+    MA_GROUP="$MA_USER"
 fi
 
 openssl pkcs12 -export \
