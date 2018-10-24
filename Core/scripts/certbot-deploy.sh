@@ -10,7 +10,15 @@ getProp() {
 
 if [ -z "$MA_HOME" ]
 then
-    MA_HOME=/opt/mango
+    script_file=$(readlink -f "$0")
+    script_dir=$(dirname "$script_file")
+    possible_ma_home=$(dirname "$script_dir")
+    if [ -e "$possible_ma_home/release.signed" ]
+    then
+        MA_HOME="$possible_ma_home"
+    else
+        MA_HOME=/opt/mango
+    fi
 fi
 
 if [ -z "$MA_ENV_PROPERTIES" ]
@@ -69,16 +77,6 @@ then
     keytool_cmd=keytool
 fi
 
-if [ -z "$MA_USER" ]
-then
-    MA_USER=mango
-fi
-
-if [ -z "$MA_GROUP" ]
-then
-    MA_GROUP="$MA_USER"
-fi
-
 openssl pkcs12 -export \
     -in "$RENEWED_LINEAGE/fullchain.pem" -inkey "$RENEWED_LINEAGE/privkey.pem" \
     -out "$RENEWED_LINEAGE/keystore.p12" -name "$MA_KEY_ALIAS" -passout pass:"$MA_KEYSTORE_PASSWORD"
@@ -90,12 +88,11 @@ openssl pkcs12 -export \
     -destkeypass "$MA_KEY_PASSWORD" -destalias "$MA_KEY_ALIAS" \
     2> /dev/null
 
-# remove interim file
-rm -f "$RENEWED_LINEAGE/keystore.p12"
+# copy keystore to final destination, dont change destination ownership
+cp "$RENEWED_LINEAGE/keystore.jks" "$MA_KEYSTORE"
 
-# set user read only permission
-chmod 400 "$RENEWED_LINEAGE/keystore.jks"
-# change owner so mango can access it
-chown "$MA_USER":"$MA_GROUP" "$RENEWED_LINEAGE/keystore.jks"
+# ensure user read only permission
+chmod 400 "$MA_KEYSTORE"
 
-mv -f "$RENEWED_LINEAGE/keystore.jks" "$MA_KEYSTORE"
+# remove interim files
+rm -f "$RENEWED_LINEAGE/keystore.p12" "$RENEWED_LINEAGE/keystore.jks"
