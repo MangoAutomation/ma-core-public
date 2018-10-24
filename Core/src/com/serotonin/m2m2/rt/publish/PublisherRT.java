@@ -64,7 +64,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     }
     
     protected PublishQueue<T, Map<String, Object>> createAttirbutesChangedQueue() {
-        return new PublishQueue<T, Map<String, Object>>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
+        return new AttributePublishQueue<T>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
     public PublisherVO<T> getVo() {
