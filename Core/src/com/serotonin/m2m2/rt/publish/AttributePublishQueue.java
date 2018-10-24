@@ -47,17 +47,15 @@ public class AttributePublishQueue<T extends PublishedPointVO> extends PublishQu
 
     public PublishQueueEntry<T,Map<String,Object>> next() {
         Iterator<Entry<Integer ,PublishQueueEntry<T, Map<String, Object>>>> iter = attributesToBePublished.entrySet().iterator();
-        Entry<Integer, PublishQueueEntry<T, Map<String, Object>>> entry = iter.next();
-        if(entry != null) {
-            attributesToBePublished.compute(entry.getKey(), (k, v) -> {
-                if (v == entry.getValue())
-                    return null;
-                return v;
-            });
-            return entry.getValue();
-        }else {
+        if(!iter.hasNext())
             return null;
-        }
+        Entry<Integer, PublishQueueEntry<T, Map<String, Object>>> entry = iter.next();
+        attributesToBePublished.compute(entry.getKey(), (k, v) -> {
+            if (v == entry.getValue())
+                return null;
+            return v;
+        });
+        return entry.getValue();
     }
 
     public List<PublishQueueEntry<T,Map<String,Object>>> get(int max) {
@@ -65,7 +63,8 @@ public class AttributePublishQueue<T extends PublishedPointVO> extends PublishQu
     }
 
     public void remove(PublishQueueEntry<T,Map<String,Object>> e) {
-        throw new ShouldNeverHappenException("Unimplemented");
+        //No-Op
+        return;
     }
 
     public void removeAll(List<PublishQueueEntry<T,Map<String,Object>>> list) {
