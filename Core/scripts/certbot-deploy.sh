@@ -77,6 +77,16 @@ then
     keytool_cmd=keytool
 fi
 
+if [ "$1" = "genkey" ]
+then
+    "$keytool_cmd" -genkey -noprompt -alias "$MA_KEY_ALIAS" -dname "CN=$(hostname)" -keystore "$MA_KEYSTORE" -storepass "$MA_KEYSTORE_PASSWORD" -keypass "$MA_KEY_PASSWORD"
+
+    # ensure user read only permission
+    chmod 400 "$MA_KEYSTORE"
+
+    exit 0
+fi
+
 openssl pkcs12 -export \
     -in "$RENEWED_LINEAGE/fullchain.pem" -inkey "$RENEWED_LINEAGE/privkey.pem" \
     -out "$RENEWED_LINEAGE/keystore.p12" -name "$MA_KEY_ALIAS" -passout pass:"$MA_KEYSTORE_PASSWORD"
