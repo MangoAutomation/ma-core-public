@@ -82,6 +82,8 @@ public class DBConvert {
         tableNames.add("dataPointHierarchy");
         tableNames.add(SchemaDefinition.AUDIT_TABLE);
         tableNames.add(SchemaDefinition.JSON_DATA_TABLE);
+        tableNames.add(SchemaDefinition.FILE_STORES_TABLE);
+        tableNames.add(SchemaDefinition.INSTALLED_MODULES_TABLE);
         return tableNames;
     }
 

@@ -27,5 +27,7 @@ public class SchemaDefinition {
 	public static final String USERS_TABLE = "users";
 	public static final String MAILING_LISTS_TABLE = "mailingLists";
 	public static final String SYSTEM_SETTINGS_TABLE = "systemSettings";
+	public static final String FILE_STORES_TABLE = "fileStores";
+	public static final String INSTALLED_MODULES_TABLE = "installedModules";
 	
 }
