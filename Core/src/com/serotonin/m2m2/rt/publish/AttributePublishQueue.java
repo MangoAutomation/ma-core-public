@@ -17,7 +17,11 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
  * constrained on size to the number of published points.
  * 
  * The next question is if we really want to order this data structure, the queue was previously
- * ordered on insertion but this map is not.  
+ * ordered on insertion but this map is not.
+ * 
+ * What we really want to do to ensure that the attributes are sent is to be able to add failed attributes back
+ * into this data structure on the condition that there were no new updates to the same point's attributes in this 
+ * data structure while they were removed.  A sort of 'add if missing' type method.   
  * 
  * @author Terry Packer
  *
