@@ -64,7 +64,7 @@ public abstract class EmailRecipientModel<T extends EmailRecipient> extends Abst
 		case EmailRecipient.TYPE_USER:
 			return new UserEntryModel((UserEntry) recipient.createEmailRecipient());
 		case EmailRecipient.TYPE_MAILING_LIST:
-		    MailingList list = MailingListDao.getInstance().getMailingList(recipient.getReferenceId());
+		    MailingList list = MailingListDao.getInstance().get(recipient.getReferenceId());
 		    if(list != null)
 		        return new MailingListModel(list);
 		    else

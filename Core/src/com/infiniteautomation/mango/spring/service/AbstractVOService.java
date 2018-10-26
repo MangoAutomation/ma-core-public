@@ -26,20 +26,21 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
+public abstract class AbstractVOService<T extends AbstractVO<T>> {
     
     protected final AbstractDao<T> dao;
     
-    public AbstractVOMangoService(AbstractDao<T> dao) {
+    public AbstractVOService(AbstractDao<T> dao) {
         this.dao = dao;
     }
     
     /**
-     * 
+     * Validate a VO
      * @param vo
      * @param user
+     * @return
      */
-    public void ensureValid(T vo, PermissionHolder user) {
+    public ProcessResult validate(T vo, User user) {
         ProcessResult result = new ProcessResult();
         if (StringUtils.isBlank(vo.getXid()))
             result.addContextualMessage("xid", "validate.required");
@@ -53,7 +54,18 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
         else if (StringValidation.isLengthGreaterThan(vo.getName(), 255))
             result.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
         
-        ensureValidImpl(vo, user, result);
+        validateImpl(vo, user, result);
+        return result;
+    }
+    
+    /**
+     * Ensure that this VO is valid.
+     * Note: validation will only fail if there are Error level messages in the result
+     * @param vo
+     * @param user
+     */
+    public void ensureValid(T vo, User user) throws ValidationException {
+        ProcessResult result = validate(vo, user);
         if(!result.isValid())
             throw new ValidationException(result);
     }
@@ -112,7 +124,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insertFull(T vo, PermissionHolder user) throws PermissionException, ValidationException {
+    public T insertFull(T vo, User user) throws PermissionException, ValidationException {
         return insert(vo, user, true);
     }
     
@@ -124,7 +136,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
+    public T insert(T vo, User user) throws PermissionException, ValidationException {
         return insert(vo, user, false);
     }
 
@@ -139,7 +151,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws PermissionException
      * @throws ValidationException
      */
-    protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    protected T insert(T vo, User user, boolean full) throws PermissionException, ValidationException {
         //Ensure they can create a list
         ensureCreatePermission(user);
         
@@ -178,7 +190,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
+    public T update(T existing, T vo, User user) throws PermissionException, ValidationException {
        return update(existing, vo, user, false);
     }
     
@@ -205,11 +217,11 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T updateFull(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
+    public T updateFull(T existing, T vo, User user) throws PermissionException, ValidationException {
         return update(existing, vo, user, true);
     }
     
-    protected T update(T existing, T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    protected T update(T existing, T vo, User user, boolean full) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(vo, user);
@@ -294,7 +306,7 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
     public int customizedCount(ASTNode conditions) {
         return dao.customizedCount(dao.rqlToCondition(conditions));
     }
-
+    
     /**
      * Can this user create any VOs
      * 
@@ -327,7 +339,10 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @param user
      * @throws PermissionException
      */
-    public abstract void ensureCreatePermission(PermissionHolder user) throws PermissionException;
+    public void ensureCreatePermission(PermissionHolder user) throws PermissionException {
+        if(!hasCreatePermission(user))
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+    }
     
     /**
      * Ensure this user can edit this vo
@@ -335,7 +350,10 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @param user
      * @param vo
      */
-    public abstract void ensureEditPermission(PermissionHolder user, T vo) throws PermissionException;
+    public void ensureEditPermission(PermissionHolder user, T vo) throws PermissionException {
+        if(!hasEditPermission(user, vo))
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+    }
     
     /**
      * Ensure this user can read this vo
@@ -344,15 +362,19 @@ public abstract class AbstractVOMangoService<T extends AbstractVO<T>> {
      * @param vo
      * @throws PermissionException
      */
-    public abstract void ensureReadPermission(PermissionHolder user, T vo) throws PermissionException;
+    public void ensureReadPermission(PermissionHolder user, T vo) throws PermissionException {
+        if(!hasReadPermission(user, vo))
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+    }
     
     /**
-     * Validate the VO, not necessary to throw exception as this will be done in ensureValid()
+     * Validate the VO put results into result.  
+     *  
      * @param vo
      * @param user
      * @param result
      */
-    protected abstract void ensureValidImpl(T vo, PermissionHolder user, ProcessResult result);
+    protected abstract void validateImpl(T vo, User user, ProcessResult result);
     
 
 }

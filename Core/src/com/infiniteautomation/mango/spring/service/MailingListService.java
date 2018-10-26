@@ -15,11 +15,11 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
-import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
@@ -29,14 +29,14 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *
  */
 @Service
-public class MailingListService extends AbstractVOMangoService<MailingList> {
+public class MailingListService extends AbstractVOService<MailingList> {
     
     public MailingListService(@Autowired MailingListDao dao) {
         super(dao);
     }
     
     @Override
-    protected void ensureValidImpl(MailingList vo, PermissionHolder user, ProcessResult result) throws ValidationException {
+    protected void validateImpl(MailingList vo, User user, ProcessResult result) throws ValidationException {
         
         if(!AlarmLevels.CODES.isValidId(vo.getReceiveAlarmEmails()))
             result.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
@@ -128,56 +128,5 @@ public class MailingListService extends AbstractVOMangoService<MailingList> {
             return true;
         else
             return false;
-    }
-
-    /**
-     * Ensure this user can create a mailing list
-     * 
-     * @param user
-     * @throws PermissionException
-     */
-    @Override
-    public void ensureCreatePermission(PermissionHolder user) throws PermissionException {
-        if(user.hasAdminPermission())
-            return;
-        else if(Permissions.hasAnyPermission(user, Permissions.explodePermissionGroups(SystemSettingsDao.instance.getValue(MailingListCreatePermission.PERMISSION))))
-            return;
-        else
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
-    }
-    
-    /**
-     * Ensure this user can edit this mailing list
-     * 
-     * @param user
-     * @param item
-     */
-    @Override
-    public void ensureEditPermission(PermissionHolder user, MailingList item) throws PermissionException {
-        if(user.hasAdminPermission())
-            return;
-        else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
-            return;
-        else
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
-    }
-    
-    /**
-     * Ensure this user can read this mailing list
-     * 
-     * @param user
-     * @param item
-     * @throws PermissionException
-     */
-    @Override
-    public void ensureReadPermission(PermissionHolder user, MailingList item) throws PermissionException {
-        if(user.hasAdminPermission())
-            return;
-        else if(Permissions.hasAnyPermission(user, item.getReadPermissions()))
-            return;
-        else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
-            return;
-        else
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
     }
 }
