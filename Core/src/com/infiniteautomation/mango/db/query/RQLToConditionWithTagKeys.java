@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
@@ -26,6 +28,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Jared Wiltshire
  */
 public class RQLToConditionWithTagKeys extends RQLToCondition {
+    private static final Log LOG = LogFactory.getLog(RQLToConditionWithTagKeys.class);
     int tagIndex = 0;
     final Map<String, Name> tagKeyToColumn = new HashMap<>();
     final boolean allPropertiesAreTags;
@@ -55,6 +58,8 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
             Condition condition = visitNode(node);
             return new ConditionSortLimitWithTagKeys(condition, sortFields, limit, offset, tagKeyToColumn);
         } catch(Exception e) {
+            if(LOG.isDebugEnabled())
+                LOG.debug("Exception in RQL: " + node.toString(), e);
             throw new InvalidRQLException(node.toString(), e.getMessage());
         }
     }

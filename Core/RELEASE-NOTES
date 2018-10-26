@@ -1,6 +1,7 @@
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
 * Ensure publishers who publish data point attributes will not discard the latest reliability information nor allow memory use to grow
+* Added wrapping of RQL exceptions
 
 *Version 3.5.3*
 * Fix critical vulnerability on Windows systems
