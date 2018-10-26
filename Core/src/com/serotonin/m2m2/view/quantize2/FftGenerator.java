@@ -11,7 +11,9 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 
 /**
  * 
- * Generate an FFT into values
+ * Generate an FFT from PointValueTime values
+ * 
+ * Data must be added in time ascending order
  * 
  * @author Terry Packer
  *
