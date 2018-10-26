@@ -4,15 +4,8 @@
  */
 package com.infiniteautomation.mango.db.query;
 
-/**
- * @author Terry Packer
- *
- */
 public class RQLToSQLParseException extends RuntimeException{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
 	public RQLToSQLParseException(String message){

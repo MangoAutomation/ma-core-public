@@ -14,6 +14,7 @@ import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.impl.DSL;
 
+import com.infiniteautomation.mango.util.exception.InvalidRQLException;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -50,8 +51,12 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
 
     @Override
     public ConditionSortLimitWithTagKeys visit(ASTNode node) {
-        Condition condition = visitNode(node);
-        return new ConditionSortLimitWithTagKeys(condition, sortFields, limit, offset, tagKeyToColumn);
+        try {
+            Condition condition = visitNode(node);
+            return new ConditionSortLimitWithTagKeys(condition, sortFields, limit, offset, tagKeyToColumn);
+        } catch(Exception e) {
+            throw new InvalidRQLException(node.toString(), e.getMessage());
+        }
     }
 
     @Override
