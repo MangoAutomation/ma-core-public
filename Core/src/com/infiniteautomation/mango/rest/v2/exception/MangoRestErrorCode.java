@@ -45,6 +45,7 @@ public enum MangoRestErrorCode implements IMangoRestErrorCode {
     CREDENTIALS_EXPIRED(4010),
     BAD_CREDENTIALS(4011),
     PASSWORD_CHANGE_FAILED(4012),
+    RQL_VISIT_ERROR(4013),
 
     //***** 5000 Series *****
     GENERIC_500(5000);

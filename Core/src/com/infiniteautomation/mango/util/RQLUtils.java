@@ -22,7 +22,7 @@ public class RQLUtils {
     private static final ASTNode DEFAULT_NODE = new ASTNode("limit", AbstractBasicDao.DEFAULT_LIMIT);
     private static final Pattern FORMAT_PARAMETER_PATTERN = Pattern.compile("(?:^|&)format=[\\w-]+?(?:$|&)");
 
-    
+
     /**
      * Create an AST Node from the RQL query in the request
      * @param queryString
@@ -39,8 +39,8 @@ public class RQLUtils {
         RQLParser parser = new RQLParser();
         try {
             return parser.parse(queryString);
-        }catch(IllegalArgumentException | RQLParserException e) {
-            throw new InvalidRQLException(queryString, e.getMessage());
+        } catch(IllegalArgumentException | RQLParserException e) {
+            throw new InvalidRQLException(e, queryString);
         }
     }
 
@@ -83,5 +83,5 @@ public class RQLUtils {
         }
         return root;
     }
-    
+
 }

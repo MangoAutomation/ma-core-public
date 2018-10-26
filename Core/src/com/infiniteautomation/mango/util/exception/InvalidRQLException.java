@@ -10,19 +10,14 @@ package com.infiniteautomation.mango.util.exception;
 public class InvalidRQLException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
-    private String query;
-    private String parserMessage;
-    
-    public InvalidRQLException(String query, String message){
+    private final String query;
+
+    public InvalidRQLException(Throwable cause, String query) {
+        super(cause);
         this.query = query;
-        this.parserMessage = message;
     }
-    
-    public String getQuery(){
+
+    public String getQuery() {
         return query;
-    }
-    
-    public String getParserMessage(){
-        return parserMessage;
     }
 }

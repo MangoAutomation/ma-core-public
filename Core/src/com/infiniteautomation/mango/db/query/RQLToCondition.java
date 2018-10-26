@@ -38,8 +38,12 @@ public class RQLToCondition {
     }
 
     public ConditionSortLimit visit(ASTNode node) {
-        Condition condition = visitNode(node);
-        return new ConditionSortLimit(condition, sortFields, limit, offset);
+        try {
+            Condition condition = visitNode(node);
+            return new ConditionSortLimit(condition, sortFields, limit, offset);
+        } catch (Exception e) {
+            throw new RQLVisitException("Exception while visiting RQL node", e);
+        }
     }
 
     protected Condition visitNode(ASTNode node) {
@@ -138,7 +142,7 @@ public class RQLToCondition {
                             .collect(Collectors.toList());
                 }
                 return fieldMatchesAllPermissions(field, csvContainsAllPermissionsArray);
- 
+
             default:
                 throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
         }
@@ -191,7 +195,7 @@ public class RQLToCondition {
 
     public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
     public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
-    
+
     /**
      * Match any permission
      * @param field
@@ -212,7 +216,7 @@ public class RQLToCondition {
             return or;
         }
     }
-    
+
     /**
      * Must match all permissions
      * @param field
@@ -233,7 +237,7 @@ public class RQLToCondition {
             return and;
         }
     }
-    
+
     private Condition fieldMatchesPermission(Field<Object> field, Object permission) {
         //For now only support strings
         if(!(permission instanceof String))
@@ -247,16 +251,29 @@ public class RQLToCondition {
                         )
                 );
     }
-    
-    static class RQLVisitException extends RuntimeException {
+
+    public static class RQLVisitException extends RuntimeException {
         private static final long serialVersionUID = 1L;
+
+        private final ASTNode node;
+
+        public RQLVisitException(String message, Throwable cause, ASTNode node) {
+            super(message, cause);
+            this.node = node;
+        }
 
         public RQLVisitException(String message, Throwable cause) {
             super(message, cause);
+            this.node = null;
         }
 
         public RQLVisitException(String message) {
             super(message);
+            this.node = null;
+        }
+
+        public ASTNode getNode() {
+            return node;
         }
     }
 }
