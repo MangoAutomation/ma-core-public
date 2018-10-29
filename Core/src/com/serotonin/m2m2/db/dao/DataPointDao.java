@@ -1504,7 +1504,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         public DataPointPermissionChangeCallback(boolean updateSetPermissions, String newPermissions){
             this.count = 0;
             this.permissionName = updateSetPermissions ? SET_PERMISSION : READ_PERMISSION;
-            this.newPermissions = Permissions.explodePermissionGroups(newPermissions);
+            this.newPermissions = new HashSet<>(Permissions.explodePermissionGroups(newPermissions));
         }
 
         /* (non-Javadoc)
@@ -1529,7 +1529,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
                         if(!newPermissions.isEmpty()){
                             //Don't duplicate permissions
-                            Set<String> existing = Permissions.explodePermissionGroups(existingPermissions);
+                            Set<String> existing = new HashSet<>(Permissions.explodePermissionGroups(existingPermissions));
                             int originalSize = existing.size();
                             newPermissions.addAll(existing);
                             if(newPermissions.size() != originalSize) {

@@ -3,6 +3,7 @@
 * Ensure publishers who publish data point attributes will not discard the latest reliability information nor allow memory use to grow
 * Added wrapping of RQL exceptions
 * Workaround to avoid Concurrent Modification Exception at startup due to a bug in Spring Framework
+* Bugfix for bulk data point permission updates not working due to un-modifiable collection errors
 
 *Version 3.5.3*
 * Fix critical vulnerability on Windows systems
