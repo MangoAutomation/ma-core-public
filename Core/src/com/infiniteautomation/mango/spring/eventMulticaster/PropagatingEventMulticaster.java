@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.eventMulticaster;
 
+import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.PostConstruct;
@@ -10,6 +11,7 @@ import javax.annotation.PreDestroy;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
@@ -46,6 +48,9 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
 
     @Override
     public void multicastEvent(ApplicationEvent event, ResolvableType eventType) {
+        // Don't propagate ApplicationContextEvents to other contexts
+        // Also don't use async executor due to a bug in FrameworkServlet
+        // https://jira.spring.io/projects/SPR/issues/SPR-17442
         if (event instanceof ApplicationContextEvent) {
             this.doMulticastEvent(event, eventType);
             return;
@@ -55,7 +60,7 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
         if (this.context.getParent() == null) {
             for (ApplicationEventMulticaster registeredMulticaster : this.registry.getMulticasters()) {
                 if (registeredMulticaster instanceof PropagatingEventMulticaster) {
-                    ((PropagatingEventMulticaster) registeredMulticaster).doMulticastEvent(event, eventType);
+                    ((PropagatingEventMulticaster) registeredMulticaster).doMulticastEventWithExecutor(event, eventType);
                 } else {
                     registeredMulticaster.multicastEvent(event, eventType);
                 }
@@ -63,7 +68,21 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
         }
     }
 
+    private void doMulticastEventWithExecutor(ApplicationEvent event, ResolvableType eventType) {
+        ResolvableType type = (eventType != null ? eventType : ResolvableType.forInstance(event));
+
+        Executor executor = this.getTaskExecutor();
+
+        for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+            executor.execute(() -> invokeListener(listener, event));
+        }
+    }
+
     private void doMulticastEvent(ApplicationEvent event, ResolvableType eventType) {
-        super.multicastEvent(event, eventType);
+        ResolvableType type = (eventType != null ? eventType : ResolvableType.forInstance(event));
+
+        for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+            invokeListener(listener, event);
+        }
     }
 }
