@@ -50,16 +50,16 @@ public class MailingListService extends AbstractVOService<MailingList> {
                         //TODO Ensure valid email format...
                         AddressEntry ee = (AddressEntry)recipient;
                         if (StringUtils.isBlank(ee.getAddress()))
-                            result.addContextualMessage("recipients-" + index, "validate.required");
+                            result.addContextualMessage("recipients[" + index + "]", "validate.required");
                         break;
                     case EmailRecipient.TYPE_MAILING_LIST:
-                        result.addContextualMessage("recipients-" + index, "validate.invalidValue");
+                        result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
                         break;
                     case EmailRecipient.TYPE_USER:
                         //Ensure the user exists
                         UserEntry ue = (UserEntry)recipient;
                         if(UserDao.getInstance().get(ue.getUserId()) == null)
-                            result.addContextualMessage("recipients-" + index, "validate.invalidValue");
+                            result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
                         break;
                 }
             }
@@ -112,7 +112,7 @@ public class MailingListService extends AbstractVOService<MailingList> {
     }
     
     /**
-     * Can this user read this mailing list
+     * All users can read mailing lists, however you must have READ permission to view the addresses
      * 
      * @param user
      * @param item
@@ -124,6 +124,23 @@ public class MailingListService extends AbstractVOService<MailingList> {
             return true;
         else if(Permissions.hasAnyPermission(user, item.getReadPermissions()))
             return true;
+        else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
+            return true;
+        else
+            return false;
+    }
+    
+    /**
+     * Can this user view the recipients on this list?
+     * @param user
+     * @param item
+     * @return
+     */
+    public boolean hasRecipientViewPermission(PermissionHolder user, MailingList item) {
+        if(user.hasAdminPermission())
+            return true;
+        else if(Permissions.hasAnyPermission(user, item.getReadPermissions()))
+            return false;
         else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
             return true;
         else

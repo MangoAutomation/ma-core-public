@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.WebContextFactory;
 
+import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -222,13 +223,19 @@ public class EventHandlersDwr extends BaseDwr {
 
         model.put("userNewScriptPermissions", new ScriptPermissions(user));
 
-        // Get the mailing lists.
+        // Get the mailing lists filter on permissions
+        MailingListService service = (MailingListService)Common.getBean(MailingListService.class);
         List<MailingList> lists = MailingListDao.getInstance().getAllFull();
         Iterator<MailingList> it = lists.iterator();
-        while(it.hasNext())
-            if(!Permissions.hasAnyPermission(user, it.next().getReadPermissions()))
-                it.remove();
-        model.put(SchemaDefinition.MAILING_LISTS_TABLE, lists);
+        List<MailingList> viewable = new ArrayList<>();
+        while(it.hasNext()) {
+            MailingList list = it.next();
+            if(service.hasReadPermission(user, list))
+                viewable.add(list);
+            if(!service.hasRecipientViewPermission(user, list))
+                list.setEntries(null);
+        }
+        model.put(SchemaDefinition.MAILING_LISTS_TABLE, viewable);
 
         // Get the users.
         model.put(SchemaDefinition.USERS_TABLE, UserDao.getInstance().getUsers());
