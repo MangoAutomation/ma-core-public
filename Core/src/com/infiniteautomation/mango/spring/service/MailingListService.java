@@ -12,7 +12,6 @@ import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.User;
@@ -42,28 +41,29 @@ public class MailingListService extends AbstractVOService<MailingList> {
             result.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
         
         if(vo.getEntries() == null || vo.getEntries().size() == 0)
-            result.addGenericMessage("mailingLists.validate.entries");
-        else
+            result.addContextualMessage("recipients", "mailingLists.validate.entries");
+        else {
+            int index = 0;
             for(EmailRecipient recipient : vo.getEntries()) {
-                //TODO SEE EXCEL REPORTS FOR HOW TO use Context Key
                 switch(recipient.getRecipientType()) {
                     case EmailRecipient.TYPE_ADDRESS:
                         //TODO Ensure valid email format...
                         AddressEntry ee = (AddressEntry)recipient;
                         if (StringUtils.isBlank(ee.getAddress()))
-                            result.addMessage("address", new TranslatableMessage("validate.required"));
+                            result.addContextualMessage("recipients-" + index, "validate.required");
                         break;
                     case EmailRecipient.TYPE_MAILING_LIST:
-                        result.addContextualMessage("recipients", "validate.invalidValue");
+                        result.addContextualMessage("recipients-" + index, "validate.invalidValue");
                         break;
                     case EmailRecipient.TYPE_USER:
                         //Ensure the user exists
                         UserEntry ue = (UserEntry)recipient;
                         if(UserDao.getInstance().get(ue.getUserId()) == null)
-                            result.addContextualMessage("recipients", "validate.invalidValue");
+                            result.addContextualMessage("recipients-" + index, "validate.invalidValue");
                         break;
                 }
             }
+        }
         
         Permissions.validateAddedPermissions(vo.getReadPermissions(), user, result, "readPermissions");
         Permissions.validateAddedPermissions(vo.getEditPermissions(), user, result, "editPermissions");
