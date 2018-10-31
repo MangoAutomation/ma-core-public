@@ -62,6 +62,7 @@ public class MailingListService extends AbstractVOService<MailingList> {
                             result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
                         break;
                 }
+                index++;
             }
         }
         
