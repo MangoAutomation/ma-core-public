@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.web.mvc.spring;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
@@ -24,8 +25,11 @@ import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMult
 public class MangoCommonConfiguration {
 
     @Bean
-    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableEnvironment env, ConfigurableConversionService conversionService) {
+    public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer(ConfigurableApplicationContext ctx, ConfigurableEnvironment env, ConfigurableConversionService conversionService) {
         env.setConversionService(conversionService);
+
+        // have to manually set this now, doesn't pick up the bean defined in MangoRuntimeContextConfiguration
+        ctx.getBeanFactory().setConversionService(conversionService);
 
         PropertySourcesPlaceholderConfigurer configurer = new PropertySourcesPlaceholderConfigurer();
         configurer.setIgnoreUnresolvablePlaceholders(false);
