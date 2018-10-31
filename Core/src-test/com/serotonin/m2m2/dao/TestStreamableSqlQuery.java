@@ -140,7 +140,7 @@ public class TestStreamableSqlQuery extends MangoTestBase {
                 new StreamableRowCallback<StreamTestData>() {
                     @Override
                     public void row(StreamTestData row, int index) throws Exception {
-                        System.out.println("Got test data " + row.getTestData() + " on row " + index);
+                        //System.out.println("Got test data " + row.getTestData() + " on row " + index);
                         if(index > 2)
                             throw new StreamTestException();
                     }

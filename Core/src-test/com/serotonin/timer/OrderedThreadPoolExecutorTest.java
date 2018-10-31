@@ -29,7 +29,7 @@ import com.serotonin.timer.OrderedThreadPoolExecutor.LimitedTaskQueue;
 public class OrderedThreadPoolExecutorTest {
     
 
-    boolean printResults = true;
+    boolean printResults = false;
     
     /**
      * Test inserting tasks faster than they can be run and ensure they run in insertion order
@@ -236,7 +236,8 @@ public class OrderedThreadPoolExecutorTest {
                     @Override
                     public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
                        TaskWrapper wrapper = (TaskWrapper)r;
-                       System.out.println("Rejected" + wrapper);
+                       if(printResults)
+                           System.out.println("Rejected" + wrapper);
                        poolRejection.set(true);
                     }
                 },

@@ -14,7 +14,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.serotonin.m2m2.Common;
@@ -25,6 +28,14 @@ import com.serotonin.m2m2.util.log.ProcessLog.LogLevel;
  * @author Terry Packer
  */
 public class ProcessLogTest {
+    
+    @BeforeClass
+    public static void staticSetup() throws IOException{
+        
+        //Configure Log4j2
+        ConfigurationSource source = new ConfigurationSource(ClassLoader.getSystemResource("test-log4j2.xml").openStream());
+        Configurator.initialize(null, source);
+    }
     
     @Test
     public void testProcessLogStringWriter() {
