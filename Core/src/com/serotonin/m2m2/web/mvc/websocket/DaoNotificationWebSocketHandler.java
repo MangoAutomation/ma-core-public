@@ -34,8 +34,16 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
             message = createNotification(action, vo, initiatorId, originalXid, null);
 
             if (!this.isViewPerUser()) {
+                ObjectWriter writer;
+                Class<?> view = this.defaultView();
+                if (view != null) {
+                    writer = this.jacksonMapper.writerWithView(view);
+                } else {
+                    writer = this.jacksonMapper.writer();
+                }
+
                 try {
-                    jsonMessage = this.jacksonMapper.writeValueAsString(message);
+                    jsonMessage = writer.writeValueAsString(message);
                 } catch (JsonProcessingException e) {
                     log.warn("Failed to write object as JSON", e);
                     return;
@@ -90,6 +98,10 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
 
     protected boolean isViewPerUser() {
         return false;
+    }
+
+    protected Class<?> defaultView() {
+        return null;
     }
 
     protected Class<?> viewForUser(User user) {
