@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.mvc.websocket;
 import org.springframework.web.socket.WebSocketSession;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -26,27 +27,74 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
     public void notify(String action, T vo, String initiatorId, String originalXid) {
         if (sessions.isEmpty()) return;
 
-        Object message = createNotification(action, vo, initiatorId, originalXid);
-        String jsonMessage;
+        Object message = null;
+        String jsonMessage = null;
 
-        try {
-            jsonMessage = this.jacksonMapper.writeValueAsString(message);
-        } catch (JsonProcessingException e) {
-            log.warn("Failed to write object as JSON", e);
-            return;
+        if (!this.isModelPerUser()) {
+            message = createNotification(action, vo, initiatorId, originalXid, null);
+
+            if (!this.isViewPerUser()) {
+                try {
+                    jsonMessage = this.jacksonMapper.writeValueAsString(message);
+                } catch (JsonProcessingException e) {
+                    log.warn("Failed to write object as JSON", e);
+                    return;
+                }
+            }
         }
 
         for (WebSocketSession session : sessions) {
             User user = getUser(session);
             if (user != null && hasPermission(user, vo) && isSubscribed(session, action, vo, originalXid)) {
-                notify(session, jsonMessage);
+                Object userMessage = message;
+                String userJsonMessage = jsonMessage;
+
+                if (userMessage == null) {
+                    userMessage = createNotification(action, vo, initiatorId, originalXid, user);
+                    if (userMessage == null) {
+                        continue;
+                    }
+                }
+                if (userJsonMessage == null) {
+                    try {
+                        ObjectWriter writer;
+                        Class<?> view = this.viewForUser(user);
+                        if (view != null) {
+                            writer = this.jacksonMapper.writerWithView(view);
+                        } else {
+                            writer = this.jacksonMapper.writer();
+                        }
+
+                        userJsonMessage = writer.writeValueAsString(message);
+                    } catch (JsonProcessingException e) {
+                        log.warn("Failed to write object as JSON", e);
+                        continue;
+                    }
+                }
+
+                notify(session, userJsonMessage);
             }
         }
     }
 
-
     abstract protected boolean hasPermission(User user, T vo);
     abstract protected Object createModel(T vo);
+
+    protected Object createModel(T vo, User user) {
+        return createModel(vo);
+    }
+
+    protected boolean isModelPerUser() {
+        return false;
+    }
+
+    protected boolean isViewPerUser() {
+        return false;
+    }
+
+    protected Class<?> viewForUser(User user) {
+        return null;
+    }
 
     protected boolean isSubscribed(WebSocketSession session, String action, T vo, String originalXid) {
         return true;
@@ -83,8 +131,13 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
         }
     }
 
-    protected Object createNotification(String action, T vo, String initiatorId, String originalXid) {
-        DaoNotificationModel payload = new DaoNotificationModel("create".equals(action) ? "add" : action, createModel(vo), initiatorId, originalXid);
+    protected Object createNotification(String action, T vo, String initiatorId, String originalXid, User user) {
+        Object model = createModel(vo, user);
+        if (model == null) {
+            return null;
+        }
+
+        DaoNotificationModel payload = new DaoNotificationModel("create".equals(action) ? "add" : action, model, initiatorId, originalXid);
         return new MangoWebSocketResponseModel(MangoWebSocketResponseStatus.OK, payload);
     }
 }
