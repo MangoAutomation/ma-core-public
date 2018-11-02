@@ -4,6 +4,7 @@
 * Added wrapping of RQL exceptions
 * Workaround to avoid Concurrent Modification Exception at startup due to a bug in Spring Framework
 * Bugfix for bulk data point permission updates not working due to un-modifiable collection errors
+* Add missing convenience methods for getStats in Numeric and Alphanumeric script context points, third argument cache defaults false
 
 *Version 3.5.3*
 * Fix critical vulnerability on Windows systems
