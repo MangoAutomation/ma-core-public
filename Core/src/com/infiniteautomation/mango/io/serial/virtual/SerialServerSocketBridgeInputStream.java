@@ -41,14 +41,19 @@ public class SerialServerSocketBridgeInputStream extends SerialPortInputStream {
     			return bufferStream.available();
     		//Add one so we can insert a -1 at the end and close our buffer stream
     		byte[] data = new byte[bufferSize];
-    		int read = stream.read(data, 0, data.length);
+    		int read;
+    		try {
+    		    read = stream.read(data, 0, data.length);
+    		} catch(IOException e) {
+    		    throw new SerialServerSocketConnectionClosedException(e);
+    		}
     		if(read == -1)
     			throw new SerialServerSocketConnectionClosedException();
     		currentBuffered = read;
     		currentPosition.set(0);
     		bufferStream = new ByteArrayInputStream(data);
     		if(LOG.isDebugEnabled())
-    		    LOG.debug("SSSBIS: received " + read + " characters into buffer: " + data);
+    		    LOG.debug("SSSBIS: received " + read + " characters into buffer: " + new String(data));
     	    return read;
 		}
 	}

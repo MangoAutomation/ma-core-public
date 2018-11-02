@@ -218,6 +218,8 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 										this.bridge.disconnect();
 									}
 								} catch(SerialServerSocketConnectionClosedException | SocketException e) {
+								    if(LOG.isDebugEnabled())
+								        LOG.debug("Exception reading from virtual serial input stream.", e);
 									socketRunning = false;
 									this.bridge.disconnect();
 								} catch(IOException e) {
