@@ -106,6 +106,10 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to, cache);
     }
+    
+    public ValueChangeCounterWrapper getStats(long from, long to) {
+        return getStats(from, to, false);
+    }
 
     public ValueChangeCounterWrapper getStats(long from, long to, boolean cache) {
         PointValueTime start;

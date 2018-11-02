@@ -106,6 +106,10 @@ public class NumericPointWrapper extends AbstractPointWrapper {
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to, cache);
     }
+    
+    public AnalogStatisticsWrapper getStats(long from, long to) {
+        return getStats(from, to, false);
+    }
 
     public AnalogStatisticsWrapper getStats(long from, long to, boolean cache) {
         PointValueTime start;
