@@ -121,14 +121,7 @@ public class MailingListService extends AbstractVOService<MailingList> {
      */
     @Override
     public boolean hasReadPermission(PermissionHolder user, MailingList item) {
-        if(user.hasAdminPermission())
-            return true;
-        else if(Permissions.hasAnyPermission(user, item.getReadPermissions()))
-            return true;
-        else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
-            return true;
-        else
-            return false;
+        return Permissions.isValidPermissionHolder(user);
     }
     
     /**
@@ -141,7 +134,7 @@ public class MailingListService extends AbstractVOService<MailingList> {
         if(user.hasAdminPermission())
             return true;
         else if(Permissions.hasAnyPermission(user, item.getReadPermissions()))
-            return false;
+            return true;
         else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
             return true;
         else
