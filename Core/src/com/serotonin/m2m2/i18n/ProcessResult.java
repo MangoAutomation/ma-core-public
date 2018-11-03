@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 
 /**
@@ -94,5 +95,14 @@ public class ProcessResult {
             if(m.getLevel() == Level.error || m.getLevel() == Level.warning)
                 return false;
         return true;   
+    }
+    
+    /**
+     * Ensure this result is valid
+     * @throws ValidationException
+     */
+    public void ensureValid() throws ValidationException {
+        if(!isValid())
+            throw new ValidationException(this);
     }
 }
