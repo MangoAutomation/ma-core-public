@@ -1,6 +1,9 @@
-*Version 3.6.0*
+*Version 3.5.5*
 * Add missing convenience methods for getStats in Numeric and Alphanumeric script context points, third argument cache defaults false
 * Fixing debug logging in serial server input stream
+* Fix bug which prevented CORS configuration from working
+* Add HEAD to default allowed CORS methods
+* Update ALPN agent to support ALPN on latest Java 8 Runtimes
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
