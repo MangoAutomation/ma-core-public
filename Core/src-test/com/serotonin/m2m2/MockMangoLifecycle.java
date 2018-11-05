@@ -12,9 +12,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
@@ -42,6 +46,7 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
+import com.serotonin.m2m2.web.mvc.spring.MangoPropertySource;
 import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -61,7 +66,7 @@ import freemarker.template.Version;
  *
  * @author Terry Packer
  */
-public class MockMangoLifecycle implements IMangoLifecycle{
+public class MockMangoLifecycle implements IMangoLifecycle {
 
     static Log LOG = LogFactory.getLog(MockMangoLifecycle.class);
     protected boolean enableWebConsole;
@@ -97,8 +102,10 @@ public class MockMangoLifecycle implements IMangoLifecycle{
 
     /**
      * Startup a dummy Mango with a basic infrastructure
+     * @throws ExecutionException 
+     * @throws InterruptedException 
      */
-    public void initialize() {
+    public void initialize() throws InterruptedException, ExecutionException {
         String maHome = System.getProperty("ma.home");
         if(maHome == null) {
             maHome = ".";
@@ -148,7 +155,7 @@ public class MockMangoLifecycle implements IMangoLifecycle{
             Common.databaseProxy.initialize(null);
 
         //Setup the Spring Context
-        springRuntimeContextInitialize();
+        springRuntimeContextInitialize().get();
 
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
@@ -195,13 +202,16 @@ public class MockMangoLifecycle implements IMangoLifecycle{
 
     }
 
-    protected void springRuntimeContextInitialize() {
+    protected CompletableFuture<ApplicationContext>  springRuntimeContextInitialize() {
         @SuppressWarnings("resource")
-        AnnotationConfigWebApplicationContext runtimeContext = new AnnotationConfigWebApplicationContext();
+        AnnotationConfigApplicationContext runtimeContext = new AnnotationConfigApplicationContext();
         runtimeContext.setId(MangoWebApplicationInitializer.RUNTIME_CONTEXT_ID);
+        runtimeContext.getEnvironment().getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
         runtimeContext.register(MangoRuntimeContextConfiguration.class);
         runtimeContext.refresh();
         runtimeContext.start();
+
+        return MangoRuntimeContextConfiguration.getFutureRuntimeContext();
     }
 
     private void freemarkerInitialize() {

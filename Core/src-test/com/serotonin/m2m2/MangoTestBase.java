@@ -15,6 +15,7 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -108,7 +109,11 @@ public class MangoTestBase {
 	    //So it only happens once per class for now (problems with restarting lifecycle during a running JVM)
 	    if(lifecycle == null) {
     	        lifecycle = getLifecycle();
-            lifecycle.initialize();
+            try {
+                lifecycle.initialize();
+            } catch (InterruptedException | ExecutionException e) {
+                fail(e.getMessage());
+            }
 	    }
 	    
 	    SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);

@@ -22,6 +22,14 @@ public class MockMangoProperties extends AbstractProperties{
         //Fill in all default values for properties
         properties.put("db.update.log.dir", Common.MA_HOME + "/logs/");
         properties.put("security.hashAlgorithm", "NONE");
+        
+        //Test injection property types
+        properties.put("test.injectedStringArray", "ONE,TWO,THREE");
+        properties.put("test.injectedIntegerArray", "1,2,3");
+        properties.put("test.injectedBoolean","true");
+        properties.put("test.injectedString","Testing String");
+        properties.put("test.injectedInteger", "1");
+        properties.put("test.injectedEmptyStringArray", "");
     }
     
     /* (non-Javadoc)
