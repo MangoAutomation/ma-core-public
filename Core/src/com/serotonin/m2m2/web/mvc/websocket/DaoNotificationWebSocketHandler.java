@@ -73,7 +73,7 @@ public abstract class DaoNotificationWebSocketHandler<T extends AbstractBasicVO>
                             writer = this.jacksonMapper.writer();
                         }
 
-                        userJsonMessage = writer.writeValueAsString(message);
+                        userJsonMessage = writer.writeValueAsString(userMessage);
                     } catch (JsonProcessingException e) {
                         log.warn("Failed to write object as JSON", e);
                         continue;
