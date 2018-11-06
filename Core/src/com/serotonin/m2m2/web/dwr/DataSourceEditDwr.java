@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DuplicateKeyException;
@@ -34,7 +35,6 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
-import com.serotonin.m2m2.web.dwr.beans.DataPointDefaulter;
 import com.serotonin.m2m2.web.dwr.beans.EventInstanceBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.taglib.Functions;
@@ -108,10 +108,17 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     @DwrPermission(user = true)
     public DataPointVO getPoint(int pointId) {
-        return getPoint(pointId, null);
+        return getPoint(pointId, null, null);
     }
 
-    protected DataPointVO getPoint(int pointId, DataPointDefaulter defaulter) {
+    /**
+     * 
+     * @param pointId
+     * @param setDefaults - Called when getting a new data point to fill default values
+     * @param updateDefaults - Called when getting an existing data point to fill default values
+     * @return
+     */
+    protected DataPointVO getPoint(int pointId, Consumer<DataPointVO> setDefaults, Consumer<DataPointVO> updateDefaults) {
         //Added to allow saving point settings from data point edit view, this can be called by a background thread
         // so we must be sure to get the user from there if necessary
         User user = Common.getHttpUser();
@@ -154,11 +161,11 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         }
 
         //Use the defaulter
-        if (defaulter != null && dp != null) {
-            if (dp.getId() == Common.NEW_ID)
-                defaulter.setDefaultValues(dp);
-            else
-                defaulter.updateDefaultValues(dp);
+        if (dp != null) {
+            if (dp.getId() == Common.NEW_ID && setDefaults != null)
+                setDefaults.accept(dp);
+            else if(updateDefaults != null)
+                updateDefaults.accept(dp);
         }
 
         //Ensure we don't assign points to the wrong data source type, basically ensure the editing source is the one we
@@ -172,18 +179,19 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         return dp;
     }
 
-    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator,
-            DataPointDefaulter defaulter) {
-        return validatePoint(id, xid, name, locator, defaulter, true);
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator) {
+        return validatePoint(id, xid, name, locator, true, null, null, null);
     }
-
-    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator,
-            DataPointDefaulter defaulter, boolean includePointList) {
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator, boolean includePointList) {
+        return validatePoint(id, xid, name, locator, includePointList, null, null, null);
+    }
+    
+    protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator, boolean includePointList, Consumer<DataPointVO> setDefaults, Consumer<DataPointVO> updateDefaults, Consumer<DataPointVO> postSave) {
         ProcessResult response = new ProcessResult();
 
         //This saving of the point into the User is a bad idea, need to rework to
         // pass the point back and forth to page.  
-        DataPointVO dp = getPoint(id, defaulter);
+        DataPointVO dp = getPoint(id, setDefaults, updateDefaults);
         dp.setXid(xid);
         dp.setName(name);
         dp.setPointLocator(locator);
@@ -253,15 +261,8 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         		response.addMessage(e.getErrorMessage());
         		return response;
         	}
-
-            //If we have the need to copy permissions then do it now
-            // Dirty kludge but whatever for now this all needs reworking.
-            //if(dp.getCopyPermissionsFrom() > 0){
-            //	DataPointDao.getInstance().copyPermissions(dp.getCopyPermissionsFrom(), dp.getId());
-            //}
-
-            if (defaulter != null)
-                defaulter.postSave(dp);
+        	if(postSave != null)
+        	    postSave.accept(dp);
             response.addData("id", dp.getId());
             response.addData("vo", dp);
             if (includePointList)
@@ -279,7 +280,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
 
     @DwrPermission(user = true)
     public List<DataPointVO> deletePoint(int id) {
-        DataPointVO dp = getPoint(id, null);
+        DataPointVO dp = getPoint(id);
         if (dp != null)
             Common.runtimeManager.deleteDataPoint(dp);
 
