@@ -14,11 +14,9 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
-import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -36,37 +34,15 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	//private static final Log LOG = LogFactory.getLog(RealTimeDataPointValue.class);
 	public static String[] headers = {"deviceName","pointName","pointValue", "unit","renderedValue","timestamp","pointType","status","path","xid"};
 
-	private int dataPointId; 
-	
+	DataPointVO vo;
 	private DataPointRT rt;
-	private String deviceName;
-	private String pointName;
-	private String unit;
 	private String path;
-	private String pointType;
-	private String xid;
-	private String readPermission;
-	private String setPermission;
-	private int dataTypeId;
+
 	
 	RealTimeDataPointValue(DataPointSummary summary, List<String> paths){
-		
-		this.dataPointId = summary.getId();
-		Common.runtimeManager.addDataPointListener(dataPointId, this);
-		this.rt = Common.runtimeManager.getDataPoint(summary.getId());
-		this.deviceName = summary.getDeviceName();
-		this.pointName = summary.getName();
-		
-		DataPointVO vo = DataPointDao.getInstance().getDataPoint(summary.getId(), false);
-		//Get Unit
-        if (vo.getPointLocator().getDataTypeId() == DataTypes.BINARY)
-            this.unit = ""; //"boolean";
-        else if (vo.getPointLocator().getDataTypeId() == DataTypes.ALPHANUMERIC)
-        	this.unit = ""; //"string";
-        else if (vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE)
-        	this.unit = ""; //"multistate";
-        else
-        	this.unit = UnitUtil.formatLocal(vo.getUnit());
+	    this.vo = DataPointDao.getInstance().getDataPoint(summary.getId(), false);
+        this.rt = Common.runtimeManager.getDataPoint(summary.getId());
+		Common.runtimeManager.addDataPointListener(summary.getId(), this);
 
 		
 		//Set the path to the point
@@ -74,19 +50,13 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		for(String part : paths){
 			this.path = this.path + part + "/";
 		}
-		
-		this.dataTypeId = vo.getPointLocator().getDataTypeId();
-		this.pointType = vo.getPointLocator().getDataTypeMessage().translate(Common.getTranslations());
-		this.xid = vo.getXid();
-		this.readPermission = vo.getReadPermission();
-		this.setPermission = vo.getSetPermission();
 	}
 
 	public String getDeviceName(){
-		return deviceName;
+		return vo.getDeviceName();
 	}
 	public String getPointName(){
-		return pointName;
+		return vo.getName();
 	}
 	/**
 	 * Get the rendered value
@@ -114,11 +84,11 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	
 	
 	public String getPointType(){
-		return pointType;
+		return vo.getPointLocator().getDataTypeMessage().translate(Common.getTranslations());
 	}
 	
 	public String getUnit(){
-        return unit;
+        return vo.getUnitString();
 	}
 	
 	public long getTimestamp(){
@@ -141,8 +111,9 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	public String getPath(){
 		return path;
 	}
+	
 	public String getXid(){
-		return xid;
+		return vo.getXid();
 	}
 	
 
@@ -158,10 +129,10 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	}
 
 	public String getReadPermission(){
-		return readPermission;
+		return vo.getReadPermission();
 	}
 	public String getSetPermission(){
-		return setPermission;
+		return vo.getSetPermission();
 	}
 	
 	/**
@@ -171,14 +142,13 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
         if(rt != null) {
             Map<String, String> tags = rt.getVO().getTags();
             if(tags == null) {
-                tags = DataPointTagsDao.getInstance().getTagsForDataPointId(dataPointId);
+                tags = DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId());
                 rt.getVO().setTags(tags);
                 tags = rt.getVO().getTags();
             }
             return tags;
         }else {
-            DataPointVO vo = DataPointDao.getInstance().get(dataPointId);
-            Map<String, String> tags = DataPointTagsDao.getInstance().getTagsForDataPointId(dataPointId);
+            Map<String, String> tags = DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId());
             vo.setTags(tags);
             return vo.getTags();
         }
@@ -188,21 +158,15 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
      * Terminate our listener
      */
     public void destroy() {
-        Common.runtimeManager.removeDataPointListener(dataPointId, this);
+        Common.runtimeManager.removeDataPointListener(vo.getId(), this);
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
-	 */
+
 	@Override
 	public void jsonRead(JsonReader arg0, JsonObject arg1) throws JsonException {
-		// TODO Auto-generated method stub
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
-	 */
 	@Override
 	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
 		writer.writeEntry("deviceName", this.getDeviceName());
@@ -214,8 +178,8 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		writer.writeEntry("status", this.getStatus());
 		writer.writeEntry("path", this.getPath());
 		writer.writeEntry("xid", this.getXid());
-		writer.writeEntry("readPermission", readPermission);
-		writer.writeEntry("setPermission", setPermission);
+		writer.writeEntry("readPermission", getReadPermission());
+		writer.writeEntry("setPermission", getSetPermission());
 		writer.writeEntry("tags", getTags());
 	}
 
@@ -224,7 +188,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	 */
 	@Override
 	public void pointInitialized() {
-		this.rt = Common.runtimeManager.getDataPoint(dataPointId);
+		this.rt = Common.runtimeManager.getDataPoint(vo.getId());
 		
 	}
 	/* (non-Javadoc)
@@ -264,7 +228,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	 */
 	@Override
 	public String getListenerName() {
-		return "RealTimeData: " + xid; 
+		return "RealTimeData: " + getXid(); 
 	}
 	
 	/* (non-Javadoc)
@@ -274,11 +238,11 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	public void pointLogged(PointValueTime value) { }	
 	
 	public int getDataPointId(){
-		return this.dataPointId;
+		return this.vo.getId();
 	}
 	
 	public int getDataTypeId(){
-		return this.dataTypeId;
+		return this.vo.getPointLocator().getDataTypeId();
 	}
 	
 }

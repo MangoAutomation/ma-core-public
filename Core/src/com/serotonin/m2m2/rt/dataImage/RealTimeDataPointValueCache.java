@@ -109,12 +109,11 @@ public class RealTimeDataPointValueCache {
             cleared = false;
         }
         List<RealTimeDataPointValue> results = new ArrayList<RealTimeDataPointValue>();
-
+        
+        //Filter on permissions
         for (RealTimeDataPointValue rtdpv : this.realTimeData) {
-            // Do we have set or read permissions for this point?
-            if (Permissions.hasPermission(user, rtdpv.getSetPermission()) || Permissions.hasPermission(user, rtdpv.getReadPermission())) {
+            if(Permissions.hasDataPointReadPermission(user, rtdpv.vo))
                 results.add(rtdpv);
-            }
         }
 
         return results;
