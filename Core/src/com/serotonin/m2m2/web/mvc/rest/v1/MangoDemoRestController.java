@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,8 +26,6 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.DemoModel.Demo;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
@@ -37,10 +36,10 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-@Api(value="Demo", description="Demo Controller", position=1)
+@Api(value="Demo Controller")
 @RestController(value="DemoRestController")
 @RequestMapping("/v1/demo")
-public class MangoDemoRestController extends MangoRestController{
+public class MangoDemoRestController {
 
     private static int MAX_ITEMS = 100;
     private List<Demo> demoStore;
@@ -49,6 +48,25 @@ public class MangoDemoRestController extends MangoRestController{
         createDemoStore();
     }
 
+    @ApiOperation(
+            value = "Return a path variable",
+            notes = ""
+            )
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Ok"),
+            @ApiResponse(code = 403, message = "User does not have access")
+    })
+    @RequestMapping(method = RequestMethod.GET, value = "/get/{result}")
+    public ResponseEntity<String> getPath(
+            @ApiParam(value = "Result to return", required=true)
+            @PathVariable
+            String result,
+            
+            @AuthenticationPrincipal User user
+        ){
+        return ResponseEntity.ok(result);
+    }
+    
     @ApiOperation(
             value = "Get all demos",
             notes = "Notes for getting all demos"

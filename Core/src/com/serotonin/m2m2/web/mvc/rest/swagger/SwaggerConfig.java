@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.context.request.async.DeferredResult;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.classmate.TypeResolver;
@@ -76,7 +78,10 @@ public class SwaggerConfig {
 		docket.alternateTypeRules(
 		            new AlternateTypeRule(typeResolver.resolve(DeferredResult.class,
 		                    typeResolver.resolve(ResponseEntity.class, WildcardType.class)),
-		                typeResolver.resolve(WildcardType.class)))
+		                typeResolver.resolve(WildcardType.class)),
+		            //Rule to allow Multipart requests to show up as single file input
+		            new AlternateTypeRule(typeResolver.resolve(MultipartHttpServletRequest.class), typeResolver.resolve(MultipartFile.class)))
+		    
 		        .useDefaultResponseMessages(false);
 
 		docket.apiInfo(new ApiInfoBuilder()
