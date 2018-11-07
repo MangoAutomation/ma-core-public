@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.ResourceRegionHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -106,7 +107,10 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 
+        // see WebMvcConfigurationSupport.addDefaultHttpMessageConverters()
+
         converters.add(new ResourceHttpMessageConverter());
+        converters.add(new ResourceRegionHttpMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter(restObjectMapper));
         converters.add(new CsvMessageConverter());
         converters.add(new CsvRowMessageConverter());
@@ -116,7 +120,7 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
         converters.add(new SerotoninJsonMessageConverter());
         converters.add(new ExceptionCsvMessageConverter());
         converters.add(new SqlMessageConverter());
-        
+
         //Now is a good time to register our Sero Json Converter
         Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
 
