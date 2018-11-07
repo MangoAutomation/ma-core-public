@@ -97,6 +97,8 @@
 		<AsyncLogger name="org" level="error"/>
 		<AsyncLogger name="com.serotonin.m2m2" level="info"/>
 		<AsyncLogger name="com.infiniteautomation" level="info"/>
+        <AsyncLogger name="org.eclipse.jetty" level="warn"/>
+        <AsyncLogger name="org.eclipse.jetty.util.thread" level="info"/>
         <AsyncRoot level="error" >
             <AppenderRef ref="stdout" />
             <AppenderRef ref="logfile"/>
