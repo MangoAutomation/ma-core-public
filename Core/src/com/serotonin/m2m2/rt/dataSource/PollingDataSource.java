@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.dataSource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -280,8 +281,9 @@ abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataS
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
                 if(LOG.isDebugEnabled())
                 	LOG.debug("First poll should be at: " + (now + delay));
-            }
-            timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this.timeoutClient);
+                timerTask = new TimeoutTask(new FixedRateTrigger(new Date(now + delay), pollingPeriodMillis), this.timeoutClient);
+            } else 
+                timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this.timeoutClient);
         }
         else {
             try {

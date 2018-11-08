@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -395,6 +396,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                         delay = loggingPeriodMillis - nextPollOffset;
                     LOG.debug("First interval log should be at: " + (nextPollTime + delay));
             }
+            Date startTime = new Date(nextPollTime + delay);
             
             if (vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL) {
                 intervalValue = pointValue;
@@ -411,14 +413,14 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
                 }
                 //Are we using a custom timer?
                 if(this.timer == null)
-    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
+    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(startTime, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
                 else
-    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(delay, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
+    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(startTime, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
             } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
                 if(this.timer == null)
-                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient());
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(startTime), createIntervalLoggingTimeoutClient());
                 else
-                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient(), timer);
+                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(startTime), createIntervalLoggingTimeoutClient(), timer);
             }
         }
     }
