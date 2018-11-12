@@ -124,7 +124,7 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
             try {
                 CompiledScriptExecutor.compile(vo.getScript());
             } catch(ScriptException e) {
-                response.addGenericMessage("eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
+                response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }
         }
         //TODO Review this as per adding permissions
