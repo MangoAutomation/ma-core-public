@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.i18n;
 
+import com.serotonin.m2m2.Common;
+
 /**
  * @author Matthew Lohbihler
  */
@@ -128,5 +130,12 @@ public class ProcessMessage {
         if (contextKey != null)
             return contextKey + " --> " + contextualMessage.translate(translations);
         return genericMessage.translate(translations);
+    }
+    
+    public String toString() {
+        if (contextKey != null)
+            return contextKey + " --> " + contextualMessage.translate(Common.getTranslations());
+        return genericMessage.translate(Common.getTranslations());
+
     }
 }
