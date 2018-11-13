@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -29,6 +30,8 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModel;
 
@@ -174,10 +177,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
-        headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        return super.handleMethodArgumentNotValid(ex, headers, status, request);
+        MethodArgumentNotValidException exception = (MethodArgumentNotValidException)ex;
+        
+        ProcessResult result = new ProcessResult();
+        BindingResult binding = exception.getBindingResult();
+        for (org.springframework.validation.FieldError fieldError: binding.getFieldErrors()) {
+            result.addContextualMessage(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        return super.handleExceptionInternal(ex, new ValidationFailedRestException(result), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, request);
     }
 
     @Override
