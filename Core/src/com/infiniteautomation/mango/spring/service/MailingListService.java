@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import javax.validation.Validator;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +23,8 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 @Service
 public class MailingListService extends AbstractVOService<MailingList> {
     
-    public MailingListService(@Autowired MailingListDao dao) {
-        super(dao);
+    public MailingListService(@Autowired MailingListDao dao, Validator validator) {
+        super(dao, validator);
     }
     
     /**

@@ -12,18 +12,25 @@ import javax.validation.Constraint;
 import javax.validation.Payload;
 
 /**
+ * Is a data point id or Xid valid 
+ * - does it exist
+ * - TODO permissions optionally
+ * 
  * @author Terry Packer
  *
  */
-@Constraint(validatedBy = DataPointXidExistsValidator.class)
+@Constraint(validatedBy = ValidDataPointValidator.class)
 @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface DataPointXidExists {
+public @interface ValidDataPoint {
 
+    //TODO Check permissions
+//    boolean checkReadPermission() default false;
+//    boolean checkSetPermission() default false;
+    
     String message() default "validate.invalidValue";
 
     Class<?>[] groups() default { };
 
     Class<? extends Payload>[] payload() default { };
-    
 }

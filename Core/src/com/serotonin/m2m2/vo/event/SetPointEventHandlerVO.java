@@ -14,6 +14,7 @@ import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.validation.ValidDataPoint;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -60,6 +61,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         SET_ACTION_CODES.addElement(SET_ACTION_SCRIPT_VALUE, "SCRIPT_VALUE", "eventHandlers.action.script");
     }
 	
+    @ValidDataPoint()
     private int targetPointId;
     private int activeAction;
     private String activeValueToSet;

@@ -12,6 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
+import javax.validation.Validator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -25,6 +27,8 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -32,6 +36,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
+import com.infiniteautomation.mango.rest.validation.MangoValidationProvider;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.m2m2.Common;
@@ -106,6 +111,13 @@ public class MangoRuntimeContextConfiguration {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
+    private final LocalValidatorFactoryBean localValidatorFactoryBean;
+    
+    public MangoRuntimeContextConfiguration() {
+        this.localValidatorFactoryBean = new LocalValidatorFactoryBean();
+        localValidatorFactoryBean.setProviderClass(MangoValidationProvider.class);
+    }
+    
     /**
      * ContextStartedEvent is not fired for root web context, only ContextRefreshedEvent.
      * Initialize our static holders in this event handler.
@@ -213,4 +225,16 @@ public class MangoRuntimeContextConfiguration {
         return new EventMulticasterRegistry();
     }
 
+    /**
+     * TODO THERE IS A SEPARATE VALIDATOR FOR EACH SPRING MVC CONTEXT, 
+     *   See LocalValidatorFactory getting instantiated many times 
+     *   and HibernateValidator.buildValidatorFactoy() should not be called
+     * 
+     * This allows us to inject a javax.validation.Validator class into our beans
+     * @return
+     */
+    @Bean
+    public Validator validator() {
+        return localValidatorFactoryBean;
+    }
 }

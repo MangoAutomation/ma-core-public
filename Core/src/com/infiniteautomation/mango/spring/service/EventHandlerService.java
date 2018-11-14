@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import javax.validation.Validator;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,8 +22,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO<?>> {
 
     @Autowired
-    public EventHandlerService(AbstractDao<AbstractEventHandlerVO<?>> dao) {
-        super(dao);
+    public EventHandlerService(AbstractDao<AbstractEventHandlerVO<?>> dao, Validator validator) {
+        super(dao, validator);
     }
 
     @Override

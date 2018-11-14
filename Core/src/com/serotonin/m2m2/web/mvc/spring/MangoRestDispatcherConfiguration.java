@@ -18,10 +18,11 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.ResourceRegionHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.validation.Validator;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,15 +49,17 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoMethodSecurityConfigurati
  */
 @Configuration
 @Import({MangoCommonConfiguration.class, MangoMethodSecurityConfiguration.class, MangoWebSocketConfiguration.class})
-@EnableWebMvc
 @ComponentScan(
         basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" },
         excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX)})
-public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
+public class MangoRestDispatcherConfiguration extends DelegatingWebMvcConfiguration {
 
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
     private ObjectMapper restObjectMapper;
+
+    @Autowired
+    private LocalValidatorFactoryBean validator;
 
     /**
      * Create a Path helper that will not URL Decode
@@ -126,4 +129,11 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
     }
 
+    /**
+     * @return the validator
+     */
+    @Override
+    public Validator getValidator() {
+        return validator;
+    }
 }

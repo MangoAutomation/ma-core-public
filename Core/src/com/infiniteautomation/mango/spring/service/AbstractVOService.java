@@ -3,13 +3,21 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Map;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.rest.validation.ProcessMessageContraintViolation;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -27,10 +35,13 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public abstract class AbstractVOService<T extends AbstractVO<?>> {
     
+    protected final ThreadLocal<Map<String,String>> validationPropertyMap = new ThreadLocal<>();
     protected final AbstractDao<T> dao;
+    protected final Validator validator;
     
-    public AbstractVOService(AbstractDao<T> dao) {
+    public AbstractVOService(AbstractDao<T> dao, Validator validator) {
         this.dao = dao;
+        this.validator = validator;
     }
     
     /**
@@ -41,7 +52,26 @@ public abstract class AbstractVOService<T extends AbstractVO<?>> {
      */
     public ProcessResult validate(T vo, User user) {
         ProcessResult result = new ProcessResult();
-        vo.validate(result);
+        Set<ConstraintViolation<T>> violations = validator.validate(vo);
+        for(ConstraintViolation<T> violation : violations) {
+            if(violation instanceof ProcessMessageContraintViolation)
+                result.addMessage(((ProcessMessageContraintViolation<?>)violation).getProcessMessage());
+            else {
+                //TODO Support interpolation messages from annotations
+                result.addContextualMessage(violation.getPropertyPath().toString(), violation.getMessage());
+            }
+        }
+        
+        //Map the results
+        Map<String, String> propertyMap = this.validationPropertyMap.get();
+        if(propertyMap != null) {
+            for(ProcessMessage m : result.getMessages()) {
+                String mapped = propertyMap.get(m.getContextKey());
+                if(mapped != null) {
+                    m.setContextKey(mapped);
+                }
+            }
+        }
         return result;
     }
     
@@ -352,5 +382,14 @@ public abstract class AbstractVOService<T extends AbstractVO<?>> {
     public void ensureReadPermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasReadPermission(user, vo))
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+    }
+
+    
+    public void setValidationPropertyMap(Map<String, String> map) {
+        this.validationPropertyMap.set(map);
+    }
+    
+    public void removeValidationPropertyMap() {
+        this.validationPropertyMap.remove();
     }
 }

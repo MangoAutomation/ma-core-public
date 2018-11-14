@@ -182,7 +182,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         ProcessResult result = new ProcessResult();
         BindingResult binding = exception.getBindingResult();
         for (org.springframework.validation.FieldError fieldError: binding.getFieldErrors()) {
-            result.addContextualMessage(fieldError.getField(), fieldError.getDefaultMessage());
+            result.addContextualMessage(fieldError.getField(), fieldError.getCode() == null ? fieldError.getDefaultMessage() : fieldError.getCode());
         }
         return super.handleExceptionInternal(ex, new ValidationFailedRestException(result), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, request);
     }
