@@ -9,18 +9,24 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
     
@@ -132,12 +138,50 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
         return interval;
     }
 
-    public void validate(ProcessResult response) {
-        super.validate(response);
+    public void validate(ProcessResult result) {
+        super.validate(result);
+        if(!AlarmLevels.CODES.isValidId(receiveAlarmEmails))
+            result.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
+        
+        if(entries == null || entries.size() == 0)
+            result.addContextualMessage("recipients", "mailingLists.validate.entries");
+        else {
+            int index = 0;
+            for(EmailRecipient recipient : entries) {
+                switch(recipient.getRecipientType()) {
+                    case EmailRecipient.TYPE_ADDRESS:
+                        //TODO Ensure valid email format...
+                        AddressEntry ee = (AddressEntry)recipient;
+                        if (StringUtils.isBlank(ee.getAddress()))
+                            result.addContextualMessage("recipients[" + index + "]", "validate.required");
+                        break;
+                    case EmailRecipient.TYPE_MAILING_LIST:
+                        result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
+                        break;
+                    case EmailRecipient.TYPE_USER:
+                        //Ensure the user exists
+                        UserEntry ue = (UserEntry)recipient;
+                        if(UserDao.getInstance().get(ue.getUserId()) == null)
+                            result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
+                        break;
+                }
+                index++;
+            }
+        }
+        
+        User user = Common.getHttpUser();
+        if(user == null)
+            user = Common.getBackgroundContextUser();
+        
+        Permissions.validateAddedPermissions(readPermissions, user, result, "readPermissions");
+        Permissions.validateAddedPermissions(editPermissions, user, result, "editPermissions");
 
-        // Check for entries.
-        if (entries.size() == 0)
-            response.addGenericMessage("mailingLists.validate.entries");
+        if(inactiveIntervals != null) {
+            if(inactiveIntervals.size() > 672)
+                result.addContextualMessage("inactiveSchedule", "validate.invalidValue");
+        }
+        if(result.getHasMessages())
+            throw new ValidationException(result);
     }
 
     @Override

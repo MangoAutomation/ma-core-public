@@ -7,6 +7,7 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,12 +34,14 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.util.ExportCodes;
-import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.EmailEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
+
+import freemarker.template.Template;
 
 /**
  * @author Terry Packer
@@ -206,47 +209,53 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	@Override
 	public void validate(ProcessResult response) {
 		super.validate(response);
-
+        if(activeRecipients != null) {
+            int pos = 0;
+            for(RecipientListEntryBean b : activeRecipients) {
+                validateRecipient("activeRecipients[" + pos + "]", b, response);
+                pos++;
+            }
+        }
+        
         if (sendEscalation) {
             if (escalationDelay <= 0)
                 response.addContextualMessage("escalationDelay", "eventHandlers.escalDelayError");
+            if(!Common.TIME_PERIOD_CODES.isValidId(escalationDelayType))
+                response.addContextualMessage("escalationDelayType", "validate.invalidValue");
+            if(escalationRecipients != null) {
+                int pos = 0;
+                for(RecipientListEntryBean b : escalationRecipients) {
+                    validateRecipient("escalationRecipients[" + pos + "]", b, response);
+                    pos++;
+                }
+            }
         } else if(repeatEscalations)
-            repeatEscalations = false;
+            setRepeatEscalations(false);
         
-        List<String> varNameSpace = new ArrayList<String>();
-        if(additionalContext != null){
-	        for(IntStringPair cxt : additionalContext) {
-	        	if(DataPointDao.getInstance().get(cxt.getKey()) == null)
-	        		response.addGenericMessage("event.script.contextPointMissing", cxt.getKey(), cxt.getValue());
-	        	
-	        	String varName = cxt.getValue();
-	            if (StringUtils.isBlank(varName)) {
-	                response.addGenericMessage("validate.allVarNames");
-	                break;
-	            }
-	
-	            if (!VarNames.validateVarName(varName)) {
-	                response.addGenericMessage("validate.invalidVarName", varName);
-	                break;
-	            }
-	
-	            if (varNameSpace.contains(varName)) {
-	                response.addGenericMessage("validate.duplicateVarName", varName);
-	                break;
-	            }
-	
-	            varNameSpace.add(varName);
-	        }
-        }else{
-        	additionalContext = new ArrayList<>();
+        try {
+            new Template("customTemplate", new StringReader(customTemplate), Common.freemarkerConfiguration);
+        }catch(Exception e) {
+            response.addContextualMessage("customTemplate", "common.default", e.getMessage());
         }
+        
+        if(additionalContext != null)
+            validateScriptContext(additionalContext, response);
+        else
+            setAdditionalContext(new ArrayList<>());
         
         if(!StringUtils.isEmpty(script)) {
             try {
                 CompiledScriptExecutor.compile(script);
             } catch(ScriptException e) {
-                response.addGenericMessage("eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
+                response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }
+        }
+        //TODO Review this as per adding permissions
+        if(scriptPermissions != null) {
+            User user = Common.getHttpUser();
+            if(user == null)
+                user = Common.getBackgroundContextUser();
+            scriptPermissions.validate(response, user);
         }
 	}
     

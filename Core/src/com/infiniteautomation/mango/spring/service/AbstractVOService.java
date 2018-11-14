@@ -16,7 +16,6 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.validation.StringValidation;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -42,19 +41,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>> {
      */
     public ProcessResult validate(T vo, User user) {
         ProcessResult result = new ProcessResult();
-        if (StringUtils.isBlank(vo.getXid()))
-            result.addContextualMessage("xid", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(vo.getXid(), 100))
-            result.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 100));
-        else if (!dao.isXidUnique(vo.getXid(), vo.getId()))
-            result.addContextualMessage("xid", "validate.xidUsed");
-
-        if (StringUtils.isBlank(vo.getName()))
-            result.addContextualMessage("name", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(vo.getName(), 255))
-            result.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
-        
-        validateImpl(vo, user, result);
+        vo.validate(result);
         return result;
     }
     
@@ -366,15 +353,4 @@ public abstract class AbstractVOService<T extends AbstractVO<?>> {
         if(!hasReadPermission(user, vo))
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
     }
-    
-    /**
-     * Validate the VO put results into result.  
-     *  
-     * @param vo
-     * @param user
-     * @param result
-     */
-    protected abstract void validateImpl(T vo, User user, ProcessResult result);
-    
-
 }
