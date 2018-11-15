@@ -28,6 +28,11 @@ public @interface ValidDataPoint {
 //    boolean checkReadPermission() default false;
 //    boolean checkSetPermission() default false;
     
+    /**
+     * Property in VO that this overrides the validation for
+     * @return
+     */
+    String voProperty() default "";
     String message() default "validate.invalidValue";
 
     Class<?>[] groups() default { };

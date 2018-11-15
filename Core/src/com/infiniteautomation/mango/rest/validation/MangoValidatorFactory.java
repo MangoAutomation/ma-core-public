@@ -14,7 +14,7 @@ import org.hibernate.validator.internal.engine.ValidatorImpl;
  *
  */
 public class MangoValidatorFactory extends ValidatorFactoryImpl {
-
+    
     /**
      * @param configurationState
      */
