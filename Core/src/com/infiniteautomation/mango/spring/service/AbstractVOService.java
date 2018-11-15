@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
+import javax.validation.ElementKind;
 import javax.validation.Validator;
 
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,9 @@ public abstract class AbstractVOService<T extends AbstractVO<?>> {
         this.validator = validator;
     }
     
+    private static final String INDEX_OPEN = "[";
+    private static final String INDEX_CLOSE = "]";
+    
     /**
      * Validate a VO
      * @param vo
@@ -52,18 +56,41 @@ public abstract class AbstractVOService<T extends AbstractVO<?>> {
      */
     public ProcessResult validate(T vo, User user) {
         ProcessResult result = new ProcessResult();
+        Map<String, String> propertyMap = this.validationPropertyMap.get();
         Set<ConstraintViolation<T>> violations = validator.validate(vo);
         for(ConstraintViolation<T> violation : violations) {
             if(violation instanceof ProcessMessageContraintViolation)
                 result.addMessage(((ProcessMessageContraintViolation<?>)violation).getProcessMessage());
             else {
-                //TODO Support interpolation messages from annotations
-                result.addContextualMessage(violation.getPropertyPath().toString(), violation.getMessage());
+                //TODO Support Paths in the validation map
+                StringBuilder builder = new StringBuilder();
+                violation.getPropertyPath().forEach(node -> {
+                    if(node.getKind() != ElementKind.CONTAINER_ELEMENT) {
+                        if(!StringUtils.isEmpty(builder))
+                            builder.append(".");
+                        String mapped = propertyMap.get(node.getName());
+                        if(mapped != null)
+                            builder.append(mapped);
+                        else if(node.getName() != null)
+                            builder.append(node.getName());
+                        if(node.isInIterable()) {
+                            builder.append( INDEX_OPEN );
+                            if ( node.getIndex() != null ) {
+                                builder.append( node.getIndex() );
+                            }
+                            else if ( node.getKey() != null ) {
+                                builder.append( node.getKey() );
+                            }
+                            builder.append( INDEX_CLOSE );
+                        }
+
+                    }   
+                });
+                result.addContextualMessage(builder.toString(), violation.getMessage());
             }
         }
         
         //Map the results
-        Map<String, String> propertyMap = this.validationPropertyMap.get();
         if(propertyMap != null) {
             for(ProcessMessage m : result.getMessages()) {
                 String mapped = propertyMap.get(m.getContextKey());

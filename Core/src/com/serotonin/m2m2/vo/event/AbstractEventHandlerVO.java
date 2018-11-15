@@ -179,21 +179,21 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
         int pos = 0;
         for(IntStringPair cxt : additionalContext) {
             if(DataPointDao.getInstance().get(cxt.getKey()) == null)
-                response.addContextualMessage("scriptContext[" + pos + "].id", "event.script.contextPointMissing", cxt.getValue(), cxt.getKey());
+                response.addContextualMessage("additionalContext[" + pos + "].id", "event.script.contextPointMissing", cxt.getValue(), cxt.getKey());
             
             String varName = cxt.getValue();
             if (StringUtils.isBlank(varName)) {
-                response.addContextualMessage("scriptContext[" + pos + "].varaibleName", "validate.allVarNames");
+                response.addContextualMessage("additionalContext[" + pos + "].varaibleName", "validate.allVarNames");
                 break;
             }
 
             if (!VarNames.validateVarName(varName)) {
-                response.addContextualMessage("scriptContext[" + pos + "].varaibleName","validate.invalidVarName", varName);
+                response.addContextualMessage("additionalContext[" + pos + "].varaibleName","validate.invalidVarName", varName);
                 break;
             }
 
             if (varNameSpace.contains(varName)) {
-                response.addContextualMessage("scriptContext[" + pos + "].variableName", "validate.duplicateVarName", varName);
+                response.addContextualMessage("additionalContext[" + pos + "].variableName", "validate.duplicateVarName", varName);
                 break;
             }
 
