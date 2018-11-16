@@ -23,6 +23,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortProxyEvent;
 import com.infiniteautomation.mango.io.serial.SerialPortProxyEventListener;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.util.IpAddressUtils;
 
 /**
  * @author Terry Packer
@@ -32,15 +33,15 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 
 	private final static Log LOG = LogFactory.getLog(SerialServerSocketBridge.class);
 	 
-	private int port;
-	private int timeout = 1000; //in milliseconds
+	private final int port;
+	private final int timeout; //milliseconds
 
 	private ServerSocket serverSocket;
 	private Socket socket;
 	private SerialServerSocketThread serverThread;
-	private SerialServerSocketBridgeOutputStream serialOutputStream;
-	private SerialServerSocketBridgeInputStream serialInputStream;
-	
+	private final SerialServerSocketBridgeOutputStream serialOutputStream;
+	private final SerialServerSocketBridgeInputStream serialInputStream;
+	private final String[] ipWhiteList;
 	
 	/**
 	 * 
@@ -48,13 +49,15 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 	 * @param address
 	 * @param port
 	 * @param timeout (in ms)
+	 * @param ipWhiteList
 	 */
-	public SerialServerSocketBridge(SerialPortIdentifier id, int port, int bufferSize, int timeout) {
+	public SerialServerSocketBridge(SerialPortIdentifier id, int port, int bufferSize, int timeout, String[] ipWhiteList) {
 		super(id);
 		this.port = port;
 		this.timeout = timeout;
 		this.serialOutputStream = new SerialServerSocketBridgeOutputStream();
 		this.serialInputStream = new SerialServerSocketBridgeInputStream(bufferSize);
+		this.ipWhiteList = ipWhiteList;
 	}
 
 	@Override
@@ -91,17 +94,22 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 				ex = e;
 				LOG.error(e.getMessage(), e);
 			}
-			if(this.socket != null){
-				try {
-					//unblock the read() method
-					this.socket.close();
-				} catch (IOException e) {
-					ex = e;
-					LOG.error(e.getMessage(), e);
-				} finally {
-					this.socket = null;
-				}
+			if(this.socket != null) {
+			    synchronized(this) {
+			        if(this.socket != null) { 
+        				try {
+        					//unblock the read() method
+        					this.socket.close();
+        				} catch (IOException e) {
+        					ex = e;
+        					LOG.error(e.getMessage(), e);
+        				} finally {
+        					this.socket = null;
+        				}
+			        }
+			    }
 			}
+			
 			if(ex != null)
 				throw new SerialPortException(ex);
 		}
@@ -139,14 +147,18 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 		serialOutputStream.connect(null);
 		serialInputStream.connect(null);
 		if(this.socket != null) {
-			try {
-				//This will unblock the socket listener thread from its read call
-				this.socket.close();
-			} catch(Exception e) {
-				LOG.error("Error closing socket for " + getCommPortId() + " error: " + e.getMessage());
-			} finally{
-				this.socket = null;
-			}
+		    synchronized(this) {
+		        if(socket != null) {
+        			try {
+        				//This will unblock the socket listener thread from its read call
+        				this.socket.close();
+        			} catch(Exception e) {
+        				LOG.error("Error closing socket for " + getCommPortId() + " error: " + e.getMessage());
+        			} finally{
+        				this.socket = null;
+        			}
+		        }
+		    }
 		}
 	}
 	
@@ -199,6 +211,16 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 					try{
 						//Only allow first connection
 						Socket socket = this.bridge.serverSocket.accept();
+						String remote = socket.getInetAddress().toString().replaceAll("^/", "");
+                        if(LOG.isDebugEnabled())
+                            LOG.debug("Attempted incoming connection on " + this.bridge.getCommPortId() + " from " + remote);
+                        
+                        if(this.bridge.ipWhiteList != null && !IpAddressUtils.ipWhiteListCheck(this.bridge.ipWhiteList, remote)) {
+                            LOG.warn("Failed whitelist check on incoming connection on " + this.bridge.getCommPortId() + " from " + remote);
+                            socket.close();
+                            continue;
+                        }
+                        
 						if(this.bridge.socket == null) {
 							this.bridge.socket = socket;
 							this.bridge.socket.setSoTimeout(this.bridge.timeout);
@@ -245,12 +267,15 @@ public class SerialServerSocketBridge extends SerialPortProxy{
 					LOG.error(e.getMessage(), e);
 				}
 				if(this.bridge.socket != null){
-					try {
-						this.bridge.socket.close();
-						this.bridge.socket = null;
-					} catch (IOException e) {
-						LOG.error(e.getMessage(), e);
-					}
+				    synchronized(SerialServerSocketBridge.this) {
+    					try {
+    						this.bridge.socket.close();
+    					} catch (IOException e) {
+    						LOG.error(e.getMessage(), e);
+    					} finally {
+    					    this.bridge.socket = null;
+    					}
+				    }
 				}
 			}
 		}

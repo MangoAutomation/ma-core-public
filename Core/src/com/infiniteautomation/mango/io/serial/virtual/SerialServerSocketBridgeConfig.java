@@ -8,6 +8,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
 import com.infiniteautomation.mango.io.serial.SerialPortProxy;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.util.IpAddressUtils;
 
 public class SerialServerSocketBridgeConfig extends VirtualSerialPortConfig {
 
@@ -26,6 +27,8 @@ public class SerialServerSocketBridgeConfig extends VirtualSerialPortConfig {
 	private int bufferSize;
 	@JsonProperty
 	private int timeout;
+	@JsonProperty
+	private String[] ipWhiteList;
 	
 	public int getPort() {
 		return port;
@@ -51,6 +54,14 @@ public class SerialServerSocketBridgeConfig extends VirtualSerialPortConfig {
 		this.timeout = timeout;
 	}
 	
+	public String[] getIpWhiteList() {
+	    return ipWhiteList;
+	}
+	
+	public void setIpWhiteList(String[] ipWhiteList) {
+	    this.ipWhiteList = ipWhiteList;
+	}
+	
 	@Override
 	public void validate(ProcessResult response) {
 		super.validate(response);
@@ -60,11 +71,17 @@ public class SerialServerSocketBridgeConfig extends VirtualSerialPortConfig {
             response.addContextualMessage("bufferSize", "validate.greaterThanZero");
 		if (timeout < 0)
             response.addContextualMessage("timeout", "validate.cannotBeNegative");
+		
+		if(ipWhiteList != null)
+		    for(String ipMask : ipWhiteList) {
+		        String msg = IpAddressUtils.checkIpMask(ipMask);
+	            if (msg != null)
+	                response.addContextualMessage("ipWhiteList", "common.default", msg);
+		    }
 	}
 	
 	@Override
 	public SerialPortProxy createProxy(SerialPortIdentifier id) {
-		return new SerialServerSocketBridge(id, port, bufferSize, timeout);
+		return new SerialServerSocketBridge(id, port, bufferSize, timeout, ipWhiteList);
 	}
-
 }
