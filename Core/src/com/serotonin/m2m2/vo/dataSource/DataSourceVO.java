@@ -149,7 +149,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
 
     /**
      * Helper to get description on Page
-     * 
+     *
      * @return
      */
     public String getConnectionDescriptionString() {
@@ -160,21 +160,33 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         //No-op
     }
 
-    protected EventTypeVO createEventType(int eventId, TranslatableMessage message) {
-        return createEventType(eventId, message, EventType.DuplicateHandling.IGNORE, AlarmLevels.URGENT);
+    /**
+     * @param dsSpecificEventTypeId corresponds to typeRef2
+     * @param message
+     * @return
+     */
+    protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message) {
+        return createEventType(dsSpecificEventTypeId, message, EventType.DuplicateHandling.IGNORE, AlarmLevels.URGENT);
     }
 
-    protected EventTypeVO createEventType(int eventId, TranslatableMessage message, int duplicateHandling,
+    /**
+     * @param dsSpecificEventTypeId corresponds to typeRef2
+     * @param message
+     * @param duplicateHandling
+     * @param defaultAlarmLevel
+     * @return
+     */
+    protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, int duplicateHandling,
             int defaultAlarmLevel) {
-        return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId, message, getAlarmLevel(
-                eventId, defaultAlarmLevel), duplicateHandling);
+        return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), dsSpecificEventTypeId, message, getAlarmLevel(
+                dsSpecificEventTypeId, defaultAlarmLevel), duplicateHandling);
     }
 
     /**
      * Useful for polling data sources
-     * 
+     *
      * Events are fired by the Polling Data Source RT
-     * 
+     *
      * @return
      */
     protected EventTypeVO createPollAbortedEventType(int eventId) {
@@ -185,9 +197,9 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     /**
      * Allow Polling Data Sources to use an event per Data Source
      * if it exists.
-     * 
+     *
      * This should be overridden in that case.
-     * 
+     *
      * @return
      */
     public int getPollAbortedExceptionEventId() {
@@ -199,7 +211,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     }
 
     /**
-     * 
+     *
      * @return
      */
     public String getTypeDescriptionString() {
@@ -268,8 +280,8 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
             enabled = in.readBoolean();
             alarmLevels = (HashMap<Integer, Integer>) in.readObject();
             for(Entry<Integer, Integer> item : alarmLevels.entrySet())
-            	if(item.getValue() >= 2) //Add warning and important
-            		item.setValue(item.getValue()+2);
+                if(item.getValue() >= 2) //Add warning and important
+                    item.setValue(item.getValue()+2);
             purgeOverride = false;
             purgeType = PurgeTypes.YEARS;
             purgePeriod = 1;
@@ -278,8 +290,8 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
             enabled = in.readBoolean();
             alarmLevels = (HashMap<Integer, Integer>) in.readObject();
             for(Entry<Integer, Integer> item : alarmLevels.entrySet())
-            	if(item.getValue() >= 2) //Add warning and important
-            		item.setValue(item.getValue()+2);
+                if(item.getValue() >= 2) //Add warning and important
+                    item.setValue(item.getValue()+2);
             purgeOverride = in.readBoolean();
             purgeType = in.readInt();
             purgePeriod = in.readInt();
@@ -377,12 +389,12 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         return value;
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	protected AbstractDao<T> getDao() {
-		return (AbstractDao<T>) DataSourceDao.getInstance();
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    protected AbstractDao<T> getDao() {
+        return (AbstractDao<T>) DataSourceDao.getInstance();
+    }
 }
