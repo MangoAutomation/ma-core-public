@@ -101,7 +101,7 @@ public class AuditEventTypeModel extends EventTypeModel{
 	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getEventTypeInstance()
 	 */
 	@Override
-	public EventType getEventTypeInstance() {
+	public EventType toEventType() {
 		User user = null;
 		if(this.raisingUsername != null)
 			user = UserDao.getInstance().getUser(this.raisingUsername);

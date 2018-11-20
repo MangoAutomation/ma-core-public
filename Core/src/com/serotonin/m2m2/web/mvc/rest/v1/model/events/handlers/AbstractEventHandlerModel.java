@@ -58,7 +58,7 @@ public abstract class AbstractEventHandlerModel <T extends AbstractEventHandlerV
 	
 	public void setEventTypes(List<EventTypeModel> eventTypes) {
 	    for(EventTypeModel etm : eventTypes) {
-	        this.data.addAddedEventType(etm.getEventTypeInstance());
+	        this.data.addAddedEventType(etm.toEventType());
 	    }
 	}
 	

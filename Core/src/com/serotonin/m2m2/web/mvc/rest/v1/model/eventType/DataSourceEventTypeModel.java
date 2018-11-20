@@ -77,7 +77,7 @@ public class DataSourceEventTypeModel extends EventTypeModel{
 	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getData()
 	 */
 	@Override
-	public EventType getEventTypeInstance() {
+	public EventType toEventType() {
 		return new DataSourceEventType(dataSourceId, dataSourceEventTypeId, alarmLevel, duplicateHandling);
 	}
 }
