@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.rest.validation;
 
+import javax.validation.ConstraintValidatorFactory;
 import javax.validation.Validator;
 import javax.validation.spi.ConfigurationState;
 
@@ -21,7 +22,7 @@ public class MangoValidatorFactory extends ValidatorFactoryImpl {
     public MangoValidatorFactory(ConfigurationState configurationState) {
         super(configurationState);
     }
-
+    
     @Override
     public Validator getValidator() {
         return new MangoValidatorWrapper((ValidatorImpl)super.getValidator());

@@ -27,7 +27,6 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
-
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -229,6 +228,9 @@ public class MangoRuntimeContextConfiguration {
      * TODO THERE IS A SEPARATE VALIDATOR FOR EACH SPRING MVC CONTEXT, 
      *   See LocalValidatorFactory getting instantiated many times 
      *   and HibernateValidator.buildValidatorFactoy() should not be called
+     *   
+     * See https://docs.spring.io/spring/docs/current/spring-framework-reference/core.html#validation
+     * 
      * 
      * This allows us to inject a javax.validation.Validator class into our beans
      * @return

@@ -14,7 +14,6 @@ import javax.validation.Path;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.internal.engine.constraintvalidation.ConstraintValidatorContextImpl;
 
-import com.infiniteautomation.mango.rest.validation.MangoValidatorFactory;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 
 /**
@@ -24,8 +23,8 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
  *
  */
 public class ValidDataPointValidator implements ConstraintValidator<ValidDataPoint, Object>{
-    //TODO This logic only works for the workflow of validate model --> validate VO --> Save
-    //   it won't work for validating a list of models
+    //TODO This is a memory leak and is only here as proof of concept that threa local could 
+    // provide a potential solution to tracking what was validated.
     private static final ThreadLocal<List<String>> validatedPaths = new ThreadLocal<>();
 
     private String voProperty;
@@ -40,6 +39,7 @@ public class ValidDataPointValidator implements ConstraintValidator<ValidDataPoi
         if(context instanceof ConstraintValidatorContextImpl) {
             Field f;
             try {
+                ((ConstraintValidatorContextImpl) context).withDynamicPayload(true);
                 if(!StringUtils.isEmpty(this.voProperty)) {
                     //Validating something for a model
                     List<String> validated = validatedPaths.get();
