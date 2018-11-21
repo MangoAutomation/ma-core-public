@@ -179,6 +179,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         return dp;
     }
 
+    //These methods will save the point if it is valid.
     protected ProcessResult validatePoint(int id, String xid, String name, PointLocatorVO<?> locator) {
         return validatePoint(id, xid, name, locator, true, null, null, null);
     }
@@ -196,7 +197,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
         dp.setName(name);
         dp.setPointLocator(locator);
 
-        //Confirm that we are assinging a point to the correct data source
+        //Confirm that we are assigning a point to the correct data source
         DataSourceVO<?> ds = DataSourceDao.getInstance().get(dp.getDataSourceId());
         PointLocatorVO<?> plvo = ds.createPointLocator();
         if (plvo.getClass() != locator.getClass()) {

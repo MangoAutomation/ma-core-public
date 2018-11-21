@@ -527,9 +527,11 @@ public class RuntimeManagerImpl implements RuntimeManager{
                             try {
                                 l.pointTerminated();
                             } catch(ExceptionListWrapper e) {
-                                LOG.warn("Exceptions in point terminated method.");
+                                LOG.warn("Exceptions in point terminated listeners' methods.");
                                 for(Exception e2 : e.getExceptions())
                                     LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                            } catch(Exception e) {
+                                LOG.warn("Exception in point terminated listener's method: " + e.getMessage(), e);
                             }
                         rt.terminate();
                     }
@@ -553,9 +555,11 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 try {
                     l.pointInitialized();
                 } catch(ExceptionListWrapper e) {
-                    LOG.warn("Exceptions in point initialized method.");
+                    LOG.warn("Exceptions in point initialized listeners' methods.");
                     for(Exception e2 : e.getExceptions())
                         LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                } catch(Exception e) {
+                    LOG.warn("Exception in point initialized listener's method: " + e.getMessage(), e);
                 }
 
             // Add/update it in the data source.
