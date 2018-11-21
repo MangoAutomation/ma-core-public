@@ -4,10 +4,14 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
@@ -18,16 +22,23 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.ResourceRegionHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.SpringHandlerInstantiator;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
+import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.JacksonModuleDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.AbstractRestModelConverter;
 import com.serotonin.m2m2.web.MediaTypes;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvMessageConverter;
@@ -36,6 +47,8 @@ import com.serotonin.m2m2.web.mvc.rest.v1.converters.CsvRowMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.HtmlHttpMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.SerotoninJsonMessageConverter;
 import com.serotonin.m2m2.web.mvc.rest.v1.converters.SqlMessageConverter;
+import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
+import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoMethodSecurityConfiguration;
 
@@ -54,9 +67,53 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoMethodSecurityConfigurati
         excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX)})
 public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
+    private final ObjectMapper objectMapper;
+    
     @Autowired
-    @Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
-    private ObjectMapper restObjectMapper;
+    public MangoRestDispatcherConfiguration(ApplicationContext appContext) {
+        // For raw Jackson
+        this.objectMapper = new ObjectMapper();
+        if(Common.envProps.getBoolean("rest.indentJSON", false))
+            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        // JScience
+        JScienceModule jScienceModule = new JScienceModule();
+        objectMapper.registerModule(jScienceModule);
+
+        // Mango Core JSON Modules
+        MangoCoreModule mangoCore = new MangoCoreModule();
+        objectMapper.registerModule(mangoCore);
+        MangoRestV2JacksonModule mangoCoreV2 = new MangoRestV2JacksonModule();
+        objectMapper.registerModule(mangoCoreV2);
+
+        //Setup Module Defined JSON Modules
+        List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
+        for(JacksonModuleDefinition def : defs) {
+            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.REST)
+                objectMapper.registerModule(def.getJacksonModule());
+        }
+
+        //Always output dates in ISO 8601
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+        objectMapper.setDateFormat(dateFormat);
+
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setTimeZone(TimeZone.getDefault()); //Set to system tz
+
+        //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        
+        //This will allow us to autowire beans into our jackson serializer/deserializers
+        objectMapper.setHandlerInstantiator(new SpringHandlerInstantiator(appContext.getAutowireCapableBeanFactory()));
+        
+    }
+    
+    
+    @Bean(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
 
     /**
      * Create a Path helper that will not URL Decode
@@ -111,7 +168,7 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
         converters.add(new ResourceHttpMessageConverter());
         converters.add(new ResourceRegionHttpMessageConverter());
-        converters.add(new MappingJackson2HttpMessageConverter(restObjectMapper));
+        converters.add(new MappingJackson2HttpMessageConverter(objectMapper));
         converters.add(new CsvMessageConverter());
         converters.add(new CsvRowMessageConverter());
         converters.add(new CsvQueryArrayStreamMessageConverter());
@@ -125,5 +182,4 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
         Common.JSON_CONTEXT.addConverter(new AbstractRestModelConverter(), AbstractRestModel.class);
 
     }
-
 }
