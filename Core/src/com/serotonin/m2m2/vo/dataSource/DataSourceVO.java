@@ -29,6 +29,7 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
@@ -141,7 +142,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
 
     public EventTypeVO getEventType(int eventId) {
         for (EventTypeVO vo : getEventTypes()) {
-            if (vo.getTypeRef2() == eventId)
+            if (vo.getEventType().getReferenceId2() == eventId)
                 return vo;
         }
         return null;
@@ -178,8 +179,10 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
      */
     protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, int duplicateHandling,
             int defaultAlarmLevel) {
-        return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), dsSpecificEventTypeId, message, getAlarmLevel(
-                dsSpecificEventTypeId, defaultAlarmLevel), duplicateHandling);
+        int alarmLevel = getAlarmLevel(dsSpecificEventTypeId, defaultAlarmLevel);
+        return new EventTypeVO(
+                new DataSourceEventType(getId(), dsSpecificEventTypeId, alarmLevel, duplicateHandling),
+                message, alarmLevel);
     }
 
     /**
@@ -190,8 +193,10 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
      * @return
      */
     protected EventTypeVO createPollAbortedEventType(int eventId) {
-        return new EventTypeVO(EventType.EventTypeNames.DATA_SOURCE, null, getId(), eventId, new TranslatableMessage(
-                "event.ds.pollAborted"), getAlarmLevel(eventId, AlarmLevels.URGENT), EventType.DuplicateHandling.IGNORE);
+        int alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
+        return new EventTypeVO(
+                new DataSourceEventType(getId(), eventId, alarmLevel, EventType.DuplicateHandling.IGNORE),
+                new TranslatableMessage("event.ds.pollAborted"), alarmLevel);
     }
 
     /**

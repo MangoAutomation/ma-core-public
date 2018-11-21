@@ -49,7 +49,7 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
 	}
 	
 	public EventTypeModel getEventType(){
-		return this.data.getEventType().createEventType().asModel();
+		return this.data.getEventType().getEventType().asModel();
 	}
 	
 	public TranslatableMessage getDescription(){

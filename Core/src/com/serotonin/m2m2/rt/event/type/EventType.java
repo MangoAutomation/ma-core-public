@@ -238,7 +238,7 @@ abstract public class EventType implements JsonSerializable {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("sourceType", getEventType());
     }
-
+    
     protected int getInt(JsonObject json, String name, ExportCodes codes) throws JsonException {
         String text = json.getString(name);
         if (text == null)

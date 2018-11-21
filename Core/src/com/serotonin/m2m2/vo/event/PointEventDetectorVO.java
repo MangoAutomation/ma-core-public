@@ -25,7 +25,7 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.detectors.PointEventDetectorRT;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -124,7 +124,8 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     private double weight;
 
     public EventTypeVO getEventType() {
-        return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, dataPoint.getId(), id, getDescription(),
+        return new EventTypeVO(new DataPointEventType(dataPoint.getId(), id), 
+                getDescription(),
                 alarmLevel);
     }
 

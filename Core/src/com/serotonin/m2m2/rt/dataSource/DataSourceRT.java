@@ -72,7 +72,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
 
         eventTypes = new ArrayList<DataSourceEventType>();
         for (EventTypeVO etvo : vo.getEventTypes())
-            eventTypes.add((DataSourceEventType) etvo.createEventType());
+            eventTypes.add((DataSourceEventType) etvo.getEventType());
     }
 
     public int getId() {

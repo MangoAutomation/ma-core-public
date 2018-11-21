@@ -175,7 +175,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
                     EventDetectorDao.super.delete(vo, initiatorId);
                     //Also update the Event Handlers
                     ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
-                            new Object[] { vo.getEventType().getType(), vo.getSourceId(), vo.getId() });
+                            new Object[] { vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId() });
                 }
             }
         });
@@ -189,7 +189,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO<?>>{
         if(vo.getAddedEventHandlers() != null) {
             EventTypeVO et = vo.getEventType();
             for(AbstractEventHandlerVO<?> ehVo : vo.getAddedEventHandlers())
-                EventHandlerDao.getInstance().addEventHandlerMappingIfMissing(ehVo.getId(), et.createEventType());
+                EventHandlerDao.getInstance().addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
         }
     }
     

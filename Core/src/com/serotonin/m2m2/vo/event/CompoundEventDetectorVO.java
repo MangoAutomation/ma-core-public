@@ -27,7 +27,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.compound.CompoundEventDetectorRT;
 import com.serotonin.m2m2.rt.event.compound.ConditionParseException;
 import com.serotonin.m2m2.rt.event.compound.LogicalOperator;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.CompoundDetectorEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
@@ -67,8 +67,9 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
     }
 
     public EventTypeVO getEventType() {
-        return new EventTypeVO(EventType.EventTypeNames.COMPOUND, null, id, -1, new TranslatableMessage(
-                "common.default", name), alarmLevel);
+        return new EventTypeVO(new CompoundDetectorEventType(id), 
+                new TranslatableMessage("common.default", name),
+                alarmLevel);
     }
 
     //@Override

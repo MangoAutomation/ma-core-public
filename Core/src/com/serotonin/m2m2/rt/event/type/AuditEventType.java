@@ -79,13 +79,13 @@ public class AuditEventType extends EventType{
 
     private static void addEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
-        EVENT_TYPES.add(new EventTypeVO(EventType.EventTypeNames.AUDIT, subtype, 0, 0, new TranslatableMessage(key),
+        EVENT_TYPES.add(new EventTypeVO(new AuditEventType(subtype, 0, 0), new TranslatableMessage(key),
                 SystemSettingsDao.instance.getIntValue(AUDIT_SETTINGS_PREFIX + subtype)));
     }
 
     public static EventTypeVO getEventType(String subtype) {
         for (EventTypeVO et : EVENT_TYPES) {
-            if (et.getSubtype().equals(subtype))
+            if (et.getEventType().getEventSubtype().equals(subtype))
                 return et;
         }
         return null;

@@ -174,7 +174,7 @@ public class Permissions {
     }
 
     public static void ensureEventTypePermission(PermissionHolder user, EventTypeVO eventType) throws PermissionException {
-        ensureEventTypePermission(user, eventType.createEventType());
+        ensureEventTypePermission(user, eventType.getEventType());
     }
 
     //

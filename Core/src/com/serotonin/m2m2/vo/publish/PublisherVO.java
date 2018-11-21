@@ -14,8 +14,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,7 +36,7 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
@@ -82,12 +82,12 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     public List<EventTypeVO> getEventTypes() {
         List<EventTypeVO> eventTypes = new ArrayList<>();
         eventTypes
-                .add(new EventTypeVO(EventType.EventTypeNames.PUBLISHER, null, getId(),
-                        PublisherRT.POINT_DISABLED_EVENT, new TranslatableMessage("event.pb.pointMissing"),
+                .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.POINT_DISABLED_EVENT),
+                        new TranslatableMessage("event.pb.pointMissing"),
                         getAlarmLevel(PublisherRT.POINT_DISABLED_EVENT, AlarmLevels.URGENT)));
         eventTypes
-                .add(new EventTypeVO(EventType.EventTypeNames.PUBLISHER, null, getId(),
-                        PublisherRT.QUEUE_SIZE_WARNING_EVENT, new TranslatableMessage("event.pb.queueSize"),
+                .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.QUEUE_SIZE_WARNING_EVENT),
+                        new TranslatableMessage("event.pb.queueSize"),
                         getAlarmLevel(PublisherRT.QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT)));
 
         getEventTypesImpl(eventTypes);

@@ -12,12 +12,11 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
@@ -81,7 +80,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     public EventTypeVO getEventType() {
 	    if(this.dataPoint == null)
 	        this.dataPoint = DataPointDao.getInstance().get(sourceId);
-        return new EventTypeVO(EventType.EventTypeNames.DATA_POINT, null, sourceId, id, getDescription(),
+        return new EventTypeVO(new DataPointEventType(sourceId, id), getDescription(),
                 alarmLevel);
     }
 	
