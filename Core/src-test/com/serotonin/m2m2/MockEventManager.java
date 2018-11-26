@@ -37,7 +37,7 @@ public class MockEventManager implements EventManager{
     public void raiseEvent(EventType type, long time, boolean rtnApplicable, int alarmLevel,
             TranslatableMessage message, Map<String, Object> context) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -46,25 +46,13 @@ public class MockEventManager implements EventManager{
     @Override
     public void returnToNormal(EventType type, long time) {
 
-        
+
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#returnToNormal(com.serotonin.m2m2.rt.event.type.EventType, long, int)
-     */
     @Override
-    public void returnToNormal(EventType type, long time, int alarmLevel) {
+    public void returnToNormal(EventType type, long time, int cause) {
 
-        
-    }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#returnToNormal(com.serotonin.m2m2.rt.event.type.EventType, long, int, int)
-     */
-    @Override
-    public void returnToNormal(EventType type, long time, int alarmLevel, int cause) {
-
-        
     }
 
     /* (non-Javadoc)
@@ -85,7 +73,7 @@ public class MockEventManager implements EventManager{
     public boolean toggleSilence(int eventId, int userId) {
         return false;
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.rt.EventManager#getLastAlarmTimestamp()
      */
@@ -137,7 +125,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void cancelEventsForDataPoint(int dataPointId) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -146,7 +134,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void cancelEventsForDataSource(int dataSourceId) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -155,7 +143,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void cancelEventsForPublisher(int publisherId) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -164,7 +152,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void initialize(boolean safe) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -173,7 +161,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void terminate() {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -182,7 +170,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void joinTermination() {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -191,7 +179,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void addListener(EventManagerListenerDefinition l) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -200,7 +188,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void removeListener(EventManagerListenerDefinition l) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -209,7 +197,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void addUserEventListener(UserEventListener l) {
 
-        
+
     }
 
     /* (non-Javadoc)
@@ -218,7 +206,7 @@ public class MockEventManager implements EventManager{
     @Override
     public void removeUserEventListener(UserEventListener l) {
 
-        
+
     }
 
     /* (non-Javadoc)

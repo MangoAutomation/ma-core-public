@@ -34,7 +34,7 @@ public interface EventManager extends ILifecycle{
     // Basic event management.
     //
     /**
-     * Raise Event 
+     * Raise Event
      * @param type
      * @param time
      * @param rtnApplicable - does this event return to normal?
@@ -46,17 +46,14 @@ public interface EventManager extends ILifecycle{
             TranslatableMessage message, Map<String, Object> context);
 
     void returnToNormal(EventType type, long time);
+    void returnToNormal(EventType type, long time, int cause);
 
-    void returnToNormal(EventType type, long time, int alarmLevel);
-
-    void returnToNormal(EventType type, long time, int alarmLevel, int cause);
-    
     /**
      * Acknowledges an event given an event ID.
-     * 
+     *
      * The returned EventInstance is a copy from the database, never the cached instance. If the returned instance
      * has a different time, userId or alternateAckSource to what was provided then the event must have been already acknowledged.
-     * 
+     *
      * @param eventId
      * @param time
      * @param user
@@ -72,7 +69,7 @@ public interface EventManager extends ILifecycle{
      * @return
      */
     public boolean toggleSilence(int eventId, int userId);
-    
+
     /**
      * Get the latest alarm's timestamp
      * @return
@@ -130,10 +127,13 @@ public interface EventManager extends ILifecycle{
     //
     // Lifecycle interface
     //
+    @Override
     void initialize(boolean safe);
 
+    @Override
     void terminate();
 
+    @Override
     void joinTermination();
 
     //

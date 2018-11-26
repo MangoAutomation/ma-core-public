@@ -287,18 +287,11 @@ public class EventManagerImpl implements EventManager {
 
     @Override
     public void returnToNormal(EventType type, long time) {
-        returnToNormal(type, time, AlarmLevels.URGENT, EventInstance.RtnCauses.RETURN_TO_NORMAL);
+        returnToNormal(type, time, EventInstance.RtnCauses.RETURN_TO_NORMAL);
     }
 
     @Override
-    public void returnToNormal(EventType type, long time, int alarmLevel) {
-        returnToNormal(type, time, alarmLevel, EventInstance.RtnCauses.RETURN_TO_NORMAL);
-    }
-
-    @Override
-    public void returnToNormal(EventType type, long time, int alarmLevel, int cause) {
-        if(alarmLevel == AlarmLevels.IGNORE)
-            return;
+    public void returnToNormal(EventType type, long time, int cause) {
         EventInstance evt = remove(type);
         if(evt == null)
             return;

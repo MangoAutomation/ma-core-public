@@ -12,7 +12,6 @@ import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -24,14 +23,14 @@ import com.serotonin.timer.TimerTask;
  * @author Matthew Lohbihler
  */
 public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
-	
+
     private static final Log LOG = LogFactory.getLog(UpgradeCheck.class);
     private static final long DELAY_TIMEOUT = 1000 * 10; // Run initially after 10 seconds
     private static final long PERIOD_TIMEOUT = 1000 * 60 * 60 * 24; // Run every 24 hours.
 
     public static final String UPGRADES_AVAILABLE_MONITOR_ID = "com.serotonin.m2m2.rt.maint.UpgradeCheck.COUNT";
     private IntegerMonitor availableUpgrades;
-    
+
     /**
      * This method will set up the upgrade checking job. It assumes that the corresponding system setting for running
      * this job is true.
@@ -51,21 +50,21 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
     public void run(long fireTime) {
         Integer available = null;
         try {
-        	available = ModulesDwr.upgradesAvailable();
+            available = ModulesDwr.upgradesAvailable();
             if (available > 0) {
-                
-                TranslatableMessage m = new TranslatableMessage("modules.event.upgrades", 
+
+                TranslatableMessage m = new TranslatableMessage("modules.event.upgrades",
                         ModuleRegistry.getModule("mangoUI") != null ? "/ui/administration/modules" : "/modules.shtm");
                 SystemEventType.raiseEvent(et, Common.timer.currentTimeMillis(), true, m);
             }
             else
                 Common.eventManager.returnToNormal(et, Common.timer.currentTimeMillis(),
-                        EventInstance.RtnCauses.RETURN_TO_NORMAL, AlarmLevels.URGENT);
+                        EventInstance.RtnCauses.RETURN_TO_NORMAL);
         }
         catch (Exception e) {
             LOG.error(e.getMessage(), e);
         } finally {
-            //To ensure that the monitor is created, event if it is with a null value.  
+            //To ensure that the monitor is created, event if it is with a null value.
             if(this.availableUpgrades == null) {
                 this.availableUpgrades = new IntegerMonitor(UPGRADES_AVAILABLE_MONITOR_ID, new TranslatableMessage("internal.monitor.AVAILABLE_UPGRADE_COUNT"), this, available);
                 Common.MONITORED_VALUES.addIfMissingStatMonitor(this.availableUpgrades);
@@ -74,11 +73,11 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
         }
     }
 
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
-	 */
-	@Override
-	public void reset(String monitorId) {
-	    
-	}
+    /* (non-Javadoc)
+     * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
+     */
+    @Override
+    public void reset(String monitorId) {
+
+    }
 }
