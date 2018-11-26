@@ -9,8 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +20,6 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.ResourceRegionHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.json.SpringHandlerInstantiator;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
@@ -67,12 +64,10 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoMethodSecurityConfigurati
         excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX)})
 public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
-    private final ObjectMapper objectMapper;
-    
-    @Autowired
-    public MangoRestDispatcherConfiguration(ApplicationContext appContext) {
+    @Bean(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
+    public ObjectMapper getObjectMapper() {
         // For raw Jackson
-        this.objectMapper = new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
         if(Common.envProps.getBoolean("rest.indentJSON", false))
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
@@ -103,15 +98,10 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        
+
         //This will allow us to autowire beans into our jackson serializer/deserializers
-        objectMapper.setHandlerInstantiator(new SpringHandlerInstantiator(appContext.getAutowireCapableBeanFactory()));
-        
-    }
-    
-    
-    @Bean(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME)
-    public ObjectMapper getObjectMapper() {
+        //objectMapper.setHandlerInstantiator(new SpringHandlerInstantiator(appContext.getAutowireCapableBeanFactory()));
+
         return objectMapper;
     }
 
@@ -168,7 +158,7 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
         converters.add(new ResourceHttpMessageConverter());
         converters.add(new ResourceRegionHttpMessageConverter());
-        converters.add(new MappingJackson2HttpMessageConverter(objectMapper));
+        converters.add(new MappingJackson2HttpMessageConverter(getObjectMapper()));
         converters.add(new CsvMessageConverter());
         converters.add(new CsvRowMessageConverter());
         converters.add(new CsvQueryArrayStreamMessageConverter());
