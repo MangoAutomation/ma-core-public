@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
- * 
+ *
  * @author Matthew Lohbihler
  */
 package com.serotonin.m2m2.web.dwr.beans;
@@ -13,6 +13,9 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
+/**
+ * Used on legacy pages via the EventHandlersDwr
+ */
 public class EventSourceBean {
     private int id;
     private String name;
@@ -38,16 +41,19 @@ public class EventSourceBean {
         this.name = name;
     }
 
+    /**
+     * EventTypeVO coupled with event handlers that are attached to it's event type
+     */
     public static class EventTypeVoHandlers extends EventTypeVO {
 
 
         private List<AbstractEventHandlerVO<?>> handlers;
 
         public EventTypeVoHandlers(EventType eventType, TranslatableMessage description,
-            int alarmLevel) {
+                int alarmLevel) {
             super(eventType, description, alarmLevel);
         }
-        
+
         public List<AbstractEventHandlerVO<?>> getHandlers() {
             return handlers;
         }
