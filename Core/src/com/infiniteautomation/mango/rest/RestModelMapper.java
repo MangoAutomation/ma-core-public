@@ -3,7 +3,9 @@
  */
 package com.infiniteautomation.mango.rest;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,10 +21,10 @@ import com.serotonin.m2m2.vo.User;
 public class RestModelMapper {
 
     private final List<RestModelMapping<?,?>> mappings;
-    
+
     @Autowired
-    public RestModelMapper(List<RestModelMapping<?,?>> mappings) {
-        this.mappings = mappings;
+    public RestModelMapper(Optional<List<RestModelMapping<?,?>>> mappings) {
+        this.mappings = mappings.orElseGet(Collections::emptyList);
     }
 
     @SuppressWarnings("unchecked")
