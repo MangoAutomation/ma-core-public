@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.event.type;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +93,7 @@ public class AuditEventType extends EventType{
     }
 
     public static List<EventTypeVO> getAllRegisteredEventTypes(){
-        return EVENT_TYPES;
+        return Collections.unmodifiableList(EVENT_TYPES);
     }
 
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {
