@@ -24,7 +24,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 @JsonEntity
 public class CompoundDetectorEventType extends EventType {
     private int compoundDetectorId;
-    private int duplicateHandling = EventType.DuplicateHandling.IGNORE;
+    private DuplicateHandling duplicateHandling = DuplicateHandling.IGNORE;
 
     public CompoundDetectorEventType() {
         // Required for reflection.
@@ -44,11 +44,11 @@ public class CompoundDetectorEventType extends EventType {
     }
 
     @Override
-    public int getDuplicateHandling() {
+    public DuplicateHandling getDuplicateHandling() {
         return duplicateHandling;
     }
 
-    public void setDuplicateHandling(int duplicateHandling) {
+    public void setDuplicateHandling(DuplicateHandling duplicateHandling) {
         this.duplicateHandling = duplicateHandling;
     }
 

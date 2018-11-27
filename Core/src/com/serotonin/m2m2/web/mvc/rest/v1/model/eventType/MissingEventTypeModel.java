@@ -4,30 +4,30 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.eventType;
 
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
-import com.serotonin.m2m2.rt.event.type.EventType.DuplicateHandling;
 
 /**
  *
  * @author Terry Packer
  */
 public class MissingEventTypeModel extends EventTypeModel{
-    
+
     private String missingTypeName;
     private String missingSubTypeName;
     private int ref1;
     private int ref2;
-    
+
     public MissingEventTypeModel() { }
-    
+
     public MissingEventTypeModel(String missingTypeName, String missingSubTypeName, int ref1, int ref2) {
         this.missingTypeName = missingTypeName;
         this.missingSubTypeName = missingSubTypeName;
         this.ref1 = ref1;
         this.ref2 = ref2;
     }
-    
+
     /**
      * @return the missingTypeName
      */
@@ -59,19 +59,19 @@ public class MissingEventTypeModel extends EventTypeModel{
     public int getReferenceId1() {
         return ref1;
     }
-    
+
     public void setReferenceId1(int ref1) {
         this.ref1 = ref1;
     }
-    
+
     public int getReferenceId2() {
         return ref2;
     }
-    
+
     public void setReferenceId2(int ref2) {
         this.ref2 = ref2;
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getTypeName()
      */
@@ -88,12 +88,9 @@ public class MissingEventTypeModel extends EventTypeModel{
         return false;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getDuplicateHandling()
-     */
     @Override
-    public String getDuplicateHandling() {
-        return EventType.DUPLICATE_HANDLING_CODES.getCode(DuplicateHandling.DO_NOT_ALLOW);
+    public DuplicateHandling getDuplicateHandling() {
+        return DuplicateHandling.DO_NOT_ALLOW;
     }
 
     /* (non-Javadoc)

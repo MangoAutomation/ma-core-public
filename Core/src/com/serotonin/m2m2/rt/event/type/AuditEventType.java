@@ -294,7 +294,7 @@ public class AuditEventType extends EventType{
     }
 
     @Override
-    public int getDuplicateHandling() {
+    public DuplicateHandling getDuplicateHandling() {
         return DuplicateHandling.ALLOW;
     }
 

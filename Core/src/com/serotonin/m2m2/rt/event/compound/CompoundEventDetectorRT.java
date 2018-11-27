@@ -28,7 +28,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.EventDetectorListener;
 import com.serotonin.m2m2.rt.event.SimpleEventDetector;
 import com.serotonin.m2m2.rt.event.type.CompoundDetectorEventType;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.vo.event.CompoundEventDetectorVO;
 import com.serotonin.util.ILifecycle;
 import com.serotonin.util.LifecycleException;
@@ -257,7 +257,7 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
         // Create a convenience reference to the event type.
         eventType = new CompoundDetectorEventType(vo.getId());
         if (!vo.isReturnToNormal())
-            eventType.setDuplicateHandling(EventType.DuplicateHandling.ALLOW);
+            eventType.setDuplicateHandling(DuplicateHandling.ALLOW);
 
         // Evaluate the current state.
         currentState = condition.evaluate();

@@ -100,48 +100,7 @@ abstract public class EventType implements JsonSerializable {
             SOURCE_NAMES.addElement(def.getTypeName());
     }
 
-    /**
-     * This interface defines all of the possible actions that can occur if an event is raised for which type there
-     * already exists an active event.
-     *
-     * @author Matthew Lohbihler
-     */
-    public interface DuplicateHandling {
-        /**
-         * Duplicates are not allowed. This should be the case for all event types where there is an automatic return to
-         * normal.
-         */
-        int DO_NOT_ALLOW = 1;
-
-        /**
-         * Duplicates are ignored. This should be the case where the initial occurrence of an event is really the only
-         * thing of interest to a user. For example, the initial error in a data source is usually what is most useful
-         * in diagnosing a problem.
-         */
-        int IGNORE = 2;
-
-        /**
-         * Duplicates are ignored only if their message is the same as the existing.
-         */
-        int IGNORE_SAME_MESSAGE = 3;
-
-        /**
-         * Duplicates are allowed. The change detector uses this so that user's can acknowledge every change the point
-         * experiences.
-         */
-        int ALLOW = 4;
-    }
-
-    public static ExportCodes DUPLICATE_HANDLING_CODES = new ExportCodes();
-    static{
-        DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.DO_NOT_ALLOW, "DO_NOT_ALLOW");
-        DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.IGNORE, "IGNORE");
-        DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.IGNORE_SAME_MESSAGE, "IGNORE_SAME_MESSAGE");
-        DUPLICATE_HANDLING_CODES.addElement(DuplicateHandling.ALLOW, "ALLOW");
-    }
-
     abstract public String getEventType();
-
     abstract public String getEventSubtype();
 
     /**
@@ -196,7 +155,7 @@ abstract public class EventType implements JsonSerializable {
      *
      * @return whether this event type can be overridden with newer event instances.
      */
-    abstract public int getDuplicateHandling();
+    abstract public DuplicateHandling getDuplicateHandling();
 
     abstract public int getReferenceId1();
 
@@ -238,7 +197,7 @@ abstract public class EventType implements JsonSerializable {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("sourceType", getEventType());
     }
-    
+
     protected int getInt(JsonObject json, String name, ExportCodes codes) throws JsonException {
         String text = json.getString(name);
         if (text == null)

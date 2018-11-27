@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.eventType;
 
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.EventType;
 
 /**
@@ -20,7 +21,7 @@ public abstract class EventTypeModel{
 
     abstract public boolean isRateLimited();
 
-    abstract public String getDuplicateHandling();
+    abstract public DuplicateHandling getDuplicateHandling();
 
     /**
      * Converts the model to an event type

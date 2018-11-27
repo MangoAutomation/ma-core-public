@@ -52,6 +52,7 @@ import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
@@ -567,7 +568,7 @@ public class EventHandlersDwr extends BaseDwr {
             }
 
             @Override
-            public int getDuplicateHandling() {
+            public DuplicateHandling getDuplicateHandling() {
                 return DuplicateHandling.IGNORE;
             }
 

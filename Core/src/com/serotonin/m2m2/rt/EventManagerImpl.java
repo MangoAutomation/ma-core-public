@@ -34,6 +34,7 @@ import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.UserEventMulticaster;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
@@ -238,8 +239,8 @@ public class EventManagerImpl implements EventManager {
 
     private boolean canDiscard(EventType type, TranslatableMessage message) {
         // Check the duplicate handling.
-        int dh = type.getDuplicateHandling();
-        if (dh == EventType.DuplicateHandling.DO_NOT_ALLOW) {
+        DuplicateHandling dh = type.getDuplicateHandling();
+        if (dh == DuplicateHandling.DO_NOT_ALLOW) {
             // Create a log error...
             log.error("An event was raised for a type that is already active: type="
                     + type + ", message=" + message.getKey());
@@ -247,11 +248,11 @@ public class EventManagerImpl implements EventManager {
             return true;
         }
 
-        if (dh == EventType.DuplicateHandling.IGNORE)
+        if (dh == DuplicateHandling.IGNORE)
             // Safely return.
             return true;
 
-        if (dh == EventType.DuplicateHandling.IGNORE_SAME_MESSAGE) {
+        if (dh == DuplicateHandling.IGNORE_SAME_MESSAGE) {
             // Ignore only if the message is the same. There may be events of
             // this type with different messages,
             // so look through them all for a match.

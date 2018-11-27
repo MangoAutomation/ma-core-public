@@ -30,7 +30,7 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
@@ -167,7 +167,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
      * @return
      */
     protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message) {
-        return createEventType(dsSpecificEventTypeId, message, EventType.DuplicateHandling.IGNORE, AlarmLevels.URGENT);
+        return createEventType(dsSpecificEventTypeId, message, DuplicateHandling.IGNORE, AlarmLevels.URGENT);
     }
 
     /**
@@ -177,7 +177,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
      * @param defaultAlarmLevel
      * @return
      */
-    protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, int duplicateHandling,
+    protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, DuplicateHandling duplicateHandling,
             int defaultAlarmLevel) {
         int alarmLevel = getAlarmLevel(dsSpecificEventTypeId, defaultAlarmLevel);
         return new EventTypeVO(
@@ -195,7 +195,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     protected EventTypeVO createPollAbortedEventType(int eventId) {
         int alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
         return new EventTypeVO(
-                new DataSourceEventType(getId(), eventId, alarmLevel, EventType.DuplicateHandling.IGNORE),
+                new DataSourceEventType(getId(), eventId, alarmLevel, DuplicateHandling.IGNORE),
                 new TranslatableMessage("event.ds.pollAborted"), alarmLevel);
     }
 

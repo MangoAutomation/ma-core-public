@@ -26,7 +26,7 @@ import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.EventManagerImpl;
-import com.serotonin.m2m2.rt.event.type.EventType.DuplicateHandling;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
 

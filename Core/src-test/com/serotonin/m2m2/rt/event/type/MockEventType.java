@@ -13,7 +13,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 public class MockEventType extends EventType {
 
     public static final String TYPE_NAME = "MOCK";
-    private int duplicateHandling;
+    private DuplicateHandling duplicateHandling;
     private String eventSubtype;
     private int ref1;
     private int ref2;
@@ -23,22 +23,22 @@ public class MockEventType extends EventType {
      * and event sub type of null
      */
     public MockEventType() {
-        this(EventType.DuplicateHandling.ALLOW);
+        this(DuplicateHandling.ALLOW);
     }
 
     /**
      * default subtype of null
      * @param duplicateHandling
      */
-    public MockEventType(int duplicateHandling) {
+    public MockEventType(DuplicateHandling duplicateHandling) {
         this(duplicateHandling, null);
     }
 
-    public MockEventType(int duplicateHandling, String eventSubType) {
+    public MockEventType(DuplicateHandling duplicateHandling, String eventSubType) {
         this(duplicateHandling, eventSubType, -1, -1);
     }
 
-    public MockEventType(int duplicateHandling, String eventSubType, int ref1, int ref2) {
+    public MockEventType(DuplicateHandling duplicateHandling, String eventSubType, int ref1, int ref2) {
         this.duplicateHandling = duplicateHandling;
         this.eventSubtype = null;
         this.ref1 = ref1;
@@ -61,11 +61,8 @@ public class MockEventType extends EventType {
         return eventSubtype;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getDuplicateHandling()
-     */
     @Override
-    public int getDuplicateHandling() {
+    public DuplicateHandling getDuplicateHandling() {
         return duplicateHandling;
     }
 
@@ -110,7 +107,7 @@ public class MockEventType extends EventType {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + duplicateHandling;
+        result = prime * result + ((duplicateHandling == null) ? 0 : duplicateHandling.hashCode());
         result = prime * result + ((eventSubtype == null) ? 0 : eventSubtype.hashCode());
         result = prime * result + ref1;
         result = prime * result + ref2;
@@ -139,5 +136,6 @@ public class MockEventType extends EventType {
             return false;
         return true;
     }
+
 
 }

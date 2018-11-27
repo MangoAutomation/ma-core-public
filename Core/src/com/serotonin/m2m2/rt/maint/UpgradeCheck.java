@@ -13,7 +13,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.ReturnCause;
-import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.web.dwr.ModulesDwr;
 import com.serotonin.timer.FixedRateTrigger;
@@ -40,7 +40,7 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
     }
 
     private final SystemEventType et = new SystemEventType(SystemEventType.TYPE_UPGRADE_CHECK, 0,
-            EventType.DuplicateHandling.IGNORE);
+            DuplicateHandling.IGNORE);
 
     public UpgradeCheck() {
         super(new FixedRateTrigger(DELAY_TIMEOUT, PERIOD_TIMEOUT), "Upgrade check task", "UpgradeCheck", 0);

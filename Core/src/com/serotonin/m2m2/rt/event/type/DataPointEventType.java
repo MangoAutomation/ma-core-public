@@ -22,7 +22,7 @@ public class DataPointEventType extends EventType {
     private int dataSourceId = -1;
     private int dataPointId;
     private int pointEventDetectorId;
-    private int duplicateHandling = EventType.DuplicateHandling.IGNORE;
+    private DuplicateHandling duplicateHandling = DuplicateHandling.IGNORE;
 
     public DataPointEventType() {
         // Required for reflection.
@@ -33,7 +33,7 @@ public class DataPointEventType extends EventType {
         this.pointEventDetectorId = pointEventDetectorId;
     }
 
-    public DataPointEventType(int dataSourceId, int dataPointId, int pointEventDetectorId, int duplicateHandling){
+    public DataPointEventType(int dataSourceId, int dataPointId, int pointEventDetectorId, DuplicateHandling duplicateHandling){
         this.dataSourceId = dataSourceId;
         this.dataPointId = dataPointId;
         this.pointEventDetectorId = pointEventDetectorId;
@@ -75,11 +75,11 @@ public class DataPointEventType extends EventType {
     }
 
     @Override
-    public int getDuplicateHandling() {
+    public DuplicateHandling getDuplicateHandling() {
         return duplicateHandling;
     }
 
-    public void setDuplicateHandling(int duplicateHandling) {
+    public void setDuplicateHandling(DuplicateHandling duplicateHandling) {
         this.duplicateHandling = duplicateHandling;
     }
 

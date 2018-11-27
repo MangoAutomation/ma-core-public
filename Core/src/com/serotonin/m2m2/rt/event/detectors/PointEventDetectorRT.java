@@ -15,6 +15,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -32,7 +33,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
     protected EventType getEventType() {
         DataPointEventType et = new DataPointEventType(vo.njbGetDataPoint().getId(), vo.getId());
         if (!vo.isRtnApplicable())
-            et.setDuplicateHandling(EventType.DuplicateHandling.ALLOW);
+            et.setDuplicateHandling(DuplicateHandling.ALLOW);
         return et;
     }
 

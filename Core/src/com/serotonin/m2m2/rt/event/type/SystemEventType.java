@@ -78,13 +78,13 @@ public class SystemEventType extends EventType {
 
     private static void registerEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
-        EVENT_TYPES.put(subtype, new EventTypeVO(new SystemEventType(subtype, 0, 0), new TranslatableMessage(key),
+        EVENT_TYPES.put(subtype, new EventTypeVO(new SystemEventType(subtype, 0, null), new TranslatableMessage(key),
                 SystemSettingsDao.instance.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype, AlarmLevels.NONE)));
     }
 
     static void updateAlarmLevel(String subtype, int alarmLevel) {
         EVENT_TYPES.computeIfPresent(subtype, (k, v) -> {
-            return new EventTypeVO(new SystemEventType(k, 0, 0), v.getDescription(), alarmLevel);
+            return new EventTypeVO(new SystemEventType(k, 0, null), v.getDescription(), alarmLevel);
         });
     }
 
@@ -119,7 +119,7 @@ public class SystemEventType extends EventType {
     //
     private String systemEventType;
     private int refId1;
-    private int duplicateHandling = EventType.DuplicateHandling.ALLOW;
+    private DuplicateHandling duplicateHandling = DuplicateHandling.ALLOW;
 
     public SystemEventType() {
         // Required for reflection.
@@ -134,7 +134,7 @@ public class SystemEventType extends EventType {
         this.refId1 = refId1;
     }
 
-    public SystemEventType(String systemEventType, int refId1, int duplicateHandling) {
+    public SystemEventType(String systemEventType, int refId1, DuplicateHandling duplicateHandling) {
         this(systemEventType, refId1);
         this.duplicateHandling = duplicateHandling;
     }
@@ -164,7 +164,7 @@ public class SystemEventType extends EventType {
     }
 
     @Override
-    public int getDuplicateHandling() {
+    public DuplicateHandling getDuplicateHandling() {
         return duplicateHandling;
     }
 

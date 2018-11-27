@@ -22,17 +22,17 @@ public class DataSourceEventType extends EventType {
     private int dataSourceId;
     private int dataSourceEventTypeId;
     private int alarmLevel;
-    private int duplicateHandling;
+    private DuplicateHandling duplicateHandling;
 
     public DataSourceEventType() {
         // Required for reflection.
     }
 
     public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId) {
-        this(dataSourceId, dataSourceEventTypeId, AlarmLevels.URGENT, EventType.DuplicateHandling.IGNORE);
+        this(dataSourceId, dataSourceEventTypeId, AlarmLevels.URGENT, DuplicateHandling.IGNORE);
     }
 
-    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, int alarmLevel, int duplicateHandling) {
+    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, int alarmLevel, DuplicateHandling duplicateHandling) {
         this.dataSourceId = dataSourceId;
         this.dataSourceEventTypeId = dataSourceEventTypeId;
         this.alarmLevel = alarmLevel;
@@ -73,7 +73,7 @@ public class DataSourceEventType extends EventType {
     }
 
     @Override
-    public int getDuplicateHandling() {
+    public DuplicateHandling getDuplicateHandling() {
         return duplicateHandling;
     }
 

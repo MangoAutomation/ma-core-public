@@ -73,12 +73,9 @@ public class MissingEventType extends EventType{
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getDuplicateHandling()
-     */
     @Override
-    public int getDuplicateHandling() {
-        return EventType.DuplicateHandling.IGNORE;
+    public DuplicateHandling getDuplicateHandling() {
+        return DuplicateHandling.IGNORE;
     }
 
     /* (non-Javadoc)
