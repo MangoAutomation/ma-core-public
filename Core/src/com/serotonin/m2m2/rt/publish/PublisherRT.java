@@ -62,7 +62,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     protected PublishQueue<T, PointValueTime> createPublishQueue(PublisherVO<T> vo) {
         return new PublishQueue<T, PointValueTime>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
-    
+
     protected PublishQueue<T, Map<String, Object>> createAttirbutesChangedQueue() {
         return new AttributePublishQueue<T>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
@@ -125,7 +125,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     protected void pointTerminated(PublishedPointRT<T> rt) {
         checkForDisabledPoints();
     }
-    
+
     protected void attributeChanged(T vo, Map<String, Object> attributes) {
         if(this.vo.isPublishAttributeChanges()) {
             attributesChangedQueue.add(vo, attributes);
@@ -163,20 +163,18 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
             }
             else
                 // Everything is good
-                Common.eventManager.returnToNormal(pointDisabledEventType, Common.timer.currentTimeMillis(), 
-                		vo.getAlarmLevel(POINT_DISABLED_EVENT, AlarmLevels.URGENT));
+                Common.eventManager.returnToNormal(pointDisabledEventType, Common.timer.currentTimeMillis());
         }
     }
 
     void fireQueueSizeWarningEvent() {
-        Common.eventManager.raiseEvent(queueSizeWarningEventType, Common.timer.currentTimeMillis(), true, 
-        		vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT),
+        Common.eventManager.raiseEvent(queueSizeWarningEventType, Common.timer.currentTimeMillis(), true,
+                vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT),
                 new TranslatableMessage("event.publish.queueSize", vo.getCacheWarningSize()), createEventContext());
     }
 
     void deactivateQueueSizeWarningEvent() {
-        Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.timer.currentTimeMillis(), 
-        		vo.getAlarmLevel(QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT));
+        Common.eventManager.returnToNormal(queueSizeWarningEventType, Common.timer.currentTimeMillis());
     }
 
     protected Map<String, Object> createEventContext() {
@@ -208,10 +206,10 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     }
 
     public void terminate() {
-    	if(sendThread != null){
-	        sendThread.terminate();
-	        sendThread.joinTermination();
-    	}
+        if(sendThread != null){
+            sendThread.terminate();
+            sendThread.joinTermination();
+        }
 
         // Unschedule any job that is running.
         if (snapshotTask != null)
@@ -271,19 +269,19 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
             jobThread = null;
         }
     }
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
-	 */
-	@Override
-	public String getThreadName() {
-		return "Pubisher: " + vo.getXid();
-	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		return "PUB-" + vo.getXid();
-	}
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+     */
+    @Override
+    public String getThreadName() {
+        return "Pubisher: " + vo.getXid();
+    }
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+     */
+    @Override
+    public String getTaskId() {
+        return "PUB-" + vo.getXid();
+    }
 }

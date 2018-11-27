@@ -34,6 +34,7 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -47,20 +48,20 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.web.dwr.EventsDwr;
 
 public class EventDao extends BaseDao {
-	private static final Log LOG = LogFactory.getLog(EventDao.class);
-	
+    private static final Log LOG = LogFactory.getLog(EventDao.class);
+
     private static final LazyInitSupplier<EventDao> instance = new LazyInitSupplier<>(() -> {
         return new EventDao();
     });
-    
-	private EventDao(){
-		
-	}
-	
-	public static EventDao getInstance() {
-	    return instance.get();
-	}
-	
+
+    private EventDao(){
+
+    }
+
+    public static EventDao getInstance() {
+        return instance.get();
+    }
+
     private static final int MAX_PENDING_EVENTS = 100;
 
     public void saveEvent(EventInstance event) {
@@ -94,7 +95,7 @@ public class EventDao extends BaseDao {
     }
 
     private static final String EVENT_INSERT = //
-    "insert into events (typeName, subtypeName, typeRef1, typeRef2, activeTs, rtnApplicable, rtnTs, rtnCause, " //
+            "insert into events (typeName, subtypeName, typeRef1, typeRef2, activeTs, rtnApplicable, rtnTs, rtnCause, " //
             + "  alarmLevel, message, ackTs) " //
             + "values (?,?,?,?,?,?,?,?,?,?,?)";
     private static final int[] EVENT_INSERT_TYPES = { Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER,
@@ -110,17 +111,17 @@ public class EventDao extends BaseDao {
         args[3] = type.getReferenceId2();
         args[4] = event.getActiveTimestamp();
         args[5] = boolToChar(event.isRtnApplicable());
-        if (!event.isActive()) {
+        if (event.isRtnApplicable() && !event.isActive()) {
             args[6] = event.getRtnTimestamp();
-            args[7] = event.getRtnCause();
+            args[7] = event.getRtnCause().value();
         }
         args[8] = event.getAlarmLevel();
         args[9] = writeTranslatableMessage(event.getMessage());
         //For None Level Events
-//        if (event.getAlarmLevel() == AlarmLevels.DO_NOT_LOG) {
-//            event.setAcknowledgedTimestamp(event.getActiveTimestamp());
-//            args[10] = event.getAcknowledgedTimestamp();
-//        }
+        //        if (event.getAlarmLevel() == AlarmLevels.DO_NOT_LOG) {
+        //            event.setAcknowledgedTimestamp(event.getActiveTimestamp());
+        //            args[10] = event.getAcknowledgedTimestamp();
+        //        }
         event.setId(doInsert(EVENT_INSERT, args, EVENT_INSERT_TYPES));
         event.setEventComments(new LinkedList<UserCommentVO>());
     }
@@ -128,26 +129,28 @@ public class EventDao extends BaseDao {
     private static final String EVENT_UPDATE = "update events set rtnTs=?, rtnCause=? where id=?";
 
     private void updateEvent(EventInstance event) {
-        ejt.update(EVENT_UPDATE, new Object[] { event.getRtnTimestamp(), event.getRtnCause(), event.getId() });
+        if (event.isRtnApplicable()) {
+            ejt.update(EVENT_UPDATE, new Object[] { event.getRtnTimestamp(), event.getRtnCause().value(), event.getId() });
+        }
     }
 
     private static final String EVENT_BULK_RTN = "update events set rtnTs=?, rtnCause=? where id in ";
-    public void returnEventsToNormal(List<Integer> eventIds, long timestamp, long cause){
-    	if(eventIds.size() == 0)
-    		throw new ShouldNeverHappenException("Not enough Ids!");
-    	StringBuilder inClause = new StringBuilder();
-    	inClause.append("(");
-    	final String comma = ",";
-    	Iterator<Integer> it = eventIds.iterator();
-    	while(it.hasNext()){
-    		inClause.append(it.next());
-    		if(it.hasNext())
-    			inClause.append(comma);
-    	}
-    	inClause.append(")");
-    	ejt.update( EVENT_BULK_RTN + inClause.toString(), new Object[]{timestamp, cause});
+    public void returnEventsToNormal(List<Integer> eventIds, long timestamp, ReturnCause cause){
+        if(eventIds.size() == 0)
+            throw new ShouldNeverHappenException("Not enough Ids!");
+        StringBuilder inClause = new StringBuilder();
+        inClause.append("(");
+        final String comma = ",";
+        Iterator<Integer> it = eventIds.iterator();
+        while(it.hasNext()){
+            inClause.append(it.next());
+            if(it.hasNext())
+                inClause.append(comma);
+        }
+        inClause.append(")");
+        ejt.update( EVENT_BULK_RTN + inClause.toString(), new Object[]{timestamp, cause.value()});
     }
-    
+
     private static final String EVENT_ACK = "update events set ackTs=?, ackUserId=?, alternateAckSource=? where id=? and ackTs is null";
     private static final String USER_EVENT_ACK = "update userEvents set silenced=? where eventId=?";
 
@@ -158,7 +161,7 @@ public class EventDao extends BaseDao {
                 new int[] { Types.BIGINT, Types.INTEGER, Types.CLOB, Types.INTEGER });
         // Silence the user events
         ejt.update(USER_EVENT_ACK, new Object[] { boolToChar(true), eventId });
-        
+
         return count > 0;
     }
 
@@ -183,7 +186,7 @@ public class EventDao extends BaseDao {
     }
 
     private static final String BASIC_EVENT_SELECT = //
-    "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
+            "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
             + "  e.rtnCause, e.alarmLevel, e.message, e.ackTs, e.ackUserId, u.username, e.alternateAckSource, " //
             + "  (select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT //
             + "     and typeKey=e.id) as cnt " //
@@ -198,11 +201,11 @@ public class EventDao extends BaseDao {
     }
 
     public EventInstance get(int eventId){
-    	return queryForObject(BASIC_EVENT_SELECT + " where e.id = ?", new Object[]{ eventId }, new EventInstanceRowMapper(), null);
+        return queryForObject(BASIC_EVENT_SELECT + " where e.id = ?", new Object[]{ eventId }, new EventInstanceRowMapper(), null);
     }
-    
+
     private static final String EVENT_SELECT_WITH_USER_DATA = //
-    "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
+            "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
             + "  e.rtnCause, e.alarmLevel, e.message, e.ackTs, e.ackUserId, u.username, e.alternateAckSource, " //
             + "  (select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT //
             + "     and typeKey=e.id) as cnt, " //
@@ -264,8 +267,8 @@ public class EventDao extends BaseDao {
         attachRelationalInfo(results);
         return results;
     }
- 
-    
+
+
     public List<EventInstance> getPendingEvents(int userId) {
         List<EventInstance> results = Common.databaseProxy.doLimitQuery(this, EVENT_SELECT_WITH_USER_DATA
                 + "where ue.userId=? and e.ackTs is null order by e.activeTs desc", new Object[] { userId },
@@ -288,7 +291,7 @@ public class EventDao extends BaseDao {
             event.setId(rs.getInt(1));
             long rtnTs = rs.getLong(8);
             if (!rs.wasNull())
-                event.returnToNormal(rtnTs, rs.getInt(9));
+                event.returnToNormal(rtnTs, ReturnCause.enumFor(rs.getInt(9)));
             long ackTs = rs.getLong(12);
             if (!rs.wasNull()) {
                 event.setAcknowledgedTimestamp(ackTs);
@@ -316,12 +319,12 @@ public class EventDao extends BaseDao {
 
     /**
      * Get an event type from a result set
-     * 
+     *
      * eventTypeName = offset
      * eventSubtypeName = offset + 1
      * eventTypeRef1 = offset + 2
      * eventTypeRef2 = offset + 3
-     * 
+     *
      * @param rs
      * @param offset
      * @return
@@ -340,7 +343,7 @@ public class EventDao extends BaseDao {
         else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
             type = new PublisherEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
         else if (typeName.equals(EventType.EventTypeNames.AUDIT))
-        	type = new AuditEventType(subtypeName, -1, rs.getInt(offset + 3)); //TODO allow tracking the various types of audit events...
+            type = new AuditEventType(subtypeName, -1, rs.getInt(offset + 3)); //TODO allow tracking the various types of audit events...
         else {
             EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(typeName);
             if (def == null) {
@@ -383,8 +386,8 @@ public class EventDao extends BaseDao {
      * @return
      */
     public int purgeAllEvents(){
-    	final ExtendedJdbcTemplate ejt2 = ejt;
-    	int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
+        final ExtendedJdbcTemplate ejt2 = ejt;
+        int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 int tot = ejt2.update("delete from events"); //UserEvents table will be deleted on cascade
@@ -392,7 +395,7 @@ public class EventDao extends BaseDao {
                 return tot;
             }
         });
-    	return count;
+        return count;
     }
     /**
      * Purge Events Before a given time with a given alarmLevel
@@ -406,7 +409,7 @@ public class EventDao extends BaseDao {
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-            	
+
                 int count = ejt2.update("delete from events where activeTs<? and alarmLevel=?", new Object[] { time, alarmLevel});
 
                 // Delete orphaned user comments.
@@ -420,7 +423,7 @@ public class EventDao extends BaseDao {
 
         return count;
     }
-    
+
     /**
      * Purge Events Before a given time with a given typeName
      * @param time
@@ -433,7 +436,7 @@ public class EventDao extends BaseDao {
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-            	
+
                 int count = ejt2.update("delete from events where activeTs<? and typeName=?", new Object[] { time, typeName});
 
                 // Delete orphaned user comments.
@@ -447,8 +450,8 @@ public class EventDao extends BaseDao {
 
         return count;
     }
-    
-    
+
+
     public int purgeEventsBefore(final long time) {
         // Find a list of event ids with no remaining acknowledgments pending.
         final ExtendedJdbcTemplate ejt2 = ejt;

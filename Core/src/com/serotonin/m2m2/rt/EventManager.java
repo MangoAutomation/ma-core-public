@@ -10,6 +10,7 @@ import java.util.Map;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.User;
@@ -46,7 +47,7 @@ public interface EventManager extends ILifecycle{
             TranslatableMessage message, Map<String, Object> context);
 
     void returnToNormal(EventType type, long time);
-    void returnToNormal(EventType type, long time, int cause);
+    void returnToNormal(EventType type, long time, ReturnCause cause);
 
     /**
      * Acknowledges an event given an event ID.

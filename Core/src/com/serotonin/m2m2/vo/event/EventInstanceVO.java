@@ -17,7 +17,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.EventInstance.RtnCauses;
+import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
@@ -30,16 +30,16 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
  */
 public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Configuration field. Provided by the event producer. Identifies where the event came from and what it means.
      */
     private EventType eventType;
-	
+
     /**
      * State field. The time that the event became active (i.e. was raised).
      */
@@ -56,13 +56,13 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     private long rtnTimestamp;
 
     /**
-     * State field. The action that caused the event to RTN. One of {@link RtnCauses}
+     * State field. The action that caused the event to RTN. One of {@link ReturnCause}
      */
-    private int rtnCause;
+    private ReturnCause rtnCause;
 
     /**
      * Configuration field. The alarm level assigned to the event.
-     * 
+     *
      * @see AlarmLevels
      */
     private int alarmLevel;
@@ -95,85 +95,85 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     //
     // Contextual data from the source that raised the event.
     private Map<String, Object> context;
-	
+
     /**
      * Total Time for alarm since conception to rtn or now
      * if not complete
      */
-    private Long totalTime; 
-    
+    private Long totalTime;
+
     public EventType getEventType() {
-		return eventType;
-	}
+        return eventType;
+    }
 
 
-	public void setEventType(EventType eventType) {
-		this.eventType = eventType;
-	}
+    public void setEventType(EventType eventType) {
+        this.eventType = eventType;
+    }
 
 
-	public long getActiveTimestamp() {
-		return activeTimestamp;
-	}
+    public long getActiveTimestamp() {
+        return activeTimestamp;
+    }
 
 
-	public void setActiveTimestamp(long activeTimestamp) {
-		this.activeTimestamp = activeTimestamp;
-	}
+    public void setActiveTimestamp(long activeTimestamp) {
+        this.activeTimestamp = activeTimestamp;
+    }
 
-	public String getActiveTimestampString(){
-		return DeltamationCommon.formatDate(this.activeTimestamp);
-	}
+    public String getActiveTimestampString(){
+        return DeltamationCommon.formatDate(this.activeTimestamp);
+    }
 
-	public void setActiveTimestampString(){
-		//NoOp
-	}
-	
-	public boolean isRtnApplicable() {
-		return rtnApplicable;
-	}
+    public void setActiveTimestampString(){
+        //NoOp
+    }
 
-
-	public void setRtnApplicable(boolean rtnApplicable) {
-		this.rtnApplicable = rtnApplicable;
-	}
+    public boolean isRtnApplicable() {
+        return rtnApplicable;
+    }
 
 
-	public long getRtnTimestamp() {
-		return rtnTimestamp;
-	}
+    public void setRtnApplicable(boolean rtnApplicable) {
+        this.rtnApplicable = rtnApplicable;
+    }
 
 
-	public void setRtnTimestamp(long rtnTimestamp) {
-		this.rtnTimestamp = rtnTimestamp;
-	}
-
-	public String getRtnTimestampString(){
-		return DeltamationCommon.formatDate(this.rtnTimestamp);
-	}
-	public void setRtnTimestampString(String s){
-		//NoOp
-	}
-	
-
-	public int getRtnCause() {
-		return rtnCause;
-	}
+    public long getRtnTimestamp() {
+        return rtnTimestamp;
+    }
 
 
-	public void setRtnCause(int rtnCause) {
-		this.rtnCause = rtnCause;
-	}
+    public void setRtnTimestamp(long rtnTimestamp) {
+        this.rtnTimestamp = rtnTimestamp;
+    }
+
+    public String getRtnTimestampString(){
+        return DeltamationCommon.formatDate(this.rtnTimestamp);
+    }
+    public void setRtnTimestampString(String s){
+        //NoOp
+    }
 
 
-	public int getAlarmLevel() {
-		return alarmLevel;
-	}
+    public ReturnCause getRtnCause() {
+        return rtnCause;
+    }
 
 
-	public void setAlarmLevel(int alarmLevel) {
-		this.alarmLevel = alarmLevel;
-	}
+    public void setRtnCause(ReturnCause rtnCause) {
+        this.rtnCause = rtnCause;
+    }
+
+
+    public int getAlarmLevel() {
+        return alarmLevel;
+    }
+
+
+    public void setAlarmLevel(int alarmLevel) {
+        this.alarmLevel = alarmLevel;
+    }
 
 
     public TranslatableMessage getMessage() {
@@ -184,11 +184,11 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
             return message;
     }
 
-	public void setMessage(TranslatableMessage message) {
-		this.message = message;
-	}
-	
-    
+    public void setMessage(TranslatableMessage message) {
+        this.message = message;
+    }
+
+
     public String getMessageString(){
         if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
             MissingEventType type = (MissingEventType)eventType;
@@ -197,138 +197,138 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
             return message.translate(Common.getTranslations());
     }
 
-	public void setMessageString(String msg){
-		//NoOp
-	}
+    public void setMessageString(String msg){
+        //NoOp
+    }
 
-	public List<UserCommentVO> getEventComments() {
-		return eventComments;
-	}
-
-
-	public void setEventComments(List<UserCommentVO> eventComments) {
-		this.eventComments = eventComments;
-	}
+    public List<UserCommentVO> getEventComments() {
+        return eventComments;
+    }
 
 
-	public List<EventHandlerRT<?>> getHandlers() {
-		return handlers;
-	}
+    public void setEventComments(List<UserCommentVO> eventComments) {
+        this.eventComments = eventComments;
+    }
 
 
-	public void setHandlers(List<EventHandlerRT<?>> handlers) {
-		this.handlers = handlers;
-	}
+    public List<EventHandlerRT<?>> getHandlers() {
+        return handlers;
+    }
 
 
-	public long getAcknowledgedTimestamp() {
-		return acknowledgedTimestamp;
-	}
+    public void setHandlers(List<EventHandlerRT<?>> handlers) {
+        this.handlers = handlers;
+    }
 
 
-	public void setAcknowledgedTimestamp(long acknowledgedTimestamp) {
-		this.acknowledgedTimestamp = acknowledgedTimestamp;
-	}
-
-	public String getAcknowledgedTimestampString(){
-		return DeltamationCommon.formatDate(this.acknowledgedTimestamp);
-	}
-	public void setAcknowledgedTimestamp(String s){
-		//NoOp
-	}
-	
-	public int getAcknowledgedByUserId() {
-		return acknowledgedByUserId;
-	}
+    public long getAcknowledgedTimestamp() {
+        return acknowledgedTimestamp;
+    }
 
 
-	public void setAcknowledgedByUserId(int acknowledgedByUserId) {
-		this.acknowledgedByUserId = acknowledgedByUserId;
-	}
+    public void setAcknowledgedTimestamp(long acknowledgedTimestamp) {
+        this.acknowledgedTimestamp = acknowledgedTimestamp;
+    }
+
+    public String getAcknowledgedTimestampString(){
+        return DeltamationCommon.formatDate(this.acknowledgedTimestamp);
+    }
+    public void setAcknowledgedTimestamp(String s){
+        //NoOp
+    }
+
+    public int getAcknowledgedByUserId() {
+        return acknowledgedByUserId;
+    }
 
 
-	public String getAcknowledgedByUsername() {
-		return acknowledgedByUsername;
-	}
+    public void setAcknowledgedByUserId(int acknowledgedByUserId) {
+        this.acknowledgedByUserId = acknowledgedByUserId;
+    }
 
 
-	public void setAcknowledgedByUsername(String acknowledgedByUsername) {
-		this.acknowledgedByUsername = acknowledgedByUsername;
-	}
+    public String getAcknowledgedByUsername() {
+        return acknowledgedByUsername;
+    }
 
 
-	public TranslatableMessage getAlternateAckSource() {
-		return alternateAckSource;
-	}
+    public void setAcknowledgedByUsername(String acknowledgedByUsername) {
+        this.acknowledgedByUsername = acknowledgedByUsername;
+    }
 
 
-	public void setAlternateAckSource(TranslatableMessage alternateAckSource) {
-		this.alternateAckSource = alternateAckSource;
-	}
+    public TranslatableMessage getAlternateAckSource() {
+        return alternateAckSource;
+    }
 
 
-	public boolean isHasComments() {
-		return hasComments;
-	}
+    public void setAlternateAckSource(TranslatableMessage alternateAckSource) {
+        this.alternateAckSource = alternateAckSource;
+    }
 
 
-	public void setHasComments(boolean hasComments) {
-		this.hasComments = hasComments;
-	}
+    public boolean isHasComments() {
+        return hasComments;
+    }
 
 
-	public boolean isUserNotified() {
-		return userNotified;
-	}
+    public void setHasComments(boolean hasComments) {
+        this.hasComments = hasComments;
+    }
 
 
-	public void setUserNotified(boolean userNotified) {
-		this.userNotified = userNotified;
-	}
+    public boolean isUserNotified() {
+        return userNotified;
+    }
 
 
-	public boolean isSilenced() {
-		return silenced;
-	}
+    public void setUserNotified(boolean userNotified) {
+        this.userNotified = userNotified;
+    }
 
 
-	public void setSilenced(boolean silenced) {
-		this.silenced = silenced;
-	}
+    public boolean isSilenced() {
+        return silenced;
+    }
 
 
-	public Map<String, Object> getContext() {
-		return context;
-	}
+    public void setSilenced(boolean silenced) {
+        this.silenced = silenced;
+    }
 
 
-	public void setContext(Map<String, Object> context) {
-		this.context = context;
-	}
+    public Map<String, Object> getContext() {
+        return context;
+    }
 
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
-	}
+    public void setContext(Map<String, Object> context) {
+        this.context = context;
+    }
 
-	public void setActive(boolean active){
-		//NoOp
-	}
+
+    public static long getSerialversionuid() {
+        return serialVersionUID;
+    }
+
+    public void setActive(boolean active){
+        //NoOp
+    }
     public boolean isActive() {
         return rtnApplicable && rtnTimestamp == 0;
     }
 
     public void setRtnMessageString(String msg){
-    	//NoOp
+        //NoOp
     }
-    
+
     public String getRtnMessageString() {
         TranslatableMessage rtnKey = null;
 
         if (!isActive()) {
-            if (rtnCause == RtnCauses.RETURN_TO_NORMAL)
+            if (rtnCause == ReturnCause.RETURN_TO_NORMAL)
                 rtnKey = new TranslatableMessage("event.rtn.rtn");
-            else if (rtnCause == RtnCauses.SOURCE_DISABLED) {
+            else if (rtnCause == ReturnCause.SOURCE_DISABLED) {
                 if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT))
                     rtnKey = new TranslatableMessage("event.rtn.pointDisabled");
                 else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE))
@@ -347,37 +347,37 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
                 rtnKey = new TranslatableMessage("event.rtn.unknown");
         }
         if(rtnKey != null)
-        	return rtnKey.translate(Common.getTranslations());
+            return rtnKey.translate(Common.getTranslations());
         else
-        	return "";
+            return "";
     }
 
     public void setAcknowledged(boolean ack){
-    	//NoOp
+        //NoOp
     }
     public boolean isAcknowledged() {
         return acknowledgedTimestamp > 0;
     }
-    
+
     public void setTotalTimeString(String tt){
-    	//NoOp
+        //NoOp
     }
     public String getTotalTimeString(){
-    	if(this.isRtnApplicable())
-    		return DeltamationCommon.formatDuration(this.totalTime);
-    	else
-    		return "N/A";
+        if(this.isRtnApplicable())
+            return DeltamationCommon.formatDuration(this.totalTime);
+        else
+            return "N/A";
     }
-    
+
     public void setTotalTime(Long totalTime){
-    	this.totalTime = totalTime;
+        this.totalTime = totalTime;
     }
     public Long getTotalTime(){
-    	return totalTime;
+        return totalTime;
     }
-    
+
     public void setAckMessageString(String s){
-    	//NoOp
+        //NoOp
     }
     /**
      * Get a formatted message
@@ -386,7 +386,7 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
      */
     public String getAckMessageString() {
         if (isAcknowledged()) {
-        	String msg = this.getAcknowledgedTimestampString() + " ";
+            String msg = this.getAcknowledgedTimestampString() + " ";
             if (acknowledgedByUserId != 0)
                 msg += new TranslatableMessage("events.ackedByUser", acknowledgedByUsername).translate(Common.getTranslations());
             if (alternateAckSource != null)
@@ -395,49 +395,49 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
         }
         return "";
     }
-    
+
     /**
      * Construct the comments html
      * @return
      */
     public String getCommentsHTML(){
-    	StringBuilder builder = new StringBuilder("");
-    	if(eventComments != null){
-    		builder.append("</br>");
-	    	for(UserCommentVO comment : this.eventComments){
-	    		builder.append("<span class='copyTitle'>");
-	    		builder.append("<img style='padding-right: 5px' src='/images/comment.png' title='").append(Common.translate("notes.note")).append("'/>");
-	    		builder.append(DeltamationCommon.formatDate(comment.getTs())).append(" ");
-	    		builder.append(Common.translate("notes.by")).append(" ");
-	    		if(comment.getUsername() == null)
-	    			builder.append(Common.translate("common.deleted"));
-	    		else
-	    			builder.append(HtmlUtils.htmlEscape(comment.getUsername()));
-	    		builder.append("</span></br>");
-	    		builder.append(HtmlUtils.htmlEscape(comment.getComment())).append("</br>");
-	    	}
-    	}
-    	return builder.toString();
+        StringBuilder builder = new StringBuilder("");
+        if(eventComments != null){
+            builder.append("</br>");
+            for(UserCommentVO comment : this.eventComments){
+                builder.append("<span class='copyTitle'>");
+                builder.append("<img style='padding-right: 5px' src='/images/comment.png' title='").append(Common.translate("notes.note")).append("'/>");
+                builder.append(DeltamationCommon.formatDate(comment.getTs())).append(" ");
+                builder.append(Common.translate("notes.by")).append(" ");
+                if(comment.getUsername() == null)
+                    builder.append(Common.translate("common.deleted"));
+                else
+                    builder.append(HtmlUtils.htmlEscape(comment.getUsername()));
+                builder.append("</span></br>");
+                builder.append(HtmlUtils.htmlEscape(comment.getComment())).append("</br>");
+            }
+        }
+        return builder.toString();
     }
     public void setCommentsHTML(String s){
-    	//NoOp
+        //NoOp
     }
-	/* (non-Javadoc)
-	 * 
-	 * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()
-	 */
-	@Override
-	public String getTypeKey() {
-		return null; //TODO Currently No Audit Events for this
-	}
+    /* (non-Javadoc)
+     *
+     * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()
+     */
+    @Override
+    public String getTypeKey() {
+        return null; //TODO Currently No Audit Events for this
+    }
 
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
-	@Override
-	protected AbstractDao<EventInstanceVO> getDao() {
-		throw new ShouldNeverHappenException("Un-implemented");
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+     */
+    @Override
+    protected AbstractDao<EventInstanceVO> getDao() {
+        throw new ShouldNeverHappenException("Un-implemented");
+    }
 
 }

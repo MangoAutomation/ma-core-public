@@ -125,7 +125,7 @@ public class EventHandlersDwr extends BaseDwr {
                 for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
                     EventTypeVO dpet = ped.getEventType();
                     EventTypeVoHandlers voh = new EventTypeVoHandlers(dpet.getEventType(), dpet.getDescription(), dpet.getAlarmLevel());
-                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dpet));
+                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dpet.getEventType()));
                     source.getEventTypes().add(voh);
                 }
 
@@ -146,7 +146,7 @@ public class EventHandlersDwr extends BaseDwr {
 
                 for (EventTypeVO dset : ds.getEventTypes()) {
                     EventTypeVoHandlers voh = new EventTypeVoHandlers(dset.getEventType(), dset.getDescription(), dset.getAlarmLevel());
-                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dset));
+                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dset.getEventType()));
                     source.getEventTypes().add(voh);
                 }
 
@@ -162,7 +162,7 @@ public class EventHandlersDwr extends BaseDwr {
                 List<EventTypeVoHandlers> voHandlers = new ArrayList<>();
                 for (EventTypeVO vo : vos) {
                     EventTypeVoHandlers voh = new EventTypeVoHandlers(vo.getEventType(), vo.getDescription(), vo.getAlarmLevel());
-                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo));
+                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
                     voHandlers.add(voh);
                 }
                 Map<String, Object> info = new HashMap<>();
@@ -186,7 +186,7 @@ public class EventHandlersDwr extends BaseDwr {
 
                     for (EventTypeVO pet : p.getEventTypes()) {
                         EventTypeVoHandlers voh = new EventTypeVoHandlers(pet.getEventType(), pet.getDescription(), pet.getAlarmLevel());
-                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(pet));
+                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(pet.getEventType()));
                         source.getEventTypes().add(voh);
                     }
 
@@ -197,18 +197,18 @@ public class EventHandlersDwr extends BaseDwr {
 
             // Get the system events
             List<EventTypeVoHandlers> systemEvents = new ArrayList<>();
-            for (EventTypeVO sets : SystemEventType.EVENT_TYPES) {
+            for (EventTypeVO sets : SystemEventType.getRegisteredEventTypes()) {
                 EventTypeVoHandlers voh = new EventTypeVoHandlers(sets.getEventType(), sets.getDescription(), sets.getAlarmLevel());
-                voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(sets));
+                voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(sets.getEventType()));
                 systemEvents.add(voh);
             }
             model.put("systemEvents", systemEvents);
 
             // Get the audit events
             List<EventTypeVoHandlers> auditEvents = new ArrayList<>();
-            for (EventTypeVO aets : AuditEventType.EVENT_TYPES) {
+            for (EventTypeVO aets : AuditEventType.getRegisteredEventTypes()) {
                 EventTypeVoHandlers voh = new EventTypeVoHandlers(aets.getEventType(), aets.getDescription(), aets.getAlarmLevel());
-                voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(aets));
+                voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(aets.getEventType()));
                 auditEvents.add(voh);
             }
             model.put("auditEvents", auditEvents);
@@ -221,11 +221,11 @@ public class EventHandlersDwr extends BaseDwr {
                     List<EventTypeVoHandlers> vohs = new ArrayList<>();
                     for (EventTypeVO vo : vos) {
                         EventTypeVoHandlers voh = new EventTypeVoHandlers(vo.getEventType(), vo.getDescription(), vo.getAlarmLevel());
-                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo));
+                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
                         vohs.add(voh);
-                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo));
+                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
                     }
-                    
+
                     Map<String, Object> info = new HashMap<>();
                     info.put("vos", vohs);
                     info.put("iconPath", def.getIconPath());
@@ -240,7 +240,7 @@ public class EventHandlersDwr extends BaseDwr {
         model.put("userNewScriptPermissions", new ScriptPermissions(user));
 
         // Get the mailing lists filter on permissions
-        MailingListService service = (MailingListService)Common.getBean(MailingListService.class);
+        MailingListService service = Common.getBean(MailingListService.class);
         List<MailingList> lists = MailingListDao.getInstance().getAllFull();
         Iterator<MailingList> it = lists.iterator();
         List<MailingList> viewable = new ArrayList<>();
@@ -346,7 +346,7 @@ public class EventHandlersDwr extends BaseDwr {
 
     private ProcessResult save(String eventType, String eventSubtype, int eventTypeRef1, int eventTypeRef2,
             AbstractEventHandlerVO<?> vo, int handlerId, String xid, String alias, boolean disabled) {
-       
+
         EventType type = constructEventType(eventType, eventSubtype, eventTypeRef1, eventTypeRef2);
         Permissions.ensureEventTypePermission(Common.getHttpUser(), type);
 
@@ -367,7 +367,7 @@ public class EventHandlersDwr extends BaseDwr {
 
         return response;
     }
-    
+
     /**
      * Utility to build an event type
      * @param typeName
@@ -377,7 +377,7 @@ public class EventHandlersDwr extends BaseDwr {
      * @return
      */
     private EventType constructEventType(String typeName, String subtypeName, int referenceId1, int referenceId2) {
-        
+
         EventType type;
         if (typeName.equals(EventType.EventTypeNames.DATA_POINT))
             type = new DataPointEventType(referenceId1, referenceId2);
@@ -504,24 +504,24 @@ public class EventHandlersDwr extends BaseDwr {
                         scriptOut.append("Point " + dprt.getVO().getExtendedName() + " not settable.");
                         return;
                     }
-    
+
                     if(!Permissions.hasDataPointSetPermission(permissions, dprt.getVO())) {
                         scriptOut.write(new TranslatableMessage("pointLinks.setTest.permissionDenied", dprt.getVO().getXid()).translate(Common.getTranslations()));
                         return;
                     }
-    
+
                     scriptOut.append("Setting point " + dprt.getVO().getName() + " to " + value + " @" + sdf.format(new Date(timestamp)) + "\r\n");
                 }
-    
+
                 @Override
                 protected void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation) {
                     // not really setting
                 }
             };
             CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-                PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
-                        targetDataType, System.currentTimeMillis(), scriptPermissions,
-                        scriptLog, loggingSetter, null, true);
+            PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
+                    targetDataType, System.currentTimeMillis(), scriptPermissions,
+                    scriptLog, loggingSetter, null, true);
             if (pvt.getValue() == null)
                 message = new TranslatableMessage("eventHandlers.script.nullResult");
             else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue()) {

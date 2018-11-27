@@ -11,6 +11,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.User;
@@ -50,9 +51,7 @@ public class MockEventManager implements EventManager{
     }
 
     @Override
-    public void returnToNormal(EventType type, long time, int cause) {
-
-
+    public void returnToNormal(EventType type, long time, ReturnCause cause) {
     }
 
     /* (non-Javadoc)

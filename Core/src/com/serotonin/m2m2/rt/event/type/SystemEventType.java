@@ -6,8 +6,8 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,6 +22,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportNames;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -54,43 +55,45 @@ public class SystemEventType extends EventType {
     public static final String TYPE_MISSING_MODULE_DEPENDENCY = "MISSING_MODULE_DEPENDENCY";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
-    public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<>();
+    private static final ConcurrentHashMap<String, EventTypeVO> EVENT_TYPES = new ConcurrentHashMap<>();
 
     public static void initialize() {
-        addEventType(TYPE_SYSTEM_STARTUP, "event.system.startup");
-        addEventType(TYPE_SYSTEM_SHUTDOWN, "event.system.shutdown");
-        addEventType(TYPE_MAX_ALARM_LEVEL_CHANGED, "event.system.maxAlarmChanged");
-        addEventType(TYPE_USER_LOGIN, "event.system.userLogin");
-        addEventType(TYPE_FAILED_USER_LOGIN, "event.system.failedUserLogin");
-        addEventType(TYPE_SET_POINT_HANDLER_FAILURE, "event.system.setPoint");
-        addEventType(TYPE_EMAIL_SEND_FAILURE, "event.system.email");
-        addEventType(TYPE_PROCESS_FAILURE, "event.system.process");
-        addEventType(TYPE_LICENSE_CHECK, "event.system.licenseCheck");
-        addEventType(TYPE_BACKUP_FAILURE, "event.system.backupFailure");
-        addEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck");
-        addEventType(TYPE_REJECTED_WORK_ITEM, "event.system.rejectedWorkItem");
-        addEventType(TYPE_MISSING_MODULE_DEPENDENCY, "event.system.missingModuleDepDesc");
+        registerEventType(TYPE_SYSTEM_STARTUP, "event.system.startup");
+        registerEventType(TYPE_SYSTEM_SHUTDOWN, "event.system.shutdown");
+        registerEventType(TYPE_MAX_ALARM_LEVEL_CHANGED, "event.system.maxAlarmChanged");
+        registerEventType(TYPE_USER_LOGIN, "event.system.userLogin");
+        registerEventType(TYPE_FAILED_USER_LOGIN, "event.system.failedUserLogin");
+        registerEventType(TYPE_SET_POINT_HANDLER_FAILURE, "event.system.setPoint");
+        registerEventType(TYPE_EMAIL_SEND_FAILURE, "event.system.email");
+        registerEventType(TYPE_PROCESS_FAILURE, "event.system.process");
+        registerEventType(TYPE_LICENSE_CHECK, "event.system.licenseCheck");
+        registerEventType(TYPE_BACKUP_FAILURE, "event.system.backupFailure");
+        registerEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck");
+        registerEventType(TYPE_REJECTED_WORK_ITEM, "event.system.rejectedWorkItem");
+        registerEventType(TYPE_MISSING_MODULE_DEPENDENCY, "event.system.missingModuleDepDesc");
 
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
-            addEventType(def.getTypeName(), def.getDescriptionKey());
+            registerEventType(def.getTypeName(), def.getDescriptionKey());
     }
 
-    private static void addEventType(String subtype, String key) {
+    private static void registerEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
-        EVENT_TYPES.add(new EventTypeVO(new SystemEventType(subtype, 0, 0), new TranslatableMessage(key),
-                SystemSettingsDao.instance.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype)));
+        EVENT_TYPES.put(subtype, new EventTypeVO(new SystemEventType(subtype, 0, 0), new TranslatableMessage(key),
+                SystemSettingsDao.instance.getIntValue(SYSTEM_SETTINGS_PREFIX + subtype, AlarmLevels.NONE)));
+    }
+
+    static void updateAlarmLevel(String subtype, int alarmLevel) {
+        EVENT_TYPES.computeIfPresent(subtype, (k, v) -> {
+            return new EventTypeVO(new SystemEventType(k, 0, 0), v.getDescription(), alarmLevel);
+        });
     }
 
     public static EventTypeVO getEventType(String subtype) {
-        for (EventTypeVO et : EVENT_TYPES) {
-            if (et.getEventType().getEventSubtype().equals(subtype))
-                return et;
-        }
-        return null;
+        return EVENT_TYPES.get(subtype);
     }
 
-    public static List<EventTypeVO> getAllRegisteredEventTypes(){
-        return Collections.unmodifiableList(EVENT_TYPES);
+    public static List<EventTypeVO> getRegisteredEventTypes() {
+        return new ArrayList<>(EVENT_TYPES.values());
     }
 
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {
@@ -98,18 +101,16 @@ public class SystemEventType extends EventType {
     }
 
     public static void raiseEvent(SystemEventType type, long time, boolean rtn, TranslatableMessage message) {
-        EventTypeVO vo = getEventType(type.getSystemEventType());
+        EventTypeVO vo = EVENT_TYPES.get(type.getSystemEventType());
         if (vo == null) {
-            LOG.warn("Unkown event type null");
+            LOG.warn("Unknown system event type: " + type.getSystemEventType());
             return;
         }
-        int alarmLevel = vo.getAlarmLevel();
-        Common.eventManager.raiseEvent(type, time, rtn, alarmLevel, message, null);
+        Common.eventManager.raiseEvent(type, time, rtn, vo.getAlarmLevel(), message, null);
     }
 
     public static void returnToNormal(SystemEventType type, long time) {
-        EventTypeVO vo = getEventType(type.getSystemEventType());
-        Common.eventManager.returnToNormal(type, time, vo.getAlarmLevel());
+        Common.eventManager.returnToNormal(type, time);
     }
 
     //

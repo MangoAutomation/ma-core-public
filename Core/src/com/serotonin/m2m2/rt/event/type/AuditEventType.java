@@ -7,10 +7,10 @@ package com.serotonin.m2m2.rt.event.type;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,6 +24,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.ExportNames;
 import com.serotonin.m2m2.util.JsonSerializableUtility;
@@ -60,40 +61,42 @@ public class AuditEventType extends EventType{
     public static final String TYPE_MAILING_LIST = "MAILING_LIST";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
-    public static final List<EventTypeVO> EVENT_TYPES = new ArrayList<EventTypeVO>();
+    private static final ConcurrentHashMap<String, EventTypeVO> EVENT_TYPES = new ConcurrentHashMap<>();
 
     public static void initialize() {
-        addEventType(TYPE_DATA_SOURCE, "event.audit.dataSource");
-        addEventType(TYPE_DATA_POINT, "event.audit.dataPoint");
-        addEventType(TYPE_EVENT_HANDLER, "event.audit.eventHandler");
-        addEventType(TYPE_TEMPLATE, "event.audit.template");
-        addEventType(TYPE_USER_COMMENT, "event.audit.userComment");
-        addEventType(TYPE_USER, "event.audit.user");
-        addEventType(TYPE_JSON_DATA, "event.audit.jsonData");
-        addEventType(TYPE_EVENT_DETECTOR, "event.audit.eventDetector");
-        addEventType(TYPE_PUBLISHER, "event.audit.publisher");
-        addEventType(TYPE_MAILING_LIST, "event.audit.mailingList");
+        registerEventType(TYPE_DATA_SOURCE, "event.audit.dataSource");
+        registerEventType(TYPE_DATA_POINT, "event.audit.dataPoint");
+        registerEventType(TYPE_EVENT_HANDLER, "event.audit.eventHandler");
+        registerEventType(TYPE_TEMPLATE, "event.audit.template");
+        registerEventType(TYPE_USER_COMMENT, "event.audit.userComment");
+        registerEventType(TYPE_USER, "event.audit.user");
+        registerEventType(TYPE_JSON_DATA, "event.audit.jsonData");
+        registerEventType(TYPE_EVENT_DETECTOR, "event.audit.eventDetector");
+        registerEventType(TYPE_PUBLISHER, "event.audit.publisher");
+        registerEventType(TYPE_MAILING_LIST, "event.audit.mailingList");
 
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
-            addEventType(def.getTypeName(), def.getDescriptionKey());
+            registerEventType(def.getTypeName(), def.getDescriptionKey());
     }
 
-    private static void addEventType(String subtype, String key) {
+    private static void registerEventType(String subtype, String key) {
         TYPE_NAMES.addElement(subtype);
-        EVENT_TYPES.add(new EventTypeVO(new AuditEventType(subtype, 0, 0), new TranslatableMessage(key),
-                SystemSettingsDao.instance.getIntValue(AUDIT_SETTINGS_PREFIX + subtype)));
+        EVENT_TYPES.put(subtype, new EventTypeVO(new AuditEventType(subtype, 0, 0), new TranslatableMessage(key),
+                SystemSettingsDao.instance.getIntValue(AUDIT_SETTINGS_PREFIX + subtype, AlarmLevels.NONE)));
+    }
+
+    static void updateAlarmLevel(String subtype, int alarmLevel) {
+        EVENT_TYPES.computeIfPresent(subtype, (k, v) -> {
+            return new EventTypeVO(new AuditEventType(k, 0, 0), v.getDescription(), alarmLevel);
+        });
     }
 
     public static EventTypeVO getEventType(String subtype) {
-        for (EventTypeVO et : EVENT_TYPES) {
-            if (et.getEventType().getEventSubtype().equals(subtype))
-                return et;
-        }
-        return null;
+        return EVENT_TYPES.get(subtype);
     }
 
-    public static List<EventTypeVO> getAllRegisteredEventTypes(){
-        return Collections.unmodifiableList(EVENT_TYPES);
+    public static List<EventTypeVO> getRegisteredEventTypes() {
+        return new ArrayList<>(EVENT_TYPES.values());
     }
 
     public static void setEventTypeAlarmLevel(String subtype, int alarmLevel) {

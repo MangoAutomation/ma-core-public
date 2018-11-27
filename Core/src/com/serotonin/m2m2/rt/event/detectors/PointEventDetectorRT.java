@@ -20,13 +20,13 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorVO<T>> extends AbstractEventDetectorRT<T> implements DataPointListener {
-    
-	/**
-	 * @param vo
-	 */
-	public PointEventDetectorRT(T vo) {
-		super(vo);
-	}
+
+    /**
+     * @param vo
+     */
+    public PointEventDetectorRT(T vo) {
+        super(vo);
+    }
 
 
     protected EventType getEventType() {
@@ -47,7 +47,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
     }
 
     protected void returnToNormal(long time) {
-        Common.eventManager.returnToNormal(getEventType(), time, vo.getAlarmLevel());
+        Common.eventManager.returnToNormal(getEventType(), time);
     }
 
     protected Map<String, Object> createEventContext() {
@@ -61,14 +61,14 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
         return context;
     }
 
-    
+
     abstract protected TranslatableMessage getMessage();
 
     public abstract boolean isEventActive();
 
     @Override
     public String getListenerName(){
-    	return vo.getXid();
+        return vo.getXid();
     }
     //
     //
@@ -90,32 +90,32 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
     //
     // Point listener interface
     //
-	@Override
+    @Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
         // no op
     }
-	@Override
+    @Override
     public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
         // no op
     }
-	@Override
+    @Override
     public void pointUpdated(PointValueTime newValue) {
         // no op
     }
-	@Override
+    @Override
     public void pointBackdated(PointValueTime value) {
         // no op
     }
-	@Override
+    @Override
     public void pointInitialized() {
         // no op
     }
-	@Override
+    @Override
     public void pointTerminated() {
         // no op
     }
-	@Override
+    @Override
     public void pointLogged(PointValueTime value){
-    	//no op
+        //no op
     }
 }

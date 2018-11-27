@@ -50,13 +50,13 @@ import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
 
 public class SystemSettingsDwr extends BaseDwr {
-	
-	private static final String EMAIL_PATTERN = 
-			"^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
-			+ "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-	private Pattern emailPattern = Pattern.compile(EMAIL_PATTERN);
-	
-	
+
+    private static final String EMAIL_PATTERN =
+            "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@"
+                    + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+    private Pattern emailPattern = Pattern.compile(EMAIL_PATTERN);
+
+
     @DwrPermission(admin = true)
     public Map<String, Object> getSettings() {
         Map<String, Object> settings = new HashMap<>();
@@ -83,10 +83,10 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE));
 
         // System event types
-        settings.put("systemEventTypes", SystemEventType.EVENT_TYPES);
+        settings.put("systemEventTypes", SystemEventType.getRegisteredEventTypes());
 
         // System event types
-        settings.put("auditEventTypes", AuditEventType.EVENT_TYPES);
+        settings.put("auditEventTypes", AuditEventType.getRegisteredEventTypes());
 
         // Http Client
         settings.put(SystemSettingsDao.HTTP_CLIENT_USE_PROXY,
@@ -105,7 +105,7 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIOD_TYPE));
         settings.put(SystemSettingsDao.POINT_DATA_PURGE_PERIODS,
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.POINT_DATA_PURGE_PERIODS));
-        
+
         settings.put(DataPurge.ENABLE_POINT_DATA_PURGE, SystemSettingsDao.instance.getBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, true));
         settings.put(SystemSettingsDao.POINT_DATA_PURGE_COUNT, SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT));
 
@@ -192,11 +192,11 @@ public class SystemSettingsDwr extends BaseDwr {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
             String lastRunString = SystemSettingsDao.instance.getValue(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS);
             if(lastRunString != null){
-	            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
-	            lastRunString = sdf.format(lastRunDate);
-	            settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, lastRunString);
+                Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
+                lastRunString = sdf.format(lastRunDate);
+                settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, lastRunString);
             }else{
-            	settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, "unknown");
+                settings.put(SystemSettingsDao.BACKUP_LAST_RUN_SUCCESS, "unknown");
             }
         }
         catch (Exception e) {
@@ -213,7 +213,7 @@ public class SystemSettingsDwr extends BaseDwr {
         //Have to have a default value due to the lack of use of DEFAULT_VALUES for bools
         settings.put(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW,
                 SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false));
-        settings.put(SystemSettingsDao.JFREE_CHART_FONT, 
+        settings.put(SystemSettingsDao.JFREE_CHART_FONT,
                 SystemSettingsDao.instance.getValue(SystemSettingsDao.JFREE_CHART_FONT, ""));
 
         //Database Backup Settings
@@ -228,11 +228,11 @@ public class SystemSettingsDwr extends BaseDwr {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM-dd-yyyy HH:mm:ss");
             String lastRunString = SystemSettingsDao.instance.getValue(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS);
             if(lastRunString != null){
-	            Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
-	            lastRunString = sdf.format(lastRunDate);
-	            settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, lastRunString);
+                Date lastRunDate = BackupWorkItem.dateFormatter.parse(lastRunString);
+                lastRunString = sdf.format(lastRunDate);
+                settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, lastRunString);
             }else{
-            	settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, "unknown");
+                settings.put(SystemSettingsDao.DATABASE_BACKUP_LAST_RUN_SUCCESS, "unknown");
             }
         }
         catch (Exception e) {
@@ -268,25 +268,25 @@ public class SystemSettingsDwr extends BaseDwr {
         settings.put(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE));
         settings.put(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE));
         settings.put(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE));
-        
+
         //Virtual Serial Ports
         settings.put("virtualSerialPorts", VirtualSerialPortConfigDao.getInstance().getAll());
-        
+
         //Site analytics
         settings.put(SystemSettingsDao.SITE_ANALYTICS_HEAD, SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_HEAD));
         settings.put(SystemSettingsDao.SITE_ANALYTICS_BODY, SystemSettingsDao.instance.getValue(SystemSettingsDao.SITE_ANALYTICS_BODY));
-        
+
         //Upgrade states
         settings.put(SystemSettingsDao.UPGRADE_VERSION_STATE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
-        
+
         //Point Hierarchy
         settings.put(SystemSettingsDao.EXPORT_HIERARCHY_PATH, SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH));
         settings.put(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, SystemSettingsDao.instance.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR));
-        
+
         //Http Server
         settings.put(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE));
         settings.put(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS));
-        
+
         return settings;
     }
 
@@ -307,7 +307,7 @@ public class SystemSettingsDwr extends BaseDwr {
         //Do we have any NoSQL Data
         long noSqlSize = 0L;
         if (Common.databaseProxy.getNoSQLProxy() != null) {
-        	String pointValueStoreName = Common.envProps.getString("db.nosql.pointValueStoreName", "mangoTSDB");
+            String pointValueStoreName = Common.envProps.getString("db.nosql.pointValueStoreName", "mangoTSDB");
             noSqlSize = Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointValueStoreName);
             data.put("noSqlDatabaseSize", DirectoryUtils.bytesDescription(noSqlSize));
         }
@@ -332,7 +332,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
         return data;
     }
-    
+
     @DwrPermission(admin = true)
     public ProcessResult saveHierarchySettings(boolean exportHierarchyPath, String hierarchyPathSeparator) {
         ProcessResult response = new ProcessResult();
@@ -342,93 +342,93 @@ public class SystemSettingsDwr extends BaseDwr {
             SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH, exportHierarchyPath);
             SystemSettingsDao.instance.setValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR, hierarchyPathSeparator);
         }
-        
+
         return response;
     }
 
     @DwrPermission(admin = true)
     public ProcessResult saveEmailSettings(String host, int port, String from, String name, boolean auth, String username,
             String password, boolean tls, int contentType) {
-        
-    	ProcessResult response = new ProcessResult();
-    	SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
 
-    	if(port < 0)
-    		response.addContextualMessage(SystemSettingsDao.EMAIL_SMTP_PORT, "validate.cannotBeNegative");
-    	if(!emailPattern.matcher(from).matches())
-    		response.addContextualMessage(SystemSettingsDao.EMAIL_FROM_ADDRESS, "validate.invalidValue");
-    		
-    	//If valid then save all
-    	if(!response.getHasMessages()){
-    		systemSettingsDao.setValue(SystemSettingsDao.EMAIL_SMTP_HOST, host);
-	        systemSettingsDao.setIntValue(SystemSettingsDao.EMAIL_SMTP_PORT, port);
-	        systemSettingsDao.setValue(SystemSettingsDao.EMAIL_FROM_ADDRESS, from);
-	        systemSettingsDao.setValue(SystemSettingsDao.EMAIL_FROM_NAME, name);
-	        systemSettingsDao.setBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION, auth);
-	        systemSettingsDao.setValue(SystemSettingsDao.EMAIL_SMTP_USERNAME, username);
-	        systemSettingsDao.setValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD, password);
-	        systemSettingsDao.setBooleanValue(SystemSettingsDao.EMAIL_TLS, tls);
-	        systemSettingsDao.setIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE, contentType);
-    	}
-        
+        ProcessResult response = new ProcessResult();
+        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
+
+        if(port < 0)
+            response.addContextualMessage(SystemSettingsDao.EMAIL_SMTP_PORT, "validate.cannotBeNegative");
+        if(!emailPattern.matcher(from).matches())
+            response.addContextualMessage(SystemSettingsDao.EMAIL_FROM_ADDRESS, "validate.invalidValue");
+
+        //If valid then save all
+        if(!response.getHasMessages()){
+            systemSettingsDao.setValue(SystemSettingsDao.EMAIL_SMTP_HOST, host);
+            systemSettingsDao.setIntValue(SystemSettingsDao.EMAIL_SMTP_PORT, port);
+            systemSettingsDao.setValue(SystemSettingsDao.EMAIL_FROM_ADDRESS, from);
+            systemSettingsDao.setValue(SystemSettingsDao.EMAIL_FROM_NAME, name);
+            systemSettingsDao.setBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION, auth);
+            systemSettingsDao.setValue(SystemSettingsDao.EMAIL_SMTP_USERNAME, username);
+            systemSettingsDao.setValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD, password);
+            systemSettingsDao.setBooleanValue(SystemSettingsDao.EMAIL_TLS, tls);
+            systemSettingsDao.setIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE, contentType);
+        }
+
         return response;
     }
 
     @DwrPermission(admin = true)
     public ProcessResult saveSiteAnalytics(String siteAnalyticsHead, String siteAnalyticsBody) {
-        
-    	ProcessResult response = new ProcessResult();
-    	SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
 
-    	//TODO Add some validation, not sure what yet
-    	
-    	//If valid then save all
-    	if(!response.getHasMessages()){
-    		systemSettingsDao.setValue(SystemSettingsDao.SITE_ANALYTICS_HEAD, siteAnalyticsHead);
-	        systemSettingsDao.setValue(SystemSettingsDao.SITE_ANALYTICS_BODY, siteAnalyticsBody);
-	    }
-        
+        ProcessResult response = new ProcessResult();
+        SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
+
+        //TODO Add some validation, not sure what yet
+
+        //If valid then save all
+        if(!response.getHasMessages()){
+            systemSettingsDao.setValue(SystemSettingsDao.SITE_ANALYTICS_HEAD, siteAnalyticsHead);
+            systemSettingsDao.setValue(SystemSettingsDao.SITE_ANALYTICS_BODY, siteAnalyticsBody);
+        }
+
         return response;
     }
-    
+
     @DwrPermission(admin = true)
-    public ProcessResult saveThreadPoolSettings(int highPriorityCorePoolSize, int highPriorityMaxPoolSize, 
-    		int medPriorityCorePoolSize, int lowPriorityCorePoolSize) {
+    public ProcessResult saveThreadPoolSettings(int highPriorityCorePoolSize, int highPriorityMaxPoolSize,
+            int medPriorityCorePoolSize, int lowPriorityCorePoolSize) {
         ProcessResult response = new ProcessResult();
-        
+
         SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
-        
+
         if(highPriorityCorePoolSize > 0){
-        	systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, highPriorityCorePoolSize);
+            systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, highPriorityCorePoolSize);
         }else{
-        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
+            response.addContextualMessage(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE, "validate.greaterThanZero");
         }
-        
+
         if(highPriorityMaxPoolSize < BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN){
-        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
+            response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.HIGH_PRI_MAX_POOL_SIZE_MIN);
         }else if(highPriorityMaxPoolSize < highPriorityCorePoolSize){
-        	response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
+            response.addContextualMessage(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, "systemSettings.threadPools.validate.maxPoolMustBeGreaterThanCorePool");
         }else{
             systemSettingsDao.setIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE, highPriorityMaxPoolSize);
         }
-        
-        //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a 
-        // core pool thread is available  
+
+        //For Medium and Low the Max has no effect because they use a LinkedBlockingQueue and will just block until a
+        // core pool thread is available
         if(medPriorityCorePoolSize >= BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN){
-        	    //Due to the pool type we should set these to the same values
+            //Due to the pool type we should set these to the same values
             systemSettingsDao.setIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, medPriorityCorePoolSize);
         }else{
-        	    response.addContextualMessage(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
+            response.addContextualMessage(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.MED_PRI_MAX_POOL_SIZE_MIN);
         }
 
         if(lowPriorityCorePoolSize >= BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN){
-        	    systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, lowPriorityCorePoolSize);
+            systemSettingsDao.setIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, lowPriorityCorePoolSize);
         }else{
             response.addContextualMessage(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE, "validate.greaterThanOrEqualTo", BackgroundProcessing.LOW_PRI_MAX_POOL_SIZE_MIN);
         }
         return response;
     }
-    
+
     @DwrPermission(admin = true)
     public Map<String, Object> sendTestEmail(String host, int port, String from, String name, boolean auth,
             String username, String password, boolean tls, int contentType) {
@@ -475,7 +475,7 @@ public class SystemSettingsDwr extends BaseDwr {
         systemSettingsDao.setValue(SystemSettingsDao.HTTP_CLIENT_PROXY_USERNAME, username);
         systemSettingsDao.setValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PASSWORD, password);
     }
-    
+
     @DwrPermission(admin = true)
     public void saveHttpServerSettings(int httpSessionTimeoutPeriods, int httpSessionTimeoutPeriodType) {
         SystemSettingsDao systemSettingsDao =  SystemSettingsDao.instance;
@@ -485,12 +485,12 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveMiscSettings(int pointDataPurgePeriodType, int pointDataPurgePeriods,
-            int dataPointEventPurgePeriodType, int dataPointEventPurgePeriods, boolean pointDataPurgeEnabled, 
+            int dataPointEventPurgePeriodType, int dataPointEventPurgePeriods, boolean pointDataPurgeEnabled,
             boolean countPurgedPointValues, int dataSourceEventPurgePeriodType,
             int dataSourceEventPurgePeriods, int systemEventPurgePeriodType, int systemEventPurgePeriods,
             int publisherEventPurgePeriodType, int publisherEventPurgePeriods, int auditEventPurgePeriodType,
             int auditEventPurgePeriods, int noneAlarmPurgePeriodType, int noneAlarmPurgePeriods,
-            int informationAlarmPurgePeriodType, int informationAlarmPurgePeriods, int importantAlarmPurgePeriodType, 
+            int informationAlarmPurgePeriodType, int informationAlarmPurgePeriods, int importantAlarmPurgePeriodType,
             int importantAlarmPurgePeriods, int warningAlarmPurgePeriodType, int warningAlarmPurgePeriods, int urgentAlarmPurgePeriodType,
             int urgentAlarmPurgePeriods, int criticalAlarmPurgePeriodType, int criticalAlarmPurgePeriods,
             int lifeSafetyAlarmPurgePeriodType, int lifeSafetyAlarmPurgePeriods, int eventPurgePeriodType,
@@ -502,10 +502,10 @@ public class SystemSettingsDwr extends BaseDwr {
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE,
                 dataPointEventPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS, dataPointEventPurgePeriods);
-        
+
         systemSettingsDao.setBooleanValue(DataPurge.ENABLE_POINT_DATA_PURGE, pointDataPurgeEnabled);
         systemSettingsDao.setBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT, countPurgedPointValues);
-        
+
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE,
                 dataSourceEventPurgePeriodType);
         systemSettingsDao.setIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS, dataSourceEventPurgePeriods);
@@ -571,7 +571,7 @@ public class SystemSettingsDwr extends BaseDwr {
         return result;
     }
 
-    
+
     @DwrPermission(admin = true)
     public ProcessResult saveColourSettings(String chartBackgroundColour, String plotBackgroundColour,
             String plotGridlineColour) {
@@ -613,7 +613,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public void saveLanguageSettings(String language) {
-    	SystemSettingsDao.instance.setValue(SystemSettingsDao.LANGUAGE, language);
+        SystemSettingsDao.instance.setValue(SystemSettingsDao.LANGUAGE, language);
     }
 
     @DwrPermission(admin = true)
@@ -624,14 +624,14 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public TranslatableMessage purgeAllData() {
-    	boolean countPointValues = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
-		if(countPointValues){
-			long cnt = Common.runtimeManager.purgeDataPointValues();
-			return new TranslatableMessage("systemSettings.purgeDataComplete", cnt);
-		}else{
-			Common.runtimeManager.purgeDataPointValuesWithoutCount();
-			return new TranslatableMessage("systemSettings.purgeDataCompleteNoCount");
-		}
+        boolean countPointValues = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
+        if(countPointValues){
+            long cnt = Common.runtimeManager.purgeDataPointValues();
+            return new TranslatableMessage("systemSettings.purgeDataComplete", cnt);
+        }else{
+            Common.runtimeManager.purgeDataPointValuesWithoutCount();
+            return new TranslatableMessage("systemSettings.purgeDataCompleteNoCount");
+        }
     }
 
     @DwrPermission(admin = true)
@@ -650,7 +650,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     /**
      * Save the Backup Settings to the DB.
-     * 
+     *
      * @param backupFileLocation
      * @param backupPeriod
      */
@@ -710,7 +710,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     /**
      * Queue a backup to run now.
-     * 
+     *
      * @param backupLocation
      */
     @DwrPermission(admin = true)
@@ -721,7 +721,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     /**
      * Save the Backup Settings to the DB.
-     * 
+     *
      * @param backupFileLocation
      * @param backupPeriod
      */
@@ -738,7 +738,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     /**
      * Save the Backup Settings to the DB.
-     * 
+     *
      * @param backupFileLocation
      * @param backupPeriod
      */
@@ -799,7 +799,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     /**
      * Queue a backup to run now.
-     * 
+     *
      * @param backupLocation
      */
     @DwrPermission(admin = true)
@@ -811,7 +811,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     /**
      * Queue a backup to run now.
-     * 
+     *
      * @param backupLocation
      */
     @DwrPermission(admin = true)
@@ -822,7 +822,7 @@ public class SystemSettingsDwr extends BaseDwr {
 
     /**
      * Queue a backup to run now.
-     * 
+     *
      * @param backupLocation
      */
     @DwrPermission(admin = true)
@@ -832,8 +832,8 @@ public class SystemSettingsDwr extends BaseDwr {
 
         File[] backupFiles = DatabaseBackupWorkItem.getBackupFiles(backupLocation);
         if(backupFiles == null) {
-        	result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION, "systemSettings.validation.backupLocationNotExists");
-        	return result;
+            result.addContextualMessage(SystemSettingsDao.DATABASE_BACKUP_FILE_LOCATION, "systemSettings.validation.backupLocationNotExists");
+            return result;
         }
 
         //Parse the list into data for a select list
@@ -846,49 +846,49 @@ public class SystemSettingsDwr extends BaseDwr {
         result.addData("filenames", filenames);
         return result;
     }
-    
+
     @DwrPermission(admin = true)
     public ProcessResult saveSerialSocketBridge(SerialSocketBridgeConfig config) {
-    	return saveVirtualSerialPortConfig(config);
+        return saveVirtualSerialPortConfig(config);
     }
-    
+
     @DwrPermission(admin = true)
     public ProcessResult saveSerialServerSocketBridge(SerialServerSocketBridgeConfig config) {
-    	return saveVirtualSerialPortConfig(config);
+        return saveVirtualSerialPortConfig(config);
     }
-    
+
     private ProcessResult saveVirtualSerialPortConfig(VirtualSerialPortConfig config) {
-    	ProcessResult response = new ProcessResult();
-    	
-    	//If we don't have a unique XID then we need to generate one
-    	if(StringUtils.isEmpty(config.getXid()))
-    		config.setXid(VirtualSerialPortConfigDao.getInstance().generateUniqueXid());
-    	
-    	config.validate(response);
-    	
-    	if(!response.getHasMessages()){
+        ProcessResult response = new ProcessResult();
+
+        //If we don't have a unique XID then we need to generate one
+        if(StringUtils.isEmpty(config.getXid()))
+            config.setXid(VirtualSerialPortConfigDao.getInstance().generateUniqueXid());
+
+        config.validate(response);
+
+        if(!response.getHasMessages()){
             response.addData("ports", VirtualSerialPortConfigDao.getInstance().save(config));
-    	}
-    		
-    	
-    	return response;
+        }
+
+
+        return response;
     }
 
     @DwrPermission(admin = true)
     public ProcessResult removeSerialSocketBridge(SerialSocketBridgeConfig config) {
-    	return removeVirtualSerialPortConfig(config);
+        return removeVirtualSerialPortConfig(config);
     }
-    
+
     @DwrPermission(admin = true)
     public ProcessResult removeSerialServerSocketBridge(SerialServerSocketBridgeConfig config) {
-    	return removeVirtualSerialPortConfig(config);
+        return removeVirtualSerialPortConfig(config);
     }
-    
+
     private ProcessResult removeVirtualSerialPortConfig(VirtualSerialPortConfig config) {
-    	ProcessResult response = new ProcessResult();
-    	response.addData("ports", VirtualSerialPortConfigDao.getInstance().remove(config));
-    	
-    	return response;
+        ProcessResult response = new ProcessResult();
+        response.addData("ports", VirtualSerialPortConfigDao.getInstance().remove(config));
+
+        return response;
     }
-    
+
 }

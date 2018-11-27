@@ -29,13 +29,13 @@ import com.serotonin.util.ILifecycle;
  * Data sources are things that produce data for consumption of this system. Anything that houses, creates, manages, or
  * otherwise can get data to Mango can be considered a data source. As such, this interface can more precisely be
  * considered a proxy of the real thing.
- * 
+ *
  * Mango contains multiple objects that carry the name data source. This interface represents those types of objects
  * that execute and perform the actual task of getting information one way or another from the external data source and
  * into the system, and is known as the "run-time" (RT) data source. (Another type is the data source VO, which
  * represents the configuration of a data source RT, a subtle but useful distinction. In particular, a VO is
  * serializable, while an RT is not.)
- * 
+ *
  * @author Matthew Lohbihler
  */
 abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractRT<VO> implements ILifecycle {
@@ -45,7 +45,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
      * Under the expectation that most data sources will run in their own threads, the addedPoints field is used as a
      * cache for points that have been added to the data source, so that at a convenient time for the data source they
      * can be included in the polling.
-     * 
+     *
      * Note that updated versions of data points that could already be running may be added here, so implementations
      * should always check for existing instances.
      */
@@ -68,7 +68,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     private boolean terminated;
 
     public DataSourceRT(VO vo) {
-    	super(vo);
+        super(vo);
 
         eventTypes = new ArrayList<DataSourceEventType>();
         for (EventTypeVO etvo : vo.getEventTypes())
@@ -129,15 +129,15 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
             pointListChangeLock.readLock().unlock();
         }
     }
-    
+
     public void setPointValue(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source) {
-    	if(dataPoint.getVO().isPreventSetExtremeValues()) {
-    		double transformedValue = valueTime.getDoubleValue();
-    		if(transformedValue > dataPoint.getVO().getSetExtremeHighLimit() 
-    			|| transformedValue < dataPoint.getVO().getSetExtremeLowLimit())
-    		return;
-    	}
-    	setPointValueImpl(dataPoint, valueTime, source);
+        if(dataPoint.getVO().isPreventSetExtremeValues()) {
+            double transformedValue = valueTime.getDoubleValue();
+            if(transformedValue > dataPoint.getVO().getSetExtremeHighLimit()
+                    || transformedValue < dataPoint.getVO().getSetExtremeLowLimit())
+                return;
+        }
+        setPointValueImpl(dataPoint, valueTime, source);
     }
 
     abstract public void setPointValueImpl(DataPointRT dataPoint, PointValueTime valueTime, SetPointSource source);
@@ -149,13 +149,13 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     public void forcePointRead(DataPointRT dataPoint) {
         // No op by default. Override as required.
     }
-    
+
     public void forcePoll() {
         // No op by default. Override as required.
     }
 
     /**
-     * 
+     *
      * @param eventId
      * @param time
      * @param rtn - Can this event return to normal
@@ -173,7 +173,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
 
     protected void returnToNormal(int eventId, long time) {
         DataSourceEventType type = getEventType(eventId);
-        Common.eventManager.returnToNormal(type, time, type.getAlarmLevel());
+        Common.eventManager.returnToNormal(type, time);
     }
 
     private DataSourceEventType getEventType(int eventId) {
@@ -186,7 +186,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
 
     protected TranslatableMessage getSerialExceptionMessage(Exception e, String portId) {
         if(e instanceof SerialPortException)
-        	    return new TranslatableMessage("event.serial.portError", portId, e.getLocalizedMessage());
+            return new TranslatableMessage("event.serial.portError", portId, e.getLocalizedMessage());
         return getExceptionMessage(e);
     }
 
@@ -196,7 +196,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
 
     /**
      * Override as required to add messages to the runtime status section of the data source edit page.
-     * 
+     *
      * @param messages
      *            the list to which to add messages
      */
@@ -216,10 +216,11 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
      */
     @Override
     public void initialize(boolean safe) {
-    	if(!safe)
-    		initialize();
+        if(!safe)
+            initialize();
     }
 
+    @Override
     public void initialize(){
         // no op
     }

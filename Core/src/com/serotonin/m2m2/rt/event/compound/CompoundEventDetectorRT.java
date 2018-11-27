@@ -2,7 +2,7 @@
     Mango - Open Source M2M - http://mango.serotoninsoftware.com
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc.
     @author Matthew Lohbihler
-    
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventDetectorListener;
 import com.serotonin.m2m2.rt.event.SimpleEventDetector;
 import com.serotonin.m2m2.rt.event.type.CompoundDetectorEventType;
@@ -53,14 +52,14 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
     }
 
     private void raiseEvent(long time) {
-    	//TODO Needs fixed
+        //TODO Needs fixed
         //Common.eventManager.raiseEvent(eventType, time, vo.isReturnToNormal(), vo.getAlarmLevel(),
         //        new LocalizableMessage("event.compound.activated", vo.getName()), null);
-    	throw new ShouldNeverHappenException("Unimplemented!");
+        throw new ShouldNeverHappenException("Unimplemented!");
     }
 
     private void returnToNormal(long time) {
-        Common.eventManager.returnToNormal(eventType, time, AlarmLevels.URGENT); //Not a real implementation since the raiaeEvent isn't
+        Common.eventManager.returnToNormal(eventType, time); //Not a real implementation since the raiaeEvent isn't
     }
 
     public static LogicalOperator parseConditionStatement(String condition) throws ConditionParseException {
@@ -192,18 +191,19 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
     }
 
     public void raiseFailureEvent(LocalizableMessage message) {
-    	//TODO Implement
-//        SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_COMPOUND_DETECTOR_FAILURE, vo.getId());
-//        SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
-//        vo.setDisabled(true);
-//        new CompoundEventDetectorDao().saveCompoundEventDetector(vo);
-        
-    	throw new ShouldNeverHappenException("Unimplemented!");
+        //TODO Implement
+        //        SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_COMPOUND_DETECTOR_FAILURE, vo.getId());
+        //        SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
+        //        vo.setDisabled(true);
+        //        new CompoundEventDetectorDao().saveCompoundEventDetector(vo);
+
+        throw new ShouldNeverHappenException("Unimplemented!");
     }
 
     //
     // / EventDetectorListener
     //
+    @Override
     public void eventDetectorStateChanged(long time) {
         // Evaluate the condition.
         boolean newState = condition.evaluate();
@@ -220,11 +220,12 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
         }
     }
 
+    @Override
     public void eventDetectorTerminated(SimpleEventDetector source) {
-    	//TODO Implement
-//        Common.ctx.getRuntimeManager().stopCompoundEventDetector(vo.getId());
-//        raiseFailureEvent(new LocalizableMessage("event.compound.sourceFailure", vo.getName()));
-    	throw new ShouldNeverHappenException("Unimplemented!");
+        //TODO Implement
+        //        Common.ctx.getRuntimeManager().stopCompoundEventDetector(vo.getId());
+        //        raiseFailureEvent(new LocalizableMessage("event.compound.sourceFailure", vo.getName()));
+        throw new ShouldNeverHappenException("Unimplemented!");
     }
 
     //
@@ -266,12 +267,14 @@ public class CompoundEventDetectorRT implements EventDetectorListener, ILifecycl
             returnToNormal(Common.timer.currentTimeMillis());
     }
 
+    @Override
     public void terminate() {
         if (condition != null)
             condition.terminate(this);
         returnToNormal(Common.timer.currentTimeMillis());
     }
 
+    @Override
     public void joinTermination() {
         // no op
     }

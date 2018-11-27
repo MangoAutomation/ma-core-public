@@ -28,6 +28,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
+import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventCache;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.UserEventMulticaster;
@@ -287,11 +288,11 @@ public class EventManagerImpl implements EventManager {
 
     @Override
     public void returnToNormal(EventType type, long time) {
-        returnToNormal(type, time, EventInstance.RtnCauses.RETURN_TO_NORMAL);
+        returnToNormal(type, time, ReturnCause.RETURN_TO_NORMAL);
     }
 
     @Override
-    public void returnToNormal(EventType type, long time, int cause) {
+    public void returnToNormal(EventType type, long time, ReturnCause cause) {
         EventInstance evt = remove(type);
         if(evt == null)
             return;
@@ -347,7 +348,7 @@ public class EventManagerImpl implements EventManager {
      * @param time
      * @param inactiveCause
      */
-    private void deactivateEvents(List<EventInstance> evts, long time, int inactiveCause) {
+    private void deactivateEvents(List<EventInstance> evts, long time, ReturnCause inactiveCause) {
         List<User> activeUsers = userDao.getActiveUsers();
 
         List<Integer> eventIds = new ArrayList<Integer>();
@@ -680,7 +681,7 @@ public class EventManagerImpl implements EventManager {
             activeEventsLock.writeLock().unlock();
         }
 
-        deactivateEvents(dataPointEvents, Common.timer.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+        deactivateEvents(dataPointEvents, Common.timer.currentTimeMillis(), ReturnCause.SOURCE_DISABLED);
 
         recentEventsLock.writeLock().lock();
         try{
@@ -717,7 +718,7 @@ public class EventManagerImpl implements EventManager {
             activeEventsLock.writeLock().unlock();
         }
 
-        deactivateEvents(dataSourceEvents, Common.timer.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+        deactivateEvents(dataSourceEvents, Common.timer.currentTimeMillis(), ReturnCause.SOURCE_DISABLED);
 
         recentEventsLock.writeLock().lock();
         try{
@@ -754,7 +755,7 @@ public class EventManagerImpl implements EventManager {
             activeEventsLock.writeLock().unlock();
         }
 
-        deactivateEvents(publisherEvents, Common.timer.currentTimeMillis(), EventInstance.RtnCauses.SOURCE_DISABLED);
+        deactivateEvents(publisherEvents, Common.timer.currentTimeMillis(), ReturnCause.SOURCE_DISABLED);
 
         recentEventsLock.writeLock().lock();
         try{

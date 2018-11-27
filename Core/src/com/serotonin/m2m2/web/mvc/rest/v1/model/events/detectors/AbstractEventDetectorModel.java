@@ -24,46 +24,46 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
  */
 public abstract class AbstractEventDetectorModel<T extends AbstractEventDetectorVO<T>> extends AbstractVoModel<T>{
 
-	/**
-	 * @param data
-	 */
-	public AbstractEventDetectorModel(T data) {
-		super(data);
-	}
-	
-	@JsonGetter("detectorType")
-	@Override
-	public String getModelType(){
-		return this.data.getDefinition().getEventDetectorTypeName();
-	}
+    /**
+     * @param data
+     */
+    public AbstractEventDetectorModel(T data) {
+        super(data);
+    }
 
-	public int getSourceId(){
-		return this.data.getSourceId();
-	}
-	public void setSourceId(int id){
-		this.data.setSourceId(id);
-	}
-	
-	public boolean isRtnApplicable(){
-		return this.data.isRtnApplicable();
-	}
-	
-	public EventTypeModel getEventType(){
-		return this.data.getEventType().getEventType().asModel();
-	}
-	
-	public TranslatableMessage getDescription(){
-		return this.data.getDescription();
-	}
-	
-	public String getDetectorSourceType(){
-		return this.data.getDetectorSourceType();
-	}
-	
-	public List<String> getHandlers() {
-	    return EventHandlerDao.getInstance().getEventHandlerXids(this.data.getEventType());
-	}
-	
+    @JsonGetter("detectorType")
+    @Override
+    public String getModelType(){
+        return this.data.getDefinition().getEventDetectorTypeName();
+    }
+
+    public int getSourceId(){
+        return this.data.getSourceId();
+    }
+    public void setSourceId(int id){
+        this.data.setSourceId(id);
+    }
+
+    public boolean isRtnApplicable(){
+        return this.data.isRtnApplicable();
+    }
+
+    public EventTypeModel getEventType(){
+        return this.data.getEventType().getEventType().asModel();
+    }
+
+    public TranslatableMessage getDescription(){
+        return this.data.getDescription();
+    }
+
+    public String getDetectorSourceType(){
+        return this.data.getDetectorSourceType();
+    }
+
+    public List<String> getHandlers() {
+        return EventHandlerDao.getInstance().getEventHandlerXids(this.data.getEventType().getEventType());
+    }
+
     public void setHandlers(List<String> handlerXids) {
         if (handlerXids != null) {
             ProcessResult processResult = new ProcessResult();
@@ -80,12 +80,12 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
         }
     }
 
-	/**
-	 * @param def
-	 */
-	@JsonIgnore
-	public void setDefinition(EventDetectorDefinition<?> def) {
-		this.data.setDefinition(def);
-	}
+    /**
+     * @param def
+     */
+    @JsonIgnore
+    public void setDefinition(EventDetectorDefinition<?> def) {
+        this.data.setDefinition(def);
+    }
 
 }

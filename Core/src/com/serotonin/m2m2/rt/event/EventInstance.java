@@ -18,11 +18,6 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.web.taglib.Functions;
 
 public class EventInstance{
-    
-	public interface RtnCauses {
-        int RETURN_TO_NORMAL = 1;
-        int SOURCE_DISABLED = 4;
-    }
 
     /**
      * Configuration field. Assigned by the database.
@@ -50,13 +45,13 @@ public class EventInstance{
     private long rtnTimestamp;
 
     /**
-     * State field. The action that caused the event to RTN. One of {@link RtnCauses}
+     * State field. The action that caused the event to RTN. One of {@link ReturnCause}
      */
-    private int rtnCause;
+    private ReturnCause rtnCause;
 
     /**
      * Configuration field. The alarm level assigned to the event.
-     * 
+     *
      * @see AlarmLevels
      */
     private final int alarmLevel;
@@ -85,7 +80,7 @@ public class EventInstance{
     // the userEvents table.
     private boolean userNotified;
     private boolean silenced;
-    
+
     //Used so that the multicaster knows what to ignore
     private List<Integer> idsToNotify;
 
@@ -110,9 +105,9 @@ public class EventInstance{
         TranslatableMessage rtnKey = null;
 
         if (!isActive()) {
-            if (rtnCause == RtnCauses.RETURN_TO_NORMAL)
+            if (rtnCause == ReturnCause.RETURN_TO_NORMAL)
                 rtnKey = new TranslatableMessage("event.rtn.rtn");
-            else if (rtnCause == RtnCauses.SOURCE_DISABLED) {
+            else if (rtnCause == ReturnCause.SOURCE_DISABLED) {
                 if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT))
                     rtnKey = new TranslatableMessage("event.rtn.pointDisabled");
                 else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE))
@@ -178,7 +173,7 @@ public class EventInstance{
 
     /**
      * This method should only be used by the EventDao for creating and updating.
-     * 
+     *
      * @param id
      */
     public void setId(int id) {
@@ -189,7 +184,7 @@ public class EventInstance{
         return rtnApplicable && rtnTimestamp == 0;
     }
 
-    public void returnToNormal(long time, int rtnCause) {
+    public void returnToNormal(long time, ReturnCause rtnCause) {
         if (isActive()) {
             rtnTimestamp = time;
             this.rtnCause = rtnCause;
@@ -227,7 +222,7 @@ public class EventInstance{
         }else
             return message;
     }
-    
+
     public String getMessageString(){
         if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
             MissingEventType type = (MissingEventType)eventType;
@@ -252,7 +247,7 @@ public class EventInstance{
         return eventComments;
     }
 
-    public int getRtnCause() {
+    public ReturnCause getRtnCause() {
         return rtnCause;
     }
 
@@ -327,7 +322,7 @@ public class EventInstance{
     public List<Integer> getIdsToNotify() {
         return idsToNotify;
     }
-    
+
     public void setIdsToNotify(List<Integer> idsToNotify) {
         this.idsToNotify = idsToNotify;
     }
