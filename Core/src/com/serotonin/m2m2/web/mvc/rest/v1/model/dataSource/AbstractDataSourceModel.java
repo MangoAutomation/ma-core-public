@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,36 +29,36 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  */
 @JsonPropertyOrder({"xid", "name", "enabled"})
 public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends AbstractActionVoModel<T>{
-	
-	protected T data;
-	
-	/**
-	 * @param data
-	 */
-	public AbstractDataSourceModel(T data) {
-		super(data);
-		this.data = data;
-	}
-	
-	@JsonGetter(value="alarmLevels")
-	public Map<String,String> getAlarmLevels(){
-		ExportCodes eventCodes = this.data.getEventCodes();
+
+    protected T data;
+
+    /**
+     * @param data
+     */
+    public AbstractDataSourceModel(T data) {
+        super(data);
+        this.data = data;
+    }
+
+    @JsonGetter(value="alarmLevels")
+    public Map<String,String> getAlarmLevels(){
+        ExportCodes eventCodes = this.data.getEventCodes();
         Map<String, String> alarmCodeLevels = new HashMap<>();
 
         if (eventCodes != null && eventCodes.size() > 0) {
 
             for (int i = 0; i < eventCodes.size(); i++) {
                 int eventId = eventCodes.getId(i);
-                int level = this.data.getAlarmLevel(eventId, AlarmLevels.URGENT);
-                alarmCodeLevels.put(eventCodes.getCode(eventId), AlarmLevels.CODES.getCode(level));
+                AlarmLevels level = this.data.getAlarmLevel(eventId, AlarmLevels.URGENT);
+                alarmCodeLevels.put(eventCodes.getCode(eventId), level.name());
             }
         }
         return alarmCodeLevels;
-	}
-	
-	@JsonSetter(value="alarmLevels")
-	public void setAlarmLevels(Map<String,String> alarmCodeLevels) throws TranslatableJsonException{
-		if (alarmCodeLevels != null) {
+    }
+
+    @JsonSetter(value="alarmLevels")
+    public void setAlarmLevels(Map<String,String> alarmCodeLevels) throws TranslatableJsonException{
+        if (alarmCodeLevels != null) {
             ExportCodes eventCodes = this.data.getEventCodes();
             if (eventCodes != null && eventCodes.size() > 0) {
                 for (String code : alarmCodeLevels.keySet()) {
@@ -66,67 +67,68 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
                         throw new TranslatableJsonException("emport.error.eventCode", code, eventCodes.getCodeList());
 
                     String text = alarmCodeLevels.get(code);
-                    int level = AlarmLevels.CODES.getId(text);
-                    if (!AlarmLevels.CODES.isValidId(level))
+                    try {
+                        this.data.setAlarmLevel(eventId, AlarmLevels.fromName(text));
+                    } catch (IllegalArgumentException | NullPointerException e) {
                         throw new TranslatableJsonException("emport.error.alarmLevel", text, code,
-                                AlarmLevels.CODES.getCodeList());
-
-                    this.data.setAlarmLevel(eventId, level);
+                                Arrays.asList(AlarmLevels.values()));
+                    }
                 }
             }
         }
-	}
-	
-	@JsonGetter(value="purgeSettings")
-	public PurgeSettings getPurgeSettings(){
-		return new PurgeSettings(this.data.isPurgeOverride(), this.data.getPurgePeriod(), this.data.getPurgeType());
-	}
-	
-	@JsonSetter("purgeSettings")
-	public void setPurgeSettings(PurgeSettings settings){
-		this.data.setPurgeOverride(settings.isOverride());
-		this.data.setPurgePeriod(settings.getFrequency().getPeriods());
-		this.data.setPurgeType(TimePeriodType.convertFrom(settings.getFrequency().getType()));
-	}
-	
-	@JsonGetter("editPermission")
-	public String getEditPermission(){
-		return this.data.getEditPermission();
-	}
-	@JsonSetter("editPermission")
-	public void setEditPermission(String editPermission){
-		this.data.setEditPermission(editPermission);
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#validate(com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult)
-	 */
-	public void validate(RestProcessResult<?> result) throws RestValidationFailedException {
-		ProcessResult validation = new ProcessResult();
-		this.data.validate(validation);
-		
-		if(validation.getHasMessages()){
-			result.addValidationMessages(validation);
-			throw new RestValidationFailedException(this, result);
-		}
-	}
-	
-	@JsonIgnore
-	public T getData(){
-		return this.data;
-	}
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractVoModel#getModelType()
-	 */
-	@Override
-	public String getModelType() {
-		return this.data.getDefinition().getDataSourceTypeName();
-	}
-	
-	@JsonIgnore
-	public void setDefinition(DataSourceDefinition dataSourceDefinition) {
-		this.data.setDefinition(dataSourceDefinition);
-	}
+    @JsonGetter(value="purgeSettings")
+    public PurgeSettings getPurgeSettings(){
+        return new PurgeSettings(this.data.isPurgeOverride(), this.data.getPurgePeriod(), this.data.getPurgeType());
+    }
+
+    @JsonSetter("purgeSettings")
+    public void setPurgeSettings(PurgeSettings settings){
+        this.data.setPurgeOverride(settings.isOverride());
+        this.data.setPurgePeriod(settings.getFrequency().getPeriods());
+        this.data.setPurgeType(TimePeriodType.convertFrom(settings.getFrequency().getType()));
+    }
+
+    @JsonGetter("editPermission")
+    public String getEditPermission(){
+        return this.data.getEditPermission();
+    }
+    @JsonSetter("editPermission")
+    public void setEditPermission(String editPermission){
+        this.data.setEditPermission(editPermission);
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel#validate(com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult)
+     */
+    public void validate(RestProcessResult<?> result) throws RestValidationFailedException {
+        ProcessResult validation = new ProcessResult();
+        this.data.validate(validation);
+
+        if(validation.getHasMessages()){
+            result.addValidationMessages(validation);
+            throw new RestValidationFailedException(this, result);
+        }
+    }
+
+    @Override
+    @JsonIgnore
+    public T getData(){
+        return this.data;
+    }
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractVoModel#getModelType()
+     */
+    @Override
+    public String getModelType() {
+        return this.data.getDefinition().getDataSourceTypeName();
+    }
+
+    @JsonIgnore
+    public void setDefinition(DataSourceDefinition dataSourceDefinition) {
+        this.data.setDefinition(dataSourceDefinition);
+    }
 }

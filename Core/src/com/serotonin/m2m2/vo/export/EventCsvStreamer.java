@@ -9,7 +9,6 @@ import java.util.List;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.view.export.CsvWriter;
 
@@ -34,7 +33,7 @@ public class EventCsvStreamer {
 
         for (EventInstance event : events) {
             data[0] = Integer.toString(event.getId());
-            data[1] = AlarmLevels.getAlarmLevelMessage(event.getAlarmLevel()).translate(translations);
+            data[1] = event.getAlarmLevel().getDescription().translate(translations);
             data[2] = event.getFullPrettyActiveTimestamp();
             data[3] = event.getMessage().translate(translations);
 

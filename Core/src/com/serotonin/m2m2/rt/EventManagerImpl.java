@@ -104,7 +104,7 @@ public class EventManagerImpl implements EventManager {
      */
     @Override
     public void raiseEvent(EventType type, long time, boolean rtnApplicable,
-            int alarmLevel, TranslatableMessage message,
+            AlarmLevels alarmLevel, TranslatableMessage message,
             Map<String, Object> context) {
         if(state != RUNNING)
             return;
@@ -166,7 +166,7 @@ public class EventManagerImpl implements EventManager {
             if (Permissions.hasEventTypePermission(user, type)) {
                 eventUserIds.add(user.getId());
                 // add email addresses for users which have been configured to receive events over a certain level
-                if (user.getReceiveAlarmEmails() > AlarmLevels.IGNORE && alarmLevel >= user.getReceiveAlarmEmails() && !StringUtils.isEmpty(user.getEmail()))
+                if (user.getReceiveAlarmEmails().value() > AlarmLevels.IGNORE.value() && alarmLevel.value() >= user.getReceiveAlarmEmails().value() && !StringUtils.isEmpty(user.getEmail()))
                     emailUsers.add(user.getEmail());
 
                 //Notify All User Event Listeners of the new event
@@ -217,9 +217,9 @@ public class EventManagerImpl implements EventManager {
             this.acknowledgeEvent(evt, time, null, autoAckMessage);
         else {
             if (evt.isRtnApplicable()) {
-                if (alarmLevel > highestActiveAlarmLevel) {
+                if (alarmLevel.value() > highestActiveAlarmLevel) {
                     int oldValue = highestActiveAlarmLevel;
-                    highestActiveAlarmLevel = alarmLevel;
+                    highestActiveAlarmLevel = alarmLevel.value();
                     SystemEventType.raiseEvent(
                             new SystemEventType(SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED),
                             time,
@@ -629,7 +629,7 @@ public class EventManagerImpl implements EventManager {
      * @return
      */
     @Override
-    public int purgeEventsBefore(final long time, final int alarmLevel){
+    public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel){
 
         activeEventsLock.writeLock().lock();
         try{
@@ -779,8 +779,8 @@ public class EventManagerImpl implements EventManager {
             ListIterator<EventInstance> it = activeEvents.listIterator();
             while(it.hasNext()){
                 EventInstance e = it.next();
-                if (e.getAlarmLevel() > max)
-                    max = e.getAlarmLevel();
+                if (e.getAlarmLevel().value() > max)
+                    max = e.getAlarmLevel().value();
             }
         }finally{
             activeEventsLock.readLock().unlock();
@@ -814,8 +814,8 @@ public class EventManagerImpl implements EventManager {
     private TranslatableMessage getAlarmLevelChangeMessage(String key,
             int oldValue) {
         return new TranslatableMessage(key,
-                AlarmLevels.getAlarmLevelMessage(oldValue),
-                AlarmLevels.getAlarmLevelMessage(highestActiveAlarmLevel));
+                AlarmLevels.fromValue(oldValue).getDescription(),
+                AlarmLevels.fromValue(highestActiveAlarmLevel).getDescription());
     }
 
     //

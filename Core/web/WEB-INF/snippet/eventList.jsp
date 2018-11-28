@@ -64,7 +64,7 @@
         <td>
           <table cellspacing="0" cellpadding="0" width="100%">
             <tr>
-              <td colspan="2"><b><m2m2:translate message="${fn:escapeXml(event.message)}"/></b></td>
+              <td colspan="2"><b><m2m2:translate message="${event.message}"/></b></td>
               <td align="right">
                 <tag:img png="comment_add" title="notes.addNote"
                         onclick="openCommentDialog(${applicationScope['constants.UserComment.TYPE_EVENT']}, ${event.id})"/>

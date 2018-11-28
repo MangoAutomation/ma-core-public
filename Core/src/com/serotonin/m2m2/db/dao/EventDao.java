@@ -33,6 +33,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -115,7 +116,7 @@ public class EventDao extends BaseDao {
             args[6] = event.getRtnTimestamp();
             args[7] = event.getRtnCause().value();
         }
-        args[8] = event.getAlarmLevel();
+        args[8] = event.getAlarmLevel().value();
         args[9] = writeTranslatableMessage(event.getMessage());
         //For None Level Events
         //        if (event.getAlarmLevel() == AlarmLevels.DO_NOT_LOG) {
@@ -286,12 +287,12 @@ public class EventDao extends BaseDao {
         @Override
         public EventInstance mapRow(ResultSet rs, int rowNum) throws SQLException {
             EventType type = createEventType(rs, 2);
-            EventInstance event = new EventInstance(type, rs.getLong(6), charToBool(rs.getString(7)), rs.getInt(10),
+            EventInstance event = new EventInstance(type, rs.getLong(6), charToBool(rs.getString(7)), AlarmLevels.fromValue(rs.getInt(10)),
                     BaseDao.readTranslatableMessage(rs, 11), null);
             event.setId(rs.getInt(1));
             long rtnTs = rs.getLong(8);
             if (!rs.wasNull())
-                event.returnToNormal(rtnTs, ReturnCause.enumFor(rs.getInt(9)));
+                event.returnToNormal(rtnTs, ReturnCause.fromValue(rs.getInt(9)));
             long ackTs = rs.getLong(12);
             if (!rs.wasNull()) {
                 event.setAcknowledgedTimestamp(ackTs);
@@ -403,14 +404,14 @@ public class EventDao extends BaseDao {
      * @param typeName
      * @return
      */
-    public int purgeEventsBefore(final long time, final int alarmLevel) {
+    public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {
         // Find a list of event ids with no remaining acknowledgments pending.
         final ExtendedJdbcTemplate ejt2 = ejt;
         int count = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
 
-                int count = ejt2.update("delete from events where activeTs<? and alarmLevel=?", new Object[] { time, alarmLevel});
+                int count = ejt2.update("delete from events where activeTs<? and alarmLevel=?", new Object[] { time, alarmLevel.value()});
 
                 // Delete orphaned user comments.
                 ejt2.update("delete from userComments where commentType=" + UserCommentVO.TYPE_EVENT
@@ -476,7 +477,7 @@ public class EventDao extends BaseDao {
         return ejt.queryForInt("select count(*) from events", null, 0);
     }
 
-    public List<EventInstance> search(int eventId, String eventType, String status, int alarmLevel,
+    public List<EventInstance> search(int eventId, String eventType, String status, AlarmLevels alarmLevel,
             final String[] keywords, long dateFrom, long dateTo, int userId, final Translations translations,
             final int from, final int to, final Date date) {
         List<String> where = new ArrayList<String>();
@@ -510,9 +511,9 @@ public class EventDao extends BaseDao {
             params.add(boolToChar(false));
         }
 
-        if (alarmLevel != -1) {
+        if (alarmLevel != null) {
             where.add("e.alarmLevel=?");
-            params.add(alarmLevel);
+            params.add(alarmLevel.value());
         }
 
         if (dateFrom != -1) {

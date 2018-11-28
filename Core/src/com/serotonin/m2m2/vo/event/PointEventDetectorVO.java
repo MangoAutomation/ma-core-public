@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,11 +39,11 @@ import com.serotonin.m2m2.vo.DataPointVO;
 @Deprecated
 public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetectorVO>{
     /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public static final String XID_PREFIX = "PED_";
+    public static final String XID_PREFIX = "PED_";
 
     public static final int TYPE_ANALOG_HIGH_LIMIT = 1;
     public static final int TYPE_ANALOG_LOW_LIMIT = 2;
@@ -93,7 +94,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
             d.add(new ImplDefinition(TYPE_ANALOG_RANGE, null, "pointEdit.detectors.range",
                     new int[] { DataTypes.NUMERIC }));
             //            d.add(new ImplDefinition(TYPE_ANALOG_CHANGE, null, "pointEdit.detectors.analogChange",
-            //                    new int[] { DataTypes.NUMERIC }));           
+            //                    new int[] { DataTypes.NUMERIC }));
             d.add(new ImplDefinition(TYPE_SMOOTHNESS, null, "pointEdit.detectors.smoothness",
                     new int[] { DataTypes.NUMERIC }));
             definitions = d;
@@ -124,9 +125,9 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     private double weight;
 
     public EventTypeVO getEventType() {
-        return new EventTypeVO(new DataPointEventType(dataPoint.getId(), id), 
+        return new EventTypeVO(new DataPointEventType(dataPoint.getId(), id),
                 getDescription(),
-                alarmLevel);
+                AlarmLevels.fromValue(alarmLevel));
     }
 
     public ImplDefinition getDef() {
@@ -256,18 +257,18 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
                 if (durationDesc == null)
                     message = new TranslatableMessage("event.detectorVo.range", dataPoint.getTextRenderer().getText(
                             weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(limit,
-                            TextRenderer.HINT_SPECIFIC));
+                                    TextRenderer.HINT_SPECIFIC));
                 else
                     message = new TranslatableMessage("event.detectorVo.rangePeriod", dataPoint.getTextRenderer()
                             .getText(weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(limit,
-                            TextRenderer.HINT_SPECIFIC), durationDesc);
+                                    TextRenderer.HINT_SPECIFIC), durationDesc);
             }
             else {
                 //Outside of range
                 if (durationDesc == null)
                     message = new TranslatableMessage("event.detectorVo.rangeOutside", dataPoint.getTextRenderer()
                             .getText(weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer().getText(limit,
-                            TextRenderer.HINT_SPECIFIC));
+                                    TextRenderer.HINT_SPECIFIC));
                 else
                     message = new TranslatableMessage("event.detectorVo.rangeOutsidePeriod", dataPoint
                             .getTextRenderer().getText(weight, TextRenderer.HINT_SPECIFIC), dataPoint.getTextRenderer()
@@ -295,6 +296,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
         return Common.getPeriodDescription(durationType, duration);
     }
 
+    @Override
     public PointEventDetectorVO copy() {
         try {
             return (PointEventDetectorVO) super.clone();
@@ -305,6 +307,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     }
 
     //@Override
+    @Override
     public String getTypeKey() {
         return "event.audit.pointEventDetector";
     }
@@ -326,18 +329,22 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     }
 
     //@Override
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public void setId(int id) {
         this.id = id;
     }
 
+    @Override
     public String getXid() {
         return xid;
     }
 
+    @Override
     public void setXid(String xid) {
         this.xid = xid;
     }
@@ -444,72 +451,72 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("xid", xid);
         writer.writeEntry("type", TYPE_CODES.getCode(detectorType));
-        writer.writeEntry("alarmLevel", AlarmLevels.CODES.getCode(alarmLevel));
+        writer.writeEntry("alarmLevel", AlarmLevels.fromValue(alarmLevel).name());
 
         switch (detectorType) {
-        case TYPE_ANALOG_HIGH_LIMIT:
-            writer.writeEntry("limit", limit);
-            addDuration(writer);
-            writer.writeEntry("notHigher", binaryState);
-            if (this.multistateState == 1) //Using reset limit
-                writer.writeEntry("resetLimit", weight);
-            break;
-        case TYPE_ANALOG_LOW_LIMIT:
-            writer.writeEntry("limit", limit);
-            addDuration(writer);
-            writer.writeEntry("notLower", binaryState);
-            if (this.multistateState == 1) //Using Reset Limit
-                writer.writeEntry("resetLimit", weight);
-            break;
-        case TYPE_BINARY_STATE:
-            writer.writeEntry("state", binaryState);
-            addDuration(writer);
-            break;
-        case TYPE_MULTISTATE_STATE:
-            writer.writeEntry("state", multistateState);
-            addDuration(writer);
-            break;
-        case TYPE_POINT_CHANGE:
-            break;
-        case TYPE_STATE_CHANGE_COUNT:
-            writer.writeEntry("changeCount", changeCount);
-            addDuration(writer);
-            break;
-        case TYPE_NO_CHANGE:
-            addDuration(writer);
-            break;
-        case TYPE_NO_UPDATE:
-            addDuration(writer);
-            break;
-        case TYPE_ALPHANUMERIC_STATE:
-            writer.writeEntry("state", alphanumericState);
-            addDuration(writer);
-            break;
-        case TYPE_ALPHANUMERIC_REGEX_STATE:
-            writer.writeEntry("state", alphanumericState);
-            addDuration(writer);
-            break;
-        case TYPE_POSITIVE_CUSUM:
-            writer.writeEntry("limit", limit);
-            writer.writeEntry("weight", weight);
-            addDuration(writer);
-            break;
-        case TYPE_NEGATIVE_CUSUM:
-            writer.writeEntry("limit", limit);
-            writer.writeEntry("weight", weight);
-            addDuration(writer);
-            break;
-        case TYPE_ANALOG_RANGE:
-            writer.writeEntry("low", weight);
-            writer.writeEntry("high", limit);
-            writer.writeEntry("withinRange", binaryState);
-            addDuration(writer);
-            break;
-        case TYPE_SMOOTHNESS:
-            writer.writeEntry("limit", limit);
-            writer.writeEntry("boxcar", changeCount);
-            addDuration(writer);
-            break;
+            case TYPE_ANALOG_HIGH_LIMIT:
+                writer.writeEntry("limit", limit);
+                addDuration(writer);
+                writer.writeEntry("notHigher", binaryState);
+                if (this.multistateState == 1) //Using reset limit
+                    writer.writeEntry("resetLimit", weight);
+                break;
+            case TYPE_ANALOG_LOW_LIMIT:
+                writer.writeEntry("limit", limit);
+                addDuration(writer);
+                writer.writeEntry("notLower", binaryState);
+                if (this.multistateState == 1) //Using Reset Limit
+                    writer.writeEntry("resetLimit", weight);
+                break;
+            case TYPE_BINARY_STATE:
+                writer.writeEntry("state", binaryState);
+                addDuration(writer);
+                break;
+            case TYPE_MULTISTATE_STATE:
+                writer.writeEntry("state", multistateState);
+                addDuration(writer);
+                break;
+            case TYPE_POINT_CHANGE:
+                break;
+            case TYPE_STATE_CHANGE_COUNT:
+                writer.writeEntry("changeCount", changeCount);
+                addDuration(writer);
+                break;
+            case TYPE_NO_CHANGE:
+                addDuration(writer);
+                break;
+            case TYPE_NO_UPDATE:
+                addDuration(writer);
+                break;
+            case TYPE_ALPHANUMERIC_STATE:
+                writer.writeEntry("state", alphanumericState);
+                addDuration(writer);
+                break;
+            case TYPE_ALPHANUMERIC_REGEX_STATE:
+                writer.writeEntry("state", alphanumericState);
+                addDuration(writer);
+                break;
+            case TYPE_POSITIVE_CUSUM:
+                writer.writeEntry("limit", limit);
+                writer.writeEntry("weight", weight);
+                addDuration(writer);
+                break;
+            case TYPE_NEGATIVE_CUSUM:
+                writer.writeEntry("limit", limit);
+                writer.writeEntry("weight", weight);
+                addDuration(writer);
+                break;
+            case TYPE_ANALOG_RANGE:
+                writer.writeEntry("low", weight);
+                writer.writeEntry("high", limit);
+                writer.writeEntry("withinRange", binaryState);
+                addDuration(writer);
+                break;
+            case TYPE_SMOOTHNESS:
+                writer.writeEntry("limit", limit);
+                writer.writeEntry("boxcar", changeCount);
+                addDuration(writer);
+                break;
         }
     }
 
@@ -525,85 +532,87 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
 
         text = jsonObject.getString("alarmLevel");
         if (text != null) {
-            alarmLevel = AlarmLevels.CODES.getId(text);
-            if (!AlarmLevels.CODES.isValidId(alarmLevel))
+            try {
+                alarmLevel = AlarmLevels.fromName(text).value();
+            } catch(IllegalArgumentException | NullPointerException e) {
                 throw new TranslatableJsonException("emport.error.ped.invalid", "alarmLevel", text,
-                        AlarmLevels.CODES.getCodeList());
+                        Arrays.asList(AlarmLevels.values()));
+            }
         }
 
         switch (detectorType) {
-        case TYPE_ANALOG_HIGH_LIMIT:
-            limit = getDouble(jsonObject, "limit");
-            updateDuration(jsonObject);
-            if (jsonObject.containsKey("notHigher"))
-                binaryState = getBoolean(jsonObject, "notHigher");
-            else
-                binaryState = false;
-            if (jsonObject.containsKey("resetLimit")) {
-                multistateState = 1;
-                weight = getDouble(jsonObject, "resetLimit");
-            }
-            break;
-        case TYPE_ANALOG_LOW_LIMIT:
-            limit = getDouble(jsonObject, "limit");
-            updateDuration(jsonObject);
-            if (jsonObject.containsKey("notLower"))
-                binaryState = getBoolean(jsonObject, "notLower");
-            else
-                binaryState = false;
-            if (jsonObject.containsKey("resetLimit")) {
-                multistateState = 1;
-                weight = getDouble(jsonObject, "resetLimit");
-            }
-            break;
-        case TYPE_BINARY_STATE:
-            binaryState = getBoolean(jsonObject, "state");
-            updateDuration(jsonObject);
-            break;
-        case TYPE_MULTISTATE_STATE:
-            multistateState = getInt(jsonObject, "state");
-            updateDuration(jsonObject);
-            break;
-        case TYPE_POINT_CHANGE:
-            break;
-        case TYPE_STATE_CHANGE_COUNT:
-            changeCount = getInt(jsonObject, "changeCount");
-            updateDuration(jsonObject);
-            break;
-        case TYPE_NO_CHANGE:
-            updateDuration(jsonObject);
-            break;
-        case TYPE_NO_UPDATE:
-            updateDuration(jsonObject);
-            break;
-        case TYPE_ALPHANUMERIC_STATE:
-            alphanumericState = getString(jsonObject, "state");
-            updateDuration(jsonObject);
-            break;
-        case TYPE_ALPHANUMERIC_REGEX_STATE:
-            alphanumericState = getString(jsonObject, "state");
-            updateDuration(jsonObject);
-            break;
-        case TYPE_POSITIVE_CUSUM:
-            limit = getDouble(jsonObject, "limit");
-            weight = getDouble(jsonObject, "weight");
-            updateDuration(jsonObject);
-            break;
-        case TYPE_NEGATIVE_CUSUM:
-            limit = getDouble(jsonObject, "limit");
-            weight = getDouble(jsonObject, "weight");
-            updateDuration(jsonObject);
-            break;
-        case TYPE_ANALOG_RANGE:
-            weight = getDouble(jsonObject, "low");
-            limit = getDouble(jsonObject, "high");
-            binaryState = getBoolean(jsonObject, "withinRange");
-            break;
-        case TYPE_SMOOTHNESS:
-            limit = getDouble(jsonObject, "limit");
-            changeCount = getInt(jsonObject, "boxcar");
-            updateDuration(jsonObject);
-            break;
+            case TYPE_ANALOG_HIGH_LIMIT:
+                limit = getDouble(jsonObject, "limit");
+                updateDuration(jsonObject);
+                if (jsonObject.containsKey("notHigher"))
+                    binaryState = getBoolean(jsonObject, "notHigher");
+                else
+                    binaryState = false;
+                if (jsonObject.containsKey("resetLimit")) {
+                    multistateState = 1;
+                    weight = getDouble(jsonObject, "resetLimit");
+                }
+                break;
+            case TYPE_ANALOG_LOW_LIMIT:
+                limit = getDouble(jsonObject, "limit");
+                updateDuration(jsonObject);
+                if (jsonObject.containsKey("notLower"))
+                    binaryState = getBoolean(jsonObject, "notLower");
+                else
+                    binaryState = false;
+                if (jsonObject.containsKey("resetLimit")) {
+                    multistateState = 1;
+                    weight = getDouble(jsonObject, "resetLimit");
+                }
+                break;
+            case TYPE_BINARY_STATE:
+                binaryState = getBoolean(jsonObject, "state");
+                updateDuration(jsonObject);
+                break;
+            case TYPE_MULTISTATE_STATE:
+                multistateState = getInt(jsonObject, "state");
+                updateDuration(jsonObject);
+                break;
+            case TYPE_POINT_CHANGE:
+                break;
+            case TYPE_STATE_CHANGE_COUNT:
+                changeCount = getInt(jsonObject, "changeCount");
+                updateDuration(jsonObject);
+                break;
+            case TYPE_NO_CHANGE:
+                updateDuration(jsonObject);
+                break;
+            case TYPE_NO_UPDATE:
+                updateDuration(jsonObject);
+                break;
+            case TYPE_ALPHANUMERIC_STATE:
+                alphanumericState = getString(jsonObject, "state");
+                updateDuration(jsonObject);
+                break;
+            case TYPE_ALPHANUMERIC_REGEX_STATE:
+                alphanumericState = getString(jsonObject, "state");
+                updateDuration(jsonObject);
+                break;
+            case TYPE_POSITIVE_CUSUM:
+                limit = getDouble(jsonObject, "limit");
+                weight = getDouble(jsonObject, "weight");
+                updateDuration(jsonObject);
+                break;
+            case TYPE_NEGATIVE_CUSUM:
+                limit = getDouble(jsonObject, "limit");
+                weight = getDouble(jsonObject, "weight");
+                updateDuration(jsonObject);
+                break;
+            case TYPE_ANALOG_RANGE:
+                weight = getDouble(jsonObject, "low");
+                limit = getDouble(jsonObject, "high");
+                binaryState = getBoolean(jsonObject, "withinRange");
+                break;
+            case TYPE_SMOOTHNESS:
+                limit = getDouble(jsonObject, "limit");
+                changeCount = getInt(jsonObject, "boxcar");
+                updateDuration(jsonObject);
+                break;
         }
     }
 
@@ -659,11 +668,11 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
         return SimpleEventDetectorVO.POINT_EVENT_DETECTOR_PREFIX + id;
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
-	@Override
-	protected AbstractDao<PointEventDetectorVO> getDao() {
-		return null;
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+     */
+    @Override
+    protected AbstractDao<PointEventDetectorVO> getDao() {
+        return null;
+    }
 }

@@ -200,61 +200,61 @@ eventInstances = new StoreView({
     		},
     		renderCell: function(eventInstance, alarmLevel, cell){
     			var div = document.createElement("div");
-    			
+
     			var html = "";
-    			if(eventInstance.active && eventInstance.alarmLevel == 0){
+    			if(eventInstance.active && eventInstance.alarmLevel == 'NONE'){
     				html = "<img src='/images/flag_grey.png' title='";
     				html += mangoMsg['common.alarmLevel.none'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 0){
+    			}else if(eventInstance.alarmLevel == 'NONE'){
     				html = "<img src='/images/flag_grey_off.png' title='";
     				html += mangoMsg['common.alarmLevel.none.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 1){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 'INFORMATION'){
     				html = "<img src='/images/flag_blue.png' title='";
     				html += mangoMsg['common.alarmLevel.info'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 1){
+    			}else if(eventInstance.alarmLevel == 'INFORMATION'){
     				html = "<img src='/images/flag_blue_off.png' title='";
     				html += mangoMsg['common.alarmLevel.info.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 2){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 'IMPORTANT'){
     				html = "<img src='/images/flag_aqua.png' title='";
     				html += mangoMsg['common.alarmLevel.info'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 2){
+    			}else if(eventInstance.alarmLevel == 'IMPORTANT'){
     				html = "<img src='/images/flag_aqua_off.png' title='";
     				html += mangoMsg['common.alarmLevel.info.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 3){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 'WARNING'){
     				html = "<img src='/images/flag_green.png' title='";
     				html += mangoMsg['common.alarmLevel.info'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 3){
+    			}else if(eventInstance.alarmLevel == 'WARNING'){
     				html = "<img src='/images/flag_green_off.png' title='";
     				html += mangoMsg['common.alarmLevel.info.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 4){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 'URGENT'){
     				html = "<img src='/images/flag_yellow.png' title='";
     				html += mangoMsg['common.alarmLevel.urgent'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 4){
+    			}else if(eventInstance.alarmLevel == 'URGENT'){
     				html = "<img src='/images/flag_yellow_off.png' title='";
     				html += mangoMsg['common.alarmLevel.urgent.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 5){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 'CRITICAL'){
     				html = "<img src='/images/flag_orange.png' title='";
     				html += mangoMsg['common.alarmLevel.critical'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 5){
+    			}else if(eventInstance.alarmLevel == 'CRITICAL'){
     				html = "<img src='/images/flag_orange_off.png' title='";
     				html += mangoMsg['common.alarmLevel.critical.rtn'];
     				html += "'/>"
-    			}else if(eventInstance.active && eventInstance.alarmLevel == 6){
+    			}else if(eventInstance.active && eventInstance.alarmLevel == 'LIFE_SAFETY'){
     				html = "<img src='/images/flag_red.png' title='";
     				html += mangoMsg['common.alarmLevel.lifeSafety'];
     				html += "'/>"
-    			}else if(eventInstance.alarmLevel == 6){
+    			}else if(eventInstance.alarmLevel == 'LIFE_SAFETY'){
     				html = "<img src='/images/flag_red_off.png' title='";
     				html += mangoMsg['common.alarmLevel.lifeSafety.rtn'];
     				html += "'/>"

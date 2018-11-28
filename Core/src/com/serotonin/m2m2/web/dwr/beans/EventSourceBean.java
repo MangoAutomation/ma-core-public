@@ -8,20 +8,15 @@ package com.serotonin.m2m2.web.dwr.beans;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
-import com.serotonin.m2m2.vo.event.EventTypeVO;
-
 /**
  * Used on legacy pages via the EventHandlersDwr
  */
 public class EventSourceBean {
     private int id;
     private String name;
-    private final List<EventTypeVoHandlers> eventTypes = new ArrayList<EventTypeVoHandlers>();
+    private final List<EventTypeVOHandlers> eventTypes = new ArrayList<EventTypeVOHandlers>();
 
-    public List<EventTypeVoHandlers> getEventTypes() {
+    public List<EventTypeVOHandlers> getEventTypes() {
         return eventTypes;
     }
 
@@ -39,29 +34,5 @@ public class EventSourceBean {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    /**
-     * EventTypeVO coupled with event handlers that are attached to it's event type
-     */
-    public static class EventTypeVoHandlers extends EventTypeVO {
-
-
-        private List<AbstractEventHandlerVO<?>> handlers;
-
-        public EventTypeVoHandlers(EventType eventType, TranslatableMessage description,
-                int alarmLevel) {
-            super(eventType, description, alarmLevel);
-        }
-
-        public List<AbstractEventHandlerVO<?>> getHandlers() {
-            return handlers;
-        }
-
-        public void setHandlers(List<AbstractEventHandlerVO<?>> handlers) {
-            this.handlers = handlers;
-        }
-
-
     }
 }

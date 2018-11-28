@@ -11,6 +11,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -56,12 +57,12 @@ public class PublisherEditDwr extends BaseDwr {
         response.addData("allPoints", allPoints);
         return response;
     }
-    
+
     @DwrPermission(user = true)
-    public void updateEventAlarmLevel(int eventId, int alarmLevel) {
+    public void updateEventAlarmLevel(int eventId, AlarmLevels alarmLevel) {
         PublisherVO<?> pub = Common.getUser().getEditPublisher();
         pub.setAlarmLevel(eventId, alarmLevel);
     }
-    
-    
+
+
 }

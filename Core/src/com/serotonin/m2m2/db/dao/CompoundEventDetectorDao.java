@@ -2,7 +2,7 @@
     Mango - Open Source M2M - http://mango.serotoninsoftware.com
     Copyright (C) 2006-2011 Serotonin Software Technologies Inc.
     @author Matthew Lohbihler
-    
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -28,6 +28,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.CompoundEventDetectorVO;
@@ -61,13 +62,14 @@ public class CompoundEventDetectorDao extends BaseDao {
     }
 
     class CompoundEventDetectorRowMapper implements RowMapper<CompoundEventDetectorVO> {
+        @Override
         public CompoundEventDetectorVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             CompoundEventDetectorVO ced = new CompoundEventDetectorVO();
             int i = 0;
             ced.setId(rs.getInt(++i));
             ced.setXid(rs.getString(++i));
             ced.setName(rs.getString(++i));
-            ced.setAlarmLevel(rs.getInt(++i));
+            ced.setAlarmLevel(AlarmLevels.fromValue(rs.getInt(++i)));
             ced.setReturnToNormal(charToBool(rs.getString(++i)));
             ced.setDisabled(charToBool(rs.getString(++i)));
             ced.setCondition(rs.getString(++i));
@@ -87,7 +89,7 @@ public class CompoundEventDetectorDao extends BaseDao {
 
     private void insertCompoundEventDetector(CompoundEventDetectorVO ced) {
         int id = doInsert(COMPOUND_EVENT_DETECTOR_INSERT,
-                new Object[] { ced.getXid(), ced.getName(), ced.getAlarmLevel(), boolToChar(ced.isReturnToNormal()),
+                new Object[] { ced.getXid(), ced.getName(), ced.getAlarmLevel().value(), boolToChar(ced.isReturnToNormal()),
                         boolToChar(ced.isDisabled()), ced.getCondition() });
         ced.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_COMPOUND_EVENT_DETECTOR, ced);
@@ -99,7 +101,7 @@ public class CompoundEventDetectorDao extends BaseDao {
     private void updateCompoundEventDetector(CompoundEventDetectorVO ced) {
         CompoundEventDetectorVO old = getCompoundEventDetector(ced.getId());
 
-        ejt.update(COMPOUND_EVENT_DETECTOR_UPDATE, new Object[] { ced.getXid(), ced.getName(), ced.getAlarmLevel(),
+        ejt.update(COMPOUND_EVENT_DETECTOR_UPDATE, new Object[] { ced.getXid(), ced.getName(), ced.getAlarmLevel().value(),
                 boolToChar(ced.isReturnToNormal()), boolToChar(ced.isDisabled()), ced.getCondition(), ced.getId() });
 
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_COMPOUND_EVENT_DETECTOR, old, ced);

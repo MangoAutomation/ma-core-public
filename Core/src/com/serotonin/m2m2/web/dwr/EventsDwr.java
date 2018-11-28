@@ -21,6 +21,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.User;
@@ -51,7 +52,7 @@ public class EventsDwr extends BaseDwr {
     public static final int RELATIVE_DATE_TYPE_PAST = 2;
 
     @DwrPermission(user = true)
-    public ProcessResult search(int eventId, String eventType, String status, int alarmLevel, String keywordStr,
+    public ProcessResult search(int eventId, String eventType, String status, AlarmLevels alarmLevel, String keywordStr,
             int dateRangeType, int relativeDateType, int previousPeriodCount, int previousPeriodType,
             int pastPeriodCount, int pastPeriodType, boolean fromNone, int fromYear, int fromMonth, int fromDay,
             int fromHour, int fromMinute, int fromSecond, boolean toNone, int toYear, int toMonth, int toDay,
@@ -63,7 +64,7 @@ public class EventsDwr extends BaseDwr {
         int from = PAGE_SIZE * page;
         int to = from + PAGE_SIZE;
 
-        // This date is for the "jump to date" functionality. The date is set for the top of the day, which will end up 
+        // This date is for the "jump to date" functionality. The date is set for the top of the day, which will end up
         // excluding all of the events for that day. So, // we need to add 1 day to it.
         if (date != null)
             date = DateUtils.minus(new DateTime(date.getTime()), Common.TimePeriods.DAYS, -1).toDate();
@@ -126,7 +127,7 @@ public class EventsDwr extends BaseDwr {
     }
 
     @DwrPermission(user = true)
-    public void exportEvents(int eventId, String eventType, String status, int alarmLevel, String keywordStr,
+    public void exportEvents(int eventId, String eventType, String status, AlarmLevels alarmLevel, String keywordStr,
             int dateRangeType, int relativeDateType, int previousPeriodCount, int previousPeriodType,
             int pastPeriodCount, int pastPeriodType, boolean fromNone, int fromYear, int fromMonth, int fromDay,
             int fromHour, int fromMinute, int fromSecond, boolean toNone, int toYear, int toMonth, int toDay,

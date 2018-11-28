@@ -50,7 +50,6 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -187,7 +186,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         // Cancel the escalation job in case it's there
         if (escalationTask != null)
             escalationTask.cancel();
-        
+
         // Send an email to the inactive recipients.
         if(vo.isSendInactive())
             sendEmail(evt, NotificationType.INACTIVE, inactiveRecipients);
@@ -250,7 +249,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             else
                 subjectMsg = new TranslatableMessage("ftl.subject.alias.id", alias, notifTypeMsg, evt.getId());
         }
-        String alarmLevel = AlarmLevels.getAlarmLevelMessage(evt.getAlarmLevel()).translate(translations);
+        String alarmLevel = evt.getAlarmLevel().getDescription().translate(translations);
 
         String subject = alarmLevel + " - " + subjectMsg.translate(translations);
 

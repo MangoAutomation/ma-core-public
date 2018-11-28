@@ -11,7 +11,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,6 +35,7 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
@@ -43,8 +46,8 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
-import com.serotonin.m2m2.vo.pair.StringIntPair;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.m2m2.web.dwr.beans.EventTypeVOHandlers;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
@@ -83,10 +86,16 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE));
 
         // System event types
-        settings.put("systemEventTypes", SystemEventType.getRegisteredEventTypes());
+        settings.put("systemEventTypes", SystemEventType.getRegisteredEventTypes()
+                .stream()
+                .map(x -> new EventTypeVOHandlers(x))
+                .collect(Collectors.toList()));
 
         // System event types
-        settings.put("auditEventTypes", AuditEventType.getRegisteredEventTypes());
+        settings.put("auditEventTypes", AuditEventType.getRegisteredEventTypes()
+                .stream()
+                .map(x -> new EventTypeVOHandlers(x))
+                .collect(Collectors.toList()));
 
         // Http Client
         settings.put(SystemSettingsDao.HTTP_CLIENT_USE_PROXY,
@@ -455,15 +464,15 @@ public class SystemSettingsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    public void saveSystemEventAlarmLevels(List<StringIntPair> eventAlarmLevels) {
-        for (StringIntPair eventAlarmLevel : eventAlarmLevels)
-            SystemEventType.setEventTypeAlarmLevel(eventAlarmLevel.getString(), eventAlarmLevel.getInt());
+    public void saveSystemEventAlarmLevels(Map<String, AlarmLevels> eventAlarmLevels) {
+        for (Entry<String, AlarmLevels> eventAlarmLevel : eventAlarmLevels.entrySet())
+            SystemEventType.setEventTypeAlarmLevel(eventAlarmLevel.getKey(), eventAlarmLevel.getValue());
     }
 
     @DwrPermission(admin = true)
-    public void saveAuditEventAlarmLevels(List<StringIntPair> eventAlarmLevels) {
-        for (StringIntPair eventAlarmLevel : eventAlarmLevels)
-            AuditEventType.setEventTypeAlarmLevel(eventAlarmLevel.getString(), eventAlarmLevel.getInt());
+    public void saveAuditEventAlarmLevels(Map<String, AlarmLevels> eventAlarmLevels) {
+        for (Entry<String, AlarmLevels> eventAlarmLevel : eventAlarmLevels.entrySet())
+            AuditEventType.setEventTypeAlarmLevel(eventAlarmLevel.getKey(), eventAlarmLevel.getValue());
     }
 
     @DwrPermission(admin = true)

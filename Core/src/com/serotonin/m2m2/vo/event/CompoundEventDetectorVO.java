@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.vo.event;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,24 +38,24 @@ import com.serotonin.web.dwr.DwrResponseI18n;
 import com.serotonin.web.i18n.LocalizableMessage;
 
 /**
- * This class is not working yet, its left here for the time when 
+ * This class is not working yet, its left here for the time when
  * we decide to use Compound detectors.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO<T> {
     /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+     *
+     */
+    private static final long serialVersionUID = 1L;
 
-	public static final String XID_PREFIX = "CED_";
+    public static final String XID_PREFIX = "CED_";
 
     private int id = Common.NEW_ID;
     private String xid;
     @JsonProperty
     private String name;
-    private int alarmLevel = AlarmLevels.NONE;
+    private AlarmLevels alarmLevel = AlarmLevels.NONE;
     @JsonProperty
     private boolean returnToNormal = true;
     @JsonProperty
@@ -62,17 +63,19 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
     @JsonProperty
     private String condition;
 
+    @Override
     public boolean isNew() {
         return id == Common.NEW_ID;
     }
 
     public EventTypeVO getEventType() {
-        return new EventTypeVO(new CompoundDetectorEventType(id), 
+        return new EventTypeVO(new CompoundDetectorEventType(id),
                 new TranslatableMessage("common.default", name),
                 alarmLevel);
     }
 
     //@Override
+    @Override
     public String getTypeKey() {
         return "event.audit.compoundEventDetector";
     }
@@ -111,12 +114,12 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
                     if (!admin && !Permissions.hasDataSourcePermission(user, dss.get(dp.getDataSourceId())))
                         continue;
 
-//                    for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
-//                        if (ped.getEventDetectorKey().equals(key) && ped.isRtnApplicable()) {
-//                            found = true;
-//                            break;
-//                        }
-//                    }
+                    //                    for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
+                    //                        if (ped.getEventDetectorKey().equals(key) && ped.isRtnApplicable()) {
+                    //                            found = true;
+                    //                            break;
+                    //                        }
+                    //                    }
 
                     if (found)
                         break;
@@ -141,27 +144,31 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
     }
 
     //@Override
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public void setId(int id) {
         this.id = id;
     }
 
+    @Override
     public String getXid() {
         return xid;
     }
 
+    @Override
     public void setXid(String xid) {
         this.xid = xid;
     }
 
-    public int getAlarmLevel() {
+    public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
 
-    public void setAlarmLevel(int alarmLevel) {
+    public void setAlarmLevel(AlarmLevels alarmLevel) {
         this.alarmLevel = alarmLevel;
     }
 
@@ -181,10 +188,12 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
         this.disabled = disabled;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
@@ -204,25 +213,27 @@ public class CompoundEventDetectorVO<T extends AbstractVO<T>> extends AbstractVO
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("xid", xid);
-        writer.writeEntry("alarmLevel", AlarmLevels.CODES.getCode(alarmLevel));
+        writer.writeEntry("alarmLevel", alarmLevel.name());
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         String text = jsonObject.getString("alarmLevel");
         if (text != null) {
-            alarmLevel = AlarmLevels.CODES.getId(text);
-            if (!AlarmLevels.CODES.isValidId(alarmLevel))
+            try {
+                alarmLevel = AlarmLevels.fromName(text);
+            } catch (IllegalArgumentException e) {
                 throw new TranslatableJsonException("emport.error.scheduledEvent.invalid", "alarmLevel", text,
-                        AlarmLevels.CODES.getCodeList());
+                        Arrays.asList(AlarmLevels.values()));
+            }
         }
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
-	@Override
-	protected AbstractDao<T> getDao() {
-		throw new ShouldNeverHappenException("Un-implemented.");
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+     */
+    @Override
+    protected AbstractDao<T> getDao() {
+        throw new ShouldNeverHappenException("Un-implemented.");
+    }
 }

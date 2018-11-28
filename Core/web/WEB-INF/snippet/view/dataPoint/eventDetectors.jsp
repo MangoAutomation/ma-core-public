@@ -947,7 +947,7 @@
               var errorMessage = null;
               var xid = $get("eventDetector"+ pedId +"Xid");
               var alias = $get("eventDetector"+ pedId +"Alias");
-              var alarmLevel = parseInt($get("eventDetector"+ pedId +"AlarmLevel"));
+              var alarmLevel = $get("eventDetector"+ pedId +"AlarmLevel");
               
               if (pedType == '<%= AnalogHighLimitEventDetectorDefinition.TYPE_NAME %>') {
                   var state = $get("eventDetector"+ pedId +"State") === "true";

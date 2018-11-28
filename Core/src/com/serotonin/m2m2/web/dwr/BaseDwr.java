@@ -481,37 +481,41 @@ abstract public class BaseDwr {
 
                 for (EventInstance event : events) {
                     switch (event.getAlarmLevel()) {
-                        case AlarmLevels.LIFE_SAFETY:
+                        case LIFE_SAFETY:
                             lifeSafetyTotal++;
                             lifeSafetyEvent = event;
                             break;
-                        case AlarmLevels.CRITICAL:
+                        case CRITICAL:
                             criticalTotal++;
                             criticalEvent = event;
                             break;
-                        case AlarmLevels.URGENT:
+                        case URGENT:
                             urgentTotal++;
                             urgentEvent = event;
                             break;
-                        case AlarmLevels.WARNING:
+                        case WARNING:
                             warningTotal++;
                             warningEvent = event;
                             break;
-                        case AlarmLevels.IMPORTANT:
+                        case IMPORTANT:
                             importantTotal++;
                             importantEvent = event;
                             break;
-                        case AlarmLevels.INFORMATION:
+                        case INFORMATION:
                             informationTotal++;
                             informationEvent = event;
                             break;
-                        case AlarmLevels.NONE:
+                        case NONE:
                             noneTotal++;
                             noneEvent = event;
                             break;
-                        case AlarmLevels.DO_NOT_LOG:
+                        case DO_NOT_LOG:
                             doNotLogTotal++;
                             doNotLogEvent = event;
+                            break;
+                        case IGNORE:
+                            break;
+                        default:
                             break;
                     }
                 }
@@ -553,21 +557,21 @@ abstract public class BaseDwr {
                 }
                 // The events have changed. See if the user's particular max
                 // alarm level has changed.
-                int maxAlarmLevel = AlarmLevels.DO_NOT_LOG;
+                int maxAlarmLevel = AlarmLevels.DO_NOT_LOG.value();
                 if (lifeSafetyTotal > 0)
-                    maxAlarmLevel = AlarmLevels.LIFE_SAFETY;
+                    maxAlarmLevel = AlarmLevels.LIFE_SAFETY.value();
                 else if (criticalTotal > 0)
-                    maxAlarmLevel = AlarmLevels.CRITICAL;
+                    maxAlarmLevel = AlarmLevels.CRITICAL.value();
                 else if (urgentTotal > 0)
-                    maxAlarmLevel = AlarmLevels.URGENT;
+                    maxAlarmLevel = AlarmLevels.URGENT.value();
                 else if (warningTotal > 0)
-                    maxAlarmLevel = AlarmLevels.WARNING;
+                    maxAlarmLevel = AlarmLevels.WARNING.value();
                 else if (importantTotal > 0)
-                    maxAlarmLevel = AlarmLevels.IMPORTANT;
+                    maxAlarmLevel = AlarmLevels.IMPORTANT.value();
                 else if (informationTotal > 0)
-                    maxAlarmLevel = AlarmLevels.INFORMATION;
+                    maxAlarmLevel = AlarmLevels.INFORMATION.value();
                 else if (noneTotal > 0)
-                    maxAlarmLevel = AlarmLevels.NONE;
+                    maxAlarmLevel = AlarmLevels.NONE.value();
 
                 if (maxAlarmLevel != state.getMaxAlarmLevel()) {
                     response.put("highestUnsilencedAlarmLevel", maxAlarmLevel);

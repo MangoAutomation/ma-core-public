@@ -29,14 +29,14 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
-    
+
     private static final long serialVersionUID = 1L;
 
     public static final String XID_PREFIX = "ML_";
 
     @JsonProperty
     private List<EmailRecipient> entries;
-    private int receiveAlarmEmails = AlarmLevels.IGNORE;
+    private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
     @JsonProperty
     private Set<String> readPermissions;
     @JsonProperty
@@ -80,15 +80,15 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     public void setInactiveIntervals(Set<Integer> inactiveIntervals) {
         this.inactiveIntervals = inactiveIntervals;
     }
-    
-    public int getReceiveAlarmEmails() {
-    	return receiveAlarmEmails;
+
+    public AlarmLevels getReceiveAlarmEmails() {
+        return receiveAlarmEmails;
     }
-    
-    public void setReceiveAlarmEmails(int receiveAlarmEmails) {
-    	this.receiveAlarmEmails = receiveAlarmEmails;
+
+    public void setReceiveAlarmEmails(AlarmLevels receiveAlarmEmails) {
+        this.receiveAlarmEmails = receiveAlarmEmails;
     }
- 
+
     /**
      * @return the readPermissions
      */
@@ -138,11 +138,12 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
         return interval;
     }
 
+    @Override
     public void validate(ProcessResult result) {
         super.validate(result);
-        if(!AlarmLevels.CODES.isValidId(receiveAlarmEmails))
+        if(receiveAlarmEmails == null)
             result.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
-        
+
         if(entries == null || entries.size() == 0)
             result.addContextualMessage("recipients", "mailingLists.validate.entries");
         else {
@@ -168,11 +169,11 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
                 index++;
             }
         }
-        
+
         User user = Common.getHttpUser();
         if(user == null)
             user = Common.getBackgroundContextUser();
-        
+
         Permissions.validateAddedPermissions(readPermissions, user, result, "readPermissions");
         Permissions.validateAddedPermissions(editPermissions, user, result, "editPermissions");
 
@@ -193,15 +194,15 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         // Don't call the super method, because a mailing list can't be a member of a mailing list.
         writer.writeEntry("xid", xid);
-        writer.writeEntry("receiveAlarmEmails", AlarmLevels.CODES.getCode(receiveAlarmEmails));
+        writer.writeEntry("receiveAlarmEmails", receiveAlarmEmails.name());
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	String text = jsonObject.getString("recieveAlarmEmails");
-		if(text != null){
-			receiveAlarmEmails = AlarmLevels.CODES.getId(text);
-		}
+        String text = jsonObject.getString("recieveAlarmEmails");
+        if(text != null){
+            receiveAlarmEmails = AlarmLevels.fromName(text);
+        }
     }
 
     @Override

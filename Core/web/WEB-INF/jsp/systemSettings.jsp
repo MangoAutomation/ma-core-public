@@ -41,15 +41,15 @@
                     var etid = et.type +"-"+ et.subtype;
                     var content = "<select id='alarmLevel"+ etid +"' ";
                     content += "onchange='updateAlarmLevel(\""+ et.type +"\", \""+ et.subtype +"\", this.value)'>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.NONE %>"/>'><fmt:message key="<%= AlarmLevels.NONE_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.INFORMATION %>"/>'><fmt:message key="<%= AlarmLevels.INFORMATION_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.IMPORTANT %>"/>'><fmt:message key="<%= AlarmLevels.IMPORTANT_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.WARNING %>"/>'><fmt:message key="<%= AlarmLevels.WARNING_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.URGENT %>"/>'><fmt:message key="<%= AlarmLevels.URGENT_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.CRITICAL %>"/>'><fmt:message key="<%= AlarmLevels.CRITICAL_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.LIFE_SAFETY %>"/>'><fmt:message key="<%= AlarmLevels.LIFE_SAFETY_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.DO_NOT_LOG %>"/>'><fmt:message key="<%= AlarmLevels.DO_NOT_LOG_DESCRIPTION %>"/></option>";
-                    content += "<option value='<c:out value="<%= AlarmLevels.IGNORE %>"/>'><fmt:message key="<%= AlarmLevels.IGNORE_DESCRIPTION %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.NONE.name() %>"/>'><fmt:message key="<%= AlarmLevels.NONE.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.INFORMATION.name() %>"/>'><fmt:message key="<%= AlarmLevels.INFORMATION.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.IMPORTANT.name() %>"/>'><fmt:message key="<%= AlarmLevels.IMPORTANT.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.WARNING.name() %>"/>'><fmt:message key="<%= AlarmLevels.WARNING.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.URGENT.name() %>"/>'><fmt:message key="<%= AlarmLevels.URGENT.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.CRITICAL.name() %>"/>'><fmt:message key="<%= AlarmLevels.CRITICAL.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.LIFE_SAFETY.name() %>"/>'><fmt:message key="<%= AlarmLevels.LIFE_SAFETY.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.DO_NOT_LOG.name() %>"/>'><fmt:message key="<%= AlarmLevels.DO_NOT_LOG.getDescription().getKey() %>"/></option>";
+                    content += "<option value='<c:out value="<%= AlarmLevels.IGNORE.name() %>"/>'><fmt:message key="<%= AlarmLevels.IGNORE.getDescription().getKey() %>"/></option>";
                     
                     content += "</select> ";
                     content += "<img id='alarmLevelImg"+ etid +"' src='images/flag_grey.png' style='display:none'>";
@@ -234,7 +234,7 @@
             etid = eventType.type +"-"+ eventType.subtype;
             $set("alarmLevel"+ etid, eventType.alarmLevel);
             setAlarmLevelImg(eventType.alarmLevel, "alarmLevelImg"+ etid);
-            alarmLevelsList[alarmLevelsList.length] = { string: eventType.subtype, int: eventType.alarmLevel };
+            alarmLevelsList[alarmLevelsList.length] = { subtype: eventType.subtype, alarmLevel: eventType.alarmLevel };
         }
     }
     
@@ -405,11 +405,14 @@
             list = systemEventAlarmLevels;
         else
             list = auditEventAlarmLevels;
-        getElement(list, eventSubtype, "string")["int"] = alarmLevel;
+        getElement(list, eventSubtype, "subtype").alarmLevel = alarmLevel;
     }
     
     function saveSystemEventAlarmLevels() {
-        SystemSettingsDwr.saveSystemEventAlarmLevels(systemEventAlarmLevels, function() {
+        SystemSettingsDwr.saveSystemEventAlarmLevels(systemEventAlarmLevels.reduce((map, x) => {
+            map[x.subtype] = x.alarmLevel;
+            return map;
+        }, {}), function() {
             setDisabled("systemEventAlarmLevelsBtn", false);
             setUserMessage("systemEventAlarmLevelsMessage", "<fmt:message key="systemSettings.systemAlarmLevelsSaved"/>");
         });
@@ -418,7 +421,10 @@
     }
     
     function saveAuditEventAlarmLevels() {
-        SystemSettingsDwr.saveAuditEventAlarmLevels(auditEventAlarmLevels, function() {
+        SystemSettingsDwr.saveAuditEventAlarmLevels(auditEventAlarmLevels.reduce((map, x) => {
+            map[x.subtype] = x.alarmLevel;
+            return map;
+        }, {}), function() {
                 setDisabled("auditEventAlarmLevelsBtn", false);
                 setUserMessage("auditEventAlarmLevelsMessage", "<fmt:message key="systemSettings.auditAlarmLevelsSaved"/>");
         });

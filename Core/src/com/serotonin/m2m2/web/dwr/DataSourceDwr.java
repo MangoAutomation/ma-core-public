@@ -43,16 +43,16 @@ import com.serotonin.m2m2.web.taglib.Functions;
 
 /**
  * This class is still used on the Data Source Legacy Page
- * 
+ *
  * DWR For Data Source Manipulation
- * 
+ *
  * @author Terry Packer
  *
  */
 public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<DataSourceVO<?>>, DataSourceRT<DataSourceVO<?>>, DataSourceRTM<DataSourceVO<?>>> {
-	
-	private static final String SPACE = " ";
-	
+
+    private static final String SPACE = " ";
+
     /**
      * Default Constructor
      */
@@ -63,7 +63,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
 
     /**
      * Init Data Source Types
-     * 
+     *
      * @return
      */
     @DwrPermission(user = true)
@@ -101,7 +101,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
                 vo.setXid(DataSourceDao.getInstance().generateUniqueXid());
                 User user = Common.getUser();
                 if (!Permissions.hasAdminPermission(user))
-                    // Default the permissions of the data source to that of the user so that 
+                    // Default the permissions of the data source to that of the user so that
                     // the user can access the thing.
                     vo.setEditPermission(Common.getUser().getPermissions());
 
@@ -135,7 +135,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
                 if ((Common.getUser().getEditPoint() == null)
                         || (Common.getUser().getEditPoint().getDataSourceId() != vo.getId())
                         || (Common.getUser().getEditPoint().getDataSourceTypeName() != vo.getDefinition()
-                                .getDataSourceTypeName())) {
+                        .getDataSourceTypeName())) {
                     DataPointVO dp = new DataPointVO();
 
                     dp.setXid(DataPointDao.getInstance().generateUniqueXid());
@@ -220,7 +220,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
 
     /**
      * Get the general status messages for a given data source
-     * 
+     *
      * @param id
      * @return
      */
@@ -245,7 +245,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
 
     /**
      * Get the current alarms for a datasource
-     * 
+     *
      * @param id
      * @return
      */
@@ -273,62 +273,62 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      */
     @DwrPermission(user = true)
     public ProcessResult getPollTimes(int id) {
-    	ProcessResult result = new ProcessResult();
+        ProcessResult result = new ProcessResult();
         DataSourceRT ds = Common.runtimeManager.getRunningDataSource(id);
         List<StringStringPair> polls = new ArrayList<StringStringPair>();
-        
+
         if ((ds != null)&&(ds instanceof PollingDataSource)){
             List<LongLongPair> list = ((PollingDataSource)ds).getLatestPollTimes();
             String pollTime;
             for(LongLongPair poll : list){
-            	StringBuilder duration = new StringBuilder();
+                StringBuilder duration = new StringBuilder();
 
-            	pollTime = Functions.getFullMilliSecondTime(poll.getKey());
-            	if(poll.getValue() >= 0){
-	            	//Format Duration Nicely
-	            	Period period = new Period(poll.getValue());
-	            	if(period.getHours() >= 1){
-	            		duration.append(translate("common.duration.hours",period.getHours()));
-	            		duration.append(SPACE);
-	            	}
-	            	if(period.getMinutes() >= 1){
-	            		duration.append(translate("common.duration.minutes",period.getMinutes()));
-	            		duration.append(SPACE);
-	            	}
-	            	if(period.getSeconds() >= 1){
-	            		duration.append(translate("common.duration.seconds",period.getSeconds()));
-	            		duration.append(SPACE);
-	            	}
-	            	duration.append(translate("common.duration.millis", period.getMillis()));
-            	}else{
-            		duration.append(translate("event.ds.pollAborted"));
-            	}
-            	StringStringPair pair = new StringStringPair(pollTime, duration.toString());
-            	polls.add(pair);
+                pollTime = Functions.getFullMilliSecondTime(poll.getKey());
+                if(poll.getValue() >= 0){
+                    //Format Duration Nicely
+                    Period period = new Period(poll.getValue());
+                    if(period.getHours() >= 1){
+                        duration.append(translate("common.duration.hours",period.getHours()));
+                        duration.append(SPACE);
+                    }
+                    if(period.getMinutes() >= 1){
+                        duration.append(translate("common.duration.minutes",period.getMinutes()));
+                        duration.append(SPACE);
+                    }
+                    if(period.getSeconds() >= 1){
+                        duration.append(translate("common.duration.seconds",period.getSeconds()));
+                        duration.append(SPACE);
+                    }
+                    duration.append(translate("common.duration.millis", period.getMillis()));
+                }else{
+                    duration.append(translate("event.ds.pollAborted"));
+                }
+                StringStringPair pair = new StringStringPair(pollTime, duration.toString());
+                polls.add(pair);
             }
         }
-        
+
         List<String> aborts = new ArrayList<String>();
         if ((ds != null)&&(ds instanceof PollingDataSource)){
             List<Long> list = ((PollingDataSource)ds).getLatestAbortedPollTimes();
             String pollTime;
             for(Long poll : list){
-            	pollTime = Functions.getFullMilliSecondTime(poll);
-            	aborts.add(pollTime);
+                pollTime = Functions.getFullMilliSecondTime(poll);
+                aborts.add(pollTime);
             }
         }
-        
+
         result.addData("polls", polls);
         result.addData("aborts", aborts);
-        
+
         return result;
     }
-        
+
     /**
      * Load a list of VOs
-     * 
+     *
      * Overridden to provide security
-     * 
+     *
      * @return
      */
     @Override
@@ -350,7 +350,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         }
 
         //Since we have removed some, we need to review our totals here,,
-        // this will be a bit buggy because we don't know how many of the remaining items 
+        // this will be a bit buggy because we don't know how many of the remaining items
         // are actually viewable by this user.
         int total = results.getTotal() - (filtered.size() - vos.size());
         response.addData("list", vos);
@@ -361,7 +361,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
 
     /**
      * Export VOs based on a filter
-     * 
+     *
      * @param id
      * @return
      */

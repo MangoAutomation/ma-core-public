@@ -19,7 +19,7 @@ abstract public class SystemEventTypeDefinition extends ModuleElementDefinition 
     /**
      * A reference to a human readable and translatable name of the system event type. Key reference values in
      * i18n.properties files.
-     * 
+     *
      * @return the reference key to the system event short description.
      */
     abstract public String getDescriptionKey();
@@ -28,14 +28,14 @@ abstract public class SystemEventTypeDefinition extends ModuleElementDefinition 
      * The default alarm level of the event. Defaults to AlarmLevels.URGENT. Override as necessary, but note that users
      * can override within the instance.
      */
-    public int getDefaultAlarmLevel() {
+    public AlarmLevels getDefaultAlarmLevel() {
         return AlarmLevels.URGENT;
     }
 
     /**
      * This method provides an opportunity for the client code to return HTML code that will be used verbatim in the
      * events list snippet.
-     * 
+     *
      * @param ref1
      *            the first reference id of the event
      * @param ref2

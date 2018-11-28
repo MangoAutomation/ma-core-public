@@ -10,28 +10,28 @@ package com.serotonin.m2m2.rt.event;
  * @author Terry Packer
  */
 public class UserEventLevelSummary {
-    
-    private int alarmLevel;
+
+    private AlarmLevels alarmLevel;
     private int unsilencedCount;
     private EventInstance latest;
-    
+
     public UserEventLevelSummary() {
-        
+
     }
-    
-    public UserEventLevelSummary(int alarmLevel) {
+
+    public UserEventLevelSummary(AlarmLevels alarmLevel) {
         this.alarmLevel = alarmLevel;
     }
     /**
      * @return the alarmLevel
      */
-    public int getAlarmLevel() {
+    public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
     /**
      * @param alarmLevel the alarmLevel to set
      */
-    public void setAlarmLevel(int alarmLevel) {
+    public void setAlarmLevel(AlarmLevels alarmLevel) {
         this.alarmLevel = alarmLevel;
     }
     /**

@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -53,20 +54,20 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     public static final String XID_PREFIX = "PUB_";
 
     public interface PublishType{
-    	int ALL = 1;
-    	int CHANGES_ONLY = 2;
-    	int LOGGED_ONLY = 3;
-    	int NONE = 4;
+        int ALL = 1;
+        int CHANGES_ONLY = 2;
+        int LOGGED_ONLY = 3;
+        int NONE = 4;
     }
-    
+
     public static final ExportCodes PUBLISH_TYPE_CODES = new ExportCodes();
     static{
-    	PUBLISH_TYPE_CODES.addElement(PublishType.ALL, "ALL", "publisherEdit.publishType.all");	
-    	PUBLISH_TYPE_CODES.addElement(PublishType.CHANGES_ONLY, "CHANGES_ONLY", "publisherEdit.publishType.changesOnly");	
-    	PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "LOGGED_ONLY", "publisherEdit.publishType.loggedOnly");
-    	PUBLISH_TYPE_CODES.addElement(PublishType.NONE, "NONE", "publisherEdit.publishType.none");
+        PUBLISH_TYPE_CODES.addElement(PublishType.ALL, "ALL", "publisherEdit.publishType.all");
+        PUBLISH_TYPE_CODES.addElement(PublishType.CHANGES_ONLY, "CHANGES_ONLY", "publisherEdit.publishType.changesOnly");
+        PUBLISH_TYPE_CODES.addElement(PublishType.LOGGED_ONLY, "LOGGED_ONLY", "publisherEdit.publishType.loggedOnly");
+        PUBLISH_TYPE_CODES.addElement(PublishType.NONE, "NONE", "publisherEdit.publishType.none");
     }
-    
+
     /**
      * Return the Model Representation of the Publisher
      * @return
@@ -82,13 +83,13 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     public List<EventTypeVO> getEventTypes() {
         List<EventTypeVO> eventTypes = new ArrayList<>();
         eventTypes
-                .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.POINT_DISABLED_EVENT),
-                        new TranslatableMessage("event.pb.pointMissing"),
-                        getAlarmLevel(PublisherRT.POINT_DISABLED_EVENT, AlarmLevels.URGENT)));
+        .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.POINT_DISABLED_EVENT),
+                new TranslatableMessage("event.pb.pointMissing"),
+                getAlarmLevel(PublisherRT.POINT_DISABLED_EVENT, AlarmLevels.URGENT)));
         eventTypes
-                .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.QUEUE_SIZE_WARNING_EVENT),
-                        new TranslatableMessage("event.pb.queueSize"),
-                        getAlarmLevel(PublisherRT.QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT)));
+        .add(new EventTypeVO(new PublisherEventType(getId(), PublisherRT.QUEUE_SIZE_WARNING_EVENT),
+                new TranslatableMessage("event.pb.queueSize"),
+                getAlarmLevel(PublisherRT.QUEUE_SIZE_WARNING_EVENT, AlarmLevels.URGENT)));
 
         getEventTypesImpl(eventTypes);
 
@@ -105,8 +106,8 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     abstract public ExportCodes getEventCodes();
 
     private PublisherDefinition definition;
-    
-    private Map<Integer, Integer> alarmLevels = new HashMap<>();
+
+    private Map<Integer, AlarmLevels> alarmLevels = new HashMap<>();
 
     public TranslatableMessage getTypeDescription() {
         return new TranslatableMessage(getDefinition().getDescriptionKey());
@@ -134,17 +135,17 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         this.definition = definition;
     }
 
-    public void setAlarmLevel(int eventId, int level) {
+    public void setAlarmLevel(int eventId, AlarmLevels level) {
         alarmLevels.put(eventId, level);
     }
 
-    public int getAlarmLevel(int eventId, int defaultLevel) {
-        Integer level = alarmLevels.get(eventId);
+    public AlarmLevels getAlarmLevel(int eventId, AlarmLevels defaultLevel) {
+        AlarmLevels level = alarmLevels.get(eventId);
         if (level == null)
             return defaultLevel;
         return level;
     }
-    
+
     public List<T> getPoints() {
         return points;
     }
@@ -200,7 +201,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     public void setSnapshotSendPeriods(int snapshotSendPeriods) {
         this.snapshotSendPeriods = snapshotSendPeriods;
     }
-    
+
     public boolean isPublishAttributeChanges() {
         return publishAttributeChanges;
     }
@@ -208,6 +209,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         this.publishAttributeChanges = publish;
     }
 
+    @Override
     public void validate(ProcessResult response) {
         if (StringUtils.isBlank(name))
             response.addContextualMessage("name", "validate.required");
@@ -224,9 +226,9 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         if (sendSnapshot) {
             if (snapshotSendPeriods <= 0)
                 response.addContextualMessage("snapshotSendPeriods", "validate.greaterThanZero");
-            if(!Common.TIME_PERIOD_CODES.isValidId(snapshotSendPeriodType, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.DAYS, 
-            		Common.TimePeriods.WEEKS, Common.TimePeriods.MONTHS, Common.TimePeriods.YEARS))
-            	response.addContextualMessage("snapshotSendPeriodType", "validate.invalidValue");
+            if(!Common.TIME_PERIOD_CODES.isValidId(snapshotSendPeriodType, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.DAYS,
+                    Common.TimePeriods.WEEKS, Common.TimePeriods.MONTHS, Common.TimePeriods.YEARS))
+                response.addContextualMessage("snapshotSendPeriodType", "validate.invalidValue");
         }
 
         if (cacheWarningSize < 1)
@@ -237,12 +239,12 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
         Set<Integer> set = new HashSet<>();
         ListIterator<T> it = points.listIterator();
-        
+
         while(it.hasNext()) {
-        	T point = it.next();
+            T point = it.next();
             int pointId = point.getDataPointId();
             //Does this point even exist?
-            
+
             if (set.contains(pointId)) {
                 DataPointVO vo = DataPointDao.getInstance().getDataPoint(pointId, false);
                 response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
@@ -250,9 +252,9 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             else{
                 String dpXid = DataPointDao.getInstance().getXidById(pointId);
                 if(dpXid == null)
-                	it.remove();
+                    it.remove();
                 else
-                	set.add(pointId);
+                    set.add(pointId);
             }
         }
     }
@@ -274,7 +276,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 6;
+    private static final int version = 7;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -302,15 +304,15 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             points = (List<T>) in.readObject();
             //Changes Only
             if(in.readBoolean())
-            	this.publishType = PublishType.CHANGES_ONLY;
+                this.publishType = PublishType.CHANGES_ONLY;
             else
-            	this.publishType = PublishType.ALL;
+                this.publishType = PublishType.ALL;
             cacheWarningSize = in.readInt();
             cacheDiscardSize = cacheWarningSize * 3;
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
-            alarmLevels = new HashMap<Integer,Integer>();
+            alarmLevels = new HashMap<Integer,AlarmLevels>();
             publishAttributeChanges = false;
         }
         else if (ver == 2) {
@@ -319,29 +321,30 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             points = (List<T>) in.readObject();
             //Changes Only
             if(in.readBoolean())
-            	this.publishType = PublishType.CHANGES_ONLY;
+                this.publishType = PublishType.CHANGES_ONLY;
             else
-            	this.publishType = PublishType.ALL;
+                this.publishType = PublishType.ALL;
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
             sendSnapshot = in.readBoolean();
             snapshotSendPeriodType = in.readInt();
             snapshotSendPeriods = in.readInt();
-            alarmLevels = new HashMap<Integer,Integer>();
+            alarmLevels = new HashMap<Integer,AlarmLevels>();
             publishAttributeChanges = false;
         }else if(ver == 3){
-        	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
-        	for(Entry<Integer, Integer> item : alarmLevels.entrySet())
-            	if(item.getValue() >= 2) //Add warning and important
-            		item.setValue(item.getValue()+2);
+            HashMap<Integer, Integer> alarmLevelsInt = (HashMap<Integer, Integer>) in.readObject();
+            for(Entry<Integer, Integer> item : alarmLevelsInt.entrySet())
+                if(item.getValue() >= 2) //Add warning and important
+                    item.setValue(item.getValue()+2);
+            alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
             //Changes Only
             if(in.readBoolean())
-            	this.publishType = PublishType.CHANGES_ONLY;
+                this.publishType = PublishType.CHANGES_ONLY;
             else
-            	this.publishType = PublishType.ALL;
+                this.publishType = PublishType.ALL;
             cacheWarningSize = in.readInt();
             cacheDiscardSize = in.readInt();
             sendSnapshot = in.readBoolean();
@@ -349,10 +352,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             snapshotSendPeriods = in.readInt();
             publishAttributeChanges = false;
         }else if(ver == 4){
-        	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
-        	for(Entry<Integer, Integer> item : alarmLevels.entrySet())
-            	if(item.getValue() >= 2) //Add warning and important
-            		item.setValue(item.getValue()+2);
+            HashMap<Integer, Integer> alarmLevelsInt = (HashMap<Integer, Integer>) in.readObject();
+            for(Entry<Integer, Integer> item : alarmLevelsInt.entrySet())
+                if(item.getValue() >= 2) //Add warning and important
+                    item.setValue(item.getValue()+2);
+            alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
@@ -364,7 +368,8 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             snapshotSendPeriods = in.readInt();
             publishAttributeChanges = false;
         }else if(ver == 5){
-        	alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            HashMap<Integer, Integer> alarmLevelsInt = (HashMap<Integer, Integer>) in.readObject();
+            alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
@@ -376,7 +381,20 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
             snapshotSendPeriods = in.readInt();
             publishAttributeChanges = false;
         }else if(ver == 6){
-            alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            HashMap<Integer, Integer> alarmLevelsInt = (HashMap<Integer, Integer>) in.readObject();
+            alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
+            name = SerializationHelper.readSafeUTF(in);
+            enabled = in.readBoolean();
+            points = (List<T>) in.readObject();
+            publishType = in.readInt();
+            cacheWarningSize = in.readInt();
+            cacheDiscardSize = in.readInt();
+            sendSnapshot = in.readBoolean();
+            snapshotSendPeriodType = in.readInt();
+            snapshotSendPeriods = in.readInt();
+            publishAttributeChanges = in.readBoolean();
+        }else if(ver == 7){
+            alarmLevels = (HashMap<Integer, AlarmLevels>) in.readObject();
             name = SerializationHelper.readSafeUTF(in);
             enabled = in.readBoolean();
             points = (List<T>) in.readObject();
@@ -403,8 +421,8 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
             for (int i = 0; i < eventCodes.size(); i++) {
                 int eventId = eventCodes.getId(i);
-                int level = getAlarmLevel(eventId, AlarmLevels.URGENT);
-                alarmCodeLevels.put(eventCodes.getCode(eventId), AlarmLevels.CODES.getCode(level));
+                AlarmLevels level = getAlarmLevel(eventId, AlarmLevels.URGENT);
+                alarmCodeLevels.put(eventCodes.getCode(eventId), level.name());
             }
 
             writer.writeEntry("alarmLevels", alarmCodeLevels);
@@ -413,34 +431,34 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        
+
         //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
         if(jsonObject.getJsonString("name") != null)
             name = jsonObject.getString("name");
         if(jsonObject.getJsonBoolean("enabled") != null)
             enabled = jsonObject.getBoolean("enabled");
-        
+
         //Legacy conversion for publishType
         if(jsonObject.containsKey("publishType")) {
-        	String publishTypeCode = jsonObject.getString("publishType");
-        	int publishTypeId = PUBLISH_TYPE_CODES.getId(publishTypeCode);
-        	if(publishTypeId == -1)
-        		throw new TranslatableJsonException("emport.error.invalid", "publishType", 
-        			publishTypeCode, PUBLISH_TYPE_CODES.getCodeList());
-        	publishType = publishTypeId;
+            String publishTypeCode = jsonObject.getString("publishType");
+            int publishTypeId = PUBLISH_TYPE_CODES.getId(publishTypeCode);
+            if(publishTypeId == -1)
+                throw new TranslatableJsonException("emport.error.invalid", "publishType",
+                        publishTypeCode, PUBLISH_TYPE_CODES.getCodeList());
+            publishType = publishTypeId;
         }else if(jsonObject.containsKey("changesOnly")){
-        	boolean changesOnly = jsonObject.getBoolean("changesOnly");
-        	if(changesOnly){
-        		this.publishType = PublishType.CHANGES_ONLY;
-        	}else{
-        		this.publishType = PublishType.ALL;
-        	}
+            boolean changesOnly = jsonObject.getBoolean("changesOnly");
+            if(changesOnly){
+                this.publishType = PublishType.CHANGES_ONLY;
+            }else{
+                this.publishType = PublishType.ALL;
+            }
         }
-        
+
         //Could wrap the readInto with a try-catch in case one dataPointId entry is null,
         // however this would be a silent suppression of the issue, so we have elected not to.
         // infiniteautomation/ma-core-public#948
-    	JsonArray arr = jsonObject.getJsonArray("points");
+        JsonArray arr = jsonObject.getJsonArray("points");
         if (arr != null) {
             points.clear();
             for (JsonValue jv : arr) {
@@ -457,7 +475,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
                 throw new TranslatableJsonException("emport.error.invalid", "snapshotSendPeriodType", text,
                         Common.TIME_PERIOD_CODES.getCodeList());
         }
-        
+
         JsonObject alarmCodeLevels = jsonObject.getJsonObject("alarmLevels");
         if (alarmCodeLevels != null) {
             ExportCodes eventCodes = getEventCodes();
@@ -468,32 +486,32 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
                         throw new TranslatableJsonException("emport.error.eventCode", code, eventCodes.getCodeList());
 
                     text = alarmCodeLevels.getString(code);
-                    int level = AlarmLevels.CODES.getId(text);
-                    if (!AlarmLevels.CODES.isValidId(level))
+                    try {
+                        setAlarmLevel(eventId, AlarmLevels.fromName(text));
+                    } catch (IllegalArgumentException | NullPointerException e) {
                         throw new TranslatableJsonException("emport.error.alarmLevel", text, code,
-                                AlarmLevels.CODES.getCodeList());
-
-                    setAlarmLevel(eventId, level);
+                                Arrays.asList(AlarmLevels.values()));
+                    }
                 }
             }
         }
     }
-    
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
-	@Override
-	protected AbstractDao<PublisherVO<?>> getDao() {
-		return PublisherDao.getInstance();
-	}
 
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getTypeKey()
-	 */
-	@Override
-	public String getTypeKey() {
-		return "event.audit.publisher";
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+     */
+    @Override
+    protected AbstractDao<PublisherVO<?>> getDao() {
+        return PublisherDao.getInstance();
+    }
+
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.AbstractVO#getTypeKey()
+     */
+    @Override
+    public String getTypeKey() {
+        return "event.audit.publisher";
+    }
 }

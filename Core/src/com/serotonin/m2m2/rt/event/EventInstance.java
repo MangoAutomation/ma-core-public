@@ -54,7 +54,7 @@ public class EventInstance{
      *
      * @see AlarmLevels
      */
-    private final int alarmLevel;
+    private final AlarmLevels alarmLevel;
 
     /**
      * Configuration field. The message associated with the event.
@@ -88,7 +88,7 @@ public class EventInstance{
     // Contextual data from the source that raised the event.
     private final Map<String, Object> context;
 
-    public EventInstance(EventType eventType, long activeTimestamp, boolean rtnApplicable, int alarmLevel,
+    public EventInstance(EventType eventType, long activeTimestamp, boolean rtnApplicable, AlarmLevels alarmLevel,
             TranslatableMessage message, Map<String, Object> context) {
         this.eventType = eventType;
         this.activeTimestamp = activeTimestamp;
@@ -199,7 +199,7 @@ public class EventInstance{
         return activeTimestamp;
     }
 
-    public int getAlarmLevel() {
+    public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
 

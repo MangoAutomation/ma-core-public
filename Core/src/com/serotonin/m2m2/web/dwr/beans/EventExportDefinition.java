@@ -1,16 +1,18 @@
 package com.serotonin.m2m2.web.dwr.beans;
 
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+
 public class EventExportDefinition {
     private final int eventId;
     private final String eventType;
     private final String status;
-    private final int alarmLevel;
+    private final AlarmLevels alarmLevel;
     private final String[] keywords;
     private final long dateFrom;
     private final long dateTo;
     private final int userId;
 
-    public EventExportDefinition(int eventId, String eventType, String status, int alarmLevel, String[] keywords,
+    public EventExportDefinition(int eventId, String eventType, String status, AlarmLevels alarmLevel, String[] keywords,
             long dateFrom, long dateTo, int userId) {
         this.eventId = eventId;
         this.eventType = eventType;
@@ -34,7 +36,7 @@ public class EventExportDefinition {
         return status;
     }
 
-    public int getAlarmLevel() {
+    public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
 

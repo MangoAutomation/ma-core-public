@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
 
     private DataSourceDefinition definition;
 
-    private Map<Integer, Integer> alarmLevels = new HashMap<>();
+    private Map<Integer, AlarmLevels> alarmLevels = new HashMap<>();
 
     @JsonProperty
     private boolean purgeOverride = false;
@@ -97,12 +98,12 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         this.enabled = enabled;
     }
 
-    public void setAlarmLevel(int eventId, int level) {
+    public void setAlarmLevel(int eventId, AlarmLevels level) {
         alarmLevels.put(eventId, level);
     }
 
-    public int getAlarmLevel(int eventId, int defaultLevel) {
-        Integer level = alarmLevels.get(eventId);
+    public AlarmLevels getAlarmLevel(int eventId, AlarmLevels defaultLevel) {
+        AlarmLevels level = alarmLevels.get(eventId);
         if (level == null)
             return defaultLevel;
         return level;
@@ -140,14 +141,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         this.editPermission = editPermission;
     }
 
-    public EventTypeVO getEventType(int eventId) {
-        for (EventTypeVO vo : getEventTypes()) {
-            if (vo.getEventType().getReferenceId2() == eventId)
-                return vo;
-        }
-        return null;
-    }
-
     /**
      * Helper to get description on Page
      *
@@ -178,8 +171,8 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
      * @return
      */
     protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, DuplicateHandling duplicateHandling,
-            int defaultAlarmLevel) {
-        int alarmLevel = getAlarmLevel(dsSpecificEventTypeId, defaultAlarmLevel);
+            AlarmLevels defaultAlarmLevel) {
+        AlarmLevels alarmLevel = getAlarmLevel(dsSpecificEventTypeId, defaultAlarmLevel);
         return new EventTypeVO(
                 new DataSourceEventType(getId(), dsSpecificEventTypeId, alarmLevel, duplicateHandling),
                 message, alarmLevel);
@@ -193,7 +186,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
      * @return
      */
     protected EventTypeVO createPollAbortedEventType(int eventId) {
-        int alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
+        AlarmLevels alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
         return new EventTypeVO(
                 new DataSourceEventType(getId(), eventId, alarmLevel, DuplicateHandling.IGNORE),
                 new TranslatableMessage("event.ds.pollAborted"), alarmLevel);
@@ -265,7 +258,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -283,27 +276,37 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
             enabled = in.readBoolean();
-            alarmLevels = (HashMap<Integer, Integer>) in.readObject();
-            for(Entry<Integer, Integer> item : alarmLevels.entrySet())
+            HashMap<Integer, Integer> alarmLevelsInt = (HashMap<Integer, Integer>) in.readObject();
+            for(Entry<Integer, Integer> item : alarmLevelsInt.entrySet())
                 if(item.getValue() >= 2) //Add warning and important
                     item.setValue(item.getValue()+2);
+            alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             purgeOverride = false;
             purgeType = PurgeTypes.YEARS;
             purgePeriod = 1;
         }
         else if (ver == 2) {
             enabled = in.readBoolean();
-            alarmLevels = (HashMap<Integer, Integer>) in.readObject();
-            for(Entry<Integer, Integer> item : alarmLevels.entrySet())
+            HashMap<Integer, Integer> alarmLevelsInt = (HashMap<Integer, Integer>) in.readObject();
+            for(Entry<Integer, Integer> item : alarmLevelsInt.entrySet())
                 if(item.getValue() >= 2) //Add warning and important
                     item.setValue(item.getValue()+2);
+            alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
             purgeOverride = in.readBoolean();
             purgeType = in.readInt();
             purgePeriod = in.readInt();
         }
         else if (ver == 3) {
             enabled = in.readBoolean();
-            alarmLevels = (HashMap<Integer, Integer>) in.readObject();
+            HashMap<Integer, Integer> alarmLevelsInt = (HashMap<Integer, Integer>) in.readObject();
+            alarmLevels = AlarmLevels.convertMap(alarmLevelsInt);
+            purgeOverride = in.readBoolean();
+            purgeType = in.readInt();
+            purgePeriod = in.readInt();
+        }
+        else if (ver == 4) {
+            enabled = in.readBoolean();
+            alarmLevels = (HashMap<Integer, AlarmLevels>) in.readObject();
             purgeOverride = in.readBoolean();
             purgeType = in.readInt();
             purgePeriod = in.readInt();
@@ -311,7 +314,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         else {
             throw new ShouldNeverHappenException("Unknown serialization version.");
         }
-
     }
 
     @Override
@@ -327,8 +329,8 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
 
             for (int i = 0; i < eventCodes.size(); i++) {
                 int eventId = eventCodes.getId(i);
-                int level = getAlarmLevel(eventId, AlarmLevels.URGENT);
-                alarmCodeLevels.put(eventCodes.getCode(eventId), AlarmLevels.CODES.getCode(level));
+                AlarmLevels level = getAlarmLevel(eventId, AlarmLevels.URGENT);
+                alarmCodeLevels.put(eventCodes.getCode(eventId), level.name());
             }
 
             writer.writeEntry("alarmLevels", alarmCodeLevels);
@@ -358,12 +360,12 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
                         throw new TranslatableJsonException("emport.error.eventCode", code, eventCodes.getCodeList());
 
                     String text = alarmCodeLevels.getString(code);
-                    int level = AlarmLevels.CODES.getId(text);
-                    if (!AlarmLevels.CODES.isValidId(level))
+                    try {
+                        setAlarmLevel(eventId, AlarmLevels.fromName(text));
+                    } catch (IllegalArgumentException | NullPointerException e) {
                         throw new TranslatableJsonException("emport.error.alarmLevel", text, code,
-                                AlarmLevels.CODES.getCodeList());
-
-                    setAlarmLevel(eventId, level);
+                                Arrays.asList(AlarmLevels.values()));
+                    }
                 }
             }
         }

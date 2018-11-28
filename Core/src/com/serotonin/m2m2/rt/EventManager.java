@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
@@ -43,7 +44,7 @@ public interface EventManager extends ILifecycle{
      * @param message
      * @param context
      */
-    void raiseEvent(EventType type, long time, boolean rtnApplicable, int alarmLevel,
+    void raiseEvent(EventType type, long time, boolean rtnApplicable, AlarmLevels alarmLevel,
             TranslatableMessage message, Map<String, Object> context);
 
     void returnToNormal(EventType type, long time);
@@ -104,7 +105,7 @@ public interface EventManager extends ILifecycle{
      * @param typeName
      * @return
      */
-    int purgeEventsBefore(long time, int alarmLevel);
+    int purgeEventsBefore(long time, AlarmLevels alarmLevel);
 
     //
     //

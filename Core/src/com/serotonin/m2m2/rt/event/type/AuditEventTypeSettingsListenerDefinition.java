@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
 /**
@@ -20,7 +21,7 @@ public class AuditEventTypeSettingsListenerDefinition extends SystemSettingsList
     public void SystemSettingsSaved(String key, String oldValue, String newValue) {
         String[] parts = key.split(AuditEventType.AUDIT_SETTINGS_PREFIX);
         if (parts.length > 1) {
-            AuditEventType.updateAlarmLevel(parts[1], Integer.parseInt(newValue));
+            AuditEventType.updateAlarmLevel(parts[1], AlarmLevels.fromValue(Integer.parseInt(newValue)));
         }
     }
 

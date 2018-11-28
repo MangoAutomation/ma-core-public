@@ -83,7 +83,7 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.web.dwr.beans.DataPointBean;
 import com.serotonin.m2m2.web.dwr.beans.EventSourceBean;
-import com.serotonin.m2m2.web.dwr.beans.EventSourceBean.EventTypeVoHandlers;
+import com.serotonin.m2m2.web.dwr.beans.EventTypeVOHandlers;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
@@ -125,8 +125,7 @@ public class EventHandlersDwr extends BaseDwr {
 
                 for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
                     EventTypeVO dpet = ped.getEventType();
-                    EventTypeVoHandlers voh = new EventTypeVoHandlers(dpet.getEventType(), dpet.getDescription(), dpet.getAlarmLevel());
-                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dpet.getEventType()));
+                    EventTypeVOHandlers voh = new EventTypeVOHandlers(dpet, EventHandlerDao.getInstance().getEventHandlers(dpet.getEventType()));
                     source.getEventTypes().add(voh);
                 }
 
@@ -146,8 +145,7 @@ public class EventHandlersDwr extends BaseDwr {
                 source.setName(ds.getName());
 
                 for (EventTypeVO dset : ds.getEventTypes()) {
-                    EventTypeVoHandlers voh = new EventTypeVoHandlers(dset.getEventType(), dset.getDescription(), dset.getAlarmLevel());
-                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(dset.getEventType()));
+                    EventTypeVOHandlers voh = new EventTypeVOHandlers(dset, EventHandlerDao.getInstance().getEventHandlers(dset.getEventType()));
                     source.getEventTypes().add(voh);
                 }
 
@@ -160,10 +158,9 @@ public class EventHandlersDwr extends BaseDwr {
         for (EventTypeDefinition def : ModuleRegistry.getDefinitions(EventTypeDefinition.class)) {
             if (!def.getHandlersRequireAdmin()) {
                 List<EventTypeVO> vos = def.getEventTypeVOs();
-                List<EventTypeVoHandlers> voHandlers = new ArrayList<>();
+                List<EventTypeVOHandlers> voHandlers = new ArrayList<>();
                 for (EventTypeVO vo : vos) {
-                    EventTypeVoHandlers voh = new EventTypeVoHandlers(vo.getEventType(), vo.getDescription(), vo.getAlarmLevel());
-                    voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
+                    EventTypeVOHandlers voh = new EventTypeVOHandlers(vo, EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
                     voHandlers.add(voh);
                 }
                 Map<String, Object> info = new HashMap<>();
@@ -186,8 +183,7 @@ public class EventHandlersDwr extends BaseDwr {
                     source.setName(p.getName());
 
                     for (EventTypeVO pet : p.getEventTypes()) {
-                        EventTypeVoHandlers voh = new EventTypeVoHandlers(pet.getEventType(), pet.getDescription(), pet.getAlarmLevel());
-                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(pet.getEventType()));
+                        EventTypeVOHandlers voh = new EventTypeVOHandlers(pet, EventHandlerDao.getInstance().getEventHandlers(pet.getEventType()));
                         source.getEventTypes().add(voh);
                     }
 
@@ -197,19 +193,17 @@ public class EventHandlersDwr extends BaseDwr {
             model.put(SchemaDefinition.PUBLISHERS_TABLE, publishers);
 
             // Get the system events
-            List<EventTypeVoHandlers> systemEvents = new ArrayList<>();
+            List<EventTypeVOHandlers> systemEvents = new ArrayList<>();
             for (EventTypeVO sets : SystemEventType.getRegisteredEventTypes()) {
-                EventTypeVoHandlers voh = new EventTypeVoHandlers(sets.getEventType(), sets.getDescription(), sets.getAlarmLevel());
-                voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(sets.getEventType()));
+                EventTypeVOHandlers voh = new EventTypeVOHandlers(sets, EventHandlerDao.getInstance().getEventHandlers(sets.getEventType()));
                 systemEvents.add(voh);
             }
             model.put("systemEvents", systemEvents);
 
             // Get the audit events
-            List<EventTypeVoHandlers> auditEvents = new ArrayList<>();
+            List<EventTypeVOHandlers> auditEvents = new ArrayList<>();
             for (EventTypeVO aets : AuditEventType.getRegisteredEventTypes()) {
-                EventTypeVoHandlers voh = new EventTypeVoHandlers(aets.getEventType(), aets.getDescription(), aets.getAlarmLevel());
-                voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(aets.getEventType()));
+                EventTypeVOHandlers voh = new EventTypeVOHandlers(aets, EventHandlerDao.getInstance().getEventHandlers(aets.getEventType()));
                 auditEvents.add(voh);
             }
             model.put("auditEvents", auditEvents);
@@ -219,12 +213,10 @@ public class EventHandlersDwr extends BaseDwr {
             for (EventTypeDefinition def : ModuleRegistry.getDefinitions(EventTypeDefinition.class)) {
                 if (def.getHandlersRequireAdmin()) {
                     List<EventTypeVO> vos = def.getEventTypeVOs();
-                    List<EventTypeVoHandlers> vohs = new ArrayList<>();
+                    List<EventTypeVOHandlers> vohs = new ArrayList<>();
                     for (EventTypeVO vo : vos) {
-                        EventTypeVoHandlers voh = new EventTypeVoHandlers(vo.getEventType(), vo.getDescription(), vo.getAlarmLevel());
-                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
+                        EventTypeVOHandlers voh = new EventTypeVOHandlers(vo, EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
                         vohs.add(voh);
-                        voh.setHandlers(EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
                     }
 
                     Map<String, Object> info = new HashMap<>();

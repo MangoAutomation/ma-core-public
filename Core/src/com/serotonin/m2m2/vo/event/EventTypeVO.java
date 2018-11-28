@@ -5,14 +5,15 @@
 package com.serotonin.m2m2.vo.event;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.EventType;
 
 public class EventTypeVO {
-    private final EventType eventType;
-    private final TranslatableMessage description;
-    private final int alarmLevel;
+    protected final EventType eventType;
+    protected final TranslatableMessage description;
+    protected final AlarmLevels alarmLevel;
 
-    public EventTypeVO(EventType eventType, TranslatableMessage description, int alarmLevel) {
+    public EventTypeVO(EventType eventType, TranslatableMessage description, AlarmLevels alarmLevel) {
         this.eventType = eventType;
         this.description = description;
         this.alarmLevel = alarmLevel;
@@ -26,7 +27,44 @@ public class EventTypeVO {
         return description;
     }
 
-    public int getAlarmLevel() {
+    public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
+
+    /**
+     * Used in DWR and JSP only
+     * @return
+     */
+    @Deprecated
+    public String getType() {
+        return eventType.getEventType();
+    }
+
+    /**
+     * Used in DWR and JSP only
+     * @return
+     */
+    @Deprecated
+    public String getSubtype() {
+        return eventType.getEventSubtype();
+    }
+
+    /**
+     * Used in DWR and JSP only
+     * @return
+     */
+    @Deprecated
+    public int getTypeRef1() {
+        return eventType.getReferenceId1();
+    }
+
+    /**
+     * Used in DWR and JSP only
+     * @return
+     */
+    @Deprecated
+    public int getTypeRef2() {
+        return eventType.getReferenceId2();
+    }
+
 }

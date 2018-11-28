@@ -28,50 +28,50 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
 /**
- * Cache for events for each user, used to improve event access performance for logged in users at 
+ * Cache for events for each user, used to improve event access performance for logged in users at
  * the expense of memory use.
- * 
+ *
  * The events cache is a map of time stamps to a list of events since multiple events can exist
  * at the same times stamp.
- * 
+ *
  * Events in this list are:
- * 
+ *
  * 1.  Inserted for any user that has recently accessed their recent events
  * 2.  Removed when they are acknowledged by a user
  * 3.  Updated when they RTN or are Deactivated
- * 
- * 
+ *
+ *
  * If a user has not accessed their cache in timeToLive ms then the entry is cleaned up.
  * Stale entries are discarded every timeInterval.
- * 
+ *
  * @author Terry Packer
  *
  */
 public class UserEventCache extends TimeoutClient{
-	private final Log LOG = LogFactory.getLog(UserEventCache.class);
-	
-	private final static Comparator<Long> TIMESTAMP_DESC = new Comparator<Long>() {
+    private final Log LOG = LogFactory.getLog(UserEventCache.class);
+
+    private final static Comparator<Long> TIMESTAMP_DESC = new Comparator<Long>() {
         @Override
         public int compare(Long o1, Long o2) {
             return (int)(o2-o1);
         }
-        
+
     };
-	
+
     private long timeToLive;
     //List of events to Users in ActiveTs descending order, there can be > 1 event at any given time
     private ConcurrentMap<Long, List<MultiUserEvent>> cache;
     //Track users that have accessed the cache for a read
     private ConcurrentMap<Integer, Long> activeUsers;
     private TimerTask timerTask;
-    
+
     //Task management
     private boolean running;
     private Thread jobThread;
     private Object terminationLock;
-    
+
     /**
-     * 
+     *
      * @param timeToLive
      * @param timeInterval
      */
@@ -89,7 +89,7 @@ public class UserEventCache extends TimeoutClient{
         else
             return false;
     }
-    
+
     protected Set<Integer> pruneInactive(Set<Integer> userIds){
         Set<Integer> active = new HashSet<>(userIds.size());
         for(Integer id : userIds)
@@ -97,7 +97,7 @@ public class UserEventCache extends TimeoutClient{
                 active.add(id);
         return active;
     }
-    
+
 
     /**
      * Add an event for users if they are active
@@ -130,33 +130,33 @@ public class UserEventCache extends TimeoutClient{
             return v;
         });
     }
-    
+
 
     /**
      * Update an event with the new instance
      * @param userIds
      * @param value
      */
-	public void updateEvent(Set<Integer> userIds, EventInstance value) {
+    public void updateEvent(Set<Integer> userIds, EventInstance value) {
         Set<Integer> active = pruneInactive(userIds);
-	    this.cache.computeIfPresent(value.getActiveTimestamp(), (k,v) -> {
-	        MultiUserEvent event = null;
-	        for(MultiUserEvent e : v) {
-	            if(e.event.getId() == value.getId()) {
+        this.cache.computeIfPresent(value.getActiveTimestamp(), (k,v) -> {
+            MultiUserEvent event = null;
+            for(MultiUserEvent e : v) {
+                if(e.event.getId() == value.getId()) {
                     event = e;
                     break;
                 }
-	        }
-	        if(event != null)
-	            event.update(value, active);
-	        return v;
-	    });
-	}
+            }
+            if(event != null)
+                event.update(value, active);
+            return v;
+        });
+    }
 
-	/**
-	 * Remove an event from the cache
-	 * @param evt
-	 */
+    /**
+     * Remove an event from the cache
+     * @param evt
+     */
     public void removeEvent(EventInstance evt) {
         this.cache.computeIfPresent(evt.getActiveTimestamp(), (k,v)->{
             v.removeIf(mue -> mue.event.getId() == evt.getId());
@@ -168,7 +168,7 @@ public class UserEventCache extends TimeoutClient{
     }
 
     /**
-     * Get all events for a user, if no events exist in cache then an entry is created 
+     * Get all events for a user, if no events exist in cache then an entry is created
      * and filled with all unsilenced events from the database.
      * @param userId
      * @return
@@ -217,7 +217,7 @@ public class UserEventCache extends TimeoutClient{
             return view;
         }
     }
-    
+
     /**
      * Add a user to a cached event (when user un-silences an event)
      * @param userId
@@ -228,10 +228,10 @@ public class UserEventCache extends TimeoutClient{
         if(event != null)
             event.users.add(userId);
     }
-    
+
     /**
      * Remove a user from a cached event (when user silences an event),
-     *   if no users remain for this event it will eventually be removed by 
+     *   if no users remain for this event it will eventually be removed by
      *   the cleaner.
      * @param userId
      * @param eventId
@@ -241,7 +241,7 @@ public class UserEventCache extends TimeoutClient{
         if(event != null)
             event.users.remove(userId);
     }
-    
+
     /**
      * Find an event with this id in our cache
      * @param eventId
@@ -260,14 +260,14 @@ public class UserEventCache extends TimeoutClient{
             if(event != null)
                 break;
         }
-        
+
         return event;
     }
-    
+
     public Map<Long, List<MultiUserEvent>> getCache(){
         return cache;
     }
-    
+
     public int getEventCount() {
         MutableInt count = new MutableInt();
         cache.forEach((k,v) -> {
@@ -275,9 +275,9 @@ public class UserEventCache extends TimeoutClient{
         });
         return count.getValue();
     }
-    
+
     /**
-     * 
+     *
      * @param time
      */
     public void purgeEventsBefore(long time){
@@ -286,15 +286,15 @@ public class UserEventCache extends TimeoutClient{
                 cache.remove(k);
         });
     }
-    
-    public void purgeEventsBefore(long time, int alarmLevel){
+
+    public void purgeEventsBefore(long time, AlarmLevels alarmLevel){
         cache.forEach((k,v) -> {
             v.removeIf(e -> (e.event.getActiveTimestamp() < time) && (e.event.getAlarmLevel() == alarmLevel));
             if(v.size() == 0)
                 cache.remove(k);
         });
     }
-    
+
     public void purgeEventsBefore(long time, String typeName){
         cache.forEach((k,v) -> {
             v.removeIf(e -> (e.event.getActiveTimestamp() < time) && (e.event.getEventType().getEventType().equals(typeName)));
@@ -302,14 +302,14 @@ public class UserEventCache extends TimeoutClient{
                 cache.remove(k);
         });
     }
-    
-	/**
-	 * Clear Events for all users
-	 */
-	public void purgeAllEvents() {
+
+    /**
+     * Clear Events for all users
+     */
+    public void purgeAllEvents() {
         cache.clear();
-	}
-    
+    }
+
     // CLEANUP method
     public void cleanup() {
         if (!running)
@@ -317,10 +317,10 @@ public class UserEventCache extends TimeoutClient{
         long now = Common.timer.currentTimeMillis();
         Set<Integer> removeUserIds = new HashSet<>();
         activeUsers.forEach((k, v) -> {
-             if(now > (timeToLive + v)) {
-                 activeUsers.remove(k);
-                 removeUserIds.add(k);
-             }
+            if(now > (timeToLive + v)) {
+                activeUsers.remove(k);
+                removeUserIds.add(k);
+            }
         });
         //Remove from the cache
         cache.forEach((k,v) -> {
@@ -332,37 +332,37 @@ public class UserEventCache extends TimeoutClient{
             if(v.isEmpty())
                 cache.remove(k);
         });
-        
+
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#scheduleTimeout(long)
-	 */
-	@Override
-	public void scheduleTimeout(long fireTime) {
-		if (jobThread != null) {
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#scheduleTimeout(long)
+     */
+    @Override
+    public void scheduleTimeout(long fireTime) {
+        if (jobThread != null) {
             // There is another poll still running, so abort this one.
             LOG.warn("Cleanup at :"+ Functions.getFullSecondTime(fireTime)
-                    + " aborted because a previous Cleanup is still running");
+            + " aborted because a previous Cleanup is still running");
             return;
-		}
-		try{
-			jobThread = Thread.currentThread();
-			cleanup();
-		}catch(Exception e){
-			LOG.error(e.getMessage(), e);
-		}finally{
-			jobThread = null;
-		}
-	}
-	
-	public void terminate(){
+        }
+        try{
+            jobThread = Thread.currentThread();
+            cleanup();
+        }catch(Exception e){
+            LOG.error(e.getMessage(), e);
+        }finally{
+            jobThread = null;
+        }
+    }
+
+    public void terminate(){
         if (timerTask != null)
             timerTask.cancel();
         this.running = false;
-	}
-	
-	public void joinTermination(){
+    }
+
+    public void joinTermination(){
         if (jobThread == null)
             return;
 
@@ -389,28 +389,28 @@ public class UserEventCache extends TimeoutClient{
             }
         }
         LOG.info("UserEventCache cleaner task terminated.");
-	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
-	 */
-	@Override
-	public String getThreadName() {
-		return "User event cache cleaner";
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		return "UserEventCacheCleaner";
-	}
+    }
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
+     */
+    @Override
+    public String getThreadName() {
+        return "User event cache cleaner";
+    }
 
-	public class MultiUserEvent {
-	    
-	    private EventInstance event;
-	    private Set<Integer> users;
-	    
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
+     */
+    @Override
+    public String getTaskId() {
+        return "UserEventCacheCleaner";
+    }
+
+    public class MultiUserEvent {
+
+        private EventInstance event;
+        private Set<Integer> users;
+
         public MultiUserEvent(EventInstance event, Set<Integer> users) {
             this.event = event;
             this.users = ConcurrentHashMap.newKeySet();
@@ -418,28 +418,28 @@ public class UserEventCache extends TimeoutClient{
                 this.users.add(user);
         }
 
-	    public MultiUserEvent(EventInstance event, Integer userId) {
-	        this.event = event;
-	        this.users = ConcurrentHashMap.newKeySet();
-	        this.users.add(userId);
-	    }
-	    
-	    public void update(EventInstance event, Set<Integer> users) {
-	        this.event = event;
-	        this.users.addAll(users);
-	    }
-	    
-	    public boolean hasAccess(Integer userId) {
-	        return this.users.contains(userId);
-	    }
-	    public void addUser(Integer userId) {
-	        this.users.add(userId);
-	    }
-	    public void removeUser(Integer userId) {
-	        this.users.remove(userId);
-	    }
-	    public void removeUsers(Set<Integer> userIds) {
-	        this.users.removeAll(userIds);
-	    }
-	}
+        public MultiUserEvent(EventInstance event, Integer userId) {
+            this.event = event;
+            this.users = ConcurrentHashMap.newKeySet();
+            this.users.add(userId);
+        }
+
+        public void update(EventInstance event, Set<Integer> users) {
+            this.event = event;
+            this.users.addAll(users);
+        }
+
+        public boolean hasAccess(Integer userId) {
+            return this.users.contains(userId);
+        }
+        public void addUser(Integer userId) {
+            this.users.add(userId);
+        }
+        public void removeUser(Integer userId) {
+            this.users.remove(userId);
+        }
+        public void removeUsers(Set<Integer> userIds) {
+            this.users.removeAll(userIds);
+        }
+    }
 }

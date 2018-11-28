@@ -65,7 +65,7 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
      *
      * @see AlarmLevels
      */
-    private int alarmLevel;
+    private AlarmLevels alarmLevel;
 
     /**
      * Configuration field. The message associated with the event.
@@ -166,12 +166,12 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     }
 
 
-    public int getAlarmLevel() {
+    public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
 
 
-    public void setAlarmLevel(int alarmLevel) {
+    public void setAlarmLevel(AlarmLevels alarmLevel) {
         this.alarmLevel = alarmLevel;
     }
 

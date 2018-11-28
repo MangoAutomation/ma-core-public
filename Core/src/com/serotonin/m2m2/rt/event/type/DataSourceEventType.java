@@ -21,7 +21,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 public class DataSourceEventType extends EventType {
     private int dataSourceId;
     private int dataSourceEventTypeId;
-    private int alarmLevel;
+    private AlarmLevels alarmLevel;
     private DuplicateHandling duplicateHandling;
 
     public DataSourceEventType() {
@@ -32,7 +32,7 @@ public class DataSourceEventType extends EventType {
         this(dataSourceId, dataSourceEventTypeId, AlarmLevels.URGENT, DuplicateHandling.IGNORE);
     }
 
-    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, int alarmLevel, DuplicateHandling duplicateHandling) {
+    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, AlarmLevels alarmLevel, DuplicateHandling duplicateHandling) {
         this.dataSourceId = dataSourceId;
         this.dataSourceEventTypeId = dataSourceEventTypeId;
         this.alarmLevel = alarmLevel;
@@ -58,7 +58,7 @@ public class DataSourceEventType extends EventType {
         return dataSourceEventTypeId;
     }
 
-    public int getAlarmLevel() {
+    public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
 

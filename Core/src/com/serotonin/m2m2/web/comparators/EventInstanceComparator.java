@@ -32,10 +32,11 @@ public class EventInstanceComparator extends BaseComparator<EventInstance> {
         this.descending = descending;
     }
 
+    @Override
     public int compare(EventInstance e1, EventInstance e2) {
         int result = 0;
         if (sortType == SORT_ALARM_LEVEL)
-            result = e1.getAlarmLevel() - e2.getAlarmLevel();
+            result = e1.getAlarmLevel().value() - e2.getAlarmLevel().value();
         else if (sortType == SORT_ACTIVE_TIME) {
             long diff = e1.getActiveTimestamp() - e2.getActiveTimestamp();
             if (diff < 0)

@@ -9,6 +9,7 @@ import java.io.File;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -181,7 +182,7 @@ public class SystemSettingsDao extends BaseDao {
     // The path delimiter for flat paths
     public static final String EXPORT_HIERARCHY_PATH = "exportHierarchyPath";
     public static final String HIERARCHY_PATH_SEPARATOR = "hierarchyPathSeparator";
-    
+
     // Timeouts for http sessions
     public static final String HTTP_SESSION_TIMEOUT_PERIOD_TYPE = "httpSessionTimeoutPeriodType";
     public static final String HTTP_SESSION_TIMEOUT_PERIODS = "httpSessionTimeoutPeriods";
@@ -190,7 +191,7 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_EXPIRATION_ENABLED = "passwordExpirationEnabled";
     public static final String PASSWORD_EXPIRATION_PERIOD_TYPE = "passwordExpirationPeriodType";
     public static final String PASSWORD_EXPIRATION_PERIODS = "passwordExpirationPeriods";
-    
+
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
@@ -462,45 +463,45 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(BACKUP_ENABLED, true);
 
         // Add built-in system event type defaults
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.IGNORE);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, AlarmLevels.URGENT);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_PROCESS_FAILURE, AlarmLevels.URGENT);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_LICENSE_CHECK, AlarmLevels.URGENT);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_BACKUP_FAILURE, AlarmLevels.URGENT);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_UPGRADE_CHECK, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_REJECTED_WORK_ITEM, AlarmLevels.URGENT);
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MISSING_MODULE_DEPENDENCY, AlarmLevels.URGENT);
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.IGNORE.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, AlarmLevels.URGENT.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_PROCESS_FAILURE, AlarmLevels.URGENT.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_LICENSE_CHECK, AlarmLevels.URGENT.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_BACKUP_FAILURE, AlarmLevels.URGENT.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_UPGRADE_CHECK, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_REJECTED_WORK_ITEM, AlarmLevels.URGENT.value());
+        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MISSING_MODULE_DEPENDENCY, AlarmLevels.URGENT.value());
 
         // Add module system event type defaults
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
-            DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), def.getDefaultAlarmLevel());
+            DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), def.getDefaultAlarmLevel().value());
 
         // Add built-in audit event type defaults
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_HANDLER, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_TEMPLATE, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER_COMMENT, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_JSON_DATA, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, AlarmLevels.INFORMATION);
-        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION);
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_SOURCE, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_DATA_POINT, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_HANDLER, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_TEMPLATE, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER_COMMENT, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_USER, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_JSON_DATA, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_EVENT_DETECTOR, AlarmLevels.INFORMATION.value());
+        DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, AlarmLevels.INFORMATION.value());
 
         DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, Common.TimePeriods.HOURS);
         DEFAULT_VALUES.put(HTTP_SESSION_TIMEOUT_PERIODS, 48);
-        
+
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_ENABLED, false);
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIOD_TYPE, Common.TimePeriods.MONTHS);
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIODS, 6);
-        
-        
+
+
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
-            DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), AlarmLevels.INFORMATION);
+            DEFAULT_VALUES.put(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), AlarmLevels.INFORMATION.value());
         }
 
         //Module Defaults
@@ -864,7 +865,7 @@ public class SystemSettingsDao extends BaseDao {
         if(setting != null) {
             Permissions.validateAddedPermissions((String)setting, user, response, PERMISSION_DATASOURCE);
         }
-        
+
         //Check all permissions
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
             setting = settings.get(def.getPermissionTypeName());
@@ -872,7 +873,7 @@ public class SystemSettingsDao extends BaseDao {
                 Permissions.validateAddedPermissions((String)setting, user, response, def.getPermissionTypeName());
             }
         }
-                
+
         //Validate system alarm levels
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, settings, response);
         validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, settings, response);
@@ -901,14 +902,14 @@ public class SystemSettingsDao extends BaseDao {
         validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + AuditEventType.TYPE_PUBLISHER, settings, response);
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             validateAlarmLevel(AuditEventType.AUDIT_SETTINGS_PREFIX + def.getTypeName(), settings, response);
-        
+
         validatePeriodType(HTTP_SESSION_TIMEOUT_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS);
         Integer timeoutPeriods = getIntValue(HTTP_SESSION_TIMEOUT_PERIODS, settings);
         if(timeoutPeriods != null) {
             if(timeoutPeriods < 1)
                 response.addContextualMessage(HTTP_SESSION_TIMEOUT_PERIODS, "validate.invalidValue");
         }
-        
+
         validatePeriodType(PASSWORD_EXPIRATION_PERIOD_TYPE, settings, response, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.SECONDS);
         Integer passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);
         if(passwordExpirationPeriods != null && passwordExpirationPeriods < 1)
@@ -924,7 +925,7 @@ public class SystemSettingsDao extends BaseDao {
     private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response) {
         validatePeriodType(key, settings, response, null);
     }
-    
+
     private void validatePeriodType(String key, Map<String,Object> settings, ProcessResult response, int...excludeIds) {
         Object setting = settings.get(key);
         if(setting == null)
@@ -933,12 +934,12 @@ public class SystemSettingsDao extends BaseDao {
         if(setting instanceof Number){
             try{
                 int value = ((Number)setting).intValue();
-                
+
                 if(ArrayUtils.contains(excludeIds, value)) {
                     response.addContextualMessage(key, "validate.invalidValue");
                     return;
                 }
-                
+
                 switch(value){
                     case TimePeriods.DAYS:
                     case TimePeriods.HOURS:
@@ -963,37 +964,23 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
 
-    private void validateAlarmLevel(String key, Map<String,Object> settings, ProcessResult response) {
+    private void validateAlarmLevel(String key, Map<String, Object> settings, ProcessResult response) {
         Object setting = settings.get(key);
         if(setting == null)
             return;
 
-        if(setting instanceof Number) {
+        if (setting instanceof Number) {
             try {
-                int value = ((Number)setting).intValue();
-
-                switch(value) {
-                    case AlarmLevels.IGNORE:
-                    case AlarmLevels.DO_NOT_LOG:
-                    case AlarmLevels.NONE:
-                    case AlarmLevels.INFORMATION:
-                    case AlarmLevels.IMPORTANT:
-                    case AlarmLevels.WARNING:
-                    case AlarmLevels.URGENT:
-                    case AlarmLevels.CRITICAL:
-                    case AlarmLevels.LIFE_SAFETY:
-                        break;
-                    default:
-                        response.addContextualMessage(key, "validate.invalidValue");
-                }
-            } catch(NumberFormatException e){
+                AlarmLevels.fromValue(((Number) setting).intValue());
+            } catch (IllegalArgumentException | NullPointerException e) {
                 response.addContextualMessage(key, "validate.illegalValue");
             }
         } else {
-            //String code
-            if(AlarmLevels.CODES.getId((String)setting) == -1)
-                response.addContextualMessage( key, "emport.error.invalid", key, setting,
-                        AlarmLevels.CODES.getCodeList());
+            try {
+                AlarmLevels.fromName((String) setting);
+            } catch (IllegalArgumentException | NullPointerException e) {
+                response.addContextualMessage(key, "emport.error.invalid", key, setting, Arrays.asList(AlarmLevels.values()));
+            }
         }
     }
 
@@ -1045,7 +1032,7 @@ public class SystemSettingsDao extends BaseDao {
 
         //Is it an alarm level?
         if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
-            return AlarmLevels.CODES.getId(code);
+            return AlarmLevels.fromName(code).value();
 
         //Now try the SystemSettingsDefinitions
         Integer value = null;
@@ -1094,7 +1081,7 @@ public class SystemSettingsDao extends BaseDao {
 
         //Check if it's an alarm level setting...
         if(key != null && (key.startsWith(SystemEventType.SYSTEM_SETTINGS_PREFIX) || key.startsWith(AuditEventType.AUDIT_SETTINGS_PREFIX)))
-            return AlarmLevels.CODES.getCode(value);
+            return AlarmLevels.fromValue(value).name();
 
         //Now try the SystemSettingsDefinitions
         String code = null;

@@ -53,7 +53,7 @@
     function doSearch(page, date) {
         setDisabled("searchBtn", true);
         $set("searchMessage", "<fmt:message key="events.search.searching"/>");
-        EventsDwr.search($get("eventId"), $get("eventType"), $get("eventStatus"), $get("alarmLevel"),
+        EventsDwr.search($get("eventId"), $get("eventType"), $get("eventStatus"), $get("alarmLevel") || null,
                 $get("keywords"), $get("dateRangeType"), $get("relativeType"), $get("prevPeriodCount"), 
                 $get("prevPeriodType"), $get("pastPeriodCount"), $get("pastPeriodType"), $get("fromNone"), 
                 $get("fromYear"), $get("fromMonth"), $get("fromDay"), $get("fromHour"), $get("fromMinute"), 
@@ -140,7 +140,7 @@
     
     function exportEvents() {
         startImageFader($("exportEventsImg"));
-        EventsDwr.exportEvents($get("eventId"), $get("eventSourceType"), $get("eventStatus"), $get("alarmLevel"),
+        EventsDwr.exportEvents($get("eventId"), $get("eventSourceType"), $get("eventStatus"), $get("alarmLevel") || null,
                 $get("keywords"), $get("dateRangeType"), $get("relativeType"), $get("prevPeriodCount"), 
                 $get("prevPeriodType"), $get("pastPeriodCount"), $get("pastPeriodType"), $get("fromNone"), 
                 $get("fromYear"), $get("fromMonth"), $get("fromDay"), $get("fromHour"), $get("fromMinute"), 

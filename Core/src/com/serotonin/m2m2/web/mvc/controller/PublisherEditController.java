@@ -40,13 +40,13 @@ public class PublisherEditController extends ParameterizableViewController {
     public void setErrorViewName(String errorViewName) {
         this.errorViewName = errorViewName;
     }
-    
-	public PublisherEditController(){
-		super();
-		setViewName("/WEB-INF/jsp/publisherEdit.jsp");
-		setErrorViewName("/publishers.shtm");
-	}
-	
+
+    public PublisherEditController(){
+        super();
+        setViewName("/WEB-INF/jsp/publisherEdit.jsp");
+        setErrorViewName("/publishers.shtm");
+    }
+
 
     @Override
     protected ModelAndView handleRequestInternal(HttpServletRequest request, HttpServletResponse response)

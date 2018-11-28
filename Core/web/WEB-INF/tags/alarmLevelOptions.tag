@@ -9,14 +9,14 @@
 --%><%@attribute name="onchange" rtexprvalue="true" %><%--
 --%><%@attribute name="allOption" type="java.lang.Boolean" %><%--
 --%><sst:select id="${id}" name="${name}" value="${value}" onchange="${onchange}">
-  <c:if test="${allOption}"><sst:option value="-1"><fmt:message key="common.all"/></sst:option></c:if>
-  <sst:option value="<%= Integer.toString(AlarmLevels.NONE) %>"><fmt:message key="<%= AlarmLevels.NONE_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.INFORMATION) %>"><fmt:message key="<%= AlarmLevels.INFORMATION_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.IMPORTANT) %>"><fmt:message key="<%= AlarmLevels.IMPORTANT_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.WARNING) %>"><fmt:message key="<%= AlarmLevels.WARNING_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.URGENT) %>"><fmt:message key="<%= AlarmLevels.URGENT_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.CRITICAL) %>"><fmt:message key="<%= AlarmLevels.CRITICAL_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.LIFE_SAFETY) %>"><fmt:message key="<%= AlarmLevels.LIFE_SAFETY_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.DO_NOT_LOG) %>"><fmt:message key="<%= AlarmLevels.DO_NOT_LOG_DESCRIPTION %>"/></sst:option>
-  <sst:option value="<%= Integer.toString(AlarmLevels.IGNORE) %>"><fmt:message key="<%= AlarmLevels.IGNORE_DESCRIPTION %>"/></sst:option>
+  <c:if test="${allOption}"><sst:option value=""><fmt:message key="common.all"/></sst:option></c:if>
+  <sst:option value="<%= AlarmLevels.NONE.name() %>"><fmt:message key="<%= AlarmLevels.NONE.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.INFORMATION.name() %>"><fmt:message key="<%= AlarmLevels.INFORMATION.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.IMPORTANT.name() %>"><fmt:message key="<%= AlarmLevels.IMPORTANT.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.WARNING.name() %>"><fmt:message key="<%= AlarmLevels.WARNING.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.URGENT.name() %>"><fmt:message key="<%= AlarmLevels.URGENT.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.CRITICAL.name() %>"><fmt:message key="<%= AlarmLevels.CRITICAL.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.LIFE_SAFETY.name() %>"><fmt:message key="<%= AlarmLevels.LIFE_SAFETY.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.DO_NOT_LOG.name() %>"><fmt:message key="<%= AlarmLevels.DO_NOT_LOG.getDescription().getKey() %>"/></sst:option>
+  <sst:option value="<%= AlarmLevels.IGNORE.name() %>"><fmt:message key="<%= AlarmLevels.IGNORE.getDescription().getKey() %>"/></sst:option>
 </sst:select>

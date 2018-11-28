@@ -26,6 +26,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
@@ -39,7 +40,7 @@ import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
  */
 @Repository
 public class MailingListDao extends AbstractDao<MailingList> {
-	
+
     private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(MailingListDao.class);
         if(o == null)
@@ -47,11 +48,11 @@ public class MailingListDao extends AbstractDao<MailingList> {
         return (MailingListDao)o;
     });
 
-    
+
     private MailingListDao(){
         super(AuditEventType.TYPE_MAILING_LIST, "ml", new String[] {}, false, new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"));
-	}
-    
+    }
+
     public static MailingListDao getInstance() {
         return springInstance.get();
     }
@@ -61,10 +62,10 @@ public class MailingListDao extends AbstractDao<MailingList> {
      * @param alarmLevel
      * @return
      */
-    public List<MailingList> getAlarmMailingLists(int alarmLevel) {
+    public List<MailingList> getAlarmMailingLists(AlarmLevels alarmLevel) {
         return getTransactionTemplate().execute(status -> {
             List<MailingList> result = new ArrayList<>();
-            query(SELECT_ALL + " where receiveAlarmEmails>=0 and receiveAlarmEmails<=?", new Object[] {alarmLevel}, new MailingListRowMapper(), (list, index) -> {
+            query(SELECT_ALL + " where receiveAlarmEmails>=0 and receiveAlarmEmails<=?", new Object[] {alarmLevel.value()}, new MailingListRowMapper(), (list, index) -> {
                 try{
                     loadRelationalData(list);
                     result.add(list);
@@ -75,7 +76,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
             return result;
         });
     }
-    
+
     /**
      * Get addresses based on lists being inactive
      * @param beans
@@ -93,10 +94,10 @@ public class MailingListDao extends AbstractDao<MailingList> {
         return addresses;
     }
 
-    
+
     private static final String MAILING_LIST_INACTIVE_INSERT = "insert into mailingListInactive (mailingListId, inactiveInterval) values (?,?)";
     private static final String MAILING_LIST_ENTRY_INSERT = "insert into mailingListMembers (mailingListId, typeId, userId, address) values (?,?,?,?)";
-    
+
     @Override
     public void saveRelationalData(MailingList ml, boolean insert) {
 
@@ -107,10 +108,12 @@ public class MailingListDao extends AbstractDao<MailingList> {
         // Save what is in the mailing list object.
         final List<Integer> intervalIds = new ArrayList<Integer>(ml.getInactiveIntervals());
         ejt.batchUpdate(MAILING_LIST_INACTIVE_INSERT, new BatchPreparedStatementSetter() {
+            @Override
             public int getBatchSize() {
                 return intervalIds.size();
             }
 
+            @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 ps.setInt(1, ml.getId());
                 ps.setInt(2, intervalIds.get(i));
@@ -124,10 +127,12 @@ public class MailingListDao extends AbstractDao<MailingList> {
         // Save what is in the mailing list object.
         final List<EmailRecipient> entries = ml.getEntries();
         ejt.batchUpdate(MAILING_LIST_ENTRY_INSERT, new BatchPreparedStatementSetter() {
+            @Override
             public int getBatchSize() {
                 return entries.size();
             }
 
+            @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 EmailRecipient e = entries.get(i);
                 ps.setInt(1, ml.getId());
@@ -153,7 +158,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
         // Update the user type entries with their respective user objects.
         populateEntrySubclasses(ml.getEntries());
     }
-    
+
     public void populateEntrySubclasses(List<EmailRecipient> entries) {
         // Update the user type entries with their respective user objects.
         UserDao userDao = UserDao.getInstance();
@@ -187,9 +192,9 @@ public class MailingListDao extends AbstractDao<MailingList> {
         return new Object[] {
                 vo.getXid(),
                 vo.getName(),
-                vo.getReceiveAlarmEmails(),
+                vo.getReceiveAlarmEmails().value(),
                 vo.getReadPermissions() == null ? null : Permissions.implodePermissionGroups(vo.getReadPermissions()),
-                vo.getEditPermissions() == null ? null : Permissions.implodePermissionGroups(vo.getEditPermissions())
+                        vo.getEditPermissions() == null ? null : Permissions.implodePermissionGroups(vo.getEditPermissions())
         };
     }
 
@@ -215,63 +220,66 @@ public class MailingListDao extends AbstractDao<MailingList> {
     public RowMapper<MailingList> getRowMapper() {
         return new MailingListRowMapper();
     }
-    
+
     class MailingListRowMapper implements RowMapper<MailingList> {
+        @Override
         public MailingList mapRow(ResultSet rs, int rowNum) throws SQLException {
             MailingList ml = new MailingList();
             int i = 0;
             ml.setId(rs.getInt(++i));
             ml.setXid(rs.getString(++i));
             ml.setName(rs.getString(++i));
-            ml.setReceiveAlarmEmails(rs.getInt(++i));
+            ml.setReceiveAlarmEmails(AlarmLevels.fromValue(rs.getInt(++i)));
             ml.setReadPermissions(Permissions.explodePermissionGroups(rs.getString(++i)));
             ml.setEditPermissions(Permissions.explodePermissionGroups(rs.getString(++i)));
             return ml;
         }
     }
-    
+
     class EmailRecipientRowMapper implements RowMapper<EmailRecipient> {
+        @Override
         public EmailRecipient mapRow(ResultSet rs, int rowNum) throws SQLException {
             int type = rs.getInt(1);
             switch (type) {
-            case EmailRecipient.TYPE_MAILING_LIST:
-                MailingList ml = new MailingList();
-                ml.setId(rs.getInt(2));
-                ml.setName(rs.getString(4));
-                return ml;
-            case EmailRecipient.TYPE_USER:
-                UserEntry ue = new UserEntry();
-                ue.setUserId(rs.getInt(2));
-                return ue;
-            case EmailRecipient.TYPE_ADDRESS:
-                AddressEntry ae = new AddressEntry();
-                ae.setAddress(rs.getString(3));
-                return ae;
+                case EmailRecipient.TYPE_MAILING_LIST:
+                    MailingList ml = new MailingList();
+                    ml.setId(rs.getInt(2));
+                    ml.setName(rs.getString(4));
+                    return ml;
+                case EmailRecipient.TYPE_USER:
+                    UserEntry ue = new UserEntry();
+                    ue.setUserId(rs.getInt(2));
+                    return ue;
+                case EmailRecipient.TYPE_ADDRESS:
+                    AddressEntry ae = new AddressEntry();
+                    ae.setAddress(rs.getString(3));
+                    return ae;
             }
             throw new ShouldNeverHappenException("Unknown mailing list entry type: " + type);
         }
     }
-    
+
     class MailingListScheduleInactiveMapper implements RowMapper<Integer> {
+        @Override
         public Integer mapRow(ResultSet rs, int rowNum) throws SQLException {
             return rs.getInt(1);
         }
     }
-    
+
     /*
-     * 
+     *
      * BELOW HERE TO BE REMOVED
-     * 
-     * 
+     *
+     *
     public Set<String> generateRecipientAddresses(List<EmailRecipient> entries, DateTime sendTime) {
-        
+
         populateEntrySubclasses(entries);
         Set<String> addresses = new HashSet<String>();
         for (EmailRecipient entry : entries)
             entry.appendAddresses(addresses, sendTime);
         return addresses;
     }
-         */
+     */
 
 
 }

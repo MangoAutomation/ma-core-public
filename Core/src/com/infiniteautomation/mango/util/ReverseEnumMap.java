@@ -11,17 +11,25 @@ import java.util.Objects;
  * @author Jared Wiltshire
  */
 public class ReverseEnumMap<V, E extends Enum<E> & ReverseEnum<V>> {
-    private final Map<V, E> map = new HashMap<V, E>();
+    private final Map<V, E> map;
 
     public ReverseEnumMap(Class<E> enumType) {
-        for (E enumConstant : enumType.getEnumConstants()) {
-            map.put(enumConstant.value(), enumConstant);
+        E[] constants = enumType.getEnumConstants();
+        this.map = new HashMap<V, E>(constants.length, 1);
+        for (E enumConstant : constants) {
+            this.map.put(enumConstant.value(), enumConstant);
         }
     }
 
     public E get(V value) {
-        E enumConstant = map.get(value);
-        Objects.requireNonNull(enumConstant, "Invalid enum value");
+        E enumConstant = this.map.get(Objects.requireNonNull(value));
+        if (enumConstant == null) {
+            throw new IllegalArgumentException("Invalid enum value");
+        }
         return enumConstant;
+    }
+
+    public E getNullable(V value) {
+        return this.map.get(Objects.requireNonNull(value));
     }
 }

@@ -10,6 +10,7 @@ import java.util.Map;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.EventManager;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
@@ -35,7 +36,7 @@ public class MockEventManager implements EventManager{
      * @see com.serotonin.m2m2.rt.EventManager#raiseEvent(com.serotonin.m2m2.rt.event.type.EventType, long, boolean, int, com.serotonin.m2m2.i18n.TranslatableMessage, java.util.Map)
      */
     @Override
-    public void raiseEvent(EventType type, long time, boolean rtnApplicable, int alarmLevel,
+    public void raiseEvent(EventType type, long time, boolean rtnApplicable, AlarmLevels alarmLevel,
             TranslatableMessage message, Map<String, Object> context) {
 
 
@@ -109,11 +110,8 @@ public class MockEventManager implements EventManager{
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeEventsBefore(long, int)
-     */
     @Override
-    public int purgeEventsBefore(long time, int alarmLevel) {
+    public int purgeEventsBefore(long time, AlarmLevels alarmLevel) {
 
         return 0;
     }

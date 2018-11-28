@@ -54,7 +54,7 @@ public class MailingListsDwr extends BaseDwr {
     }
 
     @DwrPermission(admin = true)
-    public ProcessResult saveMailingList(int id, String xid, String name, int receiveAlarmEmails, List<RecipientListEntryBean> entryBeans,
+    public ProcessResult saveMailingList(int id, String xid, String name, AlarmLevels receiveAlarmEmails, List<RecipientListEntryBean> entryBeans,
             List<Integer> inactiveIntervals) {
         ProcessResult response = new ProcessResult();
         MailingListDao mailingListDao = MailingListDao.getInstance();
@@ -75,9 +75,6 @@ public class MailingListsDwr extends BaseDwr {
             mailingListDao.saveFull(ml);
             response.addData("mlId", ml.getId());
         }
-        
-        if(!AlarmLevels.CODES.isValidId(receiveAlarmEmails))
-        	response.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
 
         return response;
     }
@@ -119,7 +116,7 @@ public class MailingListsDwr extends BaseDwr {
     // / Private helper methods
     // /
     //
-    private MailingList createMailingList(int id, String xid, String name, int receiveAlarmEmails, List<RecipientListEntryBean> entryBeans) {
+    private MailingList createMailingList(int id, String xid, String name, AlarmLevels receiveAlarmEmails, List<RecipientListEntryBean> entryBeans) {
         // Convert the incoming information into more useful types.
         MailingList ml = new MailingList();
         ml.setId(id);

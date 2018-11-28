@@ -35,6 +35,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
@@ -107,7 +108,7 @@ public class UserDao extends AbstractDao<User> {
             user.setDisabled(charToBool(rs.getString(++i)));
             user.setHomeUrl(rs.getString(++i));
             user.setLastLogin(rs.getLong(++i));
-            user.setReceiveAlarmEmails(rs.getInt(++i));
+            user.setReceiveAlarmEmails(AlarmLevels.fromValue(rs.getInt(++i)));
             user.setReceiveOwnAuditEvents(charToBool(rs.getString(++i)));
             user.setTimezone(rs.getString(++i));
             user.setMuted(charToBool(rs.getString(++i)));
@@ -153,7 +154,7 @@ public class UserDao extends AbstractDao<User> {
                         USER_INSERT,
                         new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                                 boolToChar(user.isDisabled()), user.getHomeUrl(),
-                                user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
+                                user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                                 boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
                                 user.getPasswordVersion(), Common.timer.currentTimeMillis()},
                         new int[] { Types.VARCHAR, Types.VARCHAR,
@@ -213,7 +214,7 @@ public class UserDao extends AbstractDao<User> {
                             USER_UPDATE,
                             new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                                     boolToChar(user.isDisabled()), user.getHomeUrl(),
-                                    user.getReceiveAlarmEmails(), boolToChar(user.isReceiveOwnAuditEvents()),
+                                    user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()),
                                     user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
                                     user.getPasswordVersion(), user.getPasswordChangeTimestamp(), user.getId() },
                             new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
@@ -404,7 +405,7 @@ public class UserDao extends AbstractDao<User> {
                 vo.isDisabled(),
                 vo.getHomeUrl(),
                 vo.getLastLogin(),
-                vo.getReceiveAlarmEmails(),
+                vo.getReceiveAlarmEmails().value(),
                 vo.isReceiveOwnAuditEvents(),
                 vo.getTimezone(),
                 vo.isMuted(),

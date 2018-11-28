@@ -689,46 +689,46 @@ function getMangoId(node) {
 }
 
 function setAlarmLevelImg(alarmLevel, imgNode) {
-    if (alarmLevel == 0)
+    if (alarmLevel == 'NONE')
         updateImg(imgNode, "/images/flag_grey.png", mango.i18n["common.alarmLevel.none"], true);
-    else if (alarmLevel == 1)
+    else if (alarmLevel == 'INFORMATION')
         updateImg(imgNode, "/images/flag_blue.png", mango.i18n["common.alarmLevel.info"], true);
-    else if (alarmLevel == 2)
+    else if (alarmLevel == 'IMPORTANT')
         updateImg(imgNode, "/images/flag_aqua.png", mango.i18n["common.alarmLevel.important"], true);
-    else if (alarmLevel == 3)
+    else if (alarmLevel == 'WARNING')
         updateImg(imgNode, "/images/flag_green.png", mango.i18n["common.alarmLevel.warning"], true);
-    else if (alarmLevel == 4)
+    else if (alarmLevel == 'URGENT')
         updateImg(imgNode, "/images/flag_yellow.png", mango.i18n["common.alarmLevel.urgent"], true);
-    else if (alarmLevel == 5)
+    else if (alarmLevel == 'CRITICAL')
         updateImg(imgNode, "/images/flag_orange.png", mango.i18n["common.alarmLevel.critical"], true);
-    else if (alarmLevel == 6)
+    else if (alarmLevel == 'LIFE_SAFETY')
         updateImg(imgNode, "/images/flag_red.png", mango.i18n["common.alarmLevel.lifeSafety"], true);
-    else if(alarmLevel == -2)
+    else if(alarmLevel == 'DO_NOT_LOG')
     	updateImg(imgNode, "/images/cancel.png", mango.i18n["common.alarmLevel.doNotLog"], true);
-    else if(alarmLevel == -3)
+    else if(alarmLevel == 'IGNORE')
     	updateImg(imgNode, "/images/cross.png", mango.i18n["common.alarmLevel.ignore"], true);
     else
         updateImg(imgNode, "(unknown)", "(unknown)", true);
 }
 
 function setAlarmLevelText(alarmLevel, textNode) {
-    if (alarmLevel == 0)
+    if (alarmLevel == 'NONE')
         textNode.innerHTML = mango.i18n["common.alarmLevel.none"];
-    else if (alarmLevel == 1)
+    else if (alarmLevel == 'INFORMATION')
         textNode.innerHTML = mango.i18n["common.alarmLevel.info"];
-    else if (alarmLevel == 2)
+    else if (alarmLevel == 'IMPORTANT')
         textNode.innerHTML = mango.i18n["common.alarmLevel.important"];
-    else if (alarmLevel == 3)
+    else if (alarmLevel == 'WARNING')
         textNode.innerHTML = mango.i18n["common.alarmLevel.warning"];
-    else if (alarmLevel == 4)
+    else if (alarmLevel == 'URGENT')
         textNode.innerHTML = mango.i18n["common.alarmLevel.urgent"];
-    else if (alarmLevel == 5)
+    else if (alarmLevel == 'CRITICAL')
         textNode.innerHTML = mango.i18n["common.alarmLevel.critical"];
-    else if (alarmLevel == 6)
+    else if (alarmLevel == 'LIFE_SAFETY')
         textNode.innerHTML = mango.i18n["common.alarmLevel.lifeSafety"];
-    else if (alarmLevel == -2)
+    else if (alarmLevel == 'DO_NOT_LOG')
     	textNode.innerHTML = mango.i18n["common.alarmLevel.doNotLog"];
-    else if (alarmLevel == -3)
+    else if (alarmLevel == 'IGNORE')
     	textNode.innerHTML = mango.i18n["common.alarmLevel.ignore"];
     else
         textNode.innerHTML = "Unknown alarm level: "+ alarmLevel;

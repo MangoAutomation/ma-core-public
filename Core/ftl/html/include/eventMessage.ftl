@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 -->
-<#if evt.alarmLevel gt 0>
+<#if evt.alarmLevel.value() gt 0>
   <tr>
     <td valign="top"><img src="cid:<@img src="exclamation.png"/>" alt="<@fmt key="ftl.note"/>" title="<@fmt key="ftl.note"/>"/></td>
     <td colspan="2">

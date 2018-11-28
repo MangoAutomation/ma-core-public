@@ -87,7 +87,8 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private String homeUrl;
     private long lastLogin;
     //Receive emails for alarm levels >= this
-    private int receiveAlarmEmails = AlarmLevels.IGNORE;
+    @JsonProperty
+    private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
     @JsonProperty
     private boolean receiveOwnAuditEvents;
     @JsonProperty
@@ -422,11 +423,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.muted = muted;
     }
 
-    public int getReceiveAlarmEmails() {
+    public AlarmLevels getReceiveAlarmEmails() {
         return receiveAlarmEmails;
     }
 
-    public void setReceiveAlarmEmails(int receiveAlarmEmails) {
+    public void setReceiveAlarmEmails(AlarmLevels receiveAlarmEmails) {
         this.receiveAlarmEmails = receiveAlarmEmails;
     }
 
@@ -654,31 +655,19 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
-     */
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException,
     JsonException {
         writer.writeEntry("name", name);
-        writer.writeEntry("receiveAlarmEmails", AlarmLevels.CODES.getCode(receiveAlarmEmails));
         writer.writeEntry("permissions", permissions);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
-     */
     @Override
-    public void jsonRead(JsonReader reader, JsonObject jsonObject)
-            throws JsonException {
+    public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         name = jsonObject.getString("name");
         if(name == null)
             name = username;
-        String text = jsonObject.getString("receiveAlarmEmails");
-        if(text != null){
-            receiveAlarmEmails = AlarmLevels.CODES.getId(text);
-        }
-        text = jsonObject.getString("permissions");
+        String text = jsonObject.getString("permissions");
         if(text != null)
             setPermissions(text);
     }
@@ -831,4 +820,5 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public boolean isPermissionHolderDisabled() {
         return this.disabled;
     }
+
 }

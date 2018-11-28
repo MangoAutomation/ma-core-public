@@ -27,6 +27,7 @@ import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
@@ -320,7 +321,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             event.setEventType(type);
             event.setActiveTimestamp(rs.getLong(6));
             event.setRtnApplicable(charToBool(rs.getString(7)));
-            event.setAlarmLevel(rs.getInt(10));
+            event.setAlarmLevel(AlarmLevels.fromValue(rs.getInt(10)));
             TranslatableMessage message = BaseDao.readTranslatableMessage(rs, 11);
             if(message == null)
                 event.setMessage(new TranslatableMessage("common.noMessage"));
@@ -332,7 +333,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             if (!rs.wasNull()){
                 //if(event.isActive()){ Probably don't need this
                 event.setRtnTimestamp(rtnTs);
-                event.setRtnCause(ReturnCause.enumFor(rs.getInt(9)));
+                event.setRtnCause(ReturnCause.fromValue(rs.getInt(9)));
                 //}
                 if(event.isRtnApplicable()){
                     event.setTotalTime(rtnTs - event.getActiveTimestamp());
@@ -402,9 +403,9 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @param level
      * @return
      */
-    public EventInstanceVO getHighestUnsilencedEvent(int userId, int level) {
+    public EventInstanceVO getHighestUnsilencedEvent(int userId, AlarmLevels level) {
         return ejt.queryForObject(SELECT_ALL
-                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level },getRowMapper(), null);
+                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level.value() },getRowMapper(), null);
     }
 
     /**
@@ -453,8 +454,8 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @param lifeSafety
      * @return
      */
-    public int countUnsilencedEvents(int userId, int level) {
+    public int countUnsilencedEvents(int userId, AlarmLevels level) {
         //return ejt.queryForInt("SELECT COUNT(*) FROM events AS evt left join userEvents ue on evt.id=ue.eventId where ue.silenced=? and evt.ackUserId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
-        return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
+        return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level.value() }, 0);
     }
 }

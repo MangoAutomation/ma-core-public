@@ -317,5 +317,9 @@
     <convert converter="bean" match="com.serotonin.m2m2.rt.console.LogEvent" />
     <convert converter="bean" match="com.serotonin.m2m2.rt.script.ScriptContextVariable" />
     
+    <convert converter="enum" match="com.serotonin.m2m2.rt.event.AlarmLevels"/>
+    <convert converter="enum" match="com.serotonin.m2m2.rt.event.ReturnCause"/>
+    <convert converter="enum" match="com.serotonin.m2m2.rt.event.type.DuplicateHandling"/>
+
   </allow>
 </dwr>
