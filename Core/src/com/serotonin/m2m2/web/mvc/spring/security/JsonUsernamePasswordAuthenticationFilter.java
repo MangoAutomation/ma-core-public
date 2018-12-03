@@ -39,9 +39,8 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
 
     private ObjectMapper mapper;
 
-    //TODO Mango 3.6 this should use the REST_OBJECT_MAPPER but cannot as it is initalized before the Rest context
     @Autowired
-    protected JsonUsernamePasswordAuthenticationFilter(@Qualifier(MangoRuntimeContextConfiguration.COMMON_OBJECT_MAPPER_NAME) ObjectMapper mapper) {
+    protected JsonUsernamePasswordAuthenticationFilter(@Qualifier(MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME) ObjectMapper mapper) {
         super(new AntPathRequestMatcher("/rest/*/login", "POST"));
         this.mapper = mapper;
     }
