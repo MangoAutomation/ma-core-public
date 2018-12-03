@@ -12,7 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.stereotype.Component;
 
-import com.serotonin.ShouldNeverHappenException;
+import com.infiniteautomation.mango.rest.v2.exception.ServerErrorException;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 
 /**
@@ -45,7 +46,7 @@ public class RestModelMapper {
             }
         }
 
-        throw new ShouldNeverHappenException("No model mapping for " + from.getClass() + " to " + model);
+        throw new ServerErrorException(new TranslatableMessage("rest.missingModelMapping", from.getClass(), model));
     }
 
     public <T> MappingJacksonValue mapWithView(Object from, Class<T> model, User user) {
@@ -64,6 +65,6 @@ public class RestModelMapper {
             }
         }
 
-        throw new ShouldNeverHappenException("No model mapping for " + from.getClass() + " to " + model);
+        throw new ServerErrorException(new TranslatableMessage("rest.missingModelMapping", from.getClass(), model));
     }
 }
