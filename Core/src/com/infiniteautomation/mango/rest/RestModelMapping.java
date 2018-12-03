@@ -3,33 +3,49 @@
  */
 package com.infiniteautomation.mango.rest;
 
+import com.serotonin.m2m2.vo.User;
+
 /**
- * Mapping to deliver support for converting between classes 
- * when tranporting payloads in/out of the REST api
- * 
- * @author Terry Packer
+ * Mapping to deliver support for converting between classes
+ * when transporting payloads in/out of the REST API
  *
+ * @author Terry Packer
  */
-public interface RestModelMapping <FROM, TO> {
-    
+public interface RestModelMapping<F, T> {
+
+    public Class<? extends F> fromClass();
+    public Class<? extends T> toClass();
+
     /**
-     * Map the Object 
-     * @param o
-     * @return
+     * Checks if the mapping supports mapping the object to the desired model class.
+     *
+     * @param from
+     * @param toClass
+     * @return true if the mapping supports mapping the object to the desired model class
      */
-    public TO map(Object o);
-    
-    public Class<TO> toClass();
-    public Class<FROM> fromClass();
-    
-    /**
-     * @param o
-     * @param model
-     * @return
-     */
-    public default boolean supportsFrom(Object from, Class<?> toClass) {
-        if(from == null)
-            return false;
-        return (from.getClass() == fromClass() && toClass == toClass());
+    public default boolean supports(Object from, Class<?> toClass) {
+        return this.fromClass().isAssignableFrom(from.getClass()) &&
+                toClass.isAssignableFrom(this.toClass());
     }
+
+    /**
+     * Performs the mapping of the object to the desired model class. If null is returned other mappings will be tried in order.
+     *
+     * @param from
+     * @param user
+     * @return The model object or null
+     */
+    public T map(Object from, User user);
+
+    /**
+     * Returns the view to use when serializing the mapped object
+     *
+     * @param from
+     * @param user
+     * @return
+     */
+    public default Class<?> view(Object from, User user) {
+        return null;
+    }
+
 }
