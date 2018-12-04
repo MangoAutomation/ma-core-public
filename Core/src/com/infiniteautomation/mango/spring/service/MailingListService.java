@@ -19,7 +19,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *
  */
 @Service
-public class MailingListService extends AbstractVOService<MailingList> {
+public class MailingListService extends AbstractVOService<MailingList, MailingListDao> {
     
     public MailingListService(@Autowired MailingListDao dao) {
         super(dao);

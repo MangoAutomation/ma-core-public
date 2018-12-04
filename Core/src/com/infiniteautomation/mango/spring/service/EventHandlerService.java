@@ -6,7 +6,7 @@ package com.infiniteautomation.mango.spring.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -17,10 +17,10 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Service
-public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO<?>> {
+public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO<?>, EventHandlerDao> {
 
     @Autowired
-    public EventHandlerService(AbstractDao<AbstractEventHandlerVO<?>> dao) {
+    public EventHandlerService(EventHandlerDao dao) {
         super(dao);
     }
 

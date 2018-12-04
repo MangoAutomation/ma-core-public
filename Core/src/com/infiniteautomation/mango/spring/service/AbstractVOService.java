@@ -25,12 +25,20 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOService<T extends AbstractVO<?>> {
+public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractDao<T>> {
     
-    protected final AbstractDao<T> dao;
+    protected final DAO dao;
     
-    public AbstractVOService(AbstractDao<T> dao) {
+    public AbstractVOService(DAO dao) {
         this.dao = dao;
+    }
+    
+    /**
+     * Get the DAO
+     * @return
+     */
+    public DAO getDao() {
+        return dao;
     }
     
     /**
