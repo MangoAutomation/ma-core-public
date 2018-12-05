@@ -13,10 +13,10 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType.EventTypeNames;
@@ -61,26 +61,26 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
      * @see com.serotonin.m2m2.module.ModuleQueryDefinition#validateImpl(com.fasterxml.jackson.databind.JsonNode)
      */
     @Override
-    protected void validateImpl(final User user, final JsonNode parameters, final RestValidationResult result) {
+    protected void validateImpl(final User user, final JsonNode parameters, final ProcessResult result) {
         if(parameters.get("tags") == null)
-            result.addRequiredError("tags");
+            result.addContextualMessage("tags", "validate.required");
         else {
             //Ensure the format of tags is a Map<String,String>
             ObjectReader reader = this.readerFor(Map.class);
             try {
                 reader.readValue(parameters.get("tags"));
             }catch(IOException e) {
-                result.addInvalidValueError("tags");
+                result.addContextualMessage("tags", "validate.invalidValue");
             }
         }
         if(parameters.has("limit")) {
             if(!parameters.get("limit").isNumber())
-                result.addInvalidValueError("limit");
+                result.addContextualMessage("limit", "validate.invalidValue");
         }
 
         if(parameters.has("offset")) {
             if(!parameters.get("offset").isNumber())
-                result.addInvalidValueError("offset");
+                result.addContextualMessage("offset", "validate.invalidValue");
         }
     }
 

@@ -152,7 +152,7 @@ public class ModuleRegistry {
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
     private static Map<String, ModuleQueryDefinition> MODULE_QUERY_DEFINITIONS;
     private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
-
+    
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
     private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();

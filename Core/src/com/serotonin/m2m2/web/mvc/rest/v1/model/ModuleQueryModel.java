@@ -8,8 +8,8 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleQueryDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
@@ -72,12 +72,12 @@ public class ModuleQueryModel {
      * To be called prior to creating the query
      */
     public void ensureValid(User user, String tableName) {
-        RestValidationResult result = new RestValidationResult();
+        ProcessResult result = new ProcessResult();
         if(queryType == null)
-            result.addRequiredError("queryType");
+            result.addContextualMessage("queryType", "validate.required");
         this.definition = ModuleRegistry.getModuleQueryDefinition(queryType);
         if(this.definition == null) {
-            result.addInvalidValueError("definition");
+            result.addContextualMessage("definition", "validate.invalidValue");
             result.ensureValid();
         }
         definition.ensurePermission(user);

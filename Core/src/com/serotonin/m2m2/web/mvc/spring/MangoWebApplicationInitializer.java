@@ -16,6 +16,8 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.ApplicationContextDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.rest.swagger.SwaggerConfig;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
@@ -84,6 +86,13 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         boolean enableSwagger = Common.envProps.getBoolean("swagger.enabled", false);
 
         if (enableRest) {
+            
+            // Allow modules to define dispatcher contexts
+            for(ApplicationContextDefinition appContextDefinition : ModuleRegistry.getDefinitions(ApplicationContextDefinition.class)){
+                appContextDefinition.configure(context, rootWebContext);
+            }
+            
+            //TODO Mango 3.6 Move this as the v1 configuration into the API MODULE
             // Create the dispatcher servlet's Spring application context
             AnnotationConfigWebApplicationContext restDispatcherContext = new AnnotationConfigWebApplicationContext();
             restDispatcherContext.setId(REST_DISPATCHER_CONTEXT);
@@ -98,7 +107,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
             ServletRegistration.Dynamic restDispatcher =
                     context.addServlet(REST_DISPATCHER_NAME, new DispatcherServlet(restDispatcherContext));
             restDispatcher.setLoadOnStartup(2);
-            restDispatcher.addMapping("/rest/*");
+            restDispatcher.addMapping("/rest/v1/*");
 
             if (enableSwagger) {
                 restDispatcher.addMapping(

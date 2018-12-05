@@ -8,7 +8,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
@@ -17,11 +21,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import com.infiniteautomation.mango.rest.v2.exception.AuthenticationFailedRestException;
-import com.infiniteautomation.mango.rest.v2.exception.RateLimitedRestException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.web.mvc.form.LoginForm;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.AuthenticationRateException;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.IpAddressAuthenticationRateException;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.PasswordChangeException;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider.UsernameAuthenticationRateException;
 
 /**
  *
@@ -42,11 +47,9 @@ public class LoginController {
                 TranslatableMessage message;
 
                 if (ex instanceof AuthenticationRateException) {
-                    RateLimitedRestException restException = RateLimitedRestException.restExceptionFor((AuthenticationRateException) ex);
-                    message = restException.getTranslatableMessage();
+                    message = messageForAuthenticationRateException((AuthenticationRateException) ex);
                 } else {
-                    AuthenticationFailedRestException restException = AuthenticationFailedRestException.restExceptionFor(ex);
-                    message = restException.getTranslatableMessage();
+                    message = messageForAuthenticationFailedException(ex);
                 }
 
                 errors.reject(message.getKey(), message.getArgs(), ex.getMessage());
@@ -68,4 +71,35 @@ public class LoginController {
         return "/WEB-INF/jsp/login.jsp";
     }
 
+    /**
+     * This logic was lifted from the various v2 REST exception classes
+     * 
+     * @param ex
+     * @return
+     */
+    private TranslatableMessage messageForAuthenticationFailedException(
+            AuthenticationException cause) {
+        if (cause instanceof BadCredentialsException || cause instanceof UsernameNotFoundException) {
+            return new TranslatableMessage("rest.exception.badCredentials");
+        } else if (cause instanceof CredentialsExpiredException) {
+            return new TranslatableMessage("rest.exception.credentialsExpired");
+        } else if (cause instanceof DisabledException) {
+            return new TranslatableMessage("rest.exception.accountDisabled");
+        } else if (cause instanceof PasswordChangeException) {
+            return ((PasswordChangeException) cause).getTranslatableMessage();
+        } else {
+            return new TranslatableMessage("rest.exception.genericAuthenticationFailed", cause.getClass().getSimpleName() + " " + cause.getMessage());
+        }
+    }
+
+    private TranslatableMessage messageForAuthenticationRateException(AuthenticationRateException cause) {
+        if (cause instanceof IpAddressAuthenticationRateException) {
+            return new TranslatableMessage("rest.exception.authenticationIpRateLimited", ((IpAddressAuthenticationRateException) cause).getIp());
+        } else if (cause instanceof UsernameAuthenticationRateException) {
+            return new TranslatableMessage("rest.exception.authenticationUsernameRateLimited", ((UsernameAuthenticationRateException) cause).getUsername());
+        } else {
+            throw new IllegalArgumentException("Unknown AuthenticationRateException");
+        }
+    }
+    
 }

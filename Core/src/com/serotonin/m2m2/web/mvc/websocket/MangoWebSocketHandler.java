@@ -57,6 +57,7 @@ public abstract class MangoWebSocketHandler extends TextWebSocketHandler {
     protected ObjectMapper jacksonMapper;
 
     @Autowired
+    @Qualifier("mangoWebSocketSessionTracker")
     protected MangoWebSocketSessionTracker sessionTracker;
 
     public MangoWebSocketHandler() {

@@ -5,8 +5,7 @@
 package com.serotonin.m2m2.module.definitions.actions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
-import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.SystemActionDefinition;
@@ -50,8 +49,8 @@ public class SqlBackupActionDefinition extends SystemActionDefinition{
 	 * @see com.serotonin.m2m2.module.SystemActionDefinition#validate(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-	protected RestValidationResult validateImpl(JsonNode input) throws ValidationFailedRestException {
-		return null;
+	protected void validate(JsonNode input) throws ValidationException {
+
 	}
 	
 	/**

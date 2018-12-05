@@ -13,11 +13,11 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
-import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -56,7 +56,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
      *
      * @param parameters
      */
-    abstract protected void validateImpl(final User user, final JsonNode parameters, final RestValidationResult result);
+    abstract protected void validateImpl(final User user, final JsonNode parameters, final ProcessResult result);
 
     /**
      * Return information about the parameters and types for the query
@@ -75,10 +75,10 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
         return Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.REST_OBJECT_MAPPER_NAME).readerFor(clazz);
     }
 
-    public void validate(final User user, final String tableName, final JsonNode input, final RestValidationResult result) throws ValidationFailedRestException {
+    public void validate(final User user, final String tableName, final JsonNode input, final ProcessResult result) throws ValidationException {
         if(!StringUtils.equals(getTableName(), tableName)) {
             //This definition doesn't match the table it is going to run on, abort
-            result.addInvalidValueError("queryTypeName");
+            result.addContextualMessage("queryTypeName", "validate.invalidValue");
             return;
         }
 

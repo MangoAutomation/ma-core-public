@@ -5,8 +5,7 @@
 package com.serotonin.m2m2.module.definitions.actions;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
-import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.SystemActionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermissionDefinition;
@@ -50,13 +49,14 @@ public class SqlRestoreActionDefinition extends SystemActionDefinition{
 	 * @see com.serotonin.m2m2.module.SystemActionDefinition#validate(com.fasterxml.jackson.databind.JsonNode)
 	 */
 	@Override
-	protected RestValidationResult validateImpl(JsonNode input) throws ValidationFailedRestException {
-		RestValidationResult result = new RestValidationResult();
+	protected void validate(JsonNode input) throws ValidationException {
+		ProcessResult result = new ProcessResult();
 		
 		JsonNode node = input.get("filename");
 		if(node == null)
-			result.addRequiredError("filename");
-		return result;
+			result.addContextualMessage("filename", "validate.required");
+		
+		result.ensureValid();
 	}
 	
 	/**

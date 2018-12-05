@@ -6,12 +6,13 @@ package com.serotonin.m2m2.web.mvc.spring.security.permissions;
 
 import java.util.Set;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
-import com.infiniteautomation.mango.rest.v2.exception.AccessDeniedException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -202,7 +203,7 @@ implements MethodSecurityExpressionOperations {
     public boolean isPasswordAuthenticated() {
         Authentication auth = this.getAuthentication();
         if (!(auth instanceof UsernamePasswordAuthenticationToken)) {
-            throw new AccessDeniedException(new TranslatableMessage("rest.error.usernamePasswordOnly"));
+            throw new AccessDeniedException(new TranslatableMessage("rest.error.usernamePasswordOnly").translate(Common.getTranslations()));
         }
         return true;
     }

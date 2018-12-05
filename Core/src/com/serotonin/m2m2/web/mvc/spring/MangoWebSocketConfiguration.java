@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -35,8 +36,10 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 public class MangoWebSocketConfiguration implements WebSocketConfigurer {
 
     @Autowired
+    @Qualifier("mangoWebSocketHandshakeInterceptor")
     private HandshakeInterceptor handshakeInterceptor;
 
+    @Qualifier("mangoWebSocketHandshakeHandler")
     @Autowired
     private HandshakeHandler handshakeHandler;
 

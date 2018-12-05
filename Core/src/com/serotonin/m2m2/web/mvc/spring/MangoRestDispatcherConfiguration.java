@@ -25,7 +25,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.UrlPathHelper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.rest.v2.converters.ExceptionCsvMessageConverter;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.AbstractRestModelConverter;
@@ -50,7 +49,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoMethodSecurityConfigurati
 @Import({MangoCommonConfiguration.class, MangoMethodSecurityConfiguration.class, MangoWebSocketConfiguration.class})
 @EnableWebMvc
 @ComponentScan(
-        basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest" },
+        basePackages = { "com.serotonin.m2m2.web.mvc.rest", "com.infiniteautomation.mango.rest.v1" },
         excludeFilters = { @ComponentScan.Filter(pattern = "com\\.serotonin\\.m2m2\\.web\\.mvc\\.rest\\.swagger.*", type = FilterType.REGEX)})
 public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
 
@@ -118,7 +117,7 @@ public class MangoRestDispatcherConfiguration implements WebMvcConfigurer {
         converters.add(new ByteArrayHttpMessageConverter());
         converters.add(new HtmlHttpMessageConverter());
         converters.add(new SerotoninJsonMessageConverter());
-        converters.add(new ExceptionCsvMessageConverter());
+        //converters.add(new ExceptionCsvMessageConverter());
         converters.add(new SqlMessageConverter());
 
         //Now is a good time to register our Sero Json Converter

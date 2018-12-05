@@ -38,7 +38,7 @@ import net.jazdw.rql.parser.ASTNode;
  */
 @Api(value="Demo Controller")
 @RestController(value="DemoRestController")
-@RequestMapping("/v1/demo")
+@RequestMapping("/demo")
 public class MangoDemoRestController {
 
     private static int MAX_ITEMS = 100;

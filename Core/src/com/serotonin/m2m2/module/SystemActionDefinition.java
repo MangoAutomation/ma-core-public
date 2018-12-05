@@ -7,8 +7,7 @@ package com.serotonin.m2m2.module;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.infiniteautomation.mango.rest.v2.exception.ValidationFailedRestException;
-import com.infiniteautomation.mango.rest.v2.model.RestValidationResult;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -37,7 +36,7 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
      * @return
      */
     public SystemActionTask getTask(final User user, final JsonNode input)
-            throws ValidationFailedRestException, AccessDeniedException {
+            throws ValidationException, AccessDeniedException {
         this.hasTaskPermission(user);
         this.validate(input);
         return getTaskImpl(input);
@@ -67,12 +66,6 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
         return ModuleRegistry.getPermissionDefinition(getPermissionTypeName());
     }
 
-    protected void validate(JsonNode input) throws ValidationFailedRestException {
-        RestValidationResult result = validateImpl(input);
-        if (result != null)
-            result.ensureValid();
-    }
-
     /**
      * Get the TypeName of the permission definition
      * 
@@ -92,9 +85,9 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
      * Validate the inputs for the task
      * 
      * @param input
-     * @throws ValidationFailedRestException
+     * @throws ValidationException
      */
-    abstract protected RestValidationResult validateImpl(final JsonNode input);
+    abstract protected void validate(final JsonNode input) throws ValidationException;
 
 
 }
