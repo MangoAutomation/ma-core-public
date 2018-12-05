@@ -34,6 +34,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
@@ -56,10 +58,10 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(SchemaDefinition.DATASOURCES_TABLE)).as(DATA_SOURCES_ALIAS);
     public static final Field<Integer> ID = DSL.field(DATA_SOURCES_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
     public static final Field<String> EDIT_PERMISSION = DSL.field(DATA_SOURCES_ALIAS.append("editPermission"), SQLDataType.VARCHAR(255).nullable(true));
-    
+
     static final Log LOG = LogFactory.getLog(DataSourceDao.class);
     private static final String DATA_SOURCE_SELECT = //
-    "SELECT id, xid, name, dataSourceType, data, editPermission FROM dataSources ";
+            "SELECT id, xid, name, dataSourceType, data, editPermission FROM dataSources ";
 
     @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<DataSourceDao<DataSourceVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
@@ -68,7 +70,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (DataSourceDao<DataSourceVO<?>>)o;
     });
-    
+
     private DataSourceDao() {
         super(AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }
@@ -80,7 +82,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public static DataSourceDao<DataSourceVO<?>> getInstance() {
         return springInstance.get();
     }
-    
+
     public List<T> getDataSources() {
         List<T> dss = query(DATA_SOURCE_SELECT, new DataSourceExtractor());
         Collections.sort(dss, new DataSourceNameComparator());
@@ -100,11 +102,11 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         }
     }
 
-    public DataSourceVO<?> getDataSource(int id) {
+    public T getDataSource(int id) {
         return queryForObject(DATA_SOURCE_SELECT + " WHERE id=?", new Object[] { id }, new DataSourceRowMapper(), null);
     }
 
-    public DataSourceVO<?> getDataSource(String xid) {
+    public T getDataSource(String xid) {
         return queryForObject(DATA_SOURCE_SELECT + " WHERE xid=?", new Object[] { xid }, new DataSourceRowMapper(),
                 null);
     }
@@ -140,7 +142,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         @Override
         public T mapRow(ResultSet rs, int rowNum) throws SQLException {
             @SuppressWarnings("unchecked")
-			T ds = (T) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
+            T ds = (T) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             ds.setId(rs.getInt(1));
             ds.setXid(rs.getString(2));
             ds.setName(rs.getString(3));
@@ -168,7 +170,9 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 "INSERT INTO dataSources (xid, name, dataSourceType, data, editPermission) values (?,?,?,?,?)",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
                         SerializationHelper.writeObject(vo), vo.getEditPermission() }, new int[] { Types.VARCHAR,
-                        Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR }));
+                                Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR }));
+
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, null, null));
 
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
         this.countMonitor.increment();
@@ -186,11 +190,13 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         ejt.update("UPDATE dataSources SET xid=?, name=?, dataSourceType=?, data=?, editPermission WHERE id=?",
                 new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
                         SerializationHelper.writeObject(vo), vo.getEditPermission(), vo.getId() }, new int[] {
-                        Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR, Types.INTEGER });
+                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR, Types.INTEGER });
+
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, null, null));
     }
 
     public void deleteDataSource(final int dataSourceId) {
-        DataSourceVO<?> vo = getDataSource(dataSourceId);
+        T vo = getDataSource(dataSourceId);
         final ExtendedJdbcTemplate ejt2 = ejt;
 
         DataPointDao.getInstance().deleteDataPoints(dataSourceId);
@@ -204,6 +210,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                     ejt2.update("DELETE FROM dataSources WHERE id=?", new Object[] { dataSourceId });
                 }
             });
+
+            this.publishEvent(new DaoEvent<T>(this, DaoEventType.DELETE, vo, null, null));
 
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
             this.countMonitor.decrement();
@@ -225,7 +233,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /**
      * Copy a data source points
-     * 
+     *
      * @param dataSourceId
      * @param newDataSourceId
      * @return
@@ -268,7 +276,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /**
      * Copy Data Source Points and Source itself
-     * 
+     *
      * @param dataSourceId
      * @param name
      * @param xid
@@ -289,7 +297,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 dataSourceCopy.setEnabled(false);
                 dataSourceCopy.setName(name);
                 Common.runtimeManager.saveDataSource(dataSourceCopy);
-                
+
                 // Copy the points.
                 for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null)) {
                     DataPointVO dataPointCopy = dataPoint.copy();
@@ -318,24 +326,24 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public Object getPersistentData(int id) {
         return query("select rtdata from dataSources where id=?", new Object[] { id },
                 new ResultSetExtractor<Serializable>() {
-                    @Override
-                    public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
-                        if (!rs.next())
-                            return null;
+            @Override
+            public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
+                if (!rs.next())
+                    return null;
 
-                        InputStream in = rs.getBinaryStream(1);
-                        if (in == null)
-                            return null;
+                InputStream in = rs.getBinaryStream(1);
+                if (in == null)
+                    return null;
 
-                        return (Serializable) SerializationHelper.readObjectInContext(in);
+                return (Serializable) SerializationHelper.readObjectInContext(in);
 
-                        //                        Blob blob = rs.getBlob(1);
-                        //                        if (blob == null)
-                        //                            return null;
-                        //
-                        //                        return (Serializable) SerializationHelper.readObjectInContext(blob.getBinaryStream());
-                    }
-                });
+                //                        Blob blob = rs.getBlob(1);
+                //                        if (blob == null)
+                //                            return null;
+                //
+                //                        return (Serializable) SerializationHelper.readObjectInContext(blob.getBinaryStream());
+            }
+        });
     }
 
     public void savePersistentData(int id, Object data) {
@@ -350,7 +358,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
      */
     @Override
@@ -360,7 +368,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
      */
     @Override
@@ -370,7 +378,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
      */
     @Override
@@ -381,7 +389,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
      */
     @Override
@@ -390,19 +398,19 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     }
 
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-	 */
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
+     */
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-    	LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-    	map.put("id", Types.INTEGER);
-    	map.put("xid", Types.VARCHAR);
-    	map.put("name", Types.VARCHAR);
-    	map.put("dataSourceType", Types.VARCHAR);
-    	map.put("data", Types.BINARY);
-    	map.put("editPermission", Types.VARCHAR);
-    	return map;
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+        map.put("id", Types.INTEGER);
+        map.put("xid", Types.VARCHAR);
+        map.put("name", Types.VARCHAR);
+        map.put("dataSourceType", Types.VARCHAR);
+        map.put("data", Types.BINARY);
+        map.put("editPermission", Types.VARCHAR);
+        return map;
     }
 
     @Override
@@ -468,7 +476,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
      */
     @Override
@@ -478,7 +486,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
      */
     @Override
@@ -487,9 +495,9 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     }
 
     /**
-     * 
+     *
      * Overridable method to extract the data
-     * 
+     *
      * @return
      */
     @Override
