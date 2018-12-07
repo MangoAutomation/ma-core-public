@@ -59,6 +59,8 @@ import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLStatement;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ModuleNotLoadedException;
@@ -390,6 +392,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         // Save the relational information.
         saveRelationalData(dp, true);
 
+        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.CREATE, dp, null, null));
+
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_POINT, dp);
 
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
@@ -410,6 +414,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         // Save the VO information.
         updateDataPointShallow(dp);
 
+        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, old.getXid(), null));
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_DATA_POINT, old, dp);
 
         // Save the relational information.
@@ -441,6 +446,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     public void saveEnabledColumn(DataPointVO dp) {
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
+        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null, null));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
 
@@ -466,6 +472,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         for (DataPointVO dp : old) {
             for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
                 def.afterDelete(dp.getId());
+            this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp, null, null));
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
             this.countMonitor.decrement();
         }
@@ -495,6 +502,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
                 def.afterDelete(dataPointId);
 
+            this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp, null, null));
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
             countMonitor.decrement();
         }
