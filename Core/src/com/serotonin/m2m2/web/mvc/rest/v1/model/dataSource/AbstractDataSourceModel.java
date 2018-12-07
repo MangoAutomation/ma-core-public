@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -119,6 +120,22 @@ public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends
         return this.data;
     }
 
+    /**
+     * Get the description for the data source's connection
+     * @return
+     */
+    public TranslatableMessage getConnectionDescription() {
+        return this.data.getConnectionDescription();
+    }
+    
+    /**
+     * Get the description for the type of data source
+     * @return
+     */
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage(this.data.getDefinition().getDescriptionKey());
+    }
+    
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractVoModel#getModelType()
      */

@@ -6,6 +6,7 @@
 * Add debug log of incoming IPs on virtual serial server sockets
 * Improve handling of exception in data point listeners on initialize or terminate when only 1 listener is present
 * Modify email FTL Model for events, references to evt.alarmLevel in overridden templates should be changed to evt.alarmLevel.value()
+* Expose connection description and data source type translations in Data Source REST models
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
