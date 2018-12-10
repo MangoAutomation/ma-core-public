@@ -101,6 +101,7 @@ public class MangoRuntimeContextConfiguration {
 
     public static final String REST_OBJECT_MAPPER_NAME = "restObjectMapper";
     public static final String COMMON_OBJECT_MAPPER_NAME = "commonObjectMapper";
+    public static final String DAO_OBJECT_MAPPER_NAME = "daoObjectMapper"; 
     public static final String SCHEDULED_EXECUTOR_SERVICE_NAME = "scheduledExecutorService";
     public static final String EXECUTOR_SERVICE_NAME = "executorService";
 
@@ -182,6 +183,21 @@ public class MangoRuntimeContextConfiguration {
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
         for(JacksonModuleDefinition def : defs) {
             if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.COMMON)
+                mapper.registerModule(def.getJacksonModule());
+        }
+        return mapper;
+    }
+    
+    @Bean(DAO_OBJECT_MAPPER_NAME)
+    public ObjectMapper getDaoObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setTimeZone(TimeZone.getTimeZone("UTC")); //Set to UTC in case timezone change while data is in database
+
+        //Setup Module Defined JSON Modules
+        List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
+        for(JacksonModuleDefinition def : defs) {
+            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.DATABASE)
                 mapper.registerModule(def.getJacksonModule());
         }
         return mapper;

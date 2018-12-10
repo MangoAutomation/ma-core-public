@@ -6,61 +6,20 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.TimeZone;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.db.query.SQLConstants;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
-import com.serotonin.m2m2.module.JacksonModuleDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 
 public class BaseDao extends DaoUtils implements SQLConstants{
-
-    // TODO Mango 3.6 Make this a bean
-    // ObjectMapper to Serialize JSON to/from the database
-    private final static ObjectMapper mapper;
-    static {
-        mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.setTimeZone(TimeZone.getTimeZone("UTC")); //Set to UTC in case timezone change while data is in database
-
-        //Setup Module Defined JSON Modules
-        List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
-        for(JacksonModuleDefinition def : defs) {
-            if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.DATABASE)
-                mapper.registerModule(def.getJacksonModule());
-        }
-    }
-
 
     /**
      * Public constructor for code that needs to get stuff from the database.
      */
     public BaseDao() {
         super(Common.databaseProxy.getDataSource(), Common.databaseProxy.getTransactionManager());
-    }
-
-    /**
-     * Get a writer for serializing JSON
-     * @return
-     */
-    public ObjectWriter getObjectWriter(Class<?> type) {
-        return mapper.writerFor(type);
-    }
-
-    /**
-     * Get a reader for use de-serializing JSON
-     * @return
-     */
-    public ObjectReader getObjectReader(Class<?> type) {
-        return mapper.readerFor(type);
     }
 
     //

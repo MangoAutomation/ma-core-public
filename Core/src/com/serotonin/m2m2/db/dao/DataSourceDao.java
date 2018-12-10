@@ -225,7 +225,6 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             deleteDataSource(dsid);
     }
 
-    //TODO See how this works, with the Device name situation
     @Override
     public int copy(int existingId, String newXid, String newName) {
         return this.copyDataSource(existingId, newName, newXid, newName + "Device");

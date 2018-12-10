@@ -37,11 +37,15 @@ import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.Index;
@@ -58,6 +62,7 @@ import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ModuleNotLoadedException;
@@ -90,6 +95,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public static final String AND = " AND ";
     public static final String LIMIT = " LIMIT ";
 
+    // TODO Mango 3.6 add to constructor and make final
+    @Autowired
+    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
+    private ObjectMapper mapper;
+    
     // TODO Mango 3.6 add to constructor and make final
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
@@ -1096,5 +1106,21 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (this.eventPublisher != null) {
             this.eventPublisher.publishEvent(event);
         }
+    }
+    
+    /**
+     * Get a writer for serializing JSON
+     * @return
+     */
+    public ObjectWriter getObjectWriter(Class<?> type) {
+        return mapper.writerFor(type);
+    }
+
+    /**
+     * Get a reader for use de-serializing JSON
+     * @return
+     */
+    public ObjectReader getObjectReader(Class<?> type) {
+        return mapper.readerFor(type);
     }
 }
