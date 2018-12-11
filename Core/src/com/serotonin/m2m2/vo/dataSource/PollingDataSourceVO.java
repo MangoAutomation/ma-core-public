@@ -79,7 +79,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
 
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
-            updatePeriodType = Common.TimePeriods.SECONDS;
+            updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
             quantize = in.readBoolean();
         }
