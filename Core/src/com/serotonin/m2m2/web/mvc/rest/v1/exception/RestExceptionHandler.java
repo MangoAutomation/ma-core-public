@@ -53,7 +53,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         RestErrorModel error = new RestErrorModel(e);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Messages", "error");
-        headers.set("Errors", e.getMessage());
+        headers.set("Errors", trimErrors(e.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return handleExceptionInternal(e, error, headers, HttpStatus.INTERNAL_SERVER_ERROR, request);
     }
@@ -72,7 +72,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         }
         RestErrorModel error = new RestErrorModel(ex);
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         if(body == null)
             body = error;
@@ -85,7 +85,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             HttpRequestMethodNotSupportedException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleHttpRequestMethodNotSupported(ex, headers, status, request);
     }
@@ -95,7 +95,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             HttpMediaTypeNotSupportedException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleHttpMediaTypeNotSupported(ex, headers, status, request);
     }
@@ -105,7 +105,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             HttpMediaTypeNotAcceptableException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleHttpMediaTypeNotAcceptable(ex, headers, status, request);
     }
@@ -115,7 +115,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             MissingServletRequestParameterException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleMissingServletRequestParameter(ex, headers, status, request);
     }
@@ -125,7 +125,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             ServletRequestBindingException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleServletRequestBindingException(ex, headers, status, request);
     }
@@ -135,7 +135,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             ConversionNotSupportedException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleConversionNotSupported(ex, headers, status, request);
     }
@@ -145,7 +145,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             TypeMismatchException ex, HttpHeaders headers, HttpStatus status,
             WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleTypeMismatch(ex, headers, status, request);
     }
@@ -155,7 +155,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             HttpMessageNotReadableException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleHttpMessageNotReadable(ex, headers, status, request);
     }
@@ -165,7 +165,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             HttpMessageNotWritableException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleHttpMessageNotWritable(ex, headers, status, request);
     }
@@ -175,7 +175,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             MethodArgumentNotValidException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleMethodArgumentNotValid(ex, headers, status, request);
     }
@@ -185,7 +185,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             MissingServletRequestPartException ex, HttpHeaders headers,
             HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleMissingServletRequestPart(ex, headers, status, request);
     }
@@ -194,7 +194,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleBindException(BindException ex,
             HttpHeaders headers, HttpStatus status, WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleBindException(ex, headers, status, request);
     }
@@ -204,10 +204,18 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             NoHandlerFoundException ex, HttpHeaders headers, HttpStatus status,
             WebRequest request) {
         headers.set("Messages", "error");
-        headers.set("Errors", ex.getMessage());
+        headers.set("Errors", trimErrors(ex.getMessage()));
         headers.setContentType(MediaType.APPLICATION_JSON);
         return super.handleNoHandlerFoundException(ex, headers, status, request);
     }
 
-
+    /**
+     * Util to remove CR/LF and ensure no longer that 1000 chars
+     */
+    private String trimErrors(String message) {
+        message = message.replaceAll("(\\r|\\n)", " ");
+        if(message.length() > 1000)
+            message = message.substring(0, 1000);
+        return message;
+    }
 }
