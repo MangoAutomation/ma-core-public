@@ -1,7 +1,6 @@
-![Mango Logo](https://github.com/infiniteautomation/ma-core-public/blob/main/Core/web/images/logo.png)
-[![DepShield Badge](https://depshield.sonatype.org/badges/infiniteautomation/ma-core-public/depshield.svg)](https://depshield.github.io)
-ma-core-public
-==============
+![Mango Logo](https://github.com/infiniteautomation/ma-core-public/blob/main/Core/web/images/logo.png)  
+
+[![DepShield Badge](https://depshield.sonatype.org/badges/infiniteautomation/ma-core-public/depshield.svg)](https://depshield.github.io)  
 
 ## Mango Automation Core public code by [Infinite Automation](http://www.infiniteautomation.com)
 
