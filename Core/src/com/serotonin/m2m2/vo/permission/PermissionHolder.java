@@ -23,7 +23,14 @@ public interface PermissionHolder {
      * @return a name for the permission holder, typically the username
      */
     String getPermissionHolderName();
-
+    
+    /**
+     * @return the id of the permission holder, useful if created items have an 'owner'
+     */
+    default Integer getPermissionHolderId() {
+        return null;
+    }
+    
     /**
      * @return true if permission holder is disabled (i.e. all permission checks should fail)
      */
