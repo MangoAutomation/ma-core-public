@@ -66,6 +66,7 @@ public class SystemSettingsDao extends BaseDao {
     public static final String EMAIL_SMTP_PASSWORD = "emailSmtpPassword";
     public static final String EMAIL_TLS = "emailTls";
     public static final String EMAIL_CONTENT_TYPE = "emailContentType";
+    public static final String EMAIL_SEND_TIMEOUT = "emailSendTimeout";
 
     // Base URL to use when inserting links in emails etc
     public static final String PUBLICLY_RESOLVABLE_BASE_URL = "publiclyResolvableBaseUrl";
@@ -386,6 +387,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(EMAIL_SMTP_USERNAME, "");
         DEFAULT_VALUES.put(EMAIL_SMTP_PASSWORD, "");
         DEFAULT_VALUES.put(EMAIL_FROM_NAME, "Mango Automation");
+        DEFAULT_VALUES.put(EMAIL_SEND_TIMEOUT, 0);
 
         DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIODS, 1);
@@ -598,6 +600,19 @@ public class SystemSettingsDao extends BaseDao {
             }
         }catch(NumberFormatException e){
             response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.illegalValue");
+        }
+        
+        setting = settings.get(EMAIL_SEND_TIMEOUT);
+        if(setting != null) {
+            if(setting instanceof Integer) {
+                if((Integer)setting < 0)
+                    response.addContextualMessage(EMAIL_SEND_TIMEOUT, "validate.cannotBeNegative");
+            } else if(setting instanceof Number){
+                if(((Number)setting).intValue() < 0)
+                    response.addContextualMessage(EMAIL_SEND_TIMEOUT, "validate.cannotBeNegative");
+            } else {
+                response.addContextualMessage(EMAIL_SEND_TIMEOUT, "validate.invalidValue");
+            }
         }
 
         setting = settings.get(DATABASE_SCHEMA_VERSION);

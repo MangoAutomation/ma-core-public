@@ -79,12 +79,14 @@ public class EmailWorkItem implements WorkItem {
                 fromAddress = new InternetAddress(addr, pretty);
             }
 
-            EmailSender emailSender = new EmailSender(SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_HOST),
+            EmailSender emailSender = new EmailSender(
+                    SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_HOST),
                     SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_SMTP_PORT),
                     SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_AUTHORIZATION),
                     SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_USERNAME),
                     SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_SMTP_PASSWORD),
-                    SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_TLS));
+                    SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_TLS),
+                    SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_SEND_TIMEOUT));
 
             emailSender.send(fromAddress, toAddresses, subject, content);
         }

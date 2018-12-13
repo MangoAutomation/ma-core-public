@@ -1,5 +1,6 @@
 package com.serotonin.web.mail;
 
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Properties;
 
@@ -16,25 +17,7 @@ import org.springframework.mail.javamail.MimeMessagePreparator;
 public class EmailSender {
     private final JavaMailSenderImpl senderImpl;
 
-    //
-    // /
-    // / Constructors
-    // /
-    //
-    public EmailSender(EmailConfiguration config) {
-        this(config.getHost(), config.getPort(), config.isUseAuth(), config.getUsername(), config.getPassword(), config
-                .isTls());
-    }
-
-    public EmailSender(String host, boolean useAuth, String userName, String password) {
-        this(host, 25, useAuth, userName, password);
-    }
-
-    public EmailSender(String host, int port, boolean useAuth, String userName, String password) {
-        this(host, port, useAuth, userName, password, false);
-    }
-
-    public EmailSender(String host, int port, boolean useAuth, String userName, String password, boolean tls) {
+    public EmailSender(String host, int port, boolean useAuth, String userName, String password, boolean tls, int timeout) {
         senderImpl = new JavaMailSenderImpl();
         Properties props = new Properties();
         if (useAuth) {
@@ -44,20 +27,15 @@ public class EmailSender {
         }
         if (tls)
             props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.connectiontimeout", Integer.toString(timeout));
+        props.put("mail.smtp.timeout", Integer.toString(timeout));
+        props.put("mail.smtp.writetimeout", Integer.toString(timeout));
         senderImpl.setJavaMailProperties(props);
         senderImpl.setHost(host);
         if (port != -1)
             senderImpl.setPort(port);
     }
-
-    public EmailSender(String host) {
-        this(host, false, null, null);
-    }
-
-    public EmailSender(String host, String userName, String password) {
-        this(host, true, userName, password);
-    }
-
+    
     //
     // /
     // / Senders
@@ -202,4 +180,14 @@ public class EmailSender {
     public void send(MimeMessagePreparator[] mimeMessagePreparators) throws MailException {
         senderImpl.send(mimeMessagePreparators);
     }
+    
+    /**
+     * Enable debugging and return the stream
+     * @return
+     */
+    public void setDebug(PrintStream stream) {
+        senderImpl.getSession().setDebug(true);
+        senderImpl.getSession().setDebugOut(stream);
+    }
+    
 }
