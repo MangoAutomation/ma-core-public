@@ -387,7 +387,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(EMAIL_SMTP_USERNAME, "");
         DEFAULT_VALUES.put(EMAIL_SMTP_PASSWORD, "");
         DEFAULT_VALUES.put(EMAIL_FROM_NAME, "Mango Automation");
-        DEFAULT_VALUES.put(EMAIL_SEND_TIMEOUT, 0);
+        DEFAULT_VALUES.put(EMAIL_SEND_TIMEOUT, 60000);
 
         DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIOD_TYPE, Common.TimePeriods.YEARS);
         DEFAULT_VALUES.put(POINT_DATA_PURGE_PERIODS, 1);
