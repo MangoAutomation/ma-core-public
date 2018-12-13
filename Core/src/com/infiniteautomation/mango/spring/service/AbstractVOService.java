@@ -13,7 +13,6 @@ import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -47,7 +46,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @param user
      * @return
      */
-    public ProcessResult validate(T vo, User user) {
+    public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
         vo.validate(result);
         return result;
@@ -59,7 +58,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @param vo
      * @param user
      */
-    public void ensureValid(T vo, User user) throws ValidationException {
+    public void ensureValid(T vo, PermissionHolder user) throws ValidationException {
         ProcessResult result = validate(vo, user);
         if(!result.isValid())
             throw new ValidationException(result);
@@ -72,9 +71,32 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @return
      * @throws NotFoundException
      * @throws PermissionException
-     * @throws ValidationException
      */
-    public T get(String xid, PermissionHolder user) throws NotFoundException, PermissionException, ValidationException {
+    public T get(Integer id, PermissionHolder user) throws NotFoundException, PermissionException {
+        return get(id, user, false);
+    }
+    
+    /**
+     * 
+     * @param id
+     * @param user
+     * @return
+     * @throws NotFoundException
+     * @throws PermissionException
+     */
+    public T getFull(Integer id, PermissionHolder user) throws NotFoundException, PermissionException {
+        return get(id, user, true);
+    }
+    
+    /**
+     * 
+     * @param xid
+     * @param user
+     * @return
+     * @throws NotFoundException
+     * @throws PermissionException
+     */
+    public T get(String xid, PermissionHolder user) throws NotFoundException, PermissionException {
         return get(xid, user, false);
     }
     
@@ -85,9 +107,8 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @return
      * @throws NotFoundException
      * @throws PermissionException
-     * @throws ValidationException
      */
-    public T getFull(String xid, PermissionHolder user) throws NotFoundException, PermissionException, ValidationException {
+    public T getFull(String xid, PermissionHolder user) throws NotFoundException, PermissionException {
         return get(xid, user, true);
     }
     
@@ -98,12 +119,34 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @param full
      * @return
      */
-    protected T get(String xid, PermissionHolder user, boolean full) {
+    protected T get(String xid, PermissionHolder user, boolean full) throws NotFoundException, PermissionException {
         T vo;
         if(full)
             vo = dao.getFullByXid(xid);
         else
             vo = dao.getByXid(xid);
+           
+        if(vo == null)
+            throw new NotFoundException();
+        ensureReadPermission(user, vo);
+        return vo;
+    }
+    
+    /**
+     * 
+     * @param id
+     * @param user
+     * @param full
+     * @return
+     * @throws NotFoundException
+     * @throws PermissionException
+     */
+    protected T get(Integer id, PermissionHolder user, boolean full) throws NotFoundException, PermissionException {
+        T vo;
+        if(full)
+            vo = dao.getFull(id);
+        else
+            vo = dao.get(id);
            
         if(vo == null)
             throw new NotFoundException();
@@ -119,7 +162,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insertFull(T vo, User user) throws PermissionException, ValidationException {
+    public T insertFull(T vo, PermissionHolder user) throws PermissionException, ValidationException {
         return insert(vo, user, true);
     }
     
@@ -131,7 +174,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insert(T vo, User user) throws PermissionException, ValidationException {
+    public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
         return insert(vo, user, false);
     }
 
@@ -146,7 +189,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws PermissionException
      * @throws ValidationException
      */
-    protected T insert(T vo, User user, boolean full) throws PermissionException, ValidationException {
+    protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         //Ensure they can create a list
         ensureCreatePermission(user);
         
@@ -171,7 +214,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(String existingXid, T vo, User user) throws PermissionException, ValidationException {
+    public T update(String existingXid, T vo, PermissionHolder user) throws PermissionException, ValidationException {
         return update(get(existingXid, user), vo, user);
     }
 
@@ -185,7 +228,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(T existing, T vo, User user) throws PermissionException, ValidationException {
+    public T update(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
        return update(existing, vo, user, false);
     }
     
@@ -198,7 +241,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T updateFull(String existingXid, T vo, User user) throws PermissionException, ValidationException {
+    public T updateFull(String existingXid, T vo, PermissionHolder user) throws PermissionException, ValidationException {
         return updateFull(get(existingXid, user), vo, user);
     }
 
@@ -212,11 +255,11 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T updateFull(T existing, T vo, User user) throws PermissionException, ValidationException {
+    public T updateFull(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
         return update(existing, vo, user, true);
     }
     
-    protected T update(T existing, T vo, User user, boolean full) throws PermissionException, ValidationException {
+    protected T update(T existing, T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(vo, user);
@@ -235,7 +278,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @return
      * @throws PermissionException
      */
-    public T delete(String xid, PermissionHolder user) throws PermissionException {
+    public T delete(String xid, PermissionHolder user) throws PermissionException, NotFoundException {
         T vo = get(xid, user);
         ensureEditPermission(user, vo);
         dao.delete(vo.getId());

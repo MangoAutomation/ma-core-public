@@ -820,5 +820,10 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public boolean isPermissionHolderDisabled() {
         return this.disabled;
     }
+    
+    @Override
+    public Integer getPermissionHolderId() {
+        return id;
+    }
 
 }
