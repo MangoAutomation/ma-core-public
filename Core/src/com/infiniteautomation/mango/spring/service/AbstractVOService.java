@@ -280,7 +280,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      */
     public T delete(String xid, PermissionHolder user) throws PermissionException, NotFoundException {
         T vo = get(xid, user);
-        ensureEditPermission(user, vo);
+        ensureDeletePermission(user, vo);
         dao.delete(vo.getId());
         return vo;
     }
@@ -372,6 +372,16 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     public abstract boolean hasReadPermission(PermissionHolder user, T vo);
 
     /**
+     * Optionally override to have specific delete permissions, default is same as edit
+     * @param user
+     * @param vo
+     * @return
+     */
+    public boolean hasDeletePermission(PermissionHolder user, T vo) {
+        return hasEditPermission(user, vo);
+    }
+    
+    /**
      * Ensure this user can create a vo
      * 
      * @param user
@@ -402,6 +412,17 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      */
     public void ensureReadPermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasReadPermission(user, vo))
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+    }
+    
+    /**
+     * 
+     * @param user
+     * @param vo
+     * @throws PermissionException
+     */
+    public void ensureDeletePermission(PermissionHolder user, T vo) throws PermissionException {
+        if(!hasDeletePermission(user, vo))
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
     }
 }
