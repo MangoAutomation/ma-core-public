@@ -363,8 +363,16 @@ public class MangoSecurityConfiguration {
             .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
-            .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
-            .requestMatchers(restRequestMatcher).authenticated()
+            .antMatchers("/rest/*/ui-bootstrap/**").permitAll(); // UI bootstrap has a public method
+            
+            if (swaggerApiDocsProtected) {
+                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
+            }else {
+                //Add exceptions for the REST swagger endpoints
+                authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
+            }
+            
+            authRequests.requestMatchers(restRequestMatcher).authenticated()
             .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
             .antMatchers("/modules/**").denyAll()
             .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
@@ -460,16 +468,20 @@ public class MangoSecurityConfiguration {
             .antMatchers(HttpMethod.GET, "/rest/*/file-stores/public/**").permitAll() //For public file store
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
-            .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
-            .requestMatchers(restRequestMatcher).authenticated()
+            .antMatchers("/rest/*/ui-bootstrap/**").permitAll(); // UI bootstrap has a public method
+            
+            if (swaggerApiDocsProtected) {
+                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
+            }else {
+                //Add exceptions for the REST swagger endpoints
+                authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
+            }
+            
+            authRequests.requestMatchers(restRequestMatcher).authenticated()
             .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
             .antMatchers("/modules/**").denyAll()
             .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
             .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
-
-            if (swaggerApiDocsProtected) {
-                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
-            }
 
             authRequests.anyRequest().permitAll(); // default to permit all
 

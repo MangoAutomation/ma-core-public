@@ -14,11 +14,12 @@ import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 import org.springframework.web.servlet.DispatcherServlet;
 
+import com.infiniteautomation.mango.rest.RootRestDispatcherConfiguration;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ApplicationContextDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.web.mvc.rest.swagger.SwaggerConfig;
+import com.serotonin.m2m2.web.mvc.rest.swagger.RootSwaggerConfig;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**
@@ -30,7 +31,8 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
  * Context hierarchy looks like this:
  * <pre>
  * runtimeContext -> rootWebContext -> jspDispatcherContext
- *                                  -> restDispatcherContext
+ *                                  -> rootRestDispatcherContext -> restv1DispatcherContext
+ *                                                               -> restv2DispatcherContext
  * </pre>
  *
  * @author Terry Packer
@@ -41,9 +43,11 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
     public static final String RUNTIME_CONTEXT_ID = "runtimeContext";
     public static final String ROOT_WEB_CONTEXT_ID = "rootWebContext";
     public static final String JSP_DISPATCHER_CONTEXT = "jspDispatcherContext";
+    public static final String ROOT_REST_DISPATCHER_CONTEXT = "rootRestDispatcherContext";
     public static final String REST_DISPATCHER_CONTEXT = "restDispatcherContext";
 
     public static final String JSP_DISPATCHER_NAME = "JSP_DISPATCHER";
+    public static final String ROOT_REST_DISPATCHER_NAME = "ROOT_REST_DISPATCHER";
     public static final String REST_DISPATCHER_NAME = "REST_DISPATCHER";
 
     @Override
@@ -81,36 +85,36 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
         /**
          * REST dispatcher application context configuration
          */
-
         boolean enableRest = Common.envProps.getBoolean("rest.enabled", false);
         boolean enableSwagger = Common.envProps.getBoolean("swagger.enabled", false);
 
         if (enableRest) {
             
-            // Allow modules to define dispatcher contexts
-            for(ApplicationContextDefinition appContextDefinition : ModuleRegistry.getDefinitions(ApplicationContextDefinition.class)){
-                appContextDefinition.configure(context, rootWebContext);
+            //The REST configuration has a parent context fro which all versions of the API
+            // are children. This root rest context is defined here:
+            AnnotationConfigWebApplicationContext rootRestContext = new AnnotationConfigWebApplicationContext();
+            rootRestContext.setId(ROOT_REST_DISPATCHER_CONTEXT);
+            rootRestContext.setParent(rootWebContext);
+            rootRestContext.register(RootRestDispatcherConfiguration.class);
+            
+            if (enableSwagger) {
+                rootRestContext.register(RootSwaggerConfig.class);
             }
             
-            //TODO Mango 3.6 Move this as the v1 configuration into the API MODULE
-            // Create the dispatcher servlet's Spring application context
-            AnnotationConfigWebApplicationContext restDispatcherContext = new AnnotationConfigWebApplicationContext();
-            restDispatcherContext.setId(REST_DISPATCHER_CONTEXT);
-            restDispatcherContext.setParent(rootWebContext);
-            restDispatcherContext.register(MangoRestDispatcherConfiguration.class);
+            // Register and map the REST dispatcher servlet
+            ServletRegistration.Dynamic rootRestDispatcher =
+                    context.addServlet(ROOT_REST_DISPATCHER_NAME, new DispatcherServlet(rootRestContext));
+            rootRestDispatcher.setLoadOnStartup(2);
+            rootRestDispatcher.addMapping("/rest/*");
 
-            if (enableSwagger) {
-                restDispatcherContext.register(SwaggerConfig.class);
+            
+            // Allow modules to define dispatcher contexts
+            for(ApplicationContextDefinition appContextDefinition : ModuleRegistry.getDefinitions(ApplicationContextDefinition.class)){
+                appContextDefinition.configure(context, rootWebContext, rootRestContext);
             }
 
-            // Register and map the REST dispatcher servlet
-            ServletRegistration.Dynamic restDispatcher =
-                    context.addServlet(REST_DISPATCHER_NAME, new DispatcherServlet(restDispatcherContext));
-            restDispatcher.setLoadOnStartup(2);
-            restDispatcher.addMapping("/rest/v1/*");
-
             if (enableSwagger) {
-                restDispatcher.addMapping(
+                rootRestDispatcher.addMapping(
                         "/swagger/v2/api-docs",
                         "/swagger-resources/configuration/ui",
                         "/swagger-resources/configuration/security",

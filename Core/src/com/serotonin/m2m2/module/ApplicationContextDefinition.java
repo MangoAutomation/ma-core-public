@@ -18,9 +18,11 @@ public abstract class ApplicationContextDefinition extends ModuleElementDefiniti
      * Allow a module to define an application context
      * 
      * @param context
-     * @param rootWebContext
+     * @param rootWebContext - The root web context
+     * @param rootRestContext - The root rest context
      */
     abstract public void configure(ServletContext context,
-            AnnotationConfigWebApplicationContext rootWebContext);
+            AnnotationConfigWebApplicationContext rootWebContext,
+            AnnotationConfigWebApplicationContext rootRestContext);
     
 }
