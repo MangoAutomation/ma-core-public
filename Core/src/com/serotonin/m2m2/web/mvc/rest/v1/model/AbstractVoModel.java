@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.annotation.JsonView;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -19,7 +18,6 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnSetter;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVEntity;
-import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JsonViews;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestMessageLevel;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestValidationMessage;
 
@@ -33,10 +31,8 @@ import io.swagger.annotations.ApiModelProperty;
 @JsonPropertyOrder({"xid", "name"})
 public abstract class AbstractVoModel<T extends AbstractVO<?>> extends AbstractBasicVoModel<T>{
 	
-	//TODO Make the JSON Views work, it currently does nothing
 	@ApiModelProperty(value = "Messages for validation of data", required = false)
 	@JsonProperty("validationMessages")
-	@JsonView(JsonViews.Validation.class) //Only show in validation views (NOT WORKING YET)
 	private List<RestValidationMessage> messages;
 	
 	/**
