@@ -55,7 +55,7 @@ public class Upgrade18 extends DBUpgrade {
 	};
 	
 	/*
-	 * 1. Create new table, can have key constaint to begin with.
+	 * 1. Create new table, can have key constraint to begin with.
 	 * 2. Convert existing rows
 	 * 3. drop columns
 	 */
