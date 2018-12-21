@@ -513,6 +513,9 @@
 		dojo.byId("simplifyTolerance").value = template.simplifyTolerance;
 		dojo.byId("simplifyTarget").value = template.simplifyTarget;
 		dojo.byId("rollup").value = template.rollup;
+		dijit.byId("preventSetExtremeValues").checked = template.preventSetExtremeValues ? 'checked' : '';
+		dojo.byId("setExtremeLowLimit").value = template.setExtemeLowLimit;
+		dojo.byId("setExtremeHighLimit").value = template.setExtemeHighLimit;
 		
 		setLoggingProperties(template);
 		setTextRenderer(template);
