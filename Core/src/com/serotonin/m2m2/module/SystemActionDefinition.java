@@ -20,6 +20,8 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * 
  * @author Terry Packer
  */
+/* See SystemActionTemporaryResourceManager and Implement these as single rest controllers inside modules */
+@Deprecated 
 abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     /**
