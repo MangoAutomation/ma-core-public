@@ -15,11 +15,11 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.servlet.DispatcherServlet;
 
 import com.infiniteautomation.mango.rest.RootRestDispatcherConfiguration;
+import com.infiniteautomation.mango.rest.swagger.RootSwaggerConfig;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ApplicationContextDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.web.mvc.rest.swagger.RootSwaggerConfig;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**

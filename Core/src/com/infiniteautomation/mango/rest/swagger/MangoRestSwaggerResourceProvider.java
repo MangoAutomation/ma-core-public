@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2018  Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.web.mvc.rest.swagger;
+package com.infiniteautomation.mango.rest.swagger;
 
 import java.util.ArrayList;
 import java.util.List;
