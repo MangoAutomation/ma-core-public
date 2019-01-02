@@ -13,12 +13,12 @@ import java.util.regex.Pattern;
 
 import com.serotonin.util.SerializationHelper;
 
-public class RangeValue implements Serializable {
+public class RangeValue implements Serializable, Comparable<RangeValue> {
     private double from;
     private double to;
     private String text;
     private String colour;
-    
+
     private static final Pattern VALUE_PATTERN = Pattern.compile("\\$\\{value\\}");
 
     /**
@@ -62,7 +62,7 @@ public class RangeValue implements Serializable {
         this.text = text;
         this.colour = colour;
     }
-    
+
     String formatText(String number) {
         String escapedReplacement = Matcher.quoteReplacement(number);
         return VALUE_PATTERN.matcher(this.text).replaceAll(escapedReplacement);
@@ -113,6 +113,29 @@ public class RangeValue implements Serializable {
             to = in.readDouble();
             text = SerializationHelper.readSafeUTF(in);
             colour = SerializationHelper.readSafeUTF(in);
+        }
+    }
+
+    @Override
+    public int compareTo(RangeValue o) {
+        double thisTo = this.getTo();
+        double otherTo = o.getTo();
+
+        if (thisTo < otherTo) {
+            return -1;
+        } else if (thisTo > otherTo) {
+            return 1;
+        } else {
+            double thisFrom = this.getFrom();
+            double otherFrom = o.getFrom();
+
+            if (thisFrom < otherFrom) {
+                return -1;
+            } else if (thisFrom > otherFrom) {
+                return 1;
+            } else {
+                return 0;
+            }
         }
     }
 }

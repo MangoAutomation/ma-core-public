@@ -45,12 +45,12 @@ public class RangeRenderer extends ConvertingRenderer {
     private String format;
     @JsonProperty
     private List<RangeValue> rangeValues;
-    
+
     public RangeRenderer() {
         super();
         setDefaults();
     }
-    
+
     /**
      * @param format
      */
@@ -58,16 +58,17 @@ public class RangeRenderer extends ConvertingRenderer {
         super();
         this.format = format;
     }
-    
+
     @Override
     protected void setDefaults() {
-    	super.setDefaults();
+        super.setDefaults();
         format = "";
         rangeValues = new ArrayList<RangeValue>();
     }
 
     public void addRangeValues(double from, double to, String text, String colour) {
         rangeValues.add(new RangeValue(from, to, text, colour));
+        this.rangeValues.sort(null);
     }
 
     public List<RangeValue> getRangeValues() {
@@ -76,6 +77,7 @@ public class RangeRenderer extends ConvertingRenderer {
 
     public void setRangeValues(List<RangeValue> rangeValues) {
         this.rangeValues = rangeValues;
+        this.rangeValues.sort(null);
     }
 
     public String getFormat() {
@@ -99,14 +101,14 @@ public class RangeRenderer extends ConvertingRenderer {
             value = unit.getConverterTo(renderedUnit).convert(value);
 
         String numberString = new DecimalFormat(format).format(value);
-        
+
         if ((hint & HINT_RAW) != 0 || (hint & HINT_SPECIFIC) != 0)
             return numberString + " " + UnitUtil.formatLocal(renderedUnit);
 
         RangeValue range = getRangeValue(value);
         if (range == null)
             return numberString + " " + UnitUtil.formatLocal(renderedUnit);
-        
+
         return range.formatText(numberString);
     }
 
@@ -128,11 +130,15 @@ public class RangeRenderer extends ConvertingRenderer {
     }
 
     private RangeValue getRangeValue(double value) {
-        for (RangeValue range : rangeValues) {
+        // relies on the rangeValues being sorted, iterate in reverse order
+        for (int i = rangeValues.size() - 1; i >= 0; i--) {
+            RangeValue range = rangeValues.get(i);
+
             if (range.contains(value)) {
                 return range;
             }
         }
+
         return null;
     }
 
@@ -151,7 +157,7 @@ public class RangeRenderer extends ConvertingRenderer {
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -162,40 +168,39 @@ public class RangeRenderer extends ConvertingRenderer {
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-        
+
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
             format = SerializationHelper.readSafeUTF(in);
             rangeValues = (List<RangeValue>) in.readObject();
             useUnitAsSuffix = false;
-        }
-        else if (ver == 2) {
+            this.rangeValues.sort(null);
+        } else if (ver == 2) {
             format = SerializationHelper.readSafeUTF(in);
             rangeValues = (List<RangeValue>) in.readObject();
             useUnitAsSuffix = in.readBoolean();
             unit = (Unit<?>) in.readObject();
             renderedUnit = (Unit<?>) in.readObject();
-        }else if (ver == 3){
+            this.rangeValues.sort(null);
+        } else if (ver == 3) {
             format = SerializationHelper.readSafeUTF(in);
             rangeValues = (List<RangeValue>) in.readObject();
+            this.rangeValues.sort(null);
+        } else if (ver == 4) {
+            format = SerializationHelper.readSafeUTF(in);
+            rangeValues = (List<RangeValue>) in.readObject();
+            // rangeValues are pre-sorted in v4 and above
         }
     }
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-	@Override
-	public void validate(ProcessResult result) {
-		if((format == null)||(format.equals("")))
-			result.addContextualMessage("format", "validate.required");
-		
-		if((rangeValues == null)||(rangeValues.size() == 0))
-			result.addContextualMessage("rangeValues", "validate.atLeast1");
-		
-		//TODO Validate the range values too
-	}
-    
-    
-    
-    
-    
+
+    @Override
+    public void validate(ProcessResult result) {
+        if((format == null)||(format.equals("")))
+            result.addContextualMessage("format", "validate.required");
+
+        if((rangeValues == null)||(rangeValues.size() == 0))
+            result.addContextualMessage("rangeValues", "validate.atLeast1");
+
+        //TODO Validate the range values too
+    }
 }
