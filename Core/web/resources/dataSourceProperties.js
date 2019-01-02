@@ -321,7 +321,7 @@ function deletePoint() {
              updateImg(
                      $("toggleDataPoint"),
                      mangoImg("database_stop.png"),
-                     mango.i18n["common.enabledToggle"],
+                     mango.i18n["common.disabledToggle"],
                      true
              );
          }
