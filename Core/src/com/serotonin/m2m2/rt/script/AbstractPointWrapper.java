@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import com.serotonin.m2m2.rt.dataImage.HistoricalDataPoint;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -23,6 +24,7 @@ abstract public class AbstractPointWrapper {
     protected final PointValueFacade valueFacade;
     protected final ScriptEngine engine;
     protected final ScriptPointValueSetter setter;
+    protected final boolean historical;
     private DataPointWrapper voWrapper = null;
 
     AbstractPointWrapper(IDataPointValueSource point, ScriptEngine engine, ScriptPointValueSetter setter) {
@@ -30,6 +32,7 @@ abstract public class AbstractPointWrapper {
         this.valueFacade = new PointValueFacade(point.getVO().getId(), false);
         this.engine = engine;
         this.setter = setter;
+        this.historical = point instanceof HistoricalDataPoint;
     }
 
     protected WrapperContext getContext() {
@@ -94,7 +97,7 @@ abstract public class AbstractPointWrapper {
     }
 
     public List<PointValueTime> last(int limit, boolean cache) {
-        if(cache)
+        if(cache || historical)
             return point.getLatestPointValues(limit);
         else
             return valueFacade.getLatestPointValues(limit);
@@ -113,7 +116,7 @@ abstract public class AbstractPointWrapper {
     }
 
     public PointValueTime lastValue(int index, boolean cache) {
-        if(cache) {
+        if(cache || historical) {
             List<PointValueTime> list = point.getLatestPointValues(index + 1);
             if (list.size() <= index)
                 return null;
@@ -170,7 +173,7 @@ abstract public class AbstractPointWrapper {
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesBetween(long from, long to, boolean cache){
-        if(cache)
+        if(cache || historical)
             return point.getPointValuesBetween(from, to);
         else
             return valueFacade.getPointValuesBetween(from, to);
@@ -193,7 +196,7 @@ abstract public class AbstractPointWrapper {
      * @return List of PointValueTime objects or empty list
      */
     public List<PointValueTime> pointValuesSince(long since, boolean cache){
-        if(cache) 
+        if(cache || historical) 
             return point.getPointValues(since);
         else
             return valueFacade.getPointValues(since);
@@ -215,7 +218,7 @@ abstract public class AbstractPointWrapper {
      * @return nearest value OR null
      */
     public PointValueTime pointValueBefore(long timestamp, boolean cache){
-        if(cache)
+        if(cache || historical)
             return point.getPointValueBefore(timestamp);
         else
             return valueFacade.getPointValueBefore(timestamp);
@@ -237,7 +240,7 @@ abstract public class AbstractPointWrapper {
      * @return nearest value OR null
      */
     public PointValueTime pointValueAfter(long timestamp, boolean cache){
-        if(cache)
+        if(cache || historical)
             return point.getPointValueAfter(timestamp);
         else
             return valueFacade.getPointValueAfter(timestamp);
@@ -258,7 +261,7 @@ abstract public class AbstractPointWrapper {
      * @return value at exactly this time OR null
      */
     public PointValueTime pointValueAt(long timestamp, boolean cache){
-        if(cache)
+        if(cache || historical)
             return point.getPointValueAt(timestamp);
         else
             return valueFacade.getPointValueAt(timestamp);

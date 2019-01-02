@@ -45,7 +45,7 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
     public String ago(int periodType, int count, boolean cache) {
         long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
         PointValueTime pvt;
-        if(cache)
+        if(cache || historical)
             pvt = point.getPointValueBefore(from);
         else
             pvt = valueFacade.getPointValueBefore(from);
@@ -114,7 +114,7 @@ public class AlphanumericPointWrapper extends AbstractPointWrapper {
     public ValueChangeCounterWrapper getStats(long from, long to, boolean cache) {
         PointValueTime start;
         List<PointValueTime> values;
-        if(cache) {
+        if(cache || historical) {
             start = point.getPointValueBefore(from + 1);
             values = point.getPointValuesBetween(from + 1, to);
         } else {

@@ -81,7 +81,7 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
     public StartsAndRuntimeListWrapper getStats(long from, long to, boolean cache) {
         PointValueTime start;
         List<PointValueTime> values;
-        if(cache) {
+        if(cache || historical) {
             start = point.getPointValueBefore(from + 1);
             values = point.getPointValuesBetween(from + 1, to);
         } else {
