@@ -63,6 +63,7 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -687,6 +688,23 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         return counts;
     }
 
+    /**
+     * Get the count of data points per type of data source
+     * @return
+     */
+    public List<DataPointUsageStatistics> getUsage() {
+        return ejt.query("SELECT ds.dataSourceType, COUNT(ds.dataSourceType) FROM dataPoints as dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id GROUP BY ds.dataSourceType", 
+                new RowMapper<DataPointUsageStatistics>() {
+                @Override
+                public DataPointUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
+                    DataPointUsageStatistics usage = new DataPointUsageStatistics();
+                    usage.setDataSourceType(rs.getString(1));
+                    usage.setCount(rs.getInt(2));
+                    return usage;
+                }
+            });
+    }
+    
     //
     // Data point summaries
     private static final String DATA_POINT_SUMMARY_SELECT = //

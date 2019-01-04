@@ -37,6 +37,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -355,6 +356,22 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 String.class, null);
     }
 
+    /**
+     * Get the count of data sources per type
+     * @return
+     */
+    public List<DataSourceUsageStatistics> getUsage() {
+        return ejt.query("SELECT dataSourceType, COUNT(dataSourceType) FROM dataSources GROUP BY dataSourceType", new RowMapper<DataSourceUsageStatistics>() {
+            @Override
+            public DataSourceUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
+                DataSourceUsageStatistics usage = new DataSourceUsageStatistics();
+                usage.setDataSourceType(rs.getString(1));
+                usage.setCount(rs.getInt(2));
+                return usage;
+            }
+        });
+    }
+    
     /*
      * (non-Javadoc)
      *

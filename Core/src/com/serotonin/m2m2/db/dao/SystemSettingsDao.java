@@ -193,6 +193,12 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_EXPIRATION_PERIOD_TYPE = "passwordExpirationPeriodType";
     public static final String PASSWORD_EXPIRATION_PERIODS = "passwordExpirationPeriods";
 
+    //Usage tracking statistics uploading
+    public static final String USAGE_TRACKING_ENABLED = "usageTrackingEnabled";
+    
+    //Check Store for Upgrades
+    public static final String UPGRADE_CHECKS_ENABLED = "upgradeChecksEnabled";
+    
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
@@ -500,6 +506,8 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIOD_TYPE, Common.TimePeriods.MONTHS);
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIODS, 6);
 
+        DEFAULT_VALUES.put(USAGE_TRACKING_ENABLED, true);
+        DEFAULT_VALUES.put(UPGRADE_CHECKS_ENABLED, true);
 
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
