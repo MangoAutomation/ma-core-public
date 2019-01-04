@@ -65,6 +65,33 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     }
     
     /**
+     * Ensure this vo is valid compared to the previous one. 
+     * 
+     * Override as necessary, most VOs won't need this.
+     * 
+     * @param existing
+     * @param vo
+     * @param user
+     * @return
+     */
+    public ProcessResult validate(T existing, T vo, PermissionHolder user) {
+        ProcessResult result = new ProcessResult();
+        vo.validate(result);
+        return result;
+    }
+    
+    /**
+     * Note: validation will only fail if there are Error level messages in the result
+     * @param existing
+     * @param vo
+     * @param user
+     * @throws ValidationException
+     */
+    public void ensureValid(T existing, T vo, PermissionHolder user) throws ValidationException {
+        ensureValid(existing, vo, user);
+    }
+    
+    /**
      * 
      * @param xid
      * @param user
@@ -262,7 +289,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     protected T update(T existing, T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
-        ensureValid(vo, user);
+        ensureValid(existing, vo, user);
         if(full)
             dao.saveFull(vo);
         else
