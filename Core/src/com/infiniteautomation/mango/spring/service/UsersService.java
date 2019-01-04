@@ -3,6 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,8 +17,10 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionDetails;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
@@ -88,6 +94,65 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         dao.deleteUser(vo.getId());
         return vo;
     }
+    
+    /**
+     * Lock a user's password
+     * @param username
+     * @param user
+     * @throws PermissionException
+     * @throws NotFoundException
+     */
+    public void lockPassword(String username, PermissionHolder user)
+            throws PermissionException, NotFoundException {
+        user.ensureHasAdminPermission();
+        User toLock = get(username, user);
+        //TODO Ensure we can't lock ourselves?
+        //if(toLock.getId() == user.getPermissionHolderId()) 
+        //    throw new PermissionException(new TranslatableMessage(ADD_MEE), user);
+        dao.lockPassword(toLock);
+    }
+    
+
+    /**
+     * Get User Permissions Information for all users, exclude provided groups in query
+     * @param query
+     * @param user
+     * @return
+     */
+    public Set<PermissionDetails> getPermissionDetails(String query, PermissionHolder user) {
+        Set<PermissionDetails> details = new TreeSet<>();
+        for (User u : dao.getActiveUsers()){
+            PermissionDetails deets = Permissions.getPermissionDetails(user, query, u);
+            if(deets != null)
+                details.add(deets);
+        }
+        return details;
+    }
+    
+    /**
+     * Get All User Groups that a user can 'see', exclude any groups listed
+     * @param exclude
+     * @param user
+     * @return
+     */
+    public Set<String> getUserGroups(List<String> exclude, PermissionHolder user) {
+        Set<String> groups = new TreeSet<>();
+        
+        if(user.hasAdminPermission()) {
+            for (User u : UserDao.getInstance().getActiveUsers())
+                groups.addAll(Permissions.explodePermissionGroups(u.getPermissions()));
+        }else {
+            groups.addAll(user.getPermissionsSet());
+        }
+        
+        if (exclude != null) {
+            for (String part : exclude)
+                groups.remove(part);
+        }
+        
+        return groups;
+    }
+    
     
     @Override
     public ProcessResult validate(User vo, PermissionHolder user) {
