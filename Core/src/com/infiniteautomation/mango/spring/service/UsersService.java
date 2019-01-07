@@ -106,9 +106,8 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             throws PermissionException, NotFoundException {
         user.ensureHasAdminPermission();
         User toLock = get(username, user);
-        //TODO Ensure we can't lock ourselves?
-        //if(toLock.getId() == user.getPermissionHolderId()) 
-        //    throw new PermissionException(new TranslatableMessage(ADD_MEE), user);
+        if(toLock.getId() == user.getPermissionHolderId()) 
+            throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), user);
         dao.lockPassword(toLock);
     }
     
