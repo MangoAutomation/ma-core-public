@@ -150,13 +150,15 @@ public class UserDao extends AbstractDao<User> {
         int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
+                user.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
+
                 return ejt.doInsert(
                         USER_INSERT,
                         new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                                 boolToChar(user.isDisabled()), user.getHomeUrl(),
                                 user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                                 boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
-                                user.getPasswordVersion(), Common.timer.currentTimeMillis()},
+                                user.getPasswordVersion(), user.getPasswordChangeTimestamp()},
                         new int[] { Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
