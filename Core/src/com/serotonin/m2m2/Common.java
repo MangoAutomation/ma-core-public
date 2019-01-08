@@ -202,10 +202,16 @@ public class Common {
         return Version.forIntegers(version.getMajorVersion(), version.getMinorVersion(), version.getPatchVersion());
     }
 
+    public static final int getLicenseAgreementVersion() {
+        return CoreVersion.INSTANCE.licenseAgreementVersion;
+    }
+    
     private enum CoreVersion {
         INSTANCE();
         final Version version;
-
+        //Track license agreement version to ensure the admin users have accepted the current version of our license
+        final int licenseAgreementVersion = 1;
+        
         CoreVersion() {
             Version version = CompiledCoreVersion.VERSION;
 

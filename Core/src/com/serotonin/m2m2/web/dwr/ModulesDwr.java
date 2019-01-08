@@ -326,13 +326,8 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
 
     public static JsonValue getAvailableUpgrades() throws JsonException, IOException, HttpException {
 
-        //Don't run if we know the admin User has not had a chance to confirm they want this to happen
-        User admin = UserDao.getInstance().getUser("admin");
-        if(admin.getLastLogin() == 0)
-            return null;
-        
         //If upgrade checks are not enabled we won't contact the store at all
-        if(!SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED, true))
+        if(!SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED))
             return null;
         
         // Create the request
@@ -380,12 +375,17 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                 jsonModules.put(module.getName(), module.getVersion().toString());
 
         //Optionally Add Usage Data Check if first login for admin has happened to ensure they have 
-        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.USAGE_TRACKING_ENABLED, true)) {
+        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.USAGE_TRACKING_ENABLED)) {
             //Collect statistics
             List<DataSourceUsageStatistics> dataSourceCounts =  DataSourceDao.getInstance().getUsage();
             json.put("dataSourcesUsage", dataSourceCounts);
             List<DataPointUsageStatistics> dataPointCounts = DataPointDao.getInstance().getUsage();
             json.put("dataPointsUsage", dataPointCounts);
+            json.put("userCount", UserDao.getInstance().count());
+            json.put("cpuCount", Runtime.getRuntime().availableProcessors());
+            Runtime rt = Runtime.getRuntime();
+            json.put("maxMemoryMB", (int)(rt.maxMemory()/(1024*1024)));
+            
         }
 
         

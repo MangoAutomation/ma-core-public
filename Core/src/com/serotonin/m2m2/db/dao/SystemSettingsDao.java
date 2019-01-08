@@ -199,6 +199,9 @@ public class SystemSettingsDao extends BaseDao {
     //Check Store for Upgrades
     public static final String UPGRADE_CHECKS_ENABLED = "upgradeChecksEnabled";
     
+    //License Agreement Acceptance Tracking
+    public static final String LICENSE_AGREEMENT_VERSION = "licenseAgreementVersion";
+    
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
@@ -506,8 +509,9 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIOD_TYPE, Common.TimePeriods.MONTHS);
         DEFAULT_VALUES.put(PASSWORD_EXPIRATION_PERIODS, 6);
 
-        DEFAULT_VALUES.put(USAGE_TRACKING_ENABLED, true);
+        DEFAULT_VALUES.put(USAGE_TRACKING_ENABLED, false);
         DEFAULT_VALUES.put(UPGRADE_CHECKS_ENABLED, true);
+        DEFAULT_VALUES.put(LICENSE_AGREEMENT_VERSION, 0);
 
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
@@ -937,6 +941,11 @@ public class SystemSettingsDao extends BaseDao {
         Integer passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);
         if(passwordExpirationPeriods != null && passwordExpirationPeriods < 1)
             response.addContextualMessage(PASSWORD_EXPIRATION_PERIODS, "validate.greaterThanZero");
+        
+        setting = settings.get(LICENSE_AGREEMENT_VERSION);
+        if(setting != null)
+            response.addContextualMessage(LICENSE_AGREEMENT_VERSION, "validate.readOnly");
+
     }
 
 

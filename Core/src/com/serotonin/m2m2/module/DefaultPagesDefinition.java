@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -28,6 +29,9 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
 
                 // If there is a page to which to forward, do so. This could be null.
                 uri = DefaultPagesDefinition.getFirstLoginUri(request, response);
+            }else if(Permissions.hasAdminPermission(user) && (SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LICENSE_AGREEMENT_VERSION) != Common.getLicenseAgreementVersion())) {
+                //When a new license version has been released but it is NOT the first login.
+                uri = DefaultPagesDefinition.getAdminLicenseUpgradeLoginUri(request, response);
             }
 
             if (uri == null) {
@@ -85,6 +89,16 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         return uri;
     }
 
+    private static String getAdminLicenseUpgradeLoginUri(HttpServletRequest request, HttpServletResponse response) {
+        String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getAdminLicenseUpgradeLoginPageUri(request, response);
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
+    
     private static String getFirstUserLoginUri(HttpServletRequest request, HttpServletResponse response, User user) {
         String uri = null;
         for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
@@ -177,6 +191,17 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         return null;
     }
 
+    /**
+     * Returns the URI of the page to use following an upgraded license. If this method returns null, the
+     * next definition (if available) will be used. This method will only be called *once*, so if any manner of
+     * redirect is used the implementation must do its own handling accordingly.
+     * 
+     * @return the URI of the page to use following license upgrades, or null.
+     */
+    public String getAdminLicenseUpgradeLoginPageUri(HttpServletRequest request, HttpServletResponse response) {
+        return getFirstLoginPageUri(request, response);
+    }
+    
     /**
      * Returns the URI of the page to use following the first login of the user. The getFirstLoginPageUri takes
      * precedence to this method if the login was the first for the instance. If this method returns null, the next
