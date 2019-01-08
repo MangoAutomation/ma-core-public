@@ -31,6 +31,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
 import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
+import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.json.JsonException;
@@ -45,7 +47,10 @@ import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.UpgradeVersionState;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -320,6 +325,11 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     }
 
     public static JsonValue getAvailableUpgrades() throws JsonException, IOException, HttpException {
+
+        //If upgrade checks are not enabled we won't contact the store at all
+        if(!SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED))
+            return null;
+        
         // Create the request
         List<Module> modules = ModuleRegistry.getModules();
         Module.sortByName(modules);
@@ -364,6 +374,21 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             if (!module.isMarkedForDeletion())
                 jsonModules.put(module.getName(), module.getVersion().toString());
 
+        //Optionally Add Usage Data Check if first login for admin has happened to ensure they have 
+        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.USAGE_TRACKING_ENABLED)) {
+            //Collect statistics
+            List<DataSourceUsageStatistics> dataSourceCounts =  DataSourceDao.getInstance().getUsage();
+            json.put("dataSourcesUsage", dataSourceCounts);
+            List<DataPointUsageStatistics> dataPointCounts = DataPointDao.getInstance().getUsage();
+            json.put("dataPointsUsage", dataPointCounts);
+            json.put("userCount", UserDao.getInstance().count());
+            json.put("cpuCount", Runtime.getRuntime().availableProcessors());
+            Runtime rt = Runtime.getRuntime();
+            json.put("maxMemoryMB", (int)(rt.maxMemory()/(1024*1024)));
+            
+        }
+
+        
         StringWriter stringWriter = new StringWriter();
         new JsonWriter(Common.JSON_CONTEXT, stringWriter).writeObject(json);
         String requestData = stringWriter.toString();
