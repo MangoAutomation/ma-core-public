@@ -19,9 +19,10 @@ import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
+ * 
  * @author Matthew Lohbihler
  */
-public class CompiledScriptExecutor extends ScriptExecutor{
+public class CompiledScriptExecutor extends ScriptExecutor {
     private static final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
     private static final String SCRIPT_SUFFIX = "\r\n}\r\n";
     private static final String SCRIPT_POSTFIX = "\r\n__scriptExecutor__();";
