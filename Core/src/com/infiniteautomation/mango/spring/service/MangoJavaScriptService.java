@@ -276,12 +276,14 @@ public class MangoJavaScriptService {
             }
                     
             // Put the context variables into the engine with engine scope.
-            for (String varName : context.keySet()) {
-                IDataPointValueSource point = context.get(varName);
-                engineScope.put(varName, ScriptUtils.wrapPoint(engine, point, setter));
-             }
-            
-            engineScope.put(ScriptUtils.POINTS_MAP_KEY, context);
+            if(context != null) {
+                for (String varName : context.keySet()) {
+                    IDataPointValueSource point = context.get(varName);
+                    engineScope.put(varName, ScriptUtils.wrapPoint(engine, point, setter));
+                 }
+                
+                engineScope.put(ScriptUtils.POINTS_MAP_KEY, context);
+            }
             
             //Set the print writer and log
             engine.getContext().setWriter(log.getStdOutWriter());
