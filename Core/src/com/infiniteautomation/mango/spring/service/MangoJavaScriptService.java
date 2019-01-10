@@ -116,6 +116,10 @@ public class MangoJavaScriptService {
                 result.addContextualMessage("resultDataTypeId", "validate.invalidValue");
         }
         
+        //Can't validate a null script
+        if(StringUtils.isEmpty(vo.getScript()))
+            result.addContextualMessage("script", "validate.invalidValue");
+        
         return result;
     }
     
