@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2019  Infinite Automation Software. All rights reserved.
+ */
 package com.serotonin.m2m2.rt.script;
 
 import java.util.regex.Pattern;
@@ -6,6 +9,11 @@ import javax.script.ScriptException;
 
 import com.serotonin.util.StringUtils;
 
+/**
+ * 
+ * @author Terry Packer
+ *
+ */
 public class ScriptError extends Exception {
     private static final long serialVersionUID = 1L;
     private static final Pattern PATTERN = Pattern.compile("(.*?): (.*?) \\(.*?\\)");

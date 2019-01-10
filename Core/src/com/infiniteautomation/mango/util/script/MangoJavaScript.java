@@ -14,7 +14,7 @@ import com.serotonin.m2m2.rt.script.ScriptPermissions;
  *
  */
 public class MangoJavaScript {
-    private boolean compile;  //Is this script to be compiled
+    private boolean wrapInFunction;  //Should this be wrapped and executed as a function i.e. meta points do this
     private String script;
     private Map<String, IDataPointValueSource> context;
     private String permissions;
@@ -22,17 +22,18 @@ public class MangoJavaScript {
     //If non-null coerce the result into a PointValueTime with this data type
     private Integer resultDataTypeId; 
     
+    
     /**
-     * @return the compile
+     * @return the wrapInFunction
      */
-    public boolean isCompile() {
-        return compile;
+    public boolean isWrapInFunction() {
+        return wrapInFunction;
     }
     /**
-     * @param compile the compile to set
+     * @param wrapInFunction the wrapInFunction to set
      */
-    public void setCompile(boolean compile) {
-        this.compile = compile;
+    public void setWrapInFunction(boolean wrapInFunction) {
+        this.wrapInFunction = wrapInFunction;
     }
     /**
      * @return the script

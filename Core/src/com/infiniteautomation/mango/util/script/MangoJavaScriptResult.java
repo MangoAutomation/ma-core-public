@@ -6,8 +6,6 @@ package com.infiniteautomation.mango.util.script;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.serotonin.m2m2.i18n.TranslatableMessage;
-
 /**
  * @author Terry Packer
  *
@@ -15,40 +13,39 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 public class MangoJavaScriptResult {
 
     //Things the script has actioned i.e. setting a point value
-    private List<TranslatableMessage> actions;
+    private List<MangoJavaScriptAction> actions;
     //Errors from executing the script
-    private List<TranslatableMessage> errors;
+    private List<MangoJavaScriptError> errors; 
     //Script log and console.log messages
     private String scriptOutput;
     //Returned value from script, can be null
     private Object result;
     
-    
     /**
      * @return the actions
      */
-    public List<TranslatableMessage> getActions() {
+    public List<MangoJavaScriptAction> getActions() {
         return actions;
     }
 
     /**
      * @param actions the actions to set
      */
-    public void setActions(List<TranslatableMessage> actions) {
+    public void setActions(List<MangoJavaScriptAction> actions) {
         this.actions = actions;
     }
 
     /**
      * @return the errors
      */
-    public List<TranslatableMessage> getErrors() {
+    public List<MangoJavaScriptError> getErrors() {
         return errors;
     }
 
     /**
      * @param errors the errors to set
      */
-    public void setErrors(List<TranslatableMessage> errors) {
+    public void setErrors(List<MangoJavaScriptError> errors) {
         this.errors = errors;
     }
 
@@ -80,16 +77,16 @@ public class MangoJavaScriptResult {
         this.result = result;
     }
 
-    public void addAction(TranslatableMessage action) {
+    public void addAction(MangoJavaScriptAction action) {
         if(this.actions == null)
             this.actions = new ArrayList<>();
         this.actions.add(action);
     }
     
-    public void addError(TranslatableMessage action) {
+    public void addError(MangoJavaScriptError e) {
         if(this.errors == null)
             this.errors = new ArrayList<>();
-        this.errors.add(action);
+        this.errors.add(e);
     }
     
     public boolean hasErrors() {

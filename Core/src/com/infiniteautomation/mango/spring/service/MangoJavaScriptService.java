@@ -29,9 +29,12 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.infiniteautomation.mango.util.script.MangoJavaScript;
+import com.infiniteautomation.mango.util.script.MangoJavaScriptAction;
+import com.infiniteautomation.mango.util.script.MangoJavaScriptError;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -58,7 +61,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *
  */
 @Service
-public class JavaScriptService {
+public class MangoJavaScriptService {
 
     private final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
     private final String SCRIPT_SUFFIX = "\r\n}\r\n";
@@ -69,7 +72,7 @@ public class JavaScriptService {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/YYY HH:mm:ss");
 
-    public JavaScriptService() {
+    public MangoJavaScriptService() {
 
     }
     
@@ -138,10 +141,7 @@ public class JavaScriptService {
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, PermissionHolder user) throws ValidationException, PermissionException{
         ensureValid(vo, user);
-        if(vo.isCompile())
-            return testCompiledScript(vo, user);
-        else
-            return testRawScript(vo, user);
+        return testCompiledScript(vo, user);
     }
     
     /**
@@ -154,7 +154,12 @@ public class JavaScriptService {
         MangoJavaScriptResult result = new MangoJavaScriptResult();
         final StringWriter scriptOut = new StringWriter();
         try {
-            final String script = SCRIPT_PREFIX + vo.getScript() + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions() + SCRIPT_POSTFIX;
+            String script;
+            if(vo.isWrapInFunction()) {
+                script = SCRIPT_PREFIX + vo.getScript() + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions() + SCRIPT_POSTFIX;
+            }else {
+                script = vo.getScript();
+            }
             final ScriptEngine engine = ScriptUtils.newEngine();
             ScriptUtils.prepareEngine(engine);
             final CompiledScript compiledScript = ((Compilable)engine).compile(script);
@@ -179,17 +184,18 @@ public class JavaScriptService {
             }
 
         }catch (ScriptException e) {
-            result.addError(createScriptExceptionMessage(e));
+            result.addError(new MangoJavaScriptError(createScriptExceptionMessage(e), e.getLineNumber(), e.getColumnNumber()));
         }catch(ResultTypeException e) {
-            result.addError(e.getTranslatableMessage());
+            result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
         }catch (Exception e) {
-            result.addError(new TranslatableMessage("common.default", e.getMessage()));
+            result.addError(new MangoJavaScriptError(e.getMessage()));
         }finally {
             result.setScriptOutput(scriptOut.toString());
         }
         return result;
     }
     
+    @Deprecated
     protected MangoJavaScriptResult testRawScript(MangoJavaScript vo, PermissionHolder user) {
         MangoJavaScriptResult result = new MangoJavaScriptResult();
         final StringWriter scriptOut = new StringWriter();
@@ -218,11 +224,11 @@ public class JavaScriptService {
             }
 
         }catch (ScriptException e) {
-            result.addError(createScriptExceptionMessage(e));
+            result.addError(new MangoJavaScriptError(createScriptExceptionMessage(e), e.getLineNumber(), e.getColumnNumber()));
         }catch(ResultTypeException e) {
-            result.addError(e.getTranslatableMessage());
+            result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
         }catch (Exception e) {
-            result.addError(new TranslatableMessage("common.default", e.getMessage()));
+            result.addError(new MangoJavaScriptError(e.getMessage()));
         }finally {
             result.setScriptOutput(scriptOut.toString());
         }
@@ -362,6 +368,8 @@ public class JavaScriptService {
         prepareEngine(engine, context, additionalContext, runtime, timestamp, permissions, 
                 log, setter, importExclusions, testRun);
         
+        //TODO Move into this class
+        engine.eval(ScriptUtils.getGlobalFunctions());
         result = engine.eval(script);
 
         
@@ -393,15 +401,15 @@ public class JavaScriptService {
             public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
                 DataPointRT dprt = (DataPointRT) point;
                 if(!dprt.getVO().getPointLocator().isSettable()) {
-                    result.addAction(new TranslatableMessage("javascript.validate.pointNotSettable", dprt.getVO().getExtendedName()));
+                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.pointNotSettable", dprt.getVO().getExtendedName()), Level.error));
                     return;
                 }
 
                 if(!Permissions.hasDataPointSetPermission(permissions, dprt.getVO())) {
-                    result.addAction(new TranslatableMessage("javascript.validate.pointPermissionsFailure", dprt.getVO().getXid()));
+                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.pointPermissionsFailure", dprt.getVO().getXid(), Level.error)));
                     return;
                 }
-                result.addAction(new TranslatableMessage("javascript.validate.setPointValue", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp))));
+                result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValue", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp)))));
             }
 
             @Override
@@ -418,21 +426,18 @@ public class JavaScriptService {
      * @param e
      * @return
      */
-    protected TranslatableMessage createScriptExceptionMessage(ScriptException e) {
-        Throwable t = e.getCause();
+    public TranslatableMessage createScriptExceptionMessage(ScriptException e) {
+        Throwable t = e;
         while (t.getCause() != null)
             t = t.getCause();
-
+        
         String message = t.getMessage();
         Pattern pattern = Pattern.compile("(.*?):(.*?) ([\\s\\S]*)");
         Matcher matcher = pattern.matcher(message);
         if (matcher.find())
             message = matcher.group(3);
         
-        if (e.getColumnNumber() == -1)
-            return new TranslatableMessage("javascript.evalException", message, e.getLineNumber());
-        else
-            return new TranslatableMessage("javascript.evalExceptionCol", message, e.getLineNumber(), e.getColumnNumber());
+        return new TranslatableMessage("common.default", message);
     }
     
     //TODO Move to Script Utils?
