@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,6 +22,7 @@ import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
+import javax.script.SimpleBindings;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -32,8 +32,11 @@ import com.infiniteautomation.mango.util.script.MangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptAction;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptError;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -42,14 +45,18 @@ import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.rt.script.DateTimeUtility;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
+import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.rt.script.ScriptUtils;
+import com.serotonin.m2m2.rt.script.UnitUtility;
 import com.serotonin.m2m2.rt.script.WrapperContext;
 import com.serotonin.m2m2.util.VarNames;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -76,6 +83,12 @@ public class MangoJavaScriptService {
 
     }
     
+    /**
+     * Validate a script with its parts
+     * @param vo
+     * @param user
+     * @return
+     */
     public ProcessResult validate(MangoJavaScript vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
         
@@ -83,16 +96,15 @@ public class MangoJavaScriptService {
         
         //Validate the context, can we read all points and are the var names valid
         List<String> varNameSpace = new ArrayList<String>();
-        Iterator<String> it = vo.getContext().keySet().iterator();
-        while(it.hasNext()) {
-            String varName = it.next();
-            IDataPointValueSource idp = vo.getContext().get(varName);
-            if(idp == null)
+        for(ScriptContextVariable var : vo.getContext()) {
+            String varName = var.getVariableName();
+            DataPointVO dp = DataPointDao.getInstance().get(var.getDataPointId());
+            if(dp == null)
                 result.addContextualMessage("context", "javascript.validate.missingContextPoint", varName);
-            
-            if(!Permissions.hasDataPointReadPermission(user, idp.getVO()))
-                result.addContextualMessage("context", "javascript.validate.noReadPermissionOnContextPoint", varName);
-            
+            else {
+                if(!Permissions.hasDataPointReadPermission(user, dp))
+                    result.addContextualMessage("context", "javascript.validate.noReadPermissionOnContextPoint", varName);
+            }
             if (StringUtils.isBlank(varName)) {
                 result.addContextualMessage("context", "validate.allVarNames");
                 continue;
@@ -158,37 +170,32 @@ public class MangoJavaScriptService {
         MangoJavaScriptResult result = new MangoJavaScriptResult();
         final StringWriter scriptOut = new StringWriter();
         try {
-            String script;
-            if(vo.isWrapInFunction()) {
-                script = SCRIPT_PREFIX + vo.getScript() + SCRIPT_SUFFIX + ScriptUtils.getGlobalFunctions() + SCRIPT_POSTFIX;
-            }else {
-                script = vo.getScript();
-            }
-            final ScriptEngine engine = ScriptUtils.newEngine();
-            ScriptUtils.prepareEngine(engine);
-            final CompiledScript compiledScript = ((Compilable)engine).compile(script);
             final ScriptPointValueSetter setter = createValidationSetter(result, vo.createScriptPermissions());
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             int logLevel = vo.getLogLevel().value();
             if(logLevel == ScriptLog.LogLevel.NONE)
                 logLevel = ScriptLog.LogLevel.FATAL;
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel, scriptWriter);){
-                long time = Common.timer.currentTimeMillis();
+                CompiledScript compiledScript = compile(
+                        vo.getScript(),
+                        vo.isWrapInFunction(),
+                        convertContext(vo.getContext(), true),
+                        null,
+                        vo.createScriptPermissions(), 
+                        scriptLog,
+                        setter, null, true);
+
                 Object scriptResult;
-                if(vo.getResultDataTypeId() != null) {
-                    scriptResult = execute(compiledScript, vo.getContext(), 
-                            new HashMap<String, Object>(), time, vo.getResultDataTypeId(), time, 
-                            vo.createScriptPermissions(), scriptLog, setter, null, true);
-                }else {
-                    scriptResult = execute(compiledScript, vo.getContext(), 
-                            new HashMap<String, Object>(), time, time, 
-                            vo.createScriptPermissions(), scriptLog, setter, null, true);
-                }
+                long time = Common.timer.currentTimeMillis();
+                if(vo.getResultDataTypeId() != null)
+                    scriptResult = execute(compiledScript, time, time, vo.getResultDataTypeId());
+                else
+                    scriptResult = execute(compiledScript, time);
                 result.setResult(scriptResult);
             }
-
         }catch (ScriptException e) {
-            result.addError(new MangoJavaScriptError(createScriptExceptionMessage(e), e.getLineNumber(), e.getColumnNumber()));
+            result.addError(new MangoJavaScriptError(
+                    new TranslatableMessage("common.default", cleanScriptExceptionMessage(e)), e.getLineNumber(), e.getColumnNumber()));
         }catch(ResultTypeException e) {
             result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
         }catch (Exception e) {
@@ -198,54 +205,13 @@ public class MangoJavaScriptService {
         }
         return result;
     }
-    
-    @Deprecated
-    protected MangoJavaScriptResult testRawScript(MangoJavaScript vo, PermissionHolder user) {
-        MangoJavaScriptResult result = new MangoJavaScriptResult();
-        final StringWriter scriptOut = new StringWriter();
-        try {
-            final ScriptEngine engine = ScriptUtils.newEngine();
-            ScriptUtils.prepareEngine(engine);
-            final ScriptPointValueSetter setter = createValidationSetter(result, vo.createScriptPermissions());
-            final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-            int logLevel = vo.getLogLevel().value();
-            if(logLevel == ScriptLog.LogLevel.NONE)
-                logLevel = ScriptLog.LogLevel.FATAL;
-            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel, scriptWriter);){
-                long time = Common.timer.currentTimeMillis();
-                final String script = vo.getScript();
-                Object scriptResult;
-                if(vo.getResultDataTypeId() != null) {
-                    scriptResult = execute(script, vo.getContext(), 
-                            new HashMap<String, Object>(), time, vo.getResultDataTypeId(), time, 
-                            vo.createScriptPermissions(), scriptLog, setter, null, true);
-                }else {
-                    scriptResult = execute(script, vo.getContext(), 
-                            new HashMap<String, Object>(), time, time, 
-                            vo.createScriptPermissions(), scriptLog, setter, null, true);
-                }
-                result.setResult(scriptResult);
-            }
 
-        }catch (ScriptException e) {
-            result.addError(new MangoJavaScriptError(createScriptExceptionMessage(e), e.getLineNumber(), e.getColumnNumber()));
-        }catch(ResultTypeException e) {
-            result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
-        }catch (Exception e) {
-            result.addError(new MangoJavaScriptError(e.getMessage()));
-        }finally {
-            result.setScriptOutput(scriptOut.toString());
-        }
-        return result;
-    }
-    
     /**
-     * Execute a compiled script
+     * Compile a script to be run
      * @param script
+     * @param wrapInFunction
      * @param context
      * @param additionalContext
-     * @param runtime - epoch when run
-     * @param timestamp - default timestamp in context
      * @param permissions
      * @param log
      * @param setter
@@ -254,132 +220,98 @@ public class MangoJavaScriptService {
      * @return
      * @throws ScriptException
      */
-    public Object execute(CompiledScript script, Map<String, IDataPointValueSource> context,
-            Map<String, Object> additionalContext, long runtime, long timestamp, 
-            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter,
+    public CompiledScript compile(String script, boolean wrapInFunction, Map<String, 
+            IDataPointValueSource> context, Map<String, Object> additionalContext,
+            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
             List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptException {
-        // Create the wrapper object context.
-        ScriptEngine engine = script.getEngine();
-
-        //Prepare the Engine
-        Bindings engineScope = prepareEngine(engine, context, additionalContext, runtime, timestamp, permissions, 
-                log, setter, importExclusions, testRun);
         
-        try {
-            return script.eval(engineScope);
+        final ScriptEngine engine = ScriptUtils.newEngine();
+        
+        Bindings globalBindings = new SimpleBindings();
+        // Add constants to the context.
+        globalBindings.put("SECOND", Common.TimePeriods.SECONDS);
+        globalBindings.put("MINUTE", Common.TimePeriods.MINUTES);
+        globalBindings.put("HOUR", Common.TimePeriods.HOURS);
+        globalBindings.put("DAY", Common.TimePeriods.DAYS);
+        globalBindings.put("WEEK", Common.TimePeriods.WEEKS);
+        globalBindings.put("MONTH", Common.TimePeriods.MONTHS);
+        globalBindings.put("YEAR", Common.TimePeriods.YEARS);
+        globalBindings.put(ScriptUtils.POINTS_CONTEXT_KEY, new ArrayList<String>());
+        
+        for(IntStringPair isp : Common.ROLLUP_CODES.getIdKeys(Common.Rollups.NONE))
+            globalBindings.put(Common.ROLLUP_CODES.getCode(isp.getKey()), isp.getKey());
+        
+        //Add in Additional Utilities with Global Scope
+        globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
+        globalBindings.put(UnitUtility.CONTEXT_KEY, new UnitUtility());
+        
+        //Holder for modifying timestamps of meta points, in Engine Scope so it can be modified by all
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).put(ScriptUtils.TIMESTAMP_CONTEXT_KEY, null);
+        
+        engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
+        
+        
+        Bindings engineScope = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+
+        //TODO Make a method in this class: Add Permissions Required Utilities
+        if(permissions != null)
+            ScriptUtils.prepareUtilities(permissions, engine, engineScope, setter, importExclusions, testRun);
+        
+        if(additionalContext != null){
+            Set<Entry<String,Object>> entries = additionalContext.entrySet();
+            for(Entry<String,Object> entry: entries)
+                engineScope.put(entry.getKey(), entry.getValue());
         }
-        catch (ScriptException e) {
-            throw prettyScriptMessage(e);
-        }
-    }
-    
-    /**
-     * Execute a compiled script and coerce the result to a PointValueTime
-     * @param script
-     * @param context
-     * @param additionalContext
-     * @param runtime
-     * @param dataTypeId - data type of point value time
-     * @param timestamp - default timestamp for result
-     * @param permissions
-     * @param log
-     * @param setter
-     * @param importExclusions
-     * @param testRun
-     * @return
-     * @throws ResultTypeException
-     * @throws ScriptException
-     */
-    public PointValueTime execute(CompiledScript script, Map<String, IDataPointValueSource> context,
-            Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, 
-            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter,
-            List<JsonImportExclusion> importExclusions, boolean testRun) throws ResultTypeException, ScriptException {
-        Object result = execute(script, context, 
-                additionalContext, runtime, timestamp, 
-                permissions, log, setter, importExclusions, testRun);
+                
+        // Put the context variables into the engine with engine scope.
+        for (String varName : context.keySet()) {
+            IDataPointValueSource point = context.get(varName);
+            engineScope.put(varName, ScriptUtils.wrapPoint(engine, point, setter));
+         }
         
-        //Coerce to data type desired
-     // Check if a timestamp was set
-        Object ts = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get(ScriptUtils.TIMESTAMP_CONTEXT_KEY);
-
-        if (ts != null) {
-            // Check the type of the object.
-            if (ts instanceof Number)
-                // Convert to long
-                timestamp = ((Number) ts).longValue();
-        }
-        DataValue value = ScriptUtils.coerce(result, dataTypeId);
-        return new PointValueTime(value, timestamp);
-    }
-    
-    /**
-     * Execute a non compiled script for any result
-     * @param script
-     * @param context
-     * @param additionalContext
-     * @param runtime
-     * @param timestamp
-     * @param permissions
-     * @param log
-     * @param setter
-     * @param importExclusions
-     * @param testRun
-     * @return
-     * @throws ScriptException
-     */
-    public Object execute(String script, Map<String, IDataPointValueSource> context,
-            Map<String, Object> additionalContext, long runtime, long timestamp, 
-            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter,
-            List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptException {
-        // Create the wrapper object context.
-        ScriptEngine engine = ScriptUtils.newEngine();
-
-        //Prepare the Engine
-        prepareEngine(engine, context, additionalContext, runtime, timestamp, permissions, 
-                log, setter, importExclusions, testRun);
+        engineScope.put(ScriptUtils.POINTS_MAP_KEY, context);
         
-        return engine.eval(script);
-
-    }
-    
-    /**
-     * Excecute a non compiled script for a point value time result
-     * @param script
-     * @param context
-     * @param additionalContext
-     * @param runtime
-     * @param dataTypeId
-     * @param timestamp
-     * @param permissions
-     * @param log
-     * @param setter
-     * @param importExclusions
-     * @param testRun
-     * @return
-     * @throws ResultTypeException
-     * @throws ScriptException
-     */
-    public PointValueTime execute(String script, Map<String, IDataPointValueSource> context,
-            Map<String, Object> additionalContext, long runtime, int dataTypeId, long timestamp, 
-            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter,
-            List<JsonImportExclusion> importExclusions, boolean testRun) throws ResultTypeException, ScriptException {
-        Object result = null;
+        //Set the print writer and log
+        engine.getContext().setWriter(log.getStdOutWriter());
+        engineScope.put(ScriptLog.CONTEXT_KEY, log);
         
-        // Create the wrapper object context.
-        ScriptEngine engine = ScriptUtils.newEngine();
-
-        //Prepare the Engine
-        prepareEngine(engine, context, additionalContext, runtime, timestamp, permissions, 
-                log, setter, importExclusions, testRun);
-        
-        //TODO Move into this class
         engine.eval(ScriptUtils.getGlobalFunctions());
-        result = engine.eval(script);
-
         
-        //Coerce to data type desired
-        // Check if a timestamp was set
-        Object ts = engine.getBindings(ScriptContext.ENGINE_SCOPE).get(ScriptUtils.TIMESTAMP_CONTEXT_KEY);
+        String toCompile;
+        if(wrapInFunction) {
+            toCompile = SCRIPT_PREFIX + script + SCRIPT_SUFFIX + SCRIPT_POSTFIX;
+        }else {
+            toCompile = script;
+        }
+        
+        final CompiledScript compiledScript = ((Compilable)engine).compile(toCompile);
+        
+        return compiledScript;
+    }
+    
+    /**
+     * Execute a script to return a PointValueTime
+     * 
+     * @param compiledScript
+     * @param runtime - runtime of script
+     * @param timestamp - Timestamp in Context and default for point value
+     * @param resultDataTypeId
+     * @return
+     * @throws ScriptException 
+     * @throws ResultTypeException 
+     */
+    public PointValueTime execute(CompiledScript compiledScript, long runtime, long timestamp,
+            Integer resultDataTypeId) throws ScriptException, ResultTypeException {
+        //Setup the wraper context
+        compiledScript.getEngine().put(ScriptUtils.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
+        Object result;
+        try {
+            result = compiledScript.eval();
+        }catch (ScriptException e) {
+            throw new ScriptException(cleanScriptExceptionMessage(e), e.getFileName(), e.getLineNumber(), e.getColumnNumber());
+        }
+        
+        Object ts = compiledScript.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get(ScriptUtils.TIMESTAMP_CONTEXT_KEY);
 
         if (ts != null) {
             // Check the type of the object.
@@ -387,9 +319,25 @@ public class MangoJavaScriptService {
                 // Convert to long
                 timestamp = ((Number) ts).longValue();
         }
-        
-        DataValue value = ScriptUtils.coerce(result, dataTypeId);
+        DataValue value = ScriptUtils.coerce(result, resultDataTypeId);
         return new PointValueTime(value, timestamp);
+    }
+    
+    /**
+     * Excecute a script that does not return a PointValueTime
+     * @param compiledScript
+     * @param runtime
+     * @return
+     * @throws ScriptException
+     */
+    public Object execute(CompiledScript compiledScript, long runtime) throws ScriptException {
+        //Setup the wraper context
+        compiledScript.getEngine().put(ScriptUtils.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime));
+        try{
+            return compiledScript.eval();
+        }catch (ScriptException e) {
+            throw new ScriptException(cleanScriptExceptionMessage(e), e.getFileName(), e.getLineNumber(), e.getColumnNumber());
+        }
     }
     
     /**
@@ -426,73 +374,52 @@ public class MangoJavaScriptService {
     
     /* Utilities for Script Execution */
     /**
-     * Generate a translatable message from the exception
+     * Cleanup message to make more readable
      * @param e
      * @return
      */
-    public TranslatableMessage createScriptExceptionMessage(ScriptException e) {
-        Throwable t = e;
-        while (t.getCause() != null)
-            t = t.getCause();
+    public String cleanScriptExceptionMessage(ScriptException e) {
+        while (e.getCause() instanceof ScriptException)
+            e = (ScriptException) e.getCause();
         
-        String message = t.getMessage();
+        String message = e.getMessage();
+        if(message == null)
+            return "null";
+
         Pattern pattern = Pattern.compile("(.*?):(.*?) ([\\s\\S]*)");
         Matcher matcher = pattern.matcher(message);
         if (matcher.find())
             message = matcher.group(3);
         
-        return new TranslatableMessage("common.default", message);
+        return message;
     }
-    
-    //TODO Move to Script Utils?
-    protected Bindings prepareEngine(ScriptEngine engine, Map<String, 
-            IDataPointValueSource> context, Map<String, Object> additionalContext,
-            long runtime, long timestamp, ScriptPermissions permissions, 
-            ScriptLog log, ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun){
-        
-        ScriptUtils.prepareEngine(engine);
-        
-        ScriptUtils.wrapperContext(engine, new WrapperContext(runtime, timestamp));
-        Bindings engineScope = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-        //Add Permissions Required Utilities
-        if(permissions != null)
-            ScriptUtils.prepareUtilities(permissions, engine, engineScope, setter, importExclusions, testRun);
-        
-        if(additionalContext != null){
-            Set<Entry<String,Object>> entries = additionalContext.entrySet();
-            for(Entry<String,Object> entry: entries)
-                engineScope.put(entry.getKey(), entry.getValue());
-        }
-                
-        // Put the context variables into the engine with engine scope.
-        for (String varName : context.keySet()) {
-            IDataPointValueSource point = context.get(varName);
-            engineScope.put(varName, ScriptUtils.wrapPoint(engine, point, setter));
-         }
-        
-        engineScope.put(ScriptUtils.POINTS_MAP_KEY, context);
-        
-        //Set the print writer and log
-        engine.getContext().setWriter(log.getStdOutWriter());
-        engineScope.put(ScriptLog.CONTEXT_KEY, log);
 
-        return engineScope;
-    }
     
-    public ScriptException prettyScriptMessage(ScriptException e) {
-        while (e.getCause() instanceof ScriptException)
-            e = (ScriptException) e.getCause();
-        //TODO See ScriptError class
-        // Try to make the error message look a bit nicer.
-        List<String> exclusions = new ArrayList<String>();
-        exclusions.add("sun.org.mozilla.javascript.internal.EcmaError: ");
-        exclusions.add("sun.org.mozilla.javascript.internal.EvaluatorException: ");
-        String message = e.getMessage();
-        for (String exclude : exclusions) {
-            if (message.startsWith(exclude))
-                message = message.substring(exclude.length());
-        }
-        return new ScriptException(message, e.getFileName(), e.getLineNumber(), e.getColumnNumber());
+    /**
+     * Prepare the context of data points
+     * @param context
+     * @param test
+     * @return
+     */
+    private Map<String, IDataPointValueSource> convertContext(List<ScriptContextVariable> context, boolean test) {
+        Map<String, IDataPointValueSource> result = new HashMap<>();
+        if(context != null)
+            for(ScriptContextVariable variable : context) {
+                DataPointVO dpvo = DataPointDao.getInstance().get(variable.getDataPointId());
+                if(dpvo != null) {
+                    DataPointRT dprt = Common.runtimeManager.getDataPoint(dpvo.getId());
+                    //So we can test with points disabled
+                    if(dprt == null && test) {
+                        if(dpvo.getDefaultCacheSize() == 0)
+                            dpvo.setDefaultCacheSize(1);
+                        dprt = new DataPointRT(dpvo, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().getDataSource(dpvo.getDataSourceId()), null);
+                        dprt.resetValues(); //otherwise variable.value will be empty
+                    }
+                    if(dprt != null)
+                        result.put(variable.getVariableName(), dprt);
+                }
+            }
+        return result;
     }
 }

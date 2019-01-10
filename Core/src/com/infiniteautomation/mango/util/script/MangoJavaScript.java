@@ -3,9 +3,9 @@
  */
 package com.infiniteautomation.mango.util.script;
 
-import java.util.Map;
+import java.util.List;
 
-import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
+import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 
 /**
@@ -16,7 +16,7 @@ import com.serotonin.m2m2.rt.script.ScriptPermissions;
 public class MangoJavaScript {
     private boolean wrapInFunction;  //Should this be wrapped and executed as a function i.e. meta points do this
     private String script;
-    private Map<String, IDataPointValueSource> context;
+    private List<ScriptContextVariable> context;
     private String permissions;
     private ScriptLogLevels logLevel;
     //If non-null coerce the result into a PointValueTime with this data type
@@ -50,13 +50,13 @@ public class MangoJavaScript {
     /**
      * @return the context
      */
-    public Map<String, IDataPointValueSource> getContext() {
+    public List<ScriptContextVariable> getContext() {
         return context;
     }
     /**
      * @param context the context to set
      */
-    public void setContext(Map<String, IDataPointValueSource> context) {
+    public void setContext(List<ScriptContextVariable> context) {
         this.context = context;
     }
     /**

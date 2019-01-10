@@ -55,6 +55,8 @@ public class ScriptLog extends ProcessLog implements Closeable {
                 return ProcessLog.LogLevel.INFO;
             case LogLevel.WARN:
                 return ProcessLog.LogLevel.WARN;
+            case LogLevel.ERROR:
+                return ProcessLog.LogLevel.ERROR;
             case LogLevel.FATAL:
                 return ProcessLog.LogLevel.FATAL;
             case LogLevel.NONE:
