@@ -8,6 +8,7 @@
 * Modify email FTL Model for events, references to evt.alarmLevel in overridden templates should be changed to evt.alarmLevel.value()
 * Expose connection description and data source type translations in Data Source REST models
 * Add SMTP mail server connection/read/write timeout system setting
+* Fixing bug in process log that would not allow Error level logging for Mango Java Script
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
