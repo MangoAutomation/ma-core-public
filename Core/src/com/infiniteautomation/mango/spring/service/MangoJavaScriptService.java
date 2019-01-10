@@ -32,6 +32,7 @@ import com.infiniteautomation.mango.util.script.MangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptAction;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptError;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
+import com.infiniteautomation.mango.util.script.ScriptLogLevels;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -168,38 +169,43 @@ public class MangoJavaScriptService {
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, PermissionHolder user) throws ValidationException, PermissionException{
         ensureValid(vo, user);
-        return testCompiledScript(vo, user);
+        return testScript(vo.getScript(), convertContext(vo.getContext(), true), vo.getResultDataTypeId(), vo.isWrapInFunction(), vo.getLogLevel(), vo.getPermissions(), user);
     }
-    
+
     /**
-     * Evaluate a Compiled Script
-     * @param vo
+     * Test a script with raw context, no validation
+     * 
+     * @param script
+     * @param context
+     * @param resultDataTypeId
+     * @param wrapInFunction
+     * @param logLevel
+     * @param permissions
      * @param user
      * @return
      */
-    protected MangoJavaScriptResult testCompiledScript(MangoJavaScript vo, PermissionHolder user) {
+    public MangoJavaScriptResult testScript(String script, Map<String, IDataPointValueSource> context, Integer resultDataTypeId, boolean wrapInFunction, ScriptLogLevels logLevel, Set<String> permissions, PermissionHolder user) {
         MangoJavaScriptResult result = new MangoJavaScriptResult();
         final StringWriter scriptOut = new StringWriter();
         try {
-            final ScriptPointValueSetter setter = createValidationSetter(result, vo.getPermissions());
+            final ScriptPointValueSetter setter = createValidationSetter(result, permissions);
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-            int logLevel = vo.getLogLevel().value();
-            if(logLevel == ScriptLog.LogLevel.NONE)
-                logLevel = ScriptLog.LogLevel.FATAL;
-            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel, scriptWriter);){
+            if(logLevel == ScriptLogLevels.NONE)
+                logLevel = ScriptLogLevels.FATAL;
+            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter);){
                 CompiledScript compiledScript = compile(
-                        vo.getScript(),
-                        vo.isWrapInFunction(),
-                        convertContext(vo.getContext(), true),
+                        script,
+                        wrapInFunction,
+                        context,
                         null,
-                        vo.getPermissions(), 
+                        permissions, 
                         scriptLog,
                         setter, null, true);
 
                 Object scriptResult;
                 long time = Common.timer.currentTimeMillis();
-                if(vo.getResultDataTypeId() != null)
-                    scriptResult = execute(compiledScript, time, time, vo.getResultDataTypeId());
+                if(resultDataTypeId != null)
+                    scriptResult = execute(compiledScript, time, time, resultDataTypeId);
                 else
                     scriptResult = execute(compiledScript, time);
                 result.setResult(scriptResult);
@@ -216,7 +222,7 @@ public class MangoJavaScriptService {
         }
         return result;
     }
-
+    
     /**
      * Compile a script to be run
      * @param script
@@ -380,7 +386,7 @@ public class MangoJavaScriptService {
                 }
 
                 if(!Permissions.hasDataPointSetPermission(permissions, dprt.getVO())) {
-                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.pointPermissionsFailure", dprt.getVO().getXid(), Level.error)));
+                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.pointPermissionsFailure", dprt.getVO().getXid()), Level.warning));
                     return;
                 }
                 result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValue", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp)))));
@@ -425,7 +431,7 @@ public class MangoJavaScriptService {
      * @param test
      * @return
      */
-    private Map<String, IDataPointValueSource> convertContext(List<ScriptContextVariable> context, boolean test) {
+    public Map<String, IDataPointValueSource> convertContext(List<ScriptContextVariable> context, boolean test) {
         Map<String, IDataPointValueSource> result = new HashMap<>();
         if(context != null)
             for(ScriptContextVariable variable : context) {
