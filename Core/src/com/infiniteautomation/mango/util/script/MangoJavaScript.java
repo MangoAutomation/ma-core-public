@@ -4,9 +4,9 @@
 package com.infiniteautomation.mango.util.script;
 
 import java.util.List;
+import java.util.Set;
 
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 
 /**
  * Container for script execution/validation/testing
@@ -17,7 +17,7 @@ public class MangoJavaScript {
     private boolean wrapInFunction;  //Should this be wrapped and executed as a function i.e. meta points do this
     private String script;
     private List<ScriptContextVariable> context;
-    private String permissions;
+    private Set<String> permissions;
     private ScriptLogLevels logLevel;
     //If non-null coerce the result into a PointValueTime with this data type
     private Integer resultDataTypeId; 
@@ -62,13 +62,13 @@ public class MangoJavaScript {
     /**
      * @return the permissions
      */
-    public String getPermissions() {
+    public Set<String> getPermissions() {
         return permissions;
     }
     /**
      * @param permissions the permissions to set
      */
-    public void setPermissions(String permissions) {
+    public void setPermissions(Set<String> permissions) {
         this.permissions = permissions;
     }
     /**
@@ -96,12 +96,5 @@ public class MangoJavaScript {
      */
     public void setResultDataTypeId(Integer resultDataTypeId) {
         this.resultDataTypeId = resultDataTypeId;
-    }
-    
-    public ScriptPermissions createScriptPermissions() {
-        //TODO Clean up 
-        ScriptPermissions permissions = new ScriptPermissions();
-        permissions.setDataPointReadPermissions(this.permissions);
-        return permissions;
     }
 }
