@@ -111,7 +111,7 @@ public class MangoJavaScriptService {
     public ProcessResult validate(MangoJavaScript vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
         
-        Permissions.validateAddedPermissions(vo.getPermissions(), user, result, "permissions");
+        Permissions.validateAddedPermissions(vo.getPermissions().getPermissionsSet(), user, result, "permissions");
         
         validateContext(vo.getContext(), user, result);
         
@@ -337,16 +337,23 @@ public class MangoJavaScriptService {
      * Execute a script to return a PointValueTime
      * 
      * @param compiledScript
-     * @param runtime - runtime of script
+     * @param runtime
      * @param timestamp - Timestamp in Context and default for point value
      * @param resultDataTypeId
+     * @param context
+     * @param additionalContext
+     * @param permissions
+     * @param log
+     * @param setter
+     * @param importExclusions
+     * @param testRun
      * @return
-     * @throws ScriptException 
-     * @throws ResultTypeException 
+     * @throws ScriptError
+     * @throws ResultTypeException
      */
     public PointValueTime execute(CompiledScript compiledScript, long runtime, long timestamp,
             Integer resultDataTypeId, Map<String, IDataPointValueSource> context, Map<String, Object> additionalContext,
-            Set<String> permissions, ScriptLog log, ScriptPointValueSetter setter, 
+            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
             List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptError, ResultTypeException {
         try {
             //Setup the wraper context
@@ -372,14 +379,22 @@ public class MangoJavaScriptService {
     
     /**
      * Excecute a script that does not return a PointValueTime
+     * 
      * @param compiledScript
      * @param runtime
+     * @param context
+     * @param additionalContext
+     * @param permissions
+     * @param log
+     * @param setter
+     * @param importExclusions
+     * @param testRun
      * @return
-     * @throws ScriptException
+     * @throws ScriptError
      */
     public Object execute(CompiledScript compiledScript, long runtime,
             Map<String, IDataPointValueSource> context, Map<String, Object> additionalContext,
-            Set<String> permissions, ScriptLog log, ScriptPointValueSetter setter, 
+            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
             List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptError {
         try{
             //Setup the wraper context
@@ -399,8 +414,8 @@ public class MangoJavaScriptService {
      * @param permissions
      * @return
      */
-    protected ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result, Set<String> permissions) {
-       return new ScriptPointValueSetter(new ScriptPermissions(permissions)) {
+    protected ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result, ScriptPermissions permissions) {
+       return new ScriptPointValueSetter(permissions) {
             
            @Override
             public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
@@ -439,13 +454,13 @@ public class MangoJavaScriptService {
      */
     protected void populateEngineScope(CompiledScript script, Map<String, 
             IDataPointValueSource> context, Map<String, Object> additionalContext,
-            Set<String> permissions, ScriptLog log, ScriptPointValueSetter setter, 
+            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
             List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptException {
         
         Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
         if(permissions != null) {
             for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
-                ScriptUtility util = testRun ? def.initializeTestContextObject(new ScriptPermissions(permissions)) : def.initializeContextObject(new ScriptPermissions(permissions));
+                ScriptUtility util = testRun ? def.initializeTestContextObject(permissions) : def.initializeContextObject(permissions);
                 util.takeContext(script.getEngine(), engineScope, setter, importExclusions, testRun);
                 engineScope.put(def.getContextKey(), util);
             }
@@ -488,6 +503,13 @@ public class MangoJavaScriptService {
         return manager.getEngineByName("js");
     }
     
+    /**
+     * Wrap a data point for insertion into script context
+     * @param engine
+     * @param point
+     * @param setter
+     * @return
+     */
     public AbstractPointWrapper wrapPoint(ScriptEngine engine, IDataPointValueSource point,
             ScriptPointValueSetter setter) {
         int dt = point.getDataTypeId();
