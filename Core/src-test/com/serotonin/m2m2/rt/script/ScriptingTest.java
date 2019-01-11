@@ -24,6 +24,7 @@ import javax.script.CompiledScript;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
@@ -38,6 +39,8 @@ import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
  */
 public class ScriptingTest extends MangoTestBase {
 
+    private final MangoJavaScriptService service = new MangoJavaScriptService();
+    
     @Test
     public void testAnalogStatistics() {
 
@@ -71,10 +74,15 @@ public class ScriptingTest extends MangoTestBase {
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)){
     
-                CompiledScript s = CompiledScriptExecutor.compile(script);
-                PointValueTime pvt = CompiledScriptExecutor.execute(s, context, null,
-                        Common.timer.currentTimeMillis(), DataTypes.NUMERIC, -1, permissions,
-                        scriptLog, null, null, true);
+                CompiledScript s = service.compile(script, true);
+                PointValueTime pvt = service.execute(
+                        s,
+                        Common.timer.currentTimeMillis(),
+                        Common.timer.currentTimeMillis(),
+                        DataTypes.NUMERIC,
+                        context, null,
+                        permissions,
+                        scriptLog, null, null, false);
                 assertNotNull(pvt);
             }
         } catch (Exception e) {
@@ -108,10 +116,15 @@ public class ScriptingTest extends MangoTestBase {
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)) {
 
-                CompiledScript s = CompiledScriptExecutor.compile(script);
-                CompiledScriptExecutor.execute(s, context, null,
-                        Common.timer.currentTimeMillis(), DataTypes.NUMERIC, -1, permissions,
-                        scriptLog, null, null, true);
+                CompiledScript s = service.compile(script, true);
+                service.execute(s, 
+                        Common.timer.currentTimeMillis(),
+                        Common.timer.currentTimeMillis(),
+                        DataTypes.NUMERIC,
+                        context,
+                        null,
+                        permissions,
+                        scriptLog, null, null, false);
                 String result = scriptOut.toString();
                 String[] messages = result.split("\\n");
                 Assert.assertEquals(6, messages.length);
@@ -170,10 +183,14 @@ public class ScriptingTest extends MangoTestBase {
             permissions.setDataPointSetPermissions("superadmin");
 
             try(ScriptLog scriptLog = new ScriptLog("testNullWriter")){
-                CompiledScript s = CompiledScriptExecutor.compile(script);
-                CompiledScriptExecutor.execute(s, context, null,
-                        Common.timer.currentTimeMillis(), DataTypes.NUMERIC, -1, permissions,
-                        scriptLog, null, null, true);
+                CompiledScript s = service.compile(script, true);
+                service.execute(s,
+                        Common.timer.currentTimeMillis(),
+                        Common.timer.currentTimeMillis(),
+                        DataTypes.NUMERIC,
+                        context, null,
+                        permissions,
+                        scriptLog, null, null, false);
                 Assert.assertTrue(!scriptLog.getFile().exists());
             }
         }catch(Exception e) {
@@ -211,10 +228,14 @@ public class ScriptingTest extends MangoTestBase {
             
             try(ScriptLog scriptLog = new ScriptLog("testFileWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
             
-                CompiledScript s = CompiledScriptExecutor.compile(script);
-                CompiledScriptExecutor.execute(s, context, null,
-                        Common.timer.currentTimeMillis(), DataTypes.NUMERIC, -1, permissions,
-                        scriptLog, null, null, true);
+                CompiledScript s = service.compile(script, true);
+                service.execute(s,
+                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(), 
+                        DataTypes.NUMERIC,
+                        context, null,
+                        permissions,
+                        scriptLog, null, null, false);
     
                 Assert.assertTrue(scriptLog.getFile().exists());
                 
@@ -273,10 +294,14 @@ public class ScriptingTest extends MangoTestBase {
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("testContextWriter-", ScriptLog.LogLevel.TRACE, scriptWriter)) {
     
-                CompiledScript s = CompiledScriptExecutor.compile(script);
-                CompiledScriptExecutor.execute(s, context, null,
-                        Common.timer.currentTimeMillis(), DataTypes.NUMERIC, -1, permissions,
-                        scriptLog, null, null, true);
+                CompiledScript s = service.compile(script, true);
+                service.execute(s,
+                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(), 
+                        DataTypes.NUMERIC,
+                        context, null,
+                        permissions,
+                        scriptLog, null, null, false);
                 
                 String result = scriptOut.toString();
                 Assert.assertEquals("testing context writer\n", result);
@@ -316,10 +341,14 @@ public class ScriptingTest extends MangoTestBase {
             
             try(ScriptLog scriptLog = new ScriptLog("testNullValueWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
             
-                CompiledScript s = CompiledScriptExecutor.compile(script);
-                CompiledScriptExecutor.execute(s, context, null,
-                        Common.timer.currentTimeMillis(), DataTypes.NUMERIC, -1, permissions,
-                        scriptLog, null, null, true);
+                CompiledScript s = service.compile(script, true);
+                service.execute(s,
+                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(), 
+                        DataTypes.NUMERIC,
+                        context, null,
+                        permissions,
+                        scriptLog, null, null, false);
     
                 Assert.assertTrue(scriptLog.getFile().exists());
                 
