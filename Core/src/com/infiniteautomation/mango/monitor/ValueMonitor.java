@@ -11,17 +11,28 @@ abstract public class ValueMonitor<T> {
     private final TranslatableMessage name;
     protected final ValueMonitorOwner owner;
     protected volatile T value;
+    protected boolean uploadUsageToStore;
     
     public ValueMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
         this(id, name, owner, null);
     }
-
+    
+    public ValueMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, boolean uploadUsageToStore) {
+        this(id, name, owner, null, uploadUsageToStore);
+    }
+    
     public ValueMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, T value) {
+        this(id, name, owner, value, false);
+    }
+    
+    public ValueMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, T value, boolean uploadUsageToStore) {
         this.id = id;
         this.name = name;
         this.owner = owner;
         this.value = value;
+        this.uploadUsageToStore = uploadUsageToStore;
     }
+    
     
     public String getId() {
         return id;
@@ -45,6 +56,14 @@ abstract public class ValueMonitor<T> {
     
     public T getValue() {
         return value;
+    }
+    
+    /**
+     * Should this monitor relay data to the Mango Store?
+     * @return
+     */
+    public boolean uploadUsageToStore() {
+        return uploadUsageToStore;
     }
 
  }

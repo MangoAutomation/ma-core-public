@@ -413,7 +413,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
         //Setup Monitors
         if(countMonitorName != null){
-            this.countMonitor = new AtomicIntegerMonitor(this.getClass().getCanonicalName() + ".COUNT", countMonitorName, this);
+            this.countMonitor = new AtomicIntegerMonitor(this.getClass().getCanonicalName() + ".COUNT", countMonitorName, this, true);
             this.countMonitor.setValue(this.count());
             Common.MONITORED_VALUES.addIfMissingStatMonitor(this.countMonitor);
         }else{

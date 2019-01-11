@@ -31,8 +31,13 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 
 import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
+import com.infiniteautomation.mango.monitor.ValueMonitor;
+import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
+import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
+import com.infiniteautomation.mango.util.usage.PublisherUsageStatistics;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.json.JsonException;
@@ -49,6 +54,7 @@ import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -381,11 +387,22 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             json.put("dataSourcesUsage", dataSourceCounts);
             List<DataPointUsageStatistics> dataPointCounts = DataPointDao.getInstance().getUsage();
             json.put("dataPointsUsage", dataPointCounts);
-            json.put("userCount", UserDao.getInstance().count());
-            json.put("cpuCount", Runtime.getRuntime().availableProcessors());
-            Runtime rt = Runtime.getRuntime();
-            json.put("maxMemoryMB", (int)(rt.maxMemory()/(1024*1024)));
+            AggregatePublisherUsageStatistics stats = PublisherDao.getInstance().getUsage();
+            List<PublisherUsageStatistics> publisherCounts =  stats.getPublisherUsageStatistics();
+            json.put("publishersUsage", publisherCounts);
+            List<PublisherPointsUsageStatistics> publisherPointsCounts =  stats.getPublisherPointsUsageStatistics();
+            json.put("publisherPointsUsage", publisherPointsCounts);
             
+            for(ValueMonitor<?> m : Common.MONITORED_VALUES.getMonitors()) {
+                if(m.uploadUsageToStore()) {
+                    if(m instanceof AtomicIntegerMonitor) {
+                        json.put(m.getId(), ((AtomicIntegerMonitor)m).getValue().get());
+                    }else {
+                        if(m.getValue() != null)
+                            json.put(m.getId(), m.getValue());
+                    }
+                }
+            }
         }
 
         

@@ -28,6 +28,9 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
+import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
+import com.infiniteautomation.mango.util.usage.PublisherUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -222,6 +225,32 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
         return count;
     }
 
+    /**
+     * Get the count of data sources per type
+     * @return
+     */
+    public AggregatePublisherUsageStatistics getUsage() {
+        List<PublisherUsageStatistics> publisherUsageStatistics = ejt.query("SELECT publisherType, COUNT(publisherType) FROM publishers GROUP BY publisherType", new RowMapper<PublisherUsageStatistics>() {
+            @Override
+            public PublisherUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
+                PublisherUsageStatistics usage = new PublisherUsageStatistics();
+                usage.setPublisherType(rs.getString(1));
+                usage.setCount(rs.getInt(2));
+                return usage;
+            }
+        });
+        List<PublisherPointsUsageStatistics> publisherPointsUsageStatistics = new ArrayList<>();
+        for(PublisherUsageStatistics stats : publisherUsageStatistics) {
+            PublisherPointsUsageStatistics pointStats = new PublisherPointsUsageStatistics();
+            pointStats.setPublisherType(stats.getPublisherType());
+            pointStats.setCount(countPointsForPublisherType(stats.getPublisherType(), -1));
+            publisherPointsUsageStatistics.add(pointStats);
+        }
+        AggregatePublisherUsageStatistics usage = new AggregatePublisherUsageStatistics();
+        usage.setPublisherUsageStatistics(publisherUsageStatistics);
+        usage.setPublisherPointsUsageStatistics(publisherPointsUsageStatistics);
+        return usage;
+    }
 
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()

@@ -16,6 +16,10 @@ public class IntegerMonitor extends ValueMonitor<Integer> {
     public IntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner) {
         super(id, name, owner, 0);
     }
+    
+    public IntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, boolean uploadUsageToStore) {
+        super(id, name, owner, 0, uploadUsageToStore);
+    }
 
     public IntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, Integer initialValue) {
         super(id, name, owner, initialValue);

@@ -24,6 +24,11 @@ public class AtomicIntegerMonitor extends ValueMonitor<AtomicInteger> {
         super(id, name, owner, new AtomicInteger(0));
     }
 
+    public AtomicIntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner,
+            boolean uploadUsageToStore) {
+        super(id, name, owner, new AtomicInteger(0), uploadUsageToStore);
+    }
+	
     public AtomicIntegerMonitor(String id, TranslatableMessage name, ValueMonitorOwner owner, AtomicInteger initialValue) {
         super(id, name, owner, initialValue);
     }

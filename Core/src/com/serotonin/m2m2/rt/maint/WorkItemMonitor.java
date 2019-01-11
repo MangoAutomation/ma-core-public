@@ -83,13 +83,13 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
 
 
     private final IntegerMonitor javaMaxMemory = new IntegerMonitor("java.lang.Runtime.maxMemory",
-            new TranslatableMessage("java.monitor.JAVA_MAX_MEMORY"), this);
+            new TranslatableMessage("java.monitor.JAVA_MAX_MEMORY"), this, true);
     private final IntegerMonitor javaUsedMemory = new IntegerMonitor("java.lang.Runtime.usedMemory",
             new TranslatableMessage("java.monitor.JAVA_USED_MEMORY"), this);
     private final IntegerMonitor javaFreeMemory = new IntegerMonitor("java.lang.Runtime.freeMemory",
             new TranslatableMessage("java.monitor.JAVA_FREE_MEMORY"), this);
     private final IntegerMonitor javaAvailableProcessors = new IntegerMonitor("java.lang.Runtime.availableProcessors",
-            new TranslatableMessage("java.monitor.JAVA_PROCESSORS"), this);
+            new TranslatableMessage("java.monitor.JAVA_PROCESSORS"), this, true);
 
     //System Uptime
     public static final String SYSTEM_UPTIME_MONITOR_ID = "mango.system.uptime";
