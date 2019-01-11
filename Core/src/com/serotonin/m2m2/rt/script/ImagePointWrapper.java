@@ -1,3 +1,7 @@
+/**
+ * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
+ *
+ */
 package com.serotonin.m2m2.rt.script;
 
 import javax.script.ScriptEngine;
@@ -10,7 +14,7 @@ import com.serotonin.m2m2.util.DateUtils;
 
 public class ImagePointWrapper extends AbstractPointWrapper {
 
-    ImagePointWrapper(IDataPointValueSource point, ScriptEngine engine,
+    public ImagePointWrapper(IDataPointValueSource point, ScriptEngine engine,
             ScriptPointValueSetter setter) {
         super(point, engine, setter);
     }

@@ -39,7 +39,7 @@ abstract public class AbstractPointWrapper {
         return (WrapperContext) engine.get(ScriptUtils.WRAPPER_CONTEXT_KEY);
     }
 
-    protected DataValue getValueImpl() { //Doesn't need no-cache complement as that's the last value
+    public DataValue getValueImpl() { //Doesn't need no-cache complement as that's the last value
         PointValueTime pvt = point.getPointValue();
         if (pvt == null)
             return null;

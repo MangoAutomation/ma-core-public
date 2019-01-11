@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.script.CompiledScript;
-import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -32,16 +32,15 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.SetPointWorkItem;
-import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
 import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
+import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
-import com.serotonin.m2m2.rt.script.ScriptUtils;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
@@ -51,13 +50,15 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
     private CompiledScript inactiveScript;
     private final List<JsonImportExclusion> importExclusions;
     private final SetCallback setCallback;
+    private final MangoJavaScriptService service;
 
     public SetPointHandlerRT(SetPointEventHandlerVO vo) {
         super(vo);
+        this.service = Common.getBean(MangoJavaScriptService.class);
         if(vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
         	try {
-        		activeScript = CompiledScriptExecutor.compile(vo.getActiveScript());
-        	} catch(ScriptException e) {
+        		activeScript = service.compile(vo.getActiveScript(), true);
+        	} catch(ScriptError e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", 
         				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
         	}
@@ -66,8 +67,8 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         
         if(vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
         	try {
-        		inactiveScript = CompiledScriptExecutor.compile(vo.getInactiveScript());
-        	} catch(ScriptException e) {
+        		inactiveScript = service.compile(vo.getInactiveScript(), true);
+        	} catch(ScriptError e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", 
         				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
         	}
@@ -150,15 +151,22 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         			if(dprt != null)
         				context.put(cxt.getValue(), dprt);
         		}
-	        	PointValueTime pvt = CompiledScriptExecutor.execute(activeScript, context, additionalContext, evt.getActiveTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getActiveTimestamp(), vo.getScriptPermissions(), scriptLog, 
+	        	PointValueTime pvt = service.execute(
+	        	        activeScript, 
+	        	        evt.getActiveTimestamp(),
+	        	        evt.getActiveTimestamp(),
+	        	        targetPoint.getDataTypeId(),
+	        	        context, 
+	        	        additionalContext,  
+	        			vo.getScriptPermissions().getPermissionsSet(), 
+	        			scriptLog, 
 	        			setCallback, importExclusions, false);
 
 	        	value = pvt.getValue();
         	} catch(ScriptPermissionsException e) {
                 raiseFailureEvent(e.getTranslatableMessage(), evt.getEventType());
                 return;
-            } catch(ScriptException e) {
+            } catch(ScriptError e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getCause().getMessage()), evt.getEventType());
         		return;
         	} catch(ResultTypeException e) {
@@ -170,7 +178,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getActiveAction());
 
         // Queue a work item to perform the set point.
-        if(CompiledScriptExecutor.UNCHANGED != value)
+        if(MangoJavaScriptService.UNCHANGED != value)
         	Common.backgroundProcessing.addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value,
                 evt.getActiveTimestamp()), this));
     }
@@ -233,14 +241,21 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                     if(dprt != null)
                         context.put(cxt.getValue(), dprt);
                 }
-	        	PointValueTime pvt = CompiledScriptExecutor.execute(inactiveScript, context, additionalContext, evt.getRtnTimestamp(), 
-	        			targetPoint.getDataTypeId(), evt.getRtnTimestamp(), vo.getScriptPermissions(), new ScriptLog("setPointHandler-" + evt.getId()),
+	        	PointValueTime pvt = service.execute(
+	        	        inactiveScript, 
+	        	        evt.getRtnTimestamp(),
+	        	        evt.getRtnTimestamp(),
+	        	        targetPoint.getDataTypeId(),
+	        	        context, 
+	        	        additionalContext,
+	        	        vo.getScriptPermissions().getPermissionsSet(),
+	        	        new ScriptLog("setPointHandler-" + evt.getId()),
 	        			setCallback, importExclusions, false);
 	        	value = pvt.getValue();
         	} catch(ScriptPermissionsException e) {
         	    raiseFailureEvent(e.getTranslatableMessage(), evt.getEventType());
         	    return;
-        	} catch(ScriptException e) {
+        	} catch(ScriptError e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getCause().getMessage()), evt.getEventType());
         		return;
         	} catch(ResultTypeException e) {
@@ -251,7 +266,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         else
             throw new ShouldNeverHappenException("Unknown active action: " + vo.getInactiveAction());
 
-        if(CompiledScriptExecutor.UNCHANGED != value)
+        if(MangoJavaScriptService.UNCHANGED != value)
             Common.backgroundProcessing.addWorkItem(new SetPointWorkItem(vo.getTargetPointId(), new PointValueTime(value,
                 evt.getRtnTimestamp()), this));
     }
@@ -314,7 +329,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
             // We may, however, need to coerce the given value.
             try {
-                DataValue mangoValue = ScriptUtils.coerce(value, dprt.getDataTypeId());
+                DataValue mangoValue = service.coerce(value, dprt.getDataTypeId());
                 SetPointSource source;
                 PointValueTime newValue = new PointValueTime(mangoValue, timestamp);
                 if(StringUtils.isBlank(annotation))

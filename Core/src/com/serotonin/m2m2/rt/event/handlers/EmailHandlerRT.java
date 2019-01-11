@@ -21,7 +21,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.script.CompiledScript;
-import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -29,6 +28,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringEscapeUtils;
 import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
@@ -54,15 +54,14 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
-import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
+import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
-import com.serotonin.m2m2.rt.script.ScriptUtils;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -393,7 +392,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     context.put(pair.getValue(), dprt);
                 }
 
-                modelContext.put(DO_NOT_SEND_KEY, CompiledScriptExecutor.UNCHANGED);
+                modelContext.put(DO_NOT_SEND_KEY, MangoJavaScriptService.UNCHANGED);
                 List<JsonImportExclusion> importExclusions = new ArrayList<JsonImportExclusion>(1);
                 importExclusions.add(new JsonImportExclusion("xid", handlerXid) {
                     @Override
@@ -402,16 +401,28 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     }
                 });
 
-                try (ScriptLog scriptLog = new ScriptLog("emailScript-" + evt.getId())){
-                    CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-                    PointValueTime result = CompiledScriptExecutor.execute(compiledScript, context, modelContext, Common.timer.currentTimeMillis(),
-                            DataTypes.ALPHANUMERIC, evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp(),
-                                    permissions, scriptLog,
-                                    setCallback, importExclusions, false);
-                    if(result != null && result.getValue() == CompiledScriptExecutor.UNCHANGED) //The script cancelled the email
+                
+                try (ScriptLog scriptLog = new ScriptLog("emailScript-" + evt.getId())) {
+                    MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
+                    CompiledScript compiledScript = service.compile(script, true);
+                    long time = evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp();
+                    PointValueTime result = service.execute(
+                            compiledScript, 
+                            Common.timer.currentTimeMillis(), 
+                            time, 
+                            DataTypes.ALPHANUMERIC,
+                            context,
+                            null,
+                            permissions.getPermissionsSet(),
+                            scriptLog,
+                            setCallback,
+                            importExclusions,
+                            false);
+                    
+                    if(result != null && result.getValue() == MangoJavaScriptService.UNCHANGED) //The script cancelled the email
                         return;
 
-                } catch(ScriptPermissionsException|ScriptException|ResultTypeException e) {
+                } catch(ScriptPermissionsException | ScriptError | ResultTypeException e) {
                     LOG.error("Exception running email handler script: " + e.getMessage(), e);
                 }
             }
@@ -540,8 +551,11 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     class SetCallback extends ScriptPointValueSetter {
+        private final MangoJavaScriptService service;
+        
         public SetCallback(ScriptPermissions permissions) {
             super(permissions);
+            this.service = Common.getBean(MangoJavaScriptService.class);
         }
 
         /*
@@ -557,7 +571,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
             // We may, however, need to coerce the given value.
             try {
-                DataValue mangoValue = ScriptUtils.coerce(value, dprt.getDataTypeId());
+                DataValue mangoValue = service.coerce(value, dprt.getDataTypeId());
                 SetPointSource source;
                 PointValueTime newValue = new PointValueTime(mangoValue, timestamp);
                 if(StringUtils.isBlank(annotation))

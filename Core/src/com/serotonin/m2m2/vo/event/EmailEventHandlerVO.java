@@ -11,10 +11,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.script.ScriptException;
-
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -31,7 +30,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -242,19 +241,19 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             validateScriptContext(additionalContext, response);
         else
             setAdditionalContext(new ArrayList<>());
-        
+        User user = Common.getHttpUser();
+        if(user == null)
+            user = Common.getBackgroundContextUser();
         if(!StringUtils.isEmpty(script)) {
             try {
-                CompiledScriptExecutor.compile(script);
-            } catch(ScriptException e) {
+                
+                Common.getBean(MangoJavaScriptService.class).compile(script, true);
+            } catch(ScriptError e) {
                 response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }
         }
         //TODO Review this as per adding permissions
         if(scriptPermissions != null) {
-            User user = Common.getHttpUser();
-            if(user == null)
-                user = Common.getBackgroundContextUser();
             scriptPermissions.validate(response, user);
         }
 	}
