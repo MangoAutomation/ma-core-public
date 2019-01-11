@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -50,6 +48,7 @@ import com.serotonin.m2m2.rt.script.DateTimeUtility;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
+import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
@@ -167,7 +166,7 @@ public class MangoJavaScriptService {
      * @throws ValidationException
      * @throws PermissionException
      */
-    public MangoJavaScriptResult testScript(MangoJavaScript vo, PermissionHolder user) throws ValidationException, PermissionException{
+    public MangoJavaScriptResult testScript(MangoJavaScript vo, PermissionHolder user) throws ValidationException, PermissionException {
         ensureValid(vo, user);
         return testScript(vo.getScript(), convertContext(vo.getContext(), true), vo.getResultDataTypeId(), vo.isWrapInFunction(), vo.getLogLevel(), vo.getPermissions(), user);
     }
@@ -210,9 +209,10 @@ public class MangoJavaScriptService {
                     scriptResult = execute(compiledScript, time);
                 result.setResult(scriptResult);
             }
-        }catch (ScriptException e) {
+        }catch (ScriptError e) {
+            //The script exception should be clean as both compile() and execute() clean it
             result.addError(new MangoJavaScriptError(
-                    new TranslatableMessage("common.default", cleanScriptExceptionMessage(e)), e.getLineNumber(), e.getColumnNumber()));
+                    new TranslatableMessage("common.default", e.getMessage()), e.getLineNumber(), e.getColumnNumber()));
         }catch(ResultTypeException e) {
             result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
         }catch (Exception e) {
@@ -240,7 +240,7 @@ public class MangoJavaScriptService {
     public CompiledScript compile(String script, boolean wrapInFunction, Map<String, 
             IDataPointValueSource> context, Map<String, Object> additionalContext,
             Set<String> permissions, ScriptLog log, ScriptPointValueSetter setter, 
-            List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptException {
+            List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptError {
         
         try {
             final ScriptEngine engine = ScriptUtils.newEngine();
@@ -308,7 +308,7 @@ public class MangoJavaScriptService {
             
             return compiledScript;
         }catch(ScriptException e) {
-            throw new ScriptException(cleanScriptExceptionMessage(e), e.getFileName(), e.getLineNumber(), e.getColumnNumber());
+            throw ScriptError.create(e);
         }
     }
     
@@ -324,16 +324,12 @@ public class MangoJavaScriptService {
      * @throws ResultTypeException 
      */
     public PointValueTime execute(CompiledScript compiledScript, long runtime, long timestamp,
-            Integer resultDataTypeId) throws ScriptException, ResultTypeException {
+            Integer resultDataTypeId) throws ScriptError, ResultTypeException {
         try {
             //Setup the wraper context
             compiledScript.getEngine().put(ScriptUtils.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
             Object result;
-            try {
-                result = compiledScript.eval();
-            }catch (ScriptException e) {
-                throw new ScriptException(cleanScriptExceptionMessage(e), e.getFileName(), e.getLineNumber(), e.getColumnNumber());
-            }
+            result = compiledScript.eval();
             
             Object ts = compiledScript.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get(ScriptUtils.TIMESTAMP_CONTEXT_KEY);
     
@@ -346,7 +342,7 @@ public class MangoJavaScriptService {
             DataValue value = ScriptUtils.coerce(result, resultDataTypeId);
             return new PointValueTime(value, timestamp);
         }catch(ScriptException e) {
-            throw new ScriptException(cleanScriptExceptionMessage(e), e.getFileName(), e.getLineNumber(), e.getColumnNumber());
+            throw ScriptError.create(e);
         }
     }
     
@@ -357,13 +353,13 @@ public class MangoJavaScriptService {
      * @return
      * @throws ScriptException
      */
-    public Object execute(CompiledScript compiledScript, long runtime) throws ScriptException {
+    public Object execute(CompiledScript compiledScript, long runtime) throws ScriptError {
         //Setup the wraper context
         compiledScript.getEngine().put(ScriptUtils.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime));
         try{
             return compiledScript.eval();
         }catch (ScriptException e) {
-            throw new ScriptException(cleanScriptExceptionMessage(e), e.getFileName(), e.getLineNumber(), e.getColumnNumber());
+            throw ScriptError.create(e);
         }
     }
     
@@ -401,30 +397,6 @@ public class MangoJavaScriptService {
     }
     
     /* Utilities for Script Execution */
-    /**
-     * Cleanup message to make more readable
-     * @param e
-     * @return
-     */
-    public String cleanScriptExceptionMessage(ScriptException e) {
-        Throwable t = e;
-        while (t.getCause() != null)
-            t = t.getCause();
-        
-        String message = t.getMessage();
-        if(message == null)
-            return "null";
-
-        Pattern pattern = Pattern.compile("(.*?):(.*?) ([\\s\\S]*)");
-        Matcher matcher = pattern.matcher(message);
-        if (matcher.find())
-            message = matcher.group(3);
-        
-        return message;
-    }
-
-
-    
     /**
      * Prepare the context of data points
      * @param context
