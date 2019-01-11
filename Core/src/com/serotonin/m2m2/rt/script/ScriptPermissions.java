@@ -43,7 +43,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
     private String customPermissions = "";
     
     public ScriptPermissions(Set<String> permissions) {
-        this(Permissions.implodePermissionGroups(permissions));
+        this(permissions == null ? null : Permissions.implodePermissionGroups(permissions));
     }
     
     public ScriptPermissions(String permissions) {
