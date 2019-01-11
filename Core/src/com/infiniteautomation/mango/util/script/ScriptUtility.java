@@ -9,6 +9,9 @@ import java.util.List;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -22,6 +25,8 @@ public abstract class ScriptUtility {
 
     protected final static String NEWLINE = "\n";
     protected PermissionHolder permissions;
+    @Autowired
+    protected MangoJavaScriptService service;
     
     public void setPermissions(PermissionHolder holder) {
         this.permissions = holder;

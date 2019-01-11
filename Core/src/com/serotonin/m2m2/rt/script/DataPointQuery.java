@@ -29,7 +29,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Terry Packer
  *
  */
-public class DataPointQuery extends ScriptUtility{
+public class DataPointQuery extends ScriptUtility {
 	
 	public static final String CONTEXT_KEY = "DataPointQuery";
 
@@ -72,7 +72,7 @@ public class DataPointQuery extends ScriptUtility{
 			if(Permissions.hasDataPointSetPermission(permissions, dp) || Permissions.hasDataPointReadPermission(permissions, dp)){
 				rt = Common.runtimeManager.getDataPoint(dp.getId());
 				if(rt != null)
-					wrapper = ScriptUtils.wrapPoint(engine, rt, setter);
+					wrapper = service.wrapPoint(engine, rt, setter);
 				else
 					wrapper = null;
 				results.add(new DataPointWrapper(dp, wrapper));
@@ -91,7 +91,7 @@ public class DataPointQuery extends ScriptUtility{
 	        AbstractPointWrapper wrapper = null;
 	        rt = Common.runtimeManager.getDataPoint(dp.getId());
 	        if(rt != null)
-	            wrapper = ScriptUtils.wrapPoint(engine, rt, setter);
+	            wrapper = service.wrapPoint(engine, rt, setter);
 	        else
 	            wrapper = null;
 	        return new DataPointWrapper(dp, wrapper);

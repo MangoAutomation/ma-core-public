@@ -88,7 +88,7 @@ public class DataSourceQuery extends ScriptUtility {
 			DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getId());
 			AbstractPointWrapper wrapper = null;
 			if(rt != null)
-				wrapper = ScriptUtils.wrapPoint(engine, rt, setter);
+				wrapper = service.wrapPoint(engine, rt, setter);
 			points.add(new DataPointWrapper(vo, wrapper));	
 		}
 		return points;

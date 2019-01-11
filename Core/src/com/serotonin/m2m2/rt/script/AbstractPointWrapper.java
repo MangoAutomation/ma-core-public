@@ -10,6 +10,7 @@ import java.util.List;
 
 import javax.script.ScriptEngine;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.rt.dataImage.HistoricalDataPoint;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
@@ -36,7 +37,7 @@ abstract public class AbstractPointWrapper {
     }
 
     protected WrapperContext getContext() {
-        return (WrapperContext) engine.get(ScriptUtils.WRAPPER_CONTEXT_KEY);
+        return (WrapperContext) engine.get(MangoJavaScriptService.WRAPPER_CONTEXT_KEY);
     }
 
     public DataValue getValueImpl() { //Doesn't need no-cache complement as that's the last value
