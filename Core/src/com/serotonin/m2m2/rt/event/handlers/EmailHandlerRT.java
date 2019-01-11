@@ -413,7 +413,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                             DataTypes.ALPHANUMERIC,
                             context,
                             null,
-                            permissions.getPermissionsSet(),
+                            permissions,
                             scriptLog,
                             setCallback,
                             importExclusions,

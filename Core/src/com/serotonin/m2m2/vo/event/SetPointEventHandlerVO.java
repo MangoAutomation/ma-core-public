@@ -10,10 +10,9 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.script.ScriptException;
-
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -29,7 +28,7 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
-import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
+import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -173,7 +172,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             response.addContextualMessage("activeAction", "eventHandlers.noSetPointAction");
             response.addContextualMessage("inactiveAction", "eventHandlers.noSetPointAction");
         }
-
+        MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
         // Active
         if (activeAction == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
             try {
@@ -203,8 +202,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             if(StringUtils.isEmpty(activeScript))
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
             try {
-                CompiledScriptExecutor.compile(activeScript);
-            } catch(ScriptException e) {
+                service.compile(activeScript, true);
+            } catch(ScriptError e) {
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }
         }
@@ -238,8 +237,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             if(StringUtils.isEmpty(inactiveScript))
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
             try {
-                CompiledScriptExecutor.compile(inactiveScript);
-            } catch(ScriptException e) {
+                service.compile(inactiveScript, true);
+            } catch(ScriptError e) {
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }
         }

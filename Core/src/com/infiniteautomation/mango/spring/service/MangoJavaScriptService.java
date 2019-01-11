@@ -351,7 +351,8 @@ public class MangoJavaScriptService {
      * @throws ScriptError
      * @throws ResultTypeException
      */
-    public PointValueTime execute(CompiledScript compiledScript, long runtime, long timestamp,
+    public PointValueTime execute(
+            CompiledScript compiledScript, long runtime, long timestamp,
             Integer resultDataTypeId, Map<String, IDataPointValueSource> context, Map<String, Object> additionalContext,
             ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
             List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptError, ResultTypeException {

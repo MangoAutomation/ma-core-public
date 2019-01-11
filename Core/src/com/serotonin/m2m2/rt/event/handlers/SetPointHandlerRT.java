@@ -158,7 +158,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 	        	        targetPoint.getDataTypeId(),
 	        	        context, 
 	        	        additionalContext,  
-	        			vo.getScriptPermissions().getPermissionsSet(), 
+	        			vo.getScriptPermissions(), 
 	        			scriptLog, 
 	        			setCallback, importExclusions, false);
 
@@ -248,7 +248,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 	        	        targetPoint.getDataTypeId(),
 	        	        context, 
 	        	        additionalContext,
-	        	        vo.getScriptPermissions().getPermissionsSet(),
+	        	        vo.getScriptPermissions(),
 	        	        new ScriptLog("setPointHandler-" + evt.getId()),
 	        			setCallback, importExclusions, false);
 	        	value = pvt.getValue();

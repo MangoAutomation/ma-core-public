@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.script.CompiledScript;
-import javax.script.ScriptException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -25,6 +24,7 @@ import org.apache.commons.logging.LogFactory;
 import org.directwebremoting.WebContextFactory;
 
 import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -58,9 +58,9 @@ import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.ProcessWorkItem;
-import com.serotonin.m2m2.rt.script.CompiledScriptExecutor;
 import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
+import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
@@ -481,7 +481,7 @@ public class EventHandlersDwr extends BaseDwr {
         otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
         if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE) {
             otherContext.put("model", new HashMap<String, Object>());
-            otherContext.put(EmailHandlerRT.DO_NOT_SEND_KEY, CompiledScriptExecutor.UNCHANGED);
+            otherContext.put(EmailHandlerRT.DO_NOT_SEND_KEY, MangoJavaScriptService.UNCHANGED);
         }
 
 
@@ -511,13 +511,21 @@ public class EventHandlersDwr extends BaseDwr {
                     // not really setting
                 }
             };
-            CompiledScript compiledScript = CompiledScriptExecutor.compile(script);
-            PointValueTime pvt = CompiledScriptExecutor.execute(compiledScript, context, otherContext, System.currentTimeMillis(),
-                    targetDataType, System.currentTimeMillis(), scriptPermissions,
+            MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
+
+            CompiledScript compiledScript = service.compile(script, true);
+            PointValueTime pvt = service.execute(
+                    compiledScript, 
+                    System.currentTimeMillis(),
+                    System.currentTimeMillis(),
+                    targetDataType,
+                    context, 
+                    otherContext,
+                    scriptPermissions,
                     scriptLog, loggingSetter, null, true);
             if (pvt.getValue() == null)
                 message = new TranslatableMessage("eventHandlers.script.nullResult");
-            else if(CompiledScriptExecutor.UNCHANGED == pvt.getValue()) {
+            else if(MangoJavaScriptService.UNCHANGED == pvt.getValue()) {
                 if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE)
                     message = new TranslatableMessage("eventHandlers.script.successNoEmail");
                 else
@@ -530,7 +538,7 @@ public class EventHandlersDwr extends BaseDwr {
         catch(ScriptPermissionsException e) {
             message = e.getTranslatableMessage();
         }
-        catch (ScriptException e) {
+        catch (ScriptError e) {
             message = new TranslatableMessage("eventHandlers.script.failure", e.getMessage());
         }
         catch (ResultTypeException e) {
