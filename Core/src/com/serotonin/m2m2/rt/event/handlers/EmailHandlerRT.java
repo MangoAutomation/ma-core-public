@@ -412,7 +412,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                             time, 
                             DataTypes.ALPHANUMERIC,
                             context,
-                            null,
+                            modelContext,
                             permissions,
                             scriptLog,
                             setCallback,
