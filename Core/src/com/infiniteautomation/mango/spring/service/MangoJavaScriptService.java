@@ -96,7 +96,7 @@ public class MangoJavaScriptService {
     public static final DataValue UNCHANGED = new BinaryValue(false);
     public static final String UNCHANGED_KEY = "UNCHANGED";
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/YYY HH:mm:ss");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM YYYY HH:mm:ss z");
 
     public MangoJavaScriptService() {
 
@@ -430,7 +430,10 @@ public class MangoJavaScriptService {
                     result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.pointPermissionsFailure", dprt.getVO().getXid()), Level.warning));
                     return;
                 }
-                result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValue", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp)))));
+                if(annotation != null)
+                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValueAnnotation", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp)), annotation)));
+                else
+                    result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.setPointValue", dprt.getVO().getExtendedName(), value, sdf.format(new Date(timestamp)))));
             }
 
             @Override
