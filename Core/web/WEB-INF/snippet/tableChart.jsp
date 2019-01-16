@@ -9,7 +9,7 @@
   <c:otherwise>
     <c:forEach items="${chartData}" var="historyPointValue">
       ${m2m2:pointValueTime(historyPointValue)} - ${m2m2:htmlText(point, historyPointValue)}
-      <c:catch><c:if test="${historyPointValue.sourceMessage}">(<m2m2:translate message="${historyPointValue.sourceMessage}"/>)</c:if></c:catch>
+      <c:catch><c:if test="${historyPointValue.sourceMessage != null}">(<m2m2:translate message="${historyPointValue.sourceMessage}"/>)</c:if></c:catch>
       <br/>
     </c:forEach>
   </c:otherwise>
