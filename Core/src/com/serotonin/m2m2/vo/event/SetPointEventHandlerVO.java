@@ -8,15 +8,19 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
@@ -29,10 +33,10 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.script.ScriptError;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.SetPointEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
@@ -68,6 +72,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     private int inactivePointId;
     private String activeScript;
     private String inactiveScript;
+    @JsonProperty
     private ScriptPermissions scriptPermissions;
     private List<IntStringPair> additionalContext;
     
@@ -262,7 +267,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 3;
+    private static final int version = 4;
     
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -279,7 +284,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         out.writeObject(scriptPermissions);
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "deprecation"})
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
 
@@ -308,6 +313,22 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             additionalContext = new ArrayList<IntStringPair>();
             scriptPermissions = new ScriptPermissions();
         } else if (ver == 3) {
+            targetPointId = in.readInt();
+            activeAction = in.readInt();
+            activeValueToSet = SerializationHelper.readSafeUTF(in);
+            activePointId = in.readInt();
+            inactiveAction = in.readInt();
+            inactiveValueToSet = SerializationHelper.readSafeUTF(in);
+            inactivePointId = in.readInt();
+            activeScript = SerializationHelper.readSafeUTF(in);
+            inactiveScript = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
+            com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
+            if(oldPermissions != null)
+                scriptPermissions = new ScriptPermissions(oldPermissions.getPermissionsSet());
+            else
+                scriptPermissions = new ScriptPermissions();
+        } else if (ver == 4) {
             targetPointId = in.readInt();
             activeAction = in.readInt();
             activeValueToSet = SerializationHelper.readSafeUTF(in);
@@ -362,16 +383,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         	}
         }
         writer.writeEntry("additionalContext", context);
-        
-        if(scriptPermissions != null) {
-            JsonObject permissions = new JsonObject();
-            permissions.put(ScriptPermissions.DATA_SOURCE, scriptPermissions.getDataSourcePermissions());
-            permissions.put(ScriptPermissions.DATA_POINT_READ, scriptPermissions.getDataPointReadPermissions());
-            permissions.put(ScriptPermissions.DATA_POINT_SET, scriptPermissions.getDataPointSetPermissions());
-            writer.writeEntry("scriptPermissions", permissions);
-        } else {
-            writer.writeEntry("scriptPermissions", null);
-        }
+        writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissions());
     }
     
     @Override
@@ -470,20 +482,23 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         } else
         	this.additionalContext = new ArrayList<>();
         
-        JsonObject permissions = jsonObject.getJsonObject("scriptPermissions");
-        ScriptPermissions scriptPermissions = new ScriptPermissions();
-        if(permissions != null) {
-        	String perm = permissions.getString(ScriptPermissions.DATA_SOURCE);
-        	if(perm != null)
-        		scriptPermissions.setDataSourcePermissions(perm);
-        	perm = permissions.getString(ScriptPermissions.DATA_POINT_READ);
-        	if(perm != null)
-        		scriptPermissions.setDataPointReadPermissions(perm);
-        	perm = permissions.getString(ScriptPermissions.DATA_POINT_SET);
-        	if(perm != null)
-        		scriptPermissions.setDataPointSetPermissions(perm);
+        if(jsonObject.containsKey("scriptPermissions")) {
+            Set<String> permissions = null;
+            try{
+                JsonObject o = jsonObject.getJsonObject("scriptPermissions");
+                permissions = new HashSet<>();
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataSourcePermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointSetPermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointReadPermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("customPermissions")));
+                this.scriptPermissions = new ScriptPermissions(permissions);
+            }catch(ClassCastException e) {
+               //Munchy munch, not a legacy script permissions object 
+            }
+            if(permissions == null) {
+                this.scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(jsonObject.getString("scriptPermissions")));
+            }
         }
-    	this.scriptPermissions = scriptPermissions;
     }
     
     

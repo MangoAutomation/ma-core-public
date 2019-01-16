@@ -6,10 +6,11 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.email.EmailRecipientModel;
@@ -171,12 +172,16 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 		this.data.setAdditionalContext(additionalContext);
 	}
 	
-	public ScriptPermissions getScriptPermissions() {
-	    return this.data.getScriptPermissions();
+	public Set<String> getScriptPermissions() {
+	    if(this.data.getScriptPermissions() != null)
+	        return this.data.getScriptPermissions().getPermissionsSet();
+	    else
+	        return null;
 	}
 	
-	public void setScriptPermissions(ScriptPermissions scriptPermissions) {
-	    this.data.setScriptPermissions(scriptPermissions);
+	public void setScriptPermissions(Set<String> scriptPermissions) {
+	    if(scriptPermissions != null)
+	        this.data.setScriptPermissions(new ScriptPermissions(scriptPermissions));
 	}
 	
 	public String getScript() {

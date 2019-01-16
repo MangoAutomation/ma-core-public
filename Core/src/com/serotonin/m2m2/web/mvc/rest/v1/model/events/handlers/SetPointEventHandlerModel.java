@@ -6,8 +6,8 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers;
 
 import java.util.List;
 
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
 /**
@@ -108,10 +108,10 @@ public class SetPointEventHandlerModel extends AbstractEventHandlerModel<SetPoin
     }
     
     public ScriptPermissions getScriptPermissions() {
-    	return this.data.getScriptPermissions();
+        return this.data.getScriptPermissions();
     }
     
     public void setScriptPermissions(ScriptPermissions scriptPermissions) {
-    	this.data.setScriptPermissions(scriptPermissions);
+        this.data.setScriptPermissions(scriptPermissions);
     }
 }

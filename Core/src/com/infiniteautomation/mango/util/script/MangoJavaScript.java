@@ -6,7 +6,7 @@ package com.infiniteautomation.mango.util.script;
 import java.util.List;
 
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
+
 
 /**
  * Container for script execution/validation/testing

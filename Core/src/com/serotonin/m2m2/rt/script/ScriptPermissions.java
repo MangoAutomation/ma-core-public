@@ -21,8 +21,9 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * Container for all scripts that holds the permissions during runtime.
  *
  * @author Terry Packer
- *
+ * @deprecated Use {@link com.infiniteautomation.mango.util.script.ScriptPermissions}
  */
+@Deprecated
 public class ScriptPermissions extends ScriptPermissionParent implements Serializable, PermissionHolder {
 
     public static final String DATA_SOURCE = "scriptDataSourcePermission";

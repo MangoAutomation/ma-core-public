@@ -9,11 +9,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -31,10 +34,10 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.script.ScriptError;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.EmailEventHandlerModel;
@@ -263,7 +266,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 5;
+    private static final int version = 6;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
     	out.writeInt(version);
@@ -285,7 +288,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         SerializationHelper.writeSafeUTF(out, script);
     }
 	
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "deprecation"})
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         if (ver == 1) {
@@ -390,7 +393,31 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
-            scriptPermissions = (ScriptPermissions) in.readObject();
+            com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
+            if(oldPermissions != null)
+                scriptPermissions = new ScriptPermissions(oldPermissions.getPermissionsSet());
+            else
+                scriptPermissions = new ScriptPermissions();
+            script = SerializationHelper.readSafeUTF(in);
+        }else if (ver == 6) {
+            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            sendEscalation = in.readBoolean();
+            repeatEscalations = in.readBoolean();
+            escalationDelayType = in.readInt();
+            escalationDelay = in.readInt();
+            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            sendInactive = in.readBoolean();
+            inactiveOverride = in.readBoolean();
+            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            includeSystemInfo = in.readBoolean();
+            includePointValueCount = in.readInt();
+            includeLogfile = in.readBoolean();
+            customTemplate = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
+            scriptPermissions = (ScriptPermissions)in.readObject();
             script = SerializationHelper.readSafeUTF(in);
         }
     }
@@ -429,15 +456,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         }
         writer.writeEntry("additionalContext", context);
         writer.writeEntry("script", script);
-        if(scriptPermissions != null) {
-            JsonObject permissions = new JsonObject();
-            permissions.put(ScriptPermissions.DATA_SOURCE, scriptPermissions.getDataSourcePermissions());
-            permissions.put(ScriptPermissions.DATA_POINT_READ, scriptPermissions.getDataPointReadPermissions());
-            permissions.put(ScriptPermissions.DATA_POINT_SET, scriptPermissions.getDataPointSetPermissions());
-            writer.writeEntry("scriptPermissions", permissions);
-        } else {
-            writer.writeEntry("scriptPermissions", null);
-        }
+        writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissions());
     }
     
     @SuppressWarnings("unchecked")
@@ -530,21 +549,24 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	this.additionalContext = new ArrayList<>();
         
         script = jsonObject.getString("script");
-        
-        JsonObject permissions = jsonObject.getJsonObject("scriptPermissions");
-        ScriptPermissions scriptPermissions = new ScriptPermissions();
-        if(permissions != null) {
-            String perm = permissions.getString(ScriptPermissions.DATA_SOURCE);
-            if(perm != null)
-                scriptPermissions.setDataSourcePermissions(perm);
-            perm = permissions.getString(ScriptPermissions.DATA_POINT_READ);
-            if(perm != null)
-                scriptPermissions.setDataPointReadPermissions(perm);
-            perm = permissions.getString(ScriptPermissions.DATA_POINT_SET);
-            if(perm != null)
-                scriptPermissions.setDataPointSetPermissions(perm);
+        if(jsonObject.containsKey("scriptPermissions")) {
+            Set<String> permissions = null;
+            try{
+                JsonObject o = jsonObject.getJsonObject("scriptPermissions");
+                permissions = new HashSet<>();
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataSourcePermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointSetPermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointReadPermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("customPermissions")));
+                this.scriptPermissions = new ScriptPermissions(permissions);
+            }catch(ClassCastException e) {
+               //Munchy munch, not a legacy script permissions object 
+            }
+            if(permissions == null) {
+                this.scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(jsonObject.getString("scriptPermissions")));
+            }
         }
-        this.scriptPermissions = scriptPermissions;
+        
     }
     
     @Override

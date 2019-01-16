@@ -30,6 +30,7 @@ import org.joda.time.DateTime;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
@@ -59,7 +60,6 @@ import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;

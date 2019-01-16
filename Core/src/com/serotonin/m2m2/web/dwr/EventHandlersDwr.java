@@ -25,6 +25,7 @@ import org.directwebremoting.WebContextFactory;
 
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -62,7 +63,6 @@ import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -278,7 +278,8 @@ public class EventHandlersDwr extends BaseDwr {
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled, int targetPointId,
             int activeAction, String activeValueToSet, int activePointId, String activeScript, int inactiveAction,
             String inactiveValueToSet, int inactivePointId, String inactiveScript, List<IntStringPair> additionalContext,
-            ScriptPermissions scriptPermissions) {
+            String scriptPermissions) {
+        User user = Common.getHttpUser();
         SetPointEventHandlerVO handler = new SetPointEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(SetPointEventHandlerDefinition.TYPE_NAME));
         handler.setTargetPointId(targetPointId);
@@ -291,7 +292,7 @@ public class EventHandlersDwr extends BaseDwr {
         handler.setInactivePointId(inactivePointId);
         handler.setInactiveScript(inactiveScript);
         handler.setAdditionalContext(additionalContext);
-        handler.setScriptPermissions(scriptPermissions);
+        handler.setScriptPermissions(new ScriptPermissions(Permissions.explodePermissionGroups(scriptPermissions), user.getPermissionHolderName()));
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 
@@ -302,7 +303,8 @@ public class EventHandlersDwr extends BaseDwr {
             int escalationDelayType, int escalationDelay, List<RecipientListEntryBean> escalationRecipients, boolean sendInactive,
             boolean inactiveOverride, List<RecipientListEntryBean> inactiveRecipients, boolean includeSystemInfo,
             int includePointValueCount, boolean includeLogfile, List<IntStringPair> additionalContext,
-            ScriptPermissions permissions, String script) {
+            String permissions, String script) {
+        User user = Common.getHttpUser();
         EmailEventHandlerVO handler = new EmailEventHandlerVO();
         handler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
         handler.setActiveRecipients(activeRecipients);
@@ -319,7 +321,7 @@ public class EventHandlersDwr extends BaseDwr {
         handler.setIncludePointValueCount(includePointValueCount);
         handler.setIncludeLogfile(includeLogfile);
         handler.setAdditionalContext(additionalContext);
-        handler.setScriptPermissions(permissions);
+        handler.setScriptPermissions(new ScriptPermissions(Permissions.explodePermissionGroups(permissions), user.getPermissionHolderName()));
         handler.setScript(script);
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
@@ -428,10 +430,11 @@ public class EventHandlersDwr extends BaseDwr {
 
     @DwrPermission(user = true)
     public ProcessResult validateScript(String script, Integer targetPointId, int type,
-            List<IntStringPair> additionalContext, ScriptPermissions scriptPermissions) {
+            List<IntStringPair> additionalContext, String permissions) {
         ProcessResult response = new ProcessResult();
         TranslatableMessage message;
-
+        User user = Common.getHttpUser();
+        ScriptPermissions scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(permissions), user.getPermissionHolderName());
         Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         int targetDataType;
         if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE || type == SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE) {

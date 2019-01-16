@@ -149,7 +149,7 @@
     <convert converter="bean" javascript="SortOption" match="com.infiniteautomation.mango.db.query.SortOption"/>
 
     <convert converter="bean" javascript="ScriptPermissions" match="com.serotonin.m2m2.rt.script.ScriptPermissions"/>
-
+    <convert converter="bean" javascript="ScriptPermissions" match="com.infiniteautomation.mango.util.script.ScriptPermissions"/>
     
     <!-- Adding JS functionality for all these beans  -->
     <convert converter="bean" match="com.serotonin.m2m2.vo.event.EventInstanceVO" javascript="EventInstanceVO"/>

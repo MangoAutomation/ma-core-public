@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -38,7 +39,6 @@ import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
-import com.serotonin.m2m2.rt.script.ScriptPermissions;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;

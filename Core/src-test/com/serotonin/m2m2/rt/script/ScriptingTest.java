@@ -15,7 +15,9 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
@@ -63,11 +66,9 @@ public class ScriptingTest extends MangoTestBase {
 
             context.put(p1.getVariableName(), p1Rt);
 
-            ScriptPermissions permissions = new ScriptPermissions();
-            permissions.setCustomPermissions("superadmin");
-            permissions.setDataSourcePermissions("superadmin");
-            permissions.setDataPointReadPermissions("superadmin");
-            permissions.setDataPointSetPermissions("superadmin");
+            Set<String> permissionsSet = new HashSet<>();
+            permissionsSet.add("superadmin");
+            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
 
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
@@ -105,11 +106,9 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            ScriptPermissions permissions = new ScriptPermissions();
-            permissions.setCustomPermissions("superadmin");
-            permissions.setDataSourcePermissions("superadmin");
-            permissions.setDataPointReadPermissions("superadmin");
-            permissions.setDataPointSetPermissions("superadmin");
+            Set<String> permissionsSet = new HashSet<>();
+            permissionsSet.add("superadmin");
+            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
 
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
@@ -176,11 +175,9 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            ScriptPermissions permissions = new ScriptPermissions();
-            permissions.setCustomPermissions("superadmin");
-            permissions.setDataSourcePermissions("superadmin");
-            permissions.setDataPointReadPermissions("superadmin");
-            permissions.setDataPointSetPermissions("superadmin");
+            Set<String> permissionsSet = new HashSet<>();
+            permissionsSet.add("superadmin");
+            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
 
             try(ScriptLog scriptLog = new ScriptLog("testNullWriter")){
                 CompiledScript s = service.compile(script, true);
@@ -213,11 +210,9 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            ScriptPermissions permissions = new ScriptPermissions();
-            permissions.setCustomPermissions("superadmin");
-            permissions.setDataSourcePermissions("superadmin");
-            permissions.setDataPointReadPermissions("superadmin");
-            permissions.setDataPointSetPermissions("superadmin");
+            Set<String> permissionsSet = new HashSet<>();
+            permissionsSet.add("superadmin");
+            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
 
             //Delete the file
             File log = new File(Common.getLogsDir(), "testFileWriter-1.log");
@@ -285,11 +280,10 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            ScriptPermissions permissions = new ScriptPermissions();
-            permissions.setCustomPermissions("superadmin");
-            permissions.setDataSourcePermissions("superadmin");
-            permissions.setDataPointReadPermissions("superadmin");
-            permissions.setDataPointSetPermissions("superadmin");
+            Set<String> permissionsSet = new HashSet<>();
+            permissionsSet.add("superadmin");
+            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
+
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("testContextWriter-", ScriptLog.LogLevel.TRACE, scriptWriter)) {
@@ -325,12 +319,10 @@ public class ScriptingTest extends MangoTestBase {
         try {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
-
-            ScriptPermissions permissions = new ScriptPermissions();
-            permissions.setCustomPermissions("superadmin");
-            permissions.setDataSourcePermissions("superadmin");
-            permissions.setDataPointReadPermissions("superadmin");
-            permissions.setDataPointSetPermissions("superadmin");
+            
+            Set<String> permissionsSet = new HashSet<>();
+            permissionsSet.add("superadmin");
+            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
 
             //Delete the file
             File log = new File(Common.getLogsDir(), "testNullValueWriter-1.log");

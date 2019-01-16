@@ -26,8 +26,9 @@
 
 <jsp:body>
   <script>
+    var permissionUI = new PermissionUI(MiscDwr);
     dojo.require("dijit.Tree");
-    dojo.require("dijit.tree.TreeStoreModel");
+    dojo.require("dijit.tree.TreeStoreModel"); 
     dojo.require("dojo.data.ItemFileWriteStore");
     dojo.require("dojo.store.Memory");
     dojo.require("dijit.form.FilteringSelect");

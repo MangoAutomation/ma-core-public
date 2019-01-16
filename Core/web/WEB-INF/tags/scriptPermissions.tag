@@ -4,41 +4,24 @@
 --%><%@include file="/WEB-INF/tags/decl.tagf"%><%--
 --%><%@tag body-content="empty"%>
   <tr>
-    <td class="formLabel"><fmt:message key="scripting.permission.dataSource"/></td>
+    <td class="formLabel"><fmt:message key="javascript.permissions"/></td>
     <td class="formField">
-      <input type="text" id="scriptDataSourcePermission" class="formLong"/>
-      <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('scriptDataSourcePermission')"/>
-    </td>
-  </tr>
-  <tr>
-    <td class="formLabel"><fmt:message key="scripting.permission.dataPointRead"/></td>
-    <td class="formField">
-      <input type="text" id="scriptDataPointReadPermission" class="formLong"/>
-      <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('scriptDataPointReadPermission')"/>
+      <input type="text" id="scriptPermissions" class="formLong"/>
+      <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('scriptPermissions')"/>
       <tag:help id="scriptPermissions"/>
-    </td>
-  </tr>
-  <tr>
-    <td class="formLabel"><fmt:message key="scripting.permission.dataPointSet"/></td>
-    <td class="formField">
-      <input type="text" id="scriptDataPointSetPermission" class="formLong"/>
-      <tag:img png="bullet_down" onclick="permissionUI.viewPermissions('scriptDataPointSetPermission')"/>
     </td>
   </tr>
 <script type="text/javascript">
 
 function getScriptPermissions(){
-	return {
-			dataSourcePermissions: $get('scriptDataSourcePermission'),
-			dataPointSetPermissions: $get('scriptDataPointSetPermission'),
-			dataPointReadPermissions: $get('scriptDataPointReadPermission')
-	};
+    return $get('scriptPermissions');
 }
 function setScriptPermissions(permissions){
+    //So we can accept strings or ScriptPermissions
 	if(typeof permissions === 'object') {
-		$set('scriptDataSourcePermission', permissions.dataSourcePermissions);
-		$set('scriptDataPointSetPermission', permissions.dataPointSetPermissions);
-		$set('scriptDataPointReadPermission', permissions.dataPointReadPermissions);
+		$set('scriptPermissions', permissions.permissions);
+	}else{
+	    $set('scriptPermissions', permissions);
 	}
 }
 </script>

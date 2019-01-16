@@ -1,9 +1,19 @@
+/*
+    Copyright (C) 2019 Infinite Automation Systems Inc. All rights reserved.
+    @author Terry Packer
+ */
 package com.serotonin.m2m2.rt.script;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 
+/**
+ * 
+ * @author Terry Packer
+ *
+ */
 public abstract class ScriptPointValueSetter {
     protected ScriptPermissions permissions;
 
