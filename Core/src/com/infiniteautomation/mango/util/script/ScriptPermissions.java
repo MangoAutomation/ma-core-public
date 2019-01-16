@@ -39,7 +39,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
         this(permissionsSet, "script");
     }
     public ScriptPermissions(Set<String> permissionsSet, String permissionHolderName) {
-        this.permissionsSet = permissionsSet;
+        this.permissionsSet = permissionsSet == null ? new HashSet<>() : permissionsSet;
         this.permissionHolderName = permissionHolderName;
     }
     

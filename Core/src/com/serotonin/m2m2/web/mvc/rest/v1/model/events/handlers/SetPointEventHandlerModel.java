@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers;
 
 import java.util.List;
+import java.util.Set;
 
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
@@ -107,11 +108,15 @@ public class SetPointEventHandlerModel extends AbstractEventHandlerModel<SetPoin
     	this.data.setAdditionalContext(additionalContext);
     }
     
-    public ScriptPermissions getScriptPermissions() {
-        return this.data.getScriptPermissions();
+    public Set<String> getScriptPermissions() {
+        if(this.data.getScriptPermissions() != null)
+            return this.data.getScriptPermissions().getPermissionsSet();
+        else
+            return null;
     }
     
-    public void setScriptPermissions(ScriptPermissions scriptPermissions) {
-        this.data.setScriptPermissions(scriptPermissions);
+    public void setScriptPermissions(Set<String> scriptPermissions) {
+        if(scriptPermissions != null)
+            this.data.setScriptPermissions(new ScriptPermissions(scriptPermissions));
     }
 }

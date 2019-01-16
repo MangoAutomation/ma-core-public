@@ -20,7 +20,6 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
-import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
@@ -72,7 +71,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     private int inactivePointId;
     private String activeScript;
     private String inactiveScript;
-    @JsonProperty
     private ScriptPermissions scriptPermissions;
     private List<IntStringPair> additionalContext;
     
