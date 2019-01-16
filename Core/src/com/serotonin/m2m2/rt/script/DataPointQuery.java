@@ -10,10 +10,10 @@ import java.util.List;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
-import net.jazdw.rql.parser.ASTNode;
-import net.jazdw.rql.parser.RQLParser;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
@@ -21,6 +21,9 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
+
+import net.jazdw.rql.parser.ASTNode;
+import net.jazdw.rql.parser.RQLParser;
 
 /**
  * 
@@ -35,7 +38,17 @@ public class DataPointQuery extends ScriptUtility {
 
 	private ScriptEngine engine;
 	private ScriptPointValueSetter setter;
-	private RQLParser parser = new RQLParser();;
+	private RQLParser parser = new RQLParser();
+	
+	@Autowired
+	public DataPointQuery(MangoJavaScriptService service) {
+	    super(service);
+	}
+	
+    @Override
+    public String getContextKey() {
+        return DataPointQuery.CONTEXT_KEY;
+    }
 	
 	@Override
 	public void takeContext(ScriptEngine engine, Bindings engineScope, 

@@ -190,7 +190,7 @@ public class MangoJavaScriptService {
         MangoJavaScriptResult result = new MangoJavaScriptResult();
         final StringWriter scriptOut = new StringWriter();
         try {
-            final ScriptPointValueSetter setter = createValidationSetter(result, vo.getPermissions());
+            
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             ScriptLogLevels logLevel = vo.getLogLevel();
             if(logLevel == ScriptLogLevels.NONE)
@@ -198,23 +198,24 @@ public class MangoJavaScriptService {
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter);){
                 CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction());
 
-                Object scriptResult;
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null)
-                    scriptResult = execute(compiledScript, time, time, vo.getResultDataTypeId(),
+                    execute(compiledScript, time, time, vo.getResultDataTypeId(),
                             convertContext(vo.getContext(), true),
                             vo.getAdditionalContext(),
+                            vo.getAdditionalUtilities(),
                             vo.getPermissions(), 
                             scriptLog,
-                            setter, null, true);
+                            null, null, result, true);
                 else
-                    scriptResult = execute(compiledScript, time,
+                    execute(compiledScript, time,
                             convertContext(vo.getContext(), true),
                             vo.getAdditionalContext(),
+                            vo.getAdditionalUtilities(),
                             vo.getPermissions(), 
                             scriptLog,
-                            setter, null, true);
-                result.setResult(scriptResult);
+                            null,
+                            null, result, true);
             }
         }catch (ScriptError e) {
             //The script exception should be clean as both compile() and execute() clean it
@@ -250,24 +251,24 @@ public class MangoJavaScriptService {
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter);){
                 CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction());
 
-                Object scriptResult;
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null)
-                    scriptResult = execute(compiledScript, time, time, 
+                    execute(compiledScript, time, time, 
                             vo.getResultDataTypeId(), 
                             convertContext(vo.getContext(), false),
-                            null,
+                            vo.getAdditionalContext(),
+                            vo.getAdditionalUtilities(),
                             vo.getPermissions(), 
                             scriptLog,
-                            setter, null, false);
+                            setter, null, result, false);
                 else
-                    scriptResult = execute(compiledScript, time, 
+                    execute(compiledScript, time, 
                             convertContext(vo.getContext(), false),
-                            null,
+                            vo.getAdditionalContext(),
+                            vo.getAdditionalUtilities(),
                             vo.getPermissions(), 
                             scriptLog,
-                            setter, null, false);
-                result.setResult(scriptResult);
+                            setter, null, result, false);
             }
         }catch (ScriptError e) {
             //The script exception should be clean as both compile() and execute() clean it
@@ -338,31 +339,33 @@ public class MangoJavaScriptService {
      * 
      * @param compiledScript
      * @param runtime
-     * @param timestamp - Timestamp in Context and default for point value
+     * @param timestamp
      * @param resultDataTypeId
      * @param context
      * @param additionalContext
+     * @param additionalUtilities
      * @param permissions
      * @param log
      * @param setter
      * @param importExclusions
+     * @param result
      * @param testRun
-     * @return
      * @throws ScriptError
      * @throws ResultTypeException
      */
-    public PointValueTime execute(
+    public void execute(
             CompiledScript compiledScript, long runtime, long timestamp,
-            Integer resultDataTypeId, Map<String, IDataPointValueSource> context, Map<String, Object> additionalContext,
+            Integer resultDataTypeId, Map<String, IDataPointValueSource> context, 
+            Map<String, Object> additionalContext, List<ScriptUtility> additionalUtilities,
             ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
-            List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptError, ResultTypeException {
+            List<JsonImportExclusion> importExclusions, MangoJavaScriptResult result, boolean testRun) throws ScriptError, ResultTypeException {
         try {
             //Setup the wraper context
             compiledScript.getEngine().put(WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
             //Populate with engine scoped data
-            populateEngineScope(compiledScript, context, additionalContext, permissions, log, setter, importExclusions, testRun);
+            populateEngineScope(compiledScript, context, additionalContext, additionalUtilities, permissions, log, setter, importExclusions, result, testRun);
             
-            Object result = compiledScript.eval();
+            Object resultObject = compiledScript.eval();
             Object ts = compiledScript.getEngine().getBindings(ScriptContext.ENGINE_SCOPE).get(TIMESTAMP_CONTEXT_KEY);
     
             if (ts != null) {
@@ -371,38 +374,40 @@ public class MangoJavaScriptService {
                     // Convert to long
                     timestamp = ((Number) ts).longValue();
             }
-            DataValue value = coerce(result, resultDataTypeId);
-            return new PointValueTime(value, timestamp);
+            DataValue value = coerce(resultObject, resultDataTypeId);
+            result.setResult(new PointValueTime(value, timestamp));
         }catch(ScriptException e) {
             throw ScriptError.create(e);
         }
     }
     
     /**
-     * Excecute a script that does not return a PointValueTime
+     * Execute a script that can return any type of object including null
      * 
      * @param compiledScript
      * @param runtime
      * @param context
      * @param additionalContext
+     * @param additionalUtilities
      * @param permissions
      * @param log
      * @param setter
      * @param importExclusions
+     * @param result
      * @param testRun
-     * @return
      * @throws ScriptError
      */
-    public Object execute(CompiledScript compiledScript, long runtime,
+    public void execute(CompiledScript compiledScript, long runtime,
             Map<String, IDataPointValueSource> context, Map<String, Object> additionalContext,
-            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
-            List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptError {
+            List<ScriptUtility> additionalUtilities, ScriptPermissions permissions, ScriptLog log, 
+            ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, 
+            MangoJavaScriptResult result, boolean testRun) throws ScriptError {
         try{
             //Setup the wraper context
             compiledScript.getEngine().put(WRAPPER_CONTEXT_KEY, new WrapperContext(runtime));
             //Populate with engine scoped data
-            populateEngineScope(compiledScript, context, additionalContext, permissions, log, setter, importExclusions, testRun);
-            return compiledScript.eval();
+            populateEngineScope(compiledScript, context, additionalContext, additionalUtilities, permissions, log, setter, importExclusions, result, testRun);
+            result.setResult(compiledScript.eval());
         }catch (ScriptException e) {
             throw ScriptError.create(e);
         }
@@ -446,27 +451,45 @@ public class MangoJavaScriptService {
     
     /**
      * Fill the engine scope with data that may change after a script is compiled
+     * 
      * @param script
      * @param context
      * @param additionalContext
+     * @param additionalUtilities
      * @param permissions
      * @param log
      * @param setter
      * @param importExclusions
+     * @param result
      * @param testRun
      * @throws ScriptException
      */
     protected void populateEngineScope(CompiledScript script, Map<String, 
             IDataPointValueSource> context, Map<String, Object> additionalContext,
-            ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
-            List<JsonImportExclusion> importExclusions, boolean testRun) throws ScriptException {
+            List<ScriptUtility> additionalUtilities, ScriptPermissions permissions, ScriptLog log, 
+            ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, 
+            MangoJavaScriptResult result, boolean testRun) throws ScriptException {
         
         Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
+        if(setter == null)
+            setter = createValidationSetter(result, permissions);
+        
         if(permissions != null) {
             for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
                 ScriptUtility util = testRun ? def.initializeTestContextObject(permissions) : def.initializeContextObject(permissions);
+                util.setScriptLog(log);
+                util.setResult(result);
                 util.takeContext(script.getEngine(), engineScope, setter, importExclusions, testRun);
-                engineScope.put(def.getContextKey(), util);
+                engineScope.put(util.getContextKey(), util);
+            }
+            //Initialize additional utilities
+            if(additionalUtilities != null) {
+                for(ScriptUtility util : additionalUtilities) {
+                    util.setScriptLog(log);
+                    util.setResult(result);
+                    util.takeContext(script.getEngine(), engineScope, setter, importExclusions, testRun);
+                    engineScope.put(util.getContextKey(), util);
+                }
             }
         }
         

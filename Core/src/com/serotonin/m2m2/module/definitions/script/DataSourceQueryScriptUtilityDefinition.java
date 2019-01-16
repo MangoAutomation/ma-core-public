@@ -11,11 +11,6 @@ import com.serotonin.m2m2.rt.script.DataSourceQuery;
 public class DataSourceQueryScriptUtilityDefinition extends MangoJavascriptContextObjectDefinition {
 
     @Override
-    public String getContextKey() {
-        return DataSourceQuery.CONTEXT_KEY;
-    }
-
-    @Override
     protected Class<? extends ScriptUtility> getUtilityClass() {
         return DataSourceQuery.class;
     }

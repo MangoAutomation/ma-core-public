@@ -8,8 +8,11 @@ import java.util.Map;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.db.MappedRowCallback;
@@ -21,7 +24,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -40,6 +42,16 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     private List<JsonImportExclusion> importExclusions;
     protected boolean importDuringValidation = false;
 
+    @Autowired
+    public JsonEmportScriptUtility(MangoJavaScriptService service) {
+        super(service);
+    }
+
+    @Override
+    public String getContextKey() {
+        return CONTEXT_KEY;
+    }
+    
     @Override
     public void setPermissions(PermissionHolder permissions) {
         admin = Permissions.hasAdminPermission(permissions);

@@ -30,6 +30,7 @@ import org.joda.time.DateTime;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.io.StreamUtils;
@@ -406,19 +407,22 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
                     CompiledScript compiledScript = service.compile(script, true);
                     long time = evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp();
-                    PointValueTime result = service.execute(
+                    MangoJavaScriptResult r = new MangoJavaScriptResult();
+                    service.execute(
                             compiledScript, 
                             Common.timer.currentTimeMillis(), 
                             time, 
                             DataTypes.ALPHANUMERIC,
                             context,
                             modelContext,
+                            null,
                             permissions,
                             scriptLog,
                             setCallback,
                             importExclusions,
+                            r,
                             false);
-                    
+                    PointValueTime result = (PointValueTime)r.getResult();
                     if(result != null && result.getValue() == MangoJavaScriptService.UNCHANGED) //The script cancelled the email
                         return;
 

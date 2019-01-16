@@ -22,8 +22,10 @@ public class MangoJavaScript {
     private ScriptLogLevels logLevel;
     //If non-null coerce the result into a PointValueTime with this data type
     private Integer resultDataTypeId;
+    //Any additional context for the run
     private Map<String, Object> additionalContext;
-    
+    //Any test utilities without module element definitions as those are added automatically
+    private List<ScriptUtility> additionalUtilities;
     
     /**
      * @return the wrapInFunction
@@ -111,5 +113,17 @@ public class MangoJavaScript {
      */
     public void setAdditionalContext(Map<String, Object> additionalContext) {
         this.additionalContext = additionalContext;
+    }
+    /**
+     * @return the additionalUtilities
+     */
+    public List<ScriptUtility> getAdditionalUtilities() {
+        return additionalUtilities;
+    }
+    /**
+     * @param additionalUtilites the additionalUtilities to set
+     */
+    public void setAdditionalUtilities(List<ScriptUtility> additionalUtilities) {
+        this.additionalUtilities = additionalUtilities;
     }
 }

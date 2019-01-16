@@ -1,5 +1,8 @@
 package com.serotonin.m2m2.rt.script;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -10,6 +13,11 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility {
 	
+    @Autowired
+    public RuntimeManagerScriptTestUtility(MangoJavaScriptService service) {
+        super(service);
+    }
+    
 	/**
 	 * Mock refresh a data point with the given XID.
 	 * 

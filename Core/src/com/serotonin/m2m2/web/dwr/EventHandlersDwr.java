@@ -25,6 +25,7 @@ import org.directwebremoting.WebContextFactory;
 
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -517,16 +518,19 @@ public class EventHandlersDwr extends BaseDwr {
             MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
 
             CompiledScript compiledScript = service.compile(script, true);
-            PointValueTime pvt = service.execute(
+            MangoJavaScriptResult result = new MangoJavaScriptResult();
+            service.execute(
                     compiledScript, 
                     System.currentTimeMillis(),
                     System.currentTimeMillis(),
                     targetDataType,
                     context, 
                     otherContext,
+                    null,
                     scriptPermissions,
-                    scriptLog, loggingSetter, null, true);
-            if (pvt.getValue() == null)
+                    scriptLog, loggingSetter, null, result, true);
+            PointValueTime pvt = (PointValueTime)result.getResult();
+            if (pvt == null || pvt.getValue() == null)
                 message = new TranslatableMessage("eventHandlers.script.nullResult");
             else if(MangoJavaScriptService.UNCHANGED == pvt.getValue()) {
                 if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE)

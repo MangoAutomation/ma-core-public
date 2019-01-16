@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
+import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -25,8 +26,21 @@ public abstract class ScriptUtility {
 
     protected final static String NEWLINE = "\n";
     protected PermissionHolder permissions;
+    protected final MangoJavaScriptService service;
+    protected ScriptLog log;
+    //Used to track any actions performed (usually during testing when mocking a set/modify call)
+    protected MangoJavaScriptResult result;
+    
     @Autowired
-    protected MangoJavaScriptService service;
+    public ScriptUtility(MangoJavaScriptService service) {
+        this.service = service;
+    }
+    
+    /**
+     * The key to use in the context for the utility
+     * @return
+     */
+    public abstract String getContextKey();
     
     public void setPermissions(PermissionHolder holder) {
         this.permissions = holder;
@@ -34,6 +48,17 @@ public abstract class ScriptUtility {
     
     public PermissionHolder getPermissions() {
         return permissions;
+    }
+    
+    public void setScriptLog(ScriptLog log) {
+        this.log = log;
+    }
+    
+    public MangoJavaScriptResult getResult() {
+        return result;
+    }
+    public void setResult(MangoJavaScriptResult result) {
+        this.result = result;
     }
     
     public String getHelp() {

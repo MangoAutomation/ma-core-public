@@ -25,11 +25,13 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 import org.eclipse.jetty.http.HttpMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.web.http.HttpUtils4;
@@ -49,8 +51,15 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
     private Exception thrown;
     private List<Integer> okayStatus = new ArrayList<Integer>(1);
 
-    public HttpBuilderScriptUtility() {
+    @Autowired
+    public HttpBuilderScriptUtility(MangoJavaScriptService service) {
+        super(service);
         okayStatus.add(HttpStatus.OK.value());
+    }
+
+    @Override
+    public String getContextKey() {
+        return CONTEXT_KEY;
     }
 
     public HttpResponse getResponse() {

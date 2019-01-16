@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -111,7 +112,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
         int targetDataType = targetPoint.getVO().getPointLocator().getDataTypeId();
 
-        DataValue value;
+        DataValue value = null;
         if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
             // Get the source data point.
             DataPointRT sourcePoint = Common.runtimeManager.getDataPoint(vo.getActivePointId());
@@ -151,18 +152,21 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         			if(dprt != null)
         				context.put(cxt.getValue(), dprt);
         		}
-	        	PointValueTime pvt = service.execute(
+        		MangoJavaScriptResult result = new MangoJavaScriptResult();
+	        	service.execute(
 	        	        activeScript, 
 	        	        evt.getActiveTimestamp(),
 	        	        evt.getActiveTimestamp(),
 	        	        targetPoint.getDataTypeId(),
 	        	        context, 
-	        	        additionalContext,  
+	        	        additionalContext,
+	        	        null,
 	        			vo.getScriptPermissions(), 
 	        			scriptLog, 
-	        			setCallback, importExclusions, false);
-
-	        	value = pvt.getValue();
+	        			setCallback, importExclusions, result, false);
+	        	PointValueTime pvt = (PointValueTime)result.getResult();
+	        	if(pvt != null)
+	        	    value = pvt.getValue();
         	} catch(ScriptPermissionsException e) {
                 raiseFailureEvent(e.getTranslatableMessage(), evt.getEventType());
                 return;
@@ -202,7 +206,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
 
         int targetDataType = targetPoint.getVO().getPointLocator().getDataTypeId();
 
-        DataValue value;
+        DataValue value = null;
         if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
             // Get the source data point.
             DataPointRT sourcePoint = Common.runtimeManager.getDataPoint(vo.getInactivePointId());
@@ -241,17 +245,21 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                     if(dprt != null)
                         context.put(cxt.getValue(), dprt);
                 }
-	        	PointValueTime pvt = service.execute(
+        	    MangoJavaScriptResult result = new MangoJavaScriptResult();
+	        	service.execute(
 	        	        inactiveScript, 
 	        	        evt.getRtnTimestamp(),
 	        	        evt.getRtnTimestamp(),
 	        	        targetPoint.getDataTypeId(),
 	        	        context, 
 	        	        additionalContext,
+	        	        null,
 	        	        vo.getScriptPermissions(),
 	        	        new ScriptLog("setPointHandler-" + evt.getId()),
-	        			setCallback, importExclusions, false);
-	        	value = pvt.getValue();
+	        			setCallback, importExclusions, result, false);
+	        	PointValueTime pvt = (PointValueTime)result.getResult();
+	        	if(pvt != null)
+	        	    value = pvt.getValue();
         	} catch(ScriptPermissionsException e) {
         	    raiseFailureEvent(e.getTranslatableMessage(), evt.getEventType());
         	    return;

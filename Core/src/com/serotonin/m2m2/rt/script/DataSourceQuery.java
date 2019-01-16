@@ -10,10 +10,13 @@ import java.util.List;
 import javax.script.Bindings;
 import javax.script.ScriptEngine;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -37,6 +40,16 @@ public class DataSourceQuery extends ScriptUtility {
 	private ScriptEngine engine;
 	private ScriptPointValueSetter setter;
 	private RQLParser parser = new RQLParser();
+	
+    @Autowired
+    public DataSourceQuery(MangoJavaScriptService service) {
+        super(service);
+    }
+
+    @Override
+    public String getContextKey() {
+        return CONTEXT_KEY;
+    }
 	
     @Override
     public void takeContext(ScriptEngine engine, Bindings engineScope, 

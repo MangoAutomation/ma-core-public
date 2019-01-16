@@ -14,12 +14,7 @@ import com.serotonin.m2m2.rt.script.RuntimeManagerScriptUtility;
  * @author Phillip Dunlap
  */
 public class RuntimeManagerScriptUtilityDefinition extends MangoJavascriptContextObjectDefinition{
-
-    @Override
-    public String getContextKey() {
-        return RuntimeManagerScriptUtility.CONTEXT_KEY;
-    }
-
+    
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.module.MangoJavascriptContextObjectDefinition#getUtilityClass()
      */

@@ -27,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -76,14 +77,16 @@ public class ScriptingTest extends MangoTestBase {
                     new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)){
     
                 CompiledScript s = service.compile(script, true);
-                PointValueTime pvt = service.execute(
+                MangoJavaScriptResult result = new MangoJavaScriptResult();
+                service.execute(
                         s,
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC,
-                        context, null,
+                        context, null, null,
                         permissions,
-                        scriptLog, null, null, false);
+                        scriptLog, null, null, result, false);
+                PointValueTime pvt = (PointValueTime)result.getResult();
                 assertNotNull(pvt);
             }
         } catch (Exception e) {
@@ -116,14 +119,16 @@ public class ScriptingTest extends MangoTestBase {
                     new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)) {
 
                 CompiledScript s = service.compile(script, true);
+                MangoJavaScriptResult r = new MangoJavaScriptResult();
                 service.execute(s, 
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC,
                         context,
                         null,
+                        null,
                         permissions,
-                        scriptLog, null, null, false);
+                        scriptLog, null, null, r, false);
                 String result = scriptOut.toString();
                 String[] messages = result.split("\\n");
                 Assert.assertEquals(6, messages.length);
@@ -178,16 +183,16 @@ public class ScriptingTest extends MangoTestBase {
             Set<String> permissionsSet = new HashSet<>();
             permissionsSet.add("superadmin");
             ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
-
+            MangoJavaScriptResult result = new MangoJavaScriptResult();
             try(ScriptLog scriptLog = new ScriptLog("testNullWriter")){
                 CompiledScript s = service.compile(script, true);
                 service.execute(s,
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC,
-                        context, null,
+                        context, null, null,
                         permissions,
-                        scriptLog, null, null, false);
+                        scriptLog, null, null, result, false);
                 Assert.assertTrue(!scriptLog.getFile().exists());
             }
         }catch(Exception e) {
@@ -224,13 +229,14 @@ public class ScriptingTest extends MangoTestBase {
             try(ScriptLog scriptLog = new ScriptLog("testFileWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
             
                 CompiledScript s = service.compile(script, true);
+                MangoJavaScriptResult r = new MangoJavaScriptResult();
                 service.execute(s,
                         Common.timer.currentTimeMillis(), 
                         Common.timer.currentTimeMillis(), 
                         DataTypes.NUMERIC,
-                        context, null,
+                        context, null, null,
                         permissions,
-                        scriptLog, null, null, false);
+                        scriptLog, null, null, r, false);
     
                 Assert.assertTrue(scriptLog.getFile().exists());
                 
@@ -287,15 +293,15 @@ public class ScriptingTest extends MangoTestBase {
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("testContextWriter-", ScriptLog.LogLevel.TRACE, scriptWriter)) {
-    
+                MangoJavaScriptResult r = new MangoJavaScriptResult();
                 CompiledScript s = service.compile(script, true);
                 service.execute(s,
                         Common.timer.currentTimeMillis(), 
                         Common.timer.currentTimeMillis(), 
                         DataTypes.NUMERIC,
-                        context, null,
+                        context, null, null,
                         permissions,
-                        scriptLog, null, null, false);
+                        scriptLog, null, null, r, false);
                 
                 String result = scriptOut.toString();
                 Assert.assertEquals("testing context writer\n", result);
@@ -334,13 +340,14 @@ public class ScriptingTest extends MangoTestBase {
             try(ScriptLog scriptLog = new ScriptLog("testNullValueWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
             
                 CompiledScript s = service.compile(script, true);
+                MangoJavaScriptResult r = new MangoJavaScriptResult();
                 service.execute(s,
                         Common.timer.currentTimeMillis(), 
                         Common.timer.currentTimeMillis(), 
                         DataTypes.NUMERIC,
-                        context, null,
+                        context, null, null,
                         permissions,
-                        scriptLog, null, null, false);
+                        scriptLog, null, null, r, false);
     
                 Assert.assertTrue(scriptLog.getFile().exists());
                 

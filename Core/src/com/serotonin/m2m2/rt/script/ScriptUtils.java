@@ -139,7 +139,7 @@ public class ScriptUtils {
 		for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
 		    ScriptUtility util = testRun ? def.initializeTestContextObject(permissions) : def.initializeContextObject(permissions);
 		    util.takeContext(engine, engineScope, setter, importExclusions, testRun);
-            engineScope.put(def.getContextKey(), util);
+            engineScope.put(util.getContextKey(), util);
 		}
     	
         engineScope.put(CompiledScriptExecutor.UNCHANGED_KEY, CompiledScriptExecutor.UNCHANGED);

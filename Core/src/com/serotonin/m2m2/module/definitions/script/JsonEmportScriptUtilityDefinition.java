@@ -10,12 +10,7 @@ import com.serotonin.m2m2.rt.script.JsonEmportScriptTestUtility;
 import com.serotonin.m2m2.rt.script.JsonEmportScriptUtility;
 
 public class JsonEmportScriptUtilityDefinition extends MangoJavascriptContextObjectDefinition {
-
-    @Override
-    public String getContextKey() {
-        return JsonEmportScriptUtility.CONTEXT_KEY;
-    }
-
+    
     @Override
     protected Class<? extends ScriptUtility> getUtilityClass() {
         return JsonEmportScriptUtility.class;

@@ -12,13 +12,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  */
 public abstract class MangoJavascriptContextObjectDefinition extends ModuleElementDefinition {
-
-    /**
-     * Get the context key for the Object in the Context
-     * 
-     * @return
-     */
-    abstract public String getContextKey();
     
     abstract protected Class<? extends ScriptUtility> getUtilityClass();
     

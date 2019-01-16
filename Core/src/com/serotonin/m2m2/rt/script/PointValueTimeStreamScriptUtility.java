@@ -15,6 +15,7 @@ import java.util.TimeZone;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer;
@@ -24,6 +25,7 @@ import com.infiniteautomation.mango.quantize.StartsAndRuntimeListQuantizer;
 import com.infiniteautomation.mango.quantize.StatisticsGeneratorQuantizerCallback;
 import com.infiniteautomation.mango.quantize.TimePeriodBucketCalculator;
 import com.infiniteautomation.mango.quantize.ValueChangeCounterQuantizer;
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.statistics.AnalogStatistics;
 import com.infiniteautomation.mango.statistics.StartsAndRuntimeList;
 import com.infiniteautomation.mango.statistics.ValueChangeCounter;
@@ -49,6 +51,16 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
     private static final Log LOG = LogFactory.getLog(PointValueTimeStreamScriptUtility.class);
     public static final String CONTEXT_KEY = "PointValueQuery";
 
+    @Autowired
+    public PointValueTimeStreamScriptUtility(MangoJavaScriptService service) {
+        super(service);
+    }
+
+    @Override
+    public String getContextKey() {
+        return CONTEXT_KEY;
+    }
+    
     public void query(List<Integer> ids, long from, long to, boolean bookend, ScriptPointValueTimeCallback callback) {
         PointValueTimeStream pvts = new PointValueTimeStream(ids, from, to, bookend, callback);
         pvts.execute();

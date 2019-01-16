@@ -13,12 +13,7 @@ import com.serotonin.m2m2.rt.script.HttpBuilderScriptUtility;
  * @author Phillip Dunlap
  */
 public class HttpBuilderScriptUtilityDefinition extends MangoJavascriptContextObjectDefinition {
-
-    @Override
-    public String getContextKey() {
-        return HttpBuilderScriptUtility.CONTEXT_KEY;
-    }
-
+    
     @Override
     protected Class<? extends ScriptUtility> getUtilityClass() {
         return HttpBuilderScriptUtility.class;

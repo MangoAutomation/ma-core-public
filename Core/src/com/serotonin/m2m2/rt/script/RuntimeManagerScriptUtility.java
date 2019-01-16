@@ -6,7 +6,9 @@ package com.serotonin.m2m2.rt.script;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -29,6 +31,16 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 	protected static final int DOES_NOT_EXIST = -1;  //Point or Data Soure Does not exist
 	protected static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
 	protected static final int OPERATION_SUCCESSFUL = 1; //Operation worked
+	
+    @Autowired
+    public RuntimeManagerScriptUtility(MangoJavaScriptService service) {
+        super(service);
+    }
+
+    @Override
+    public String getContextKey() {
+        return CONTEXT_KEY;
+    }
 	
 	/**
 	 * Refresh a data point with the given XID.

@@ -3,11 +3,19 @@ package com.serotonin.m2m2.rt.script;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 
+    @Autowired
+    public JsonEmportScriptTestUtility(MangoJavaScriptService service) {
+        super(service);
+    }
+    
 	@Override
 	public void doImport(String json) throws Exception {
 		//No import in testing! Unless...
