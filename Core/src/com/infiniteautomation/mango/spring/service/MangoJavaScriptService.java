@@ -203,14 +203,14 @@ public class MangoJavaScriptService {
                 if(vo.getResultDataTypeId() != null)
                     scriptResult = execute(compiledScript, time, time, vo.getResultDataTypeId(),
                             convertContext(vo.getContext(), true),
-                            null,
+                            vo.getAdditionalContext(),
                             vo.getPermissions(), 
                             scriptLog,
                             setter, null, true);
                 else
                     scriptResult = execute(compiledScript, time,
                             convertContext(vo.getContext(), true),
-                            null,
+                            vo.getAdditionalContext(),
                             vo.getPermissions(), 
                             scriptLog,
                             setter, null, true);

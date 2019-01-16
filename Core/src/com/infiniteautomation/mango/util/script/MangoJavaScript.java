@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.util.script;
 
 import java.util.List;
+import java.util.Map;
 
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 
@@ -20,7 +21,8 @@ public class MangoJavaScript {
     private ScriptPermissions permissions;
     private ScriptLogLevels logLevel;
     //If non-null coerce the result into a PointValueTime with this data type
-    private Integer resultDataTypeId; 
+    private Integer resultDataTypeId;
+    private Map<String, Object> additionalContext;
     
     
     /**
@@ -96,5 +98,18 @@ public class MangoJavaScript {
      */
     public void setResultDataTypeId(Integer resultDataTypeId) {
         this.resultDataTypeId = resultDataTypeId;
+    }
+    
+    /**
+     * @return the additionalContext
+     */
+    public Map<String, Object> getAdditionalContext() {
+        return additionalContext;
+    }
+    /**
+     * @param additionalContext the additionalContext to set
+     */
+    public void setAdditionalContext(Map<String, Object> additionalContext) {
+        this.additionalContext = additionalContext;
     }
 }
