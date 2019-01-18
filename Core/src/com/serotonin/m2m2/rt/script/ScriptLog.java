@@ -11,6 +11,7 @@ import org.apache.commons.io.output.NullWriter;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.util.ExportCodes;
+import com.serotonin.m2m2.util.log.NullPrintWriter;
 import com.serotonin.m2m2.util.log.ProcessLog;
 
 /**
@@ -70,7 +71,7 @@ public class ScriptLog extends ProcessLog implements Closeable {
      * @param id
      */
     public ScriptLog(String id) {
-        super(null, id, ProcessLog.LogLevel.FATAL, false, new PrintWriter(new NullWriter()) ,true);
+        super(null, id, ProcessLog.LogLevel.FATAL, false, new NullPrintWriter() ,true);
     }
     
     /**

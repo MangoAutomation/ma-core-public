@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
+import com.serotonin.m2m2.rt.script.ScriptLog;
 
 
 /**
@@ -26,6 +27,12 @@ public class MangoJavaScript {
     private Map<String, Object> additionalContext;
     //Any test utilities without module element definitions as those are added automatically
     private List<ScriptUtility> additionalUtilities;
+    //Additional log for output to logfile, output will be returned in response 
+    // as a string.
+    private ScriptLog log;
+    private boolean closeLog;  //Is the logger to be closed after execution
+    //Should we return the log output as a string in the response
+    private boolean returnLogOutput = true;
     
     /**
      * @return the wrapInFunction
@@ -125,5 +132,41 @@ public class MangoJavaScript {
      */
     public void setAdditionalUtilities(List<ScriptUtility> additionalUtilities) {
         this.additionalUtilities = additionalUtilities;
+    }
+    /**
+     * @return the log
+     */
+    public ScriptLog getLog() {
+        return log;
+    }
+    /**
+     * @param log the log to set
+     */
+    public void setLog(ScriptLog log) {
+        this.log = log;
+    }
+    /**
+     * @return the returnLogOutput
+     */
+    public boolean isReturnLogOutput() {
+        return returnLogOutput;
+    }
+    /**
+     * @param returnLogOutput the returnLogOutput to set
+     */
+    public void setReturnLogOutput(boolean returnLogOutput) {
+        this.returnLogOutput = returnLogOutput;
+    }
+    /**
+     * @return the closeLog
+     */
+    public boolean isCloseLog() {
+        return closeLog;
+    }
+    /**
+     * @param closeLog the closeLog to set
+     */
+    public void setCloseLog(boolean closeLog) {
+        this.closeLog = closeLog;
     }
 }

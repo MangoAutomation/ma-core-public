@@ -148,7 +148,8 @@ public class ProcessLog implements Closeable {
         else
         	this.out = out;
 
-        processLogs.add(this);
+        if(!(out instanceof NullPrintWriter))
+            processLogs.add(this);
     }
     
     /**
@@ -165,7 +166,8 @@ public class ProcessLog implements Closeable {
     
     public void close() {
         out.close();
-        processLogs.remove(this);
+        if(!(out instanceof NullPrintWriter))
+            processLogs.remove(this);
     }
 
     public String getId() {

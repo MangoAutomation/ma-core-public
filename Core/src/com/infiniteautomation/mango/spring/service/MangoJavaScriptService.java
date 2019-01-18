@@ -3,8 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +38,7 @@ import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
+import com.serotonin.io.NullWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -71,6 +74,8 @@ import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.rt.script.UnitUtility;
 import com.serotonin.m2m2.rt.script.WrapperContext;
 import com.serotonin.m2m2.util.VarNames;
+import com.serotonin.m2m2.util.log.NullPrintWriter;
+import com.serotonin.m2m2.util.log.ProcessLog;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -232,7 +237,7 @@ public class MangoJavaScriptService {
     }
     
     /**
-     * 
+     * The preferred way to execute a script
      * @param vo
      * @param user
      * @return
@@ -242,13 +247,22 @@ public class MangoJavaScriptService {
     public MangoJavaScriptResult executeScript(MangoJavaScript vo, ScriptPointValueSetter setter, PermissionHolder user) throws ValidationException, PermissionException {
         ensureValid(vo, user);
         MangoJavaScriptResult result = new MangoJavaScriptResult();
-        final StringWriter scriptOut = new StringWriter();
+        final Writer scriptOut;
+        final PrintWriter scriptWriter; 
+        if(vo.isReturnLogOutput()) {
+            scriptOut = new StringWriter();
+            scriptWriter = new PrintWriter(scriptOut);
+        }else {
+            NullWriter writer = new NullWriter();
+            scriptWriter = new NullPrintWriter(writer);
+            scriptOut = writer;
+        }
+        
         try {
-            final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             ScriptLogLevels logLevel = vo.getLogLevel();
             if(logLevel == ScriptLogLevels.NONE)
                 logLevel = ScriptLogLevels.FATAL;
-            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter);){
+            try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter, vo.getLog(), vo.isCloseLog());){
                 CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction());
 
                 long time = Common.timer.currentTimeMillis();
@@ -276,10 +290,13 @@ public class MangoJavaScriptService {
                     new TranslatableMessage("common.default", e.getMessage()), e.getLineNumber(), e.getColumnNumber()));
         }catch(ResultTypeException e) {
             result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
+        }catch(DataPointStateException e) {
+            result.addError(new MangoJavaScriptError(e.getTranslatableMessage()));
         }catch (Exception e) {
             result.addError(new MangoJavaScriptError(e.getMessage()));
         }finally {
-            result.setScriptOutput(scriptOut.toString());
+            if(vo.isReturnLogOutput())
+                result.setScriptOutput(scriptOut.toString());
         }
         return result;
     }
@@ -712,5 +729,293 @@ public class MangoJavaScriptService {
                 }
             }
         return result;
+    }
+    
+    private class ScriptLogExtender extends ScriptLog {
+        
+        private final ScriptLog logger;
+        private final boolean closeExtendedLog;
+        
+        /**
+         * @param id
+         * @param level
+         * @param out
+         */
+        public ScriptLogExtender(String id, int level, PrintWriter out, ScriptLog logger, boolean closeExtendedLog) {
+            super(id, level, out);
+            this.logger = logger;
+            this.closeExtendedLog = closeExtendedLog;
+        }
+
+
+        public void trace(Object o) {
+            if(logger != null)
+                logger.trace(o);
+            super.trace(o);
+        }
+
+        public void debug(Object o) {
+            if(logger != null)
+                logger.debug(o);
+            super.debug(o);
+        }
+
+        public void info(Object o) {
+            if(logger != null)
+                logger.info(o);
+            super.info(o);
+        }
+
+        public void warn(Object o) {
+            if(logger != null)
+                logger.warn(o);
+            super.warn(o);
+        }
+
+        public void error(Object o) {
+            if(logger != null)
+                logger.error(o);
+            super.error(o);
+        }
+
+        public void fatal(Object o) {
+            if(logger != null)
+                logger.fatal(o);
+            super.fatal(o);
+        }
+        
+        public PrintWriter getStdOutWriter() {
+            if(logger != null)
+                return logger.getStdOutWriter();
+            else
+                return super.getStdOutWriter();
+        }
+        
+        /**
+         * Get the file currently being written to
+         * @return
+         */
+        public File getFile(){
+            if(logger != null)
+                return logger.getFile();
+            else
+                return super.getFile();
+        }
+        
+        public PrintWriter getPrintWriter() {
+            if(logger != null)
+                return logger.getPrintWriter();
+            else
+                return super.getPrintWriter();
+        }
+        
+        public void close() {
+            if(logger != null && closeExtendedLog)
+                logger.close();
+            else
+                super.close();
+        }
+
+        public String getId() {
+            if(logger != null)
+                return logger.getId();
+            else
+                return super.getId();
+                    
+        }
+
+        public ProcessLog.LogLevel getLogLevel() {
+            if(logger != null)
+                return logger.getLogLevel();
+            else
+                return super.getLogLevel();
+        }
+
+        public void setLogLevel(ProcessLog.LogLevel logLevel) {
+            if(logger != null)
+                logger.setLogLevel(logLevel);
+            super.setLogLevel(logLevel);
+        }
+
+        //
+        // Trace
+        public boolean isTraceEnabled() {
+            if(logger != null && logger.isTraceEnabled())
+                return true;
+            else
+                return super.isTraceEnabled();
+        }
+
+        public void trace(String s) {
+            if(logger != null)
+                logger.trace(s);
+            super.trace(s);
+        }
+
+        public void trace(Throwable t) {
+            if(logger != null)
+                logger.trace(t);
+            super.trace(t);
+        }
+
+        public void trace(String s, Throwable t) {
+            if(logger != null)
+                logger.trace(s, t);
+            super.trace(s, t);
+        }
+
+        //
+        // Debug
+        public boolean isDebugEnabled() {
+            if(logger != null && logger.isDebugEnabled())
+                return true;
+            else
+                return super.isDebugEnabled();
+        }
+
+        public void debug(String s) {
+            if(logger != null)
+                logger.debug(s);
+            super.debug(s);
+        }
+
+        public void debug(Throwable t) {
+            if(logger != null)
+                logger.debug(t);
+            super.debug(t);
+        }
+
+        public void debug(String s, Throwable t) {
+            if(logger != null)
+                logger.debug(s, t);
+            super.debug(s, t);
+        }
+
+        //
+        // Info
+        public boolean isInfoEnabled() {
+            if(logger != null && logger.isInfoEnabled())
+                return true;
+            else
+                return super.isInfoEnabled();
+        }
+
+        public void info(String s) {
+            if(logger != null)
+                logger.info(s);
+            super.info(s);
+        }
+
+        public void info(Throwable t) {
+            if(logger != null)
+                logger.info(t);
+            super.info(t);
+        }
+
+        public void info(String s, Throwable t) {
+            if(logger != null)
+                logger.info(s, t);
+            super.info(s, t);
+        }
+
+        //
+        // Warn
+        public boolean isWarnEnabled() {
+            if(logger != null && logger.isWarnEnabled())
+                return true;
+            else
+                return super.isWarnEnabled();
+        }
+
+        public void warn(String s) {
+            if(logger != null)
+                logger.warn(s);
+            super.warn(s);
+        }
+
+        public void warn(Throwable t) {
+            if(logger != null)
+                logger.warn(t);
+            super.warn(t);
+        }
+
+        public void warn(String s, Throwable t) {
+            if(logger != null)
+                logger.warn(s, t);
+            super.warn(s, t);
+        }
+
+        //
+        // Error
+        public boolean isErrorEnabled() {
+            if(logger != null && logger.isErrorEnabled())
+                return true;
+            else
+                return super.isErrorEnabled();
+        }
+
+        public void error(String s) {
+            if(logger != null)
+                logger.error(s);
+            super.error(s);
+        }
+
+        public void error(Throwable t) {
+            if(logger != null)
+                logger.error(t);
+            super.error(t);
+        }
+
+        public void error(String s, Throwable t) {
+            if(logger != null)
+                logger.error(s, t);
+            super.error(s, t);
+        }
+
+        //
+        // Fatal
+        public boolean isFatalEnabled() {
+            if(logger != null && logger.isFatalEnabled())
+                return true;
+            else
+                return super.isFatalEnabled();
+        }
+
+        public void fatal(String s) {
+            if(logger != null)
+                logger.fatal(s);
+            super.fatal(s);
+        }
+
+        public void fatal(Throwable t) {
+            if(logger != null)
+                logger.fatal(t);
+            super.fatal(t);
+        }
+
+        public void fatal(String s, Throwable t) {
+            if(logger != null)
+                logger.fatal(s, t);
+            super.fatal(s, t);
+        }
+
+        
+        public boolean trouble() {
+            if(logger != null)
+                return logger.trouble();
+            else
+                return super.trouble();
+        }
+        
+        /**
+         * List all the files
+         * @return
+         */
+        public File[] getFiles(){
+            if(logger != null)
+                return logger.getFiles();
+            else
+                return super.getFiles();
+        }
     }
 }
