@@ -33,7 +33,9 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     private Set<String> permissionsSet;
     private String permissionHolderName; //Name for exception messages
     
-    public ScriptPermissions() {}
+    public ScriptPermissions() {
+        this(new HashSet<>());
+    }
     
     public ScriptPermissions(Set<String> permissionsSet) {
         this(permissionsSet, "script");
@@ -86,7 +88,10 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
 
     @Override
     public String getPermissions() {
-        return Permissions.implodePermissionGroups(this.getPermissionsSet());
+        if(permissionsSet != null)
+            return Permissions.implodePermissionGroups(permissionsSet);
+        else
+            return null;
     }
 
     @Override
