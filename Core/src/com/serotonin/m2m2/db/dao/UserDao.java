@@ -77,6 +77,13 @@ public class UserDao extends AbstractDao<User> {
         return springInstance.get();
     }
 
+    public boolean isUsernameUnique(String username, int excludeId) {
+        if(username == null)
+            return false;
+        return ejt.queryForInt("select count(*) from " + tableName + " where username=? and id<>?", new Object[] { username,
+                excludeId }, 0) == 0;
+    }
+    
     public User getUser(int id) {
         return this.get(id);
     }
