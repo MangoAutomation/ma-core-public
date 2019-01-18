@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
 package com.serotonin.m2m2.util.log;

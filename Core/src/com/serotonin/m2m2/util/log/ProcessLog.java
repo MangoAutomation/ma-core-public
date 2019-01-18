@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
+ */
 package com.serotonin.m2m2.util.log;
 
 import java.io.Closeable;
@@ -23,6 +26,10 @@ import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 
+/**
+ * Logger and container for tracking all logs.  
+ *
+ */
 public class ProcessLog implements Closeable {
     private static final Log LOG = LogFactory.getLog(ProcessLog.class);
 
