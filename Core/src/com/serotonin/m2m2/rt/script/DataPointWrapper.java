@@ -19,8 +19,8 @@ import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
  */
 public class DataPointWrapper {
 	
-	private DataPointVO vo;
-	private AbstractPointWrapper wrapper;
+	protected DataPointVO vo;
+	protected AbstractPointWrapper wrapper;
 	
 	public DataPointWrapper(DataPointVO vo, AbstractPointWrapper wrapper){
 		this.vo = vo;
