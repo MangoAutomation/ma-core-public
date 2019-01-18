@@ -1012,12 +1012,29 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         	}
         }
         catch (Exception e) {
-        	response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
+            if (e instanceof IllegalArgumentException) {
+                response.addContextualMessage("unit", "validate.unitInvalid", ((IllegalArgumentException) e)
+                        .getCause().getMessage());
+            }
+            else {
+                response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
+            }
         }
 
         try {
-            if (!validateIntegralUnit()) {
-                response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
+            if (!useIntegralUnit) {
+                integralUnit = defaultIntegralUnit();
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
+            }else {
+                // integral unit should have same dimensions as the default integrated unit
+                if (integralUnit == null) {
+                    integralUnit = defaultIntegralUnit();
+                    UnitUtil.parseLocal(this.integralUnitString);
+                    throw new Exception("No Unit"); //Guarantee we fail
+                }
+                
+                if(!integralUnit.isCompatible(defaultIntegralUnit()))
+                    response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
             }
         }
         catch (Exception e) {
@@ -1031,8 +1048,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         }
 
         try {
-            if (!validateRenderedUnit()) {
-                response.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
+            if (!useRenderedUnit) {
+                renderedUnit = defaultIntegralUnit();
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+            }else {
+                // integral unit should have same dimensions as the default integrated unit
+                if (renderedUnit == null) {
+                    renderedUnit = defaultUnit();
+                    UnitUtil.parseLocal(this.renderedUnitString);
+                    throw new Exception("No Unit"); //Guarantee we fail
+                }
+                
+                if(!renderedUnit.isCompatible(unit))
+                    response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
             }
         }
         catch (Exception e) {
@@ -1086,8 +1114,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         // integral unit should have same dimensions as the default integrated unit
         if (integralUnit == null)
             return false;
-        //Why? setIntegralUnit(UnitUtil.parseLocal(this.integralUnitString));
-
+ 
         return integralUnit.isCompatible(defaultIntegralUnit());
     }
 
