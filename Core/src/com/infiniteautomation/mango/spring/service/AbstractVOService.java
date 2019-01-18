@@ -88,7 +88,9 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws ValidationException
      */
     public void ensureValid(T existing, T vo, PermissionHolder user) throws ValidationException {
-        ensureValid(vo, user);
+        ProcessResult result = validate(existing, vo, user);
+        if(!result.isValid())
+            throw new ValidationException(result);
     }
     
     /**
