@@ -15,7 +15,7 @@ import javax.script.ScriptException;
  */
 public class ScriptError extends Exception {
     private static final long serialVersionUID = 1L;
-    private static final Pattern PATTERN = Pattern.compile("(.*?):(.*?) ([\\s\\S]*)");
+    private static final Pattern PATTERN = Pattern.compile("<eval>(.*?):(.*?) ([\\s\\S]*)");
 
     public static ScriptError create(ScriptException e) {
         Throwable t = e;
@@ -26,14 +26,15 @@ public class ScriptError extends Exception {
         message = t.getMessage();
         if(message == null)
             message = "null pointer exception";
-
-        Matcher matcher = PATTERN.matcher(message);
-        if (matcher.find())
-            message = matcher.group(3);
+        else {
+            Matcher matcher = PATTERN.matcher(message);
+            if (matcher.find())
+                message = matcher.group(3);
+        }
         return new ScriptError(message, 
                 e.getLineNumber() == -1 ? null : e.getLineNumber(),
                 e.getColumnNumber() == -1 ? null : e.getColumnNumber(),
-                t);
+                t);       
     }
 
     private final Integer lineNumber;
