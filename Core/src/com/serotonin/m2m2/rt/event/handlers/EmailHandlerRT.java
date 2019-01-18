@@ -56,6 +56,7 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
+import com.serotonin.m2m2.rt.script.DataPointWrapper;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
@@ -328,15 +329,16 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             if(additionalContext == null || pointValueCount <= 0)
                 model.put("additionalContext", new HashMap<>(0));
             else {
-                Map<String, Map<String, Object>> context = new HashMap<>();
+                Map<String, EmailPointWrapper> context = new HashMap<>();
                 for(IntStringPair pair : additionalContext) {
-                    Map<String, Object> point = new HashMap<String, Object>();
+                    EmailPointWrapper point;
                     DataPointRT rt = Common.runtimeManager.getDataPoint(pair.getKey());
                     List<PointValueTime> pointValues;
                     List<RenderedPointValueTime> renderedPointValues;
                     DataPointVO dpvo;
                     if(rt != null) {
                         dpvo = rt.getVO();
+                        point = new EmailPointWrapper(dpvo);
                         pointValues = rt.getLatestPointValues(pointValueCount);
                         renderedPointValues = new ArrayList<RenderedPointValueTime>();
                         if(pointValues != null && pointValues.size() > 0)
@@ -351,6 +353,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                         if(dpvo == null)
                             continue;
 
+                        point = new EmailPointWrapper(dpvo);
                         pointValues = Common.databaseProxy.newPointValueDao()
                                 .getLatestPointValues(pair.getKey(), pointValueCount);
                         renderedPointValues = new ArrayList<RenderedPointValueTime>();
@@ -361,10 +364,9 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                             renderedPointValues.add(rpvt);
                         }
                     }
-                    point.put("values", renderedPointValues);
-                    point.put("deviceName", dpvo.getDeviceName());
-                    point.put("name", dpvo.getName());
-                    point.put("contextKey", pair.getValue());
+                    point.setRawValues(pointValues);
+                    point.setValues(renderedPointValues);
+                    point.setContextKey(pair.getValue());
                     context.put(pair.getValue(), point);
                 }
                 model.put("additionalContext", context);
@@ -611,5 +613,39 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     @Override
     public void raiseRecursionFailureEvent() {
         LOG.error("Recursion failure in setting value from email handler");
+    }
+    
+    static class EmailPointWrapper extends DataPointWrapper {
+        List<PointValueTime> rawValues;
+        List<RenderedPointValueTime> values;
+        String contextKey;
+        
+        public EmailPointWrapper(DataPointVO vo) {
+            super(vo, null);
+        }
+        
+        public void setRawValues(List<PointValueTime> rawValues) {
+            this.rawValues = rawValues;
+        }
+        
+        public List<PointValueTime> getRawValues() {
+            return rawValues;
+        }
+        
+        public void setValues(List<RenderedPointValueTime> values) {
+            this.values = values;
+        }
+        
+        public List<RenderedPointValueTime> getValues() {
+            return values;
+        }
+        
+        public void setContextKey(String contextKey) {
+            this.contextKey = contextKey;
+        }
+        
+        public String getContextKey() {
+            return contextKey;
+        }
     }
 }
