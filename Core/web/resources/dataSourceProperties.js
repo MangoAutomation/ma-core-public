@@ -173,7 +173,9 @@
          }else{
 	         showMessage("dataSourceMessage", mangoTranslate('dsEdit.saved'));
 	    	 createDataPointsTab(); //For The saving of new sources
-	         //Need to Update the DS Table for sure
+	    	 //Set the id for all to use
+	         setCurrentDsId(response.data.vo.id);
+	    	 //Need to Update the DS Table for sure
 	         if(typeof dataSources != 'undefined'){
 	        	 dataSources.setInputs(response.data.vo);
 	        	 dataSources.refresh();

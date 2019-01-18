@@ -10,6 +10,7 @@
 * Add SMTP mail server connection/read/write timeout system setting
 * Fixing bug in process log that would not allow Error level logging for Mango Java Script
 * Changing Java Script Script Permissions from multiple permissions groups into a single group.  Note the REST models will reflect this.
+* Fix bug in legacy UI data source edit page that would not track a new data source's ID after initial save, this would effect some data source tools
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
