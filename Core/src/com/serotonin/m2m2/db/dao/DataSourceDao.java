@@ -73,7 +73,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     });
 
     private DataSourceDao() {
-        super(AuditEventType.TYPE_DATA_SOURCE, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
+        super(AuditEventType.TYPE_DATA_SOURCE, "ds", new String[0], false, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
     }
 
     /**

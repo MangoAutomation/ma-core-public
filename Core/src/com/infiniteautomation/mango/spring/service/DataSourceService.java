@@ -3,10 +3,13 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -44,6 +47,42 @@ public class DataSourceService extends AbstractVOService<DataSourceVO<?>, DataSo
         return Permissions.hasDataSourcePermission(user, vo);
     }
 
+    @Override
+    protected DataSourceVO<?> insert(DataSourceVO<?> vo, PermissionHolder user, boolean full)
+            throws PermissionException, ValidationException {
+        //Ensure they can create a list
+        ensureCreatePermission(user);
+        
+        //Generate an Xid if necessary
+        if(StringUtils.isEmpty(vo.getXid()))
+            vo.setXid(dao.generateUniqueXid());
+        
+        ensureValid(vo, user);
+        Common.runtimeManager.saveDataSource(vo);
+        
+        return vo;
+    }
+    
+    
+    @Override
+    protected DataSourceVO<?> update(DataSourceVO<?> existing, DataSourceVO<?> vo,
+            PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+        ensureEditPermission(user, existing);
+        vo.setId(existing.getId());
+        ensureValid(existing, vo, user);
+        Common.runtimeManager.saveDataSource(vo);
+        return vo;
+    }
+    
+    @Override
+    public DataSourceVO<?> delete(String xid, PermissionHolder user)
+            throws PermissionException, NotFoundException {
+        DataSourceVO<?> vo = get(xid, user);
+        ensureDeletePermission(user, vo);
+        Common.runtimeManager.deleteDataSource(vo.getId());
+        return vo;
+    }
+    
     /**
      * Get a definition for a data source
      * @param dataSourceType
