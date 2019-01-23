@@ -27,13 +27,13 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> implements ValueMonitorOwner {
+abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extends DataSourceRT<T> implements ValueMonitorOwner {
 	
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";

@@ -13,8 +13,12 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  * @author Terry Packer
  *
  */
-public abstract class AbstractPollingDataSourceModel<T extends PollingDataSourceVO<?>> extends AbstractDataSourceModel<T> {
+public abstract class AbstractPollingDataSourceModel<T extends PollingDataSourceVO<T>> extends AbstractDataSourceModel<T> {
 
+    public AbstractPollingDataSourceModel() {
+        super();
+    }
+    
     public AbstractPollingDataSourceModel(T data) {
         super(data);
     }

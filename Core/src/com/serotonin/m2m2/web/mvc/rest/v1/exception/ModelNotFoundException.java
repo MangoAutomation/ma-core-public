@@ -4,31 +4,22 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.exception;
 
-import java.io.IOException;
-
-import com.serotonin.m2m2.Common;
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
  * @author Terry Packer
  *
  */
-public class ModelNotFoundException extends IOException {
+public class ModelNotFoundException extends TranslatableRuntimeException {
 
-	private String modelType;
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 6126782892194564463L;
 	
 	public ModelNotFoundException(String modelType){
-		this.modelType = modelType;
+		super(new TranslatableMessage("rest.exception.modelNotFound", modelType));
 	}
-	
-	@Override
-	public String getMessage(){
-		return new TranslatableMessage("rest.exception.modelNotFound", this.modelType).translate(Common.getTranslations());
-	}
-	
 
 }

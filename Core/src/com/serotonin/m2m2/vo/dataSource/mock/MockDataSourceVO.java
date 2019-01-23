@@ -10,14 +10,14 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.MockDataSourceModel;
 
 /**
  * Useful for things like validation and testing
  */
-public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
+public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
     
     public MockDataSourceVO(){
     	    this.setDefinition(new MockDataSourceDefinition());
@@ -71,5 +71,11 @@ public class MockDataSourceVO extends DataSourceVO<MockDataSourceVO> {
     }
     private void readObject(ObjectInputStream in) throws IOException {
         in.readInt();
+    }
+
+
+    @Override
+    public int getPollAbortedExceptionEventId() {
+        return -1;
     }
 }

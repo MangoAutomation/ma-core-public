@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.dataSource;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -14,6 +15,11 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
+import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
+import com.serotonin.m2m2.vo.event.EventTypeVO;
 
 /**
  * Base class for Polling type data sources
@@ -22,6 +28,8 @@ import com.serotonin.m2m2.i18n.ProcessResult;
  *
  */
 public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> extends DataSourceVO<T>{
+    
+    protected final static String POLL_ABORTED = "POLL_ABORTED";
     
     @JsonProperty 
     boolean quantize = false; //Start polls quantized to the start of the update period
@@ -60,6 +68,36 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
 
     public void setUpdatePeriodType(int updatePeriodType) {
         this.updatePeriodType = updatePeriodType;
+    }
+    
+    /**
+     * Allow Polling Data Sources to use an event per Data Source
+     * if it exists.
+     *
+     * This should be overridden in that case.
+     *
+     * @return
+     */
+    public abstract int getPollAbortedExceptionEventId();
+    
+    @Override
+    protected void addEventTypes(List<EventTypeVO> ets) {
+         ets.add(createPollAbortedEventType(getPollAbortedExceptionEventId()));
+    }
+    
+    /**
+     * Useful for polling data sources
+     *
+     * Events are fired by the Polling Data Source RT
+     *
+     * @return
+     */
+    protected EventTypeVO createPollAbortedEventType(int eventId) {
+        AlarmLevels alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
+        return new EventTypeVO(
+                new DataSourceEventType(getId(), eventId, POLL_ABORTED, alarmLevel, DuplicateHandling.IGNORE),
+                new TranslatableMessage("event.ds.pollAborted"),
+                alarmLevel);
     }
     
     /*

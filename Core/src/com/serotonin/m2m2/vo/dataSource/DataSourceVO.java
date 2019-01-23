@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -101,6 +102,23 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     public void setAlarmLevel(int eventId, AlarmLevels level) {
         alarmLevels.put(eventId, level);
     }
+    
+    /**
+     * Set an alarm level based on the sub-type of the data source event type
+     * which MUST (and already is) one of the codes in getEventCodes()
+     * @param subType
+     * @param level
+     */
+    public void setAlarmLevel(String subType, AlarmLevels level) throws ValidationException {
+        ExportCodes codes = getEventCodes();
+        int eventId = codes.getId(subType);
+        if(eventId == -1) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("alarmLevel", "validate.invalidValue");
+            throw new ValidationException(result);
+        }
+        alarmLevels.put(eventId, level);
+    }
 
     public AlarmLevels getAlarmLevel(int eventId, AlarmLevels defaultLevel) {
         AlarmLevels level = alarmLevels.get(eventId);
@@ -173,35 +191,10 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, DuplicateHandling duplicateHandling,
             AlarmLevels defaultAlarmLevel) {
         AlarmLevels alarmLevel = getAlarmLevel(dsSpecificEventTypeId, defaultAlarmLevel);
+        String subType = getEventCodes().getCode(dsSpecificEventTypeId);
         return new EventTypeVO(
-                new DataSourceEventType(getId(), dsSpecificEventTypeId, alarmLevel, duplicateHandling),
+                new DataSourceEventType(getId(), dsSpecificEventTypeId, subType, alarmLevel, duplicateHandling),
                 message, alarmLevel);
-    }
-
-    /**
-     * Useful for polling data sources
-     *
-     * Events are fired by the Polling Data Source RT
-     *
-     * @return
-     */
-    protected EventTypeVO createPollAbortedEventType(int eventId) {
-        AlarmLevels alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
-        return new EventTypeVO(
-                new DataSourceEventType(getId(), eventId, alarmLevel, DuplicateHandling.IGNORE),
-                new TranslatableMessage("event.ds.pollAborted"), alarmLevel);
-    }
-
-    /**
-     * Allow Polling Data Sources to use an event per Data Source
-     * if it exists.
-     *
-     * This should be overridden in that case.
-     *
-     * @return
-     */
-    public int getPollAbortedExceptionEventId() {
-        return -1; //For not available
     }
 
     public TranslatableMessage getTypeDescription() {

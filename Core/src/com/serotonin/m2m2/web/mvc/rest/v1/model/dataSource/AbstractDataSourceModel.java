@@ -12,13 +12,16 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.RestValidationFailedException;
 import com.serotonin.m2m2.web.mvc.rest.v1.message.RestProcessResult;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractActionVoModel;
@@ -29,18 +32,35 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
  *
  */
 @JsonPropertyOrder({"xid", "name", "enabled"})
-public abstract class AbstractDataSourceModel<T extends DataSourceVO<?>> extends AbstractActionVoModel<T>{
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property=AbstractDataSourceModel.MODEL_TYPE)
+public abstract class AbstractDataSourceModel<T extends DataSourceVO<T>> extends AbstractActionVoModel<T>{
 
-    protected T data;
-
-    /**
-     * @param data
-     */
-    public AbstractDataSourceModel(T data) {
+    public static final String MODEL_TYPE = "modelType";
+    
+    public AbstractDataSourceModel() {
+        super(null);
+        this.data = newVO();
+    }
+    public AbstractDataSourceModel(T data) throws ModelNotFoundException {
         super(data);
-        this.data = data;
     }
 
+    public T newVO() throws ModelNotFoundException {
+        DataSourceDefinition def = getDefinition();
+        @SuppressWarnings("unchecked")
+        T vo = (T) def.baseCreateDataSourceVO();
+        vo.setDefinition(def);
+        return vo;
+    }
+    
+    @JsonIgnore
+    public DataSourceDefinition getDefinition() throws ModelNotFoundException {
+        DataSourceDefinition definition = ModuleRegistry.getDataSourceDefinition(getModelType());
+        if(definition == null)
+            throw new ModelNotFoundException(getModelType());
+        return definition;
+    }
+    
     @JsonGetter(value="alarmLevels")
     public Map<String,String> getAlarmLevels(){
         ExportCodes eventCodes = this.data.getEventCodes();

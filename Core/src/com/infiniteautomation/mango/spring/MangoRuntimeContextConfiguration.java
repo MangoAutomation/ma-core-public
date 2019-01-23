@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.infiniteautomation.mango.rest.v2.mapping.MangoRestV2JacksonModule;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.m2m2.Common;
@@ -150,8 +149,6 @@ public class MangoRuntimeContextConfiguration {
         // Mango Core JSON Modules
         MangoCoreModule mangoCore = new MangoCoreModule();
         objectMapper.registerModule(mangoCore);
-        MangoRestV2JacksonModule mangoCoreV2 = new MangoRestV2JacksonModule();
-        objectMapper.registerModule(mangoCoreV2);
 
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);
