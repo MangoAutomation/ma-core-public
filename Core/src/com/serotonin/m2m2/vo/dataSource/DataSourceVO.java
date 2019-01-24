@@ -375,9 +375,18 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
             return null;
 
         int value = Common.TIME_PERIOD_CODES.getId(text);
-        if (value == -1)
-            throw new TranslatableJsonException("emport.error.invalid", "updatePeriodType", text,
-                    Common.TIME_PERIOD_CODES.getCodeList());
+        if (value == -1) {
+            //For legacy data sources who accidentally used an integer instead of the code
+            try {
+                int testValue = Integer.parseInt(text);
+                if(Common.TIME_PERIOD_CODES.getCode(testValue) == null)
+                    throw new NumberFormatException();
+                return testValue;
+            }catch(NumberFormatException e) {
+                throw new TranslatableJsonException("emport.error.invalid", "updatePeriodType", text,
+                        Common.TIME_PERIOD_CODES.getCodeList());
+            }
+        }
 
         return value;
     }
