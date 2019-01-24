@@ -23,7 +23,7 @@ abstract public class PointLocatorRT<VO extends PointLocatorVO<?>> {
     }
 
     public boolean isRelinquishable() {
-        return vo.isRelinquishable();
+        return vo.isRelinquishable() == null ? false : vo.isRelinquishable();
     }
     
     public VO getVo() {

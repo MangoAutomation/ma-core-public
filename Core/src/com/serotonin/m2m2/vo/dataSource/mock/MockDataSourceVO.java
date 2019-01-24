@@ -12,7 +12,6 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.MockDataSourceModel;
 
 /**
  * Useful for things like validation and testing
@@ -49,12 +48,6 @@ public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
         // no op
     }
     
-    @Override
-    public MockDataSourceModel asModel(){
-    	return new MockDataSourceModel(this);
-    }
-
-
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
 	 */

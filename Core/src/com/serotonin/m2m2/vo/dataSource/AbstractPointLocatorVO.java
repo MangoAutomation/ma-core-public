@@ -64,11 +64,11 @@ abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<V
     }
 
     /**
-     * Defaults to returning false. Override to return something else.
+     * Defaults to returning null. Override to return something else.
      */
     @Override
-    public boolean isRelinquishable() {
-        return false;
+    public Boolean isRelinquishable() {
+        return null;
     }
     
     public String getClassName(){

@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.csv.CSVColumnGetter;
@@ -18,8 +19,11 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  *
  */
 @CSVEntity(derived=true)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property=PointLocatorModel.MODEL_TYPE)
 public abstract class PointLocatorModel<T extends PointLocatorVO<?>> extends AbstractRestModel<T>{
 	
+    public static final String MODEL_TYPE = "modelType";
+    
 	/**
 	 * @param data
 	 */
@@ -57,7 +61,7 @@ public abstract class PointLocatorModel<T extends PointLocatorVO<?>> extends Abs
 	@CSVColumnGetter(order=17, header="relinquishable")
     @JsonGetter("relinquishable")
     public boolean isRelinquishable(){
-    	return this.data.isRelinquishable();
+    	return this.data.isRelinquishable() == null ? false : this.data.isRelinquishable();
     }
 	@CSVColumnSetter(order=17, header="relinquishable")
     @JsonGetter("relinquishable")

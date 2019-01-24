@@ -10,7 +10,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
 public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializable {
     /**
@@ -36,7 +35,7 @@ public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializa
     /**
      * Supplemental to being settable, can the set value be relinquished?
      */
-    public boolean isRelinquishable();
+    public Boolean isRelinquishable();
 
     /**
      * Create a runtime version of the locator
@@ -48,9 +47,4 @@ public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializa
      */
     public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO<?> dsvo);
     
-    /**
-     * Get the Model of this Point Locator
-     * @return PointLocatorModel implementation
-     */
-    public PointLocatorModel<VO> asModel();
 }

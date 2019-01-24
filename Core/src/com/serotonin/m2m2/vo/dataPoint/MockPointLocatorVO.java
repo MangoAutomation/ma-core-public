@@ -21,7 +21,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.dataPoint.PointLocatorModel;
 
 /**
  * Mock Point Locator, useful for testing.
@@ -98,17 +97,6 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
 	    writeDataType(writer);
 	}
-
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#asModel()
-	 */
-	@Override
-	public PointLocatorModel<MockPointLocatorVO> asModel() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO#validateImpl(com.serotonin.m2m2.i18n.ProcessResult, com.serotonin.m2m2.vo.DataPointVO, com.serotonin.m2m2.vo.dataSource.DataSourceVO)

@@ -37,16 +37,9 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.dataSource.AbstractDataSourceModel;
 
 abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
     public static final String XID_PREFIX = "DS_";
-
-    /**
-     * Return the Model Representation of the Data Source
-     * @return
-     */
-    abstract public AbstractDataSourceModel<?> asModel();
 
     abstract public TranslatableMessage getConnectionDescription();
 
@@ -114,7 +107,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         int eventId = codes.getId(subType);
         if(eventId == -1) {
             ProcessResult result = new ProcessResult();
-            result.addContextualMessage("alarmLevel", "validate.invalidValue");
+            result.addContextualMessage("alarmLevel", "emport.error.eventCode", subType, codes.getCodeList());
             throw new ValidationException(result);
         }
         alarmLevels.put(eventId, level);

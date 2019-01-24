@@ -9,6 +9,7 @@ import java.util.Map;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
+import com.serotonin.m2m2.vo.User;
 
 /**
  * Common Interface for all VO Rest Controllers
@@ -23,6 +24,16 @@ public interface IMangoVoRestController<VO extends AbstractBasicVO, MODEL, DAO e
 	 * @return
 	 */
 	public MODEL createModel(VO vo);
+	
+	/**
+	 * Override as necessary to use user
+	 * @param vo
+	 * @param user
+	 * @return
+	 */
+	public default MODEL createModel(VO vo, User user) {
+	    return createModel(vo);
+	}
 
 	/**
 	 * Map any Model members to VO Properties
