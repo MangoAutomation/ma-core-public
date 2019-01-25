@@ -60,10 +60,20 @@ public abstract class AbstractEventDetectorModel<T extends AbstractEventDetector
         return this.data.getDetectorSourceType();
     }
 
+    /**
+     * We should remove this entirely from the model.
+     * @return
+     */
+    @Deprecated
     public List<String> getHandlers() {
         return EventHandlerDao.getInstance().getEventHandlerXids(this.data.getEventType().getEventType());
     }
 
+    /**
+     * This limits functionality by only being able to add handlers...
+     * @param handlerXids
+     */
+    @Deprecated
     public void setHandlers(List<String> handlerXids) {
         if (handlerXids != null) {
             ProcessResult processResult = new ProcessResult();

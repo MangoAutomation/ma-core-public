@@ -41,11 +41,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     
     private EventHandlerDefinition<T> definition;
     
-    /**
-     * These define any new mappings for this handler,
-     * they will be added when the handler is saved.
-     */
-    List<EventType> addedEventTypes = null;
+    List<EventType> eventTypes = null;
 
     /**
      * Create the runtime handler
@@ -111,14 +107,18 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 		return this.definition.getEventHandlerTypeName();
 	}
 	
-    public void addAddedEventType(EventType eventType) {
-        if (addedEventTypes == null)
-            addedEventTypes = new ArrayList<EventType>(1);
-        this.addedEventTypes.add(eventType);
+	/**
+     * @return the eventTypes
+     */
+    public List<EventType> getEventTypes() {
+        return eventTypes;
     }
-
-    public List<EventType> getAddedEventTypes() {
-        return addedEventTypes;
+    
+    /**
+     * @param eventTypes the eventTypes to set
+     */
+    public void setEventTypes(List<EventType> eventTypes) {
+        this.eventTypes = eventTypes;
     }
 	
     public void validate(ProcessResult response) {

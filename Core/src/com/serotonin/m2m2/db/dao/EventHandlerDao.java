@@ -103,7 +103,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
     protected Object[] voToObjectArray(AbstractEventHandlerVO<?> vo) {
         return new Object[]{
                 vo.getXid(),
-                vo.getAlias(),
+                vo.getName(),
                 vo.getDefinition().getEventHandlerTypeName(),
                 SerializationHelper.writeObject(vo)
         };
@@ -233,14 +233,37 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#saveRelationalData(com.serotonin.m2m2.vo.AbstractBasicVO, boolean)
+    /*
+     * (non-Javadoc)
+     * 
+     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#saveRelationalData(com.serotonin.m2m2.vo.
+     * AbstractBasicVO, boolean)
      */
     @Override
     public void saveRelationalData(AbstractEventHandlerVO<?> vo, boolean insert) {
-        if(vo.getAddedEventTypes() != null) {
-            for(EventType type : vo.getAddedEventTypes())
-                addEventHandlerMappingIfMissing(vo.getId(), type);
+        if (vo.getEventTypes() != null) {
+            if (insert) {
+                for (EventType type : vo.getEventTypes()) {
+                    ejt.doInsert(
+                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                            new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                    type.getReferenceId1(), type.getReferenceId2()},
+                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                    Types.INTEGER});
+                }
+            } else {
+                // Replace all mappings
+                deleteEventHandlerMappings(vo.getId());
+                for (EventType type : vo.getEventTypes()) {
+                    ejt.doInsert(
+                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                            new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                    type.getReferenceId1(), type.getReferenceId2()},
+                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                    Types.INTEGER});
+
+                }
+            }
         }
     }
 
@@ -258,6 +281,7 @@ public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO<?>>{
         });
     }
 
+    
     public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {
         if(H2_SYNTAX) {
             if(type.getEventSubtype() == null)
