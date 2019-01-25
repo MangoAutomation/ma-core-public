@@ -177,6 +177,7 @@ public class MangoJavaScriptService {
      * @throws ValidationException
      */
     public void ensureValid(MangoJavaScript vo, PermissionHolder user) throws ValidationException {
+        Permissions.ensureDataSourcePermission(user);
         ProcessResult result = validate(vo, user);
         if(!result.isValid())
             throw new ValidationException(result);
