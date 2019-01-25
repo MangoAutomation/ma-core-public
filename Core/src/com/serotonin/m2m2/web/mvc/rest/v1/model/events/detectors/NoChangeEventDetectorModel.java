@@ -15,9 +15,5 @@ public class NoChangeEventDetectorModel extends TimeoutDetectorModel<NoChangeDet
 	public NoChangeEventDetectorModel(NoChangeDetectorVO data) {
 		super(data);
 	}
-	
-	public NoChangeEventDetectorModel() {
-		super(new NoChangeDetectorVO());
-	}
-	
+
 }

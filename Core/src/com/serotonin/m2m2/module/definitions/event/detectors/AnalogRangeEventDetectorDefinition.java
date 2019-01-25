@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,14 +35,15 @@ public class AnalogRangeEventDetectorDefinition extends PointEventDetectorDefini
 		return "pointEdit.detectors.range";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
-	@Override
-	protected AbstractEventDetectorVO<AnalogRangeDetectorVO> createEventDetectorVO() {
-		return new AnalogRangeDetectorVO();
+	protected AnalogRangeDetectorVO createEventDetectorVO(DataPointVO vo) {
+		return new AnalogRangeDetectorVO(vo);
 	}
 
+	@Override
+	protected AnalogRangeDetectorVO createEventDetectorVO(int sourceId) {
+        return new AnalogRangeDetectorVO(DataPointDao.getInstance().get(sourceId));
+
+	}
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */

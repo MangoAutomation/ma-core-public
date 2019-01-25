@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.NoChangeDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,14 +35,15 @@ public class NoChangeEventDetectorDefinition extends PointEventDetectorDefinitio
 		return "pointEdit.detectors.noChange";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AbstractEventDetectorVO<NoChangeDetectorVO> createEventDetectorVO() {
-		return new NoChangeDetectorVO();
+	protected NoChangeDetectorVO createEventDetectorVO(DataPointVO vo) {
+		return new NoChangeDetectorVO(vo);
 	}
 
+	@Override
+	protected NoChangeDetectorVO createEventDetectorVO(int sourceId) {
+        return new NoChangeDetectorVO(DataPointDao.getInstance().get(sourceId));
+	}
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */

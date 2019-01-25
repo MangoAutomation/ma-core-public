@@ -31,13 +31,13 @@ import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
  * @author Terry Packer
  *
  */
-public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO<?>>{
+public class EventDetectorRowMapper<T extends AbstractEventDetectorVO<?>> implements RowMapper<T>{
 
-	private final Log LOG = LogFactory.getLog(EventDetectorRowMapper.class);
+	protected final Log LOG = LogFactory.getLog(EventDetectorRowMapper.class);
 	//First column in the query for the event detector columns
-	private int firstColumn;
+	protected int firstColumn;
 	//Column offset for the sourceId to use, -1 means use definition mappings
-	private int sourceIdColumnOffset;
+	protected int sourceIdColumnOffset;
 	
 	/**
 	 * 
@@ -56,26 +56,28 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
 	/* (non-Javadoc)
 	 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
 	 */
-	@Override
-	public AbstractEventDetectorVO<?> mapRow(ResultSet rs, int rowNum)
+    @Override
+	public T mapRow(ResultSet rs, int rowNum)
 			throws SQLException {
-		
-		EventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(rs.getString(this.firstColumn + 3));
+		String type = rs.getString(this.firstColumn + 3);
+        EventDetectorDefinition<?> definition = (EventDetectorDefinition<?>) ModuleRegistry.getEventDetectorDefinition(type);
 		if(definition == null)
 			throw new ShouldNeverHappenException("Event Detector defintion of type: " + rs.getString(this.firstColumn + 3) + " not found." );
 		
-		AbstractEventDetectorVO<?> vo = definition.baseCreateEventDetectorVO();
-		vo.setId(rs.getInt(this.firstColumn));
-		vo.setXid(rs.getString(this.firstColumn + 1));
-		vo.setDefinition(definition);
-		
-		//Extract the source id
+	      //Extract the source id
         int sourceIdColumnIndex;
         if(this.sourceIdColumnOffset < 0)
             sourceIdColumnIndex= this.firstColumn + 5 + EventDetectorDao.getInstance().getSourceIdIndex(definition.getSourceTypeName());
         else
             sourceIdColumnIndex = this.firstColumn + this.sourceIdColumnOffset;
-        vo.setSourceId(rs.getInt(sourceIdColumnIndex));
+		int sourceId = rs.getInt(sourceIdColumnIndex);
+		
+        T vo = createEventDetector(sourceId, definition);
+        
+		vo.setId(rs.getInt(this.firstColumn));
+		vo.setXid(rs.getString(this.firstColumn + 1));
+		vo.setDefinition(definition);
+        vo.setSourceId(sourceId);
 		
 		//Read Into Detector
 		JsonTypeReader typeReader = new JsonTypeReader(rs.getString(this.firstColumn + 4));
@@ -92,5 +94,13 @@ public class EventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO
         
 		return vo;
 	}
+
+    /**
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    protected T createEventDetector(int sourceId, EventDetectorDefinition<?> definition) {
+        return (T) definition.baseCreateEventDetectorVO(sourceId);
+    }
 	
 }

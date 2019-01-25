@@ -11,10 +11,6 @@ import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
  * @author Terry Packer
  */
 public class PositiveCusumEventDetectorModel extends TimeoutDetectorModel<PositiveCusumDetectorVO>{
-
-	public PositiveCusumEventDetectorModel() {
-		super(new PositiveCusumDetectorVO());
-	}
 	
 	public PositiveCusumEventDetectorModel(PositiveCusumDetectorVO data) {
 		super(data);

@@ -13,7 +13,6 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -21,6 +20,7 @@ import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogChangeDetectorRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /** * 
  * TODO Class is a work in progress, not wired in or tested yet.
@@ -54,8 +54,8 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
     private boolean checkDecrease = true;
 	private int updateEvent = UpdateEventType.LOGGED_ONLY;
 
-	public AnalogChangeDetectorVO() {
-		super(new int[] { DataTypes.NUMERIC });
+	public AnalogChangeDetectorVO(DataPointVO vo) {
+		super(vo, new int[] { DataTypes.NUMERIC });
 	}
 	
 	public double getLimit() {
@@ -121,8 +121,6 @@ public class AnalogChangeDetectorVO extends TimeoutDetectorVO<AnalogChangeDetect
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-	    if(dataPoint == null)
-            dataPoint = DataPointDao.getInstance().getDataPoint(sourceId);
 	    String prettyLimit = dataPoint.getTextRenderer().getText(limit, TextRenderer.HINT_SPECIFIC);
 		TranslatableMessage durationDescription = getDurationDescription();
 		

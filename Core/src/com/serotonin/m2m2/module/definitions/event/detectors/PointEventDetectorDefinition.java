@@ -6,6 +6,8 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 /**
@@ -32,4 +34,22 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
 		return EventType.EventTypeNames.DATA_POINT;
 	}
 	
+	/**
+	 * The right way to create a point event detector
+	 * @param vo
+	 * @return
+	 */
+    public <X extends AbstractEventDetectorVO<X>> T baseCreateEventDetectorVO(DataPointVO dp) {
+        T detector = createEventDetectorVO(dp);
+        detector.setDefinition(this);
+        return detector;
+    }
+    
+    /**
+     * Implement in concrete classes
+     * @param dp
+     * @return
+     */
+    protected abstract T createEventDetectorVO(DataPointVO dp);
+
 }

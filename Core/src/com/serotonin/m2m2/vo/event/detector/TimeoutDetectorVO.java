@@ -14,6 +14,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
@@ -24,8 +25,8 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
 	/**
 	 * @param supportedDataTypes
 	 */
-	public TimeoutDetectorVO(int[] supportedDataTypes) {
-		super(supportedDataTypes);
+	public TimeoutDetectorVO(DataPointVO vo, int[] supportedDataTypes) {
+		super(vo, supportedDataTypes);
 	}
 
 	private static final long serialVersionUID = 1L;

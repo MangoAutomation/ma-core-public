@@ -351,8 +351,10 @@ public class EventHandlersDwr extends BaseDwr {
         vo.setAlias(alias);
         vo.setDisabled(disabled);
 
-        vo.addAddedEventType(type);
-
+        //Load in all types and add our new one
+        vo.setEventTypes(EventHandlerDao.getInstance().getEventTypesForHandler(vo.getId()));
+        vo.getEventTypes().add(type);
+        
         ProcessResult response = new ProcessResult();
         vo.validate(response);
 

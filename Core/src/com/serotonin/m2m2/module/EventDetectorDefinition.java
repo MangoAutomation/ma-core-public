@@ -46,11 +46,12 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<
     abstract public String getDescriptionKey();
     
     /**
-     * Create and return an instance of the event detector
-     * 
+     * Create and return an instance of the event detector with its source id for use to look up 
+     * any additional information about the source
+     * @param sourceId 
      * @return a new instance of the event detector.
      */
-    abstract protected AbstractEventDetectorVO<T> createEventDetectorVO();
+    abstract protected T createEventDetectorVO(int sourceId);
 
     /**
      * Create a model from the VO
@@ -70,8 +71,8 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<
     /**
      * Used by MA core code to create a new event detector instances as required. Should not be used by client code.
      */
-    public final AbstractEventDetectorVO<T> baseCreateEventDetectorVO() {
-        AbstractEventDetectorVO<T> detector = createEventDetectorVO();
+    public final T baseCreateEventDetectorVO(int sourceId) {
+        T detector = createEventDetectorVO(sourceId);
         detector.setDefinition(this);
         return detector;
     }

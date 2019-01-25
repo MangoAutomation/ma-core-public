@@ -6,11 +6,11 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.BinaryStateDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
@@ -23,8 +23,8 @@ public class BinaryStateDetectorVO extends TimeoutDetectorVO<BinaryStateDetector
 	@JsonProperty
 	private boolean state;
 	
-	public BinaryStateDetectorVO() {
-		super(new int[] { DataTypes.BINARY });
+	public BinaryStateDetectorVO(DataPointVO vo) {
+		super(vo, new int[] { DataTypes.BINARY });
 	}
 	
 	public boolean isState() {
@@ -48,8 +48,6 @@ public class BinaryStateDetectorVO extends TimeoutDetectorVO<BinaryStateDetector
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-	    if(dataPoint == null)
-            dataPoint = DataPointDao.getInstance().getDataPoint(sourceId);
         TranslatableMessage durationDesc = getDurationDescription();
 
         if (durationDesc == null)

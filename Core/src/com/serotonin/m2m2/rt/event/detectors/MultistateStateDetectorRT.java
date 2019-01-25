@@ -17,8 +17,8 @@ public class MultistateStateDetectorRT extends StateDetectorRT<MultistateStateDe
 
     @Override
     public TranslatableMessage getMessage() {
-        String name = vo.njbGetDataPoint().getExtendedName();
-        String prettyText = vo.njbGetDataPoint().getTextRenderer()
+        String name = vo.getDataPoint().getExtendedName();
+        String prettyText = vo.getDataPoint().getTextRenderer()
                 .getText(vo.getState(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
 

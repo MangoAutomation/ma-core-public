@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.MultistateStateDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,15 +35,17 @@ public class MultistateStateEventDetectorDefinition extends PointEventDetectorDe
 		return "pointEdit.detectors.state";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AbstractEventDetectorVO<MultistateStateDetectorVO> createEventDetectorVO() {
-		return new MultistateStateDetectorVO();
+	protected MultistateStateDetectorVO createEventDetectorVO(DataPointVO vo) {
+		return new MultistateStateDetectorVO(vo);
 	}
 
-	/* (non-Javadoc)
+	 @Override
+	protected MultistateStateDetectorVO createEventDetectorVO(int sourceId) {
+	     return new MultistateStateDetectorVO(DataPointDao.getInstance().get(sourceId));
+	}
+
+	 /* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */
 	@Override

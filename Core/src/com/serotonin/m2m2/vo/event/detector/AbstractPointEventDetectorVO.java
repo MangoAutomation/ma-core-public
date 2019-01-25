@@ -13,7 +13,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -35,10 +34,11 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     private AlarmLevels alarmLevel = AlarmLevels.NONE;
 
     //Extra Fields
-    protected DataPointVO dataPoint;
+    protected final DataPointVO dataPoint;
     private final int[] supportedDataTypes;
 
-    public AbstractPointEventDetectorVO(int[] supportedDataTypes){
+    public AbstractPointEventDetectorVO(DataPointVO dataPoint, int[] supportedDataTypes){
+        this.dataPoint = dataPoint;
         this.supportedDataTypes = supportedDataTypes;
     }
 
@@ -49,12 +49,8 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
         this.alarmLevel = alarmLevel;
     }
 
-    public DataPointVO njbGetDataPoint() {
+    public DataPointVO getDataPoint() {
         return dataPoint;
-    }
-
-    public void njbSetDataPoint(DataPointVO dataPoint) {
-        this.dataPoint = dataPoint;
     }
 
     /**
@@ -79,8 +75,6 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 
     @Override
     public EventTypeVO getEventType() {
-        if(this.dataPoint == null)
-            this.dataPoint = DataPointDao.getInstance().get(sourceId);
         return new EventTypeVO(new DataPointEventType(sourceId, id), getDescription(),
                 alarmLevel);
     }
@@ -92,8 +86,6 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     public void validate(ProcessResult response) {
         super.validate(response);
 
-        if(this.dataPoint == null)
-            this.dataPoint = DataPointDao.getInstance().get(sourceId);
 
         //We currently don't check to see if the point exists
         // because of SQL constraints
@@ -125,9 +117,6 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        //TODO Some configuration descriptions will throw NPE if dataPoint isn't set
-        //this.dataPoint = DataPointDao.getInstance().get(sourceId);
-
         super.jsonRead(reader, jsonObject);
 
         String text = jsonObject.getString("alarmLevel");

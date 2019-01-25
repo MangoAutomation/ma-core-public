@@ -50,9 +50,9 @@ public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT<AnalogRang
 
     @Override
     public TranslatableMessage getMessage() {
-        String name = vo.njbGetDataPoint().getExtendedName();
-        String prettyHighRange = vo.njbGetDataPoint().getTextRenderer().getText(vo.getHigh(), TextRenderer.HINT_SPECIFIC);
-        String prettyLowRange = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLow(), TextRenderer.HINT_SPECIFIC);
+        String name = vo.getDataPoint().getExtendedName();
+        String prettyHighRange = vo.getDataPoint().getTextRenderer().getText(vo.getHigh(), TextRenderer.HINT_SPECIFIC);
+        String prettyLowRange = vo.getDataPoint().getTextRenderer().getText(vo.getLow(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
         
         if(vo.isWithinRange()){

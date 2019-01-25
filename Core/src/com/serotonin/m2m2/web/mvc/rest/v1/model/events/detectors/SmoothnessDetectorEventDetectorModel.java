@@ -12,10 +12,6 @@ import com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO;
  */
 public class SmoothnessDetectorEventDetectorModel extends TimeoutDetectorModel<SmoothnessDetectorVO>{
 
-	public SmoothnessDetectorEventDetectorModel() {
-		super(new SmoothnessDetectorVO());
-	}
-	
 	public SmoothnessDetectorEventDetectorModel(SmoothnessDetectorVO data) {
 		super(data);
 	}

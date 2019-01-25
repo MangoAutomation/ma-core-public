@@ -11,10 +11,6 @@ import com.serotonin.m2m2.vo.event.detector.BinaryStateDetectorVO;
  * @author Terry Packer
  */
 public class BinaryStateEventDetectorModel extends TimeoutDetectorModel<BinaryStateDetectorVO>{
-
-	public BinaryStateEventDetectorModel() {
-		super(new BinaryStateDetectorVO());
-	}
 	
 	public BinaryStateEventDetectorModel(BinaryStateDetectorVO data) {
 		super(data);

@@ -100,6 +100,7 @@ import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
@@ -140,7 +141,7 @@ public class ModuleRegistry {
     private static Map<String, TemplateDefinition> TEMPLATE_DEFINITIONS;
     private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
     private static Map<String, EventHandlerDefinition<?>> EVENT_HANDLER_DEFINITIONS;
-    private static Map<String, EventDetectorDefinition<?>> EVENT_DETECTOR_DEFINITIONS;
+    private static Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO<?>>> EVENT_DETECTOR_DEFINITIONS;
     private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
 
     private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
@@ -486,9 +487,27 @@ public class ModuleRegistry {
     //
     // Event Detector special handling
     //
-    public static EventDetectorDefinition<?> getEventDetectorDefinition(String type) {
+    
+    /**
+     * Get based on definition type name
+     * @param type
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends EventDetectorDefinition<?>> T getEventDetectorDefinition(String type) {
         ensureEventDetectorDefinitions();
-        return EVENT_DETECTOR_DEFINITIONS.get(type);
+        return (T) EVENT_DETECTOR_DEFINITIONS.get(type);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static <T extends EventDetectorDefinition<?>> List<T> getEventDetectorDefinitionsBySourceType(String sourceType) {
+        ensureEventDetectorDefinitions();
+        List<T> matching = new ArrayList<>();
+        for(EventDetectorDefinition<?> definition : EVENT_DETECTOR_DEFINITIONS.values()) {
+            if(StringUtils.equals(definition.getSourceTypeName(), sourceType))
+                matching.add((T)definition);
+        }
+        return matching;
     }
 
     public static List<EventDetectorDefinition<?>> getEventDetectorDefinitions(){
@@ -505,7 +524,7 @@ public class ModuleRegistry {
         if (EVENT_DETECTOR_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (EVENT_DETECTOR_DEFINITIONS == null) {
-                    Map<String, EventDetectorDefinition<?>> map = new HashMap<String, EventDetectorDefinition<?>>();
+                    Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO<?>>> map = new HashMap<>();
                     for(EventDetectorDefinition<?> def : Module.getDefinitions(preDefaults, EventDetectorDefinition.class)){
                         map.put(def.getEventDetectorTypeName(), def);
                     }

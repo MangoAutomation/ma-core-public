@@ -12,10 +12,6 @@ import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
  */
 public class AnalogLowLimitEventDetectorModel extends TimeoutDetectorModel<AnalogLowLimitDetectorVO>{
 
-	public AnalogLowLimitEventDetectorModel() {
-		super(new AnalogLowLimitDetectorVO());
-	}
-	
 	public AnalogLowLimitEventDetectorModel(AnalogLowLimitDetectorVO data) {
 		super(data);
 	}

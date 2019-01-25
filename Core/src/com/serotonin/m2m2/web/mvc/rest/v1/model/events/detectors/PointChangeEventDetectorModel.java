@@ -16,8 +16,4 @@ public class PointChangeEventDetectorModel extends AbstractPointEventDetectorMod
 		super(data);
 	}
 	
-	public PointChangeEventDetectorModel() {
-		super(new PointChangeDetectorVO());
-	}
-	
 }

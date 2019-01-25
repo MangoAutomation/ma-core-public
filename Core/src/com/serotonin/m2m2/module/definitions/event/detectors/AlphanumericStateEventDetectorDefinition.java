@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,12 +35,14 @@ public class AlphanumericStateEventDetectorDefinition extends PointEventDetector
 		return "pointEdit.detectors.state";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AbstractEventDetectorVO<AlphanumericStateDetectorVO> createEventDetectorVO() {
-		return new AlphanumericStateDetectorVO();
+	protected AlphanumericStateDetectorVO createEventDetectorVO(DataPointVO vo) {
+		return new AlphanumericStateDetectorVO(vo);
+	}
+	
+	@Override
+	protected AlphanumericStateDetectorVO createEventDetectorVO(int sourceId) {
+	    return new AlphanumericStateDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 
 	/* (non-Javadoc)

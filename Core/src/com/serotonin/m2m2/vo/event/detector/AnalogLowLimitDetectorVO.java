@@ -12,12 +12,12 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AnalogLowLimitDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
@@ -34,8 +34,8 @@ public class AnalogLowLimitDetectorVO extends TimeoutDetectorVO<AnalogLowLimitDe
 	@JsonProperty
 	private boolean notLower;
 
-	public AnalogLowLimitDetectorVO() {
-		super(new int[] { DataTypes.NUMERIC });
+	public AnalogLowLimitDetectorVO(DataPointVO vo) {
+		super(vo, new int[] { DataTypes.NUMERIC });
 	}
 
 	public double getLimit() {
@@ -99,8 +99,6 @@ public class AnalogLowLimitDetectorVO extends TimeoutDetectorVO<AnalogLowLimitDe
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-	    if(dataPoint == null)
-            dataPoint = DataPointDao.getInstance().getDataPoint(sourceId);
 		TranslatableMessage durationDesc = getDurationDescription();
 		
         if (notLower) {

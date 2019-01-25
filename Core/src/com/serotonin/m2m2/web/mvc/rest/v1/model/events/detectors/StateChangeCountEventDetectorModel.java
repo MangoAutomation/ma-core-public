@@ -11,10 +11,6 @@ import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
  * @author Terry Packer
  */
 public class StateChangeCountEventDetectorModel extends TimeoutDetectorModel<StateChangeCountDetectorVO>{
-
-	public StateChangeCountEventDetectorModel() {
-		super(new StateChangeCountDetectorVO());
-	}
 	
 	public StateChangeCountEventDetectorModel(StateChangeCountDetectorVO data) {
 		super(data);

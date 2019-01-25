@@ -1,6 +1,8 @@
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -9,6 +11,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
@@ -43,6 +46,9 @@ public class EventHandlerImporter extends Importer {
                     handler.setXid(xid);
                 }
             }
+        }else {
+            //We want to only add event types via import so load existing in first
+            handler.setEventTypes(EventHandlerDao.getInstance().getEventTypesForHandler(handler.getId()));
         }
 
         JsonObject et = json.getJsonObject("eventType");
@@ -51,14 +57,21 @@ public class EventHandlerImporter extends Importer {
         try {
             ctx.getReader().readInto(handler, json);
             
+            List<EventType> eventTypes = handler.getEventTypes();
+            if(eventTypes == null) {
+                eventTypes = new ArrayList<>();
+            }
             // Find the event type.
             if(et != null)
-                handler.addAddedEventType(ctx.getReader().read(EventType.class, et));
+                eventTypes.add(ctx.getReader().read(EventType.class, et));
             else if(ets != null) {
                 Iterator<JsonValue> iter = ets.iterator();
                 while(iter.hasNext())
-                    handler.addAddedEventType(ctx.getReader().read(EventType.class, iter.next()));
+                    eventTypes.add(ctx.getReader().read(EventType.class, iter.next()));
             }
+            
+            if(eventTypes.size() > 0)
+                handler.setEventTypes(eventTypes);
 
             // Now validate it. Use a new response object so we can distinguish errors in this vo from other errors.
             ProcessResult voResponse = new ProcessResult();
