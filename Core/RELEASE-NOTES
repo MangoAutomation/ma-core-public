@@ -12,6 +12,7 @@
 * Changing Java Script Script Permissions from multiple permissions groups into a single group.  Note the REST models will reflect this.
 * Fix bug in legacy UI data source edit page that would not track a new data source's ID after initial save, this would effect some data source tools
 * Adding validation to User to notify when creating a user with a username that is already used
+* Restricting non-admin users from executing JavaScript that has access to Java classes. This means for anything with Script Permissions the 'superadmin' permission must be present to access any Java Classes.
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions

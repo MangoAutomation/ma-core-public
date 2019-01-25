@@ -205,7 +205,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             if(StringUtils.isEmpty(activeScript))
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
             try {
-                service.compile(activeScript, true);
+                service.compile(activeScript, true, scriptPermissions);
             } catch(ScriptError e) {
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }
@@ -240,7 +240,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             if(StringUtils.isEmpty(inactiveScript))
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
             try {
-                service.compile(inactiveScript, true);
+                service.compile(inactiveScript, true, scriptPermissions);
             } catch(ScriptError e) {
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }

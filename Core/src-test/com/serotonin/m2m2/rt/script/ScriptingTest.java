@@ -36,6 +36,7 @@ import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -76,7 +77,7 @@ public class ScriptingTest extends MangoTestBase {
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)){
     
-                CompiledScript s = service.compile(script, true);
+                CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult result = new MangoJavaScriptResult();
                 service.execute(
                         s,
@@ -118,7 +119,7 @@ public class ScriptingTest extends MangoTestBase {
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)) {
 
-                CompiledScript s = service.compile(script, true);
+                CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult r = new MangoJavaScriptResult();
                 service.execute(s, 
                         Common.timer.currentTimeMillis(),
@@ -185,7 +186,7 @@ public class ScriptingTest extends MangoTestBase {
             ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
             MangoJavaScriptResult result = new MangoJavaScriptResult();
             try(ScriptLog scriptLog = new ScriptLog("testNullWriter")){
-                CompiledScript s = service.compile(script, true);
+                CompiledScript s = service.compile(script, true, admin);
                 service.execute(s,
                         Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
@@ -228,7 +229,7 @@ public class ScriptingTest extends MangoTestBase {
             
             try(ScriptLog scriptLog = new ScriptLog("testFileWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
             
-                CompiledScript s = service.compile(script, true);
+                CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult r = new MangoJavaScriptResult();
                 service.execute(s,
                         Common.timer.currentTimeMillis(), 
@@ -294,7 +295,7 @@ public class ScriptingTest extends MangoTestBase {
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("testContextWriter-", ScriptLog.LogLevel.TRACE, scriptWriter)) {
                 MangoJavaScriptResult r = new MangoJavaScriptResult();
-                CompiledScript s = service.compile(script, true);
+                CompiledScript s = service.compile(script, true, admin);
                 service.execute(s,
                         Common.timer.currentTimeMillis(), 
                         Common.timer.currentTimeMillis(), 
@@ -339,7 +340,7 @@ public class ScriptingTest extends MangoTestBase {
             
             try(ScriptLog scriptLog = new ScriptLog("testNullValueWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
             
-                CompiledScript s = service.compile(script, true);
+                CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult r = new MangoJavaScriptResult();
                 service.execute(s,
                         Common.timer.currentTimeMillis(), 
@@ -388,6 +389,25 @@ public class ScriptingTest extends MangoTestBase {
             fail(e.getMessage());
         }
     }
+    
+    private PermissionHolder admin = new PermissionHolder() {
+
+        @Override
+        public String getPermissions() {
+            return "superadmin";
+        }
+
+        @Override
+        public String getPermissionHolderName() {
+            return "admin";
+        }
+
+        @Override
+        public boolean isPermissionHolderDisabled() {
+            return false;
+        }
+        
+    };
     
     /**
      * Helper to read files in

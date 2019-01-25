@@ -54,7 +54,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
 
     public void validate(ProcessResult response, User user) {
         if (user == null) {
-            response.addContextualMessage("permissions", "validate.invalidPermission", "No User Found");
+            response.addContextualMessage("scriptPermissions", "validate.invalidPermission", "No User Found");
             return;
         }
 
@@ -66,7 +66,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             if ((!this.permissionsSet.isEmpty()) && (!Permissions.hasAnyPermission(user, this.permissionsSet))) {
                 Set<String> invalid = Permissions.findInvalidPermissions(user, this.permissionsSet);
                 String notGranted = Permissions.implodePermissionGroups(invalid);
-                response.addContextualMessage("permissions", "validate.invalidPermission", notGranted);
+                response.addContextualMessage("scriptPermissions", "validate.invalidPermission", notGranted);
             }
         }
     }
@@ -78,11 +78,11 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
         Set<String> nonUserPre = Permissions.findInvalidPermissions(user, oldPermissions.getPermissions());
         Set<String> nonUserPost = Permissions.findInvalidPermissions(user, this.getPermissions());
         if (nonUserPre.size() != nonUserPost.size())
-            response.addContextualMessage("permissions", "validate.invalidPermissionModification", user.getPermissions());
+            response.addContextualMessage("scriptPermissions", "validate.invalidPermissionModification", user.getPermissions());
         else {
             for (String s : nonUserPre)
                 if (!nonUserPost.contains(s))
-                    response.addContextualMessage("permissions", "validate.invalidPermissionModification", user.getPermissions());
+                    response.addContextualMessage("scriptPermissions", "validate.invalidPermissionModification", user.getPermissions());
         }
     }
 

@@ -519,7 +519,7 @@ public class EventHandlersDwr extends BaseDwr {
             };
             MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
 
-            CompiledScript compiledScript = service.compile(script, true);
+            CompiledScript compiledScript = service.compile(script, true, user);
             MangoJavaScriptResult result = new MangoJavaScriptResult();
             service.execute(
                     compiledScript, 

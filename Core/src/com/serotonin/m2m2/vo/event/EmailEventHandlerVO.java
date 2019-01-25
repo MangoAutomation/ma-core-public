@@ -250,7 +250,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         if(!StringUtils.isEmpty(script)) {
             try {
                 
-                Common.getBean(MangoJavaScriptService.class).compile(script, true);
+                Common.getBean(MangoJavaScriptService.class).compile(script, true, scriptPermissions);
             } catch(ScriptError e) {
                 response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
             }

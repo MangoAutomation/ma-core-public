@@ -407,7 +407,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 
                 try (ScriptLog scriptLog = new ScriptLog("emailScript-" + evt.getId())) {
                     MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
-                    CompiledScript compiledScript = service.compile(script, true);
+                    CompiledScript compiledScript = service.compile(script, true, permissions);
                     long time = evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp();
                     MangoJavaScriptResult r = new MangoJavaScriptResult();
                     service.execute(

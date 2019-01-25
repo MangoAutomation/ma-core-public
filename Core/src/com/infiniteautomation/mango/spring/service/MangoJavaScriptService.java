@@ -3,6 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import jdk.nashorn.api.scripting.ClassFilter;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -202,7 +205,7 @@ public class MangoJavaScriptService {
             if(logLevel == ScriptLogLevels.NONE)
                 logLevel = ScriptLogLevels.FATAL;
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter);){
-                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction());
+                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), user);
 
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null)
@@ -264,7 +267,7 @@ public class MangoJavaScriptService {
             if(logLevel == ScriptLogLevels.NONE)
                 logLevel = ScriptLogLevels.FATAL;
             try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter, vo.getLog(), vo.isCloseLog());){
-                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction());
+                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), user);
 
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null)
@@ -310,10 +313,10 @@ public class MangoJavaScriptService {
      * @return
      * @throws ScriptError
      */
-    public CompiledScript compile(String script, boolean wrapInFunction) throws ScriptError {
+    public CompiledScript compile(String script, boolean wrapInFunction, PermissionHolder user) throws ScriptError {
         
         try {
-            final ScriptEngine engine = newEngine();
+            final ScriptEngine engine = newEngine(user);
             
             Bindings globalBindings = new SimpleBindings();
             // Add constants to the context.
@@ -353,6 +356,9 @@ public class MangoJavaScriptService {
     }
     
     /**
+     * TODO this should be protected and/or a PermissionHolder supplied as 
+     * there are no restrictions imposed on calling this method.
+     * 
      * Execute a script to return a PointValueTime
      * 
      * @param compiledScript
@@ -541,11 +547,25 @@ public class MangoJavaScriptService {
     /* Utilities for Script Execution */
     /**
      * Create a new script engine
+     * @param - to help restrict script execution access so that only admin can access java classes
      * @return
      */
-    public ScriptEngine newEngine() {
+    public ScriptEngine newEngine(PermissionHolder holder) {
+        
+        NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
         ScriptEngineManager manager = new ScriptEngineManager();
-        return manager.getEngineByName("js");
+        if(holder != null && holder.hasAdminPermission())
+            return factory.getScriptEngine();
+        else
+            return factory.getScriptEngine(new NoJavaFilter());
+    }
+    
+    private static class NoJavaFilter implements ClassFilter{
+
+        @Override
+        public boolean exposeToScripts(String s) {
+            return false;
+        }
     }
     
     /**

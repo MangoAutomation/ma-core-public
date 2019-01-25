@@ -58,7 +58,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         this.service = Common.getBean(MangoJavaScriptService.class);
         if(vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
         	try {
-        		activeScript = service.compile(vo.getActiveScript(), true);
+        		activeScript = service.compile(vo.getActiveScript(), true, vo.getScriptPermissions());
         	} catch(ScriptError e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", 
         				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
@@ -68,7 +68,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         
         if(vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
         	try {
-        		inactiveScript = service.compile(vo.getInactiveScript(), true);
+        		inactiveScript = service.compile(vo.getInactiveScript(), true, vo.getScriptPermissions());
         	} catch(ScriptError e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", 
         				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
