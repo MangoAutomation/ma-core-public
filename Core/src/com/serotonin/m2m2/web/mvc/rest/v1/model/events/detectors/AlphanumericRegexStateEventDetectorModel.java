@@ -16,10 +16,6 @@ public class AlphanumericRegexStateEventDetectorModel extends TimeoutDetectorMod
 		super(data);
 	}
 
-	public AlphanumericRegexStateEventDetectorModel() {
-		super(new AlphanumericRegexStateDetectorVO());
-	}
-
 	public String getState() {
 		return this.data.getState();
 	}

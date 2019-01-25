@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.exception.ModelNotFoundException;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
 
@@ -37,13 +38,15 @@ public class AbstractEventDetectorModelDeserializer extends StdDeserializer<Abst
 			throws IOException, JsonProcessingException {
 		ObjectMapper mapper = (ObjectMapper) jp.getCodec();  
 		JsonNode tree = jp.readValueAsTree();
-		String typeName = tree.get("detectorType").asText();
+		String typeName = tree.get("detectorType").asText("");
+		int sourceId = tree.get("sourceId").asInt(-1);
 		EventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeName);
-		if(def == null)
-			throw new ModelNotFoundException(typeName);
+        if(def == null)
+            throw new ModelNotFoundException(typeName);
 
-	    AbstractEventDetectorModel<?> model = (AbstractEventDetectorModel<?>) mapper.treeToValue(tree, def.getModelClass());
-	    model.setDefinition(def);
+		AbstractEventDetectorVO<?> vo = def.baseCreateEventDetectorVO(sourceId);
+		AbstractEventDetectorModel<?> model = vo.asModel();
+		mapper.readerForUpdating(model).readValue(tree);
 	    return model;
 	}
 }

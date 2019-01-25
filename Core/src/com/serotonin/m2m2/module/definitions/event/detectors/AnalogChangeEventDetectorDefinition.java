@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,12 +35,9 @@ public class AnalogChangeEventDetectorDefinition extends PointEventDetectorDefin
 		return "pointEdit.detectors.analogChange";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AbstractEventDetectorVO<AnalogChangeDetectorVO> createEventDetectorVO() {
-		return new AnalogChangeDetectorVO();
+	protected AnalogChangeDetectorVO createEventDetectorVO(DataPointVO dp) {
+		return new AnalogChangeDetectorVO(dp);
 	}
 
 	/* (non-Javadoc)
@@ -50,6 +49,10 @@ public class AnalogChangeEventDetectorDefinition extends PointEventDetectorDefin
 		return new AnalogChangeEventDetectorModel((AnalogChangeDetectorVO) vo);
 	}
 
+	@Override
+	protected AnalogChangeDetectorVO createEventDetectorVO(int sourceId) {
+        return new AnalogChangeDetectorVO(DataPointDao.getInstance().get(sourceId));
+	}
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getModelClass()
 	 */

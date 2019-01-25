@@ -11,12 +11,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AlphanumericRegexStateDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
@@ -29,8 +29,8 @@ public class AlphanumericRegexStateDetectorVO extends TimeoutDetectorVO<Alphanum
 	@JsonProperty
 	private String state;
 	
-	public AlphanumericRegexStateDetectorVO() {
-		super(new int[] { DataTypes.ALPHANUMERIC });
+	public AlphanumericRegexStateDetectorVO(DataPointVO vo) {
+		super(vo, new int[] { DataTypes.ALPHANUMERIC });
 	}
 
 	public String getState() {
@@ -54,10 +54,7 @@ public class AlphanumericRegexStateDetectorVO extends TimeoutDetectorVO<Alphanum
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-	    if(dataPoint == null)
-            dataPoint = DataPointDao.getInstance().getDataPoint(sourceId);
         TranslatableMessage durationDesc = getDurationDescription();
-
         if (durationDesc == null)
             return new TranslatableMessage("event.detectorVo.state", dataPoint.getTextRenderer().getText(
                     state, TextRenderer.HINT_SPECIFIC));

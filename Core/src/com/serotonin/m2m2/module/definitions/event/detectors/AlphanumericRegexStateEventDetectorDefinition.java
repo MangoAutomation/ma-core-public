@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AlphanumericRegexStateDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,12 +35,14 @@ public class AlphanumericRegexStateEventDetectorDefinition extends PointEventDet
 		return "pointEdit.detectors.regexState";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AlphanumericRegexStateDetectorVO createEventDetectorVO() {
-		return new AlphanumericRegexStateDetectorVO();
+	protected AlphanumericRegexStateDetectorVO createEventDetectorVO(DataPointVO dp) {
+		return new AlphanumericRegexStateDetectorVO(dp);
+	}
+	
+	@Override
+	protected AlphanumericRegexStateDetectorVO createEventDetectorVO(int sourceId) {
+	    return new AlphanumericRegexStateDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 
 	/* (non-Javadoc)

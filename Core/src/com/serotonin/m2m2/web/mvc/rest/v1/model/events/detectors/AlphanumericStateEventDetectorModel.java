@@ -16,10 +16,6 @@ public class AlphanumericStateEventDetectorModel extends TimeoutDetectorModel<Al
 		super(data);
 	}
 
-	public AlphanumericStateEventDetectorModel() {
-		super(new AlphanumericStateDetectorVO());
-	}
-
 	public String getState() {
 		return this.data.getState();
 	}

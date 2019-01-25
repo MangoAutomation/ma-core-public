@@ -64,7 +64,7 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
     }
 
     protected void initializeState() {
-        int pointId = vo.njbGetDataPoint().getId();
+        int pointId = vo.getDataPoint().getId();
         PointValueTime latest = Common.runtimeManager.getDataPoint(pointId).getPointValue();
 
         if (latest != null)

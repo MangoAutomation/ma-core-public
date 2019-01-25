@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,14 +35,15 @@ public class AnalogLowLimitEventDetectorDefinition extends PointEventDetectorDef
 		return "pointEdit.detectors.lowLimit";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AbstractEventDetectorVO<AnalogLowLimitDetectorVO> createEventDetectorVO() {
-		return new AnalogLowLimitDetectorVO();
+	protected AnalogLowLimitDetectorVO createEventDetectorVO(DataPointVO vo) {
+		return new AnalogLowLimitDetectorVO(vo);
 	}
 
+	@Override
+	protected AnalogLowLimitDetectorVO createEventDetectorVO(int sourceId) {
+        return new AnalogLowLimitDetectorVO(DataPointDao.getInstance().get(sourceId));
+	}
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */

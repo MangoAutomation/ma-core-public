@@ -9,8 +9,8 @@ import java.util.List;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
@@ -197,16 +197,15 @@ public class DataPointEditDwr extends BaseDwr {
     @DwrPermission(user = true)
     public AbstractPointEventDetectorVO<?> addEventDetector(String typeName, int newId) {
         DataPointVO dp = getDataPoint();
-        EventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(typeName);
+        PointEventDetectorDefinition<?> definition = ModuleRegistry.getEventDetectorDefinition(typeName);
 
-        AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) definition.baseCreateEventDetectorVO();
+        AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) definition.baseCreateEventDetectorVO(dp);
         ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
         ped.setName("");
         ped.setId(newId);
 
         synchronized (dp) {
             ped.setSourceId(dp.getId());
-            ped.njbSetDataPoint(dp);
             dp.getEventDetectors().add(ped);
         }
         return ped;

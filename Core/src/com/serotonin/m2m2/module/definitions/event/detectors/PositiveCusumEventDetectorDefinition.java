@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,12 +35,14 @@ public class PositiveCusumEventDetectorDefinition extends PointEventDetectorDefi
 		return "pointEdit.detectors.posCusum";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AbstractEventDetectorVO<PositiveCusumDetectorVO> createEventDetectorVO() {
-		return new PositiveCusumDetectorVO();
+	protected PositiveCusumDetectorVO createEventDetectorVO(DataPointVO vo) {
+		return new PositiveCusumDetectorVO(vo);
+	}
+	
+	@Override
+	protected PositiveCusumDetectorVO createEventDetectorVO(int sourceId) {
+        return new PositiveCusumDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 
 	/* (non-Javadoc)

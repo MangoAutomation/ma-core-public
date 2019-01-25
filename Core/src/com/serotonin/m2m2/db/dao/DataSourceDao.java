@@ -247,8 +247,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 // Copy the data source.
                 DataSourceVO<?> dataSourceCopy = getDataSource(newDataSourceId);
 
-                // Copy the points.
-                for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null)) {
+                // Copy the points by getting each point without any relational data and loading it as we need it
+                for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null, false)) {
                     DataPointVO dataPointCopy = dataPoint.copy();
                     dataPointCopy.setId(Common.NEW_ID);
                     dataPointCopy.setXid(dataPointDao.generateUniqueXid());
@@ -256,12 +256,13 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                     dataPointCopy.setDeviceName(deviceName != null ? deviceName : dataSourceCopy.getName());
                     dataPointCopy.setDataSourceId(dataSourceCopy.getId());
                     dataPointCopy.setEnabled(dataPoint.isEnabled());
-                    dataPointCopy.getComments().clear();
-
-                    // Copy the event detectors
+                    
+                    //Copy Tags
+                    dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
+                    //Copy event detectors and simulate them being new
+                    dataPointCopy.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dataPoint.getId(), dataPointCopy));
                     for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
                         ped.setId(Common.NEW_ID);
-                        ped.njbSetDataPoint(dataPointCopy);
                         ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
                     }
 
@@ -312,7 +313,6 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                     // Copy the event detectors
                     for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
                         ped.setId(Common.NEW_ID);
-                        ped.njbSetDataPoint(dataPointCopy);
                     }
 
                     Common.runtimeManager.saveDataPoint(dataPointCopy);

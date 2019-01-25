@@ -139,11 +139,12 @@ public class EmailHandlerRTTest extends MangoTestBase {
         DataPointEventType type = new DataPointEventType(1, 1);
         
         Map<String,Object> context = new HashMap<String, Object>();
-        AnalogChangeDetectorVO ped = new AnalogChangeDetectorVO();
-        context.put("pointEventDetector", ped);
         DataPointVO dp = new DataPointVO();
         dp.setDataSourceName("test data source");
         dp.setTags(new HashMap<>());
+
+        AnalogChangeDetectorVO ped = new AnalogChangeDetectorVO(dp);
+        context.put("pointEventDetector", ped);
         
         context.put("point", dp);
         

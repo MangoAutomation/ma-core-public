@@ -43,8 +43,8 @@ import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.util.ColorUtils;
@@ -60,7 +60,6 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
@@ -1806,7 +1805,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                     throw new TranslatableJsonException("emport.error.ped.missingAttr", "xid");
 
                 // Use the ped xid to lookup an existing ped.
-                AbstractEventDetectorVO<?> ped = null;
+                AbstractPointEventDetectorVO<?> ped = null;
                 for (AbstractPointEventDetectorVO<?> existing : eventDetectors) {
                     if (StringUtils.equals(pedXid, existing.getXid())) {
                         ped = existing;
@@ -1818,21 +1817,20 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 	String typeStr = pedObject.getString("type");
                 	if(typeStr == null)
                 		throw new TranslatableJsonException("emport.error.ped.missingAttr", "type");
-                    EventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
+                	//This assumes that all definitions used for data points are Data Point Event Detectors
+                    PointEventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
                     if (def == null)
                         throw new TranslatableJsonException("emport.error.ped.invalid", "type", typeStr,
                                 ModuleRegistry.getEventDetectorDefinitionTypes());
                     else {
-                        ped = def.baseCreateEventDetectorVO();
+                        ped = def.baseCreateEventDetectorVO(this);
                         ped.setDefinition(def);
                     }
 
                     // Create a new one
                     ped.setId(Common.NEW_ID);
                     ped.setXid(pedXid);
-                    AbstractPointEventDetectorVO<?> dped = (AbstractPointEventDetectorVO<?>)ped;
-                    dped.njbSetDataPoint(this);
-                    eventDetectors.add(dped);
+                    eventDetectors.add(ped);
                 }
 
                 JsonArray handlerXids = pedObject.getJsonArray("handlers");

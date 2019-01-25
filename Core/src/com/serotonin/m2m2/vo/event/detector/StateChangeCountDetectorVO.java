@@ -10,6 +10,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.StateChangeCountDetectorRT;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
@@ -22,8 +23,8 @@ public class StateChangeCountDetectorVO extends TimeoutDetectorVO<StateChangeCou
 	@JsonProperty
 	private int changeCount = 2;
 	
-	public StateChangeCountDetectorVO() {
-		super(new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC });
+	public StateChangeCountDetectorVO(DataPointVO vo) {
+		super(vo, new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.ALPHANUMERIC });
 		this.setDuration(1);
 	}
 

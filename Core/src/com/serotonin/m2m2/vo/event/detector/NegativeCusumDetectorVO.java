@@ -6,12 +6,12 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.NegativeCusumDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
@@ -26,8 +26,8 @@ public class NegativeCusumDetectorVO extends TimeoutDetectorVO<NegativeCusumDete
 	@JsonProperty
 	private double weight;
 
-	public NegativeCusumDetectorVO() {
-		super(new int[] { DataTypes.NUMERIC });
+	public NegativeCusumDetectorVO(DataPointVO vo) {
+		super(vo, new int[] { DataTypes.NUMERIC });
 	}
 	
 	public double getLimit() {
@@ -72,8 +72,6 @@ public class NegativeCusumDetectorVO extends TimeoutDetectorVO<NegativeCusumDete
 	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
-	    if(dataPoint == null)
-            dataPoint = DataPointDao.getInstance().getDataPoint(sourceId);
         TranslatableMessage durationDesc = getDurationDescription();
         
         if (durationDesc == null)

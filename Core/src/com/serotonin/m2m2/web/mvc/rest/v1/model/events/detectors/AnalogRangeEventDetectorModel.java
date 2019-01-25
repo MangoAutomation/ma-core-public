@@ -11,10 +11,6 @@ import com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO;
  * @author Terry Packer
  */
 public class AnalogRangeEventDetectorModel extends TimeoutDetectorModel<AnalogRangeDetectorVO>{
-
-	public AnalogRangeEventDetectorModel() {
-		super(new AnalogRangeDetectorVO());
-	}
 	
 	public AnalogRangeEventDetectorModel(AnalogRangeDetectorVO data) {
 		super(data);

@@ -45,7 +45,7 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
     @Override
     public void initializeState() {
         // Get historical data for the point out of the database.
-        int pointId = vo.njbGetDataPoint().getId();
+        int pointId = vo.getDataPoint().getId();
         PointValueTime latest = Common.runtimeManager.getDataPoint(pointId).getPointValue();
         if (latest != null)
             lastChange = latest.getTime();

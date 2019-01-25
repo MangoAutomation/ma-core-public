@@ -12,10 +12,6 @@ import com.serotonin.m2m2.vo.event.detector.MultistateStateDetectorVO;
  */
 public class MultistateStateEventDetectorModel extends TimeoutDetectorModel<MultistateStateDetectorVO>{
 
-	public MultistateStateEventDetectorModel() {
-		super(new MultistateStateDetectorVO());
-	}
-	
 	public MultistateStateEventDetectorModel(MultistateStateDetectorVO data) {
 		super(data);
 	}

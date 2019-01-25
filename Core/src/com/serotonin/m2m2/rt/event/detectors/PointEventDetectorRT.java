@@ -31,7 +31,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
 
 
     protected EventType getEventType() {
-        DataPointEventType et = new DataPointEventType(vo.njbGetDataPoint().getId(), vo.getId());
+        DataPointEventType et = new DataPointEventType(vo.getDataPoint().getId(), vo.getId());
         if (!vo.isRtnApplicable())
             et.setDuplicateHandling(DuplicateHandling.ALLOW);
         return et;
@@ -54,7 +54,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
     protected Map<String, Object> createEventContext() {
         Map<String, Object> context = new HashMap<String, Object>();
         context.put("pointEventDetector", vo);
-        DataPointVO dataPointVo = vo.njbGetDataPoint();
+        DataPointVO dataPointVo = vo.getDataPoint();
         //Load the tags if they have not already been loaded
         if(dataPointVo.getTags() == null)
             dataPointVo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPointVo.getId()));

@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
@@ -33,14 +35,17 @@ public class StateChangeCountEventDetectorDefinition extends PointEventDetectorD
 		return "pointEdit.detectors.changeCount";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createEventDetectorVO()
-	 */
 	@Override
-	protected AbstractEventDetectorVO<StateChangeCountDetectorVO> createEventDetectorVO() {
-		return new StateChangeCountDetectorVO();
+	protected  StateChangeCountDetectorVO createEventDetectorVO(DataPointVO vo) {
+		return new StateChangeCountDetectorVO(vo);
 	}
 
+	@Override
+	protected StateChangeCountDetectorVO createEventDetectorVO(int sourceId) {
+        return new StateChangeCountDetectorVO(DataPointDao.getInstance().get(sourceId));
+
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#createModel(com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO)
 	 */

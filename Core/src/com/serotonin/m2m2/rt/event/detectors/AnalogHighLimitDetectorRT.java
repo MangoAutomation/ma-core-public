@@ -46,8 +46,8 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
 
     @Override
     public TranslatableMessage getMessage() {
-        String name = vo.njbGetDataPoint().getExtendedName();
-        String prettyLimit = vo.njbGetDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
+        String name = vo.getDataPoint().getExtendedName();
+        String prettyLimit = vo.getDataPoint().getTextRenderer().getText(vo.getLimit(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
         
         if(vo.isNotHigher()){

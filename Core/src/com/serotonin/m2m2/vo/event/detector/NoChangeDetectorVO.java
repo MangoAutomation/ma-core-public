@@ -9,6 +9,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.NoChangeDetectorRT;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * @author Terry Packer
@@ -18,8 +19,8 @@ public class NoChangeDetectorVO extends TimeoutDetectorVO<NoChangeDetectorVO>{
 
 	private static final long serialVersionUID = 1L;
 	
-	public NoChangeDetectorVO() {
-		super(new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC });
+	public NoChangeDetectorVO(DataPointVO vo) {
+		super(vo, new int[] { DataTypes.BINARY, DataTypes.MULTISTATE, DataTypes.NUMERIC, DataTypes.ALPHANUMERIC });
 		this.setDuration(1);
 	}
 	

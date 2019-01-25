@@ -244,7 +244,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
         private static final int EVENT_DETECTOR_FIRST_COLUMN = 27;
-        private final EventDetectorRowMapper eventRowMapper = new EventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, 5);
+        private final EventDetectorRowMapper<?> eventRowMapper = new EventDetectorRowMapper<>(EVENT_DETECTOR_FIRST_COLUMN, 5);
         static final String DATA_POINT_SELECT_STARTUP = //
                 "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
                 + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
@@ -285,12 +285,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 return;
             AbstractEventDetectorVO<?> edvo = eventRowMapper.mapRow(rs, rs.getRow());
             AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) edvo;
-            ped.njbSetDataPoint(dpvo);
             dpvo.getEventDetectors().add(ped);
         }
     }
 
-    class DataPointRowMapper implements RowMapper<DataPointVO> {
+    public static class DataPointRowMapper implements RowMapper<DataPointVO> {
         @Override
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
@@ -549,21 +548,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * @param dp
      */
     public void setEventDetectors(DataPointVO dp) {
-        List<AbstractEventDetectorVO<?>> detectors = EventDetectorDao.getInstance().getWithSourceId(
-                EventType.EventTypeNames.DATA_POINT, dp.getId());
-        List<AbstractPointEventDetectorVO<?>> peds = new ArrayList<>();
-        for(AbstractEventDetectorVO<?> ed : detectors){
-            AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) ed;
-            ped.njbSetDataPoint(dp);
-            peds.add(ped);
-        }
-        dp.setEventDetectors(peds);
+        dp.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dp.getId(), dp));
     }
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
-        final List<AbstractEventDetectorVO<?>> existingDetectors = EventDetectorDao.getInstance().getWithSourceId(
-                EventType.EventTypeNames.DATA_POINT, dp.getId());
+        final List<AbstractPointEventDetectorVO<?>> existingDetectors = EventDetectorDao.getInstance().getWithSource(dp.getId(), dp);
 
         // Insert or update each detector in the point.
         for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
@@ -580,15 +570,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         // Delete detectors for any remaining ids in the list of existing
         // detectors.
         for (AbstractEventDetectorVO<?> ed : existingDetectors) {
-            //Set the data point so the detector can get its event type when it is deleted
-            AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
-            ped.njbSetDataPoint(dp);
             EventDetectorDao.getInstance().delete(ed);
         }
     }
 
-    private AbstractEventDetectorVO<?> removeFromList(List<AbstractEventDetectorVO<?>> list, int id) {
-        for (AbstractEventDetectorVO<?> ped : list) {
+    private AbstractPointEventDetectorVO<?> removeFromList(List<AbstractPointEventDetectorVO<?>> list, int id) {
+        for (AbstractPointEventDetectorVO<?> ped : list) {
             if (ped.getId() == id) {
                 list.remove(ped);
                 return ped;
@@ -1280,14 +1267,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 copy.getComments().clear();
 
                 // Copy the event detectors
-                List<AbstractEventDetectorVO<?>> existing = EventDetectorDao.getInstance().getWithSourceId(
-                        EventType.EventTypeNames.DATA_POINT, dataPoint.getId());
-                List<AbstractPointEventDetectorVO<?>> detectors = new ArrayList<AbstractPointEventDetectorVO<?>>(existing.size());
+                List<AbstractPointEventDetectorVO<?>> detectors = EventDetectorDao.getInstance().getWithSource(existingId, copy);
 
-                for (AbstractEventDetectorVO<?> ed : existing) {
+                for (AbstractEventDetectorVO<?> ed : detectors) {
                     AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>)ed;
                     ped.setId(Common.NEW_ID);
-                    ped.njbSetDataPoint(copy);
+                    ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
                 }
                 copy.setEventDetectors(detectors);
 

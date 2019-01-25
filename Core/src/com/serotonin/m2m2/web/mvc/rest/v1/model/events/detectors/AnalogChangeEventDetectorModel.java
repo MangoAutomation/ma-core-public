@@ -16,9 +16,6 @@ public class AnalogChangeEventDetectorModel extends TimeoutDetectorModel<AnalogC
 		super(data);
 	}
 
-	public AnalogChangeEventDetectorModel() {
-		super(new AnalogChangeDetectorVO());
-	}
 
 	public double getLimit() {
 		return this.data.getLimit();

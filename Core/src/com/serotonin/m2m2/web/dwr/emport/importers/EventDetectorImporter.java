@@ -12,8 +12,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
@@ -48,14 +48,14 @@ public class EventDetectorImporter extends Importer {
     	String typeStr = json.getString("type");
     	if(typeStr == null)
     		addFailureMessage("emport.error.ped.missingAttr", "type");
-        EventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
+        PointEventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
         if (def == null) {
             addFailureMessage("emport.error.ped.invalid", "type", typeStr,
                     ModuleRegistry.getEventDetectorDefinitionTypes());
             return;
         }
 
-        AbstractEventDetectorVO<?> importing = def.baseCreateEventDetectorVO();
+        AbstractEventDetectorVO<?> importing = def.baseCreateEventDetectorVO(dpvo);
         importing.setDefinition(def);
         
         JsonArray handlerXids = json.getJsonArray("handlers");
@@ -76,7 +76,6 @@ public class EventDetectorImporter extends Importer {
         importing.setId(Common.NEW_ID);
         importing.setXid(xid);
         AbstractPointEventDetectorVO<?> dped = (AbstractPointEventDetectorVO<?>)importing;
-        dped.njbSetDataPoint(dpvo);
         dpvo.getEventDetectors().add(dped);
 	
 		try {
