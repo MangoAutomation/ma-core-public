@@ -92,7 +92,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
      *
      * @return
      */
-    protected EventTypeVO createPollAbortedEventType(int eventId) {
+    private EventTypeVO createPollAbortedEventType(int eventId) {
         AlarmLevels alarmLevel = getAlarmLevel(eventId, AlarmLevels.URGENT);
         return new EventTypeVO(
                 new DataSourceEventType(getId(), eventId, POLL_ABORTED, alarmLevel, DuplicateHandling.IGNORE),
