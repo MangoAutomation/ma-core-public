@@ -32,6 +32,7 @@ import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -82,7 +83,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 public class EventHandlersDwr extends BaseDwr {
     private static final Log LOG = LogFactory.getLog(EventHandlersDwr.class);
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public Map<String, Object> getInitData() {
         User user = Common.getHttpUser();
         Permissions.ensureDataSourcePermission(user);
@@ -233,7 +234,7 @@ public class EventHandlersDwr extends BaseDwr {
         return model;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public String createSetValueContent(int pointId, String valueStr, String idSuffix) {
         DataPointVO pointVO = DataPointDao.getInstance().getDataPoint(pointId);
         Permissions.ensureDataSourcePermission(Common.getHttpUser(), pointVO.getDataSourceId());
@@ -250,7 +251,7 @@ public class EventHandlersDwr extends BaseDwr {
         return generateContent(WebContextFactory.get().getHttpServletRequest(), snippet, model);
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult saveSetPointEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled, int targetPointId,
             int activeAction, String activeValueToSet, int activePointId, String activeScript, int inactiveAction,
@@ -272,7 +273,7 @@ public class EventHandlersDwr extends BaseDwr {
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult saveEmailEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled,
             List<RecipientListEntryBean> activeRecipients, String customTemplate, boolean sendEscalation, boolean repeatEscalations,
@@ -301,7 +302,7 @@ public class EventHandlersDwr extends BaseDwr {
         return save(eventType, eventSubtype, eventTypeRef1, eventTypeRef2, handler, handlerId, xid, alias, disabled);
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult saveProcessEventHandler(String eventType, String eventSubtype, int eventTypeRef1,
             int eventTypeRef2, int handlerId, String xid, String alias, boolean disabled, String activeProcessCommand,
             int activeProcessTimeout, String inactiveProcessCommand, int inactiveProcessTimeout) {
@@ -337,7 +338,7 @@ public class EventHandlersDwr extends BaseDwr {
         return response;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public void deleteEventHandler(int handlerId) {
         User user = Common.getHttpUser();
         List<EventType> eventTypes = EventHandlerDao.getInstance().getEventTypesForHandler(handlerId);
@@ -346,7 +347,7 @@ public class EventHandlersDwr extends BaseDwr {
         EventHandlerDao.getInstance().delete(handlerId);
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public TranslatableMessage testProcessCommand(String command, int timeout) {
 
         //Ensure only Data Source Level users can access this
@@ -365,7 +366,7 @@ public class EventHandlersDwr extends BaseDwr {
         }
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult validateScript(String script, Integer targetPointId, int type,
             List<IntStringPair> additionalContext, ScriptPermissions scriptPermissions) {
         ProcessResult response = new ProcessResult();
