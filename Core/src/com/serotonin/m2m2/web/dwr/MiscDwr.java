@@ -48,64 +48,55 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 public class MiscDwr extends BaseDwr {
     public static final Log LOG = LogFactory.getLog(MiscDwr.class);
 
-    @DwrPermission(anonymous = true)
+    @DwrPermission(user = true)
     public ProcessResult toggleSilence(int eventId) {
         ProcessResult response = new ProcessResult();
         response.addData("eventId", eventId);
 
         User user = Common.getHttpUser();
-        if (user != null) {
-            boolean result = Common.eventManager.toggleSilence(eventId, user.getId());
-            resetLastAlarmLevelChange();
-            response.addData("silenced", result);
-        }
-        else
-            response.addData("silenced", false);
+        boolean result = Common.eventManager.toggleSilence(eventId, user.getId());
+        resetLastAlarmLevelChange();
+        response.addData("silenced", result);
+
 
         return response;
     }
 
-    @DwrPermission(anonymous = true)
+    @DwrPermission(user = true)
     public ProcessResult silenceAll() {
         List<Integer> silenced = new ArrayList<Integer>();
         User user = Common.getHttpUser();
-        if (user != null) {
-            EventDao eventDao = EventDao.getInstance();
-            for (EventInstance evt : eventDao.getPendingEvents(user.getId())) {
-                if (!evt.isSilenced()) {
-                    Common.eventManager.toggleSilence(evt.getId(), user.getId());
-                    silenced.add(evt.getId());
-                }
+        EventDao eventDao = EventDao.getInstance();
+        for (EventInstance evt : eventDao.getPendingEvents(user.getId())) {
+            if (!evt.isSilenced()) {
+                Common.eventManager.toggleSilence(evt.getId(), user.getId());
+                silenced.add(evt.getId());
             }
-
-            resetLastAlarmLevelChange();
         }
 
+        resetLastAlarmLevelChange();
+    
         ProcessResult response = new ProcessResult();
         response.addData("silenced", silenced);
         return response;
     }
 
-    @DwrPermission(anonymous = true)
+    @DwrPermission(user = true)
     public int acknowledgeEvent(int eventId) {
         User user = Common.getHttpUser();
-        if (user != null) {
-            Common.eventManager.acknowledgeEventById(eventId, Common.timer.currentTimeMillis(), user, null);
-            resetLastAlarmLevelChange();
-        }
+        Common.eventManager.acknowledgeEventById(eventId, Common.timer.currentTimeMillis(), user, null);
+        resetLastAlarmLevelChange();
         return eventId;
     }
 
-    @DwrPermission(anonymous = true)
+    @DwrPermission(user = true)
     public void acknowledgeAllPendingEvents() {
         User user = Common.getHttpUser();
-        if (user != null) {
-            EventDao eventDao = EventDao.getInstance();
-            long now = Common.timer.currentTimeMillis();
-            for (EventInstance evt : eventDao.getPendingEvents(user.getId()))
-                Common.eventManager.acknowledgeEventById(evt.getId(), now, user, null);
-            resetLastAlarmLevelChange();
-        }
+        EventDao eventDao = EventDao.getInstance();
+        long now = Common.timer.currentTimeMillis();
+        for (EventInstance evt : eventDao.getPendingEvents(user.getId()))
+            Common.eventManager.acknowledgeEventById(evt.getId(), now, user, null);
+        resetLastAlarmLevelChange();
     }
 
     @DwrPermission(anonymous = true)
@@ -170,7 +161,7 @@ public class MiscDwr extends BaseDwr {
         map.put("title", translate(di.getKey()));
     }
 
-    @DwrPermission(anonymous = true)
+    @DwrPermission(user = true)
     public void jsError(String desc, String page, String line, String browserName, String browserVersion,
             String osName, String location) {
         LOG.warn("Javascript error\r\n" + "   Description: " + desc + "\r\n" + "   Page: " + page + "\r\n"
