@@ -269,7 +269,7 @@ abstract public class BaseDwr {
         DataPointVO point = DataPointDao.getInstance().getDataPoint(pointId, false);
 
         // Check permissions.
-        Permissions.ensureDataPointReadPermission(user, point);
+        Permissions.ensureDataSourcePermission(user, point.getDataSourceId());
 
         Common.runtimeManager.forcePointRead(pointId);
     }
@@ -298,9 +298,13 @@ abstract public class BaseDwr {
 
         if (typeId == UserCommentVO.TYPE_EVENT){
             c.setCommentType(UserCommentVO.TYPE_EVENT);
+            EventInstance event = EventDao.getInstance().get(referenceId);
+            Permissions.ensureEventTypePermission(user, event.getEventType());
             EventDao.getInstance().insertEventComment(c);
         }else if (typeId == UserCommentVO.TYPE_POINT){
             c.setCommentType(UserCommentVO.TYPE_POINT);
+            DataPointVO commentedPoint = DataPointDao.getInstance().get(referenceId);
+            Permissions.ensureDataPointReadPermission(user, commentedPoint);
             UserCommentDao.getInstance().save(c);
         }else
             throw new ShouldNeverHappenException("Invalid comment type: "
@@ -330,7 +334,7 @@ abstract public class BaseDwr {
         return result;
     }
 
-    @DwrPermission(anonymous = true)
+    @DwrPermission(user = true)
     public Map<String, Object> getDateRangeDefaults(int periodType, int period) {
         Map<String, Object> result = new HashMap<>();
 
@@ -822,7 +826,7 @@ abstract public class BaseDwr {
         return result;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public Set<String> refreshCommPorts() throws Exception {
 
         Set<String> portNames = new HashSet<String>();
