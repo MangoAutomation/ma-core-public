@@ -116,15 +116,4 @@ public abstract class AbstractRTDwr<VO extends AbstractActionVO<?>,
     public ProcessResult saveFull(VO vo) {
         return this.save(vo);
     }
-    
-    @SuppressWarnings("unchecked")
-    @DwrPermission(user = true)
-    @Override
-    public ProcessResult getCopy(int id) {
-        ProcessResult response = super.getCopy(id);
-        ((AbstractActionVO<?>) response.getData().get("vo")).setEnabled(false); //Ensure he isn't running
-        //Don't Validate it, that will be done on save
-        
-        return response;
-    }
 }
