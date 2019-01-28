@@ -52,7 +52,7 @@
     <sst:select id="flowControlIn" value="${dataSource.flowControlIn}">
       <sst:option value="0"><fmt:message key="dsEdit.serial.flow.none"/></sst:option>
       <sst:option value="1"><fmt:message key="dsEdit.serial.flow.rtsCts"/></sst:option>
-      <sst:option value="4"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
+      <sst:option value="2"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
     </sst:select>
   </td>
 </tr>
@@ -62,8 +62,8 @@
   <td class="formField">
     <sst:select id="flowControlOut" value="${dataSource.flowControlOut}">
       <sst:option value="0"><fmt:message key="dsEdit.serial.flow.none"/></sst:option>
-      <sst:option value="2"><fmt:message key="dsEdit.serial.flow.rtsCts"/></sst:option>
-      <sst:option value="8"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
+      <sst:option value="1"><fmt:message key="dsEdit.serial.flow.rtsCts"/></sst:option>
+      <sst:option value="2"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
     </sst:select>
   </td>
 </tr>

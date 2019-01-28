@@ -48,11 +48,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         initialized = false;
     }
 
-
-
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#getFreeCommPorts()
-     */
     @Override
     public List<SerialPortIdentifier> getFreeCommPorts() throws Exception {
         if (!initialized) {
@@ -66,9 +61,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         return freePorts;
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#getAllCommPorts()
-     */
     @Override
     public List<SerialPortIdentifier> getAllCommPorts() throws Exception {
         if (!initialized) {
@@ -84,10 +76,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         return allPorts;
     }
 
-
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#refreshFreeCommPorts()
-     */
     @Override
     public void refreshFreeCommPorts() throws Exception {
         this.lock.writeLock().lock();
@@ -99,9 +87,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#initialize(boolean)
-     */
     @Override
     public void initialize(boolean safe) throws LifecycleException {
 
@@ -170,9 +155,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#portOwned(java.lang.String)
-     */
     @Override
     public boolean portOwned(String commPortId) {
 
@@ -186,9 +168,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         return false;
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#getPortOwner(java.lang.String)
-     */
     @Override
     public String getPortOwner(String commPortId) {
 
@@ -201,9 +180,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#isPortNameRegexMatch(java.lang.String)
-     */
     @Override
     public boolean isPortNameRegexMatch(String portName) {
         switch (SerialNativeInterface.getOsType()) {
@@ -223,12 +199,9 @@ public class SerialPortManagerImpl implements SerialPortManager {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#open(java.lang.String, java.lang.String, int, int, int, int, int, int)
-     */
     @Override
     public SerialPortProxy open(String ownerName, String commPortId, int baudRate,
-            int flowControlIn, int flowControlOut, int dataBits, int stopBits, int parity)
+            FlowControl flowControlIn, FlowControl flowControlOut, DataBits dataBits, StopBits stopBits, Parity parity)
             throws SerialPortException {
 
         this.lock.writeLock().lock();
@@ -295,10 +268,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     // TODO Run a periodic task to check when the port was last accessed and if past some time then
     // assume it is not owned anymore?
-
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#close(com.infiniteautomation.mango.io.serial.SerialPortProxy)
-     */
     @Override
     public void close(SerialPortProxy port) throws SerialPortException {
 
@@ -337,9 +306,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#terminate()
-     */
     @Override
     public void terminate() throws LifecycleException {
 
@@ -364,11 +330,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     }
 
-
-
-    /* (non-Javadoc)
-     * @see com.serotonin.util.ILifecycle#joinTermination()
-     */
     @Override
     public void joinTermination() {
         // TODO Implement?

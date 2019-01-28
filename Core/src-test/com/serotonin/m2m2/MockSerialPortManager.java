@@ -6,10 +6,14 @@ package com.serotonin.m2m2;
 
 import java.util.List;
 
+import com.infiniteautomation.mango.io.serial.DataBits;
+import com.infiniteautomation.mango.io.serial.FlowControl;
+import com.infiniteautomation.mango.io.serial.Parity;
 import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.infiniteautomation.mango.io.serial.SerialPortIdentifier;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.SerialPortProxy;
+import com.infiniteautomation.mango.io.serial.StopBits;
 import com.serotonin.util.LifecycleException;
 
 /**
@@ -87,18 +91,15 @@ public class MockSerialPortManager implements SerialPortManager {
 
         return false;
     }
-
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.io.serial.SerialPortManager#open(java.lang.String, java.lang.String, int, int, int, int, int, int)
-     */
+    
     @Override
     public SerialPortProxy open(String ownerName, String commPortId, int baudRate,
-            int flowControlIn, int flowControlOut, int dataBits, int stopBits, int parity)
-            throws SerialPortException {
-        
+            FlowControl flowControlIn, FlowControl flowControlOut, DataBits dataBits,
+            StopBits stopBits, Parity parity) throws SerialPortException {
+        // TODO Auto-generated method stub
         return null;
     }
-
+    
     /* (non-Javadoc)
      * @see com.infiniteautomation.mango.io.serial.SerialPortManager#close(com.infiniteautomation.mango.io.serial.SerialPortProxy)
      */

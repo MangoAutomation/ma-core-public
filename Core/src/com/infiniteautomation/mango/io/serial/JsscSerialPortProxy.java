@@ -20,11 +20,11 @@ public class JsscSerialPortProxy extends SerialPortProxy {
     private final Log LOG = LogFactory.getLog(JsscSerialPortProxy.class);
 
     private int baudRate = -1;
-    private int flowControlIn = FLOWCONTROL_NONE;
-    private int flowControlOut = FLOWCONTROL_NONE;
-    private int dataBits = DATABITS_8;
-    private int stopBits = STOPBITS_1;
-    private int parity = PARITY_NONE;
+    private FlowControl flowControlIn = FlowControl.NONE;
+    private FlowControl flowControlOut = FlowControl.NONE;
+    private DataBits dataBits = DataBits.DATA_BITS_8;
+    private StopBits stopBits = StopBits.STOP_BITS_1;
+    private Parity parity = Parity.NONE;
     
     private SerialPort port;
     private SerialPortOutputStream os;
@@ -34,8 +34,8 @@ public class JsscSerialPortProxy extends SerialPortProxy {
      * Package Private method to ensure that the only way ports are used is via the manager
      * @param serialParameters
      */
-    JsscSerialPortProxy(SerialPortIdentifier id, int baudRate, int flowControlIn,
-			int flowControlOut, int dataBits, int stopBits, int parity) {
+    JsscSerialPortProxy(SerialPortIdentifier id, int baudRate, FlowControl flowControlIn,
+			FlowControl flowControlOut, DataBits dataBits, StopBits stopBits, Parity parity) {
         super(id);
         
         this.baudRate = baudRate;
@@ -61,11 +61,6 @@ public class JsscSerialPortProxy extends SerialPortProxy {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.io.serial.SerialPortProxy#writeInt(int)
-     */
     @Override
     public void writeInt(int arg0) throws SerialPortException {
         try {
@@ -76,11 +71,6 @@ public class JsscSerialPortProxy extends SerialPortProxy {
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.io.serial.SerialPortProxy#close()
-     */
     @Override
     protected void closeImpl() throws SerialPortException {
         Throwable ex = null;
@@ -127,8 +117,8 @@ public class JsscSerialPortProxy extends SerialPortProxy {
             this.port = new SerialPort(commPortId.getName());
 
             this.port.openPort();
-            this.port.setFlowControlMode(flowControlIn | flowControlOut);
-            this.port.setParams(baudRate, dataBits, stopBits,parity);
+            this.port.setFlowControlMode(createFlowControlMode());
+            this.port.setParams(baudRate, createDataBits(dataBits), createStopBits(stopBits), createParity(parity));
             
             this.is = new JsscSerialPortInputStream(this.port, this.listeners);
             this.os = new JsscSerialPortOutputStream(this.port);
@@ -139,77 +129,104 @@ public class JsscSerialPortProxy extends SerialPortProxy {
         }
 
     }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.io.serial.SerialPortProxy#getInputStream()
+    
+    /**
+     * @param parity2
+     * @return
      */
+    public int createParity(Parity parity) {
+        switch(parity) {
+            case EVEN:
+                return SerialPort.PARITY_EVEN;
+            case ODD:
+                return SerialPort.PARITY_ODD;
+            case MARK:
+                return SerialPort.PARITY_MARK;
+            case SPACE:
+                return SerialPort.PARITY_SPACE;
+            case NONE:    
+                return SerialPort.PARITY_NONE;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * @param stopBits2
+     * @return
+     */
+    public int createStopBits(StopBits stopBits) {
+        switch(stopBits) {
+            case STOP_BITS_1:
+                return SerialPort.STOPBITS_1;
+            case STOP_BITS_1_5:
+                return SerialPort.STOPBITS_1_5;
+            case STOP_BITS_2:
+                return SerialPort.STOPBITS_2;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * @param dataBits2
+     * @return
+     */
+    public int createDataBits(DataBits dataBits) {
+        switch(dataBits) {
+            case DATA_BITS_5:
+                return SerialPort.DATABITS_5;
+            case DATA_BITS_6:
+                return SerialPort.DATABITS_6;
+            case DATA_BITS_7:
+                return SerialPort.DATABITS_7;
+            case DATA_BITS_8:
+                return SerialPort.DATABITS_8;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    /**
+     * Specifically massage into JSSC format
+     * @return
+     */
+    public int createFlowControlMode() {
+        int flowIn = SerialPort.FLOWCONTROL_NONE;
+        switch(flowControlIn) {
+            case NONE:
+                flowIn = SerialPort.FLOWCONTROL_NONE;
+                break;
+            case RTSCTS:
+                flowIn = SerialPort.FLOWCONTROL_RTSCTS_IN;
+                break;
+            case XONXOFF:
+                flowIn = SerialPort.FLOWCONTROL_XONXOFF_IN;
+                break;
+        }
+        
+        int flowOut = SerialPort.FLOWCONTROL_NONE;
+        switch(flowControlOut) {
+            case NONE:
+                flowIn = SerialPort.FLOWCONTROL_NONE;
+                break;
+            case RTSCTS:
+                flowIn = SerialPort.FLOWCONTROL_RTSCTS_OUT;
+                break;
+            case XONXOFF:
+                flowIn = SerialPort.FLOWCONTROL_XONXOFF_OUT;
+                break;
+        }
+        return flowIn | flowOut;
+    }
+
     @Override
     public SerialPortInputStream getInputStream() {
         return this.is;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.io.serial.SerialPortProxy#getOutputStream()
-     */
     @Override
     public SerialPortOutputStream getOutputStream() {
         return this.os;
     }
-    
-	public String getPortOwnerName() {
-		return commPortId.getCurrentOwner();
-	}
-
-	public int getBaudRate() {
-		return baudRate;
-	}
-
-	public void setBaudRate(int baudRate) {
-		this.baudRate = baudRate;
-	}
-
-	public int getFlowControlIn() {
-		return flowControlIn;
-	}
-
-	public void setFlowControlIn(int flowControlIn) {
-		this.flowControlIn = flowControlIn;
-	}
-
-	public int getFlowControlOut() {
-		return flowControlOut;
-	}
-
-	public void setFlowControlOut(int flowControlOut) {
-		this.flowControlOut = flowControlOut;
-	}
-
-	public int getDataBits() {
-		return dataBits;
-	}
-
-	public void setDataBits(int dataBits) {
-		this.dataBits = dataBits;
-	}
-
-	public int getStopBits() {
-		return stopBits;
-	}
-
-	public void setStopBits(int stopBits) {
-		this.stopBits = stopBits;
-	}
-
-	public int getParity() {
-		return parity;
-	}
-
-	public void setParity(int parity) {
-		this.parity = parity;
-	}
-    
 }

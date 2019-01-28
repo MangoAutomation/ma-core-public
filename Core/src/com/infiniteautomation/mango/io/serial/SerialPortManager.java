@@ -73,8 +73,8 @@ public interface SerialPortManager extends ILifecycle{
      * @param parity2
      * @return
      */
-    SerialPortProxy open(String ownerName, String commPortId, int baudRate, int flowControlIn,
-            int flowControlOut, int dataBits, int stopBits, int parity) throws SerialPortException;
+    SerialPortProxy open(String ownerName, String commPortId, int baudRate, FlowControl flowControlIn,
+            FlowControl flowControlOut, DataBits dataBits, StopBits stopBits, Parity parity) throws SerialPortException;
 
     /**
      * @param port
