@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 import com.serotonin.m2m2.rt.script.ScriptLog;
+import com.serotonin.m2m2.util.log.LogLevel;
 
 
 /**
@@ -20,7 +21,7 @@ public class MangoJavaScript {
     private String script;
     private List<ScriptContextVariable> context;
     private ScriptPermissions permissions;
-    private ScriptLogLevels logLevel;
+    private LogLevel logLevel;
     //If non-null coerce the result into a PointValueTime with this data type
     private Integer resultDataTypeId;
     //Any additional context for the run
@@ -85,13 +86,13 @@ public class MangoJavaScript {
     /**
      * @return the logLevel
      */
-    public ScriptLogLevels getLogLevel() {
+    public LogLevel getLogLevel() {
         return logLevel;
     }
     /**
      * @param logLevel the logLevel to set
      */
-    public void setLogLevel(ScriptLogLevels logLevel) {
+    public void setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
     }
     

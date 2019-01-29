@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import com.infiniteautomation.mango.util.ReverseEnum;
 import com.infiniteautomation.mango.util.ReverseEnumMap;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 /**
@@ -51,44 +50,6 @@ public enum Parity implements ReverseEnum<Integer> {
 
     public static <X> Map<X, Parity> convertMap(Map<X, Integer> input) {
         return input.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Parity.fromValue(e.getValue())));
-    }
-    
-    public static int getJsscParityValue(Parity value){
-        switch(value){
-        case NONE:
-            return 0;
-        case ODD:
-            return 1;
-        case EVEN:
-            return 2;
-        case MARK:
-            return 3;
-        case SPACE:
-            return 4;
-        default:
-        throw new ShouldNeverHappenException(" Un-convertable parity value.");
-        }
-    }
-
-    /**
-     * @param parity
-     * @return
-     */
-    public static Parity fromJsscValue(int parity) {
-        switch(parity){
-        case 0:
-            return NONE;
-        case 1:
-            return ODD;
-        case 2:
-            return EVEN;
-        case 3:
-            return MARK;
-        case 4:
-            return SPACE;
-        default:
-        throw new ShouldNeverHappenException(" Un-convertable parity value.");
-        }
     }
 
 }

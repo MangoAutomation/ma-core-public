@@ -3,9 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import jdk.nashorn.api.scripting.ClassFilter;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -36,7 +33,6 @@ import com.infiniteautomation.mango.util.script.MangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptAction;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptError;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
-import com.infiniteautomation.mango.util.script.ScriptLogLevels;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.ShouldNeverHappenException;
@@ -77,12 +73,15 @@ import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.rt.script.UnitUtility;
 import com.serotonin.m2m2.rt.script.WrapperContext;
 import com.serotonin.m2m2.util.VarNames;
+import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.util.log.NullPrintWriter;
-import com.serotonin.m2m2.util.log.ProcessLog;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
+
+import jdk.nashorn.api.scripting.ClassFilter;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 /**
  * Service to allow running and validating Mango JavaScript scripts 
@@ -201,10 +200,7 @@ public class MangoJavaScriptService {
         try {
             
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-            ScriptLogLevels logLevel = vo.getLogLevel();
-            if(logLevel == ScriptLogLevels.NONE)
-                logLevel = ScriptLogLevels.FATAL;
-            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter);){
+            try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter);){
                 CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), user);
 
                 long time = Common.timer.currentTimeMillis();
@@ -263,10 +259,7 @@ public class MangoJavaScriptService {
         }
         
         try {
-            ScriptLogLevels logLevel = vo.getLogLevel();
-            if(logLevel == ScriptLogLevels.NONE)
-                logLevel = ScriptLogLevels.FATAL;
-            try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), logLevel.value(), scriptWriter, vo.getLog(), vo.isCloseLog());){
+            try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter, vo.getLog(), vo.isCloseLog());){
                 CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), user);
 
                 long time = Common.timer.currentTimeMillis();
@@ -762,7 +755,7 @@ public class MangoJavaScriptService {
          * @param level
          * @param out
          */
-        public ScriptLogExtender(String id, int level, PrintWriter out, ScriptLog logger, boolean closeExtendedLog) {
+        public ScriptLogExtender(String id, LogLevel level, PrintWriter out, ScriptLog logger, boolean closeExtendedLog) {
             super(id, level, out);
             this.logger = logger;
             this.closeExtendedLog = closeExtendedLog;
@@ -845,14 +838,14 @@ public class MangoJavaScriptService {
                     
         }
 
-        public ProcessLog.LogLevel getLogLevel() {
+        public LogLevel getLogLevel() {
             if(logger != null)
                 return logger.getLogLevel();
             else
                 return super.getLogLevel();
         }
 
-        public void setLogLevel(ProcessLog.LogLevel logLevel) {
+        public void setLogLevel(LogLevel logLevel) {
             if(logger != null)
                 logger.setLogLevel(logLevel);
             super.setLogLevel(logLevel);

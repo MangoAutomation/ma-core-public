@@ -66,6 +66,7 @@ import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
+import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointExtendedNameComparator;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -494,7 +495,7 @@ public class EventHandlersDwr extends BaseDwr {
         final StringWriter scriptOut = new StringWriter();
         final PrintWriter scriptWriter = new PrintWriter(scriptOut);
         final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/YYY HH:mm:ss");
-        try(ScriptLog scriptLog = new ScriptLog("eventHandlerScriptTest", ScriptLog.LogLevel.TRACE, scriptWriter)){
+        try(ScriptLog scriptLog = new ScriptLog("eventHandlerScriptTest", LogLevel.TRACE, scriptWriter)){
             ScriptPointValueSetter loggingSetter = new ScriptPointValueSetter(scriptPermissions) {
                 @Override
                 public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {

@@ -59,16 +59,6 @@ public class ProcessLog implements Closeable {
     	return processLogs;
     }
 
-    public static enum LogLevel {
-        TRACE("TRACE"), DEBUG("DEBUG"), INFO("INFO"), WARN("WARN"), ERROR("ERROR"), FATAL("FATAL");
-
-        public final String logName;
-
-        private LogLevel(String logName) {
-            this.logName = logName;
-        }
-    }
-
     private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss,SSS";
 
     protected final SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
@@ -89,7 +79,7 @@ public class ProcessLog implements Closeable {
      * @param id
      */
     public ProcessLog(String id) {
-        this("processLog.", id, ProcessLog.LogLevel.FATAL, false, new PrintWriter(new NullWriter()) ,true);
+        this("processLog.", id, LogLevel.FATAL, false, new PrintWriter(new NullWriter()) ,true);
     }
     
     /**
@@ -306,7 +296,7 @@ public class ProcessLog implements Closeable {
             if(roll)
                 sizeCheck();
             
-            out.append(level.logName);
+            out.append(level.name());
             out.append(' ');
             out.append(sdf.format(new Date()));
             if(includeLocationInfo) {

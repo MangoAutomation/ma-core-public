@@ -21,7 +21,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.util.log.ProcessLog.LogLevel;
 
 /**
  *

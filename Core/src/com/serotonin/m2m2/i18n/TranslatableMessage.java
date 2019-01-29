@@ -43,7 +43,9 @@ public class TranslatableMessage {
                     this.args[i] = "";
                 else if (args[i] instanceof TranslatableMessage)
                     this.args[i] = args[i];
-                else
+                else if(args[i] instanceof Object[])
+                    this.args[i] = Arrays.toString((Object[])args[i]);
+                else 
                     this.args[i] = args[i].toString();
             }
         }

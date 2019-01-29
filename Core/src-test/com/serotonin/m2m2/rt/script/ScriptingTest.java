@@ -34,6 +34,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -75,7 +76,7 @@ public class ScriptingTest extends MangoTestBase {
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog =
-                    new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)){
+                    new ScriptLog("testScriptLogger", LogLevel.TRACE, scriptWriter)){
     
                 CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult result = new MangoJavaScriptResult();
@@ -117,7 +118,7 @@ public class ScriptingTest extends MangoTestBase {
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog =
-                    new ScriptLog("testScriptLogger", ScriptLog.LogLevel.TRACE, scriptWriter)) {
+                    new ScriptLog("testScriptLogger", LogLevel.TRACE, scriptWriter)) {
 
                 CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult r = new MangoJavaScriptResult();
@@ -227,7 +228,7 @@ public class ScriptingTest extends MangoTestBase {
                 log.createNewFile();
             }
             
-            try(ScriptLog scriptLog = new ScriptLog("testFileWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
+            try(ScriptLog scriptLog = new ScriptLog("testFileWriter-1", LogLevel.TRACE, 100000, 2)){
             
                 CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult r = new MangoJavaScriptResult();
@@ -293,7 +294,7 @@ public class ScriptingTest extends MangoTestBase {
 
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
-            try(ScriptLog scriptLog = new ScriptLog("testContextWriter-", ScriptLog.LogLevel.TRACE, scriptWriter)) {
+            try(ScriptLog scriptLog = new ScriptLog("testContextWriter-", LogLevel.TRACE, scriptWriter)) {
                 MangoJavaScriptResult r = new MangoJavaScriptResult();
                 CompiledScript s = service.compile(script, true, admin);
                 service.execute(s,
@@ -338,7 +339,7 @@ public class ScriptingTest extends MangoTestBase {
                 log.createNewFile();
             }
             
-            try(ScriptLog scriptLog = new ScriptLog("testNullValueWriter-1", ScriptLog.LogLevel.TRACE, 100000, 2)){
+            try(ScriptLog scriptLog = new ScriptLog("testNullValueWriter-1", LogLevel.TRACE, 100000, 2)){
             
                 CompiledScript s = service.compile(script, true, admin);
                 MangoJavaScriptResult r = new MangoJavaScriptResult();

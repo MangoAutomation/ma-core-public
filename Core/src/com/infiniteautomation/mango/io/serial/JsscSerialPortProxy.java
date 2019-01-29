@@ -117,7 +117,7 @@ public class JsscSerialPortProxy extends SerialPortProxy {
             this.port = new SerialPort(commPortId.getName());
 
             this.port.openPort();
-            this.port.setFlowControlMode(createFlowControlMode());
+            this.port.setFlowControlMode(createFlowControlMode(flowControlIn , flowControlOut));
             this.port.setParams(baudRate, createDataBits(dataBits), createStopBits(stopBits), createParity(parity));
             
             this.is = new JsscSerialPortInputStream(this.port, this.listeners);
@@ -191,9 +191,9 @@ public class JsscSerialPortProxy extends SerialPortProxy {
      * Specifically massage into JSSC format
      * @return
      */
-    public int createFlowControlMode() {
+    public static int createFlowControlMode(FlowControl in, FlowControl out) {
         int flowIn = SerialPort.FLOWCONTROL_NONE;
-        switch(flowControlIn) {
+        switch(in) {
             case NONE:
                 flowIn = SerialPort.FLOWCONTROL_NONE;
                 break;
@@ -206,7 +206,7 @@ public class JsscSerialPortProxy extends SerialPortProxy {
         }
         
         int flowOut = SerialPort.FLOWCONTROL_NONE;
-        switch(flowControlOut) {
+        switch(out) {
             case NONE:
                 flowIn = SerialPort.FLOWCONTROL_NONE;
                 break;
