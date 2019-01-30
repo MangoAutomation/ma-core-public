@@ -370,7 +370,11 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     }
 
     protected Integer readUpdatePeriodType(JsonObject json) throws JsonException {
-        String text = json.getString("updatePeriodType");
+        return readPeriodType("updatePeriodType", json);
+    }
+    
+    protected Integer readPeriodType(String field, JsonObject json) throws JsonException {
+        String text = json.getString(field);
         if (text == null)
             return null;
 
@@ -383,7 +387,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
                     throw new NumberFormatException();
                 return testValue;
             }catch(NumberFormatException e) {
-                throw new TranslatableJsonException("emport.error.invalid", "updatePeriodType", text,
+                throw new TranslatableJsonException("emport.error.invalid", field, text,
                         Common.TIME_PERIOD_CODES.getCodeList());
             }
         }

@@ -20,6 +20,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.util.SerializationHelper;
 
 /**
  * Base class for Polling type data sources
@@ -31,8 +32,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     
     protected final static String POLL_ABORTED = "POLL_ABORTED";
     
-    @JsonProperty 
-    boolean quantize = false; //Start polls quantized to the start of the update period
+    protected Boolean quantize; //Start polls quantized to the start of the update period
     protected int updatePeriodType = Common.TimePeriods.MINUTES;
     @JsonProperty
     protected int updatePeriods = 5;
@@ -46,11 +46,11 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
             response.addContextualMessage("updatePeriods", "validate.greaterThanZero");
     }
 
-    public boolean isQuantize() {
-        return quantize;
+    public Boolean isQuantize() {
+        return quantize == null ? Boolean.FALSE : quantize;
     }
 
-    public void setQuantize(boolean quantize) {
+    public void setQuantize(Boolean quantize) {
         this.quantize = quantize;
     }
 
@@ -104,12 +104,12 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
      * Serialization 
      */
     private static final long serialVersionUID = 1L;
-    private static final int version = 1;
+    private static final int version = 2;
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeInt(updatePeriodType);
         out.writeInt(updatePeriods);
-        out.writeBoolean(quantize);
+        out.writeObject(quantize);
     }
 
     private void readObject(ObjectInputStream in) throws IOException {
@@ -120,6 +120,10 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
             updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
             quantize = in.readBoolean();
+        }else if(ver == 2) {
+            updatePeriodType = in.readInt();
+            updatePeriods = in.readInt();
+            quantize = SerializationHelper.readObject(in);
         }
     }
     
@@ -127,6 +131,8 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writeUpdatePeriodType(writer, updatePeriodType);
+        if(quantize != null)
+            writer.writeEntry("quantize", quantize);
     }
 
     @Override
@@ -135,6 +141,8 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
         Integer value = readUpdatePeriodType(jsonObject);
         if (value != null)
             updatePeriodType = value;
+        if(jsonObject.containsKey("quantize"))
+            quantize = jsonObject.getBoolean("quantize");
     }
    
 }

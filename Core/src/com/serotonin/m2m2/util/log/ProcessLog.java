@@ -79,7 +79,7 @@ public class ProcessLog implements Closeable {
      * @param id
      */
     public ProcessLog(String id) {
-        this("processLog.", id, LogLevel.FATAL, false, new PrintWriter(new NullWriter()) ,true);
+        this("processLog.", id, LogLevel.NONE, false, new PrintWriter(new NullWriter()) ,true);
     }
     
     /**
@@ -145,7 +145,7 @@ public class ProcessLog implements Closeable {
         else
         	this.out = out;
 
-        if(!(out instanceof NullPrintWriter))
+        if(!(this.out instanceof NullPrintWriter))
             processLogs.add(this);
     }
     
@@ -320,6 +320,8 @@ public class ProcessLog implements Closeable {
      * as necessary
      */
     protected void sizeCheck() {
+        if(logLevel == LogLevel.NONE)
+            return;
         // Check if the file should be rolled.
         if (file.length() > this.fileSize) {
             out.close();
@@ -354,7 +356,10 @@ public class ProcessLog implements Closeable {
      */
     protected void createOut() {
         try {
-            out = new PrintWriter(new FileWriter(file, true));
+            if(logLevel == LogLevel.NONE)
+                out = new PrintWriter(new NullWriter());
+            else
+                out = new PrintWriter(new FileWriter(file, true));
         }
         catch (IOException e) {
             out = new PrintWriter(new NullWriter());
