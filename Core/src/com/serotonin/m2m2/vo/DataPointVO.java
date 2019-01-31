@@ -127,9 +127,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         PLOT_TYPE_CODES.addElement(PlotTypes.STEP, "STEP", "pointEdit.plotType.step");
         PLOT_TYPE_CODES.addElement(PlotTypes.LINE, "LINE", "pointEdit.plotType.line");
         PLOT_TYPE_CODES.addElement(PlotTypes.SPLINE, "SPLINE", "pointEdit.plotType.spline");
-        PLOT_TYPE_CODES.addElement(PlotTypes.BAR, "BAR", "pointEdit.plotType.bar");   
+        PLOT_TYPE_CODES.addElement(PlotTypes.BAR, "BAR", "pointEdit.plotType.bar");
     }
-    
+
     public interface SimplifyTypes {
         int NONE = 1;
         int TARGET = 2;
@@ -221,7 +221,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private int rollup = Common.Rollups.NONE;
 
     private int plotType = PlotTypes.STEP;
-    
+
     // Properties for Simplify
     private int simplifyType = SimplifyTypes.NONE;
     private double simplifyTolerance = 10.0;
@@ -237,7 +237,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private String readPermission;
     @JsonProperty
     private String setPermission;
-    
+
     //Template for properties
     private Integer templateId;
 
@@ -262,7 +262,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
      */
     @JsonProperty
     volatile private Map<String, String> tags;
-    
+
     //
     //
     // Runtime data
@@ -274,30 +274,30 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
      * values in this case do in fact equal each other).
      */
     private PointValueTime lastValue = new PointValueTime((DataValue) null, -1);
-    
+
     public DataPointVO() {
     }
-    
+
     public DataPointVO(DataSourceVO<?> dataSource) {
         this(dataSource, null);
     }
-    
+
     public DataPointVO(DataSourceVO<?> dataSource, DataPointPropertiesTemplateVO template) {
         this.withDataSource(dataSource);
         this.withTemplate(template);
-        
+
         // new data point will have empty relational data
         // eventDetectors is already initialized
         this.setComments(new ArrayList<>());
         this.setTags(Collections.emptyMap());
     }
-    
+
     public void withDataSource(DataSourceVO<?> dataSource) {
         this.dataSourceId = dataSource.getId();
         this.dataSourceName = dataSource.getName();
         this.dataSourceXid = dataSource.getXid();
         this.dataSourceTypeName = dataSource.getDefinition().getDataSourceTypeName();
-        
+
         if (this.xid == null || this.xid.isEmpty()) {
             this.xid = Common.generateXid(XID_PREFIX);
         }
@@ -306,7 +306,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             this.deviceName = dataSource.getName();
         }
     }
-    
+
     public void withTemplate(DataPointPropertiesTemplateVO template) {
         if (template != null) {
             template.updateDataPointVO(this);
@@ -346,14 +346,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             setTextRenderer(new PlainRenderer("", false));
         else {
             switch (pointLocator.getDataTypeId()) {
-            case DataTypes.IMAGE:
-                setTextRenderer(new NoneRenderer());
-                break;
-            case DataTypes.NUMERIC:
-                setTextRenderer(new PlainRenderer("", true));
-                break;
-            default:
-                setTextRenderer(new PlainRenderer("", false));
+                case DataTypes.IMAGE:
+                    setTextRenderer(new NoneRenderer());
+                    break;
+                case DataTypes.NUMERIC:
+                    setTextRenderer(new PlainRenderer("", true));
+                    break;
+                default:
+                    setTextRenderer(new PlainRenderer("", false));
             }
         }
     }
@@ -600,29 +600,29 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setDiscardHighLimit(double discardHighLimit) {
         this.discardHighLimit = discardHighLimit;
     }
-    
+
     public boolean isPreventSetExtremeValues() {
-    	return preventSetExtremeValues;
+        return preventSetExtremeValues;
     }
-    
+
     public void setPreventSetExtremeValues(boolean preventSetExtremeValues) {
-    	this.preventSetExtremeValues = preventSetExtremeValues;
+        this.preventSetExtremeValues = preventSetExtremeValues;
     }
-    
+
     public double getSetExtremeHighLimit() {
-    	return setExtremeHighLimit;
+        return setExtremeHighLimit;
     }
-    
+
     public void setSetExtremeHighLimit(double setExtremeHighLimit) {
-    	this.setExtremeHighLimit = setExtremeHighLimit;
+        this.setExtremeHighLimit = setExtremeHighLimit;
     }
-    
+
     public double getSetExtremeLowLimit() {
-    	return setExtremeLowLimit;
+        return setExtremeLowLimit;
     }
-    
+
     public void setSetExtremeLowLimit(double setExtremeLowLimit) {
-    	this.setExtremeLowLimit = setExtremeLowLimit;
+        this.setExtremeLowLimit = setExtremeLowLimit;
     }
 
     /**
@@ -692,13 +692,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setChartColour(String chartColour) {
         this.chartColour = chartColour;
     }
-    
+
     public int getRollup() {
-    	return rollup;
+        return rollup;
     }
-    
+
     public void setRollup(int rollup) {
-    	this.rollup = rollup;
+        this.rollup = rollup;
     }
 
     public int getPlotType() {
@@ -708,31 +708,31 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setPlotType(int plotType) {
         this.plotType = plotType;
     }
-    
+
     public boolean isSimplifyDataSets() {
         return simplifyType != SimplifyTypes.NONE;
     }
-    
+
     public int getSimplifyType() {
         return simplifyType;
     }
-    
+
     public void setSimplifyType(int simplifyType) {
         this.simplifyType = simplifyType;
     }
-    
+
     public double getSimplifyTolerance() {
         return simplifyTolerance;
     }
-    
+
     public void setSimplifyTolerance(double simplifyTolerance) {
         this.simplifyTolerance = simplifyTolerance;
     }
-    
+
     public int getSimplifyTarget() {
         return simplifyTarget;
     }
-    
+
     public void setSimplifyTarget(int simplifyTarget) {
         this.simplifyTarget = simplifyTarget;
     }
@@ -753,6 +753,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.intervalLoggingSampleWindowSize = intervalLoggingSampleWindowSize;
     }
 
+    @Override
     public String getReadPermission() {
         return readPermission;
     }
@@ -761,6 +762,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.readPermission = readPermission;
     }
 
+    @Override
     public String getSetPermission() {
         return setPermission;
     }
@@ -768,13 +770,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setSetPermission(String setPermission) {
         this.setPermission = setPermission;
     }
-    
+
     public Integer getTemplateId(){
-    	return templateId;
+        return templateId;
     }
-    
+
     public void setTemplateId(Integer id){
-    	this.templateId = id;
+        this.templateId = id;
     }
 
     /* Helpers for Use on JSP Page */
@@ -829,12 +831,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setLoggingIntervalString(String type) {
         // No Op
     }
-    
+
     public String getTemplateName(){
-    	return this.templateName;
+        return this.templateName;
     }
     public void setTemplateName(String name){
-    	this.templateName = name;
+        this.templateName = name;
     }
     public String getTemplateXid(){
         return this.templateXid;
@@ -917,10 +919,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                     response.addContextualMessage("tolerance", "validate.cannotBeNegative");
             }
         }else{
-        	response.addContextualMessage("pointLocator", "validate.required");
-        	return;
+            response.addContextualMessage("pointLocator", "validate.required");
+            return;
         }
-        
+
         if (!LOGGING_TYPE_CODES.isValidId(loggingType))
             response.addContextualMessage("loggingType", "validate.invalidValue");
         if (!Common.TIME_PERIOD_CODES.isValidId(intervalLoggingPeriodType))
@@ -929,10 +931,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             response.addContextualMessage("intervalLoggingPeriod", "validate.greaterThanZero");
         if (!INTERVAL_LOGGING_TYPE_CODES.isValidId(intervalLoggingType))
             response.addContextualMessage("intervalLoggingType", "validate.invalidValue");
-        
+
         if(pointLocator.getDataTypeId() == DataTypes.IMAGE || pointLocator.getDataTypeId() == DataTypes.ALPHANUMERIC ) {
             if(loggingType == LoggingTypes.INTERVAL && intervalLoggingType != IntervalLoggingTypes.INSTANT)
-                response.addContextualMessage("intervalLoggingType", "validate.intervalType.incompatible", 
+                response.addContextualMessage("intervalLoggingType", "validate.intervalType.incompatible",
                         INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType), DataTypes.CODES.getCode(pointLocator.getDataTypeId()));
         }
 
@@ -949,12 +951,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
         if (discardExtremeValues && discardHighLimit <= discardLowLimit)
             response.addContextualMessage("discardHighLimit", "validate.greaterThanDiscardLow");
-        
+
         if(pointLocator.getDataTypeId() != DataTypes.NUMERIC && pointLocator.getDataTypeId() != DataTypes.MULTISTATE)
-        	preventSetExtremeValues = false;
-        
+            preventSetExtremeValues = false;
+
         if(preventSetExtremeValues && setExtremeHighLimit <= setExtremeLowLimit)
-        	response.addContextualMessage("setExtremeHighLimit", "validate.greaterThanSetExtremeLow");
+            response.addContextualMessage("setExtremeHighLimit", "validate.greaterThanSetExtremeLow");
 
         if (!StringUtils.isBlank(chartColour)) {
             try {
@@ -964,13 +966,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 response.addContextualMessage("chartColour", "validate.invalidValue");
             }
         }else if(chartColour == null){
-        	response.addContextualMessage("chartColour", "validate.invalidValue");
+            response.addContextualMessage("chartColour", "validate.invalidValue");
         }
-        
+
         if(!Common.ROLLUP_CODES.isValidId(rollup))
-        	response.addContextualMessage("rollup", "validate.invalidValue");
+            response.addContextualMessage("rollup", "validate.invalidValue");
         else if(!validateRollup())
-        	response.addContextualMessage("rollup", "validate.rollup.incompatible", rollup);
+            response.addContextualMessage("rollup", "validate.rollup.incompatible", rollup);
 
         DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(dataSourceId);
         if(dsvo == null) {
@@ -992,23 +994,23 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             response.addContextualMessage("plotType", "validate.invalidValue");
         if (plotType != PlotTypes.STEP && pointLocator.getDataTypeId() != DataTypes.NUMERIC)
             response.addContextualMessage("plotType", "validate.invalidValue");
-        
+
         if(!SIMPLIFY_TYPE_CODES.isValidId(simplifyType))
             response.addContextualMessage("simplifyType", "validate.invalidValue");
         else if(simplifyType == SimplifyTypes.TARGET && simplifyTarget < 10)
             response.addContextualMessage("simplifyTarget", "validate.greaterThan", 10);
-        else if(simplifyType != DataPointVO.SimplifyTypes.NONE && (pointLocator.getDataTypeId() == DataTypes.ALPHANUMERIC || 
+        else if(simplifyType != DataPointVO.SimplifyTypes.NONE && (pointLocator.getDataTypeId() == DataTypes.ALPHANUMERIC ||
                 pointLocator.getDataTypeId() == DataTypes.IMAGE))
             response.addContextualMessage("simplifyType", "validate.cannotSimplifyType", DataTypes.getDataTypeMessage(pointLocator.getDataTypeId()));
 
         //Validate the unit
         try {
-        	if(unit == null){
-        		//We know the unit is invalid and will try the unitString as a likely invalid source (From DWR only)
-        		unit = defaultUnit();  //So the other units validate ok
-        		UnitUtil.parseLocal(this.unitString);
-        		throw new Exception("No Unit"); //Guarantee we fail
-        	}
+            if(unit == null){
+                //We know the unit is invalid and will try the unitString as a likely invalid source (From DWR only)
+                unit = defaultUnit();  //So the other units validate ok
+                UnitUtil.parseLocal(this.unitString);
+                throw new Exception("No Unit"); //Guarantee we fail
+            }
         }
         catch (Exception e) {
             if (e instanceof IllegalArgumentException) {
@@ -1031,7 +1033,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                     UnitUtil.parseLocal(this.integralUnitString);
                     throw new Exception("No Unit"); //Guarantee we fail
                 }
-                
+
                 if(!integralUnit.isCompatible(defaultIntegralUnit()))
                     response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
             }
@@ -1057,13 +1059,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                     UnitUtil.parseLocal(this.renderedUnitString);
                     throw new Exception("No Unit"); //Guarantee we fail
                 }
-                
+
                 if(!renderedUnit.isCompatible(unit))
-                    response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
+                    response.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
             }
         }
         catch (Exception e) {
-             response.addContextualMessage("renderedUnit", "validate.unitInvalid", e.getMessage());
+            response.addContextualMessage("renderedUnit", "validate.unitInvalid", e.getMessage());
         }
 
         if (overrideIntervalLoggingSamples) {
@@ -1071,16 +1073,16 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
             }
         }
-        
+
         if((templateId!=null) &&(templateId > 0)){
-        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
-        	if(template == null){
-        		response.addContextualMessage("template", "pointEdit.template.validate.templateNotFound", templateId);
-        	}else if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
-        		response.addContextualMessage("template", "pointEdit.template.validate.templateDataTypeNotCompatible");
-        	}
+            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
+            if(template == null){
+                response.addContextualMessage("template", "pointEdit.template.validate.templateNotFound", templateId);
+            }else if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
+                response.addContextualMessage("template", "pointEdit.template.validate.templateDataTypeNotCompatible");
+            }
         }
-        
+
         Map<String, String> tags = this.tags;
         if (tags != null) {
             for (Entry<String, String> entry : tags.entrySet()) {
@@ -1100,7 +1102,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     /**
      * Validate the Integral Unit
      * Setting a default if its not enabled
-     * 
+     *
      * @return
      */
     public boolean validateIntegralUnit() {
@@ -1113,7 +1115,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         // integral unit should have same dimensions as the default integrated unit
         if (integralUnit == null)
             return false;
- 
+
         return integralUnit.isCompatible(defaultIntegralUnit());
     }
 
@@ -1130,27 +1132,27 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
         return renderedUnit.isCompatible(unit);
     }
-    
+
     private boolean validateRollup() {
-    	boolean numeric = pointLocator.getDataTypeId() == DataTypes.NUMERIC;
-    	switch(rollup) {
-    	case Rollups.FIRST :
-    	case Rollups.LAST :
-    	case Rollups.START :
-    	case Rollups.COUNT :
-    	case Rollups.NONE :
-    		return true;
-    	case Rollups.AVERAGE :
-    	case Rollups.DELTA :
-    	case Rollups.MINIMUM :
-    	case Rollups.MAXIMUM :
-    	case Rollups.ACCUMULATOR :
-    	case Rollups.SUM :
-    	case Rollups.INTEGRAL :
-    		return numeric;
-    	default :
-    		return false;
-    	}
+        boolean numeric = pointLocator.getDataTypeId() == DataTypes.NUMERIC;
+        switch(rollup) {
+            case Rollups.FIRST :
+            case Rollups.LAST :
+            case Rollups.START :
+            case Rollups.COUNT :
+            case Rollups.NONE :
+                return true;
+            case Rollups.AVERAGE :
+            case Rollups.DELTA :
+            case Rollups.MINIMUM :
+            case Rollups.MAXIMUM :
+            case Rollups.ACCUMULATOR :
+            case Rollups.SUM :
+            case Rollups.INTEGRAL :
+                return numeric;
+            default :
+                return false;
+        }
     }
 
     // default unit is ONE ie no units
@@ -1180,12 +1182,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 + ", defaultCacheSize=" + defaultCacheSize + ", discardExtremeValues=" + discardExtremeValues
                 + ", discardLowLimit=" + discardLowLimit + ", discardHighLimit=" + discardHighLimit + ", unit=" + unit
                 + ", integralUnit=" + integralUnit + ", renderedUnit=" + renderedUnit + ", useIntegralUnit="
-                + useIntegralUnit + ", useRenderedUnit=" + useRenderedUnit + chartColour + ", rollup=" + Common.ROLLUP_CODES.getCode(rollup) 
-                + ", plotType=" + plotType + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName 
+                + useIntegralUnit + ", useRenderedUnit=" + useRenderedUnit + chartColour + ", rollup=" + Common.ROLLUP_CODES.getCode(rollup)
+                + ", plotType=" + plotType + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName
                 + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue
                 + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
                 + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readPermission="
-                + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId 
+                + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId
                 + ", preventSetExtremeValues=" + preventSetExtremeValues + ", setExtremeLowLimit=" + setExtremeLowLimit
                 + ", setExtremeHighLimit=" + setExtremeHighLimit + "]";
     }
@@ -1479,26 +1481,26 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             plotType = in.readInt();
 
             try{
-	            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-	            unitString = UnitUtil.formatLocal(unit);
+                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
-            	unit = defaultUnit();
-            	unitString = UnitUtil.formatLocal(unit);
+                unit = defaultUnit();
+                unitString = UnitUtil.formatLocal(unit);
             }
             try{
-            	integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
-            	integralUnit = defaultUnit();
-            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+                integralUnit = defaultUnit();
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
-            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
-            	renderedUnit = defaultUnit();
-            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+                renderedUnit = defaultUnit();
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
 
             useIntegralUnit = in.readBoolean();
@@ -1520,28 +1522,28 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
-            
+
             try{
-	            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-	            unitString = UnitUtil.formatLocal(unit);
+                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
-            	unit = defaultUnit();
-            	unitString = UnitUtil.formatLocal(unit);
+                unit = defaultUnit();
+                unitString = UnitUtil.formatLocal(unit);
             }
             try{
-            	integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
-            	integralUnit = defaultUnit();
-            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+                integralUnit = defaultUnit();
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
-            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
-            	renderedUnit = defaultUnit();
-            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+                renderedUnit = defaultUnit();
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
@@ -1562,28 +1564,28 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
-            
+
             try{
-	            unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-	            unitString = UnitUtil.formatLocal(unit);
+                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
-            	unit = defaultUnit();
-            	unitString = UnitUtil.formatLocal(unit);
+                unit = defaultUnit();
+                unitString = UnitUtil.formatLocal(unit);
             }
             try{
-            	integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+                integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
-            	integralUnit = defaultUnit();
-            	integralUnitString = UnitUtil.formatLocal(integralUnit);
+                integralUnit = defaultUnit();
+                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
-            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
-            	renderedUnit = defaultUnit();
-            	renderedUnitString = UnitUtil.formatLocal(renderedUnit);
+                renderedUnit = defaultUnit();
+                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
@@ -1604,7 +1606,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
-            
+
             try{
                 unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
                 unitString = UnitUtil.formatLocal(unit);
@@ -1646,7 +1648,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             discardHighLimit = in.readDouble();
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
-            
+
             try{
                 unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
                 unitString = UnitUtil.formatLocal(unit);
@@ -1738,11 +1740,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         if (useRenderedUnit)
             writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
         if(templateId != null){
-        	DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
-        	if(template != null)
-        		writer.writeEntry("templateXid", template.getXid());
+            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
+            if(template != null)
+                writer.writeEntry("templateXid", template.getXid());
         }
-        
+
         writer.writeEntry("simplifyType", SIMPLIFY_TYPE_CODES.getCode(simplifyType));
         if(simplifyType == SimplifyTypes.TARGET)
             writer.writeEntry("simplifyTarget", simplifyTarget);
@@ -1814,10 +1816,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 }
 
                 if (ped == null) {
-                	String typeStr = pedObject.getString("type");
-                	if(typeStr == null)
-                		throw new TranslatableJsonException("emport.error.ped.missingAttr", "type");
-                	//This assumes that all definitions used for data points are Data Point Event Detectors
+                    String typeStr = pedObject.getString("type");
+                    if(typeStr == null)
+                        throw new TranslatableJsonException("emport.error.ped.missingAttr", "type");
+                    //This assumes that all definitions used for data points are Data Point Event Detectors
                     PointEventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
                     if (def == null)
                         throw new TranslatableJsonException("emport.error.ped.invalid", "type", typeStr,
@@ -1843,7 +1845,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                             ped.addAddedEventHandler(eh);
                         }
                     }
-                
+
                 reader.readInto(ped, pedObject);
             }
         }
@@ -1875,16 +1877,16 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 throw new TranslatableJsonException("emport.error.invalid", "plotType", text,
                         PLOT_TYPE_CODES.getCodeList());
         }
-        
+
         //Rollup
         text = jsonObject.getString("rollup");
         if (text != null){
-	        rollup = Common.ROLLUP_CODES.getId(text);
-	        if (rollup == -1)
-	            throw new TranslatableJsonException("emport.error.chart.invalid", "rollup", text,
-	                    Common.ROLLUP_CODES.getCodeList());
+            rollup = Common.ROLLUP_CODES.getId(text);
+            if (rollup == -1)
+                throw new TranslatableJsonException("emport.error.chart.invalid", "rollup", text,
+                        Common.ROLLUP_CODES.getCodeList());
         }
-        
+
         //Simplify
         text = jsonObject.getString("simplifyType");
         if (text != null){
@@ -1893,11 +1895,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 throw new TranslatableJsonException("emport.error.invalid", "simplifyType", text,
                         SIMPLIFY_TYPE_CODES.getCodeList());
         }
-        
+
         int simplifyTarget = jsonObject.getInt("simplifyTarget", Integer.MIN_VALUE);
         if (simplifyTarget != Integer.MIN_VALUE)
             this.simplifyTarget = simplifyTarget;
-        
+
         double simplifyTolerance = jsonObject.getDouble("simplifyTolerance", Double.NaN);
         if (simplifyTolerance != Double.NaN)
             this.simplifyTolerance = simplifyTolerance;
@@ -1911,14 +1913,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             throw new TranslatableJsonException("emport.error.parseError", item);
         }
     }
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
-	@Override
-	protected AbstractDao<DataPointVO> getDao() {
-		return DataPointDao.getInstance();
-	}
+
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
+     */
+    @Override
+    protected AbstractDao<DataPointVO> getDao() {
+        return DataPointDao.getInstance();
+    }
 
     /**
      * Returns a map of the tag keys and values. Will not contain "name" or "device" keys.
@@ -1935,7 +1937,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     /**
      * Note "name" and "device" keys are removed when setting the tags.  The original map
      *  is not modified and may still contain "name" and/or "device"
-     * 
+     *
      * @param tags
      */
     public void setTags(Map<String, String> tags) {
@@ -1943,7 +1945,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             this.tags = null;
             return;
         }
-        
+
         Map<String, String> newTags = new HashMap<>();
         newTags.putAll(tags);
         newTags.remove(DataPointTagsDao.NAME_TAG_KEY);
