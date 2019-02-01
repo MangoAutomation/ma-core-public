@@ -35,8 +35,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.AuthSchemes;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
@@ -656,18 +658,53 @@ public class Common {
 
     //
     // HttpClient
+    
+    /**
+     * Get default HTTP Client with 30s timeout
+     * @return
+     */
     public static HttpClient getHttpClient() {
         return getHttpClient(30000); // 30 seconds.
     }
 
+    /**
+     * Get HTPT Client with default settings and assigned timeout and retries
+     * @param timeout
+     * @param retries
+     * @return
+     */
+    public static HttpClient getHttpClient(int timeout, int retries) {
+        // Create global request configuration
+        Builder defaultRequestConfigBuilder = getDefaultRequestConfig();
+        defaultRequestConfigBuilder.setSocketTimeout(timeout)
+            .setConnectTimeout(timeout);
+        
+        HttpClientBuilder builder = getDefaultHttpClientBuilder();
+        builder.setRetryHandler(new DefaultHttpRequestRetryHandler(retries, false));
+        builder.setDefaultRequestConfig(defaultRequestConfigBuilder.build());
+        return builder.build();
+    }
+    
+    /**
+     * Get an HTTP Client with default settings and assigned timeout
+     * @param timeout
+     * @return
+     */
     public static HttpClient getHttpClient(int timeout) {
         // Create global request configuration
-        RequestConfig defaultRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT)
-                .setExpectContinueEnabled(true)
-                .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
-                .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC)).setSocketTimeout(timeout)
-                .setConnectTimeout(timeout).build();
-
+        Builder defaultRequestConfigBuilder = getDefaultRequestConfig();
+        defaultRequestConfigBuilder.setSocketTimeout(timeout).setConnectTimeout(timeout).build();
+        
+        HttpClientBuilder builder = getDefaultHttpClientBuilder();
+        builder.setDefaultRequestConfig(defaultRequestConfigBuilder.build());
+        return builder.build();
+    }
+    
+    /**
+     * Get a builder defaulted with System Settings values
+     * @return
+     */
+    public static HttpClientBuilder getDefaultHttpClientBuilder() {
         if (SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.HTTP_CLIENT_USE_PROXY)) {
             String proxyHost = SystemSettingsDao.instance.getValue(SystemSettingsDao.HTTP_CLIENT_PROXY_SERVER);
             int proxyPort = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_CLIENT_PROXY_PORT);
@@ -677,17 +714,26 @@ public class Common {
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(new AuthScope(proxyHost, proxyPort), new UsernamePasswordCredentials(
                     username, password));
-            // Create an HttpClient with the given custom dependencies and configuration.
-            CloseableHttpClient httpclient = HttpClients.custom().setProxy(new HttpHost(proxyHost, proxyPort))
-                    .setDefaultRequestConfig(defaultRequestConfig).setDefaultCredentialsProvider(credentialsProvider)
-                    .build();
-            return httpclient;
+            // Add the given custom dependencies and configuration.
+            return HttpClients.custom()
+                    .setProxy(new HttpHost(proxyHost, proxyPort))
+                    .setDefaultCredentialsProvider(credentialsProvider);
         }
         else {
-            // Create an HttpClient with the given custom dependencies and configuration.
-            CloseableHttpClient httpclient = HttpClients.custom().setDefaultRequestConfig(defaultRequestConfig).build();
-            return httpclient;
+            return HttpClients.custom();
         }
+    }
+    
+    /**
+     * Get the default request config builder to customize
+     * @return
+     */
+    public static Builder getDefaultRequestConfig() {
+        return RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT)
+        .setExpectContinueEnabled(true)
+        .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
+        .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC));
+
     }
 
     //
