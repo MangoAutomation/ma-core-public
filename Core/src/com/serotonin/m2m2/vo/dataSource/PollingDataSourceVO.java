@@ -8,6 +8,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -20,6 +22,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -32,10 +35,13 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     
     protected final static String POLL_ABORTED = "POLL_ABORTED";
     
-    protected Boolean quantize; //Start polls quantized to the start of the update period
-    protected int updatePeriodType = Common.TimePeriods.MINUTES;
     @JsonProperty
+    protected boolean quantize; //Start polls quantized to the start of the update period
+    protected int updatePeriodType = Common.TimePeriods.MINUTES;
     protected int updatePeriods = 5;
+    @JsonProperty
+    protected boolean useCron = false;
+    protected String cronPattern;
     
     @Override
     public void validate(ProcessResult response) {
@@ -44,10 +50,22 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
             response.addContextualMessage("updatePeriodType", "validate.invalidValue");
         if (updatePeriods <= 0)
             response.addContextualMessage("updatePeriods", "validate.greaterThanZero");
+        if(useCron) {
+            if (StringUtils.isBlank(cronPattern))
+                response.addContextualMessage("cronPattern", "validate.required");
+            else {
+                try {
+                    new CronTimerTrigger(cronPattern);
+                }
+                catch (Exception e) {
+                    response.addContextualMessage("cronPattern", "validate.invalidCron", cronPattern);
+                }
+            }
+        }
     }
 
-    public Boolean isQuantize() {
-        return quantize == null ? Boolean.FALSE : quantize;
+    public boolean isQuantize() {
+        return quantize;
     }
 
     public void setQuantize(Boolean quantize) {
@@ -68,6 +86,22 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
 
     public void setUpdatePeriodType(int updatePeriodType) {
         this.updatePeriodType = updatePeriodType;
+    }
+    
+    public boolean isUseCron() {
+        return useCron;
+    }
+    
+    public void setUseCron(boolean useCron) {
+        this.useCron = useCron;
+    }
+    
+    public String getCronPattern() {
+        return cronPattern;
+    }
+    
+    public void setCronPattern(String cronPattern) {
+        this.cronPattern = cronPattern;
     }
     
     /**
@@ -109,7 +143,9 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
         out.writeInt(version);
         out.writeInt(updatePeriodType);
         out.writeInt(updatePeriods);
-        out.writeObject(quantize);
+        out.writeBoolean(useCron);
+        SerializationHelper.writeSafeUTF(out, cronPattern);
+        out.writeBoolean(quantize);
     }
 
     private void readObject(ObjectInputStream in) throws IOException {
@@ -120,29 +156,40 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
             updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
             quantize = in.readBoolean();
+            useCron = false;
         }else if(ver == 2) {
             updatePeriodType = in.readInt();
             updatePeriods = in.readInt();
-            quantize = SerializationHelper.readObject(in);
+            useCron = in.readBoolean();
+            cronPattern = SerializationHelper.readSafeUTF(in);
+            quantize = in.readBoolean();
         }
     }
     
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        writeUpdatePeriodType(writer, updatePeriodType);
-        if(quantize != null)
-            writer.writeEntry("quantize", quantize);
+        if(useCron)
+            writer.writeEntry("cronPattern", cronPattern);
+        else {
+            writer.writeEntry("updatePeriods", updatePeriods);
+            writeUpdatePeriodType(writer, updatePeriodType);
+        }
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
+        
         Integer value = readUpdatePeriodType(jsonObject);
         if (value != null)
             updatePeriodType = value;
-        if(jsonObject.containsKey("quantize"))
-            quantize = jsonObject.getBoolean("quantize");
+        
+        if(jsonObject.containsKey("updatePeriods"))
+            updatePeriods = jsonObject.getInt("updatePeriods");
+            
+        if(jsonObject.containsKey("cronPattern"))
+            cronPattern = jsonObject.getString("cronPattern");
     }
    
 }

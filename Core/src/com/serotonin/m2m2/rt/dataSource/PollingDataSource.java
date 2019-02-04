@@ -68,6 +68,13 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
     
     public PollingDataSource(T vo) {
         super(vo);
+        if(vo.isUseCron())
+            this.cronPattern = vo.getCronPattern();
+        else
+            pollingPeriodMillis = Common.getMillis(vo.getUpdatePeriodType(), vo.getUpdatePeriods());
+        
+        this.quantize = vo.isQuantize();
+        
         this.latestPollTimes = new ConcurrentLinkedQueue<LongLongPair>();
         this.latestAbortedPollTimes = new ConcurrentLinkedQueue<Long>();
         this.abortedPollLogDelay = Common.envProps.getLong("runtime.datasource.pollAbortedLogFrequency", 3600000);
@@ -110,15 +117,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
                 new LongMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_DURATION", new TranslatableMessage("internal.monitor.pollingDataSource.DURATION", vo.getName()), this));
         this.successfulPollsPercentageMonitor = (DoubleMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
                 new DoubleMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_PERCENTAGE", new TranslatableMessage("internal.monitor.pollingDataSource.PERCENTAGE", vo.getName()), this));
-    }
-    
-    public void setCronPattern(String cronPattern) {
-        this.cronPattern = cronPattern;
-    }
-
-    public void setPollingPeriod(int periodType, int periods, boolean quantize) {
-        pollingPeriodMillis = Common.getMillis(periodType, periods);
-        this.quantize = quantize;
     }
 
     public long getSuccessfulPolls() {
