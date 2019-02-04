@@ -73,6 +73,10 @@ public class Translations {
         }
     }
 
+    public static void clearCache() {
+        TRANSLATIONS_CACHE.clear();
+    }
+
     private final String name;
     private final Translations parent;
     private final Map<String, String> pairs = new HashMap<String, String>();
