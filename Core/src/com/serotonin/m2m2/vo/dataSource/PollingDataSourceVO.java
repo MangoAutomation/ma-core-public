@@ -46,10 +46,6 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     @Override
     public void validate(ProcessResult response) {
         super.validate(response);
-        if (!Common.TIME_PERIOD_CODES.isValidId(updatePeriodType))
-            response.addContextualMessage("updatePeriodType", "validate.invalidValue");
-        if (updatePeriods <= 0)
-            response.addContextualMessage("updatePeriods", "validate.greaterThanZero");
         if(useCron) {
             if (StringUtils.isBlank(cronPattern))
                 response.addContextualMessage("cronPattern", "validate.required");
@@ -61,6 +57,11 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
                     response.addContextualMessage("cronPattern", "validate.invalidCron", cronPattern);
                 }
             }
+        }else {
+            if (!Common.TIME_PERIOD_CODES.isValidId(updatePeriodType))
+                response.addContextualMessage("updatePeriodType", "validate.invalidValue");
+            if (updatePeriods <= 0)
+                response.addContextualMessage("updatePeriods", "validate.greaterThanZero");
         }
     }
 
