@@ -321,5 +321,10 @@
     <convert converter="enum" match="com.serotonin.m2m2.rt.event.ReturnCause"/>
     <convert converter="enum" match="com.serotonin.m2m2.rt.event.type.DuplicateHandling"/>
 
+    <convert converter="enum" match="com.serotonin.m2m2.util.log.LogLevel"/>
+    <convert converter="enum" match="com.infiniteautomation.mango.io.serial.DataBits"/>
+    <convert converter="enum" match="com.infiniteautomation.mango.io.serial.FlowControl"/>
+    <convert converter="enum" match="com.infiniteautomation.mango.io.serial.Parity"/>
+    <convert converter="enum" match="com.infiniteautomation.mango.io.serial.StopBits"/>
   </allow>
 </dwr>
