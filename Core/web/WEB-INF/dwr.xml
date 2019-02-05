@@ -326,5 +326,7 @@
     <convert converter="enum" match="com.infiniteautomation.mango.io.serial.FlowControl"/>
     <convert converter="enum" match="com.infiniteautomation.mango.io.serial.Parity"/>
     <convert converter="enum" match="com.infiniteautomation.mango.io.serial.StopBits"/>
+    <convert converter="enum" match="com.infiniteautomation.mango.util.script.ContextUpdateEvent"/>
+  
   </allow>
 </dwr>

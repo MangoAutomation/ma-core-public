@@ -50,9 +50,9 @@
   <td class="formLabelRequired"><fmt:message key="dsEdit.serial.flowIn"/></td>
   <td class="formField">
     <sst:select id="flowControlIn" value="${dataSource.flowControlIn}">
-      <sst:option value="0"><fmt:message key="dsEdit.serial.flow.none"/></sst:option>
-      <sst:option value="1"><fmt:message key="dsEdit.serial.flow.rtsCts"/></sst:option>
-      <sst:option value="2"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
+      <sst:option value="NONE"><fmt:message key="dsEdit.serial.flow.none"/></sst:option>
+      <sst:option value="RTSCTS"><fmt:message key="dsEdit.serial.flow.rtsCts"/></sst:option>
+      <sst:option value="XONXOFF"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
     </sst:select>
   </td>
 </tr>
@@ -61,9 +61,9 @@
   <td class="formLabelRequired"><fmt:message key="dsEdit.serial.flowOut"/></td>
   <td class="formField">
     <sst:select id="flowControlOut" value="${dataSource.flowControlOut}">
-      <sst:option value="0"><fmt:message key="dsEdit.serial.flow.none"/></sst:option>
-      <sst:option value="1"><fmt:message key="dsEdit.serial.flow.rtsCts"/></sst:option>
-      <sst:option value="2"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
+      <sst:option value="NONE"><fmt:message key="dsEdit.serial.flow.none"/></sst:option>
+      <sst:option value="RTSCTS"><fmt:message key="dsEdit.serial.flow.rtsCts"/></sst:option>
+      <sst:option value="XONXOFF"><fmt:message key="dsEdit.serial.flow.xonXoff"/></sst:option>
     </sst:select>
   </td>
 </tr>
@@ -72,10 +72,10 @@
   <td class="formLabelRequired"><fmt:message key="dsEdit.serial.dataBits"/></td>
   <td class="formField">
     <sst:select id="dataBits" value="${dataSource.dataBits}">
-      <sst:option value="5">5</sst:option>
-      <sst:option value="6">6</sst:option>
-      <sst:option value="7">7</sst:option>
-      <sst:option value="8">8</sst:option>
+      <sst:option value="DATA_BITS_5">5</sst:option>
+      <sst:option value="DATA_BITS_6">6</sst:option>
+      <sst:option value="DATA_BITS_7">7</sst:option>
+      <sst:option value="DATA_BITS_8">8</sst:option>
     </sst:select>
   </td>
 </tr>
@@ -84,9 +84,9 @@
   <td class="formLabelRequired"><fmt:message key="dsEdit.serial.stopBits"/></td>
   <td class="formField">
     <sst:select id="stopBits" value="${dataSource.stopBits}">
-      <sst:option value="1">1</sst:option>
-      <sst:option value="3">1.5</sst:option>
-      <sst:option value="2">2</sst:option>
+      <sst:option value="STOP_BITS_1">1</sst:option>
+      <sst:option value="STOP_BITS_1_5">1.5</sst:option>
+      <sst:option value="STOP_BITS_2">2</sst:option>
     </sst:select>
   </td>
 </tr>
@@ -95,11 +95,11 @@
   <td class="formLabelRequired"><fmt:message key="dsEdit.serial.parity"/></td>
   <td class="formField">
     <sst:select id="parity" value="${dataSource.parity}">
-      <sst:option value="0"><fmt:message key="dsEdit.serial.parity.none"/></sst:option>
-      <sst:option value="1"><fmt:message key="dsEdit.serial.parity.odd"/></sst:option>
-      <sst:option value="2"><fmt:message key="dsEdit.serial.parity.even"/></sst:option>
-      <sst:option value="3"><fmt:message key="dsEdit.serial.parity.mark"/></sst:option>
-      <sst:option value="4"><fmt:message key="dsEdit.serial.parity.space"/></sst:option>
+      <sst:option value="NONE"><fmt:message key="dsEdit.serial.parity.none"/></sst:option>
+      <sst:option value="ODD"><fmt:message key="dsEdit.serial.parity.odd"/></sst:option>
+      <sst:option value="EVEN"><fmt:message key="dsEdit.serial.parity.even"/></sst:option>
+      <sst:option value="MARK"><fmt:message key="dsEdit.serial.parity.mark"/></sst:option>
+      <sst:option value="SPACE"><fmt:message key="dsEdit.serial.parity.space"/></sst:option>
     </sst:select>
   </td>
 </tr>
