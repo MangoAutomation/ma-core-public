@@ -183,7 +183,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         try {
             DataPointVO dp = dao.get(id);
             if (dp != null) {
-                Permissions.ensureDataSourcePermission(Common.getHttpUser(), dp.getId());
+                Permissions.ensureDataSourcePermission(Common.getHttpUser(), dp.getDataSourceId());
                 Common.runtimeManager.deleteDataPoint(dp);
             }
         }
@@ -213,13 +213,13 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @Override
     @DwrPermission(user = true)
     public ProcessResult saveFull(DataPointVO vo) { // TODO combine with save()
+        Permissions.ensureDataSourcePermission(Common.getHttpUser(), vo.getDataSourceId());
         ProcessResult response = new ProcessResult();
 
         if (vo.getXid() == null) {
             vo.setXid(dao.generateUniqueXid());
         }
         
-        Permissions.ensureDataSourcePermission(Common.getHttpUser(), vo.getDataSourceId());
         vo.validate(response);
 
         if (!response.getHasMessages()) {
