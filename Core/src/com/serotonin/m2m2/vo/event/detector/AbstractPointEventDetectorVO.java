@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -28,7 +29,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     private final int[] supportedDataTypes;
 
     public AbstractPointEventDetectorVO(DataPointVO dataPoint, int[] supportedDataTypes){
-        this.sourceId = dataPoint.getId();
+        this.sourceId = dataPoint == null ? Common.NEW_ID : dataPoint.getId();
         this.dataPoint = dataPoint;
         this.supportedDataTypes = supportedDataTypes;
     }
