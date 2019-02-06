@@ -11,10 +11,13 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 
 /**
@@ -40,11 +43,7 @@ public abstract class AbstractBasicDwr<VO extends AbstractVO<?>, DAO extends Abs
      */
     @DwrPermission(user = true)
     public ProcessResult get(int id) {
-        VO vo = dao.get(id);
-        ProcessResult response = new ProcessResult();
-        response.addData("vo", vo);
-        
-        return response;
+        throw new PermissionException(new TranslatableMessage("common.default", "Subclass DWRs must implement method to use"), Common.getHttpUser());
     }
     
     /**
@@ -54,11 +53,7 @@ public abstract class AbstractBasicDwr<VO extends AbstractVO<?>, DAO extends Abs
      */
     @DwrPermission(user = true)
     public ProcessResult getFull(int id) {
-        VO vo = dao.getFull(id);
-        ProcessResult response = new ProcessResult();
-        response.addData("vo", vo);
-        
-        return response;
+        throw new PermissionException(new TranslatableMessage("common.default", "Subclass DWRs must implement method to use"), Common.getHttpUser());
     }
     
     /**
@@ -67,12 +62,7 @@ public abstract class AbstractBasicDwr<VO extends AbstractVO<?>, DAO extends Abs
      */
     @DwrPermission(user = true)
     public ProcessResult load() {
-        ProcessResult response = new ProcessResult();
-        
-        List<VO> voList = dao.getAll();
-        response.addData("list", voList);
-                
-        return response;
+        throw new PermissionException(new TranslatableMessage("common.default", "Subclass DWRs must implement method to use"), Common.getHttpUser());
     }
     
     /**
@@ -82,12 +72,7 @@ public abstract class AbstractBasicDwr<VO extends AbstractVO<?>, DAO extends Abs
      */
     @DwrPermission(user = true)
     public ProcessResult loadFull() {
-        ProcessResult response = new ProcessResult();
-        
-        List<VO> voList = dao.getAllFull();
-        response.addData("list", voList);
-                
-        return response;
+        throw new PermissionException(new TranslatableMessage("common.default", "Subclass DWRs must implement method to use"), Common.getHttpUser());
     }
     
     /**
@@ -96,12 +81,6 @@ public abstract class AbstractBasicDwr<VO extends AbstractVO<?>, DAO extends Abs
      */
     @DwrPermission(user = true)
     public ProcessResult dojoQuery(Map<String, String> query, List<SortOption> sort, Integer start, Integer count, boolean or) {
-        ProcessResult response = new ProcessResult();
-        
-        ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
-        response.addData("list", results.getResults());
-        response.addData("total", results.getTotal());
-        
-        return response;
+        throw new PermissionException(new TranslatableMessage("common.default", "Subclass DWRs must implement method to use"), Common.getHttpUser());
     }
 }

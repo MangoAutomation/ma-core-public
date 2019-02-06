@@ -4,8 +4,13 @@
  */
 package com.serotonin.m2m2.web.dwr;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.db.query.SortOption;
 import com.serotonin.m2m2.Common;
@@ -14,13 +19,16 @@ import com.serotonin.m2m2.db.dao.EventInstanceDao;
 import com.serotonin.m2m2.db.dao.ResultSetCounter;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 
 /**
@@ -37,6 +45,40 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
 		super(EventInstanceDao.getInstance(), "eventInstances");
 	}
 	
+	@Override
+    @DwrPermission(user = true)
+    public ProcessResult load() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<EventInstanceVO> voList = dao.getAll();
+        Iterator<EventInstanceVO> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasEventTypePermission(user, iter.next().getEventType()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult loadFull() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<EventInstanceVO> voList = dao.getAll();
+        Iterator<EventInstanceVO> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasEventTypePermission(user, iter.next().getEventType()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
+	
     /**
      * Load a list of VOs
      * @return
@@ -50,11 +92,19 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
         this.setExportQuery(query, sort, or);
         
         //TODO Use the Event Manager to access Current Events since the DO NOT LOG events are only in memory
-        query.put("userId", Common.getHttpUser().getId()+"");
+        User user = Common.getHttpUser();
+        query.put("userId", user.getId()+"");
         
         ResultsWithTotal results = dao.dojoQuery(query, sort, start, count, or);
-        response.addData("list", results.getResults());
-        response.addData("total", results.getTotal());
+        @SuppressWarnings("unchecked")
+        List<EventInstanceVO> list = (List<EventInstanceVO>)results.getResults();
+        Iterator<EventInstanceVO> iter = list.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasEventTypePermission(user, iter.next().getEventType()))
+                iter.remove();
+        }
+        response.addData("list", list);
+        response.addData("total", list.size());
         
         return response;
     }
@@ -203,5 +253,55 @@ public class EventInstanceDwr extends AbstractDwr<EventInstanceVO, EventInstance
 
         
         return response;
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult getCopy(int id) {
+
+        //Get a Full Copy
+        EventInstanceVO vo = dao.getFull(id);
+        if(vo != null)
+            if(!Permissions.hasEventTypePermission(Common.getHttpUser(), vo.getEventType()))
+                vo = null;
+        
+        ProcessResult response = new ProcessResult();
+
+        String name = StringUtils.abbreviate(
+                TranslatableMessage.translate(getTranslations(), "common.copyPrefix", vo.getName()), 40);
+
+        //Setup the Copy
+        EventInstanceVO copy = vo.copy();
+        copy.setId(Common.NEW_ID);
+        copy.setName(name);
+        copy.setXid(dao.generateUniqueXid());
+        response.addData("vo", copy);
+
+        //Don't Validate it, that will be done on save
+        
+        return response;
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public String jsonExport(int id) {
+        Map<String, Object> data = new LinkedHashMap<String, Object>();
+        List<EventInstanceVO> vos = new ArrayList<>();
+        //Get the Full VO for the export
+        EventInstanceVO eventInstance = dao.getFull(id);
+        if(eventInstance != null)
+            if(!Permissions.hasEventTypePermission(Common.getHttpUser(), eventInstance.getEventType()))
+                eventInstance = null;
+        
+        vos.add(eventInstance);
+        data.put(keyName, vos);
+        
+        if (topLevelKeyName != null) {
+            Map<String, Object> topData = new LinkedHashMap<String, Object>();
+            topData.put(topLevelKeyName, data);
+            data = topData;
+        }
+        
+        return EmportDwr.export(data, 3);
     }
 }
