@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -597,6 +598,40 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
 
         return response;
     }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult load() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataPointVO> voList = dao.getAll();
+        Iterator<DataPointVO> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataPointReadPermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult loadFull() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataPointVO> voList = dao.getAllFull();
+        Iterator<DataPointVO> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataPointReadPermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
 
     /**
      * Export VOs based on a filter
@@ -626,6 +661,29 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         //Get the Full VO for the export
         data.put(keyName, vos);
 
+        return EmportDwr.export(data, 3);
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public String jsonExport(int id) {
+        Map<String, Object> data = new LinkedHashMap<String, Object>();
+        List<DataPointVO> vos = new ArrayList<>();
+        //Get the Full VO for the export
+        DataPointVO dpvo = dao.getFull(id);
+        if(dpvo != null)
+            if(!Permissions.hasDataPointReadPermission(Common.getHttpUser(), dpvo))
+                dpvo = null;
+        
+        vos.add(dpvo);
+        data.put(keyName, vos);
+        
+        if (topLevelKeyName != null) {
+            Map<String, Object> topData = new LinkedHashMap<String, Object>();
+            topData.put(topLevelKeyName, data);
+            data = topData;
+        }
+        
         return EmportDwr.export(data, 3);
     }
 

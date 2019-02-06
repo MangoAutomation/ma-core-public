@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -166,6 +167,12 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         }
         return response;
     }
+    
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
+    @Override
+    public ProcessResult getFull(int id) {
+        return this.getFull(id);
+    }
 
     /**
      * Export Data Source and Points together
@@ -320,6 +327,40 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         result.addData("aborts", aborts);
         
         return result;
+    }
+    
+        @Override
+    @DwrPermission(user = true)
+    public ProcessResult load() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataSourceVO<?>> voList = dao.getAll();
+        Iterator<DataSourceVO<?>> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataSourcePermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult loadFull() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataSourceVO<?>> voList = dao.getAllFull();
+        Iterator<DataSourceVO<?>> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataSourcePermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
     }
         
     /**
