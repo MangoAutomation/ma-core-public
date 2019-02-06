@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -135,7 +136,9 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      */
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
-        return null;
+        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
+        map.put("detectorSourceType", new IntStringPair(Types.VARCHAR, this.TABLE_PREFIX + "." + "sourceTypeName"));
+        return map;
     }
 
     /* (non-Javadoc)
