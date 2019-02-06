@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,8 +19,10 @@ import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
@@ -39,6 +42,9 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	
 	/* Source of the detector */
 	protected int sourceId;
+	
+    protected AlarmLevels alarmLevel = AlarmLevels.NONE;
+
 	
 	/**
 	 * Handlers that will be added to this detector upon save.
@@ -82,6 +88,14 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	 * @return
 	 */
 	protected abstract TranslatableMessage getConfigurationDescription(); 
+	
+    public AlarmLevels getAlarmLevel() {
+        return alarmLevel;
+    }
+    
+    public void setAlarmLevel(AlarmLevels alarmLevel) {
+        this.alarmLevel = alarmLevel;
+    }
 	
 	/**
 	 * Our type name defintion
@@ -190,7 +204,8 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
         writer.writeEntry("sourceType", this.definition.getSourceTypeName());
         writer.writeEntry("xid", xid);
         writer.writeEntry("name", name);
-        
+        writer.writeEntry("alarmLevel", alarmLevel.name());
+
         /* Event handler references are not exported here because there would be a circular dependency
         *  with the eventTypes array in the handler, and since there are other event types that was deemed
         *  the more versatile. One can create handler mappings through this array, but you cannot have both 
@@ -208,6 +223,16 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
             text = jsonObject.getString("alias");
             if(text != null)
                 name = text;
+        }
+        
+        text = jsonObject.getString("alarmLevel");
+        if (text != null) {
+            try {
+                alarmLevel = AlarmLevels.fromName(text);
+            } catch (IllegalArgumentException e) {
+                throw new TranslatableJsonException("emport.error.ped.invalid", "alarmLevel", text,
+                        Arrays.asList(AlarmLevels.values()));
+            }
         }
     }
 }

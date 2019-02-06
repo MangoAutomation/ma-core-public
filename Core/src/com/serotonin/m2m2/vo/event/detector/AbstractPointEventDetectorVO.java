@@ -4,18 +4,9 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 import org.apache.commons.lang3.ArrayUtils;
 
-import com.serotonin.json.JsonException;
-import com.serotonin.json.JsonReader;
-import com.serotonin.json.ObjectWriter;
-import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
@@ -31,22 +22,15 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     public static final String XID_PREFIX = "PED_";
     protected static final String MISSING_PROP_TRANSLATION_KEY = "emport.error.ped.missingAttr";
 
-    private AlarmLevels alarmLevel = AlarmLevels.NONE;
 
     //Extra Fields
     protected final DataPointVO dataPoint;
     private final int[] supportedDataTypes;
 
     public AbstractPointEventDetectorVO(DataPointVO dataPoint, int[] supportedDataTypes){
+        this.sourceId = dataPoint.getId();
         this.dataPoint = dataPoint;
         this.supportedDataTypes = supportedDataTypes;
-    }
-
-    public AlarmLevels getAlarmLevel() {
-        return alarmLevel;
-    }
-    public void setAlarmLevel(AlarmLevels alarmLevel) {
-        this.alarmLevel = alarmLevel;
     }
 
     public DataPointVO getDataPoint() {
@@ -107,26 +91,5 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
         if (alarmLevel == null)
             response.addContextualMessage("alarmLevel", "validate.invalidValue");
 
-    }
-
-    @Override
-    public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        super.jsonWrite(writer);
-        writer.writeEntry("alarmLevel", alarmLevel.name());
-    }
-
-    @Override
-    public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        super.jsonRead(reader, jsonObject);
-
-        String text = jsonObject.getString("alarmLevel");
-        if (text != null) {
-            try {
-                alarmLevel = AlarmLevels.fromName(text);
-            } catch (IllegalArgumentException e) {
-                throw new TranslatableJsonException("emport.error.ped.invalid", "alarmLevel", text,
-                        Arrays.asList(AlarmLevels.values()));
-            }
-        }
     }
 }
