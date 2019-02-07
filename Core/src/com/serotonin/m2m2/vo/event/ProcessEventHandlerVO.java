@@ -18,7 +18,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.ProcessHandlerRT;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.ProcessEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
 
@@ -142,7 +141,7 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHa
 	 * @see com.serotonin.m2m2.vo.event.AbstractEventHandlerVO#asModel()
 	 */
 	@Override
-	public AbstractEventHandlerModel<?> asModel() {
+	public ProcessEventHandlerModel asModel() {
 		return new ProcessEventHandlerModel(this);
 	}
 

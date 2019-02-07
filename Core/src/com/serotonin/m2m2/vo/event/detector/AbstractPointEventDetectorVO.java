@@ -75,17 +75,22 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
         //We currently don't check to see if the point exists
         // because of SQL constraints
 
-        //Is valid data type
-        boolean valid = false;
-        for(int type : this.supportedDataTypes){
-            if(type == this.dataPoint.getPointLocator().getDataTypeId()){
-                valid = true;
-                break;
+        //Ensure the point is at least not null
+        if(this.dataPoint == null)
+            response.addContextualMessage("sourceId", "validate.invalidValue");
+        else {
+            //Is valid data type
+            boolean valid = false;
+            for(int type : this.supportedDataTypes){
+                if(type == this.dataPoint.getPointLocator().getDataTypeId()){
+                    valid = true;
+                    break;
+                }
             }
-        }
-        if(!valid){
-            //Add message
-            response.addContextualMessage("dataPoint.pointLocator.dataType", "validate.invalidValue");
+            if(!valid){
+                //Add message
+                response.addContextualMessage("dataPoint.pointLocator.dataType", "validate.invalidValue");
+            }
         }
 
         //Is valid alarm level

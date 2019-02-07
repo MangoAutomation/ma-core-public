@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.module;
 
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
 
 /**
@@ -54,6 +55,13 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<
     abstract protected T createEventDetectorVO(int sourceId);
 
     /**
+     * Reload any runtime data for this detector's source as the
+     * detector was updated
+     * @param vo
+     */
+    abstract public void restartSource(T vo);
+    
+    /**
      * Create a model from the VO
      * @param vo
      * @return
@@ -67,6 +75,32 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<
 	 */
 	abstract public Class<?> getModelClass();
 
+    /**
+     * Can this user create this detector?
+     * 
+     * @param user
+     * @param vo
+     * @return
+     */
+    public abstract boolean hasCreatePermission(PermissionHolder user, T vo);
+	
+	/**
+	 * Can this user edit this detector?
+	 * 
+	 * @param user
+	 * @param vo
+	 * @return
+	 */
+    abstract public boolean hasEditPermission(PermissionHolder user, T vo);
+    
+    /**
+     * Can this user view this detector?
+     * 
+     * @param user
+     * @param vo
+     * @return
+     */
+    abstract public boolean hasReadPermission(PermissionHolder user, T vo);
     
     /**
      * Used by MA core code to create a new event detector instances as required. Should not be used by client code.
@@ -76,6 +110,5 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<
         detector.setDefinition(this);
         return detector;
     }
-
 
 }

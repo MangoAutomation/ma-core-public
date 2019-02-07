@@ -400,7 +400,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
      */
     @SuppressWarnings("unchecked")
     @Override
-    protected AbstractDao<T> getDao() {
-        return (AbstractDao<T>) DataSourceDao.getInstance();
+    protected DataSourceDao<T> getDao() {
+        return (DataSourceDao<T>) DataSourceDao.getInstance();
     }
 }

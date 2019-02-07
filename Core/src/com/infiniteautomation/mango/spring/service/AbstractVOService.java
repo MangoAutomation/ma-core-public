@@ -24,7 +24,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractDao<T>> {
+public abstract class AbstractVOService<T extends AbstractVO<T>, DAO extends AbstractDao<T>> {
     
     protected final DAO dao;
     
@@ -220,7 +220,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      */
     protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         //Ensure they can create a list
-        ensureCreatePermission(user);
+        ensureCreatePermission(user, vo);
         
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
@@ -271,7 +271,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws ValidationException
      */
     public T updateFull(String existingXid, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return updateFull(get(existingXid, user), vo, user);
+        return updateFull(getFull(existingXid, user), vo, user);
     }
 
 
@@ -375,12 +375,13 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     }
     
     /**
-     * Can this user create any VOs
+     * Can this user create this VO
      * 
      * @param user
+     * @param vo to insert
      * @return
      */
-    public abstract boolean hasCreatePermission(PermissionHolder user);
+    public abstract boolean hasCreatePermission(PermissionHolder user, T vo);
     
     /**
      * Can this user edit this VO
@@ -411,13 +412,13 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     }
     
     /**
-     * Ensure this user can create a vo
+     * Ensure this user can create this vo
      * 
      * @param user
      * @throws PermissionException
      */
-    public void ensureCreatePermission(PermissionHolder user) throws PermissionException {
-        if(!hasCreatePermission(user))
+    public void ensureCreatePermission(PermissionHolder user, T vo) throws PermissionException {
+        if(!hasCreatePermission(user, vo))
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
     }
     
@@ -445,7 +446,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     }
     
     /**
-     * 
+     * Ensure this user can delete this vo
      * @param user
      * @param vo
      * @throws PermissionException

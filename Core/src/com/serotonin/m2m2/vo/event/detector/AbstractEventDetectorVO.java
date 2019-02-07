@@ -48,8 +48,15 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	
 	/**
 	 * Handlers that will be added to this detector upon save.
+	 * Used for JSON Imports
 	 */
 	private List<AbstractEventHandlerVO<?>> addedEventHandlers = null;
+	
+	/**
+	 * All event handlers that map to this detector.
+	 * When non-null this will replace all mappings for this detector <--> handlers
+	 */
+	private List<String> eventHandlerXids;
 	
 	/**
 	 * Our defintion
@@ -160,6 +167,21 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	public EventDetectorDefinition<T> getDefinition() {
 		return definition;
 	}
+	
+	/**
+     * @return the eventHandlerXids
+     */
+    public List<String> getEventHandlerXids() {
+        return eventHandlerXids;
+    }
+    
+    /**
+     * @param eventHandlerXids the eventHandlerXids to set
+     */
+    public void setEventHandlerXids(List<String> eventHandlerXids) {
+        this.eventHandlerXids = eventHandlerXids;
+    }
+    
 
 	@SuppressWarnings("unchecked")
 	public void setDefinition(EventDetectorDefinition<?> definition) {
@@ -196,6 +218,12 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
                 if(EventHandlerDao.getInstance().getXidById(eh.getId()) == null)
                     response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", eh.getXid()));
             }
+        if(eventHandlerXids != null) {
+            for(String ehXid : eventHandlerXids) {
+                if(EventHandlerDao.getInstance().getIdByXid(ehXid) == null)
+                    response.addMessage("eventHandlerXids", new TranslatableMessage("emport.eventHandler.missing", ehXid));
+            }
+        }
 	}
 
 	@Override

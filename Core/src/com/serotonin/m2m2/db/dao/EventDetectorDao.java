@@ -50,6 +50,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 @Repository()
 public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends AbstractDao<T> {
 
+
     @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<EventDetectorDao<AbstractEventDetectorVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventDetectorDao.class);
@@ -138,6 +139,8 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     protected Map<String, IntStringPair> getPropertiesMap() {
         HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
         map.put("detectorSourceType", new IntStringPair(Types.VARCHAR, this.TABLE_PREFIX + "." + "sourceTypeName"));
+        //TODO This will break if we add new detector types and keep the same table structure, we should break this out into a mapping table
+        map.put("sourceId", new IntStringPair(Types.VARCHAR, this.TABLE_PREFIX + "." + "dataPointId"));
         return map;
     }
 
@@ -199,11 +202,22 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      */
     @Override
     public void saveRelationalData(T vo, boolean insert) {
+        EventTypeVO et = vo.getEventType();
         if(vo.getAddedEventHandlers() != null) {
-            EventTypeVO et = vo.getEventType();
             for(AbstractEventHandlerVO<?> ehVo : vo.getAddedEventHandlers())
                 EventHandlerDao.getInstance().addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
+        }else if(vo.getEventHandlerXids() != null) {
+            //EventHandlerDao.getInstance().deleteEventHandlerMappings(et.getEventType());
+            for(String xid : vo.getEventHandlerXids()) {
+                EventHandlerDao.getInstance().addEventHandlerMapping(xid, et.getEventType());
+            }
         }
+            
+    }
+    
+    @Override
+    public void loadRelationalData(T vo) {
+        vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
     }
     
     /**

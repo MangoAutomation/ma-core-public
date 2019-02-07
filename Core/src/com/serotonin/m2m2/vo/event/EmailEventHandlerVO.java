@@ -578,7 +578,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	 * @see com.serotonin.m2m2.vo.event.AbstractEventHandlerVO#asModel()
 	 */
 	@Override
-	public AbstractEventHandlerModel<?> asModel() {
+	public EmailEventHandlerModel asModel() {
 		return new EmailEventHandlerModel(this);
 	}
 }

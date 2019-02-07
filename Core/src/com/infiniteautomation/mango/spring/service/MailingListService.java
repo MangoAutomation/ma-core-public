@@ -33,7 +33,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      * @return
      */
     @Override
-    public boolean hasCreatePermission(PermissionHolder user) {
+    public boolean hasCreatePermission(PermissionHolder user, MailingList vo) {
         if(user.hasAdminPermission())
             return true;
         else if(Permissions.hasAnyPermission(user, Permissions.explodePermissionGroups(SystemSettingsDao.instance.getValue(MailingListCreatePermission.PERMISSION))))

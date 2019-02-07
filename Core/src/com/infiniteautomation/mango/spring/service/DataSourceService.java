@@ -25,33 +25,33 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *
  */
 @Service
-public class DataSourceService extends AbstractVOService<DataSourceVO<?>, DataSourceDao<DataSourceVO<?>>> {
+public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOService<T, DataSourceDao<T>> {
 
     @Autowired
-    public DataSourceService(DataSourceDao<DataSourceVO<?>> dao) {
+    public DataSourceService(DataSourceDao<T> dao) {
         super(dao);
     }
 
     @Override
-    public boolean hasCreatePermission(PermissionHolder user) {
+    public boolean hasCreatePermission(PermissionHolder user, T vo) {
         return Permissions.hasDataSourcePermission(user);
     }
 
     @Override
-    public boolean hasEditPermission(PermissionHolder user, DataSourceVO<?> vo) {
+    public boolean hasEditPermission(PermissionHolder user, T vo) {
         return Permissions.hasDataSourcePermission(user, vo);
     }
 
     @Override
-    public boolean hasReadPermission(PermissionHolder user, DataSourceVO<?> vo) {
+    public boolean hasReadPermission(PermissionHolder user, T vo) {
         return Permissions.hasDataSourcePermission(user, vo);
     }
 
     @Override
-    protected DataSourceVO<?> insert(DataSourceVO<?> vo, PermissionHolder user, boolean full)
+    protected T insert(T vo, PermissionHolder user, boolean full)
             throws PermissionException, ValidationException {
         //Ensure they can create a list
-        ensureCreatePermission(user);
+        ensureCreatePermission(user, vo);
         
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
@@ -65,7 +65,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO<?>, DataSo
     
     
     @Override
-    protected DataSourceVO<?> update(DataSourceVO<?> existing, DataSourceVO<?> vo,
+    protected T update(T existing, T vo,
             PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
@@ -75,9 +75,9 @@ public class DataSourceService extends AbstractVOService<DataSourceVO<?>, DataSo
     }
     
     @Override
-    public DataSourceVO<?> delete(String xid, PermissionHolder user)
+    public T delete(String xid, PermissionHolder user)
             throws PermissionException, NotFoundException {
-        DataSourceVO<?> vo = get(xid, user);
+        T vo = get(xid, user);
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
         return vo;
@@ -90,7 +90,7 @@ public class DataSourceService extends AbstractVOService<DataSourceVO<?>, DataSo
      * @return
      */
     public DataSourceDefinition getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
-        ensureCreatePermission(user);
+        Permissions.ensureDataSourcePermission(user);
         DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
             throw new NotFoundException();

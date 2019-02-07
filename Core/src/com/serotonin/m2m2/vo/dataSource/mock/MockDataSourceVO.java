@@ -5,7 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
-import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -52,7 +52,7 @@ public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
 	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
 	 */
 	@Override
-	protected AbstractDao<MockDataSourceVO> getDao() {
+	protected DataSourceDao<MockDataSourceVO> getDao() {
 		return null;
 	}
     

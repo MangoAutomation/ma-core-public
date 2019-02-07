@@ -53,7 +53,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
      * Return a model of this
      * @return
      */
-    public abstract AbstractEventHandlerModel<?> asModel();
+    public abstract AbstractEventHandlerModel<T> asModel();
 
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(name))

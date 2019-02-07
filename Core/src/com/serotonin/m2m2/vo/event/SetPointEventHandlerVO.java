@@ -36,7 +36,6 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.SetPointEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
 
@@ -522,7 +521,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
 	 * @see com.serotonin.m2m2.vo.event.AbstractEventHandlerVO#asModel()
 	 */
 	@Override
-	public AbstractEventHandlerModel<?> asModel() {
+	public SetPointEventHandlerModel asModel() {
 		return new SetPointEventHandlerModel(this);
 	}
 }

@@ -17,27 +17,27 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Service
-public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO<?>, EventHandlerDao> {
+public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends AbstractVOService<T, EventHandlerDao<T>> {
 
     @Autowired
-    public EventHandlerService(EventHandlerDao dao) {
+    public EventHandlerService(EventHandlerDao<T> dao) {
         super(dao);
     }
 
     @Override
-    public boolean hasCreatePermission(PermissionHolder user) {
+    public boolean hasCreatePermission(PermissionHolder user, T vo) {
         // TODO Auto-generated method stub
         return user.hasAdminPermission();
     }
 
     @Override
-    public boolean hasEditPermission(PermissionHolder user, AbstractEventHandlerVO<?> vo) {
+    public boolean hasEditPermission(PermissionHolder user, T vo) {
         // TODO Auto-generated method stub
         return user.hasAdminPermission();
     }
 
     @Override
-    public boolean hasReadPermission(PermissionHolder user, AbstractEventHandlerVO<?> vo) {
+    public boolean hasReadPermission(PermissionHolder user, T vo) {
         // TODO Auto-generated method stub
         return user.hasAdminPermission();
     }

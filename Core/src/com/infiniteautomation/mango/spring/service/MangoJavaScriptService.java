@@ -21,7 +21,6 @@ import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
@@ -89,6 +88,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
  * @author Terry Packer
  *
  */
+@SuppressWarnings("restriction")
 @Service
 public class MangoJavaScriptService {
 
@@ -544,9 +544,7 @@ public class MangoJavaScriptService {
      * @return
      */
     public ScriptEngine newEngine(PermissionHolder holder) {
-        
         NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-        ScriptEngineManager manager = new ScriptEngineManager();
         if(holder != null && holder.hasAdminPermission())
             return factory.getScriptEngine();
         else

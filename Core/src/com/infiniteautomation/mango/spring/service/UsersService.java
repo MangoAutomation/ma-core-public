@@ -51,7 +51,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     protected User insert(User vo, PermissionHolder user, boolean full)
             throws PermissionException, ValidationException {
         //Ensure they can create
-        ensureCreatePermission(user);
+        ensureCreatePermission(user, vo);
         
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
@@ -198,7 +198,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     }
     
     @Override
-    public boolean hasCreatePermission(PermissionHolder user) {
+    public boolean hasCreatePermission(PermissionHolder user, User vo) {
         return user.hasAdminPermission();
     }
 

@@ -4,11 +4,17 @@
  */
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
+import java.util.Objects;
+
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
@@ -43,6 +49,31 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
         T detector = createEventDetectorVO(dp);
         detector.setDefinition(this);
         return detector;
+    }
+    
+    @Override
+    public void restartSource(T vo) {
+        if(Common.runtimeManager.isDataPointRunning(vo.getSourceId())) {
+            //Get full to ensure the event detectors are loaded
+            DataPointVO dp = DataPointDao.getInstance().getFull(vo.getSourceId());
+            Objects.requireNonNull(dp, "No data point source set");
+            Common.runtimeManager.restartDataPoint(dp);
+        }
+    }
+    
+    @Override
+    public boolean hasEditPermission(PermissionHolder user, T vo) {
+        return Permissions.hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
+    }
+    
+    @Override
+    public boolean hasReadPermission(PermissionHolder user, T vo) {
+        return Permissions.hasDataPointReadPermission(user, vo.getDataPoint());
+    }
+    
+    @Override
+    public boolean hasCreatePermission(PermissionHolder user, T vo) {
+        return Permissions.hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
     }
     
     /**

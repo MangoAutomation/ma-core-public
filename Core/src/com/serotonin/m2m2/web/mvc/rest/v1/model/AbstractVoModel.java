@@ -29,7 +29,7 @@ import io.swagger.annotations.ApiModelProperty;
  */
 @CSVEntity
 @JsonPropertyOrder({"xid", "name"})
-public abstract class AbstractVoModel<T extends AbstractVO<?>> extends AbstractBasicVoModel<T>{
+public abstract class AbstractVoModel<T extends AbstractVO<T>> extends AbstractBasicVoModel<T>{
 	
 	@ApiModelProperty(value = "Messages for validation of data", required = false)
 	@JsonProperty("validationMessages")
