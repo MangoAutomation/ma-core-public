@@ -97,5 +97,23 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         return def;
     }
     
+    /**
+     * Enable/disable/restart a data source
+     * @param xid
+     * @param enabled - Enable or disable the data source
+     * @param restart - Restart the data source, enabled must equal true
+     * @param user
+     */
+    public void restart(String xid, boolean enabled, boolean restart, PermissionHolder user) {
+        T vo = getFull(xid, user);
+        ensureEditPermission(user, vo);
+        if (enabled && restart) {
+            vo.setEnabled(true);
+            Common.runtimeManager.saveDataSource(vo); //saving will restart it
+        } else if(vo.isEnabled() != enabled) {
+            vo.setEnabled(enabled);
+            Common.runtimeManager.saveDataSource(vo);
+        }
+    }
 
 }
