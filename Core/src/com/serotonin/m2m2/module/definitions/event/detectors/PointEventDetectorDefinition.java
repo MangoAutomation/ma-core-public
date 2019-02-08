@@ -63,16 +63,22 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
     
     @Override
     public boolean hasEditPermission(PermissionHolder user, T vo) {
+        if(vo.getDataPoint() == null)
+            return false;
         return Permissions.hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
     }
     
     @Override
     public boolean hasReadPermission(PermissionHolder user, T vo) {
+        if(vo.getDataPoint() == null)
+            return false;
         return Permissions.hasDataPointReadPermission(user, vo.getDataPoint());
     }
     
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
+        if(vo.getDataPoint() == null)
+            return false;
         return Permissions.hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
     }
     
