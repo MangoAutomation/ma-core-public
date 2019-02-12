@@ -338,7 +338,7 @@ public class EventDao extends BaseDao {
         if (typeName.equals(EventType.EventTypeNames.DATA_POINT))
             type = new DataPointEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
         else if (typeName.equals(EventType.EventTypeNames.DATA_SOURCE))
-            type = new DataSourceEventType(rs.getInt(offset + 2), rs.getInt(offset + 3));
+            type = new DataSourceEventType(rs.getInt(offset + 2), rs.getInt(offset + 3), rs.getString(offset + 1));
         else if (typeName.equals(EventType.EventTypeNames.SYSTEM))
             type = new SystemEventType(subtypeName, rs.getInt(offset + 2));
         else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))

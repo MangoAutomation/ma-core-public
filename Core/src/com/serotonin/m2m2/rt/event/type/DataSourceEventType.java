@@ -28,13 +28,9 @@ public class DataSourceEventType extends EventType {
     public DataSourceEventType() {
         // Required for reflection.
     }
-
-    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId) {
-        this(dataSourceId, dataSourceEventTypeId, AlarmLevels.URGENT, DuplicateHandling.IGNORE);
-    }
-
-    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, AlarmLevels alarmLevel, DuplicateHandling duplicateHandling) {
-        this(dataSourceId, dataSourceEventTypeId, null, AlarmLevels.URGENT, DuplicateHandling.IGNORE);
+    
+    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, String subType) {
+        this(dataSourceId, dataSourceEventTypeId, subType, AlarmLevels.URGENT, DuplicateHandling.IGNORE);
     }
     
     public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, String subType, AlarmLevels alarmLevel, DuplicateHandling duplicateHandling) {
