@@ -325,20 +325,25 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     }
 
     /**
-     * Add a mapping for an existing event handler for an event type
+     * Add a mapping for an existing event handler for an event type and if it already exists replace it
      * @param eventHandlerXid
      * @param type
      */
-    public void addEventHandlerMapping(String eventHandlerXid, EventType type) {
+    public void saveEventHandlerMapping(String eventHandlerXid, EventType type) {
         Integer id = getIdByXid(eventHandlerXid);
         Objects.requireNonNull(id, "Event Handler with xid: " + eventHandlerXid + " does not exist, can't create mapping.");
-        ejt.doInsert(
-                "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                new Object[] {id, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                        type.getReferenceId1(), type.getReferenceId2()},
-                new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                        Types.INTEGER});
-
+        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
+                @Override
+                protected void doInTransactionWithoutResult(TransactionStatus arg0) {
+                    deleteEventHandlerMapping(id, type);
+                    ejt.doInsert(
+                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                            new Object[] {id, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                    type.getReferenceId1(), type.getReferenceId2()},
+                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                    Types.INTEGER});
+                }
+        });
     }
     
     /**

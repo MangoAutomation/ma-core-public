@@ -207,9 +207,8 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
             for(AbstractEventHandlerVO<?> ehVo : vo.getAddedEventHandlers())
                 EventHandlerDao.getInstance().addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
         }else if(vo.getEventHandlerXids() != null) {
-            //EventHandlerDao.getInstance().deleteEventHandlerMappings(et.getEventType());
             for(String xid : vo.getEventHandlerXids()) {
-                EventHandlerDao.getInstance().addEventHandlerMapping(xid, et.getEventType());
+                EventHandlerDao.getInstance().saveEventHandlerMapping(xid, et.getEventType());
             }
         }
             
