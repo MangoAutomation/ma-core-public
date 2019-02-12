@@ -22,7 +22,6 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -184,9 +183,8 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     protected EventTypeVO createEventType(int dsSpecificEventTypeId, TranslatableMessage message, DuplicateHandling duplicateHandling,
             AlarmLevels defaultAlarmLevel) {
         AlarmLevels alarmLevel = getAlarmLevel(dsSpecificEventTypeId, defaultAlarmLevel);
-        String subType = getEventCodes().getCode(dsSpecificEventTypeId);
         return new EventTypeVO(
-                new DataSourceEventType(getId(), dsSpecificEventTypeId, subType, alarmLevel, duplicateHandling),
+                new DataSourceEventType(getId(), dsSpecificEventTypeId, alarmLevel, duplicateHandling),
                 message, alarmLevel);
     }
 

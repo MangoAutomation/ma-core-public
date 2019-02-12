@@ -23,7 +23,6 @@ public class DataSourceEventType extends EventType {
     private int dataSourceEventTypeId;
     private AlarmLevels alarmLevel;
     private DuplicateHandling duplicateHandling;
-    private String subType;
 
     public DataSourceEventType() {
         // Required for reflection.
@@ -34,13 +33,8 @@ public class DataSourceEventType extends EventType {
     }
 
     public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, AlarmLevels alarmLevel, DuplicateHandling duplicateHandling) {
-        this(dataSourceId, dataSourceEventTypeId, null, AlarmLevels.URGENT, DuplicateHandling.IGNORE);
-    }
-    
-    public DataSourceEventType(int dataSourceId, int dataSourceEventTypeId, String subType, AlarmLevels alarmLevel, DuplicateHandling duplicateHandling) {
         this.dataSourceId = dataSourceId;
         this.dataSourceEventTypeId = dataSourceEventTypeId;
-        this.subType = subType;
         this.alarmLevel = alarmLevel;
         this.duplicateHandling = duplicateHandling;
     }
@@ -52,12 +46,7 @@ public class DataSourceEventType extends EventType {
 
     @Override
     public String getEventSubtype() {
-        return subType;
-    }
-
-    @Override
-    public boolean isRateLimited() {
-        return true;
+        return null;
     }
 
     public int getDataSourceEventTypeId() {
