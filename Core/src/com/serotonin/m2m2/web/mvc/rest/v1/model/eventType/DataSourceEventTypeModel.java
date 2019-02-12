@@ -15,7 +15,6 @@ import com.serotonin.m2m2.rt.event.type.EventType;
  */
 public class DataSourceEventTypeModel extends EventTypeModel{
 
-    private String subType;
     private int dataSourceId;
     private int dataSourceEventTypeId;
     private AlarmLevels alarmLevel;
@@ -28,7 +27,6 @@ public class DataSourceEventTypeModel extends EventTypeModel{
         this.dataSourceEventTypeId = type.getDataSourceEventTypeId();
         this.alarmLevel = type.getAlarmLevel();
         this.duplicateHandling = type.getDuplicateHandling();
-        this.subType = type.getEventSubtype();
     }
 
     @Override
@@ -74,27 +72,11 @@ public class DataSourceEventTypeModel extends EventTypeModel{
         this.alarmLevel = alarmLevel;
     }
 
-    
-    
-    /**
-     * @return the subType
-     */
-    public String getSubType() {
-        return subType;
-    }
-
-    /**
-     * @param subType the subType to set
-     */
-    public void setSubType(String subType) {
-        this.subType = subType;
-    }
-
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel#getData()
      */
     @Override
     public EventType toEventType() {
-        return new DataSourceEventType(dataSourceId, dataSourceEventTypeId, subType, alarmLevel, duplicateHandling);
+        return new DataSourceEventType(dataSourceId, dataSourceEventTypeId, alarmLevel, duplicateHandling);
     }
 }

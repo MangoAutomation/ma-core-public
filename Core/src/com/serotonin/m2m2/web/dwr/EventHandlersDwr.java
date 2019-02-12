@@ -381,7 +381,7 @@ public class EventHandlersDwr extends BaseDwr {
         if (typeName.equals(EventType.EventTypeNames.DATA_POINT))
             type = new DataPointEventType(referenceId1, referenceId2);
         else if (typeName.equals(EventType.EventTypeNames.DATA_SOURCE))
-            type = new DataSourceEventType(referenceId1, referenceId2, subtypeName,  AlarmLevels.URGENT, DuplicateHandling.IGNORE);
+            type = new DataSourceEventType(referenceId1, referenceId2);
         else if (typeName.equals(EventType.EventTypeNames.SYSTEM))
             type = new SystemEventType(subtypeName, referenceId1);
         else if (typeName.equals(EventType.EventTypeNames.PUBLISHER))
