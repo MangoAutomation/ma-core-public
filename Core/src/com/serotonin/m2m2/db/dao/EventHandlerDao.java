@@ -244,8 +244,8 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
      */
     @Override
     public void saveRelationalData(T vo, boolean insert) {
-        if (vo.getEventTypes() != null) {
-            if (insert) {
+        if (insert) {
+            if(vo.getEventTypes() != null) {
                 for (EventType type : vo.getEventTypes()) {
                     ejt.doInsert(
                             "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
@@ -254,9 +254,11 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                             new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                     Types.INTEGER});
                 }
-            } else {
-                // Replace all mappings
-                deleteEventHandlerMappings(vo.getId());
+            }
+        } else {
+            // Replace all mappings
+            deleteEventHandlerMappings(vo.getId());
+                if(vo.getEventTypes() != null) {
                 for (EventType type : vo.getEventTypes()) {
                     ejt.doInsert(
                             "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
@@ -264,7 +266,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                                     type.getReferenceId1(), type.getReferenceId2()},
                             new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                     Types.INTEGER});
-
+    
                 }
             }
         }
@@ -354,11 +356,11 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         if(type.getEventSubtype() == null)
             ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventSubtypeName='' AND eventTypeRef1=? AND eventTypeRef2=?",
                     new Object[] {type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
-                    new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+                    new int[] {Types.VARCHAR, Types.INTEGER, Types.INTEGER});
         else
             ejt.update("DELETE FROM eventHandlersMapping WHERE AND eventTypeName=? AND eventSubtypeName=? AND eventTypeRef1=? AND eventTypeRef2=?",
                     new Object[] {type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
-                    new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
+                    new int[] {Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
 
     }
     
