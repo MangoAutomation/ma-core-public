@@ -58,20 +58,6 @@ public class SystemEventType extends EventType {
     private static final ConcurrentHashMap<String, EventTypeVO> EVENT_TYPES = new ConcurrentHashMap<>();
 
     public static void initialize() {
-        registerEventType(TYPE_SYSTEM_STARTUP, "event.system.startup");
-        registerEventType(TYPE_SYSTEM_SHUTDOWN, "event.system.shutdown");
-        registerEventType(TYPE_MAX_ALARM_LEVEL_CHANGED, "event.system.maxAlarmChanged");
-        registerEventType(TYPE_USER_LOGIN, "event.system.userLogin");
-        registerEventType(TYPE_FAILED_USER_LOGIN, "event.system.failedUserLogin");
-        registerEventType(TYPE_SET_POINT_HANDLER_FAILURE, "event.system.setPoint");
-        registerEventType(TYPE_EMAIL_SEND_FAILURE, "event.system.email");
-        registerEventType(TYPE_PROCESS_FAILURE, "event.system.process");
-        registerEventType(TYPE_LICENSE_CHECK, "event.system.licenseCheck");
-        registerEventType(TYPE_BACKUP_FAILURE, "event.system.backupFailure");
-        registerEventType(TYPE_UPGRADE_CHECK, "event.system.upgradeCheck");
-        registerEventType(TYPE_REJECTED_WORK_ITEM, "event.system.rejectedWorkItem");
-        registerEventType(TYPE_MISSING_MODULE_DEPENDENCY, "event.system.missingModuleDepDesc");
-
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             registerEventType(def.getTypeName(), def.getDescriptionKey());
     }

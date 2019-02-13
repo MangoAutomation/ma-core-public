@@ -99,6 +99,19 @@ import com.serotonin.m2m2.module.definitions.settings.TimezoneInfoDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventTypeSettingsListenerDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.BackupFailureEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.EmailSendFailureEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.FailedUserLoginEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.LicenseCheckEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.MaxAlarmLevelChangedEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.MissingModuleDependencyEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.ProcessFailureEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.RejectedWorkItemEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.SetPointHandlerFailureEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.SystemShutdownEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.SystemStartupEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.UpgradeCheckEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.UserLoginEventTypeDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -1147,6 +1160,22 @@ public class ModuleRegistry {
         preDefaults.add(new JsonEmportScriptUtilityDefinition());
         preDefaults.add(new PointValueTimeStreamScriptUtilityDefinition());
         preDefaults.add(new RuntimeManagerScriptUtilityDefinition());
+        
+        /* System Event Types */
+        preDefaults.add(new BackupFailureEventTypeDefinition());
+        preDefaults.add(new EmailSendFailureEventTypeDefinition());
+        preDefaults.add(new FailedUserLoginEventTypeDefinition());
+        preDefaults.add(new LicenseCheckEventTypeDefinition());
+        preDefaults.add(new MaxAlarmLevelChangedEventTypeDefinition());
+        preDefaults.add(new MissingModuleDependencyEventTypeDefinition());
+        preDefaults.add(new ProcessFailureEventTypeDefinition());
+        preDefaults.add(new RejectedWorkItemEventTypeDefinition());
+        preDefaults.add(new SetPointHandlerFailureEventTypeDefinition());
+        preDefaults.add(new SystemShutdownEventTypeDefinition());
+        preDefaults.add(new SystemStartupEventTypeDefinition());
+        preDefaults.add(new UpgradeCheckEventTypeDefinition());
+        preDefaults.add(new UserLoginEventTypeDefinition());
+        
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
