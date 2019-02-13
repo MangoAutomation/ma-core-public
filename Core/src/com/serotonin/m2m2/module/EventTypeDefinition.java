@@ -100,4 +100,21 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      */
     abstract public Class<? extends EventTypeModel> getModelClass();
 
+    /**
+     * Get all possible sub types for this even type
+     * @return
+     */
+    abstract public List<String> getEventSubTypes();
+
+    /**
+     * Does this event type use typeref1?
+     * @return
+     */
+    abstract public boolean supportsReferenceId1();
+    
+    /**
+     * Does this event type use typeref2?
+     * @return
+     */
+    abstract public boolean supportsReferenceId2();
 }
