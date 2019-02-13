@@ -666,7 +666,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
                             LOG.warn("Listener exception: " + e2.getMessage(), e2);
                     }
                 p.terminate();
-                
+                DataPointDao.getInstance().setEventDetectors(vo);
                 this.startDataPoint(p.getVO(), null);
                 restarted = true;
             }
