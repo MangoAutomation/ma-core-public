@@ -31,7 +31,6 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
-import com.serotonin.validation.StringValidation;
 
 public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
     public static final String XID_PREFIX = "EH_";
@@ -122,14 +121,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     }
 	
     public void validate(ProcessResult response) {
-    	//Not using name so don't super validate
-    	if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(xid, 50))
-            response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 50));
-        else if (!isXidUnique(xid, id))
-            response.addContextualMessage("xid", "validate.xidUsed");
-    	
+        super.validate(response);
     	//addedEventTypes are not validated because it assumed they 
     	// must be valid to be created and make it into this list
     }

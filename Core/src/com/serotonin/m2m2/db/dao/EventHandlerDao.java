@@ -312,7 +312,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                 protected void doInTransactionWithoutResult(TransactionStatus arg0) {
                     deleteEventHandlerMapping(handlerId, type);
                     ejt.doInsert("INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                            new Object[] {handlerId, type.getEventType(), type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
+                            new Object[] {handlerId, type.getEventType(), type.getEventSubtype() == null ? "" : type.getEventSubtype(), type.getReferenceId1(), type.getReferenceId2()},
                             new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
                 }
             });
@@ -351,7 +351,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
      * @param type
      */
     public void deleteEventHandlerMappings(EventType type) {
-        if(type.getEventSubtype() != null)
+        if(type.getEventSubtype() == null)
             ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventSubtypeName='' AND eventTypeRef1=? AND eventTypeRef2=?",
                     new Object[] {type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
                     new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
@@ -363,7 +363,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     }
     
     public void deleteEventHandlerMapping(int eventHandlerId, EventType type) {
-        if(type.getEventSubtype() != null)
+        if(type.getEventSubtype() == null)
             ejt.update("DELETE FROM eventHandlersMapping WHERE eventHandlerId=? AND eventTypeName=? AND eventSubtypeName='' AND eventTypeRef1=? AND eventTypeRef2=?",
                     new Object[] {eventHandlerId, type.getEventType(), type.getReferenceId1(), type.getReferenceId2()},
                     new int[] {Types.INTEGER, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
