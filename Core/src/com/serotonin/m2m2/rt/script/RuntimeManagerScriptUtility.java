@@ -201,7 +201,6 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
 			try{
-			    DataPointDao.getInstance().setEventDetectors(vo);
 				Common.runtimeManager.enableDataPoint(vo, true);
 			}catch(Exception e){
 				LOG.error(e.getMessage(), e);

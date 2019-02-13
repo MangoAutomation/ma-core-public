@@ -104,11 +104,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @DwrPermission(user = true)
     public ProcessResult enableDisable(int dataPointId, boolean enabled) {
         DataPointVO dataPoint = DataPointDao.getInstance().getDataPoint(dataPointId, false);
-        Permissions.ensureDataSourcePermission(Common.getUser(), dataPoint.getDataSourceId());
- 
-        if(enabled)
-            DataPointDao.getInstance().setEventDetectors(dataPoint);
-        
+        Permissions.ensureDataSourcePermission(Common.getHttpUser(), dataPoint.getDataSourceId());
+
         Common.runtimeManager.enableDataPoint(dataPoint, enabled);
         
         ProcessResult response = new ProcessResult();

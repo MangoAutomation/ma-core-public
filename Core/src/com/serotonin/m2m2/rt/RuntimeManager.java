@@ -76,10 +76,21 @@ public interface RuntimeManager extends ILifecycle{
     //
     void saveDataPoint(DataPointVO point);
     
+    /**
+     * Enable a data point, event detectors will be loaded 
+     * during this method
+     * @param point
+     * @param enabled
+     */
     void enableDataPoint(DataPointVO point, boolean enabled);
 
     void deleteDataPoint(DataPointVO point);
 
+    /**
+     * Restart a data point, the event detectors will be loaded 
+     * during this method.
+     * @param vo
+     */
     void restartDataPoint(DataPointVO vo);
 
     boolean isDataPointRunning(int dataPointId);

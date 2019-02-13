@@ -473,8 +473,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
             stopDataPoint(dp.getId());
         } else if (!running && enabled) {
             // Ensure the event detectors are loaded
-            if (dp.getEventDetectors() == null)
-                DataPointDao.getInstance().setEventDetectors(dp);
+            DataPointDao.getInstance().setEventDetectors(dp);
             startDataPoint(dp, null);
         }
         
@@ -673,8 +672,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
         }
         if(!restarted) {
             //The data point wasn't really running. Ensure the event detectors and enable
-            if(vo.getEventDetectors() == null)
-                DataPointDao.getInstance().setEventDetectors(vo);
+            DataPointDao.getInstance().setEventDetectors(vo);
             vo.setEnabled(true);
             startDataPoint(vo, null);
             DataPointDao.getInstance().saveEnabledColumn(vo);
