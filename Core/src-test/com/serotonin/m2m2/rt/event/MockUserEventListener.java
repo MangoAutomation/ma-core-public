@@ -4,8 +4,10 @@
 package com.serotonin.m2m2.rt.event;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.User;
 
 /**
@@ -19,6 +21,17 @@ public class MockUserEventListener implements UserEventListener {
     protected List<EventInstance> returned = new ArrayList<>();
     protected List<EventInstance> deactivated = new ArrayList<>();
     protected List<EventInstance> acknowledged = new ArrayList<>();
+    protected List<Class<? extends EventType>> eventsToListenFor;
+    
+    public MockUserEventListener(User user, Class<? extends EventType> type) {
+        this.user = user;
+        this.eventsToListenFor = Arrays.asList(type);
+    }
+    
+    public MockUserEventListener(User user, List<Class<? extends EventType>> types) {
+        this.user = user;
+        this.eventsToListenFor = types;
+    }
     
     public MockUserEventListener(User user) {
         this.user = user;
@@ -37,6 +50,8 @@ public class MockUserEventListener implements UserEventListener {
      */
     @Override
     public synchronized void raised(EventInstance evt) {
+        if(!isListening(evt))
+            return;
         this.raised.add(evt);
     }
 
@@ -45,22 +60,22 @@ public class MockUserEventListener implements UserEventListener {
      */
     @Override
     public synchronized void returnToNormal(EventInstance evt) {
+        if(!isListening(evt))
+            return;
         this.returned.add(evt);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.UserEventListener#deactivated(com.serotonin.m2m2.rt.event.EventInstance)
-     */
     @Override
     public synchronized void deactivated(EventInstance evt) {
+        if(!isListening(evt))
+            return;
         this.deactivated.add(evt);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.UserEventListener#acknowledged(com.serotonin.m2m2.rt.event.EventInstance)
-     */
     @Override
     public synchronized void acknowledged(EventInstance evt) {
+        if(!isListening(evt))
+            return;
         this.acknowledged.add(evt);
     }
 
@@ -82,6 +97,15 @@ public class MockUserEventListener implements UserEventListener {
 
     public List<EventInstance> getAcknowledged() {
         return acknowledged;
+    }
+    
+    private boolean isListening(EventInstance evt) {
+        if(eventsToListenFor == null)
+            return true;
+        for(Class<? extends EventType> t : eventsToListenFor)
+            if(evt.getEventType().getClass() == t)
+                return true;
+        return false;
     }
     
 }

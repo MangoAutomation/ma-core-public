@@ -61,6 +61,53 @@ public class UserEventMulticasterTest {
         assertEquals(3, UserEventMulticaster.getListenerCount(multicaster));
     }
     
+    @Test
+    public void testMulticastOddNumberEventsForUser() {
+        
+        int dataPointId = 1;
+        int eventCount = 13;
+        int userCount = 13;
+        AtomicInteger idCounter = new AtomicInteger(1);
+        
+        List<User> users = createUsers(userCount, 0, idCounter);
+        List<MockUserEventListener> listeners = new ArrayList<>();
+        UserEventListener multicaster = null;
+        for(User u : users) {
+            MockUserEventListener l = new MockUserEventListener(u);
+            listeners.add(l);
+            multicaster = UserEventMulticaster.add(multicaster, l);
+        }
+        
+
+        List<EventInstance> events = new ArrayList<>();
+        long time = 0;
+        for(int i=0; i<eventCount; i++) {
+            EventInstance event = createMockEventInstance(i, dataPointId, time);
+            events.add(event);
+            multicaster.raised(event);
+            time += 1;
+        }
+
+        //Ack
+        for(EventInstance e : events)
+            multicaster.acknowledged(e);
+        
+        //Rtn
+        for(EventInstance e : events)
+            multicaster.returnToNormal(e);
+        
+        //Confirm all 100 saw 10000 were raised
+        for(MockUserEventListener l : listeners)
+            assertEquals(eventCount, l.getRaised().size());
+        
+        //Confirm all 100 saw 10000 were acked
+        for(MockUserEventListener l : listeners)
+            assertEquals(eventCount, l.getAcknowledged().size());
+        
+        //Confirm all 100 saw 10000 were rtned
+        for(MockUserEventListener l : listeners)
+            assertEquals(eventCount, l.getReturned().size());
+    }
     
     @Test
     public void testMulticastEventsForUser() {

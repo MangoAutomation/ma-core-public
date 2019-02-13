@@ -38,7 +38,7 @@ public class UserEventsTest extends MangoTestBase {
 
     private final int dataPointId = 17;
     private final int userCount = 5;
-    private final int eventCount = 1000;
+    private final int eventCount = 3; //1000;
 
     @Test
     public void testListenerAddRemoveSyncrhonization() throws InterruptedException {
@@ -102,7 +102,7 @@ public class UserEventsTest extends MangoTestBase {
         
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {
-            MockUserEventListener l = new MockUserEventListener(u);
+            MockUserEventListener l = new MockUserEventListener(u, MockEventType.class);
             listeners.add(l);
             Common.eventManager.addUserEventListener(l);
         }
@@ -150,7 +150,7 @@ public class UserEventsTest extends MangoTestBase {
         
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {
-            MockUserEventListener l = new MockUserEventListener(u);
+            MockUserEventListener l = new MockUserEventListener(u, MockEventType.class);
             listeners.add(l);
             Common.eventManager.addUserEventListener(l);
         }
@@ -189,10 +189,39 @@ public class UserEventsTest extends MangoTestBase {
      * @param listeners
      * @param action
      * @param events
+     * @throws InterruptedException 
      */
-    private void assertEvents(List<MockUserEventListener> listeners, EventAction action, List<MockEventTypeTime> events) {
+    private void assertEvents(List<MockUserEventListener> listeners, EventAction action, List<MockEventTypeTime> events) throws InterruptedException {
         
-        //Check size of list
+        for(int i=0; i<30; i++) {
+            int waitingFor = listeners.size();
+            for(MockUserEventListener l : listeners) {
+                switch(action) {
+                    case ACKNOWLEDGED:
+                        if(l.getAcknowledged().size() == events.size())
+                            waitingFor--;
+                        break;
+                    case DEACTIVATED:
+                        if(l.getDeactivated().size() == events.size())
+                            waitingFor--;
+                        break;
+                    case RAISED:
+                        if(l.getRaised().size() == events.size())
+                            waitingFor--;
+                        break;
+                    case RETURNED:
+                        if(l.getReturned().size() == events.size())
+                            waitingFor--;
+                        break;
+                }
+            }
+            
+            if(waitingFor == 0)
+                break;
+            Thread.sleep(500);
+        }
+        
+        //Check size of list and wait some time before failing for the other threads to finish
         StringBuilder b = new StringBuilder();
         for(MockUserEventListener l : listeners) {
             switch(action) {
