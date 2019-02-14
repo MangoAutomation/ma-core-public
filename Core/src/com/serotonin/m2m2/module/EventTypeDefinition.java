@@ -10,6 +10,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
@@ -45,16 +46,26 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     /**
      * Whether admin permission is required to create and edit event handlers for this even type.
      * 
+     * Will be removed when legacy UI is gone
+     * 
      * @return true if admin permission is required.
      */
+    @Deprecated
     abstract public boolean getHandlersRequireAdmin();
 
+    /**
+     * Whether user has permission to create and edit event handlers for this even type.
+     * 
+     * @return true if admin permission is required.
+     */
+    abstract public boolean hasCreatePermission(PermissionHolder user);
+    
     /**
      * Returns a list of EventTypeVOs representing the list of events to which handlers can be added/edited.
      * 
      * @return the list of event type VO objects.
      */
-    abstract public List<EventTypeVO> getEventTypeVOs();
+    abstract public List<EventTypeVO> getEventTypeVOs(PermissionHolder user);
 
     /**
      * Optional. The module relative path to an icon that represents the event type.
@@ -104,7 +115,7 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * Get all possible sub types for this even type
      * @return
      */
-    abstract public List<String> getEventSubTypes();
+    abstract public List<String> getEventSubTypes(PermissionHolder user);
 
     /**
      * Does this event type use typeref1?
@@ -117,4 +128,51 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * @return
      */
     abstract public boolean supportsReferenceId2();
+    
+    /**
+     * If this event type support reference id 1, return a list of the possible event types 
+     * for all the subtype
+     * 
+     * @param user
+     * @param subtype
+     * @return
+     */
+    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user, String subtype) { 
+        throw new UnsupportedOperationException();
+     }
+
+    /**
+     * If this event type support reference id 1, return a list of the possible event types 
+     * for all the reference id 1s
+     * 
+     * @param user
+     * @param subtype
+     * @param ref1
+     * @return
+     */
+    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId2(PermissionHolder user, String subtype, int ref1) { 
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Create default instance of the event type VO using the given parameters.  This 
+     * is used to add a contextual description for the event type based on 
+     * reference ids and subtype
+     * 
+     * @param subtype
+     *            the subtype of the event. May be null
+     * @param ref1
+     *            the first reference id. Event types define how this number is used
+     * @param ref2
+     *            the second reference id. Event types define how this number is used
+     * @return the new EventType object.
+     */
+    public EventTypeVO createDefaultEventTypeVO(String subtype, int ref1, int ref2) {
+        EventType t = createEventType(subtype, ref1, ref2);
+        return new EventTypeVO(
+                t,
+                new TranslatableMessage(getDescriptionKey()),
+                null);
+    }
+    
 }

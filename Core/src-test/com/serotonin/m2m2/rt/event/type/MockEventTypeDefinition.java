@@ -11,6 +11,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
@@ -33,14 +34,20 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     public EventType createEventType(String subtype, int ref1, int ref2) {
         return new MockEventType(DuplicateHandling.ALLOW, subtype, ref1, ref2);
     }
-
     @Override
     public boolean getHandlersRequireAdmin() {
+        // TODO Auto-generated method stub
+        return false;
+    }
+    
+    @Override
+    public boolean hasCreatePermission(PermissionHolder user) {
+        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
-    public List<EventTypeVO> getEventTypeVOs() {
+    public List<EventTypeVO> getEventTypeVOs(PermissionHolder user) {
         //TODO implement when necessary
         return new ArrayList<EventTypeVO>();
     }
@@ -76,7 +83,7 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     }
 
     @Override
-    public List<String> getEventSubTypes() {
+    public List<String> getEventSubTypes(PermissionHolder user) {
         return Collections.emptyList();
     }
 
@@ -90,5 +97,11 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     public boolean supportsReferenceId2() {
         // TODO Auto-generated method stub
         return false;
+    }
+
+    @Override
+    public EventTypeVO createDefaultEventTypeVO(String subtype, int ref1, int ref2) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

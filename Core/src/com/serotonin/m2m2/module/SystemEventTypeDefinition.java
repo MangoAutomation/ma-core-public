@@ -4,12 +4,12 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.util.Collections;
 import java.util.List;
 
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.rt.event.type.SystemEventType;
+import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Used for creating custom system event types.
@@ -64,8 +64,27 @@ abstract public class SystemEventTypeDefinition extends ModuleElementDefinition 
     
     /**
      * If this event type support reference id 1, return a list of the possible event types 
-     * for all the reference id 1s
+     * for all the subtype
+     * 
+     * @param user
+     * @param subtype
      * @return
      */
-    public List<SystemEventType> genegeneratePossibleEventTypesWithReferenceId1() { return Collections.emptyList(); }
+    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user, String subtype) { 
+        throw new UnsupportedOperationException("This event type does not suport referenceId1");
+     }
+
+    /**
+     * If this event type support reference id 1, return a list of the possible event types 
+     * for all the reference id 1s
+     * 
+     * @param user
+     * @param subtype
+     * @param ref1
+     * @return
+     */
+    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId2(PermissionHolder user, String subtype, int ref1) { 
+        throw new UnsupportedOperationException("This event type does not suport referenceId2");
+    }
+    
 }

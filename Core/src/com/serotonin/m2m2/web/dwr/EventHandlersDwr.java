@@ -159,7 +159,7 @@ public class EventHandlersDwr extends BaseDwr {
         model.put("userEventTypes", userEventTypes);
         for (EventTypeDefinition def : ModuleRegistry.getDefinitions(EventTypeDefinition.class)) {
             if (!def.getHandlersRequireAdmin()) {
-                List<EventTypeVO> vos = def.getEventTypeVOs();
+                List<EventTypeVO> vos = def.getEventTypeVOs(user);
                 List<EventTypeVOHandlers> voHandlers = new ArrayList<>();
                 for (EventTypeVO vo : vos) {
                     EventTypeVOHandlers voh = new EventTypeVOHandlers(vo, EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
@@ -214,7 +214,7 @@ public class EventHandlersDwr extends BaseDwr {
             model.put("adminEventTypes", adminEventTypes);
             for (EventTypeDefinition def : ModuleRegistry.getDefinitions(EventTypeDefinition.class)) {
                 if (def.getHandlersRequireAdmin()) {
-                    List<EventTypeVO> vos = def.getEventTypeVOs();
+                    List<EventTypeVO> vos = def.getEventTypeVOs(user);
                     List<EventTypeVOHandlers> vohs = new ArrayList<>();
                     for (EventTypeVO vo : vos) {
                         EventTypeVOHandlers voh = new EventTypeVOHandlers(vo, EventHandlerDao.getInstance().getEventHandlers(vo.getEventType()));
