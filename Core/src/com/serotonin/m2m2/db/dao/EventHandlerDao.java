@@ -259,15 +259,15 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
             // Replace all mappings
             deleteEventHandlerMappings(vo.getId());
                 if(vo.getEventTypes() != null) {
-                for (EventType type : vo.getEventTypes()) {
-                    ejt.doInsert(
-                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                            new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                    type.getReferenceId1(), type.getReferenceId2()},
-                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                    Types.INTEGER});
-    
-                }
+                    for (EventType type : vo.getEventTypes()) {
+                        ejt.doInsert(
+                                "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                                new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                        type.getReferenceId1(), type.getReferenceId2()},
+                                new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                        Types.INTEGER});
+        
+                    }
             }
         }
     }

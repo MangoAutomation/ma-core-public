@@ -1,8 +1,9 @@
 package com.serotonin.m2m2.web.dwr.emport.importers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -57,9 +58,11 @@ public class EventHandlerImporter extends Importer {
         try {
             ctx.getReader().readInto(handler, json);
             
-            List<EventType> eventTypes = handler.getEventTypes();
-            if(eventTypes == null) {
-                eventTypes = new ArrayList<>();
+            Set<EventType> eventTypes;
+            if(handler.getEventTypes() == null) {
+                eventTypes = new HashSet<>();
+            }else {
+                eventTypes = new HashSet<>(handler.getEventTypes());
             }
             // Find the event type.
             if(et != null)
@@ -71,7 +74,7 @@ public class EventHandlerImporter extends Importer {
             }
             
             if(eventTypes.size() > 0)
-                handler.setEventTypes(eventTypes);
+                handler.setEventTypes(new ArrayList<>(eventTypes));
 
             // Now validate it. Use a new response object so we can distinguish errors in this vo from other errors.
             ProcessResult voResponse = new ProcessResult();

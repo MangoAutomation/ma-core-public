@@ -154,15 +154,19 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("xid", xid);
-        writer.writeEntry("alias", name);
+        super.jsonWrite(writer);
         writer.writeEntry("handlerType", this.definition.getEventHandlerTypeName());
         writer.writeEntry("eventTypes", EventHandlerDao.getInstance().getEventTypesForHandler(id));
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        name = jsonObject.getString("alias");
+        if(jsonObject.containsKey("alias")) {
+            name = jsonObject.getString("alias");
+            xid = jsonObject.getString("xid");
+        }else {
+            super.jsonRead(reader, jsonObject);
+        }
     }
     
     public static void validateScriptContext(List<IntStringPair> additionalContext, ProcessResult response) {

@@ -6,6 +6,8 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -265,4 +267,22 @@ abstract public class EventType implements JsonSerializable {
             throw new TranslatableJsonException("emport.error.eventType.invalid.reference", name, xid);
         return pb;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj instanceof EventType) {
+            EventType other = (EventType)obj;
+            if(     this.getReferenceId1() == other.getReferenceId1() &&
+                    this.getReferenceId2() == other.getReferenceId2() &&
+                    StringUtils.equals(this.getEventType(), other.getEventType()) &&
+                    StringUtils.equals(this.getEventSubtype(), other.getEventSubtype()))
+                return true;
+        
+        }
+        return false; 
+    }
+    
 }
