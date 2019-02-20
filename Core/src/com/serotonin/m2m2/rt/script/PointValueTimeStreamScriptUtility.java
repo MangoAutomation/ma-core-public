@@ -391,7 +391,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         StringBuilder builder = new StringBuilder();
         builder.append("{ \n");
         builder.append("query([dataPointIds], long from, long to, boolean bookend, ScriptPointValueTimeCallback callback): void, \n");
-        builder.append("rollupQuery([dataPointIds], long from, long to, ScriptPointValueTimeCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType): void \n");
+        builder.append("rollupQuery([dataPointIds], long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType): void \n");
         builder.append("}\n");
         return builder.toString();
     }
