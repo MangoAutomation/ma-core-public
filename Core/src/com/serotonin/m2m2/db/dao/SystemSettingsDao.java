@@ -447,7 +447,7 @@ public class SystemSettingsDao extends BaseDao {
         if (value == null) {
             return null;
         }
-        return readAsJson(key);
+        return readAsJson(value);
     }
 
     /**
@@ -461,7 +461,7 @@ public class SystemSettingsDao extends BaseDao {
         if (value == null) {
             return null;
         }
-        return readAsJson(key, clazz);
+        return readAsJson(value, clazz);
     }
 
     /**
@@ -475,7 +475,7 @@ public class SystemSettingsDao extends BaseDao {
         if (value == null) {
             return null;
         }
-        return readAsJson(key, typeReference);
+        return readAsJson(value, typeReference);
     }
 
     public <T> T getAsJsonCollection(String key, @SuppressWarnings("rawtypes") Class<? extends Collection> collectionClazz, Class<?> clazz) {
@@ -483,7 +483,7 @@ public class SystemSettingsDao extends BaseDao {
         if (value == null) {
             return null;
         }
-        return readAsJsonCollection(key, collectionClazz, clazz);
+        return readAsJsonCollection(value, collectionClazz, clazz);
     }
 
     public void setValue(final String key, final String value) {
