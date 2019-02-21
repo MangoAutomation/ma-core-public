@@ -6,10 +6,12 @@ package com.serotonin.m2m2.db.dao;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
@@ -23,6 +25,14 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -51,6 +61,9 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
+/**
+ * @author Jared Wiltshire
+ */
 public class SystemSettingsDao extends BaseDao {
     // Database schema version
     public static final String DATABASE_SCHEMA_VERSION = "databaseSchemaVersion";
@@ -195,19 +208,28 @@ public class SystemSettingsDao extends BaseDao {
 
     //Usage tracking statistics uploading
     public static final String USAGE_TRACKING_ENABLED = "usageTrackingEnabled";
-    
+
     //Check Store for Upgrades
     public static final String UPGRADE_CHECKS_ENABLED = "upgradeChecksEnabled";
-    
+
     //License Agreement Acceptance Tracking
     public static final String LICENSE_AGREEMENT_VERSION = "licenseAgreementVersion";
-    
+
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
     private SystemSettingsDao(){
         this.threadPoolListener = new ThreadPoolSettingsListenerDefinition();
     }
+
+
+    /**
+     * DBUpgrade.checkUpgrade() uses the static instance of this class thus constructing it before the runtime context is created.
+     * Have to lazily get the DAO ObjectMapper.
+     */
+    private final LazyInitSupplier<ObjectMapper> mapper = new LazyInitSupplier<>(() -> {
+        return Common.getRuntimeContext().getBean(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME, ObjectMapper.class);
+    });
 
     // Value cache
     private final Map<String, String> cache = new ConcurrentHashMap<>();
@@ -275,10 +297,25 @@ public class SystemSettingsDao extends BaseDao {
         return charToBool(value);
     }
 
+    /**
+     * This method uses Serotonin JSON deserialization. Prefer {@link #getAsJson(String, Class)}
+     *
+     * @param key
+     * @param clazz
+     * @return
+     */
+    @Deprecated
     public <T> T getJsonObject(String key, Class<T> clazz) {
         return getJsonObject(key, clazz);
     }
 
+    /**
+     * This method uses Serotonin JSON deserialization. Prefer {@link #getAsJson(String, TypeReference)}
+     * @param key
+     * @param type
+     * @return
+     */
+    @Deprecated
     public Object getJsonObject(String key, Type type) {
         String value = getValue(key, null);
         if (value == null)
@@ -290,6 +327,163 @@ public class SystemSettingsDao extends BaseDao {
             // Things should only get here programmatically. Exceptions thrown here are for programmers to deal with.
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Use the Jackson DAO mapper to serialize the object to JSON
+     * @param key
+     * @param value
+     */
+    public void setAsJson(String key, Object value) {
+        try {
+            this.setValue(key, mapper.get().writeValueAsString(value));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Useful for validating JSON system settings where the value could be a JsonNode (if from REST) or String (if importing system setting)
+     * @param value
+     * @return
+     */
+    public JsonNode readAsJson(Object value) {
+        try {
+            if (value instanceof JsonNode) {
+                return (JsonNode) value;
+            } else if (value instanceof String) {
+                return mapper.get().reader().readTree((String) value);
+            } else {
+                throw new IllegalArgumentException("Value must be String or JsonNode");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Useful for validating JSON system settings where the value could be a JsonNode (if from REST) or String (if importing system setting)
+     * @param value
+     * @param clazz
+     * @return
+     */
+    public <T> T readAsJson(Object value, Class<T> clazz) {
+        try {
+            ObjectMapper mapper = this.mapper.get();
+            if (value instanceof JsonNode) {
+                JsonParser parser = mapper.treeAsTokens((JsonNode) value);
+                return mapper.readValue(parser, clazz);
+            } else if (value instanceof String) {
+                return mapper.readValue((String) value, clazz);
+            } else {
+                throw new IllegalArgumentException("Value must be String or JsonNode");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Useful for validating JSON system settings where the value could be a JsonNode (if from REST) or String (if importing system setting).
+     *
+     *
+     * <p>Example usage</p>
+     * <pre>
+     * MyClass&lt;String&gt; result = readAsJson(value, new TypeReference&lt;MyClass&lt;String&gt;&gt;() {});
+     * </pre>
+     *
+     * @param value
+     * @param typeReference
+     * @return
+     */
+    public <T> T readAsJson(Object value, TypeReference<T> typeReference) {
+        try {
+            ObjectMapper mapper = this.mapper.get();
+            if (value instanceof JsonNode) {
+                JsonParser parser = mapper.treeAsTokens((JsonNode) value);
+                return mapper.readValue(parser, typeReference);
+            } else if (value instanceof String) {
+                return mapper.readValue((String) value, typeReference);
+            } else {
+                throw new IllegalArgumentException("Value must be String or JsonNode");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Useful for validating JSON system settings where the value could be a JsonNode (if from REST) or String (if importing system setting)
+     * @param value
+     * @param collectionClazz
+     * @param clazz
+     * @return
+     */
+    public <T> T readAsJsonCollection(Object value, @SuppressWarnings("rawtypes") Class<? extends Collection> collectionClazz, Class<?> clazz) {
+        ObjectMapper mapper = this.mapper.get();
+        CollectionType type = mapper.getTypeFactory().constructCollectionType(collectionClazz, clazz);
+
+        try {
+            if (value instanceof JsonNode) {
+                JsonParser parser = mapper.treeAsTokens((JsonNode) value);
+                return mapper.readValue(parser, type);
+            } else if (value instanceof String) {
+                return mapper.readValue((String) value, type);
+            } else {
+                throw new IllegalArgumentException("Value must be String or JsonNode");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Retrieve the system setting as a JSON node using the Jackson DAO mapper
+     * @param key
+     * @return
+     */
+    public JsonNode getAsJson(String key) {
+        String value = this.getValue(key);
+        if (value == null) {
+            return null;
+        }
+        return readAsJson(key);
+    }
+
+    /**
+     * Retrieve the system setting as a JSON node using the Jackson DAO mapper
+     * @param key
+     * @param clazz
+     * @return
+     */
+    public <T> T getAsJson(String key, Class<T> clazz) {
+        String value = this.getValue(key);
+        if (value == null) {
+            return null;
+        }
+        return readAsJson(key, clazz);
+    }
+
+    /**
+     * Retrieve the system setting as a JSON node using the Jackson DAO mapper
+     * @param key
+     * @param typeReference
+     * @return
+     */
+    public <T> T getAsJson(String key, TypeReference<T> typeReference) {
+        String value = this.getValue(key);
+        if (value == null) {
+            return null;
+        }
+        return readAsJson(key, typeReference);
+    }
+
+    public <T> T getAsJsonCollection(String key, @SuppressWarnings("rawtypes") Class<? extends Collection> collectionClazz, Class<?> clazz) {
+        String value = this.getValue(key);
+        if (value == null) {
+            return null;
+        }
+        return readAsJsonCollection(key, collectionClazz, clazz);
     }
 
     public void setValue(final String key, final String value) {
@@ -330,6 +524,12 @@ public class SystemSettingsDao extends BaseDao {
         setValue(key, boolToChar(value));
     }
 
+    /**
+     * This method uses Serotonin JSON serialization. Prefer {@link #setAsJson(String, Object)}
+     * @param key
+     * @param value
+     */
+    @Deprecated
     public void setJsonObjectValue(String key, Object value) {
         try {
             setValue(key, JsonWriter.writeToString(Common.JSON_CONTEXT, value));
@@ -549,28 +749,32 @@ public class SystemSettingsDao extends BaseDao {
      * validate() first.
      *
      * @param vo
+     * @throws JsonProcessingException
      */
-    public void updateSettings(Map<String,Object> settings) {
-
-        Iterator<String> it = settings.keySet().iterator();
-        while (it.hasNext()) {
-            String setting = it.next();
+    public void updateSettings(Map<String, Object> settings) {
+        for (Entry<String, Object> entry : settings.entrySet()) {
+            String setting = entry.getKey();
             // Lookup the setting to see if it exists
-            Object value = settings.get(setting);
+            Object value = entry.getValue();
 
             String stringValue;
             if (value instanceof Boolean) {
-                if ((Boolean) value)
-                    stringValue = "Y";
-                else
-                    stringValue = "N";
+                stringValue = boolToChar((Boolean) value);
             } else if (value instanceof String) {
                 // Can we convert the value to ensure we don't save the String values
                 Integer converted = convertToValueFromCode(setting, (String) value);
                 if (converted != null)
-                    stringValue = converted.toString();
+                    stringValue = Integer.toString(converted);
                 else
-                    stringValue = value.toString();
+                    stringValue = (String) value;
+            } else if (value instanceof JsonNode) {
+                try {
+                    stringValue = mapper.get().writeValueAsString(value);
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            } else if (value == null) {
+                stringValue = null;
             } else {
                 stringValue = value.toString();
             }
@@ -613,7 +817,7 @@ public class SystemSettingsDao extends BaseDao {
         }catch(NumberFormatException e){
             response.addContextualMessage(EMAIL_CONTENT_TYPE, "validate.illegalValue");
         }
-        
+
         setting = settings.get(EMAIL_SEND_TIMEOUT);
         if(setting != null) {
             if(setting instanceof Integer) {
@@ -941,7 +1145,7 @@ public class SystemSettingsDao extends BaseDao {
         Integer passwordExpirationPeriods = getIntValue(PASSWORD_EXPIRATION_PERIODS, settings);
         if(passwordExpirationPeriods != null && passwordExpirationPeriods < 1)
             response.addContextualMessage(PASSWORD_EXPIRATION_PERIODS, "validate.greaterThanZero");
-        
+
         setting = settings.get(LICENSE_AGREEMENT_VERSION);
         if(setting != null)
             response.addContextualMessage(LICENSE_AGREEMENT_VERSION, "validate.readOnly");
