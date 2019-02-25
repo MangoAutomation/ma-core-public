@@ -13,10 +13,12 @@ import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
  * @author Terry Packer
@@ -230,8 +232,71 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 			return OPERATION_SUCCESSFUL;
 		}else
 			return OPERATION_NO_CHANGE;
-
 	}
+	
+	/**
+     * Is a publisher enabled?
+     * @param xid
+     * @return true if it is, false if it is not or no permission
+     */
+    public boolean isPublisherEnabled(String xid){
+        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
+        
+        if(vo == null)
+            return false;
+        else{
+            //This will throw an exception if there is no permission
+            if(Permissions.hasAdminPermission(permissions))
+                return vo.isEnabled();
+            else
+                return false;
+        }
+
+    }
+    
+    /**
+     * Start a publisher via its XID
+     * @param xid
+     * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
+     */
+    public int enablePublisher(String xid){
+        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
+        if(vo == null || !Permissions.hasAdminPermission(permissions))
+            return DOES_NOT_EXIST;
+        else if(!vo.isEnabled()){
+            vo.setEnabled(true);
+            try{
+                Common.runtimeManager.savePublisher(vo);
+            }catch(Exception e){
+                LOG.error(e.getMessage(), e);
+                throw e;
+            }
+            return OPERATION_SUCCESSFUL;
+        }else
+            return OPERATION_NO_CHANGE;
+    }
+
+    /**
+     * Stop a publisher via its XID
+     * @param xid
+     * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
+     */
+    public int disablePublisher(String xid){
+        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
+        if(vo == null || !Permissions.hasAdminPermission(permissions))
+            return DOES_NOT_EXIST;
+        else if(vo.isEnabled()){
+            vo.setEnabled(false);
+            try{
+                Common.runtimeManager.savePublisher(vo);
+            }catch(Exception e){
+                LOG.error(e.getMessage(), e);
+                throw e;
+            }
+            return OPERATION_SUCCESSFUL;
+        }else
+            return OPERATION_NO_CHANGE;
+    }
 	
 	public void sleep(long time) {
 		try {
@@ -255,7 +320,10 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 		builder.append("isDataPointEnabled(xid): boolean, \n");
 		builder.append("enableDataPoint(xid): -1 0 1, \n");
 		builder.append("disableDataPoint(xid): -1 0 1, \n");
-		builder.append("sleep(milliseconds): void, \n");
+		builder.append("isPublisherEnabled(xid): boolean, \n");
+        builder.append("enablePublisher(xid): -1 0 1, \n");
+        builder.append("disablePublisher(xid): -1 0 1, \n");
+        builder.append("sleep(milliseconds): void, \n");
 		builder.append(" }");
 		return builder.toString();
 	}
