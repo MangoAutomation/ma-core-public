@@ -7,6 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,6 +23,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DeltamationCommon;
@@ -219,6 +222,40 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         AuditEventType.raiseAddedEvent(this.typeName, vo);
     }
 
+    /**
+     * 
+     * @param vo
+     * @param initiatorId
+     * @param full
+     */
+    public void insert(T vo, String initiatorId, boolean full) {
+        if (full) {
+            getTransactionTemplate().execute(status -> {
+                int id = -1;
+                if (insertStatementPropertyTypes == null)
+                    id = ejt.doInsert(INSERT, voToObjectArray(vo));
+                else
+                    id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
+                vo.setId(id);
+                saveRelationalData(vo, false);
+                return null;
+            });
+        } else {
+            int id = -1;
+            if (insertStatementPropertyTypes == null)
+                id = ejt.doInsert(INSERT, voToObjectArray(vo));
+            else
+                id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
+            vo.setId(id);
+        }
+        
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, initiatorId, null));
+        AuditEventType.raiseAddedEvent(this.typeName, vo);
+        if (this.countMonitor != null)
+            this.countMonitor.increment();
+    }
+
+    
     @Override
     protected void update(T vo, String initiatorId, String originalXid) {
         T old = get(vo.getId());
@@ -229,6 +266,41 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         AuditEventType.raiseChangedEvent(this.typeName, old, vo);
     }
 
+    /**
+     * 
+     * @param existing
+     * @param vo
+     * @param initiatorId
+     * @param full
+     */
+    public void update(T existing, T vo, String initiatorId, boolean full) {
+        if(full) {
+            getTransactionTemplate().execute(status -> {
+                List<Object> list = new ArrayList<>();
+                list.addAll(Arrays.asList(voToObjectArray(vo)));
+                list.add(vo.getId());
+        
+                if (updateStatementPropertyTypes == null)
+                    ejt.update(UPDATE, list.toArray());
+                else
+                    ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+                saveRelationalData(vo, true);
+                return null;
+            });
+        }else {
+            List<Object> list = new ArrayList<>();
+            list.addAll(Arrays.asList(voToObjectArray(vo)));
+            list.add(vo.getId());
+    
+            if (updateStatementPropertyTypes == null)
+                ejt.update(UPDATE, list.toArray());
+            else
+                ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+        }
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, initiatorId, vo.getXid()));
+        AuditEventType.raiseChangedEvent(this.typeName, existing, vo);
+    }
+    
     @Override
     public void delete(T vo, String initiatorId) {
         super.delete(vo, initiatorId);
