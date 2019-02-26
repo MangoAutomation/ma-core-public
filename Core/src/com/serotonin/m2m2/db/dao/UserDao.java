@@ -241,6 +241,9 @@ public class UserDao extends AbstractDao<User> {
 
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
 
+            //Set the last login time so it is available on the saved user
+            user.setLastLogin(old.getLastLogin());
+            
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
             boolean passwordChanged = user.getPasswordVersion() > originalPwVersion;
 
