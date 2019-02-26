@@ -227,9 +227,7 @@ public abstract class AbstractVOService<T extends AbstractVO<T>, DAO extends Abs
             vo.setXid(dao.generateUniqueXid());
         
         ensureValid(vo, user);
-        //TODO add initiator id?
-        String initiatorId = null;
-        dao.insert(vo, initiatorId, full);
+        dao.insert(vo, full);
         return vo;
     }
 
@@ -291,9 +289,7 @@ public abstract class AbstractVOService<T extends AbstractVO<T>, DAO extends Abs
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
-        //TODO add initiator id?
-        String initiatorId = null;
-        dao.update(existing, vo, initiatorId, full);
+        dao.update(existing, vo, full);
         return vo;
     }
 

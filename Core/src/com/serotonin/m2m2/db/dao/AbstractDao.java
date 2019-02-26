@@ -228,7 +228,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param initiatorId
      * @param full
      */
-    public void insert(T vo, String initiatorId, boolean full) {
+    public void insert(T vo, boolean full) {
         if (full) {
             getTransactionTemplate().execute(status -> {
                 int id = -1;
@@ -237,7 +237,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
                 else
                     id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
                 vo.setId(id);
-                saveRelationalData(vo, false);
+                saveRelationalData(vo, true);
                 return null;
             });
         } else {
@@ -249,7 +249,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
             vo.setId(id);
         }
         
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, initiatorId, null));
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, null, null));
         AuditEventType.raiseAddedEvent(this.typeName, vo);
         if (this.countMonitor != null)
             this.countMonitor.increment();
@@ -273,7 +273,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param initiatorId
      * @param full
      */
-    public void update(T existing, T vo, String initiatorId, boolean full) {
+    public void update(T existing, T vo, boolean full) {
         if(full) {
             getTransactionTemplate().execute(status -> {
                 List<Object> list = new ArrayList<>();
@@ -284,7 +284,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
                     ejt.update(UPDATE, list.toArray());
                 else
                     ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-                saveRelationalData(vo, true);
+                saveRelationalData(vo, false);
                 return null;
             });
         }else {
@@ -297,7 +297,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
             else
                 ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
         }
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, initiatorId, vo.getXid()));
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, null, vo.getXid()));
         AuditEventType.raiseChangedEvent(this.typeName, existing, vo);
     }
     
