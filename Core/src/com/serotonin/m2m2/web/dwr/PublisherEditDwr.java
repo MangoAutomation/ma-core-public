@@ -58,7 +58,7 @@ public class PublisherEditDwr extends BaseDwr {
         return response;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(admin = true)
     public void updateEventAlarmLevel(int eventId, AlarmLevels alarmLevel) {
         PublisherVO<?> pub = Common.getUser().getEditPublisher();
         pub.setAlarmLevel(eventId, alarmLevel);

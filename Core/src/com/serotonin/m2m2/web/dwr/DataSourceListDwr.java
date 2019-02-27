@@ -17,6 +17,7 @@ import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -33,7 +34,7 @@ import com.serotonin.m2m2.web.dwr.util.DwrPermission;
  * @author Matthew Lohbihler
  */
 public class DataSourceListDwr extends BaseDwr {
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult init() {
         ProcessResult response = new ProcessResult();
 
@@ -63,11 +64,11 @@ public class DataSourceListDwr extends BaseDwr {
         return response;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public Map<String, Object> toggleDataSource(int dataSourceId) {
         DataSourceVO<?> dataSource = Common.runtimeManager.getDataSource(dataSourceId);
 
-        Permissions.ensureDataSourcePermission(Common.getUser(), dataSource);
+        Permissions.ensureDataSourcePermission(Common.getUser(), dataSource); //Not redundant to annotation because the data source could have further restrictions
 
         Map<String, Object> result = new HashMap<>();
 
@@ -83,7 +84,7 @@ public class DataSourceListDwr extends BaseDwr {
         return DataPointDao.getInstance().getDataPoints(dataSourceId, DataPointNameComparator.instance);
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public int deleteDataSource(int dataSourceId) {
         Permissions.ensureDataSourcePermission(Common.getUser(), dataSourceId);
         Common.runtimeManager.deleteDataSource(dataSourceId);
@@ -120,7 +121,7 @@ public class DataSourceListDwr extends BaseDwr {
         return response;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult copyDataSource(int dataSourceId, String name, String xid, String deviceName) {
         Permissions.ensureDataSourcePermission(Common.getUser(), dataSourceId);
         ProcessResult response = new ProcessResult();
@@ -143,9 +144,13 @@ public class DataSourceListDwr extends BaseDwr {
     public String exportDataSourceAndPoints(int dataSourceId) {
         Map<String, Object> data = new LinkedHashMap<>();
         List<DataSourceVO<?>> dss = new ArrayList<>();
-        dss.add(DataSourceDao.getInstance().getDataSource(dataSourceId));
-        data.put(ConfigurationExportData.DATA_SOURCES, dss);
-        data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.getInstance().getDataPoints(dataSourceId, null));
+        DataSourceVO<?> dsvo = DataSourceDao.getInstance().getDataSource(dataSourceId);
+        if(dsvo != null) {
+            Permissions.ensureDataSourcePermission(Common.getHttpUser(), dsvo.getId());
+            dss.add(dsvo);
+            data.put(ConfigurationExportData.DATA_SOURCES, dss);
+            data.put(ConfigurationExportData.DATA_POINTS, DataPointDao.getInstance().getDataPoints(dataSourceId, null));
+        }
         return EmportDwr.export(data, 3);
     }
 }

@@ -5,12 +5,6 @@
 
 package com.serotonin.m2m2.web.dwr;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -19,6 +13,7 @@ import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.web.dwr.util.DwrPermission;
 
 /**
@@ -179,78 +174,11 @@ public abstract class AbstractDwr<VO extends AbstractVO<?>, DAO extends Abstract
      */
     @DwrPermission(user = true)
     public String jsonExport(int id) {
-        Map<String, Object> data = new LinkedHashMap<String, Object>();
-        List<VO> vos = new ArrayList<VO>();
-        //Get the Full VO for the export
-        vos.add(dao.getFull(id));
-        data.put(keyName, vos);
-        
-        if (topLevelKeyName != null) {
-            Map<String, Object> topData = new LinkedHashMap<String, Object>();
-            topData.put(topLevelKeyName, data);
-            data = topData;
-        }
-        
-        return EmportDwr.export(data, 3);
+        throw new PermissionException(new TranslatableMessage("common.default", "Subclass DWRs must implement method to use"), Common.getHttpUser());
     }
 
     @DwrPermission(user = true)
     public ProcessResult getCopy(int id) {
-
-        //Get a Full Copy
-        VO vo = dao.getFull(id);
-        ProcessResult response = new ProcessResult();
-
-        String name = StringUtils.abbreviate(
-                TranslatableMessage.translate(getTranslations(), "common.copyPrefix", vo.getName()), 40);
-
-        //Setup the Copy
-        VO copy = (VO)vo.copy();
-        copy.setId(Common.NEW_ID);
-        copy.setName(name);
-        copy.setXid(dao.generateUniqueXid());
-        response.addData("vo", copy);
-
-        //Don't Validate it, that will be done on save
-        
-        return response;
-    }
-
-    /* (non-Javadoc)
-     * @see com.deltamation.mango.downtime.web.AbstractBasicDwr#get(int)
-     */
-    @DwrPermission(user = true)
-    @Override
-    public ProcessResult get(int id) {
-        VO vo;
-    
-        if(id == Common.NEW_ID){
-            vo = dao.getNewVo();
-        }else{
-            vo = dao.get(id);
-        }
-        ProcessResult response = new ProcessResult();
-        response.addData("vo", vo);
-        
-        return response;
-    }
-    
-    /* (non-Javadoc)
-     * @see com.deltamation.mango.downtime.web.AbstractBasicDwr#getFull(int)
-     */
-    @DwrPermission(user = true)
-    @Override
-    public ProcessResult getFull(int id) {
-        VO vo;
-    
-        if(id == Common.NEW_ID){
-            vo = dao.getNewVo();
-        }else{
-            vo = dao.getFull(id);
-        }
-        ProcessResult response = new ProcessResult();
-        response.addData("vo", vo);
-        
-        return response;
+        throw new PermissionException(new TranslatableMessage("common.default", "Subclass DWRs must implement method to use"), Common.getHttpUser());
     }
 }

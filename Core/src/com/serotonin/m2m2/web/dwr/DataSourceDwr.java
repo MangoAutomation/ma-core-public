@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.web.dwr;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
@@ -66,27 +68,24 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      *
      * @return
      */
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult initDataSourceTypes() {
         ProcessResult response = new ProcessResult();
 
         User user = Common.getUser();
 
-        if (user.isDataSourcePermission()) {
-            List<StringStringPair> translatedTypes = new ArrayList<>();
-            for (String type : ModuleRegistry.getDataSourceDefinitionTypes()) {
-                translatedTypes.add(new StringStringPair(type, translate(ModuleRegistry.getDataSourceDefinition(type)
-                        .getDescriptionKey())));
-            }
-            StringStringPairComparator.sort(translatedTypes);
-            response.addData("types", translatedTypes);
-
+        List<StringStringPair> translatedTypes = new ArrayList<>();
+        for (String type : ModuleRegistry.getDataSourceDefinitionTypes()) {
+            translatedTypes.add(new StringStringPair(type, translate(ModuleRegistry.getDataSourceDefinition(type)
+                    .getDescriptionKey())));
         }
+        StringStringPairComparator.sort(translatedTypes);
+        response.addData("types", translatedTypes);
 
         return response;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult getNew(String type) {
         ProcessResult response = new ProcessResult();
         DataSourceVO<?> vo = null;
@@ -119,7 +118,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         return response;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     @Override
     public ProcessResult get(int id) {
         ProcessResult response;
@@ -168,11 +167,17 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         }
         return response;
     }
+    
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
+    @Override
+    public ProcessResult getFull(int id) {
+        return this.getFull(id);
+    }
 
     /**
      * Export Data Source and Points together
      */
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     @Override
     public String jsonExport(int id) {
 
@@ -184,7 +189,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         return EmportDwr.export(data, 3);
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     @Override
     public ProcessResult getCopy(int id) {
 
@@ -207,7 +212,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         return response;
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult finishCopy(int copyFromId, int newId, String deviceName) {
         ProcessResult result = new ProcessResult();
 
@@ -224,7 +229,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      * @param id
      * @return
      */
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public final ProcessResult getGeneralStatusMessages(int id) {
         ProcessResult result = new ProcessResult();
 
@@ -249,7 +254,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      * @param id
      * @return
      */
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public List<EventInstanceBean> getAlarms(int id) {
         DataSourceVO<?> ds = Common.runtimeManager.getDataSource(id);
         List<EventInstanceBean> beans = new ArrayList<>();
@@ -271,7 +276,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      * @param id
      * @return
      */
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult getPollTimes(int id) {
         ProcessResult result = new ProcessResult();
         DataSourceRT ds = Common.runtimeManager.getRunningDataSource(id);
@@ -324,6 +329,40 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         return result;
     }
 
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult load() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataSourceVO<?>> voList = dao.getAll();
+        Iterator<DataSourceVO<?>> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataSourcePermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult loadFull() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataSourceVO<?>> voList = dao.getAllFull();
+        Iterator<DataSourceVO<?>> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataSourcePermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
+    
     /**
      * Load a list of VOs
      *
@@ -332,7 +371,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      * @return
      */
     @Override
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult dojoQuery(Map<String, String> query, List<SortOption> sort, Integer start, Integer count,
             boolean or) {
         ProcessResult response = new ProcessResult();
@@ -366,7 +405,7 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
      * @return
      */
     @SuppressWarnings("unchecked")
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public String jsonExportUsingFilter(Map<String, String> query, List<SortOption> sort, Integer start, Integer count,
             boolean or) {
         Map<String, Object> data = new LinkedHashMap<>();

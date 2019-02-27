@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.dwr;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.ResultsWithTotal;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -63,7 +65,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         LOG = LogFactory.getLog(DataPointDwr.class);
     }
 
-    @DwrPermission(user = true)
+    @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     public ProcessResult getPoints() {
         ProcessResult result = new ProcessResult();
 
@@ -137,6 +139,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         User user = Common.getUser();
 
         if (id == Common.NEW_ID) {
+            Permissions.ensureDataSourcePermission(user);
             vo = dao.getNewVo();
             //TODO Need to sort this out another way, this will wreck 
             // when users have mulitple tabs open in a browser
@@ -153,11 +156,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         }
         else {
             vo = dao.getFull(id);
+            if(vo != null)
+                Permissions.ensureDataSourcePermission(user, vo.getDataSourceId());
         }
 
-        //Should check permissions?
-        //Permissions.ensureDataSourcePermission(user, vo.getDataSourceId());
-        user.setEditPoint(vo);
         //TODO Need to deal with point value defaulter
 
         ProcessResult response = new ProcessResult();
@@ -178,8 +180,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         ProcessResult response = new ProcessResult();
         try {
             DataPointVO dp = dao.get(id);
-            if (dp != null)
+            if (dp != null) {
+                Permissions.ensureDataSourcePermission(Common.getHttpUser(), dp.getDataSourceId());
                 Common.runtimeManager.deleteDataPoint(dp);
+            }
         }
         catch (Exception e) {
             // Handle the exceptions.
@@ -207,11 +211,13 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @Override
     @DwrPermission(user = true)
     public ProcessResult saveFull(DataPointVO vo) { // TODO combine with save()
+        Permissions.ensureDataSourcePermission(Common.getHttpUser(), vo.getDataSourceId());
         ProcessResult response = new ProcessResult();
 
         if (vo.getXid() == null) {
             vo.setXid(dao.generateUniqueXid());
         }
+        
         vo.validate(response);
 
         if (!response.getHasMessages()) {
@@ -263,6 +269,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
 
         //Store the edit point
         DataPointVO editPoint = (DataPointVO) result.getData().get("vo");
+        Permissions.ensureDataSourcePermission(Common.getHttpUser(), editPoint.getDataSourceId());
         editPoint.setId(COPY_ID);
         for(AbstractPointEventDetectorVO<?> aed : editPoint.getEventDetectors()) {
             aed.setId(Common.NEW_ID);
@@ -351,8 +358,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             int purgeType, int purgePeriod, int defaultCacheSize, boolean overrideIntervalLoggingSamples,
             int intervalLoggingSampleWindowSize) {
 
-        DataPointVO dp = Common.getUser().getEditPoint();
+        User user = Common.getUser();
+        DataPointVO dp = user.getEditPoint();
         if (dp != null) {
+            Permissions.ensureDataSourcePermission(user, dp.getDataSourceId());
             dp.setLoggingType(type);
             dp.setIntervalLoggingPeriod(period);
             dp.setIntervalLoggingPeriodType(periodType);
@@ -381,8 +390,10 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @SuppressWarnings("deprecation")
     @DwrPermission(user = true)
     public void storeEditProperties(DataPointVO newDp) {
-        DataPointVO dp = Common.getUser().getEditPoint();
+        User user = Common.getUser();
+        DataPointVO dp = user.getEditPoint();
         if (dp != null) {
+            Permissions.ensureDataSourcePermission(user, dp.getDataSourceId());
             //Do we want the details set here? (The ID Name,XID and Locator are stored via the modules)
             dp.setId(newDp.getId());
             dp.setXid(newDp.getXid());
@@ -516,6 +527,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
      */
     @DwrPermission(user = true)
     public ProcessResult getMostRecentValue(int id) {
+        DataPointVO dp = DataPointDao.getInstance().get(id);
+        Permissions.ensureDataPointReadPermission(Common.getHttpUser(), dp);
         ProcessResult result = new ProcessResult();
 
         if (Common.runtimeManager.isDataPointRunning(id)) {
@@ -579,6 +592,40 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
 
         return response;
     }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult load() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataPointVO> voList = dao.getAll();
+        Iterator<DataPointVO> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataPointReadPermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public ProcessResult loadFull() {
+        ProcessResult response = new ProcessResult();
+        
+        User user = Common.getHttpUser();
+        List<DataPointVO> voList = dao.getAllFull();
+        Iterator<DataPointVO> iter = voList.iterator();
+        while(iter.hasNext()) {
+            if(!Permissions.hasDataPointReadPermission(user, iter.next()))
+                iter.remove();
+        }
+        response.addData("list", voList);
+                
+        return response;
+    }
 
     /**
      * Export VOs based on a filter
@@ -608,6 +655,29 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
         //Get the Full VO for the export
         data.put(keyName, vos);
 
+        return EmportDwr.export(data, 3);
+    }
+    
+    @Override
+    @DwrPermission(user = true)
+    public String jsonExport(int id) {
+        Map<String, Object> data = new LinkedHashMap<String, Object>();
+        List<DataPointVO> vos = new ArrayList<>();
+        //Get the Full VO for the export
+        DataPointVO dpvo = dao.getFull(id);
+        if(dpvo != null)
+            if(!Permissions.hasDataPointReadPermission(Common.getHttpUser(), dpvo))
+                dpvo = null;
+        
+        vos.add(dpvo);
+        data.put(keyName, vos);
+        
+        if (topLevelKeyName != null) {
+            Map<String, Object> topData = new LinkedHashMap<String, Object>();
+            topData.put(topLevelKeyName, data);
+            data = topData;
+        }
+        
         return EmportDwr.export(data, 3);
     }
 
