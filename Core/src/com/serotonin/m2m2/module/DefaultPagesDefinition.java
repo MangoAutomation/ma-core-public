@@ -16,37 +16,86 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Matthew Lohbihler
  */
 abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
-    public static String getDefaultUri(HttpServletRequest request, HttpServletResponse response, User user) {
-        String uri = null;
-
-        if (user == null)
-            uri = getLoginUri(request, response);
-        else {
-            // If this is the first login to the instance by an admin...
-            if (Permissions.hasAdminPermission(user) && SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.NEW_INSTANCE, false)) {
-                // Remove the flag
-            	SystemSettingsDao.instance.removeValue(SystemSettingsDao.NEW_INSTANCE);
-
-                // If there is a page to which to forward, do so. This could be null.
-                uri = DefaultPagesDefinition.getFirstLoginUri(request, response);
-            }else if(Permissions.hasAdminPermission(user) && (SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LICENSE_AGREEMENT_VERSION) != Common.getLicenseAgreementVersion())) {
-                //When a new license version has been released but it is NOT the first login.
-                uri = DefaultPagesDefinition.getAdminLicenseUpgradeLoginUri(request, response);
-            }
-
-            if (uri == null) {
-                if (user.isFirstLogin())
-                    uri = DefaultPagesDefinition.getFirstUserLoginUri(request, response, user);
-                if (StringUtils.isBlank(uri))
-                    uri = DefaultPagesDefinition.getLoggedInUriPreHome(request, response, user);
-                if (StringUtils.isBlank(uri))
-                    uri = user.getHomeUrl();
-                if (StringUtils.isBlank(uri))
-                    uri = DefaultPagesDefinition.getLoggedInUri(request, response, user);
-            }
+    
+    /**
+     * Container for login URI info
+     * @author Terry Packer
+     *
+     */
+    public static class LoginUriInfo {
+        
+        //Default uri for a user to login to
+        private String uri;
+        //Does this URI need to be accessed to update a license agreement or other setting
+        private boolean required;
+        
+        public String getUri() {
+            return uri;
+        }
+        
+        public void setUri(String uri) {
+            this.uri = uri;
+        }
+        
+        public boolean isRequired() {
+            return required;
         }
 
-        return uri;
+        public void setRequired(boolean required) {
+            this.required = required;
+        }
+        
+    }
+    
+    
+    public static LoginUriInfo getDefaultUriInfo(HttpServletRequest request, HttpServletResponse response, User user) {
+        
+        LoginUriInfo info = new LoginUriInfo();
+        
+        if (user == null)
+            info.uri = getLoginUri(request, response);
+        else {
+            // If this is the first login to the instance by an admin...
+            if (Permissions.hasAdminPermission(user) && SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.NEW_INSTANCE)) {
+                // Remove the flag
+                SystemSettingsDao.instance.removeValue(SystemSettingsDao.NEW_INSTANCE);
+
+                // If there is a page to which to forward, do so. This could be null.
+                info.uri = DefaultPagesDefinition.getFirstLoginUri(request, response);
+                info.required = true;
+                
+            }else if(Permissions.hasAdminPermission(user) && (SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LICENSE_AGREEMENT_VERSION) != Common.getLicenseAgreementVersion())) {
+                //When a new license version has been released but it is NOT the first login.
+                info.uri = DefaultPagesDefinition.getAdminLicenseUpgradeLoginUri(request, response);
+                info.required = true;
+            }
+
+            if (info.uri == null) {
+                if (user.isFirstLogin())
+                    info.uri = DefaultPagesDefinition.getFirstUserLoginUri(request, response, user);
+                if (StringUtils.isBlank(info.uri))
+                    info.uri = DefaultPagesDefinition.getLoggedInUriPreHome(request, response, user);
+                if (StringUtils.isBlank(info.uri))
+                    info.uri = user.getHomeUrl();
+                if (StringUtils.isBlank(info.uri))
+                    info.uri = DefaultPagesDefinition.getLoggedInUri(request, response, user);
+            }
+        }
+        
+        return info;
+    }
+    
+    /**
+     * Deprecated, to be removed with legacy UI.
+     * @param request
+     * @param response
+     * @param user
+     * @return
+     */
+    @Deprecated
+    public static String getDefaultUri(HttpServletRequest request, HttpServletResponse response, User user) {
+        LoginUriInfo info = getDefaultUriInfo(request, response, user);
+        return info.uri;
     }
 
     public static String getUnauthorizedUri(HttpServletRequest request, HttpServletResponse response, User user) {
