@@ -250,7 +250,8 @@ public class SystemSettingsDao extends BaseDao {
         }
 
     }
-
+    
+    @Deprecated
     public String getValue(String key, String defaultValue) {
         String result = cache.computeIfAbsent(key, (k) -> {
             return new BaseDao().queryForObject("select settingValue from systemSettings where settingName=?",
@@ -271,6 +272,7 @@ public class SystemSettingsDao extends BaseDao {
         return getIntValue(key, defaultValue);
     }
 
+    @Deprecated
     public int getIntValue(String key, int defaultValue) {
         String value = getValue(key, null);
         if (value == null)
@@ -290,6 +292,7 @@ public class SystemSettingsDao extends BaseDao {
         return getBooleanValue(key, defaultValue);
     }
 
+    @Deprecated
     public boolean getBooleanValue(String key, boolean defaultValue) {
         String value = getValue(key, null);
         if (value == null)
