@@ -11,10 +11,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.script.CompiledScript;
 
@@ -353,14 +355,19 @@ public class EventHandlersDwr extends BaseDwr {
         vo.setDisabled(disabled);
 
         //Load in all types and add our new one
-        vo.setEventTypes(EventHandlerDao.getInstance().getEventTypesForHandler(vo.getId()));
-        vo.getEventTypes().add(type);
+        Set<EventType> types = new HashSet<>(EventHandlerDao.getInstance().getEventTypesForHandler(vo.getId()));
+        types.add(type);
+        vo.setEventTypes(new ArrayList<>(types));
         
         ProcessResult response = new ProcessResult();
         vo.validate(response);
 
         if (!response.getHasMessages()) {
-            EventHandlerDao.getInstance().saveFull(vo);
+            if(handlerId == Common.NEW_ID)
+                EventHandlerDao.getInstance().insert(vo, true);
+            else {
+                EventHandlerDao.getInstance().update(EventHandlerDao.getInstance().get(handlerId), vo, true);
+            }
             response.addData("handler", vo);
         }
 
