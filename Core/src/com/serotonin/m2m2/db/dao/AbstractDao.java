@@ -223,9 +223,9 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     }
 
     /**
-     * 
+     * Insert a vo with optionally saving its relational data in a transaction.
+     * Audit and Dao Events are fired after the relational data save.
      * @param vo
-     * @param initiatorId
      * @param full
      */
     public void insert(T vo, boolean full) {
@@ -267,10 +267,10 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     }
 
     /**
-     * 
+     * Update a vo with optionally saving its relational data in a transaction.
+     * Audit and Dao Events are fired after the relational data save.
      * @param existing
      * @param vo
-     * @param initiatorId
      * @param full
      */
     public void update(T existing, T vo, boolean full) {

@@ -541,17 +541,26 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     /**
      * Save a VO AND its FKs
      *
+     * Deprecated for preferred use of 
+     *   com.serotonin.m2m2.db.dao.AbstractDao.insert(T vo, boolean full)
+     *    or
+     *   com.serotonin.m2m2.db.dao.AbstractDao.update(T existing, T vo, boolean full)
      * @param vo
      */
+    @Deprecated
     public void saveFull(T vo) {
         saveFull(vo, null);
     }
 
     /**
      * Save a VO AND its FKs inside a transaction
-     *
+     * Deprecated for preferred use of 
+     *   com.serotonin.m2m2.db.dao.AbstractDao.insert(T vo, boolean full)
+     *    or
+     *   com.serotonin.m2m2.db.dao.AbstractDao.update(T existing, T vo, boolean full)
      * @param vo
      */
+    @Deprecated
     public void saveFull(T vo, String initiatorId) {
         getTransactionTemplate().execute(status -> {
             boolean insert = vo.getId() == Common.NEW_ID;

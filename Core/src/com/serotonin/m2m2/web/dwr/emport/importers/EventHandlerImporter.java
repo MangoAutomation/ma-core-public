@@ -84,8 +84,14 @@ public class EventHandlerImporter extends Importer {
             else {
                 // Sweet.
                 boolean isnew = handler.getId() == Common.NEW_ID;
+                if(isnew) {
+                    ctx.getEventHandlerDao().insert(handler, true);
+                }else {
+                    AbstractEventHandlerVO<?> existing = ctx.getEventHandlerDao().getEventHandler(xid);
+                    ctx.getEventHandlerDao().update(existing, handler, true);
+                }
                 // Save it.
-                ctx.getEventHandlerDao().saveFull(handler);
+                
                 addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
             }
         }

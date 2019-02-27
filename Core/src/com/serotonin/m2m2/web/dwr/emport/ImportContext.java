@@ -20,6 +20,7 @@ import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
 public class ImportContext {
     private final UserDao userDao = UserDao.getInstance();
@@ -28,7 +29,7 @@ public class ImportContext {
     private final EventDao eventDao = EventDao.getInstance();
     private final MailingListDao mailingListDao = MailingListDao.getInstance();
     private final PublisherDao publisherDao = PublisherDao.getInstance();
-    private final EventHandlerDao eventHandlerDao = EventHandlerDao.getInstance();
+    private final EventHandlerDao<AbstractEventHandlerVO<?>> eventHandlerDao = EventHandlerDao.getInstance();
 
     private final JsonReader reader;
     private final ProcessResult result;
@@ -80,7 +81,7 @@ public class ImportContext {
 	/**
 	 * @return
 	 */
-	public EventHandlerDao getEventHandlerDao() {
+	public EventHandlerDao<AbstractEventHandlerVO<?>> getEventHandlerDao() {
 		return eventHandlerDao;
 	}
 
