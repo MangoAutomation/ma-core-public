@@ -31,7 +31,6 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	private final String OK = "OK";
 	private final String UNRELIABLE = "UNRELIABLE";
 	
-	//private static final Log LOG = LogFactory.getLog(RealTimeDataPointValue.class);
 	public static String[] headers = {"deviceName","pointName","pointValue", "unit","renderedValue","timestamp","pointType","status","path","xid"};
 
 	DataPointVO vo;
@@ -43,7 +42,6 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	    this.vo = DataPointDao.getInstance().getDataPoint(summary.getId(), false);
         this.rt = Common.runtimeManager.getDataPoint(summary.getId());
 		Common.runtimeManager.addDataPointListener(summary.getId(), this);
-
 		
 		//Set the path to the point
         this.path = "/";
@@ -55,9 +53,11 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	public String getDeviceName(){
 		return vo.getDeviceName();
 	}
+	
 	public String getPointName(){
 		return vo.getName();
 	}
+	
 	/**
 	 * Get the rendered value
 	 * @return
@@ -81,7 +81,6 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		else
 			return null;
 	}
-	
 	
 	public String getPointType(){
 		return vo.getPointLocator().getDataTypeMessage().translate(Common.getTranslations());
@@ -150,7 +149,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
         }else {
             Map<String, String> tags = DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId());
             vo.setTags(tags);
-            return vo.getTags();
+            return tags;
         }
     }
 	
@@ -183,57 +182,35 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		writer.writeEntry("tags", getTags());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointInitialized()
-	 */
 	@Override
 	public void pointInitialized() {
 		this.rt = Common.runtimeManager.getDataPoint(vo.getId());
+		this.vo = rt.getVO();
 		
 	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointTerminated()
-	 */
+
 	@Override
 	public void pointTerminated() {
 		this.rt = null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointUpdated(com.serotonin.m2m2.rt.dataImage.PointValueTime)
-	 */
 	@Override
 	public void pointUpdated(PointValueTime newValue) { }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointChanged(com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.PointValueTime)
-	 */
 	@Override
 	public void pointChanged(PointValueTime oldValue, PointValueTime newValue) { }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointSet(com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.PointValueTime)
-	 */
 	@Override
 	public void pointSet(PointValueTime oldValue, PointValueTime newValue) { }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointBackdated(com.serotonin.m2m2.rt.dataImage.PointValueTime)
-	 */
 	@Override
 	public void pointBackdated(PointValueTime value) { }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#getListenerName()
-	 */
 	@Override
 	public String getListenerName() {
 		return "RealTimeData: " + getXid(); 
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.DataPointListener#pointLogged(com.serotonin.m2m2.rt.dataImage.PointValueTime)
-	 */
+
 	@Override
 	public void pointLogged(PointValueTime value) { }	
 	

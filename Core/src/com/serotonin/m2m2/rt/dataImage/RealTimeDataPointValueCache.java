@@ -170,11 +170,6 @@ public class RealTimeDataPointValueCache {
 
         private SortOption sort;
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-         */
         @SuppressWarnings("unchecked")
         @Override
         public int compare(RealTimeDataPointValue o1, RealTimeDataPointValue o2) {

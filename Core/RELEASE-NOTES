@@ -16,6 +16,8 @@
 * Add publisher control to RuntimeManager script utility
 * Upgrade Apache POI to 4.0.1 for Excel file generation
 * Upgrade Spring Framework to 5.1.5
+* Fix bug in RealTimeDataPointValueCache where tags/permissions could become out of sync with the database during point save/restarts
+* Fix bug in RealTimeDataPointValueCache where the data source permission was not checked to see if a User has access to see the point
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
