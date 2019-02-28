@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.ftl;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -10,7 +12,10 @@ import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Before;
+import org.junit.Test;
 
 import freemarker.cache.TemplateLoader;
 import freemarker.core.ParseException;
@@ -28,15 +33,19 @@ import freemarker.template.Version;
  */
 public class FreemarkerTemplateTest {
 
+    protected final String dateFormatTemplateName = "dateFormatExample";
+    protected final String listExampleTemplateName = "listExample";
+    
     protected Map<String, String> templateStore = new HashMap<>();
     
     @Before
     public void setup() {
-        templateStore.put("listExample", "<#list tags?keys as key> m${key} = ${tags[key]} </#list>");
-        templateStore.put("dateFormatExample", "${time?number_to_datetime?iso_local}");
+        templateStore.put(listExampleTemplateName, "<#list tags?keys as key> ${key} = ${tags[key]} </#list>");
+        templateStore.put(dateFormatTemplateName, "${time?number_to_datetime?iso_utc_ms}");
     }
     
-    public void testSimpleLogic() throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+    @Test
+    public void testDateFormat() throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
         Version version = new Version("2.3.23");
         Configuration cfg = new Configuration(version);
         cfg.setTemplateLoader(new TemplateLoader() {
@@ -58,26 +67,67 @@ public class FreemarkerTemplateTest {
 
             @Override
             public void closeTemplateSource(Object templateSource) throws IOException {
-                // TODO Auto-generated method stub
                 
             }
             
         });
         cfg.setObjectWrapper(new DefaultObjectWrapper(version));
-        Template test = cfg.getTemplate("dateFormatTest");
+        Template test = cfg.getTemplate(dateFormatTemplateName);
         
         Map<String, Object> model = new HashMap<>();
-        model.put("test", "Test String");
+        
+        long time = System.currentTimeMillis();
+        model.put("time", time);
+        StringWriter out = new StringWriter();
+        test.process(model, out);
+        String output = out.toString();
+        
+        String expected = new DateTime(time, DateTimeZone.UTC).toString();
+        assertEquals(expected, output);
+    }
+    
+    @Test
+    public void testList() throws TemplateNotFoundException, MalformedTemplateNameException, ParseException, IOException, TemplateException {
+        Version version = new Version("2.3.23");
+        Configuration cfg = new Configuration(version);
+        cfg.setTemplateLoader(new TemplateLoader() {
+
+            @Override
+            public Object findTemplateSource(String name) throws IOException {
+                return templateStore.get(name);
+            }
+
+            @Override
+            public long getLastModified(Object templateSource) {
+                return 0;
+            }
+
+            @Override
+            public Reader getReader(Object templateSource, String encoding) throws IOException {
+                return new StringReader((String)templateSource);
+            }
+
+            @Override
+            public void closeTemplateSource(Object templateSource) throws IOException {
+                
+            }
+            
+        });
+        cfg.setObjectWrapper(new DefaultObjectWrapper(version));
+        Template test = cfg.getTemplate(listExampleTemplateName);
+        
+        Map<String, Object> model = new HashMap<>();
         
         Map<String,String> tags = new HashMap<>();
         tags.put("tag1", "value1");
         tags.put("tag2", "value2");
         model.put("tags", tags);
         
-        model.put("time", System.currentTimeMillis());
         StringWriter out = new StringWriter();
         test.process(model, out);
-        System.out.println(out.toString());
+        String output = out.toString();
+        String expected = " tag1 = value1  tag2 = value2 ";
+        assertEquals(expected, output);
     }
     
 }
