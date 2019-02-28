@@ -72,8 +72,6 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
     public ProcessResult initDataSourceTypes() {
         ProcessResult response = new ProcessResult();
 
-        User user = Common.getUser();
-
         List<StringStringPair> translatedTypes = new ArrayList<>();
         for (String type : ModuleRegistry.getDataSourceDefinitionTypes()) {
             translatedTypes.add(new StringStringPair(type, translate(ModuleRegistry.getDataSourceDefinition(type)
@@ -124,11 +122,20 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
         ProcessResult response;
         try {
             if (id > 0) {
-                response = super.get(id);
+                DataSourceVO<?> vo;
+                
+                if(id == Common.NEW_ID){
+                    vo = dao.getNewVo();
+                }else{
+                    vo = dao.get(id);
+                }
+                response = new ProcessResult();
+                response.addData("vo", vo);
+                
                 //Kludge for modules to be able to use a default edit point for some of their tools (Bacnet for example needs this for adding lots of points)
                 //This is an issue for opening AllDataPoints Point because it opens the Datasource too.
                 //TODO to fix this we need to fix DataSourceEditDwr to not save the editing DataPoint state in the User, this will propogate into existing modules...
-                DataSourceVO<?> vo = (DataSourceVO<?>) response.getData().get("vo");
+                
 
                 //Quick fix to ensure we don't keep the edit point around if we have switched data sources
                 if ((Common.getUser().getEditPoint() == null)
@@ -171,9 +178,19 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
     @DwrPermission(custom = SystemSettingsDao.PERMISSION_DATASOURCE)
     @Override
     public ProcessResult getFull(int id) {
-        return this.getFull(id);
+        DataSourceVO<?> vo;
+    
+        if(id == Common.NEW_ID){
+            vo = dao.getNewVo();
+        }else{
+            vo = dao.getFull(id);
+        }
+        ProcessResult response = new ProcessResult();
+        response.addData("vo", vo);
+        
+        return response;
     }
-
+    
     /**
      * Export Data Source and Points together
      */
