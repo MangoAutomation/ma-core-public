@@ -599,10 +599,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                     if(!result.isValid()) {
                         response.addContextualMessage("password", "common.default", Joiner.on(",").join(validator.getMessages(result)));
                     }
-                }else {
-                    //This is a hashed password so we are assuming it wasn't changed, if it is then its invalid
-                    if(existing != null && Common.checkPassword(hashOrPassword, existing.getPassword(), true))
-                        response.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
                 }
             }
         }
