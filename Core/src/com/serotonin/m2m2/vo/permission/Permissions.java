@@ -92,20 +92,32 @@ public class Permissions {
     // Data source admin
     //
     public static void ensureDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
-        ensureDataSourcePermission(user, DataSourceDao.getInstance().get(dsId));
+        try {
+            ensureDataSourcePermission(user);
+        }catch(PermissionException e) {
+            ensureDataSourcePermission(user, DataSourceDao.getInstance().get(dsId));
+        }
     }
 
     public static void ensureDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
-        if (!hasDataSourcePermission(user, ds))
-            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
+        try {
+            ensureDataSourcePermission(user);
+        }catch(PermissionException e) {
+            if (!hasDataSourcePermission(user, ds))
+                throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
+        }
     }
 
     public static boolean hasDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
+        if(hasDataSourcePermission(user))
+            return true;
         String dsPermission = DataSourceDao.getInstance().getEditPermission(dsId);
         return hasAnyPermission(user, explodePermissionGroups(dsPermission));
     }
 
     public static boolean hasDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
+        if(hasDataSourcePermission(user))
+            return true;
         return hasAnyPermission(user, explodePermissionGroups(ds.getEditPermission()));
     }
 
