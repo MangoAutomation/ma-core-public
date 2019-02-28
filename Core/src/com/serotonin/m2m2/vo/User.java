@@ -582,15 +582,27 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                 if ((PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
                     response.addMessage("password", new TranslatableMessage("validate.required"));
                 }
-
+                
+                //Leverage the cache to get the user to compare passwords
+                User existing = UserDao.getInstance().getUser(username);
+                
                 //Validate against our rules
                 if (PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)){
+
+                    //Can't use same one 2x
+                    if(existing != null && Common.checkPassword(hashOrPassword, existing.getPassword(), false))
+                        response.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
+                    
                     PasswordValidator validator = new PasswordValidator(Arrays.asList(
                             new LengthRule(8, 255)));
                     RuleResult result = validator.validate(new PasswordData(hashOrPassword));
                     if(!result.isValid()) {
                         response.addContextualMessage("password", "common.default", Joiner.on(",").join(validator.getMessages(result)));
                     }
+                }else {
+                    //This is a hashed password so we are assuming it wasn't changed, if it is then its invalid
+                    if(existing != null && Common.checkPassword(hashOrPassword, existing.getPassword(), true))
+                        response.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
                 }
             }
         }
