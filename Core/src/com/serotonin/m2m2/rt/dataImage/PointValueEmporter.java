@@ -215,16 +215,16 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 			case DataTypes.BINARY:
 				
 				switch(cell.getCellType()){
-					case Cell.CELL_TYPE_BOOLEAN:
+					case BOOLEAN:
 						dataValue = new BinaryValue(new Boolean(cell.getBooleanCellValue()));
 					break;
-					case Cell.CELL_TYPE_NUMERIC:
+					case NUMERIC:
 						if(cell.getNumericCellValue() == 0)
 							dataValue = new BinaryValue(new Boolean(false));
 						else
 							dataValue = new BinaryValue(new Boolean(true));
 					break;	
-					case Cell.CELL_TYPE_STRING:
+					case STRING:
 						if(cell.getStringCellValue().equalsIgnoreCase("false"))
 							dataValue = new BinaryValue(new Boolean(false));
 						else

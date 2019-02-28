@@ -436,7 +436,7 @@ public class SpreadsheetEmporter {
      * @throws SpreadsheetException
      */
     private String readStringCell(Integer rowNum, Cell cell) throws SpreadsheetException {
-        if (cell == null || cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+        if (cell == null || cell.getCellType() == org.apache.poi.ss.usermodel.CellType.BLANK) {
             return null;
         }
         
@@ -459,7 +459,7 @@ public class SpreadsheetEmporter {
             throw new SpreadsheetException(rowNum,"emport.spreadsheet.notNumberGeneric");
         }
         
-        if (cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+        if (cell.getCellType() == org.apache.poi.ss.usermodel.CellType.BLANK) {
             throw new SpreadsheetException(rowNum,"emport.spreadsheet.notNumber", new CellReference(cell).formatAsString());
         }
         
@@ -487,7 +487,7 @@ public class SpreadsheetEmporter {
             throw new SpreadsheetException(rowNum,"emport.spreadsheet.notNumberGeneric");
         }
         
-        if (cell.getCellType() == Cell.CELL_TYPE_BLANK) {
+        if (cell.getCellType() == org.apache.poi.ss.usermodel.CellType.BLANK) {
             throw new SpreadsheetException(rowNum,"emport.spreadsheet.notDate", new CellReference(cell).formatAsString());
         }
         
@@ -567,7 +567,7 @@ public class SpreadsheetEmporter {
     public boolean isRowEmpty(Row row) {
         for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
             Cell cell = row.getCell(c);
-            if (cell != null && cell.getCellType() != Cell.CELL_TYPE_BLANK)
+            if (cell != null && cell.getCellType() != org.apache.poi.ss.usermodel.CellType.BLANK)
                 return false;
         }
         return true;
