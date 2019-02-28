@@ -44,10 +44,15 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         public void setRequired(boolean required) {
             this.required = required;
         }
-        
     }
-    
-    
+
+    /**
+     * Get the information about the default login URI for a user
+     * @param request
+     * @param response
+     * @param user
+     * @return
+     */
     public static LoginUriInfo getDefaultUriInfo(HttpServletRequest request, HttpServletResponse response, User user) {
         
         LoginUriInfo info = new LoginUriInfo();
