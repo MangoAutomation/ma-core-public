@@ -7,7 +7,7 @@
  <packaging>pom</packaging>
  <properties>
   <jettyVersion>9.4.12.v20180830</jettyVersion>
-  <springVersion>5.0.10.RELEASE</springVersion>
+  <springVersion>5.1.5.RELEASE</springVersion>
   <springSecurityVersion>5.0.9.RELEASE</springSecurityVersion>
   <log4jVersion>2.10.0</log4jVersion>
   <jacksonVersion>2.9.5</jacksonVersion>
