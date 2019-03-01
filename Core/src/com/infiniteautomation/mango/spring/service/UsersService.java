@@ -13,9 +13,11 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionDetails;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -206,7 +208,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     public boolean hasEditPermission(PermissionHolder user, User vo) {
         if(user.hasAdminPermission())
             return true;
-        else if(user.getPermissionHolderId() == vo.getId())
+        else if(user.getPermissionHolderId() == vo.getId() && Permissions.hasAnyPermission(user, Permissions.explodePermissionGroups(SystemSettingsDao.instance.getValue(UserEditSelfPermission.PERMISSION))))
             return true;
         else
             return false;

@@ -35,11 +35,17 @@ public class Upgrade26 extends DBUpgrade {
     
     private String[] sql = new String[]{
             "ALTER TABLE mailingLists ADD COLUMN readPermission varchar(255);",
-            "ALTER TABLE mailingLists ADD COLUMN editPermission varchar(255);"
+            "ALTER TABLE mailingLists ADD COLUMN editPermission varchar(255);",
+            "ALTER TABLE users ADD COLUMN sessionExpirationOverride char(1);",
+            "ALTER TABLE users ADD COLUMN sessionExpirationPeriods int;",
+            "ALTER TABLE users ADD COLUMN sessionExpirationPeriodType varchar(25);",
     };
     
     private String[] mssql = new String[]{
             "ALTER TABLE mailingLists ADD COLUMN readPermission nvarchar(255);",
-            "ALTER TABLE mailingLists ADD COLUMN editPermission nvarchar(255);"
+            "ALTER TABLE mailingLists ADD COLUMN editPermission nvarchar(255);",
+            "ALTER TABLE users ADD COLUMN sessionExpirationOverride char(1);",
+            "ALTER TABLE users ADD COLUMN sessionExpirationPeriods int;",
+            "ALTER TABLE users ADD COLUMN sessionExpirationPeriodType nvarchar(25);",
     };
 }

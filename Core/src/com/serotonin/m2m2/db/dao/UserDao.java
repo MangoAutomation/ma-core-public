@@ -125,6 +125,9 @@ public class UserDao extends AbstractDao<User> {
             user.setTokenVersion(rs.getInt(++i));
             user.setPasswordVersion(rs.getInt(++i));
             user.setPasswordChangeTimestamp(rs.getLong(++i));
+            user.setSessionExpirationOverride(charToBool(rs.getString(++i)));
+            user.setSessionExpirationPeriods(rs.getInt(++i));
+            user.setSessionExpirationPeriodType(rs.getString(++i));
             return user;
         }
     }
@@ -150,8 +153,10 @@ public class UserDao extends AbstractDao<User> {
     }
 
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
-            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, name, locale, tokenVersion, passwordVersion, passwordChangeTimestamp) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, " //
+            + "name, locale, tokenVersion, passwordVersion, passwordChangeTimestamp, " //
+            + "sessionExpirationOverride, sessionExpirationPeriods, sessionExpirationPeriodType) " //
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
         int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
@@ -165,11 +170,12 @@ public class UserDao extends AbstractDao<User> {
                                 boolToChar(user.isDisabled()), user.getHomeUrl(),
                                 user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                                 boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
-                                user.getPasswordVersion(), user.getPasswordChangeTimestamp()},
+                                user.getPasswordVersion(), user.getPasswordChangeTimestamp(), boolToChar(user.isSessionExpirationOverride()), 
+                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType()},
                         new int[] { Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BIGINT}
+                                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BIGINT, Types.CHAR, Types.INTEGER, Types.VARCHAR}
                         );
             }
         });
@@ -183,7 +189,8 @@ public class UserDao extends AbstractDao<User> {
 
     private static final String USER_UPDATE = "UPDATE users SET " //
             + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
-            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=?, passwordVersion=?, passwordChangeTimestamp=?" //
+            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=?, passwordVersion=?, passwordChangeTimestamp=?," //
+            + " sessionExpirationOverride=?, sessionExpirationPeriods=?, sessionExpirationPeriodType=? "
             + " WHERE id=?";
 
     void updateUser(User user) {
@@ -225,10 +232,13 @@ public class UserDao extends AbstractDao<User> {
                                     boolToChar(user.isDisabled()), user.getHomeUrl(),
                                     user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()),
                                     user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
-                                    user.getPasswordVersion(), user.getPasswordChangeTimestamp(), user.getId() },
+                                    user.getPasswordVersion(), user.getPasswordChangeTimestamp(), 
+                                    boolToChar(user.isSessionExpirationOverride()), user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
+                                    user.getId() },
                             new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                     Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                    Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT, Types.INTEGER }
+                                    Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT,
+                                    Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.INTEGER}
                             );
 
                     return old;
@@ -426,7 +436,10 @@ public class UserDao extends AbstractDao<User> {
                 vo.getLocale(),
                 vo.getTokenVersion(),
                 vo.getPasswordVersion(),
-                vo.getPasswordChangeTimestamp()
+                vo.getPasswordChangeTimestamp(),
+                vo.isSessionExpirationOverride(),
+                vo.getSessionExpirationPeriods(),
+                vo.getSessionExpirationPeriodType()
         };
     }
 
@@ -463,7 +476,9 @@ public class UserDao extends AbstractDao<User> {
         map.put("tokenVersion", Types.INTEGER);
         map.put("passwordVersion", Types.INTEGER);
         map.put("passwordChangeTimestamp", Types.BIGINT);
-
+        map.put("sessionExpirationOverride", Types.CHAR);
+        map.put("sessionExpirationPeriods", Types.INTEGER);
+        map.put("sessionExpirationPeriodType", Types.VARCHAR);
         return map;
     }
 

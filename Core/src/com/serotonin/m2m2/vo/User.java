@@ -102,6 +102,12 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private int tokenVersion;
     private int passwordVersion;
     private long passwordChangeTimestamp;
+    @JsonProperty
+    private boolean sessionExpirationOverride;
+    @JsonProperty
+    private int sessionExpirationPeriods;
+    @JsonProperty
+    private String sessionExpirationPeriodType;
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -550,12 +556,33 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isEnabled()
-     */
     @Override
     public boolean isEnabled() {
         return !this.disabled;
+    }
+
+    public boolean isSessionExpirationOverride() {
+        return sessionExpirationOverride;
+    }
+
+    public void setSessionExpirationOverride(boolean sessionExpirationOverride) {
+        this.sessionExpirationOverride = sessionExpirationOverride;
+    }
+
+    public int getSessionExpirationPeriods() {
+        return sessionExpirationPeriods;
+    }
+
+    public void setSessionExpirationPeriods(int sessionExpirationPeriods) {
+        this.sessionExpirationPeriods = sessionExpirationPeriods;
+    }
+
+    public String getSessionExpirationPeriodType() {
+        return sessionExpirationPeriodType;
+    }
+
+    public void setSessionExpirationPeriodType(String sessionExpirationPeriodType) {
+        this.sessionExpirationPeriodType = sessionExpirationPeriodType;
     }
 
     @Override
@@ -629,7 +656,21 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                 }
             }
         }
-
+        
+        if(sessionExpirationOverride) {
+            //TODO Pass in saving user during validation
+            User savingUser = Common.getHttpUser();
+            if(savingUser == null)
+                savingUser = Common.getBackgroundContextUser();
+            if(savingUser == null || !savingUser.hasAdminPermission()) {
+                response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
+            }else {
+                if (-1 == Common.TIME_PERIOD_CODES.getId(sessionExpirationPeriodType, Common.TimePeriods.MILLISECONDS))
+                    response.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
+                if(sessionExpirationPeriods <= 0)
+                    response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
+            }
+        }
     }
 
     @Override

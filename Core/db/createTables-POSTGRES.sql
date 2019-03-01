@@ -46,6 +46,9 @@ CREATE TABLE users (
   tokenVersion integer NOT NULL,
   passwordVersion integer NOT NULL,
   passwordChangeTimestamp bigint NOT NULL,
+  sessionExpirationOverride char(1),
+  sessionExpirationPeriods int,
+  sessionExpirationPeriodType varchar(25),
   PRIMARY KEY (id)
 );
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE (username);

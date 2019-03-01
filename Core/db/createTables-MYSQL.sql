@@ -49,6 +49,9 @@ create table users (
   tokenVersion int not null,
   passwordVersion int not null,
   passwordChangeTimestamp bigint NOT NULL,
+  sessionExpirationOverride char(1),
+  sessionExpirationPeriods int,
+  sessionExpirationPeriodType varchar(25),
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);

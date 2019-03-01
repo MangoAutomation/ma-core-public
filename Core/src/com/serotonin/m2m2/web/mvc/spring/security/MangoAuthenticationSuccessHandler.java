@@ -8,6 +8,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,6 +22,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.module.DefaultPagesDefinition.LoginUriInfo;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
 
@@ -49,7 +51,8 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
         String url = super.determineTargetUrl(request, response);
         if (url == null || url.equals(this.getDefaultTargetUrl())) {
             User user = Common.getHttpUser();
-            return DefaultPagesDefinition.getDefaultUri(request, response, user);
+            LoginUriInfo info = DefaultPagesDefinition.getDefaultUriInfo(request, response, user);
+            return info.getUri();
         }
         return url;
     }
@@ -63,7 +66,13 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         User user = (User) authentication.getPrincipal();
-
+        
+        //Set the per-user session timeout 
+        if(user.isSessionExpirationOverride()) {
+            HttpSession session = request.getSession(false);
+            session.setMaxInactiveInterval((int)(Common.getMillis(Common.TIME_PERIOD_CODES.getId(user.getSessionExpirationPeriodType()), user.getSessionExpirationPeriods())/1000L));
+        }
+        
         for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
             def.authenticationSuccess(authentication, user);
         }
