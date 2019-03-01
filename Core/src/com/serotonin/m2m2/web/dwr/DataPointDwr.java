@@ -159,8 +159,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             if(vo != null)
                 Permissions.ensureDataSourcePermission(user, vo.getDataSourceId());
         }
-
-        //TODO Need to deal with point value defaulter
+        
+        user.setEditPoint(vo);
 
         ProcessResult response = new ProcessResult();
         response.addData("vo", vo);
