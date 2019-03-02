@@ -58,8 +58,12 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             return;
         }
 
-        if (user.hasAdminPermission())
+        if (user.hasAdminPermission() && permissionsSet != null) {
+            //Clean spaces
+            String clean = Permissions.implodePermissionGroups(permissionsSet);
+            permissionsSet = Permissions.explodePermissionGroups(clean);
             return;
+        }
 
         if(this.permissionsSet != null) {
             // If superadmin then fine or if not then only allow my groups
@@ -72,8 +76,12 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     }
 
     public void validate(ProcessResult response, User user, ScriptPermissions oldPermissions) {
-        if (user.hasAdminPermission())
+        if (user.hasAdminPermission() && permissionsSet != null) {
+            //Clean spaces
+            String clean = Permissions.implodePermissionGroups(permissionsSet);
+            permissionsSet = Permissions.explodePermissionGroups(clean);
             return;
+        }
 
         Set<String> nonUserPre = Permissions.findInvalidPermissions(user, oldPermissions.getPermissions());
         Set<String> nonUserPost = Permissions.findInvalidPermissions(user, this.getPermissions());
