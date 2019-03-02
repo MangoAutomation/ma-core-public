@@ -138,7 +138,8 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      */
     public Set<String> getUserGroups(List<String> exclude, PermissionHolder user) {
         Set<String> groups = new TreeSet<>();
-        
+        //All users have this role
+        groups.add(Permissions.USER_DEFAULT);
         if(user.hasAdminPermission()) {
             for (User u : UserDao.getInstance().getActiveUsers())
                 groups.addAll(Permissions.explodePermissionGroups(u.getPermissions()));
