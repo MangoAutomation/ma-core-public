@@ -4,84 +4,82 @@
 package com.serotonin.m2m2.rt.publish;
 
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 /**
- * TODO Mango 3.6 stop extending PublishQueue and fix PublisherRT.  This structure should be 
- * constrained on size to the number of published points.
  * 
- * The next question is if we really want to order this data structure, the queue was previously
- * ordered on insertion but this map is not.
- * 
- * What we really want to do to ensure that the attributes are sent is to be able to add failed attributes back
- * into this data structure on the condition that there were no new updates to the same point's attributes in this 
- * data structure while they were removed.  A sort of 'add if missing' type method.   
+ * This queue is thread safe and backed by an ordered map of attributes to PublishedPointVO
  * 
  * @author Terry Packer
  *
  */
-public class AttributePublishQueue<T extends PublishedPointVO> extends PublishQueue<T, Map<String,Object>> {
+public class AttributePublishQueue<T extends PublishedPointVO> {
 
-    //TODO keep keys as integer, values as PublishQueueEntry
-    protected ConcurrentHashMap<Integer, PublishQueueEntry<T, Map<String, Object>>> attributesToBePublished;
+    protected final ReadWriteLock lock = new ReentrantReadWriteLock();
+    protected final LinkedHashMap<Integer, PublishQueueEntry<T, Map<String, Object>>> attributesToBePublished;
     
-    /**
-     * @param owner
-     * @param warningSize
-     * @param discardSize
-     */
-    public AttributePublishQueue(PublisherRT<T> owner, int warningSize, int discardSize) {
-        super(owner, warningSize, discardSize);
-        this.attributesToBePublished = new ConcurrentHashMap<>();
+    public AttributePublishQueue(int initialSize) {
+        this.attributesToBePublished = new LinkedHashMap<>(initialSize);
     }
 
     public void add(T vo, Map<String,Object> value) {
         attributesToBePublished.put(vo.getDataPointId(), new PublishQueueEntry<T, Map<String, Object>>(vo, value));
     }
-
-    public void add(T vo, List<Map<String,Object>> value) {
-        throw new ShouldNeverHappenException("Unimplemented");
+    
+    /**
+     * Re-add the attributes to the queue if an entry for this vo does not already exist.  
+     *  This is used when the attributes didn't get published and potentially an attribute update
+     *  happened while they were out of this structure.
+     *  
+     * @param entry
+     */
+    public void attributePublishFailed(PublishQueueEntry<T,Map<String,Object>> entry) {
+        lock.writeLock().lock();
+        try {
+            attributesToBePublished.computeIfAbsent(entry.getVo().getDataPointId(), k -> entry);
+        }finally {
+            lock.writeLock().unlock();
+        }
     }
 
+    /**
+     * Remove the next item from the queue
+     * @return
+     */
     public PublishQueueEntry<T,Map<String,Object>> next() {
-        Iterator<Entry<Integer ,PublishQueueEntry<T, Map<String, Object>>>> iter = attributesToBePublished.entrySet().iterator();
-        if(!iter.hasNext())
-            return null;
-        Entry<Integer, PublishQueueEntry<T, Map<String, Object>>> entry = iter.next();
-        attributesToBePublished.compute(entry.getKey(), (k, v) -> {
-            if (v == entry.getValue())
+        lock.writeLock().lock();
+        try {
+            Iterator<Integer> it = attributesToBePublished.keySet().iterator();
+            if(it.hasNext()) {
+                return attributesToBePublished.remove(it.next());
+            }else
                 return null;
-            return v;
-        });
-        return entry.getValue();
-    }
-
-    public List<PublishQueueEntry<T,Map<String,Object>>> get(int max) {
-        throw new ShouldNeverHappenException("Unimplemented");
-    }
-
-    public void remove(PublishQueueEntry<T,Map<String,Object>> e) {
-        //No-Op
-        return;
-    }
-
-    public void removeAll(List<PublishQueueEntry<T,Map<String,Object>>> list) {
-        throw new ShouldNeverHappenException("Unimplemented");
+        }finally {
+            lock.writeLock().unlock();
+        }
     }
     
     public void removeAll() {
-        attributesToBePublished.clear();
+        lock.writeLock().lock();
+        try {
+            attributesToBePublished.clear();
+        }finally {
+            lock.writeLock().unlock();
+        }
     }
 
     public int getSize() {
-        return attributesToBePublished.size();
+        lock.readLock().lock();
+        try {
+            return attributesToBePublished.size();
+        }finally {
+            lock.readLock().unlock();
+        }
     }
-    
     
 }

@@ -41,7 +41,7 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
     private final PublisherVO<T> vo;
     protected final List<PublishedPointRT<T>> pointRTs = new ArrayList<PublishedPointRT<T>>();
     protected final PublishQueue<T, PointValueTime> queue;
-    protected final PublishQueue<T, Map<String, Object>> attributesChangedQueue;
+    protected final AttributePublishQueue<T> attributesChangedQueue;
     private boolean pointEventActive;
     private volatile Thread jobThread;
     private SendThread sendThread;
@@ -63,8 +63,8 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         return new PublishQueue<T, PointValueTime>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
     }
 
-    protected PublishQueue<T, Map<String, Object>> createAttirbutesChangedQueue() {
-        return new AttributePublishQueue<T>(this, vo.getCacheWarningSize(), vo.getCacheDiscardSize());
+    protected AttributePublishQueue<T> createAttirbutesChangedQueue() {
+        return new AttributePublishQueue<T>(vo.getPoints().size());
     }
 
     public PublisherVO<T> getVo() {
