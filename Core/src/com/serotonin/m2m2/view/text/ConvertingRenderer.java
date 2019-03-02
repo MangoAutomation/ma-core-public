@@ -15,7 +15,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.util.SerializationHelper;
 
@@ -68,19 +67,11 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     }
 
     private static final long serialVersionUID = -1L;
-    private static final int version = 2;
+    private static final int version = 3;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeBoolean(useUnitAsSuffix);
-        if(unit != null)
-        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(unit));
-        else
-        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(Unit.ONE));
-        if(renderedUnit != null)
-        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(renderedUnit));
-        else
-        	SerializationHelper.writeSafeUTF(out, UnitUtil.formatUcum(Unit.ONE));
     }
 
     private void readObject(ObjectInputStream in) throws IOException {
@@ -98,19 +89,15 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
             }catch(Exception e){
             	renderedUnit = Unit.ONE;
             }
+       }else if(ver == 3) {
+           useUnitAsSuffix = in.readBoolean();
        }
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        
         writer.writeEntry("useUnitAsSuffix", useUnitAsSuffix);
-        
-        writer.writeEntry("unit", UnitUtil.formatUcum(unit));
-        //if (!renderedUnit.equals(unit))
-        writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
-        
     }
     
     @Override
@@ -120,30 +107,6 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
         //To ensure we have this property as it is a new one
         if(jsonObject.containsKey("useUnitAsSuffix")){
         	useUnitAsSuffix = jsonObject.getBoolean("useUnitAsSuffix");
-        }
-        
-        
-        String text = jsonObject.getString("unit");
-        if (text != null) {
-            try {
-                unit = UnitUtil.parseUcum(text);
-            }
-            catch (Exception e) {
-                throw new TranslatableJsonException("emport.error.parseError", "unit");
-            }
-        }
-        
-        text = jsonObject.getString("renderedUnit");
-        if (text != null) {
-            try {
-                renderedUnit = UnitUtil.parseUcum(text);
-            }
-            catch (Exception e) {
-                throw new TranslatableJsonException("emport.error.parseError", "renderedUnit");
-            }
-        }
-        else {
-            renderedUnit = unit;
-        }        
+        }      
     }
 }

@@ -20,6 +20,7 @@
 * Fix bug in RealTimeDataPointValueCache where the data source permission was not checked to see if a User has access to see the point
 * Users cannot update their password to the same thing
 * IMPORTANT a default role has been added named user.  This means that if anything has a permission of user added to it any valid User can access it.  This also means that the role of user is pointless to add to any User because they inherently have it.
+* No longer store or export/import units with Text Renderer, the data point's unit is always used
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
