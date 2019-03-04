@@ -34,15 +34,6 @@ public class StartupDwr {
 		IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
     	float progress =  lifecycle.getStartupProgress();
     	float shutdownProgress = lifecycle.getShutdownProgress();
-
-    	List<String> messages =  LoggingConsoleRT.instance.getMessagesSince(since);
-    	StringBuilder builder = new StringBuilder();
-    	for(String message : messages){
-    		builder.append(HtmlUtils.htmlEscape(message));
-    		builder.append("</br>");
-    	}
-    		
-    	result.addData("message", builder.toString());
     	
 		result.addData("startupProgress", progress);
 		result.addData("shutdownProgress", shutdownProgress);

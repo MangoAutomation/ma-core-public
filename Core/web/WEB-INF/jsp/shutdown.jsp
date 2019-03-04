@@ -11,14 +11,10 @@
     <div style="width: 100%; padding: 1em 2em 1em 1em;"
             data-dojo-type="dijit/layout/ContentPane"
             data-dojo-props="region:'center'">
-    <div id="startingMessage" class='bigTitle'></div>
-    <div id="startupProgress"></div>
-    <div id="startupMessage"></div>
-    <div id="startupConsole"
-            style=" height: 500px; margin: 1em 3em 1em 1em; border: 2px; padding: .2em 1em 1em 1em; overflow:auto; border: 2px solid; border-radius:10px; border-color: lightblue;"
-            data-dojo-type="dijit/layout/ContentPane"></div>
+	    <div id="startingMessage" class='bigTitle'></div>
+	    <div id="startupProgress"></div>
+	    <div id="startupMessage"></div>
     </div>
-    
     <script type="text/javascript">
 var lastMessage; //Holds the last recieved log message
 var pollLock = false; //Ensure we don't overpoll mango
@@ -29,9 +25,6 @@ require(["dojo/_base/xhr", "dijit/ProgressBar", "dojo/_base/window", "dojo/ready
     //Initialize Existing info
 	ready(function(){
 	    getStatus(0);
-	    //Set the tab index so we can see if it has focus
-	    dijit.byId("startupConsole").domNode.tabIndex = "1";
-	    
 	});
     
     var pollPeriodMs = 500;
@@ -65,20 +58,6 @@ require(["dojo/_base/xhr", "dijit/ProgressBar", "dojo/_base/window", "dojo/ready
                 //Update my messages
                 var startupMessageDiv = dojo.byId("startupMessage");
                 startupMessageDiv.innerHTML = data.state;
-                var startupConsole = dijit.byId("startupConsole");
-                var msgContent = '';
-                for(var i=0; i<data.messages.length; i++){
-                   	var msg = data.messages[i].replace(/\n/g, "<br />");
-                   	if(msg.startsWith('WARN') || msg.startsWith('ERROR') || msg.startsWith('FATAL')){
-                	   msg = '<span style="color: red">' + msg + "</span>";
-                	}
-                    msgContent = msgContent + msg;
-                }
-
-                startupConsole.set('content', startupConsole.get('content') + msgContent);
-              //Scrol to bottom of div if we added a new message
-                if((data.messages.length > 0)&&(document.activeElement != startupConsole.domNode))
-                	startupConsole.domNode.scrollTop = startupConsole.domNode.scrollHeight;
                 
 	            var redirect = false;
 	            

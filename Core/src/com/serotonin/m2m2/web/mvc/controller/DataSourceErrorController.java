@@ -13,7 +13,7 @@ import org.springframework.stereotype.Controller;
  *
  */
 @Controller
-public class DataSourceErrorController extends ErrorController{
+public class DataSourceErrorController extends ErrorController {
 
 	public DataSourceErrorController(){
 		super();

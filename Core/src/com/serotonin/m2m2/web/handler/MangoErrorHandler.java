@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.springframework.security.web.WebAttributes;
@@ -22,7 +20,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.web.mvc.spring.exception.ExceptionUtils;
 import com.serotonin.m2m2.web.mvc.spring.security.BrowserRequestMatcher;
 
 /**
@@ -33,19 +30,8 @@ import com.serotonin.m2m2.web.mvc.spring.security.BrowserRequestMatcher;
  */
 public class MangoErrorHandler extends ErrorHandler{
 
-    private final Log LOG = LogFactory.getLog(MangoErrorHandler.class);
     private final String ACCESS_DENIED = "/unauthorized.htm";
 
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * org.eclipse.jetty.server.handler.ErrorHandler#generateAcceptableResponse(
-     * org.eclipse.jetty.server.Request, javax.servlet.http.HttpServletRequest,
-     * javax.servlet.http.HttpServletResponse, int, java.lang.String,
-     * java.lang.String)
-     */
     @Override
     protected void generateAcceptableResponse(Request baseRequest, HttpServletRequest request,
             HttpServletResponse response, int code, String message, String mimeType) throws IOException {
@@ -76,9 +62,6 @@ public class MangoErrorHandler extends ErrorHandler{
 
                     if(th instanceof NestedServletException)
                         th = th.getCause();
-
-                    //Log it
-                    ExceptionUtils.logWebException(th, request, LOG);
 
                     HttpSession sesh = baseRequest.getSession(false);
                     String uri;

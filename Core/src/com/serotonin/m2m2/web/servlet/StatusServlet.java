@@ -6,7 +6,6 @@ package com.serotonin.m2m2.web.servlet;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +23,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
-import com.serotonin.m2m2.rt.console.LoggingConsoleRT;
 import com.serotonin.provider.Providers;
 
 /**
@@ -43,23 +41,10 @@ public class StatusServlet extends HttpServlet{
 		this.translations = Translations.getTranslations();
 	}
 	
-	/* (non-Javadoc)
-	 * @see javax.servlet.http.HttpServlet#doGet(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-		
-		String timeString = request.getParameter("time");
-		long time = -1;
-		if(timeString != null){
-			try{
-				time = Long.parseLong(timeString);
-			}catch(Exception e){
-				LOG.error(e.getMessage(), e);
-			}
-		}
 		
 		response.setContentType("application/json;charset=utf-8");
         response.setStatus(HttpServletResponse.SC_OK);
@@ -69,13 +54,6 @@ public class StatusServlet extends HttpServlet{
         Map<String,Object> data = new HashMap<String,Object>();
         StringWriter sw = new StringWriter();
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, sw);
-        
-		//Limit to logged in users while running
-		if((lifecycle.getLifecycleState() != IMangoLifecycle.RUNNING)||(Common.getHttpUser() != null)){
-			data.put("messages", LoggingConsoleRT.instance.getMessagesSince(time));
-		}else{
-			data.put("messages", new ArrayList<String>());
-		}
 		
         data.put("startupProgress", lifecycle.getStartupProgress());
         data.put("shutdownProgress", lifecycle.getShutdownProgress());
