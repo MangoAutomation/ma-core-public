@@ -28,7 +28,12 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
     }
 
     public void add(T vo, Map<String,Object> value) {
-        attributesToBePublished.put(vo.getDataPointId(), new PublishQueueEntry<T, Map<String, Object>>(vo, value));
+        lock.writeLock().lock();
+        try {
+            attributesToBePublished.put(vo.getDataPointId(), new PublishQueueEntry<T, Map<String, Object>>(vo, value));
+        }finally {
+            lock.writeLock().unlock();
+        }
     }
     
     /**
