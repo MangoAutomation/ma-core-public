@@ -429,6 +429,8 @@ public class Permissions {
      */
     public static Set<String> getGrantedPermissions(PermissionHolder user){
         Set<String> grantedPermissions = new HashSet<>();
+        if(!isValidPermissionHolder(user))
+            return grantedPermissions;
         if(user.hasAdminPermission()) {
             grantedPermissions.add(SuperadminPermissionDefinition.PERMISSION);
             grantedPermissions.add(SystemSettingsDao.PERMISSION_DATASOURCE);
