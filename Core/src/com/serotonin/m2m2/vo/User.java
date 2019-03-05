@@ -96,6 +96,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private String timezone;
     @JsonProperty
     private boolean muted = true;
+    //TODO More aptly named roles
     private String permissions = "user"; //Default group
     @JsonProperty
     private String locale;
@@ -126,8 +127,9 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
+    //TODO More aptly named rolesSet 
     private transient final LazyInitializer<Set<String>> permissionsSet = new LazyInitializer<>();
-    private Set<Permission> grantedPermissions;
+    private transient final LazyInitializer<Set<Permission>> grantedPermissions = new LazyInitializer<>();
 
     private transient boolean admin;
 
@@ -588,11 +590,13 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     }
     
     public Set<Permission> getGrantedPermissions() {
-        return grantedPermissions;
+        return grantedPermissions.get(() -> {
+            return Collections.unmodifiableSet(Permissions.getGrantedPermissions(this));  
+        });
     }
 
-    public void setGrantedPermissions(Set<Permission> grantedPermissions) {
-        this.grantedPermissions = grantedPermissions;
+    public void resetGrantedPermissions() {
+        this.grantedPermissions.reset();
     }
     
     @Override

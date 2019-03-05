@@ -59,7 +59,7 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
     }
 
     @Override
-    public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+    public void systemSettingsSaved(String key, String oldValue, String newValue) {
         switch(key) {
             case SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE:
                 try {
@@ -77,7 +77,7 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
     }
 
     @Override
-    public void SystemSettingsRemoved(String key, String lastValue) {
+    public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
 
     }
 

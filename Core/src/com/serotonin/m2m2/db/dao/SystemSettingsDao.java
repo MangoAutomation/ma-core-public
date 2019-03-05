@@ -514,7 +514,7 @@ public class SystemSettingsDao extends BaseDao {
 
         //Fire an event for this here as if the pools are full we may not be able to spawn a thread for the change
         if(this.threadPoolListener.getKeys().contains(key))
-            this.threadPoolListener.SystemSettingsSaved(key, oldValue, value);
+            this.threadPoolListener.systemSettingsSaved(key, oldValue, value);
 
         SystemSettingsEventDispatcher.fireSystemSettingSaved(key, oldValue, value);
     }
@@ -552,7 +552,7 @@ public class SystemSettingsDao extends BaseDao {
         ejt.update("delete from systemSettings where settingName=?", new Object[] { key });
 
         //Fire the event
-        SystemSettingsEventDispatcher.fireSystemSettingRemoved(key, lastValue);
+        SystemSettingsEventDispatcher.fireSystemSettingRemoved(key, lastValue, getValue(key));
     }
 
     public long getFutureDateLimit() {

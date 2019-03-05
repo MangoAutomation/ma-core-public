@@ -18,7 +18,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 public class SystemEventTypeSettingsListenerDefinition extends SystemSettingsListenerDefinition{
 
     @Override
-    public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+    public void systemSettingsSaved(String key, String oldValue, String newValue) {
         String[] parts = key.split(SystemEventType.SYSTEM_SETTINGS_PREFIX);
         if (parts.length > 1) {
             SystemEventType.updateAlarmLevel(parts[1], AlarmLevels.fromValue(Integer.parseInt(newValue)));
@@ -26,8 +26,7 @@ public class SystemEventTypeSettingsListenerDefinition extends SystemSettingsLis
     }
 
     @Override
-    public void SystemSettingsRemoved(String key, String lastValue) {
-    }
+    public void systemSettingsRemoved(String key, String lastValue, String defaultValue) { }
 
     @Override
     public List<String> getKeys() {

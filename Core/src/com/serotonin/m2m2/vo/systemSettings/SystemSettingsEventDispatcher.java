@@ -81,12 +81,12 @@ public class SystemSettingsEventDispatcher {
      * @param key
      * @param lastValue
      */
-    public static void fireSystemSettingRemoved(String key, String lastValue) {
+    public static void fireSystemSettingRemoved(String key, String lastValue, String defaultValue) {
         List<SystemSettingsListener> listeners = LISTENER_MAP.get(key);
         if (listeners != null)
             for (SystemSettingsListener l : listeners)
                 Common.backgroundProcessing.addWorkItem(
-                        new DispatcherExecution(l, key, lastValue, null, SETTING_REMOVED));
+                        new DispatcherExecution(l, key, lastValue, defaultValue, SETTING_REMOVED));
     }
 
     static class DispatcherExecution implements WorkItem {
@@ -109,10 +109,10 @@ public class SystemSettingsEventDispatcher {
         public void execute() {
             switch (operation) {
                 case SETTING_SAVED:
-                    l.SystemSettingsSaved(key, oldValue, newValue);
+                    l.systemSettingsSaved(key, oldValue, newValue);
                     break;
                 case SETTING_REMOVED:
-                    l.SystemSettingsRemoved(key, oldValue);
+                    l.systemSettingsRemoved(key, oldValue, newValue);
                     break;
             }
         }

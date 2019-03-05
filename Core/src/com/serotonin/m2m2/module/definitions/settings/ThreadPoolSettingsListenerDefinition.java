@@ -17,11 +17,8 @@ import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
  */
 public class ThreadPoolSettingsListenerDefinition extends SystemSettingsListenerDefinition{
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsSaved(java.lang.String, java.lang.Object, java.lang.Object)
-	 */
 	@Override
-	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+	public void systemSettingsSaved(String key, String oldValue, String newValue) {
         Integer value = Integer.parseInt(newValue);
         switch (key) {
             case SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE:
@@ -39,17 +36,11 @@ public class ThreadPoolSettingsListenerDefinition extends SystemSettingsListener
         }
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#SystemSettingsRemoved(java.lang.String, java.lang.Object)
-	 */
 	@Override
-	public void SystemSettingsRemoved(String key, String lastValue) {
+	public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
 		//NoOp
 	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#getKeys()
-	 */
+	
 	@Override
 	public List<String> getKeys() {
 		List<String> keys = new ArrayList<String>();

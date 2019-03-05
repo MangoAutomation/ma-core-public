@@ -18,14 +18,14 @@ import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
 public class LastUpgradeSettingsListenerDefinition extends SystemSettingsListenerDefinition{
 
     @Override
-    public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+    public void systemSettingsSaved(String key, String oldValue, String newValue) {
         if (SystemSettingsDao.LAST_UPGRADE.equals(key)) {
             Common.LAST_UPGRADE.reset();
         }
     }
 
     @Override
-    public void SystemSettingsRemoved(String key, String lastValue) {
+    public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
 
     }
 

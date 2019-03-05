@@ -18,7 +18,7 @@ import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 public class DatabaseBackupSettingsListenerDefinition extends SystemSettingsListenerDefinition{
 
 	@Override
-	public void SystemSettingsSaved(String key, String oldValue, String newValue) {
+	public void systemSettingsSaved(String key, String oldValue, String newValue) {
         //Reschedule the task
 	    synchronized(this) {
             DatabaseBackupWorkItem.unschedule();
@@ -28,7 +28,7 @@ public class DatabaseBackupSettingsListenerDefinition extends SystemSettingsList
 	}
 
 	@Override
-	public void SystemSettingsRemoved(String key, String lastValue) {
+	public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
 		//NoOp
 	}
 

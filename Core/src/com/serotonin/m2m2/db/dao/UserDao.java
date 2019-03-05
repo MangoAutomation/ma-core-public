@@ -10,17 +10,14 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
@@ -45,8 +42,6 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.Permission;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
@@ -151,9 +146,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             user.setSessionExpirationOverride(charToBool(rs.getString(++i)));
             user.setSessionExpirationPeriods(rs.getInt(++i));
             user.setSessionExpirationPeriodType(rs.getString(++i));
-            
-            //Fill in granted permissions
-            user.setGrantedPermissions(Permissions.getGrantedPermissions(user));
+           
             return user;
         }
     }
@@ -536,34 +529,16 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     @Override
-    public void SystemSettingsSaved(String key, String oldValue, String newValue) {
-        Set<String> roles;
-        if(StringUtils.isNotEmpty(newValue))
-            roles = Permissions.explodePermissionGroups(newValue);
-        else
-            roles = new HashSet<>();
-        Permission permission = new Permission(key, roles);
-        //One of the permissions was updated, recompute this for all users in the cache
+    public void systemSettingsSaved(String key, String oldValue, String newValue) {
         this.userCache.values().stream().forEach((user) -> {
-            if(Permissions.hasGrantedPermission(user, permission))
-                user.getGrantedPermissions().add(permission);
-            else
-                user.getGrantedPermissions().remove(permission);
-        });
-        
+            user.resetGrantedPermissions(); 
+         });
     }
 
     @Override
-    public void SystemSettingsRemoved(String key, String lastValue) {
-        //This really won't happen for permission definitions I wouldn't think
-        Set<String> roles;
-        if(StringUtils.isNotEmpty(lastValue))
-            roles = Permissions.explodePermissionGroups(lastValue);
-        else
-            roles = new HashSet<>();
-        Permission permission = new Permission(key, roles);
+    public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
         this.userCache.values().stream().forEach((user) -> {
-            user.getGrantedPermissions().remove(permission);
+           user.resetGrantedPermissions(); 
         });
     }
     
@@ -576,5 +551,4 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         }
         return keys;
     }
-
 }
