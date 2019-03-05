@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.publish;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
@@ -18,7 +19,8 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
  */
 public class AttributePublishQueue<T extends PublishedPointVO> {
 
-    protected final Object LOCK = new Object();
+    //Create a fair lock in effort to ensure ordering is kept
+    protected final ReentrantLock lock = new ReentrantLock(true);
     protected final LinkedHashMap<Integer, PublishQueueEntry<T, Map<String, Object>>> attributesToBePublished;
     
     public AttributePublishQueue(int initialSize) {
@@ -32,8 +34,11 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
      * @param value
      */
     public void add(T vo, Map<String,Object> value) {
-        synchronized(LOCK) {
+        lock.lock();
+        try{
             attributesToBePublished.put(vo.getDataPointId(), new PublishQueueEntry<T, Map<String, Object>>(vo, value));
+        }finally {
+            lock.unlock();
         }
     }
     
@@ -45,8 +50,11 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
      * @param entry
      */
     public void attributePublishFailed(PublishQueueEntry<T,Map<String,Object>> entry) {
-        synchronized(LOCK) {
+        lock.lock();
+        try{
             attributesToBePublished.computeIfAbsent(entry.getVo().getDataPointId(), k -> entry);
+        }finally {
+            lock.unlock();
         }
     }
 
@@ -55,12 +63,15 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
      * @return
      */
     public PublishQueueEntry<T,Map<String,Object>> next() {
-        synchronized(LOCK) {
+        lock.lock();
+        try{
             Iterator<Integer> it = attributesToBePublished.keySet().iterator();
             if(it.hasNext()) {
                 return attributesToBePublished.remove(it.next());
             }else
                 return null;
+        }finally {
+            lock.unlock();
         }
     }
     
@@ -68,8 +79,11 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
      * Empty the queue entirely
      */
     public void clear() {
-        synchronized(LOCK) {
+        lock.lock();
+        try{
             attributesToBePublished.clear();
+        }finally {
+            lock.unlock();
         }
     }
 }
