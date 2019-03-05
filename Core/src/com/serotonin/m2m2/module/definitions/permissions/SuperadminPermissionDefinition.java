@@ -13,7 +13,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
  * @author Terry Packer
  *
  */
-public class SuperadminPermissionDefinition extends PermissionDefinition{
+public class SuperadminPermissionDefinition extends PermissionDefinition {
 	public static final String GROUP_NAME = "superadmin";
 	public static final String PERMISSION = "permissions.superadmin";
 	

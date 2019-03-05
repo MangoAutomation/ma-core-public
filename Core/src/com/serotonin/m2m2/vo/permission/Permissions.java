@@ -8,14 +8,19 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -133,8 +138,13 @@ public class Permissions {
     }
 
     public static boolean hasDataSourcePermission(PermissionHolder user) throws PermissionException {
-        String p = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE, "");
-        return hasAnyPermission(user, explodePermissionGroups(p));
+        if(user.hasAdminPermission())
+            return true;
+        String p = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE);
+        if(StringUtils.isNotBlank(p))
+            return hasAnyPermission(user, explodePermissionGroups(p));
+        else
+            return false;
     }
 
     //
@@ -411,6 +421,36 @@ public class Permissions {
         }
     }
 
+    /**
+     * Return all the granted permissions a user has.  This is any Permission Definition that the user
+     *  has permission for.
+     * @param user
+     * @return
+     */
+    public static Set<String> getGrantedPermissions(PermissionHolder user){
+        Set<String> grantedPermissions = new HashSet<>();
+        if(user.hasAdminPermission()) {
+            grantedPermissions.add(SuperadminPermissionDefinition.PERMISSION);
+            grantedPermissions.add(SystemSettingsDao.PERMISSION_DATASOURCE);
+        }else {
+            String permission = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE);
+            if(StringUtils.isNotEmpty(permission) && hasAnyPermission(user, explodePermissionGroups(permission)))
+                grantedPermissions.add(SystemSettingsDao.PERMISSION_DATASOURCE);
+        }
+    
+        for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
+            if(user.hasAdminPermission())
+                grantedPermissions.add(def.getKey());
+            else {
+            String permission = SystemSettingsDao.instance.getValue(def.getKey());
+            if(StringUtils.isNotEmpty(permission))
+                if(hasAnyPermission(user, explodePermissionGroups(permission))) 
+                    grantedPermissions.add(def.getKey());
+                }
+        }
+        return grantedPermissions;
+    }
+    
     private static boolean containsSinglePermission(Set<String> heldPermissions, String requiredPermission) {
         if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
