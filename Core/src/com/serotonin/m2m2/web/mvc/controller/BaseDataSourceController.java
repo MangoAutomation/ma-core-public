@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
 import org.springframework.web.servlet.view.RedirectView;
@@ -55,7 +54,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             throws Exception {
         try {
             DataSourceVO<?> dataSourceVO = null;
-            User user = Common.getUser(request);
+            User user = Common.getHttpUser();
             final boolean admin = Permissions.hasAdminPermission(user);
             // Create the model.
             Map<String, Object> model = new HashMap<>();
@@ -73,7 +72,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
                 pidStr = request.getParameter("pid");
     
             //If type and dsid and pid are null then don't perform any actions here
-            if ((idStr == null) && (pidStr == null) && (type == null)) {
+            if (StringUtils.isAllBlank(idStr, pidStr, type)) {
                 return new ModelAndView(getViewName(), model);
             }
     
