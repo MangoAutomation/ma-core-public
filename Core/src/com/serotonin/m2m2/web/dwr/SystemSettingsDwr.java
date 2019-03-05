@@ -258,8 +258,6 @@ public class SystemSettingsDwr extends BaseDwr {
                 SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED));
 
         // Permissions
-        settings.put(SystemSettingsDao.PERMISSION_DATASOURCE,
-                SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE, ""));
         List<Map<String, String>> modulePermissions = new ArrayList<>();
         settings.put("modulePermissions", modulePermissions);
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {

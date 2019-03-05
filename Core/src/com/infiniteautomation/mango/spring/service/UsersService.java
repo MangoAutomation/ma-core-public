@@ -25,6 +25,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
+ * 
  * @author Terry Packer
  *
  */ 

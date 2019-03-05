@@ -6,9 +6,9 @@ package com.serotonin.m2m2.vo.permission;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -427,30 +427,31 @@ public class Permissions {
      * @param user
      * @return
      */
-    public static Set<String> getGrantedPermissions(PermissionHolder user){
-        Set<String> grantedPermissions = new HashSet<>();
-        if(!isValidPermissionHolder(user))
-            return grantedPermissions;
-        if(user.hasAdminPermission()) {
-            grantedPermissions.add(SuperadminPermissionDefinition.PERMISSION);
-            grantedPermissions.add(SystemSettingsDao.PERMISSION_DATASOURCE);
-        }else {
-            String permission = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE);
-            if(StringUtils.isNotEmpty(permission) && hasAnyPermission(user, explodePermissionGroups(permission)))
-                grantedPermissions.add(SystemSettingsDao.PERMISSION_DATASOURCE);
-        }
-    
+    public static Set<Permission> getGrantedPermissions(PermissionHolder user){
+        Set<Permission> grantedPermissions = new HashSet<>();
+
         for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-            if(user.hasAdminPermission())
-                grantedPermissions.add(def.getKey());
-            else {
-            String permission = SystemSettingsDao.instance.getValue(def.getKey());
-            if(StringUtils.isNotEmpty(permission))
-                if(hasAnyPermission(user, explodePermissionGroups(permission))) 
-                    grantedPermissions.add(def.getKey());
-                }
+            Permission permission = def.getValue().getPermission();
+            if(hasGrantedPermission(user, permission))
+                grantedPermissions.add(permission);
+            
         }
         return grantedPermissions;
+    }
+    
+    /**
+     * Does this permission holder have access to this permission
+     * @param user
+     * @param typeName
+     * @return
+     */
+    public static boolean hasGrantedPermission(PermissionHolder user, Permission permission) {
+        if(!isValidPermissionHolder(user))
+            return false;
+        if(user.hasAdminPermission())
+            return true;
+        else
+            return containsAny(user.getPermissionsSet(), permission.getRoles());
     }
     
     private static boolean containsSinglePermission(Set<String> heldPermissions, String requiredPermission) {

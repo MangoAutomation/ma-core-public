@@ -4,7 +4,15 @@ Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
  */
 package com.serotonin.m2m2.module;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.vo.permission.Permission;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * A permission definition allows a module to define a single permission string. The enforcement of this permission is
@@ -42,5 +50,19 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      */
     public List<String> getDefaultGroups(){
     	    return null;
+    }
+    
+    /**
+     * Get the permission with current roles filled in
+     * @return
+     */
+    public Permission getPermission() {
+        Set<String> roles;
+        String permission = SystemSettingsDao.instance.getValue(getPermissionTypeName());
+        if(StringUtils.isNotEmpty(permission))
+            roles = Permissions.explodePermissionGroups(permission);
+        else
+            roles = new HashSet<>();
+        return new Permission(getPermissionTypeName(), roles);
     }
 }

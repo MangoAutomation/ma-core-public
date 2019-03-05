@@ -50,6 +50,7 @@ import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDef
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.Permission;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -126,6 +127,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
     private transient final LazyInitializer<Set<String>> permissionsSet = new LazyInitializer<>();
+    private Set<Permission> grantedPermissions;
 
     private transient boolean admin;
 
@@ -584,7 +586,15 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public void setSessionExpirationPeriodType(String sessionExpirationPeriodType) {
         this.sessionExpirationPeriodType = sessionExpirationPeriodType;
     }
+    
+    public Set<Permission> getGrantedPermissions() {
+        return grantedPermissions;
+    }
 
+    public void setGrantedPermissions(Set<Permission> grantedPermissions) {
+        this.grantedPermissions = grantedPermissions;
+    }
+    
     @Override
     public void validate(ProcessResult response) {
 

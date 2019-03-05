@@ -58,6 +58,7 @@ import com.serotonin.m2m2.module.definitions.filestore.PublicFileStoreDefinition
 import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
@@ -1097,6 +1098,7 @@ public class ModuleRegistry {
 
         /* Permissions Settings */
         preDefaults.add(new SuperadminPermissionDefinition());
+        preDefaults.add(new DataSourcePermissionDefinition());
         preDefaults.add(new ConfigurationBackupActionPermissionDefinition());
         preDefaults.add(new PurgeAllEventsActionPermissionDefinition());
         preDefaults.add(new PurgeAllPointValuesActionPermissionDefinition());

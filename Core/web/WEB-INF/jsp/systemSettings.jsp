@@ -1132,15 +1132,6 @@
         <td class="formLabel"><fmt:message key="systemSettings.permissions.superadmin"/></td>
         <td class="formField"><input type="text" value="<c:out value="<%= SuperadminPermissionDefinition.GROUP_NAME %>"/>" disabled="disabled"></input></td>
       </tr>
-      <tr>
-        <td class="formLabel"><fmt:message key="systemSettings.permissions.datasourceManagement"/></td>
-        <td class="formField">
-          <c:set var="dsPermId"><c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/></c:set>
-          <input id="${dsPermId}" type="text" class="formLong"/>
-          <c:set var="dsPermId">permView-${dsPermId}</c:set>
-          <tag:img id="${dsPermId}" png="bullet_down" onclick="viewPermissions(null, this.id)"/>
-        </td>
-      </tr>
       <tbody id="modulePermissions"></tbody>
       <tr>
         <td colspan="2" align="center">
