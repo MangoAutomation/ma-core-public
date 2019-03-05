@@ -6,8 +6,6 @@ package com.serotonin.m2m2.rt.publish;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
@@ -20,19 +18,22 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
  */
 public class AttributePublishQueue<T extends PublishedPointVO> {
 
-    protected final ReadWriteLock lock = new ReentrantReadWriteLock();
+    protected final Object LOCK = new Object();
     protected final LinkedHashMap<Integer, PublishQueueEntry<T, Map<String, Object>>> attributesToBePublished;
     
     public AttributePublishQueue(int initialSize) {
         this.attributesToBePublished = new LinkedHashMap<>(initialSize);
     }
 
+    /**
+     * Add attributes to be published.  There is only 1 entry for attributes per published point and the order is 
+     *   insertion based.
+     * @param vo
+     * @param value
+     */
     public void add(T vo, Map<String,Object> value) {
-        lock.writeLock().lock();
-        try {
+        synchronized(LOCK) {
             attributesToBePublished.put(vo.getDataPointId(), new PublishQueueEntry<T, Map<String, Object>>(vo, value));
-        }finally {
-            lock.writeLock().unlock();
         }
     }
     
@@ -44,11 +45,8 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
      * @param entry
      */
     public void attributePublishFailed(PublishQueueEntry<T,Map<String,Object>> entry) {
-        lock.writeLock().lock();
-        try {
+        synchronized(LOCK) {
             attributesToBePublished.computeIfAbsent(entry.getVo().getDataPointId(), k -> entry);
-        }finally {
-            lock.writeLock().unlock();
         }
     }
 
@@ -57,34 +55,21 @@ public class AttributePublishQueue<T extends PublishedPointVO> {
      * @return
      */
     public PublishQueueEntry<T,Map<String,Object>> next() {
-        lock.writeLock().lock();
-        try {
+        synchronized(LOCK) {
             Iterator<Integer> it = attributesToBePublished.keySet().iterator();
             if(it.hasNext()) {
                 return attributesToBePublished.remove(it.next());
             }else
                 return null;
-        }finally {
-            lock.writeLock().unlock();
         }
     }
     
-    public void removeAll() {
-        lock.writeLock().lock();
-        try {
+    /**
+     * Empty the queue entirely
+     */
+    public void clear() {
+        synchronized(LOCK) {
             attributesToBePublished.clear();
-        }finally {
-            lock.writeLock().unlock();
         }
     }
-
-    public int getSize() {
-        lock.readLock().lock();
-        try {
-            return attributesToBePublished.size();
-        }finally {
-            lock.readLock().unlock();
-        }
-    }
-    
 }
