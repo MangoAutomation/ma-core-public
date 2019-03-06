@@ -196,10 +196,10 @@ public class RangeRenderer extends ConvertingRenderer {
     @Override
     public void validate(ProcessResult result) {
         if((format == null)||(format.equals("")))
-            result.addContextualMessage("format", "validate.required");
+            result.addContextualMessage("textRenderer.format", "validate.required");
 
         if((rangeValues == null)||(rangeValues.size() == 0))
-            result.addContextualMessage("rangeValues", "validate.atLeast1");
+            result.addContextualMessage("textRenderer.rangeValues", "validate.atLeast1");
 
         //TODO Validate the range values too
     }

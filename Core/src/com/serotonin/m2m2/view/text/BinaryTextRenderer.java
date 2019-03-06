@@ -179,9 +179,9 @@ public class BinaryTextRenderer extends BaseTextRenderer {
 		
 		//The colours can be null (that's default)
 		if((zeroLabel == null)||(zeroLabel.equals("")))
-			result.addContextualMessage("zeroLabel", "validate.required");
+			result.addContextualMessage("textRenderer.zeroLabel", "validate.required");
 		if((oneLabel == null)||(oneLabel.equals("")))
-			result.addContextualMessage("oneLabel", "validate.required");
+			result.addContextualMessage("textRenderer.oneLabel", "validate.required");
 		
 	}
   

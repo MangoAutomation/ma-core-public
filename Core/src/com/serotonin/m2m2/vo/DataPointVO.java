@@ -982,8 +982,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         pointLocator.validate(response, this, dsvo);
 
         // Check text renderer type
-        if (textRenderer != null && !textRenderer.getDef().supports(pointLocator.getDataTypeId()))
-            response.addGenericMessage("validate.text.incompatible");
+        if (textRenderer != null) {
+            if(!textRenderer.getDef().supports(pointLocator.getDataTypeId()))
+                response.addGenericMessage("validate.text.incompatible");
+            textRenderer.validate(response);
+        }
 
         // Check chart renderer type
         if (chartRenderer != null && !chartRenderer.getDef().supports(pointLocator.getDataTypeId()))

@@ -141,7 +141,7 @@ public class MultistateRenderer extends BaseTextRenderer {
 	public void validate(ProcessResult result) {
 
 		if(multistateValues.size() < 1)
-			result.addContextualMessage("multistateRendererTable", "validate.atLeast1");
+			result.addContextualMessage("textRenderer.multistateValues", "validate.atLeast1");
 		
 		//TODO Could validate the values too
 	}

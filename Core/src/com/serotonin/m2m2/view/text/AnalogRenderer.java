@@ -240,11 +240,11 @@ public class AnalogRenderer extends ConvertingRenderer {
 	public void validate(ProcessResult result) {
 		
 		if((format == null)||(format.equals("")))
-			result.addContextualMessage("format", "validate.required");
+			result.addContextualMessage("textRenderer.format", "validate.required");
 		if(format.startsWith("0x") || format.startsWith("0X")) {
 		    String[] parts = format.toUpperCase().split("0X");
 		    if(parts.length != 2) {
-		        result.addContextualMessage("format", "validate.invalidValue");
+		        result.addContextualMessage("textRenderer.format", "validate.invalidValue");
 		        return;
 		    }
 		    //Count digits
@@ -254,9 +254,9 @@ public class AnalogRenderer extends ConvertingRenderer {
                 if(parts[1].charAt(i) == '0')
                     digits++;
                 else
-                    result.addContextualMessage("format", "validate.invalidValue");
+                    result.addContextualMessage("textRenderer.format", "validate.invalidValue");
             if(digits < 1)
-                result.addContextualMessage("format", "validate.invalidValue");
+                result.addContextualMessage("textRenderer.format", "validate.invalidValue");
 		}
 	}
 }

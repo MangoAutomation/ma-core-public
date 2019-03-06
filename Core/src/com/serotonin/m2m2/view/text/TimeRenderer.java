@@ -130,7 +130,7 @@ public class TimeRenderer extends BaseTextRenderer {
 	@Override
 	public void validate(ProcessResult result) {
 		if((format == null)||(format.equals("")))
-			result.addContextualMessage("format", "validate.required");
+			result.addContextualMessage("textRenderer.format", "validate.required");
 
 		
 	}
