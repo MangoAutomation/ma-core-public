@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -118,6 +119,12 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     abstract public List<String> getEventSubTypes(PermissionHolder user);
 
     /**
+     * Does this event type support sub-types?
+     * @return
+     */
+    abstract public boolean supportsSubType();
+    
+    /**
      * Does this event type use typeref1?
      * @return
      */
@@ -130,7 +137,25 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     abstract public boolean supportsReferenceId2();
     
     /**
-     * If this event type support reference id 1, return a list of the possible event types 
+     * If this event type supports sub types, return a list of all possible event types using 
+     *   the sub types
+     * @param user
+     * @return
+     */
+    public List<EventTypeVO> generatePossibleEventTypesWithSubtype(PermissionHolder user) {
+        if(!supportsSubType())
+            throw new UnsupportedOperationException();
+        List<String> subtypes = getEventSubTypes(user);
+        List<EventTypeVO> types = new ArrayList<>(subtypes.size());
+        for(String subtype : subtypes) {
+            EventType et = createEventType(subtype, 0, 0);
+            types.add(new EventTypeVO(et, new TranslatableMessage(getDescriptionKey()), null));
+        }
+        return types;
+    }
+    
+    /**
+     * If this event type supports reference id 1, return a list of the possible event types 
      * for all the subtype
      * 
      * @param user
@@ -142,7 +167,7 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      }
 
     /**
-     * If this event type support reference id 1, return a list of the possible event types 
+     * If this event type supports reference id 1, return a list of the possible event types 
      * for all the reference id 1s
      * 
      * @param user
@@ -173,6 +198,15 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
                 t,
                 new TranslatableMessage(getDescriptionKey()),
                 null);
+    }
+
+    /**
+     * Create a default event type with no sub type or reference information
+     * 
+     * @return
+     */
+    public EventType createDefaultEventType() {
+        return createEventType(null, 0, 0);
     }
     
 }

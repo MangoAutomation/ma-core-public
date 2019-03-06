@@ -104,4 +104,10 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
         // TODO Auto-generated method stub
         return null;
     }
+
+    @Override
+    public boolean supportsSubType() {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }
