@@ -45,7 +45,7 @@ public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
 
     @Override
     protected void addEventTypes(List<EventTypeVO> eventTypes) {
-        // no op
+        super.addEventTypes(eventTypes);
     }
     
 	/* (non-Javadoc)

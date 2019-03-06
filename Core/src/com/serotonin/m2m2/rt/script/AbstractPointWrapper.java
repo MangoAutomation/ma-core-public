@@ -139,15 +139,15 @@ abstract public class AbstractPointWrapper {
         return gc.get(calendarAttribute);
     }
 
-    public void set(Object value) {
+    public void set(Object value) throws ScriptPermissionsException {
         set(value, getContext().getRuntime());
     }
     
-    public void set(Object value, long timestamp) {
+    public void set(Object value, long timestamp) throws ScriptPermissionsException {
     	set(value, timestamp, null);
     }
 
-    public void set(Object value, long timestamp, String annotation) {
+    public void set(Object value, long timestamp, String annotation) throws ScriptPermissionsException {
         if (setter != null)
             setter.set(point, value, timestamp, annotation);
     }

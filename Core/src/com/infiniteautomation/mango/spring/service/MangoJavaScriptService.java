@@ -68,6 +68,7 @@ import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
+import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.rt.script.UnitUtility;
 import com.serotonin.m2m2.rt.script.WrapperContext;
@@ -375,7 +376,7 @@ public class MangoJavaScriptService {
             Integer resultDataTypeId, Map<String, IDataPointValueSource> context, 
             Map<String, Object> additionalContext, List<ScriptUtility> additionalUtilities,
             ScriptPermissions permissions, ScriptLog log, ScriptPointValueSetter setter, 
-            List<JsonImportExclusion> importExclusions, MangoJavaScriptResult result, boolean testRun) throws ScriptError, ResultTypeException {
+            List<JsonImportExclusion> importExclusions, MangoJavaScriptResult result, boolean testRun) throws ScriptError, ResultTypeException, ScriptPermissionsException {
         try {
             //Setup the wraper context
             compiledScript.getEngine().put(WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
@@ -395,6 +396,12 @@ public class MangoJavaScriptService {
             result.setResult(new PointValueTime(value, timestamp));
         }catch(ScriptException e) {
             throw ScriptError.create(e);
+        }catch (RuntimeException e) {
+            //Nashorn seems to like to wrap exceptions in RuntimeException 
+            if(e.getCause() instanceof ScriptPermissionsException)
+                throw (ScriptPermissionsException)e.getCause();
+            else
+                throw new ShouldNeverHappenException(e);
         }
     }
     
@@ -418,7 +425,7 @@ public class MangoJavaScriptService {
             Map<String, IDataPointValueSource> context, Map<String, Object> additionalContext,
             List<ScriptUtility> additionalUtilities, ScriptPermissions permissions, ScriptLog log, 
             ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, 
-            MangoJavaScriptResult result, boolean testRun) throws ScriptError {
+            MangoJavaScriptResult result, boolean testRun) throws ScriptError , ScriptPermissionsException {
         try{
             //Setup the wraper context
             compiledScript.getEngine().put(WRAPPER_CONTEXT_KEY, new WrapperContext(runtime));
@@ -427,6 +434,12 @@ public class MangoJavaScriptService {
             result.setResult(compiledScript.eval());
         }catch (ScriptException e) {
             throw ScriptError.create(e);
+        }catch (RuntimeException e) {
+            //Nashorn seems to like to wrap exceptions in RuntimeException 
+            if(e.getCause() instanceof ScriptPermissionsException)
+                throw (ScriptPermissionsException)e.getCause();
+            else
+                throw new ShouldNeverHappenException(e);
         }
     }
     

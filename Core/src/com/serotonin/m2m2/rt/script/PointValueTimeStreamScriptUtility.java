@@ -66,7 +66,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
         pvts.execute();
     }
 
-    public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException {
+    public void rollupQuery(List<Integer> ids, long from, long to, ScriptPointValueRollupCallback callback, int rollupType, int rollupPeriods, int rollupPeriodType) throws IOException, ScriptPermissionsException {
         RollupsStream rs = new RollupsStream(ids, from, to, callback, rollupType, rollupPeriods, rollupPeriodType);
         rs.execute();
     }
@@ -121,7 +121,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
             quantizerMap = new HashMap<Integer, DataPointStatisticsQuantizer<? extends StatisticsGenerator>>();
         }
 
-        public void execute() throws IOException {
+        public void execute() throws IOException, ScriptPermissionsException {
             createQuantizerMap();
             Common.databaseProxy.newPointValueDao().wideBookendQuery(ids, from.toInstant().toEpochMilli(), to.toInstant().toEpochMilli(), false, null, this);
             //Fast forward to end to fill any gaps at the end
@@ -258,7 +258,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
             }
         }
 
-        private void createQuantizerMap() {
+        private void createQuantizerMap() throws ScriptPermissionsException {
             for(Integer id : ids) {
                 if(id == null)
                     continue;

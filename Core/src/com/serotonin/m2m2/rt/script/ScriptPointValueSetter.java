@@ -22,7 +22,7 @@ public abstract class ScriptPointValueSetter {
     }
 
     //Ensure points are settable and the setter has permissions
-    public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
+    public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) throws ScriptPermissionsException {
 
         if(!point.getVO().getPointLocator().isSettable())
             return;
