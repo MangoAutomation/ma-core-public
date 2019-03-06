@@ -9,11 +9,12 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -41,7 +42,7 @@ public class FreemarkerTemplateTest {
     @Before
     public void setup() {
         templateStore.put(listExampleTemplateName, "<#list tags?keys as key> ${key} = ${tags[key]} </#list>");
-        templateStore.put(dateFormatTemplateName, "${time?number_to_datetime?iso_utc_ms}");
+        templateStore.put(dateFormatTemplateName, "${time?number_to_datetime?iso_utc}");
     }
     
     @Test
@@ -82,7 +83,9 @@ public class FreemarkerTemplateTest {
         test.process(model, out);
         String output = out.toString();
         
-        String expected = new DateTime(time, DateTimeZone.UTC).toString();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyy-MM-dd'T'HH:mm:ss'Z'");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String expected = sdf.format(new Date(time));
         assertEquals(expected, output);
     }
     
