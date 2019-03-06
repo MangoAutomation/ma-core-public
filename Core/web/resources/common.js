@@ -1052,8 +1052,8 @@ function showDwrMessages(/*ProcessResult.messages*/messages, /*tbody*/genericMes
             else if (genericMessageNode.tagName == "DIV" || genericMessageNode.tagName == "SPAN") {
                 var content = "";
                 for (var i=0; i<genericMessages.length; i++)
-                    content += genericMessages[i].genericMessage + "<br/>";
-                genericMessageNode.innerHTML = encodeHtml(content);
+                    content += encodeHtml(genericMessages[i].genericMessage) + "<br/>";
+                genericMessageNode.innerHTML = content;
             }
         }
     }
