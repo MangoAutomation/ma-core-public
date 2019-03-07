@@ -131,7 +131,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     private DataPointDao() {
         super(EventType.EventTypeNames.DATA_POINT, "dp",
-                new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
+                new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "ds.editPermission", "template.name", "template.xid" }, //Extra Properties not in table
                 false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
 
@@ -166,7 +166,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
             + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
             + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, "
-            + "  ds.name,  ds.xid, ds.dataSourceType " //
+            + "  ds.name,  ds.xid, ds.dataSourceType, ds.editPermission " //
             + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ";
 
     public List<DataPointVO> getDataPoints(Comparator<IDataPoint> comparator, boolean includeRelationalData) {
@@ -243,14 +243,14 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
-        private static final int EVENT_DETECTOR_FIRST_COLUMN = 27;
+        private static final int EVENT_DETECTOR_FIRST_COLUMN = 28;
         private final EventDetectorRowMapper<?> eventRowMapper = new EventDetectorRowMapper<>(EVENT_DETECTOR_FIRST_COLUMN, 5);
         static final String DATA_POINT_SELECT_STARTUP = //
                 "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
                 + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
                 + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
                 + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, ds.name, " //
-                + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
+                + "  ds.xid, ds.dataSourceType, ds.editPermission, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
                 + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
                 + "  left outer join eventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
 
@@ -325,7 +325,12 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
-
+            String dsEditRoles = rs.getString(++i);
+            if(StringUtils.isNotEmpty(dsEditRoles))
+                dp.setDataSourceEditRoles(Permissions.explodePermissionGroups(dsEditRoles));
+            else
+                dp.setDataSourceEditRoles(new HashSet<>());
+            
             dp.ensureUnitsCorrect();
 
             return dp;
@@ -1194,6 +1199,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
+            String dsEditRoles = rs.getString(++i);
+            if(StringUtils.isNotEmpty(dsEditRoles))
+                dp.setDataSourceEditRoles(Permissions.explodePermissionGroups(dsEditRoles));
+            else
+                dp.setDataSourceEditRoles(new HashSet<>());
             dp.setTemplateName(rs.getString(++i));
             dp.setTemplateXid(rs.getString(++i));
 

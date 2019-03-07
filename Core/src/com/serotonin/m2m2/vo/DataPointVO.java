@@ -250,6 +250,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private String dataSourceName;
     private String templateName;
     private String templateXid;
+    private Set<String> dataSourceEditRoles;
 
     //
     //
@@ -845,6 +846,20 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public void setTemplateXid(String templateXid){
         this.templateXid = templateXid;
     }
+    /**
+     * Roles joined from database (not saved into point)
+     * @return the dataSourceEditRoles
+     */
+    public Set<String> getDataSourceEditRoles() {
+        return dataSourceEditRoles;
+    }
+    /**
+     * Roles joined from database (not saved into point)
+     * @param dataSourceEditRoles the dataSourceEditRoles to set
+     */
+    public void setDataSourceEditRoles(Set<String> dataSourceEditRoles) {
+        this.dataSourceEditRoles = dataSourceEditRoles;
+    }
     /* ############################## */
 
     @Override
@@ -860,6 +875,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setDataSourceName(dataSourceName);
             copy.setDataSourceTypeName(dataSourceTypeName);
             copy.setDataSourceXid(dataSourceXid);
+            copy.setDataSourceEditRoles(dataSourceEditRoles);
             copy.setDefaultCacheSize(defaultCacheSize);
             copy.setDeviceName(deviceName);
             copy.setDiscardExtremeValues(discardExtremeValues);
