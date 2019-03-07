@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -143,15 +142,7 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * @return
      */
     public List<EventTypeVO> generatePossibleEventTypesWithSubtype(PermissionHolder user) {
-        if(!supportsSubType())
-            throw new UnsupportedOperationException();
-        List<String> subtypes = getEventSubTypes(user);
-        List<EventTypeVO> types = new ArrayList<>(subtypes.size());
-        for(String subtype : subtypes) {
-            EventType et = createEventType(subtype, 0, 0);
-            types.add(new EventTypeVO(et, new TranslatableMessage(getDescriptionKey()), null));
-        }
-        return types;
+        throw new UnsupportedOperationException();
     }
     
     /**

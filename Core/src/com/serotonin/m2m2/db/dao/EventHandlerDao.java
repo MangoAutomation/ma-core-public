@@ -171,9 +171,9 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                 type.getReferenceId2());
     }
 
-    //    public List<AbstractEventHandlerVO<?>> getEventHandlers(EventTypeVO type) {
-    //        return this.getEventHandlers(type.getEventType());
-    //    }
+    public List<T> getEventHandlersByType(String typeName) {
+        return query(EVENT_HANDLER_SELECT + " WHERE eventHandlerType=?", new Object[] {typeName}, new EventHandlerRowMapper());
+    }
 
     public List<T> getEventHandlers() {
         return query(EVENT_HANDLER_SELECT, new EventHandlerRowMapper());
@@ -222,6 +222,8 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         return queryForObject(EVENT_HANDLER_SELECT + "where xid=?", new Object[] { xid }, new EventHandlerRowMapper(),
                 null);
     }
+    
+    
 
     class EventHandlerRowMapper implements RowMapper<T> {
         @Override
