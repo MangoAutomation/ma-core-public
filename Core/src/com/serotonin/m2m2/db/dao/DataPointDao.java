@@ -329,8 +329,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             if(StringUtils.isNotEmpty(dsEditRoles))
                 dp.setDataSourceEditRoles(Permissions.explodePermissionGroups(dsEditRoles));
             else
-                dp.setDataSourceEditRoles(new HashSet<>());
-            
+                dp.setDataSourceEditRoles(Collections.emptySet());
+
             dp.ensureUnitsCorrect();
 
             return dp;
@@ -685,18 +685,18 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * @return
      */
     public List<DataPointUsageStatistics> getUsage() {
-        return ejt.query("SELECT ds.dataSourceType, COUNT(ds.dataSourceType) FROM dataPoints as dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id GROUP BY ds.dataSourceType", 
+        return ejt.query("SELECT ds.dataSourceType, COUNT(ds.dataSourceType) FROM dataPoints as dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id GROUP BY ds.dataSourceType",
                 new RowMapper<DataPointUsageStatistics>() {
-                @Override
-                public DataPointUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
-                    DataPointUsageStatistics usage = new DataPointUsageStatistics();
-                    usage.setDataSourceType(rs.getString(1));
-                    usage.setCount(rs.getInt(2));
-                    return usage;
-                }
-            });
+            @Override
+            public DataPointUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
+                DataPointUsageStatistics usage = new DataPointUsageStatistics();
+                usage.setDataSourceType(rs.getString(1));
+                usage.setCount(rs.getInt(2));
+                return usage;
+            }
+        });
     }
-    
+
     //
     // Data point summaries
     private static final String DATA_POINT_SUMMARY_SELECT = //
@@ -1203,7 +1203,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             if(StringUtils.isNotEmpty(dsEditRoles))
                 dp.setDataSourceEditRoles(Permissions.explodePermissionGroups(dsEditRoles));
             else
-                dp.setDataSourceEditRoles(new HashSet<>());
+                dp.setDataSourceEditRoles(Collections.emptySet());
             dp.setTemplateName(rs.getString(++i));
             dp.setTemplateXid(rs.getString(++i));
 
