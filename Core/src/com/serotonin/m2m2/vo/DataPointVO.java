@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
@@ -1684,6 +1685,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             simplifyType = in.readInt();
             simplifyTolerance = in.readDouble();
             simplifyTarget = in.readInt();
+            
+            //Units no longer stored with text renderer
+            setUnitsOnTextRenderer();
         }
 
         // Check the purge type. Weird how this could have been set to 0.

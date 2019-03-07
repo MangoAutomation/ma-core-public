@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import javax.measure.unit.Unit;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.InvalidArgumentException;
@@ -21,6 +23,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
+import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.util.ColorUtils;
@@ -93,14 +96,8 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
     @JsonProperty
     private ChartRenderer chartRenderer;
     
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()
-	 */
 	@Override
 	public String getTypeKey() {
 		return "event.audit.dataPointPropertiesTemplate";
@@ -359,7 +356,10 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 
         if (textRenderer == null){
             response.addContextualMessage("textRenderer", "validate.required");
+        }else {
+            textRenderer.validate(response);
         }
+        
         
         if (defaultCacheSize < 0)
             response.addContextualMessage("defaultCacheSize", "validate.cannotBeNegative");
@@ -649,6 +649,12 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
             purgeType = in.readInt();
             purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
+            //The units are not used in the template so the renderer shan't care what they are
+            if(textRenderer instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+                cr.setUnit(Unit.ONE);
+                cr.setRenderedUnit(Unit.ONE);
+            }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
