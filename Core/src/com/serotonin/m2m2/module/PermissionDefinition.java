@@ -4,7 +4,7 @@ Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
  */
 package com.serotonin.m2m2.module;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -62,7 +62,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
         if(StringUtils.isNotEmpty(permission))
             roles = Permissions.explodePermissionGroups(permission);
         else
-            roles = new HashSet<>();
+            roles = Collections.emptySet();
         return new Permission(getPermissionTypeName(), roles);
     }
 }
