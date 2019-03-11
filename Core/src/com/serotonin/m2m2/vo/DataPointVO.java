@@ -63,6 +63,7 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
@@ -1093,6 +1094,28 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
             }
         }
+        
+        //Validate permissions
+        String existingReadPermission;
+        String existingSetPermission;
+        if(this.id != Common.NEW_ID) {
+            DataPointVO vo = DataPointDao.getInstance().get(id);
+            if(vo != null) {
+                existingReadPermission = vo.getReadPermission();
+                existingSetPermission = vo.getSetPermission();
+            }else {
+                existingReadPermission = null;
+                existingSetPermission = null;
+            }
+        }else {
+            existingReadPermission = null;
+            existingSetPermission = null;
+        }
+        User user = Common.getHttpUser();
+        if(user == null)
+            user = Common.getBackgroundContextUser();
+        Permissions.validateChangedPermissions(existingReadPermission, readPermission, user, response, "readPermission");
+        Permissions.validateChangedPermissions(existingSetPermission, setPermission, user, response, "setPermission");
 
         if((templateId!=null) &&(templateId > 0)){
             DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);

@@ -557,19 +557,20 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public ProcessResult saveSystemPermissions(String datasource, List<StringStringPair> modulePermissions) {
-        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
         ProcessResult result = new ProcessResult();
         List<ProcessMessage> messages = new ArrayList<>();
-        Permissions.validateAddedPermissions(datasource, Common.getHttpUser(), result, SystemSettingsDao.PERMISSION_DATASOURCE);
+        String existingDataSource = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE);
+        Permissions.validateChangedPermissions(existingDataSource, datasource, Common.getHttpUser(), result, SystemSettingsDao.PERMISSION_DATASOURCE);
         if(!result.getHasMessages())
-            systemSettingsDao.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
+            SystemSettingsDao.instance.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
         for (StringStringPair p : modulePermissions) {
             //Don't allow saving the superadmin permission as it doesn't do anything it's hard coded
             if(!p.getKey().equals(SuperadminPermissionDefinition.PERMISSION)) {
                 ProcessResult partial = new ProcessResult();
-                Permissions.validateAddedPermissions(p.getValue(), Common.getHttpUser(), partial, p.getKey());
+                String existing = SystemSettingsDao.instance.getValue(p.getKey());
+                Permissions.validateChangedPermissions(existing, p.getValue(), Common.getHttpUser(), partial, p.getKey());
                 if(!partial.getHasMessages())
-                    systemSettingsDao.setValue(p.getKey(), p.getValue());
+                    SystemSettingsDao.instance.setValue(p.getKey(), p.getValue());
                 else
                     messages.addAll(partial.getMessages());
             }

@@ -1097,14 +1097,16 @@ public class SystemSettingsDao extends BaseDao {
 
         setting = settings.get(PERMISSION_DATASOURCE);
         if(setting != null) {
-            Permissions.validateAddedPermissions((String)setting, user, response, PERMISSION_DATASOURCE);
+            String existing = getValue(PERMISSION_DATASOURCE);
+            Permissions.validateChangedPermissions(existing, (String)setting, user, response, PERMISSION_DATASOURCE);
         }
 
         //Check all permissions
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
             setting = settings.get(def.getPermissionTypeName());
             if(setting != null) {
-                Permissions.validateAddedPermissions((String)setting, user, response, def.getPermissionTypeName());
+                String existing = getValue(def.getPermissionTypeName());
+                Permissions.validateChangedPermissions(existing, (String)setting, user, response, def.getPermissionTypeName());
             }
         }
 

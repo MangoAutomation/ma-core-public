@@ -203,7 +203,8 @@ public class MangoTestBase {
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
         
-        ImportTask task = new ImportTask(jo, Common.getTranslations(), null, false);
+        User admin = UserDao.getInstance().getUser("admin");
+        ImportTask task = new ImportTask(jo, Common.getTranslations(), admin, false);
         task.run(Common.timer.currentTimeMillis());
         if(task.getResponse().getHasMessages()){
             for(ProcessMessage message : task.getResponse().getMessages()){

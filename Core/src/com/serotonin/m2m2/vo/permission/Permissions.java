@@ -332,52 +332,78 @@ public class Permissions {
     }
 
     /**
-     * Validate permissions that are being set on an item.
+     * Validate permissions that are being set on an item.  
+     * 
+     * Roles that do not change are valid, only new roles that the user has are valid to add or remove
      *
      * Any permissions that the PermissionHolder does not have are invalid unless that user is an admin.
      *
-     * @param itemPermissions
+     * @param existingRoles
+     * @param newRoles
      * @param user
      * @param response
      * @param contextKey - UI Element ID
      */
-    public static void validateAddedPermissions(String itemPermissions, PermissionHolder user, ProcessResult response, String contextKey) {
+    public static void validateChangedPermissions(String existingRoles, String newRoles, PermissionHolder user, ProcessResult response, String contextKey) {
         if (user == null) {
-            response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
+            response.addContextualMessage(contextKey, "validate.userRequired");
             return;
         }
-
-        Set<String> itemPermissionsSet = explodePermissionGroups(itemPermissions);
-        validateAddedPermissions(itemPermissionsSet, user, response, contextKey);
+        validateChangedPermissions(explodePermissionGroups(existingRoles), explodePermissionGroups(newRoles), user, response, contextKey);
     }
 
     /**
      * Validate permissions that are being set on an item.
      *
-     * Any permissions that the PermissionHolder does not have are invalid unless that user is an admin.
+     * Roles that do not change are valid, only new roles that the user has are valid to add or remove
      * 
-     * @param itemPermissionsSet
+     * @param existingRoles
+     * @param newRoles
      * @param user
      * @param response
      * @param contextKey
      */
-    public static void validateAddedPermissions(Set<String> itemPermissionsSet, PermissionHolder user, ProcessResult response, String contextKey) {
+    public static void validateChangedPermissions(Set<String> existingRoles, Set<String> newRoles, PermissionHolder user, ProcessResult response, String contextKey) {
+
         if (user == null) {
-            response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
+            response.addContextualMessage(contextKey, "validate.invalidPermission", new TranslatableMessage("permission.exception.notAuthenticated"));
+            return;
+        }
+        if (user.isPermissionHolderDisabled()) {
+            response.addContextualMessage(contextKey, "validate.invalidPermission", new TranslatableMessage("permission.exception.userIsDisabled"));
             return;
         }
         
-        if(itemPermissionsSet == null)
-            return;
+        //Find the removed permissions
+        Set<String> modified = new HashSet<>();
+        for(String existingRole : existingRoles) {
+            if(!newRoles.contains(existingRole))
+                modified.add(existingRole);
+        }
         
-        for(String permission : itemPermissionsSet) {
+        //Find the added permissions
+        for(String newRole : newRoles) {
+            if(!existingRoles.contains(newRole))
+                modified.add(newRole);
+        }
+        
+        //Check for spaces
+        for(String permission : modified) {
             Matcher matcher = SPACE_PATTERN.matcher(permission);
             if(matcher.find()) {
                 response.addContextualMessage(contextKey, "validate.invalidPermissionWithSpace", permission);
                 return;
             }
         }
-        Set<String> invalid = findInvalidPermissions(user, itemPermissionsSet);
+        
+        //Ensure we retain permission
+        if(!hasAnyPermission(user, newRoles)) {
+            response.addContextualMessage(contextKey, "validate.mustRetainPermission");
+            return;
+        }
+        
+        //Ensure we have all the modified roles
+        Set<String> invalid = findInvalidPermissions(user, modified);
         if (invalid.size() > 0) {
             String notGranted = implodePermissionGroups(invalid);
             response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);

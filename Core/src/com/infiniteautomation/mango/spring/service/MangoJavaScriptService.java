@@ -119,7 +119,9 @@ public class MangoJavaScriptService {
     public ProcessResult validate(MangoJavaScript vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
         
-        Permissions.validateAddedPermissions(vo.getPermissions().getPermissionsSet(), user, result, "permissions");
+        //Ensure the user has ALL of the permissions as we will likely test/run this script
+        if(!Permissions.hasAllPermissions(user, vo.getPermissions().getPermissionsSet()))
+            result.addContextualMessage("permissions", "permission.exception.doesNotHaveRequiredPermission");
         
         validateContext(vo.getContext(), user, result);
         

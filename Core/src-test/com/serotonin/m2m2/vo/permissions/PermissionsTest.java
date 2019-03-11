@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.permissions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -16,11 +17,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -505,5 +508,35 @@ public class PermissionsTest extends MangoTestBase {
         User testUser = this.createTestUser();
         testUser.setPermissions(SUPERADMIN);
         Permissions.ensureHasAllPermissions(testUser, Collections.singleton(null));
+    }
+    
+    @Test
+    public void ensureCannotRemoveAccess() {
+        User testUser = this.createTestUser();
+        DataPointVO dp = this.createDataPoint(this.dataSource, testUser.getPermissions(), testUser.getPermissions());
+        BackgroundContext.set(testUser);
+        dp.setSetPermission("");
+        try{
+            dp.ensureValid();
+            fail("Should be invalid");
+        }catch(ValidationException e) {
+            assertTrue(e.getValidationResult().getHasMessages());
+            assertEquals(e.getValidationResult().getMessages().get(0).getContextKey(), "setPermission");
+        }
+    }
+    
+    @Test
+    public void ensureCannotAddNewRole() {
+        User testUser = this.createTestUser();
+        DataPointVO dp = this.createDataPoint(this.dataSource, testUser.getPermissions(), testUser.getPermissions());
+        BackgroundContext.set(testUser);
+        dp.setSetPermission("new_role");
+        try{
+            dp.ensureValid();
+            fail("Should be invalid");
+        }catch(ValidationException e) {
+            assertTrue(e.getValidationResult().getHasMessages());
+            assertEquals(e.getValidationResult().getMessages().get(0).getContextKey(), "setPermission");
+        }
     }
 }

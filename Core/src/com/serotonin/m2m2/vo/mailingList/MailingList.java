@@ -174,9 +174,24 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
         if(user == null)
             user = Common.getBackgroundContextUser();
 
-        Permissions.validateAddedPermissions(readPermissions, user, result, "readPermissions");
-        Permissions.validateAddedPermissions(editPermissions, user, result, "editPermissions");
-
+        Set<String> existingReadPermission;
+        Set<String> existingEditPermission;
+        if(this.id != Common.NEW_ID) {
+            MailingList vo = MailingListDao.getInstance().get(id);
+            if(vo != null) {
+                existingReadPermission = vo.getReadPermissions();
+                existingEditPermission = vo.getEditPermissions();
+            }else {
+                existingReadPermission = null;
+                existingEditPermission = null;
+            }
+        }else {
+            existingReadPermission = null;
+            existingEditPermission = null;
+        }
+        Permissions.validateChangedPermissions(existingReadPermission, readPermissions, user, result, "readPermissions");
+        Permissions.validateChangedPermissions(existingEditPermission, editPermissions, user, result, "editPermissions");
+        
         if(inactiveIntervals != null) {
             if(inactiveIntervals.size() > 672)
                 result.addContextualMessage("inactiveSchedule", "validate.invalidValue");
