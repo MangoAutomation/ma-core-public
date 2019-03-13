@@ -26,6 +26,7 @@
 * Removing log messages from startup/shutdown status api
 * Improve error handling for legacy data point, data source, publisher controllers
 * Ensure text renderers are always validated for data points
+* Add missing EventInstanceWrapper to email handler scripts
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
