@@ -18,7 +18,11 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.web.taglib.Functions;
 
 public class EventInstance{
-
+    /**
+     * Model key for event instance objects in scripts
+     */
+    public static final String CONTEXT_KEY = "evt";
+    
     /**
      * Configuration field. Assigned by the database.
      */

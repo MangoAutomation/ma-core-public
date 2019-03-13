@@ -493,7 +493,9 @@ public class EventHandlersDwr extends BaseDwr {
         }
 
         Map<String, Object> otherContext = new HashMap<String, Object>();
-        otherContext.put(EventInstanceWrapper.EVENT_CONTEXT_KEY, getTestEvent());
+        EventInstance testEvent = getTestEvent();
+        otherContext.put(EventInstance.CONTEXT_KEY, testEvent);
+        otherContext.put(EventInstanceWrapper.CONTEXT_KEY, new EventInstanceWrapper(testEvent));
         if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE) {
             otherContext.put("model", new HashMap<String, Object>());
             otherContext.put(EmailHandlerRT.DO_NOT_SEND_KEY, MangoJavaScriptService.UNCHANGED);
@@ -572,8 +574,8 @@ public class EventHandlersDwr extends BaseDwr {
         return response;
     }
 
-    private EventInstanceWrapper getTestEvent() {
-        EventInstance ei = new EventInstance(new EventType() {
+    private EventInstance getTestEvent() {
+        return new EventInstance(new EventType() {
 
             @Override
             public String getEventType() {
@@ -611,6 +613,5 @@ public class EventHandlersDwr extends BaseDwr {
             }
         }, Common.timer.currentTimeMillis(), false, AlarmLevels.INFORMATION,
                 new TranslatableMessage("common.test"), null);
-        return new EventInstanceWrapper(ei);
     }
 }

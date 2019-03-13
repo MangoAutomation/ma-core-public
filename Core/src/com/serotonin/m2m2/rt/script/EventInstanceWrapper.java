@@ -5,7 +5,7 @@ import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.type.EventType;
 
 public class EventInstanceWrapper {
-    public static final String EVENT_CONTEXT_KEY = "event";
+    public static final String CONTEXT_KEY = "event";
     
     private final EventInstance event;
 

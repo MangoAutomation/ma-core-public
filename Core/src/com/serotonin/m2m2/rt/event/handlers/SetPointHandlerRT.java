@@ -145,7 +145,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         	context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, targetPoint);
         	Map<String, Object> additionalContext = new HashMap<String, Object>();
-        	additionalContext.put(EventInstanceWrapper.EVENT_CONTEXT_KEY, new EventInstanceWrapper(evt));
+        	additionalContext.put(EventInstanceWrapper.CONTEXT_KEY, new EventInstanceWrapper(evt));
         	try (ScriptLog scriptLog = new ScriptLog("setPointHandler-" + evt.getId())){
         		for(IntStringPair cxt : vo.getAdditionalContext()) {
         			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
@@ -238,7 +238,8 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         	context.put("target", targetPoint);
         	Map<String, Object> additionalContext = new HashMap<String, Object>();
-            additionalContext.put(EventInstanceWrapper.EVENT_CONTEXT_KEY, new EventInstanceWrapper(evt));
+        	additionalContext.put(EventInstance.CONTEXT_KEY, evt);
+            additionalContext.put(EventInstanceWrapper.CONTEXT_KEY, new EventInstanceWrapper(evt));
         	try {
         	    for(IntStringPair cxt : vo.getAdditionalContext()) {
                     DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
