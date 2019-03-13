@@ -57,6 +57,7 @@ import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
+import com.serotonin.m2m2.rt.script.EventInstanceWrapper;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
@@ -270,6 +271,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             // Send the email.
             Map<String, Object> model = new HashMap<String, Object>();
             model.put("evt", evt);
+            model.put(EventInstanceWrapper.EVENT_CONTEXT_KEY, new EventInstanceWrapper(evt));
             if (evt.getContext() != null)
                 model.putAll(evt.getContext());
             model.put("img", inlineImages);

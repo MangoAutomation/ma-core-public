@@ -493,7 +493,7 @@ public class EventHandlersDwr extends BaseDwr {
         }
 
         Map<String, Object> otherContext = new HashMap<String, Object>();
-        otherContext.put(SetPointEventHandlerVO.EVENT_CONTEXT_KEY, getTestEvent());
+        otherContext.put(EventInstanceWrapper.EVENT_CONTEXT_KEY, getTestEvent());
         if(type == EmailEventHandlerDefinition.EMAIL_SCRIPT_TYPE) {
             otherContext.put("model", new HashMap<String, Object>());
             otherContext.put(EmailHandlerRT.DO_NOT_SEND_KEY, MangoJavaScriptService.UNCHANGED);
