@@ -58,7 +58,7 @@ public class DataSourceGroupInitializer {
 		long startTs = Common.timer.currentTimeMillis();
 		if(this.group == null){
 			if(this.useMetrics)
-				LOG.info("Initialization of " + this.group.size() + " " + this.startPriority.name() +  " priority data sources took " + (Common.timer.currentTimeMillis() - startTs));
+				LOG.info("Initialization of 0 " + this.startPriority.name() +  " priority data sources took " + (Common.timer.currentTimeMillis() - startTs));
 			return polling;
 		}
 		
