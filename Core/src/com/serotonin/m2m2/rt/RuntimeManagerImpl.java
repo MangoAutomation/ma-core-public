@@ -28,6 +28,7 @@ import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.RuntimeManagerDefinition;
@@ -71,6 +72,8 @@ public class RuntimeManagerImpl implements RuntimeManager{
      */
     private final List<PublisherRT<?>> runningPublishers = new CopyOnWriteArrayList<PublisherRT<?>>();
     
+    private TranslatableMessage stateMessage = new TranslatableMessage("startup.state.runtimeManagerInitialize");
+    
     /**
      * State machine allowed order:
      * PRE_INITIALIZE
@@ -87,6 +90,23 @@ public class RuntimeManagerImpl implements RuntimeManager{
     public int getState(){
     	return state;
     }
+    
+    @Override
+    public TranslatableMessage getStateMessage() {
+        switch(state) {
+            case PRE_INITIALIZE:
+            case INITIALIZE:
+                return stateMessage;
+            case RUNNING:
+                return new TranslatableMessage("startup.state.running");
+            case TERMINATE:
+            case POST_TERMINATE:
+            case TERMINATED:
+            default:
+                return new TranslatableMessage("shutdown.state.preTerminate");
+        }
+    }
+    
     //
     // Lifecycle
 
@@ -249,8 +269,11 @@ public class RuntimeManagerImpl implements RuntimeManager{
     }
 
     private int startRTMDefs(List<RuntimeManagerDefinition> defs, boolean safe, int fromIndex, int toPriority) {
-        while (fromIndex < defs.size() && defs.get(fromIndex).getInitializationPriority() <= toPriority)
-            defs.get(fromIndex++).initialize(safe);
+        while (fromIndex < defs.size() && defs.get(fromIndex).getInitializationPriority() <= toPriority) {
+            defs.get(fromIndex).initialize(safe);
+            stateMessage = new TranslatableMessage("runtimeManager.initialize.rtm", defs.get(fromIndex).getModule().getName());
+            fromIndex++;
+        }
         return fromIndex;
     }
 
@@ -383,7 +406,9 @@ public class RuntimeManagerImpl implements RuntimeManager{
 
     	long duration = endTime - startTime;
     	LOG.info("Data source '" + vo.getName() + "' took " + (double)duration/(double)1000000 + "ms to start");
-        return true;
+    	stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), (double)duration/(double)1000000);
+        
+    	return true;
     }
     
     private void startDataSourcePolling(DataSourceVO<?> vo) {
@@ -902,6 +927,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     }
 
     private void startPublisher(PublisherVO<? extends PublishedPointVO> vo) {
+        long startTime = System.nanoTime();
         synchronized (runningPublishers) {
             // If the publisher is already running, just quit.
             if (isPublisherRunning(vo.getId()))
@@ -917,6 +943,12 @@ public class RuntimeManagerImpl implements RuntimeManager{
             // Add it to the list of running publishers.
             runningPublishers.add(publisher);
         }
+        
+        long endTime = System.nanoTime();
+
+        long duration = endTime - startTime;
+        LOG.info("Publisher '" + vo.getName() + "' took " + (double)duration/(double)1000000 + "ms to start");
+        stateMessage = new TranslatableMessage("runtimeManager.initialize.publisher", vo.getName(), (double)duration/(double)1000000);
     }
 
     private void stopPublisher(int id) {

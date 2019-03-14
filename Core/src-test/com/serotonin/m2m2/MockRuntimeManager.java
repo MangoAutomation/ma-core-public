@@ -9,6 +9,7 @@ import java.util.List;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -400,5 +401,10 @@ public class MockRuntimeManager implements RuntimeManager {
         point.setEnabled(enabled);
         if(useDatabase)
             DataPointDao.getInstance().saveEnabledColumn(point);
+    }
+
+    @Override
+    public TranslatableMessage getStateMessage() {
+        return new TranslatableMessage("common.default", "Mock runtime manager state message");
     }
 }

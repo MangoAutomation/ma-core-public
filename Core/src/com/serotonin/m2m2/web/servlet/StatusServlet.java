@@ -140,7 +140,7 @@ public class StatusServlet extends HttpServlet{
 		case IMangoLifecycle.EVENT_MANAGER_INITIALIZE:
 			return this.translations.translate("startup.state.eventManagerInitialize");
 		case IMangoLifecycle.RUNTIME_MANAGER_INITIALIZE:
-			return this.translations.translate("startup.state.runtimeManagerInitialize");
+		    return Common.runtimeManager.getStateMessage().translate(this.translations);
 		case IMangoLifecycle.MAINTENANCE_INITIALIZE:
 			return this.translations.translate("startup.state.maintenanceInitialize");
 		case IMangoLifecycle.IMAGE_SET_INITIALIZE:

@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt;
 
 import java.util.List;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -168,5 +169,11 @@ public interface RuntimeManager extends ILifecycle{
     void deletePublisher(int publisherId);
 
     void savePublisher(PublisherVO<? extends PublishedPointVO> vo);
+
+    /**
+     * Get a message about what state we are in
+     * @return
+     */
+    TranslatableMessage getStateMessage();
 
 }
