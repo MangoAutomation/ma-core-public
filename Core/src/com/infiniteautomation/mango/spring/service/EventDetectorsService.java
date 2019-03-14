@@ -79,8 +79,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
     @Override
     public T delete(String xid, PermissionHolder user)
             throws PermissionException, NotFoundException {
-        T vo = get(xid, user);
-        ensureDeletePermission(user, vo);
+        T vo = super.delete(xid, user);
         vo.getDefinition().restartSource(vo);
         return vo;
     }
