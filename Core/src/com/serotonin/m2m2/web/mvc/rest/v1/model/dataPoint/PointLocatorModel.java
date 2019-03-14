@@ -19,7 +19,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  *
  */
 @CSVEntity(derived=true)
-@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.PROPERTY, property=PointLocatorModel.MODEL_TYPE)
+@JsonTypeInfo(use=JsonTypeInfo.Id.NAME, include=JsonTypeInfo.As.EXISTING_PROPERTY, property=PointLocatorModel.MODEL_TYPE)
 public abstract class PointLocatorModel<T extends PointLocatorVO<?>> extends AbstractRestModel<T>{
 	
     public static final String MODEL_TYPE = "modelType";
