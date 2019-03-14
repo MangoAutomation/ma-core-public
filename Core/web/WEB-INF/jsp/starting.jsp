@@ -8,7 +8,7 @@
 
 
 <tag:page dwr="">
-    <script type="text/javascript" src="/resources/mangoStatus.js"></script>
+    <script type="text/javascript" src="/resources/mangoStatus.js?v=3.6.0"></script>
 
 	<div style="width: 100%; padding: 1em 2em 1em 1em;"
 		data-dojo-type="dijit/layout/ContentPane"
