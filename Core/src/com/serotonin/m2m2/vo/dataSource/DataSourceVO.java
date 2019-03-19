@@ -20,6 +20,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -372,25 +373,26 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     }
     
     protected Integer readPeriodType(String field, JsonObject json) throws JsonException {
-        String text = json.getString(field);
-        if (text == null)
-            return null;
-
-        int value = Common.TIME_PERIOD_CODES.getId(text);
-        if (value == -1) {
-            //For legacy data sources who accidentally used an integer instead of the code
-            try {
-                int testValue = Integer.parseInt(text);
-                if(Common.TIME_PERIOD_CODES.getCode(testValue) == null)
-                    throw new NumberFormatException();
-                return testValue;
-            }catch(NumberFormatException e) {
+        try {
+            String text = json.getString(field);
+            if (text == null)
+                return null;
+    
+            int value = Common.TIME_PERIOD_CODES.getId(text);
+            if (value == -1)
                 throw new TranslatableJsonException("emport.error.invalid", field, text,
                         Common.TIME_PERIOD_CODES.getCodeList());
-            }
+            return value;
+        } catch(ClassCastException e) {
+            //For legacy data sources who accidentally used an integer instead of the code
+            JsonNumber testValue = json.getJsonNumber(field);
+            if(testValue == null || Common.TIME_PERIOD_CODES.getCode(testValue.intValue()) == null)
+                //Tell them to use text instead...
+                throw new TranslatableJsonException("emport.error.invalid", field, testValue,
+                        Common.TIME_PERIOD_CODES.getCodeList());
+            return testValue.intValue();
+            
         }
-
-        return value;
     }
 
     /* (non-Javadoc)
