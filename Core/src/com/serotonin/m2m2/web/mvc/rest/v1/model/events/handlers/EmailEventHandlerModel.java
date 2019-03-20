@@ -19,6 +19,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.email.EmailRecipientModel;
  * 
  * @author Terry Packer
  */
+@Deprecated
 public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEventHandlerVO>{
 
 	/**
@@ -33,6 +34,8 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 	}
 
     public List<EmailRecipientModel<?>> getActiveRecipients() {
+        if(this.data.getActiveRecipients() == null)
+            return null;
     	List<EmailRecipientModel<?>> models = new ArrayList<EmailRecipientModel<?>>();
         for(RecipientListEntryBean b : this.data.getActiveRecipients()) {
             EmailRecipientModel<?> model = EmailRecipientModel.createModel(b);
@@ -67,6 +70,8 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
 
 
     public List<EmailRecipientModel<?>> getEscalationRecipients() {
+        if(this.data.getEscalationRecipients() == null)
+            return null;
     	List<EmailRecipientModel<?>> models = new ArrayList<EmailRecipientModel<?>>();
         for(RecipientListEntryBean b : this.data.getEscalationRecipients()) {
             EmailRecipientModel<?> model = EmailRecipientModel.createModel(b);
