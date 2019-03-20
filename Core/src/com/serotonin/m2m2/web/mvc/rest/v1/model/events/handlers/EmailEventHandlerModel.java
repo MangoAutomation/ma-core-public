@@ -121,6 +121,8 @@ public class EmailEventHandlerModel extends AbstractEventHandlerModel<EmailEvent
     }
 
     public List<EmailRecipientModel<?>> getInactiveRecipients() {
+        if(this.data.getInactiveRecipients() == null)
+            return null;
     	List<EmailRecipientModel<?>> models = new ArrayList<EmailRecipientModel<?>>();
         for(RecipientListEntryBean b : this.data.getInactiveRecipients()) {
             EmailRecipientModel<?> model = EmailRecipientModel.createModel(b);
