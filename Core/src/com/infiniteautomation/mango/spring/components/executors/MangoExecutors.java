@@ -150,4 +150,25 @@ public final class MangoExecutors {
     public <T> CompletableFuture<T> makeCompletable(Future<T> future, long timeout, TimeUnit timeoutUnit) {
         return futureConverter.get().submit(future, timeout, timeoutUnit);
     }
+
+    public <T> CompletableFuture<T> runInExecutor(ThrowingConsumer<CompletableFuture<T>> consumer) {
+        CompletableFuture<T> future = new CompletableFuture<T>();
+        try {
+            executor.execute(() -> {
+                try {
+                    consumer.accept(future);
+                } catch (Exception e) {
+                    future.completeExceptionally(e);
+                }
+            });
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
+        return future;
+    }
+
+    @FunctionalInterface
+    public static interface ThrowingConsumer<T> {
+        void accept(T t) throws Exception;
+    }
 }
