@@ -25,6 +25,10 @@ import org.springframework.context.event.ContextStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.support.TaskExecutorAdapter;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -51,6 +55,7 @@ import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
         "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
         "com.serotonin.m2m2.db.dao" //DAOs
 })
+@EnableAsync
 public class MangoRuntimeContextConfiguration {
     private static final CompletableFuture<ApplicationContext> RUNTIME_CONTEXT_FUTURE = new CompletableFuture<>();
     private static final CompletableFuture<WebApplicationContext> ROOT_WEB_CONTEXT_FUTURE = new CompletableFuture<>();
@@ -100,7 +105,7 @@ public class MangoRuntimeContextConfiguration {
 
     public static final String REST_OBJECT_MAPPER_NAME = "restObjectMapper";
     public static final String COMMON_OBJECT_MAPPER_NAME = "commonObjectMapper";
-    public static final String DAO_OBJECT_MAPPER_NAME = "daoObjectMapper"; 
+    public static final String DAO_OBJECT_MAPPER_NAME = "daoObjectMapper";
     public static final String SCHEDULED_EXECUTOR_SERVICE_NAME = "scheduledExecutorService";
     public static final String EXECUTOR_SERVICE_NAME = "executorService";
 
@@ -134,7 +139,7 @@ public class MangoRuntimeContextConfiguration {
             log.info("Spring context '" + context.getId() +"' started: " + context.getDisplayName());
         }
     }
-     
+
     @Bean(REST_OBJECT_MAPPER_NAME)
     public static ObjectMapper getObjectMapper() {
         // For raw Jackson
@@ -169,7 +174,7 @@ public class MangoRuntimeContextConfiguration {
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         return objectMapper;
     }
-    
+
     @Bean(COMMON_OBJECT_MAPPER_NAME)
     public ObjectMapper getCommonObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -184,7 +189,7 @@ public class MangoRuntimeContextConfiguration {
         }
         return mapper;
     }
-    
+
     @Bean(DAO_OBJECT_MAPPER_NAME)
     public ObjectMapper getDaoObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
@@ -199,7 +204,7 @@ public class MangoRuntimeContextConfiguration {
         }
         return mapper;
     }
-    
+
     // ScheduledExecutorService cannot be annotated with @Primary as it is also an ExecutorService
     @Bean(SCHEDULED_EXECUTOR_SERVICE_NAME)
     public ScheduledExecutorService scheduledExecutorService(MangoExecutors executors) {
@@ -210,6 +215,15 @@ public class MangoRuntimeContextConfiguration {
     @Bean(EXECUTOR_SERVICE_NAME)
     public ExecutorService executorService(MangoExecutors executors) {
         return executors.getExecutor();
+    }
+
+    /**
+     * TaskExecutor that is used by Spring @Async annotated methods, propagates the SecurityContext to the new thread (and clears it when done)
+     */
+    @Primary
+    @Bean
+    public TaskExecutor taskExecutor(ExecutorService executor) {
+        return new DelegatingSecurityContextAsyncTaskExecutor(new TaskExecutorAdapter(executor));
     }
 
     /**
