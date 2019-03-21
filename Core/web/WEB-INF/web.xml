@@ -55,11 +55,13 @@
         <param-name>forceEncoding</param-name>
         <param-value>true</param-value>
     </init-param>
+   <async-supported>true</async-supported>
   </filter>
   
   <filter>
    <filter-name>etagFilter</filter-name>
    <filter-class>com.serotonin.m2m2.web.filter.MangoShallowEtagHeaderFilter</filter-class>
+   <async-supported>true</async-supported>
   </filter>
   
   <!-- 
