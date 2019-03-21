@@ -22,6 +22,7 @@ import com.serotonin.json.type.JsonString;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
@@ -165,7 +166,7 @@ public class ScriptContextVariable implements Serializable{
                 
                 //Default for legacy systems
                 if(jo.containsKey("updateContext"))
-                	isContextUpdate = jo.getBoolean("updateContext");
+                	isContextUpdate = AbstractVO.getBoolean(jo, "updateContext");
                 context.add(new ScriptContextVariable(dpid, var, isContextUpdate));
             }
         }

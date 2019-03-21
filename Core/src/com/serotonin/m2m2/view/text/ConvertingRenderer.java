@@ -16,6 +16,7 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.util.UnitUtil;
+import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -106,7 +107,7 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
         
         //To ensure we have this property as it is a new one
         if(jsonObject.containsKey("useUnitAsSuffix")){
-        	useUnitAsSuffix = jsonObject.getBoolean("useUnitAsSuffix");
+        	useUnitAsSuffix = AbstractVO.getBoolean(jsonObject, "useUnitAsSuffix");
         }      
     }
 }

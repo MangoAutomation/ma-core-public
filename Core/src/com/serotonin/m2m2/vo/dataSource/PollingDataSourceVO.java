@@ -182,12 +182,15 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
         
-        Integer value = readUpdatePeriodType(jsonObject);
-        if (value != null)
-            updatePeriodType = value;
-        
+        //The annotated field useCron will have already been imported
+        if(jsonObject.containsKey("updatePeriodType")) {
+            Integer value = readUpdatePeriodType(jsonObject);
+            if (value != null)
+                updatePeriodType = value;
+        }
+
         if(jsonObject.containsKey("updatePeriods"))
-            updatePeriods = jsonObject.getInt("updatePeriods");
+            updatePeriods = getInt(jsonObject, "updatePeriods");
             
         if(jsonObject.containsKey("cronPattern"))
             cronPattern = jsonObject.getString("cronPattern");

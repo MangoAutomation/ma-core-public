@@ -16,8 +16,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.type.JsonBoolean;
-import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -616,20 +614,6 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
         }
     }
 
-    private double getDouble(JsonObject json, String name) throws JsonException {
-        JsonNumber d = json.getJsonNumber(name);
-        if (d == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return d.doubleValue();
-    }
-
-    private int getInt(JsonObject json, String name) throws JsonException {
-        JsonNumber i = json.getJsonNumber(name);
-        if (i == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return i.intValue();
-    }
-
     private void updateDuration(JsonObject json) throws JsonException {
         String text = json.getString("durationType");
         if (text == null)
@@ -644,19 +628,7 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
         duration = getInt(json, "duration");
     }
 
-    private boolean getBoolean(JsonObject json, String name) throws JsonException {
-        JsonBoolean b = json.getJsonBoolean(name);
-        if (b == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return b.booleanValue();
-    }
 
-    private String getString(JsonObject json, String name) throws JsonException {
-        String s = json.getString(name);
-        if (s == null)
-            throw new TranslatableJsonException("emport.error.ped.missingAttr", name);
-        return s;
-    }
 
     private void addDuration(ObjectWriter writer) throws JsonException, IOException {
         writer.writeEntry("durationType", Common.TIME_PERIOD_CODES.getCode(durationType));

@@ -20,7 +20,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -328,12 +327,10 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
 
         //Not reading XID so can't do this: super.jsonRead(reader, jsonObject);
-        if(jsonObject.getJsonString("name") != null)
-            name = jsonObject.getString("name");
-        if(jsonObject.getJsonBoolean("enabled") != null)
-            enabled = jsonObject.getBoolean("enabled");
-
-        // Don't change the type.
+        if(jsonObject.containsKey("name"))
+            name = getString(jsonObject, "name");
+        if(jsonObject.containsKey("enabled"))
+            enabled = getBoolean(jsonObject, "enabled");
 
         JsonObject alarmCodeLevels = jsonObject.getJsonObject("alarmLevels");
         if (alarmCodeLevels != null) {
@@ -374,7 +371,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     
     protected Integer readPeriodType(String field, JsonObject json) throws JsonException {
         try {
-            String text = json.getString(field);
+            String text = getString(json, field);
             if (text == null)
                 return null;
     
@@ -383,15 +380,17 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
                 throw new TranslatableJsonException("emport.error.invalid", field, text,
                         Common.TIME_PERIOD_CODES.getCodeList());
             return value;
-        } catch(ClassCastException e) {
+        } catch(JsonException e) {
             //For legacy data sources who accidentally used an integer instead of the code
-            JsonNumber testValue = json.getJsonNumber(field);
-            if(testValue == null || Common.TIME_PERIOD_CODES.getCode(testValue.intValue()) == null)
-                //Tell them to use text instead...
-                throw new TranslatableJsonException("emport.error.invalid", field, testValue,
-                        Common.TIME_PERIOD_CODES.getCodeList());
-            return testValue.intValue();
-            
+            try {
+                int testInt = getInt(json, field);
+                if(Common.TIME_PERIOD_CODES.getCode(testInt) == null) //Tell them to use text instead...
+                    throw new TranslatableJsonException("emport.error.invalid", field, testInt, Common.TIME_PERIOD_CODES.getCodeList());
+                return testInt;
+            }catch(JsonException e2) {
+                //Wasn't an int 
+                throw new TranslatableJsonException("emport.error.missing", field, Common.TIME_PERIOD_CODES.getCodeList());
+            }
         }
     }
 

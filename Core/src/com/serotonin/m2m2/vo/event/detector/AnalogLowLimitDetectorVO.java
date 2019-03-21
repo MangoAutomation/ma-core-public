@@ -132,7 +132,7 @@ public class AnalogLowLimitDetectorVO extends TimeoutDetectorVO<AnalogLowLimitDe
         
         if (jsonObject.containsKey("resetLimit")) {
         	useResetLimit = true;
-            resetLimit = getDouble(jsonObject, "resetLimit", MISSING_PROP_TRANSLATION_KEY);
+            resetLimit = getDouble(jsonObject, "resetLimit");
         }
     }
     

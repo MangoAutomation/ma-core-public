@@ -40,6 +40,9 @@ JsonSerializable, Cloneable, Validatable {
 
     private static final Log LOG = LogFactory.getLog(AbstractVO.class);
 
+    protected static final String DEFAULT_MISSING_IMPORT_KEY = "emport.error.missingValue";
+    protected static final String DEFAULT_WRONG_DATA_TYPE_KEY = "emport.error.wrongDataType";
+    
     /**
      * Allows the conversion of VOs between code versions by providing access to properties that would otherwise have
      * been expunged by the version handling in the readObject method.
@@ -58,12 +61,6 @@ JsonSerializable, Cloneable, Validatable {
      */
     protected abstract AbstractDao<T> getDao();
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader,
-     * com.serotonin.json.type.JsonObject)
-     */
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         // dont user JsonProperty annotation so we can choose whether to read/write in sub type
@@ -71,44 +68,84 @@ JsonSerializable, Cloneable, Validatable {
         name = jsonObject.getString("name");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
-     */
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        // dont user JsonProperty annotation so we can choose whether to read/write in sub type
+        // dont use JsonProperty annotation so we can choose whether to read/write in sub type
         writer.writeEntry("xid", xid);
         writer.writeEntry("name", name);
     }
 
-    protected boolean getBoolean(JsonObject json, String name, String missingTranslationKey) throws JsonException {
+    /**
+     * Helper to safely get a boolean during import
+     * @param json
+     * @param name
+     * @return
+     * @throws JsonException - if the field DNE or is not of the desired type
+     */
+    public static boolean getBoolean(JsonObject json, String name) throws JsonException {
         JsonValue o = json.get(name);
         if(o == null)
-            throw new TranslatableJsonException(missingTranslationKey, name);
-        return o.toBoolean();
+            throw new TranslatableJsonException(DEFAULT_MISSING_IMPORT_KEY, name);
+        try{
+            return o.toBoolean();
+        }catch(ClassCastException e) {
+            throw new TranslatableJsonException(DEFAULT_WRONG_DATA_TYPE_KEY, name, Boolean.class.getSimpleName());
+        }
+    }
+    
+    /**
+     * Helper to safely get a String during import
+     * @param json
+     * @param name
+     * @return
+     * @throws JsonException - if the field DNE or is not of the desired type
+     */
+    public static String getString(JsonObject json, String name) throws JsonException {
+        JsonValue o = json.get(name);
+        if(o == null)
+            throw new TranslatableJsonException(DEFAULT_MISSING_IMPORT_KEY, name);
+        try {
+            return json.getString(name);
+        }catch(ClassCastException e) {
+            throw new TranslatableJsonException(DEFAULT_WRONG_DATA_TYPE_KEY, name, String.class.getSimpleName());
+        }
     }
 
-    protected String getString(JsonObject json, String name, String missingTranslationKey) throws JsonException {
+    /**
+     * Helper to safely get a double during import
+     * @param json
+     * @param name
+     * @return
+     * @throws JsonException - if the field DNE or is not of the desired type
+     */
+    public static double getDouble(JsonObject json, String name) throws JsonException {
         JsonValue o = json.get(name);
         if(o == null)
-            throw new TranslatableJsonException(missingTranslationKey, name);
-        return json.getString(name);
+            throw new TranslatableJsonException(DEFAULT_MISSING_IMPORT_KEY, name);
+        try {
+            return json.getDouble(name);
+        }catch(ClassCastException e) {
+            throw new TranslatableJsonException(DEFAULT_WRONG_DATA_TYPE_KEY, name, Double.class.getSimpleName());
+        }
+        
     }
 
-    protected double getDouble(JsonObject json, String name, String missingTranslationKey) throws JsonException {
+    /**
+     * Helper to safely get a int during import
+     * @param json
+     * @param name
+     * @return
+     * @throws JsonException - if the field DNE or is not of the desired type
+     */
+    public static int getInt(JsonObject json, String name) throws JsonException {
         JsonValue o = json.get(name);
         if(o == null)
-            throw new TranslatableJsonException(missingTranslationKey, name);
-        return json.getDouble(name);
-    }
-
-    protected int getInt(JsonObject json, String name, String missingTranslationKey) throws JsonException {
-        JsonValue o = json.get(name);
-        if(o == null)
-            throw new TranslatableJsonException(missingTranslationKey, name);
-        return json.getInt(name);
+            throw new TranslatableJsonException(DEFAULT_MISSING_IMPORT_KEY, name);
+        try {
+            return json.getInt(name);
+        }catch(ClassCastException e) {
+            throw new TranslatableJsonException(DEFAULT_WRONG_DATA_TYPE_KEY, name, Integer.class.getSimpleName());
+        }
     }
 
     /*

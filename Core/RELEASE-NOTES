@@ -29,6 +29,7 @@
 * Add missing EventInstanceWrapper to email handler scripts
 * Bugfix for NPE in deprecated EmailEventHandlerModel in REST v1, suggest using v2 endpoints instead
 * ScriptPermissions' four permissions types unified into one permission set via taking the union of the four permissions sets.
+* Make JSON Imports more robust when importing invalid/missing values for fields
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions

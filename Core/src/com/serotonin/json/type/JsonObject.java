@@ -127,6 +127,12 @@ public class JsonObject extends JsonValue implements Map<String, JsonValue> {
         return (JsonString) delegate.get(key);
     }
 
+    /**
+     * Deprecated, use AbstractVO.getBoolean(json, key) instead
+     * @param key
+     * @return
+     */
+    @Deprecated 
     public boolean getBoolean(String key) {
         return getJsonBoolean(key).toBoolean();
     }
@@ -144,7 +150,20 @@ public class JsonObject extends JsonValue implements Map<String, JsonValue> {
             return null;
         return js.toString();
     }
+    
+    public String getString(String key, String defaultValue) {
+        JsonString js = getJsonString(key);
+        if (js == null)
+            return defaultValue;
+        return js.toString(); 
+    }
 
+    /**
+     * Deprecated, use AbstractVO.getInt(json, key) instead
+     * @param key
+     * @return
+     */
+    @Deprecated 
     public int getInt(String key) {
         return getJsonNumber(key).intValue();
     }
@@ -178,6 +197,12 @@ public class JsonObject extends JsonValue implements Map<String, JsonValue> {
         return jn.floatValue();
     }
 
+    /**
+     * Deprecated, use AbstractVO.getDouble(json, key) instead
+     * @param key
+     * @return
+     */
+    @Deprecated 
     public double getDouble(String key) {
         return getJsonNumber(key).doubleValue();
     }

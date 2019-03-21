@@ -21,8 +21,6 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     private static final long serialVersionUID = 1L;
 
     public static final String XID_PREFIX = "PED_";
-    protected static final String MISSING_PROP_TRANSLATION_KEY = "emport.error.ped.missingAttr";
-
 
     //Extra Fields
     protected final DataPointVO dataPoint;
