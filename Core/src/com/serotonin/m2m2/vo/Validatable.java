@@ -11,7 +11,9 @@ import com.serotonin.m2m2.i18n.ProcessResult;
  */
 public interface Validatable {
     /**
-     * Validates the object and adds messages to the response
+     * Validates the object and adds messages to the response.
+     * This method should NOT throw a ValidationException!
+     *
      * @param response
      */
     public void validate(ProcessResult response);
