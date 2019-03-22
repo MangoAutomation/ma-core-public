@@ -16,10 +16,10 @@ import com.serotonin.m2m2.i18n.ProcessMessage.Level;
  * Represents a generic object that can be returned from a process. Standardized here so that the receiving javascript
  * code can also be standardized. Any of the fields here can be used or not, as appropriate to the context in which it
  * is used.
- * 
+ *
  * When the TranslatableMessageConverter is used, {@link ProcessMessage} instances have their
  * {@link TranslatableMessage}s automatically converted to translated strings.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class ProcessResult {
@@ -85,7 +85,7 @@ public class ProcessResult {
     public void setData(Map<String, Object> data) {
         this.data = data;
     }
-    
+
     /**
      * A result is valid if there are no messages at the WARN or ERROR level
      * @return
@@ -94,13 +94,16 @@ public class ProcessResult {
         for(ProcessMessage m : messages)
             if(m.getLevel() == Level.error || m.getLevel() == Level.warning)
                 return false;
-        return true;   
+        return true;
     }
-    
+
     /**
+     * Do not use this method. Instead your VO or model should implement Validatable and override the validate(ProcessResult response) method.
+     *
      * Ensure this result is valid
      * @throws ValidationException
      */
+    @Deprecated
     public void ensureValid() throws ValidationException {
         if(!isValid())
             throw new ValidationException(this);

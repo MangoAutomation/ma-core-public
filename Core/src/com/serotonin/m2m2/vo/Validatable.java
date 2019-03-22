@@ -15,16 +15,16 @@ public interface Validatable {
      * @param response
      */
     public void validate(ProcessResult response);
-    
+
     /**
      * Validates the object and throws a ValidationException if it is not valid
-     * 
+     *
      * @throws ValidationException
      */
     public default void ensureValid() throws ValidationException {
         ProcessResult response = new ProcessResult();
         this.validate(response);
-        if (response.getHasMessages()) {
+        if (!response.isValid()) {
             throw new ValidationException(response);
         }
     }
