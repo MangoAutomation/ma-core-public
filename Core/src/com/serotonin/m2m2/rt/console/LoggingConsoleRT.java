@@ -7,16 +7,14 @@ package com.serotonin.m2m2.rt.console;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 
 /**
  * 
- * A Queue of log messages.
- * 
- * 
+ * A in-memory limited Queue of log messages.
  * 
  * @author Terry Packer
  *
@@ -25,10 +23,10 @@ public class LoggingConsoleRT {
 
 	public static final LoggingConsoleRT instance = new LoggingConsoleRT();
 	private int historySize = 400; //Max size of history
-	private ConcurrentLinkedQueue<LogConsoleMessage> console; 
+	private ConcurrentLinkedDeque<LogConsoleMessage> console; 
 	
 	private LoggingConsoleRT(){
-		this.console = new ConcurrentLinkedQueue<LogConsoleMessage>();
+		this.console = new ConcurrentLinkedDeque<LogConsoleMessage>();
 		//Init with at least 1 message
 		TranslatableMessage m = new TranslatableMessage("startup.startingUp");
 		this.console.add(new LogConsoleMessage(m.translate(Translations.getTranslations()) + "\n", System.currentTimeMillis()));
@@ -42,7 +40,7 @@ public class LoggingConsoleRT {
 		if(this.console.size() == 0)
 			return "";
 		else
-			return this.console.peek().getMessage();
+			return this.console.peekFirst().getMessage();
 	}
 	
 	/**
