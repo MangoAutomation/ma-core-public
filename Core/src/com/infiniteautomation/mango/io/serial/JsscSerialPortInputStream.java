@@ -10,15 +10,16 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import jssc.SerialPort;
-import jssc.SerialPortEvent;
-import jssc.SerialPortEventListener;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
+
+import jssc.SerialNativeInterface;
+import jssc.SerialPort;
+import jssc.SerialPortEvent;
+import jssc.SerialPortEventListener;
 
 
 /**
@@ -31,17 +32,21 @@ import com.serotonin.m2m2.Common;
  * @author Terry Packer
  * 
  */
-public class JsscSerialPortInputStream extends SerialPortInputStream implements SerialPortEventListener, SerialPortProxyEventCompleteListener {
+public class JsscSerialPortInputStream extends SerialPortInputStream implements SerialPortEventListener {
 
     private final Log LOG = LogFactory.getLog(JsscSerialPortInputStream.class);
-    protected LinkedBlockingQueue<Byte> dataStream;
-    protected SerialPort port;
-    protected List<SerialPortProxyEventListener> listeners;
-
-    //Thread Pool for executing listeners in separate threads,
-    // when a 
-    private BlockingQueue<SerialPortProxyEventTask> listenerTasks;
-    private final int maxPoolSize = 20; //Default to 20;
+    protected final LinkedBlockingQueue<Byte> dataStream;
+    protected final SerialPort port;
+    protected final List<SerialPortProxyEventListener> listeners;
+    protected final SerialPortEventProcessorThread eventProcessor;
+    
+    protected final SerialPortReadThread readThread;
+    //TODO Expose these as env properties?
+    protected final int readThreadSleepMillis = 0;
+    protected final int readThreadSleepNanos = 100;
+    
+    //Tasks to be run for listeners
+    protected final BlockingQueue<SerialPortProxyEventTask> listenerTasks;
     
     /**
      * @param serialPort
@@ -53,21 +58,25 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
         this.dataStream = new LinkedBlockingQueue<Byte>();
 
         this.port = serialPort;
-        this.port.addEventListener(this, SerialPort.MASK_RXCHAR);
+        
+        //This is ok on windows, linux we want to poll on our own
+        if(SerialNativeInterface.getOsType() == SerialNativeInterface.OS_WINDOWS) {
+            this.readThread = null;
+            this.port.addEventListener(this, SerialPort.MASK_RXCHAR);
+        }else {
+            this.readThread = new SerialPortReadThread(port.getPortName());
+        }
        
         //Setup a bounded Pool that will execute the listener tasks in Order
-        this.listenerTasks = new ArrayBlockingQueue<SerialPortProxyEventTask>(this.maxPoolSize);
+        this.listenerTasks = new ArrayBlockingQueue<SerialPortProxyEventTask>(10000);
+        
+        this.eventProcessor = new SerialPortEventProcessorThread(port.getPortName());
         
         if(LOG.isDebugEnabled())
         	LOG.debug("Creating Jssc Serial Port Input Stream for: " + serialPort.getPortName());
         
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.io.InputStream#read()
-     */
     @Override
     public int read() throws IOException {
         synchronized (dataStream) {
@@ -92,13 +101,29 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
 
     @Override
     public void closeImpl() throws IOException {
+        if(SerialNativeInterface.getOsType() == SerialNativeInterface.OS_WINDOWS) {
+            try {
+                this.port.removeEventListener(); //Remove the listener
+            }
+            catch (jssc.SerialPortException e) {
+                throw new IOException(e);
+            }
+        }else {
+            if(this.readThread != null) {
+                try {
+                    this.readThread.terminate();
+                    this.readThread.joinTermination();
+                }catch(Exception e) {
+                    LOG.error("Serial port read thread " + this.readThread.getName() + "failed to stop", e);
+                }
+            }
+        }
         try {
-            this.port.removeEventListener(); //Remove the listener
+            this.eventProcessor.terminate();
+            this.eventProcessor.joinTermination();
+        }catch(Exception e) {
+            LOG.error("Serial port event processor thread " + this.eventProcessor.getName() + " failed to stop", e);
         }
-        catch (jssc.SerialPortException e) {
-            throw new IOException(e);
-        }
-
     }
 
     /**
@@ -110,7 +135,6 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
     public int peek() {
         return this.dataStream.peek();
     }
-
 
     /**
      * Serial Event Executed
@@ -136,18 +160,15 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
                 LOG.error(e);
             }
 
-            //TODO Add max limit to number of threads we can create until blocking
-            // basically use a thread pool here
             if (listeners.size() > 0) {
                 //Create a new RX Event
                 final SerialPortProxyEvent upstreamEvent = new SerialPortProxyEvent(Common.timer.currentTimeMillis());
                 for (final SerialPortProxyEventListener listener : listeners){
-                	SerialPortProxyEventTask task = new SerialPortProxyEventTask(listener, upstreamEvent, this);
+                	SerialPortProxyEventTask task = new SerialPortProxyEventTask(listener, upstreamEvent);
                 	try{
-	                	this.listenerTasks.add(task); //Add to queue (wait if queue is full)
-	                	task.start();
+	                	this.listenerTasks.offer(task);
                 	}catch(IllegalStateException e){
-                		LOG.warn("Serial Port Problem, Listener task queue full, data will be lost!", e);
+                		LOG.fatal("Serial Port Problem, Listener task queue full, data will be lost!", e);
                 	}
                 }
             }
@@ -159,9 +180,100 @@ public class JsscSerialPortInputStream extends SerialPortInputStream implements 
         }
     }
 
-	@Override
-	public void eventComplete(long time, SerialPortProxyEventTask task) {
-		this.listenerTasks.remove(task);
+    /**
+     * Process the events by running their listener tasks
+     * @author Terry Packer
+     */
+	private class SerialPortEventProcessorThread extends Thread {
+	    
+	    private volatile boolean running = true;
+	    private volatile boolean stopped = false;
+	    
+	    public SerialPortEventProcessorThread(String portName) {
+	        super("jssc-serial-port-event-processor[" + portName + "]");
+	        this.start();
+	    }
+	    
+	    @Override
+	    public void run() {
+	        while(running) {
+	            try {
+	                //Block until I have work to do
+	                SerialPortProxyEventTask t = listenerTasks.take();
+	                t.run();
+                } catch (InterruptedException e) {
+                    //Don't care, this will very likely happen on terminate
+                }
+	        }
+	        stopped = true;
+	    }
+	    
+	    public void terminate() {
+	        this.running = false;
+	        this.interrupt();
+	    }
+	    
+	    public void joinTermination() {
+	        while(!stopped) {
+	            try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    
+                }
+	        }
+	    }
 	}
+	
+    /**
+     * Thread to poll for new input
+     * 
+     * @author Terry Packer
+     *
+     */
+    private class SerialPortReadThread extends Thread {
 
+        private volatile boolean running = true;
+        private volatile boolean stopped = false;
+
+        public SerialPortReadThread(String portName) {
+            super("jssc-serial-port-reader[" + portName + "]");
+            this.start();
+        }
+
+        @Override
+        public void run() {
+            int available = 0;
+            while(running) {
+                try {
+                    available = port.getInputBufferBytesCount();
+                    if(available > 0) {
+                        SerialPortEvent event = new SerialPortEvent(port.getPortName(), SerialPortEvent.RXCHAR, available);
+                        serialEvent(event);
+                    }
+                    Thread.sleep(readThreadSleepMillis, readThreadSleepNanos);
+                }
+                catch (jssc.SerialPortException e) {
+                    LOG.error(e);
+                }catch(InterruptedException e) {
+                    //Don't care, this could happen on terminate
+                }
+            }
+            stopped = true;
+        }
+        
+        public void terminate() {
+            this.running = false;
+            this.interrupt();
+        }
+        
+        public void joinTermination() {
+            while(!stopped) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    
+                }
+            }
+        }
+	}
 }
