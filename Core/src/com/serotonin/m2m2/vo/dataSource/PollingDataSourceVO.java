@@ -57,6 +57,8 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
                     response.addContextualMessage("cronPattern", "validate.invalidCron", cronPattern);
                 }
             }
+            if(quantize)
+                response.addContextualMessage("quantize", "validate.cronCannotBeQuantized");
         }else {
             if (!Common.TIME_PERIOD_CODES.isValidId(updatePeriodType))
                 response.addContextualMessage("updatePeriodType", "validate.invalidValue");
