@@ -30,6 +30,12 @@ public class MockMangoProperties extends AbstractProperties{
         properties.put("test.injectedString","Testing String");
         properties.put("test.injectedInteger", "1");
         properties.put("test.injectedEmptyStringArray", "");
+        
+        //To avoid long delays when testing serial ports
+        properties.put("serial.port.linux.regex", "null");
+        properties.put("serial.port.linux.path", "/dev/");
+        properties.put("serial.port.osx.regex", "null");
+        properties.put("serial.port.osx.path", "/dev/");
     }
     
     /* (non-Javadoc)

@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-public class RealTimeTimer extends AbstractTimer{
+public class RealTimeTimer extends AbstractTimer {
     protected static final Log LOG = LogFactory.getLog(RealTimeTimer.class);
 
     /**
@@ -221,97 +221,9 @@ public class RealTimeTimer extends AbstractTimer{
         return timeSource.currentTimeMillis();
     }
    
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.AbstractTimer#getTimeSource()
-     */
     @Override
     public TimeSource getTimeSource() {
         return timeSource;
     }
     
-    //
-    // @SuppressWarnings("unchecked")
-    // public static void main(String[] args) throws Exception {
-    // RealTimeTimer timer = new RealTimeTimer();
-    // ExecutorService executorService = Executors.newCachedThreadPool();
-    // timer.init(executorService);
-    //
-    // timer.schedule(new NamedTask("task 7", new OneTimeTrigger(25000)));
-    // timer.schedule(new NamedTask("task 1", new OneTimeTrigger(1000)));
-    // timer.schedule(new NamedTask("task 2", new OneTimeTrigger(2000)));
-    // timer.schedule(new NamedTask("task 4", new OneTimeTrigger(20000)));
-    // timer.schedule(new NamedTask("task 5", new OneTimeTrigger(21000)));
-    // timer.schedule(new NamedTask("task 3", new OneTimeTrigger(10000)));
-    // timer.schedule(new NamedTask("task 6", new OneTimeTrigger(22000)));
-    // timer.schedule(new NamedTask("rate", new FixedRateTrigger(5000, 1800)));
-    // timer.schedule(new NamedTask("delay", new FixedDelayTrigger(6000,
-    // 2100)));
-    // timer.schedule(new NamedTask("cron", new
-    // CronTimerTrigger("0/6 * * * * ?")));
-    //
-    // Thread.sleep(15000);
-    // System.out.println("Serializing");
-    //
-    // List<TimerTask> tasks = timer.cancel();
-    // timer = null;
-    //
-    // ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    // ObjectOutputStream oos = new ObjectOutputStream(baos);
-    // oos.writeObject(tasks);
-    //
-    // Thread.sleep(20000);
-    //
-    // ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-    // ObjectInputStream ois = new ObjectInputStream(bais);
-    // tasks = (List<TimerTask>) ois.readObject();
-    //
-    // System.out.println("Simulating");
-    // SimulationTimer sim = new SimulationTimer();
-    // for (TimerTask task : tasks)
-    // sim.schedule(task);
-    //
-    // for (int i = 0; i < 10; i++) {
-    // long start = System.currentTimeMillis();
-    // sim.fastForwardTo(start);
-    // System.out.println("Run " + i + " took " + (System.currentTimeMillis() -
-    // start) + " ms");
-    // }
-    //
-    // System.out.println("Real time");
-    // timer = new RealTimeTimer();
-    // timer.init(executorService);
-    // timer.scheduleAll(sim);
-    //
-    // Thread.sleep(10000);
-    //
-    // timer.cancel();
-    // executorService.shutdown();
-    // }
-    //
-    // static class NamedTask extends TimerTask {
-    // private static final long serialVersionUID = 1L;
-    //
-    // String name;
-    //
-    // NamedTask(String name, TimerTrigger trigger) {
-    // super(trigger);
-    // this.name = name;
-    // }
-    //
-    // @Override
-    // public String toString() {
-    // return "NamedTask(" + name + ")";
-    // }
-    //
-    // @Override
-    // protected void run(long runtime) {
-    // System.out.println(name + " ran at " + runtime);
-    // try {
-    // Thread.sleep(300);
-    // }
-    // catch (InterruptedException e) {
-    // // no op
-    // }
-    // }
-    // }
 }

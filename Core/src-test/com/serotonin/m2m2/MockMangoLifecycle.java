@@ -51,6 +51,7 @@ import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.AbstractTimer;
+import com.serotonin.util.LifecycleException;
 import com.serotonin.util.properties.MangoProperties;
 
 import freemarker.cache.FileTemplateLoader;
@@ -184,9 +185,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.runtimeManager = getRuntimeManager();
         Common.runtimeManager.initialize(false);
 
-        if(Common.serialPortManager == null)
+        if(Common.serialPortManager == null) {
             Common.serialPortManager = getSerialPortManager();
-
+        }
 
         for (Module module : ModuleRegistry.getModules()) {
             module.postInitialize(true, false);
@@ -270,6 +271,15 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             proxy.clean();
         } catch (Exception e) {
             throw new ShouldNeverHappenException(e);
+        }
+        
+        if(Common.serialPortManager != null) {
+           try {
+            Common.serialPortManager.terminate();
+        } catch (LifecycleException e) {
+            fail(e.getMessage());
+        }
+           Common.serialPortManager.joinTermination();
         }
     }
 

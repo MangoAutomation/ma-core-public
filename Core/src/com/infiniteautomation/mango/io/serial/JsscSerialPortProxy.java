@@ -5,11 +5,14 @@
 package com.infiniteautomation.mango.io.serial;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import jssc.SerialPort;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import com.serotonin.m2m2.Common;
 
 /**
  * @author Terry Packer
@@ -120,7 +123,10 @@ public class JsscSerialPortProxy extends SerialPortProxy {
             this.port.setFlowControlMode(createFlowControlMode(flowControlIn , flowControlOut));
             this.port.setParams(baudRate, createDataBits(dataBits), createStopBits(stopBits), createParity(parity));
             
-            this.is = new JsscSerialPortInputStream(this.port, this.listeners);
+            long period = Common.envProps.getLong("serial.port.linux.readPeriods", 100);
+            TimeUnit unit = TimeUnit.valueOf(Common.envProps.getString("serial.port.linux.readPeriodType", "NANOSECONDS"));
+            
+            this.is = new JsscSerialPortInputStream(this.port, period, unit, this.listeners);
             this.os = new JsscSerialPortOutputStream(this.port);
 
         }

@@ -85,9 +85,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
 				scheduleTimeoutImpl(fireTime);
 			}
 
-			/* (non-Javadoc)
-			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-			 */
 			@Override
 			public String getTaskId() {
 				return prefix + vo.getXid();
@@ -98,9 +95,6 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
 				return "Polling Data Source: " + vo.getXid();
 			}
 			
-			/* (non-Javadoc)
-			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#rejected(com.serotonin.timer.RejectedTaskReason)
-			 */
 			@Override
 			public void rejected(RejectedTaskReason reason) {
 				incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());

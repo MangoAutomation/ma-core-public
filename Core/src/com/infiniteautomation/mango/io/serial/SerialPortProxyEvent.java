@@ -12,10 +12,16 @@ public class SerialPortProxyEvent {
 	
 	private long creationTime;
 	private long timeExecuted;
+	private int bytesRead;
 	
 	public SerialPortProxyEvent(long time){
 		this.creationTime = time;
 	}
+	
+	public SerialPortProxyEvent(long time, int bytesRead){
+        this.creationTime = time;
+        this.bytesRead = bytesRead;
+    }
 	
 	public long getCreationTime(){
 		return this.creationTime;
@@ -27,4 +33,8 @@ public class SerialPortProxyEvent {
 	public long getTimeExecuted(){
 		return this.timeExecuted;
 	}
+    
+	public int getBytesRead() {
+        return bytesRead;
+    }
 }
