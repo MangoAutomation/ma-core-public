@@ -12,7 +12,7 @@ import com.serotonin.timer.Task;
  * @author Terry Packer
  *
  */
-public abstract class HighPriorityTask extends Task{
+public abstract class HighPriorityTask extends Task {
 
 	/**
 	 * For non-queueing tasks

@@ -93,6 +93,8 @@ public class SerialPortManagerImpl implements SerialPortManager {
         if (safe)
             return;
 
+        JsscSerialPortManager.instance.initialize();
+        
         try {
             String[] portNames;
             Map<String, Boolean> portOwnership = new HashMap<String, Boolean>();
@@ -322,6 +324,9 @@ public class SerialPortManagerImpl implements SerialPortManager {
             }
 
             ownedPorts.clear();
+            
+            //Shutdown JSSC Manager
+            JsscSerialPortManager.instance.terminate();
         } catch (Exception e) {
             throw e;
         } finally {
@@ -332,7 +337,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     @Override
     public void joinTermination() {
-        // TODO Implement?
+        JsscSerialPortManager.instance.joinTermination();
     }
 
 }
