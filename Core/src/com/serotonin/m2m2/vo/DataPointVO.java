@@ -1006,8 +1006,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         }
 
         // Check chart renderer type
-        if (chartRenderer != null && !chartRenderer.getDef().supports(pointLocator.getDataTypeId()))
-            response.addGenericMessage("validate.chart.incompatible");
+        if (chartRenderer != null) {
+            if(!chartRenderer.getDef().supports(pointLocator.getDataTypeId()))
+                response.addGenericMessage("validate.chart.incompatible");
+            chartRenderer.validate(response);
+        }
+            
 
         // Check the plot type
         if (!PLOT_TYPE_CODES.isValidId(plotType))
