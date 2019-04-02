@@ -32,6 +32,7 @@
 * Make JSON Imports more robust when importing invalid/missing values for fields
 * adding env properties serial.port.linux.readPeriods and serial.port.linux.readPeriodType to allow adjusting the rate at which the port is polled for incoming data in Linux
 * adding env property serial.port.eventQueueSize to limit the size of the queue to hold generated serial port events before they are processed
+* Purge RX/TX buffers on serial port immediately after opening it
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
