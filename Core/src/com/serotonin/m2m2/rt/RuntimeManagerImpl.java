@@ -405,8 +405,8 @@ public class RuntimeManagerImpl implements RuntimeManager{
     	long endTime = System.nanoTime();
 
     	long duration = endTime - startTime;
-    	LOG.info("Data source '" + vo.getName() + "' took " + (double)duration/(double)1000000 + "ms to start");
-    	stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), (double)duration/(double)1000000);
+        int took = (int)((double)duration/(double)1000000);
+    	stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), took);
         
     	return true;
     }
