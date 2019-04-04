@@ -107,3 +107,7 @@ Create portlets on your website that remotely display the views you create in Ma
 ### Alarm sounds
 
 Hear sounds when alarms are raised in Mango.
+
+## Contributing to Mango
+
+Mango is open source and always looking for suggestions and additions.  Please review our guidelines for contributions [here](https://github.com/infiniteautomation/.github/blob/master/CONTRIBUTING.md)
