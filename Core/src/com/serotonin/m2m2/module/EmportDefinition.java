@@ -38,7 +38,7 @@ abstract public class EmportDefinition extends ModuleElementDefinition {
     }
 
     /**
-     * Import the given JSON data.
+     * Import the given JSON data.  The importing User will be in the Background context.
      * 
      * @param json
      *            the JSON data to import
