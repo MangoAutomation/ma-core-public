@@ -21,6 +21,7 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
@@ -48,18 +49,26 @@ import freemarker.template.Template;
  * @author Terry Packer
  *
  */
-public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandlerVO>{
+public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandlerVO> {
 
     public static final int RECIPIENT_TYPE_ACTIVE = 1;
     public static final int RECIPIENT_TYPE_ESCALATION = 2;
     public static final int RECIPIENT_TYPE_INACTIVE = 3;
 
+    public static final int SUBJECT_INCLUDE_NAME = 1;
+    public static final int SUBJECT_INCLUDE_EVENT_MESSAGE = 2;
+    
     public static ExportCodes RECIPIENT_TYPE_CODES = new ExportCodes();
+    public static ExportCodes SUBJECT_INCLUDE_CODES = new ExportCodes();
     static {
         RECIPIENT_TYPE_CODES.addElement(RECIPIENT_TYPE_ACTIVE, "ACTIVE", "eventHandlers.recipientType.active");
         RECIPIENT_TYPE_CODES.addElement(RECIPIENT_TYPE_ESCALATION, "ESCALATION",
                 "eventHandlers.recipientType.escalation");
         RECIPIENT_TYPE_CODES.addElement(RECIPIENT_TYPE_INACTIVE, "INACTIVE", "eventHandlers.recipientType.inactive");
+        
+        SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_NAME, "INCLUDE_NAME", "eventHandlers.subjectInclude.name");
+        SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_EVENT_MESSAGE, "INCLUDE_EVENT_MESSAGE", "eventHandlers.subjectInclude.eventMessage");
+        
     }
 
 	
@@ -79,6 +88,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private List<IntStringPair> additionalContext = new ArrayList<IntStringPair>();
     private ScriptPermissions scriptPermissions;
     private String script;
+    private int subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
     
     public List<RecipientListEntryBean> getActiveRecipients() {
         return activeRecipients;
@@ -206,6 +216,14 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 	public void setScript(String script) {
 	    this.script = script;
 	}
+	
+    public void setSubject(int subject) {
+        this.subject = subject;
+    }
+    
+    public int getSubject() {
+        return subject;
+    }
 
 	@Override
 	public void validate(ProcessResult response) {
@@ -258,6 +276,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         if(scriptPermissions != null) {
             scriptPermissions.validate(response, user);
         }
+        
+        if(!SUBJECT_INCLUDE_CODES.isValidId(subject))
+            response.addContextualMessage("subject", "validate.invalidValue");
 	}
     
 	//
@@ -265,7 +286,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 6;
+    private static final int version = 7;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
     	out.writeInt(version);
@@ -285,6 +306,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         out.writeObject(additionalContext);
         out.writeObject(scriptPermissions);
         SerializationHelper.writeSafeUTF(out, script);
+        out.writeInt(subject);
     }
 	
     @SuppressWarnings({"unchecked", "deprecation"})
@@ -310,6 +332,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = new ArrayList<IntStringPair>();
             scriptPermissions = new ScriptPermissions();
             script = null;
+            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 2) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -331,6 +354,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = new ArrayList<IntStringPair>();
             scriptPermissions = new ScriptPermissions();
             script = null;
+            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 3) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -352,6 +376,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = (List<IntStringPair>) in.readObject();
             scriptPermissions = new ScriptPermissions();
             script = null;
+            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 4) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -373,6 +398,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = (List<IntStringPair>) in.readObject();
             scriptPermissions = (ScriptPermissions) in.readObject();
             script = SerializationHelper.readSafeUTF(in);
+            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 5) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -398,6 +424,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             else
                 scriptPermissions = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
+            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }else if (ver == 6) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
@@ -418,6 +445,28 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = (List<IntStringPair>) in.readObject();
             scriptPermissions = (ScriptPermissions)in.readObject();
             script = SerializationHelper.readSafeUTF(in);
+            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
+        }else if(ver == 7) {
+            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            sendEscalation = in.readBoolean();
+            repeatEscalations = in.readBoolean();
+            escalationDelayType = in.readInt();
+            escalationDelay = in.readInt();
+            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            sendInactive = in.readBoolean();
+            inactiveOverride = in.readBoolean();
+            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
+            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            includeSystemInfo = in.readBoolean();
+            includePointValueCount = in.readInt();
+            includeLogfile = in.readBoolean();
+            customTemplate = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
+            scriptPermissions = (ScriptPermissions)in.readObject();
+            script = SerializationHelper.readSafeUTF(in);
+            subject = in.readInt();
         }
     }
     
@@ -456,6 +505,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         writer.writeEntry("additionalContext", context);
         writer.writeEntry("script", script);
         writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissions());
+        writer.writeEntry("subject", SUBJECT_INCLUDE_CODES.getCode(escalationDelayType));
     }
     
     @SuppressWarnings("unchecked")
@@ -565,7 +615,16 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
                 this.scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(jsonObject.getString("scriptPermissions")));
             }
         }
-        
+        text = jsonObject.getString("subject");
+        if (text != null) {
+            subject = SUBJECT_INCLUDE_CODES.getId(text);
+            if (subject == -1)
+                throw new TranslatableJsonException("emport.error.invalid", "subject", text,
+                        SUBJECT_INCLUDE_CODES.getCodeList());
+        }else {
+            //For legacy compatibility
+            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
+        }
     }
     
     @Override

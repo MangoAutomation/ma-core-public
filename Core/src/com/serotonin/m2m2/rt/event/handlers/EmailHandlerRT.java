@@ -207,13 +207,13 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     }
 
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
-        sendEmail(evt, notificationType, addresses, vo.getName(), vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(),
+        sendEmail(evt, notificationType, addresses, vo.getSubject() == EmailEventHandlerVO.SUBJECT_INCLUDE_NAME ? vo.getName() : null, vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(),
                 vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext(), vo.getScript(),
                 new SetCallback(vo.getScriptPermissions()), vo.getScriptPermissions());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
-            String alias, boolean includeSystemInfo, int pointValueCount, boolean includeLogs, String handlerXid,
+            String baseSubject, boolean includeSystemInfo, int pointValueCount, boolean includeLogs, String handlerXid,
             String customTemplate, List<IntStringPair> additionalContext, String script, SetCallback setCallback, ScriptPermissions permissions) {
         if (evt.getEventType().isSystemMessage()) {
             if (((SystemEventType) evt.getEventType()).getSystemEventType().equals(
@@ -225,20 +225,20 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         }
 
         Translations translations = Common.getTranslations();
-        if(StringUtils.isBlank(alias)){
+        if(StringUtils.isBlank(baseSubject)){
             //Just set the subject to the message
-            alias = evt.getMessage().translate(translations);
+            baseSubject = evt.getMessage().translate(translations);
 
             //Strip out the HTML and the &nbsp
-            alias = StringEscapeUtils.unescapeHtml4(alias);
+            baseSubject = StringEscapeUtils.unescapeHtml4(baseSubject);
             //Since we have <br/> in the code and that isn't proper HTML we need to remove it by hand
-            alias = alias.replace("<br/>", "\n");
+            baseSubject = baseSubject.replace("<br/>", "\n");
         }//end if alias was blank
 
         // Determine the subject to use.
         TranslatableMessage subjectMsg;
         TranslatableMessage notifTypeMsg = new TranslatableMessage(notificationType.getKey());
-        if (StringUtils.isBlank(alias)) {
+        if (StringUtils.isBlank(baseSubject)) {
             //Make these more descriptive
             if (evt.getId() == Common.NEW_ID)
                 subjectMsg = new TranslatableMessage("ftl.subject.default", notifTypeMsg);
@@ -247,9 +247,9 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         }
         else {
             if (evt.getId() == Common.NEW_ID)
-                subjectMsg = new TranslatableMessage("ftl.subject.alias", alias, notifTypeMsg);
+                subjectMsg = new TranslatableMessage("ftl.subject.alias", baseSubject, notifTypeMsg);
             else
-                subjectMsg = new TranslatableMessage("ftl.subject.alias.id", alias, notifTypeMsg, evt.getId());
+                subjectMsg = new TranslatableMessage("ftl.subject.alias.id", baseSubject, notifTypeMsg, evt.getId());
         }
         String alarmLevel = evt.getAlarmLevel().getDescription().translate(translations);
 
