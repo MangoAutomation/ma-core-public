@@ -691,7 +691,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
                     }
                 p.terminate();
                 DataPointDao.getInstance().setEventDetectors(vo);
-                this.startDataPoint(p.getVO(), null);
+                this.startDataPoint(vo, null);
                 restarted = true;
             }
         }
