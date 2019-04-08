@@ -66,11 +66,10 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
                 "eventHandlers.recipientType.escalation");
         RECIPIENT_TYPE_CODES.addElement(RECIPIENT_TYPE_INACTIVE, "INACTIVE", "eventHandlers.recipientType.inactive");
         
-        SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_NAME, "INCLUDE_NAME", "eventHandlers.subjectInclude.name");
-        SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_EVENT_MESSAGE, "INCLUDE_EVENT_MESSAGE", "eventHandlers.subjectInclude.eventMessage");
+        SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_NAME, "INCLUDE_NAME", "eventHandlers.includeName");
+        SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_EVENT_MESSAGE, "INCLUDE_EVENT_MESSAGE", "eventHandlers.includeEventMessage");
         
     }
-
 	
 	private List<RecipientListEntryBean> activeRecipients;
     private boolean sendEscalation;

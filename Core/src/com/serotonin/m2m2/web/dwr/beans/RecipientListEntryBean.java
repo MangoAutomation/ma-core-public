@@ -12,11 +12,13 @@ import java.util.ListIterator;
 import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -169,8 +171,9 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     		return;
     	
     	ListIterator<RecipientListEntryBean> it = list.listIterator();
-    	MailingListDao mlDao = MailingListDao.getInstance();
-    	
+    	ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+    	ejt.setDataSource(Common.databaseProxy.getDataSource());
+
     	while(it.hasNext()){
     		RecipientListEntryBean bean = it.next();
     		switch(bean.recipientType){
@@ -179,11 +182,11 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     				it.remove();
     			break;
     		case EmailRecipient.TYPE_MAILING_LIST:
-    			if(mlDao.get(bean.referenceId) == null)
+    			if(ejt.queryForInt("SELECT id from mailingLists WHERE id=?", new Object[] {bean.referenceId}, Common.NEW_ID) == Common.NEW_ID)
     				it.remove();
     			break;
     		case EmailRecipient.TYPE_USER:
-    			if(!UserDao.getInstance().userExists(bean.referenceId))
+                if(ejt.queryForInt("SELECT id from users WHERE id=?", new Object[] {bean.referenceId}, Common.NEW_ID) == Common.NEW_ID)
     				it.remove();
     			break;
     		}

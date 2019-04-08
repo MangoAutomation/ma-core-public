@@ -258,7 +258,7 @@ alter table userEvents add index performance1 (userId ASC, silenced ASC);
 CREATE TABLE eventHandlers (
   id SERIAL,
   xid varchar(100) NOT NULL,
-  alias varchar(255),
+  alias varchar(255) NOT NULL,
   eventHandlerType varchar(40) NOT NULL,
   
   -- Event type, see events

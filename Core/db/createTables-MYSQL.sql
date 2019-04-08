@@ -262,7 +262,7 @@ alter table userEvents add index performance1 (userId ASC, silenced ASC);
 create table eventHandlers (
   id int not null auto_increment,
   xid varchar(100) not null,
-  alias varchar(255),
+  alias varchar(255) not null,
   eventHandlerType varchar(40) NOT NULL,
   data longblob not null,
   primary key (id)

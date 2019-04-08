@@ -255,7 +255,7 @@ CREATE INDEX userEvents_performance1 ON userEvents (userId ASC, silenced ASC);
 create table eventHandlers (
   id int not null identity,
   xid nvarchar(100) not null,
-  alias nvarchar(255),
+  alias nvarchar(255) not null,
   eventHandlerType nvarchar(40) not null,
   
   -- Event type, see events
