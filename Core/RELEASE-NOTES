@@ -35,6 +35,10 @@
 * Purge RX/TX buffers on serial port immediately after opening it
 * Event detector XID length expanded to 100 chars
 * Add subject property to Email Event Handler to allow choosing what goes into the email subject.  All Email event handlers are upgraded to keep legacy operation.  i.e. if you previously had a name/alias set then the subject will include that
+* Adding an HTTP session timeout override setting to the User
+* Improve performance for publishing data point attributes i.e. Reliability
+* Show last password change date when editing a user
+* Show last login date when editing a user
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
