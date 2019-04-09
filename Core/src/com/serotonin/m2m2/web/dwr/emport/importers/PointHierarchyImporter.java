@@ -39,10 +39,10 @@ public class PointHierarchyImporter extends Importer {
             ph = hierarchy;
         }
         catch (TranslatableJsonException e) {
-            addFailureMessage("emport.pointHierarchy.prefix", e.getMsg());
+            addFailureMessage("emport.pointHierarchy.prefix", "", e.getMsg());
         }
         catch (JsonException e) {
-            addFailureMessage("emport.pointHierarchy.prefix", getJsonExceptionMessage(e));
+            addFailureMessage("emport.pointHierarchy.prefix", "", getJsonExceptionMessage(e));
         }
     }
     
