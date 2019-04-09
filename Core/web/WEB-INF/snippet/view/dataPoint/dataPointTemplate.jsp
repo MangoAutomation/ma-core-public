@@ -273,12 +273,19 @@
 	 */
 	function getDataPointTemplate(vo) {
 		if (usePointPropertyTemplate.get('checked') == true) {
-			if (dataPointTemplatePicker.item != null)
+			if (dataPointTemplatePicker.item != null){
 				vo.templateId = dataPointTemplatePicker.item.id;
-			else
+				vo.templateXid = dataPointTemplatePicker.item.xid;
+				vo.templateName = dataPointTemplatePicker.item.name;
+			}else{
 				vo.templateId = null; //No template in use
+				vo.templateXid = null;
+				vo.templateName = null;
+			}
 		} else {
 			vo.templateId = null; //No template in use
+			vo.templateXid = null;
+			vo.templateName = null;
 		}
 	}
 

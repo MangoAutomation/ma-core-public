@@ -403,6 +403,8 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
             dp.setReadPermission(newDp.getReadPermission());
             dp.setSetPermission(newDp.getSetPermission());
             dp.setTemplateId(newDp.getTemplateId());
+            dp.setTemplateName(newDp.getTemplateName());
+            dp.setTemplateXid(newDp.getTemplateXid());
 
             dp.setDataSourceId(newDp.getDataSourceId());
 
