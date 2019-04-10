@@ -395,7 +395,11 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
-            scriptPermissions = (ScriptPermissions) in.readObject();
+            com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
+            if(oldPermissions != null)
+                scriptPermissions = new ScriptPermissions(oldPermissions.getPermissionsSet());
+            else
+                scriptPermissions = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
             subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
