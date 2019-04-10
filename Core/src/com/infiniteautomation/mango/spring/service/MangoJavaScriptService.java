@@ -202,7 +202,7 @@ public class MangoJavaScriptService {
             
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter);){
-                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), user);
+                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), vo.getPermissions());
 
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null)
@@ -261,7 +261,7 @@ public class MangoJavaScriptService {
         
         try {
             try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter, vo.getLog(), vo.isCloseLog());){
-                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), user);
+                CompiledScript compiledScript = compile(vo.getScript(), vo.isWrapInFunction(), vo.getPermissions());
 
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null)
@@ -438,6 +438,8 @@ public class MangoJavaScriptService {
             //Nashorn seems to like to wrap exceptions in RuntimeException 
             if(e.getCause() instanceof ScriptPermissionsException)
                 throw (ScriptPermissionsException)e.getCause();
+            else if(e.getCause() != null)
+                throw ScriptError.create(e.getCause());
             else
                 throw new ShouldNeverHappenException(e);
         }
@@ -564,7 +566,7 @@ public class MangoJavaScriptService {
             return factory.getScriptEngine(new NoJavaFilter());
     }
     
-    private static class NoJavaFilter implements ClassFilter{
+    private static class NoJavaFilter implements ClassFilter {
 
         @Override
         public boolean exposeToScripts(String s) {

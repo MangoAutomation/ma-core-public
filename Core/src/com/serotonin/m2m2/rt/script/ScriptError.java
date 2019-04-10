@@ -17,16 +17,24 @@ public class ScriptError extends Exception {
     private static final long serialVersionUID = 1L;
     private static final Pattern PATTERN = Pattern.compile("<eval>(.*?):(.*?) ([\\s\\S]*)");
 
+    /**
+     * Extract a useful message and line/col info for the exception
+     * @param e
+     * @return
+     */
     public static ScriptError create(ScriptException e) {
         Throwable t = e;
-        while (t.getCause() != null)
+        while (t.getCause() != null && t.getCause().getMessage() != null) {
             t = t.getCause();
+        }
         String message;
 
         message = t.getMessage();
-        if(message == null)
+        if(message == null && t instanceof NullPointerException)
             message = "null pointer exception";
-        else {
+        else if(message == null){
+            message = e.getMessage(); //Fallback
+        }{
             Matcher matcher = PATTERN.matcher(message);
             if (matcher.find())
                 message = matcher.group(3);
@@ -37,6 +45,19 @@ public class ScriptError extends Exception {
                 t);       
     }
 
+    /**
+     * Generic wrap all for things like ClassNotFoundException etc. that have no line numbers
+     * 
+     * @param cause
+     * @return
+     */
+    public static ScriptError create(Throwable cause) {
+        if(cause == null)
+            return new ScriptError("null pointer exception", null, null, null);
+        else
+            return new ScriptError(cause.getClass().getName() + ": " + cause.getMessage(), null, null, cause);
+    }
+    
     private final Integer lineNumber;
     private final Integer columnNumber;
 
@@ -53,4 +74,5 @@ public class ScriptError extends Exception {
     public Integer getColumnNumber() {
         return columnNumber;
     }
+
 }
