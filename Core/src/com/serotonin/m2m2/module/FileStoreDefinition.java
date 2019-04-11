@@ -80,8 +80,12 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     public void ensureStoreReadPermission(User user) throws AccessDeniedException{
         if(getReadPermissions() == null) {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
-            if(def == null)
-                return;
+            if(def == null) {
+                if(Permissions.hasAdminPermission(user))
+                    return;
+                else
+                    throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), "").translate(Common.getTranslations()));
+            }
             if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
                 throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
         } else {
@@ -97,8 +101,12 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     public void ensureStoreWritePermission(User user) throws AccessDeniedException{
         if(getWritePermissions() == null) {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
-            if(def == null)
-                return;
+            if(def == null) {
+                if(Permissions.hasAdminPermission(user))
+                    return;
+                else
+                    throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), "").translate(Common.getTranslations()));
+            }
             if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
                 throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
         } else {

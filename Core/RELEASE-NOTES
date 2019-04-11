@@ -39,6 +39,7 @@
 * Improve performance for publishing data point attributes i.e. Reliability
 * Show last password change date when editing a user
 * Show last login date when editing a user
+* File store definitions which do not supply permissions and no permissions definitions are found default to admin only
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
