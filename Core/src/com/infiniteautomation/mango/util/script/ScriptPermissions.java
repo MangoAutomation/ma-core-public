@@ -17,7 +17,9 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -149,4 +151,45 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
         throw new ShouldNeverHappenException("Permissions should be read in the parent class as a String.");
     }
 
+    /**
+     * Write the script permissions as a Set<String> 
+     * @param writer
+     * @param scriptPermissions
+     * @throws IOException
+     * @throws JsonException
+     */
+    public static void writeJsonSafely(ObjectWriter writer, ScriptPermissions scriptPermissions) throws IOException, JsonException {
+        writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissionsSet());
+    }
+    
+    /**
+     * Safely read legacy and new ScriptPermissions
+     * @param jsonObject
+     * @return
+     */
+    public static ScriptPermissions readJsonSafely(JsonObject jsonObject) {
+        if(jsonObject.containsKey("scriptPermissions")) {
+            Set<String> permissions = null;
+            try{
+                JsonObject o = jsonObject.getJsonObject("scriptPermissions");
+                permissions = new HashSet<>();
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataSourcePermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointSetPermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointReadPermissions")));
+                permissions.addAll(Permissions.explodePermissionGroups(o.getString("customPermissions")));
+                return new ScriptPermissions(permissions);
+            }catch(ClassCastException e) {
+               //Munchy munch, not a legacy script permissions object 
+            }
+            if(permissions == null) {
+                Set<String> roles = new HashSet<>();
+                JsonArray array = jsonObject.getJsonArray("scriptPermissions");
+                for(JsonValue o : array)
+                    roles.add(o.toString());
+                return new ScriptPermissions(roles);
+            }else
+                return new ScriptPermissions();
+        }else
+            return new ScriptPermissions();
+    }
 }
