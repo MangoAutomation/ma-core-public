@@ -9,9 +9,12 @@ import java.util.concurrent.ForkJoinPool;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
@@ -25,6 +28,8 @@ import org.springframework.core.ResolvableType;
  */
 
 public class PropagatingEventMulticaster extends SimpleApplicationEventMulticaster {
+
+    private final Log log = LogFactory.getLog(PropagatingEventMulticaster.class);
 
     private final ApplicationContext context;
     private final EventMulticasterRegistry registry;
@@ -74,7 +79,14 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
         Executor executor = this.getTaskExecutor();
 
         for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
-            executor.execute(() -> invokeListener(listener, event));
+            executor.execute(() -> {
+                if (log.isDebugEnabled()) {
+                    log.debug("Invoking listeners for " + event);
+                }
+                if (((ConfigurableApplicationContext) context).isActive()) {
+                    invokeListener(listener, event);
+                }
+            });
         }
     }
 
