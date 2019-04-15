@@ -133,7 +133,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                             user.setName("Administrator");
                             user.setUsername("admin");
                             user.setPassword(Common.encrypt("admin"));
-                            user.setEmail("admin@yourMangoDomain.com");
+                            user.setEmail("admin@mango.example.com");
                             user.setPhone("");
                             user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
                             user.setDisabled(false);
