@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -70,6 +71,7 @@ import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -1763,5 +1765,24 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     protected void notifyTagsUpdated(DataPointVO dataPoint) {
         this.eventPublisher.publishEvent(new DataPointTagsUpdatedEvent(this, dataPoint));
+    }
+
+    @Override
+    protected Map<String, Function<Object, Object>> createValueConverterMap() {
+        Map<String, Function<Object, Object>> map = new HashMap<>(super.createValueConverterMap());
+        map.put("dataTypeId", value -> {
+            if (value instanceof String) {
+                return DataTypes.CODES.getId((String) value);
+            }
+            return value;
+        });
+        return map;
+    }
+
+    @Override
+    protected Map<String, Field<Object>> createPropertyToField() {
+        Map<String, Field<Object>> map = super.createPropertyToField();
+        map.put("dataType", map.get("dataTypeId"));
+        return map;
     }
 }
