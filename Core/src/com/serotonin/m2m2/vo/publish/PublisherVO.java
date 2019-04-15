@@ -50,7 +50,7 @@ import com.serotonin.validation.StringValidation;
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<?>> implements Serializable, JsonSerializable {
+abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<T>> implements Serializable, JsonSerializable {
     public static final String XID_PREFIX = "PUB_";
 
     public interface PublishType{
@@ -497,19 +497,12 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
         }
     }
 
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-     */
+    @SuppressWarnings("unchecked")
     @Override
-    protected AbstractDao<PublisherVO<?>> getDao() {
-        return PublisherDao.getInstance();
+    protected PublisherDao<T> getDao() {
+        return (PublisherDao<T>) PublisherDao.getInstance();
     }
 
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getTypeKey()
-     */
     @Override
     public String getTypeKey() {
         return "event.audit.publisher";
