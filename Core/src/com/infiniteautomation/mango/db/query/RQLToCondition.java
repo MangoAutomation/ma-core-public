@@ -177,7 +177,7 @@ public class RQLToCondition {
     protected Function<Object, Object> getValueConverter(Field<Object> field) {
         String name = field.getName();
         Function<Object, Object> converter = this.valueConverterMap.get(name);
-        return converter == null ? BOOLEAN_VALUE_CONVERTER : converter;
+        return converter == null ? Function.identity() : converter;
     }
 
     protected List<SortField<Object>> getSortFields(ASTNode node) {

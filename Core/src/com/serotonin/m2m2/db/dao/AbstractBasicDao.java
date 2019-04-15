@@ -7,9 +7,9 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -99,7 +100,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
     private ObjectMapper mapper;
-    
+
     // TODO Mango 3.6 add to constructor and make final
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
@@ -541,7 +542,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     /**
      * Save a VO AND its FKs
      *
-     * Deprecated for preferred use of 
+     * Deprecated for preferred use of
      *   com.serotonin.m2m2.db.dao.AbstractDao.insert(T vo, boolean full)
      *    or
      *   com.serotonin.m2m2.db.dao.AbstractDao.update(T existing, T vo, boolean full)
@@ -554,7 +555,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     /**
      * Save a VO AND its FKs inside a transaction
-     * Deprecated for preferred use of 
+     * Deprecated for preferred use of
      *   com.serotonin.m2m2.db.dao.AbstractDao.insert(T vo, boolean full)
      *    or
      *   com.serotonin.m2m2.db.dao.AbstractDao.update(T existing, T vo, boolean full)
@@ -1090,7 +1091,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
-        return Collections.emptyMap();
+        return this.getPropertyTypeMap().entrySet().stream()
+                .filter(e -> e.getValue() == Types.CHAR)
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER));
     }
 
     protected RQLToCondition createRqlToCondition() {
@@ -1116,7 +1119,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             this.eventPublisher.publishEvent(event);
         }
     }
-    
+
     /**
      * Get a writer for serializing JSON
      * @return
