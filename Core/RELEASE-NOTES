@@ -41,6 +41,7 @@
 * Show last login date when editing a user
 * File store definitions which do not supply permissions and no permissions definitions are found default to admin only
 * Change default admin email address to admin@mango.example.com
+* Expose char(1) columns in database as boolean for RQL queries, i.e. /rest/v1/users?disabled=false or /rest/v1/users?disabled=N
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
