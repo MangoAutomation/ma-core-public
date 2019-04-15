@@ -25,6 +25,13 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public class RQLToCondition {
 
+    public static final Function<Object, Object> BOOLEAN_VALUE_CONVERTER = value -> {
+        if (value instanceof Boolean) {
+            return ((Boolean) value) ? "Y" : "N";
+        }
+        return value;
+    };
+
     protected final Map<String, Field<Object>> fieldMapping;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
@@ -170,7 +177,7 @@ public class RQLToCondition {
     protected Function<Object, Object> getValueConverter(Field<Object> field) {
         String name = field.getName();
         Function<Object, Object> converter = this.valueConverterMap.get(name);
-        return converter == null ? Function.identity() : converter;
+        return converter == null ? BOOLEAN_VALUE_CONVERTER : converter;
     }
 
     protected List<SortField<Object>> getSortFields(ASTNode node) {
