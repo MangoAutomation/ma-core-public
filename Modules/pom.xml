@@ -21,6 +21,8 @@
         <skipModuleInstall>true</skipModuleInstall>
         <webpack.mode>production</webpack.mode>
         <warPluginPhase>generate-resources</warPluginPhase>
+        <yarnInstallPhase>generate-resources</yarnInstallPhase>
+        <webpackPhase>generate-resources</webpackPhase>
     </properties>
     <profiles>
         <profile>
@@ -30,9 +32,11 @@
             </properties>
         </profile>
         <profile>
-            <id>yarn-only</id>
+            <id>yarn-set-version</id>
             <properties>
                 <warPluginPhase>none</warPluginPhase>
+                <yarnInstallPhase>none</yarnInstallPhase>
+                <webpackPhase>none</webpackPhase>
             </properties>
         </profile>
     </profiles>
@@ -240,6 +244,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                             </configuration>
                         </execution>
                         <execution>
+                            <phase>${yarnInstallPhase}</phase>
                             <id>Run yarn install</id>
                             <goals>
                                 <goal>yarn</goal>
@@ -249,6 +254,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                             </configuration>
                         </execution>
                         <execution>
+                            <phase>${webpackPhase}</phase>
                             <id>Run webpack</id>
                             <goals>
                                 <goal>yarn</goal>
