@@ -43,6 +43,10 @@
 * Change default admin email address to admin@mango.example.com
 * Expose char(1) columns in database as boolean for RQL queries, i.e. /rest/v1/users?disabled=false or /rest/v1/users?disabled=N
 * Adding settable column to data points table, this allows for RQL queries on the settable field of a data point locator
+* Upgrade commons-io library to version 2.6
+* Upgrade javax.mail library to version 1.6.2 and use com.sun.mail implementation
+* Upgrade apache-poi library to version 4.0.1 for Excel file support
+* Upgrade commons-beanutils library to version 1.9.3
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
