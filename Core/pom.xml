@@ -130,7 +130,7 @@
                                     <version>2.0.9</version>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>${MA_HOME}/boot/</outputDirectory>
+                            <outputDirectory>${project.basedir}/boot/</outputDirectory>
                             <stripVersion>true</stripVersion>
                             <stripClassifier>true</stripClassifier>
                             <skip>false</skip>
