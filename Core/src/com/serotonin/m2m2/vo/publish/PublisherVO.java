@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -29,7 +30,6 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -136,6 +136,23 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     }
 
     public void setAlarmLevel(int eventId, AlarmLevels level) {
+        alarmLevels.put(eventId, level);
+    }
+    
+    /**
+     * Set an alarm level based on the sub-type of the publisher event type
+     * which MUST (and already is) one of the codes in getEventCodes()
+     * @param subType
+     * @param level
+     */
+    public void setAlarmLevel(String subType, AlarmLevels level) throws ValidationException {
+        ExportCodes codes = getEventCodes();
+        int eventId = codes.getId(subType);
+        if(eventId == -1) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("alarmLevel", "emport.error.eventCode", subType, codes.getCodeList());
+            throw new ValidationException(result);
+        }
         alarmLevels.put(eventId, level);
     }
 
