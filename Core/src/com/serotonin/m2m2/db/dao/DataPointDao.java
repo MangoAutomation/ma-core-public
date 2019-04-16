@@ -383,18 +383,19 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 "insert into dataPoints (xid, dataSourceId, name, deviceName, enabled, pointFolderId, loggingType, " //
                 + "intervalLoggingPeriodType, intervalLoggingPeriod, intervalLoggingType, tolerance, " //
                 + "purgeOverride, purgeType, purgePeriod, defaultCacheSize, discardExtremeValues, " //
-                + "engineeringUnits, readPermission, setPermission, templateId, rollup, dataTypeId, data) " //
-                + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
+                + "engineeringUnits, readPermission, setPermission, templateId, rollup, dataTypeId, settable, data) " //
+                + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
                 new Object[] { dp.getXid(), dp.getDataSourceId(), dp.getName(), dp.getDeviceName(),
                         boolToChar(dp.isEnabled()), dp.getPointFolderId(), dp.getLoggingType(),
                         dp.getIntervalLoggingPeriodType(), dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(),
                         dp.getTolerance(), boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
-                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(), dp.getPointLocator().getDataTypeId(), SerializationHelper.writeObject(dp) }, //
+                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(), 
+                        dp.getPointLocator().getDataTypeId(), boolToChar(dp.getPointLocator().isSettable()), SerializationHelper.writeObject(dp) }, //
                 new int[] { Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.BINARY }));
+                        Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.BINARY }));
 
         // Save the relational information.
         saveRelationalData(dp, true);
@@ -437,18 +438,19 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 + "intervalLoggingPeriodType=?, intervalLoggingPeriod=?, intervalLoggingType=?, " //
                 + "tolerance=?, purgeOverride=?, purgeType=?, purgePeriod=?, defaultCacheSize=?, " //
                 + "discardExtremeValues=?, engineeringUnits=?, readPermission=?, setPermission=?, "//
-                + "templateId=?, rollup=?, dataTypeId=?, data=? where id=?", //
+                + "templateId=?, rollup=?, dataTypeId=?, settable=?, data=? where id=?", //
                 new Object[] { dp.getXid(), dp.getName(), dp.getDeviceName(), boolToChar(dp.isEnabled()),
                         dp.getPointFolderId(), dp.getLoggingType(), dp.getIntervalLoggingPeriodType(),
                         dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(), dp.getTolerance(),
                         boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
                         dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(),
-                        dp.getPointLocator().getDataTypeId(), SerializationHelper.writeObject(dp), dp.getId() }, //
+                        dp.getPointLocator().getDataTypeId(), boolToChar(dp.getPointLocator().isSettable()), 
+                        SerializationHelper.writeObject(dp), dp.getId() }, //
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                        Types.INTEGER, Types.INTEGER, Types.BINARY, Types.INTEGER });
+                        Types.INTEGER, Types.INTEGER, Types.CHAR, Types.BINARY, Types.INTEGER });
     }
 
     public void saveEnabledColumn(DataPointVO dp) {
@@ -929,31 +931,16 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * Methods for AbstractDao below here
      */
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
-     */
     @Override
     protected String getTableName() {
         return SchemaDefinition.DATAPOINTS_TABLE;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-     */
     @Override
     protected String getXidPrefix() {
         return DataPointVO.XID_PREFIX;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
-     */
     @Override
     protected Object[] voToObjectArray(DataPointVO vo) {
         return new Object[] { SerializationHelper.writeObject(vo), vo.getXid(), vo.getDataSourceId(), vo.getName(),
@@ -961,24 +948,15 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
                 vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
                 vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
-                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId(), vo.getRollup(), vo.getPointLocator().getDataTypeId()};
+                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId(), vo.getRollup(), 
+                vo.getPointLocator().getDataTypeId(), boolToChar(vo.getPointLocator().isSettable())};
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-     */
     @Override
     public DataPointVO getNewVo() {
         return new DataPointVO();
     }
-
-
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-     */
+    
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
@@ -1005,14 +983,11 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("setPermission", Types.VARCHAR); // Set permission
         map.put("templateId", Types.INTEGER); //Template ID FK
         map.put("rollup", Types.INTEGER); //Common.Rollups type
-        map.put("dataTypeId", Types.INTEGER); //Common.Rollups type
-
+        map.put("dataTypeId", Types.INTEGER);
+        map.put("settable", Types.CHAR);
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getJoins()
-     */
     @Override
     protected List<JoinClause> getJoins() {
         List<JoinClause> joins = new ArrayList<JoinClause>();
@@ -1021,9 +996,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         return joins;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getIndexes()
-     */
     @Override
     protected List<Index> getIndexes() {
         List<Index> indexes = new ArrayList<Index>();
@@ -1132,11 +1104,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         return filterMap;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-     */
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
@@ -1149,11 +1116,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         return map;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-     */
     @Override
     public RowMapper<DataPointVO> getRowMapper() {
         return new DataPointMapper();
@@ -1196,6 +1158,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
             // read and discard dataTypeId
             rs.getInt(++i);
+            // read and discard settable boolean
+            rs.getString(++i);
 
             // Data source information from Extra Joins set in Constructor
             dp.setDataSourceName(rs.getString(++i));

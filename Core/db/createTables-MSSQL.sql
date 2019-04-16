@@ -142,6 +142,7 @@ create table dataPoints (
   templateId int,
   rollup int,
   dataTypeId int not null,
+  settable char(1),
   primary key (id)
 );
 alter table dataPoints add constraint dataPointsUn1 unique (xid);

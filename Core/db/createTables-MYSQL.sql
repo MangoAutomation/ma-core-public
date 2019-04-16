@@ -149,6 +149,7 @@ CREATE TABLE dataPoints (
   templateId int,
   rollup int,
   dataTypeId int not null,
+  settable char(1),
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
