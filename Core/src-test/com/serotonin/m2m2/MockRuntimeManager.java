@@ -393,7 +393,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public void savePublisher(PublisherVO<? extends PublishedPointVO> vo) {
         if(useDatabase)
-            PublisherDao.getInstance().save(vo);
+            PublisherDao.getInstance().savePublisher(vo);
     }
 
     @Override

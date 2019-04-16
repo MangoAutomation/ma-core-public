@@ -48,13 +48,13 @@ import com.serotonin.util.SerializationHelper;
  * @author Matthew Lohbihler
  */
 @Repository()
-public class PublisherDao extends AbstractDao<PublisherVO<?>> {
+public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<PublisherVO<T>> {
 	
-    private static final LazyInitSupplier<PublisherDao> springInstance = new LazyInitSupplier<>(() -> {
+    private static final LazyInitSupplier<PublisherDao<?>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(PublisherDao.class);
         if(o == null)
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (PublisherDao)o;
+        return (PublisherDao<?>)o;
     });
 
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
@@ -67,7 +67,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
      * Get cached instance from Spring Context
      * @return
      */
-    public static PublisherDao getInstance() {
+    public static PublisherDao<? extends PublishedPointVO> getInstance() {
         return springInstance.get();
     }
     
@@ -136,11 +136,11 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
         }
     }
 
-    class PublisherRowMapper implements RowMapper<PublisherVO<? extends PublishedPointVO>> {
+    class PublisherRowMapper implements RowMapper<PublisherVO<T>> {
         @Override
         @SuppressWarnings("unchecked")
-        public PublisherVO<? extends PublishedPointVO> mapRow(ResultSet rs, int rowNum) throws SQLException {
-            PublisherVO<? extends PublishedPointVO> p = (PublisherVO<? extends PublishedPointVO>) SerializationHelper
+        public PublisherVO<T> mapRow(ResultSet rs, int rowNum) throws SQLException {
+            PublisherVO<T> p = (PublisherVO<T>) SerializationHelper
                     .readObjectInContext(rs.getBinaryStream(4));
             p.setId(rs.getInt(1));
             p.setXid(rs.getString(2));
@@ -252,48 +252,29 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
         return usage;
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-	 */
 	@Override
 	protected String getXidPrefix() {
 		return PublisherVO.XID_PREFIX;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-	 */
 	@Override
-	public PublisherVO<?> getNewVo() {
+	public PublisherVO<T> getNewVo() {
         throw new ShouldNeverHappenException("Unable to create generic publisher, must supply a type");
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
-	 */
 	@Override
 	protected String getTableName() {
 		return SchemaDefinition.PUBLISHERS_TABLE;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractBasicVO)
-	 */
 	@Override
-	protected Object[] voToObjectArray(PublisherVO<?> vo) {
+	protected Object[] voToObjectArray(PublisherVO<T> vo) {
 		return new Object[] { 
 				vo.getXid(), 
 				vo.getDefinition().getPublisherTypeName(),
                 SerializationHelper.writeObjectToArray(vo)};
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-	 */
 	@Override
 	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
     	LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
@@ -304,21 +285,13 @@ public class PublisherDao extends AbstractDao<PublisherVO<?>> {
     	return map;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-	 */
 	@Override
 	protected Map<String, IntStringPair> getPropertiesMap() {
 		return new HashMap<>();
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-	 */
 	@Override
-	public RowMapper<PublisherVO<?>> getRowMapper() {
+	public RowMapper<PublisherVO<T>> getRowMapper() {
 		return new PublisherRowMapper();
 	}
 }

@@ -394,9 +394,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-     */
     @SuppressWarnings("unchecked")
     @Override
     protected DataSourceDao<T> getDao() {
