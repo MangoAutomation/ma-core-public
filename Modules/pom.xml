@@ -13,7 +13,6 @@
         <moduleName>${project.name}</moduleName>
         <descriptionKey>${moduleName}.description</descriptionKey>
         <zipAssemblyName>m2m2-${moduleName}-${noSnapshotVer}</zipAssemblyName>
-        <core.target>${MA_HOME}</core.target>
         <webDirectory>${project.build.directory}/web</webDirectory>
         <moduleTagDirectory>${webDirectory}/WEB-INF/tags/${moduleName}</moduleTagDirectory>
         <moduleWebDirectory>${webDirectory}/modules/${moduleName}/web</moduleWebDirectory>
@@ -23,55 +22,6 @@
         <webpack.mode>production</webpack.mode>
     </properties>
     <profiles>
-        <profile>
-            <id>copy-web</id>
-            <properties>
-                <webDirectory>${MA_HOME}/web</webDirectory>
-                <jspWorkDirectory>${MA_HOME}/work/jsp</jspWorkDirectory>
-                <maven.test.skip>true</maven.test.skip>
-            </properties>
-            <build>
-                <pluginManagement>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.codehaus.gmavenplus</groupId>
-                            <artifactId>gmavenplus-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <id>find-module-definitions</id>
-                                    <phase>none</phase>
-                                </execution>
-                            </executions>
-                        </plugin>
-                        <plugin>
-                            <artifactId>maven-war-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <id>explode-web</id>
-                                    <configuration>
-                                        <overlays>
-                                            <overlay>
-                                                <id>core</id>
-                                                <skip>true</skip>
-                                            </overlay>
-                                        </overlays>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                        </plugin>
-                        <plugin>
-                            <artifactId>maven-assembly-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <id>module-zip</id>
-                                    <phase>none</phase>
-                                </execution>
-                            </executions>
-                        </plugin>
-                    </plugins>
-                </pluginManagement>
-            </build>
-        </profile>
         <profile>
             <id>install-module</id>
             <properties>
