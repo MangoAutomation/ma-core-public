@@ -20,12 +20,19 @@
         <moduleZipAssembly>moduleZipAssembly</moduleZipAssembly>
         <skipModuleInstall>true</skipModuleInstall>
         <webpack.mode>production</webpack.mode>
+        <warPluginPhase>generate-resources</warPluginPhase>
     </properties>
     <profiles>
         <profile>
             <id>install-module</id>
             <properties>
                 <skipModuleInstall>false</skipModuleInstall>
+            </properties>
+        </profile>
+        <profile>
+            <id>yarn-only</id>
+            <properties>
+                <warPluginPhase>none</warPluginPhase>
             </properties>
         </profile>
     </profiles>
@@ -128,7 +135,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                             <goals>
                                 <goal>exploded</goal>
                             </goals>
-                            <phase>generate-resources</phase>
+                            <phase>${warPluginPhase}</phase>
                             <configuration>
                                 <warSourceDirectory>web/tags</warSourceDirectory>
                                 <warSourceIncludes>**/*.tag</warSourceIncludes>
@@ -140,7 +147,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                             <goals>
                                 <goal>exploded</goal>
                             </goals>
-                            <phase>generate-resources</phase>
+                            <phase>${warPluginPhase}</phase>
                             <configuration>
                                 <warSourceDirectory>web</warSourceDirectory>
                                 <warSourceIncludes>**/*.tld</warSourceIncludes>
@@ -152,7 +159,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                             <goals>
                                 <goal>exploded</goal>
                             </goals>
-                            <phase>generate-resources</phase>
+                            <phase>${warPluginPhase}</phase>
                             <configuration>
                                 <warSourceDirectory>web</warSourceDirectory>
                                 <warSourceExcludes>tags/**</warSourceExcludes>
