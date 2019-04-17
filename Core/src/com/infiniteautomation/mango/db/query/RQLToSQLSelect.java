@@ -4,7 +4,9 @@
  */
 package com.infiniteautomation.mango.db.query;
 
+import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -112,7 +114,13 @@ public class RQLToSQLSelect<T extends AbstractBasicVO> implements SQLConstants, 
             } else {
                inArray = node.getArguments().subList(1, node.getArgumentsSize());
             }
-        	statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), inArray, ComparisonEnum.IN);
+            //Since MySQL does not support empty IN () values
+            if(inArray.size() == 0) {
+                //Query on 1 = 2, which can never be true, same as the column value never being in an empty set 
+                SQLQueryColumn one = new SQLQueryColumn("1", Types.INTEGER);
+                statement.appendColumnQuery(one, Arrays.asList(2), ComparisonEnum.EQUAL_TO);
+            }else
+                statement.appendColumnQuery(getQueryColumn((String)node.getArgument(0)), inArray, ComparisonEnum.IN);
         	return statement;
         case "sort":
             return applySort(node, statement);
