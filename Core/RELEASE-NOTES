@@ -47,6 +47,7 @@
 * Upgrade javax.mail library to version 1.6.2 and use com.sun.mail implementation
 * Upgrade apache-poi library to version 4.0.1 for Excel file support
 * Upgrade commons-beanutils library to version 1.9.3
+* Fix bug in RQL queries over in-memory lists where not having a sign on the sort parameter would cause the query to fail
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions

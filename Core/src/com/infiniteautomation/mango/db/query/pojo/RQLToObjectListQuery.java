@@ -133,7 +133,6 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 				
 	}
 
-
 	/**
 	 * @param node
 	 * @param data
@@ -154,8 +153,10 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
             if (prop.startsWith("-")) {
             	descending = true;
                 prop = prop.substring(1);
-            } else {
+            } if (prop.startsWith("+")) {
                 prop = prop.substring(1);
+                descending = false;
+            } else {
                 descending = false;
             }
             
@@ -167,7 +168,6 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 		return sorted;
 		
 	}
-
 
 	/**
 	 * @param comparison
