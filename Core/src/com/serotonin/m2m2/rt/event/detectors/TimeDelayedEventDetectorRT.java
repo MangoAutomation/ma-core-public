@@ -21,15 +21,6 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 	public TimeDelayedEventDetectorRT(T vo) {
 		super(vo);
 	}
-
-	@Deprecated
-	synchronized protected void scheduleJob() {
-        if (getDurationMS() > 0)
-            super.scheduleJob(Common.timer.currentTimeMillis() + getDurationMS());
-        else
-            // Otherwise call the event active immediately.
-            setEventActive(true);
-    }
 	
 	/**
 	 * Schedule a job passing in the time of now for reference
@@ -78,27 +69,18 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
     abstract protected long getConditionActiveTime();
 
     /**
-     * TODO Make abstract
      * Change the state of the event, raise using the supplied timestamp if necessary
      * @param state
      * @param timestamp
      */
-    protected void setEventActive(long timestamp) { }
+    protected abstract void setEventActive(long timestamp);
     
     /**
-     * TODO Make abstract
      * Change the state of the event, rtn using the supplied timestamp if necessary
      * @param state
      * @param timestamp
      */
-    protected void setEventInactive(long timestamp) { }
-    
-    /**
-     * TODO Remove this method
-     * @param b
-     */
-    @Deprecated
-    void setEventActive(boolean b) { }
+    protected abstract void setEventInactive(long timestamp);
     
 
     @Override
@@ -107,6 +89,9 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
         initializeState();
     }
 
+    /**
+     * Initialize the state of the detector
+     */
     protected void initializeState() {
         int pointId = vo.getDataPoint().getId();
         PointValueTime latest = Common.runtimeManager.getDataPoint(pointId).getPointValue();
@@ -117,7 +102,6 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
     @Override
     public void scheduleTimeoutImpl(long fireTime) {
-        //setEventActive(true);
         setEventActive(fireTime);
     }
 }

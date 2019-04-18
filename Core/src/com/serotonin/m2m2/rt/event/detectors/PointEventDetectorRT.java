@@ -22,13 +22,9 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorVO<T>> extends AbstractEventDetectorRT<T> implements DataPointListener {
 
-    /**
-     * @param vo
-     */
     public PointEventDetectorRT(T vo) {
         super(vo);
     }
-
 
     protected EventType getEventType() {
         DataPointEventType et = new DataPointEventType(vo.getDataPoint().getId(), vo.getId());
@@ -43,7 +39,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
             msg = new TranslatableMessage("common.default", vo.getName());
         else
             msg = getMessage();
-
+        
         Common.eventManager.raiseEvent(getEventType(), time, vo.isRtnApplicable(), vo.getAlarmLevel(), msg, context);
     }
 
@@ -62,15 +58,23 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
         return context;
     }
 
-
+    /**
+     * Get the message of the event
+     * @return
+     */
     abstract protected TranslatableMessage getMessage();
 
+    /**
+     * Is my event currently active?
+     * @return
+     */
     public abstract boolean isEventActive();
 
     @Override
     public String getListenerName(){
         return vo.getXid();
     }
+    
     //
     //
     // Lifecycle interface

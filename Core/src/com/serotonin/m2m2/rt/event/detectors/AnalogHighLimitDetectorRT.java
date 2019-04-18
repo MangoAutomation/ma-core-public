@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -25,6 +29,8 @@ import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
  * @author Matthew Lohbihler
  */
 public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogHighLimitDetectorVO> {
+    private final Log log = LogFactory.getLog(AnalogHighLimitDetectorRT.class);
+
     /**
      * State field. Whether the high limit is currently active or not. This field is used to prevent multiple events
      * being raised during the duration of a single high limit exceed.
@@ -74,24 +80,25 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
      * 
      * @param b
      */
-    private void changeHighLimitActive() {
+    private void changeHighLimitActive(long time) {
         highLimitActive = !highLimitActive;
         if (highLimitActive)
             // Schedule a job that will call the event active if it runs.
-            scheduleJob();
+            scheduleJob(time);
         else
             unscheduleJob(highLimitInactiveTime);
     }
 
     @Override
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+        long time = Common.timer.currentTimeMillis();
         double newDouble = newValue.getDoubleValue();
         if(vo.isNotHigher()){
         	//Is Not Higher
             if (newDouble <= vo.getLimit()) {
                 if (!highLimitActive) {
                     highLimitActiveTime = newValue.getTime();
-                    changeHighLimitActive();
+                    changeHighLimitActive(time);
                 }
             }
             else {
@@ -99,13 +106,13 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
             	if(vo.isUseResetLimit()){
                     if ((highLimitActive)&&(newDouble >= vo.getResetLimit())) {
                         highLimitInactiveTime = newValue.getTime();
-                        changeHighLimitActive();
+                        changeHighLimitActive(time);
                     }
             	}else{
             		//Not using reset
                     if (highLimitActive) {
                         highLimitInactiveTime = newValue.getTime();
-                        changeHighLimitActive();
+                        changeHighLimitActive(time);
                     }
             	}
             }
@@ -114,7 +121,7 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
             if (newDouble > vo.getLimit()) {
                 if (!highLimitActive) {
                     highLimitActiveTime = newValue.getTime();
-                    changeHighLimitActive();
+                    changeHighLimitActive(time);
                 }
             }
             else {
@@ -123,13 +130,13 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
                 	//Turn off alarm if we are active and below the Reset value
                     if ((highLimitActive) &&(newDouble <= vo.getResetLimit())){
                         highLimitInactiveTime = newValue.getTime();
-                        changeHighLimitActive();
+                        changeHighLimitActive(time);
                     }
             	}else{
                 	//Turn off alarm if we are active
                     if (highLimitActive){
                         highLimitInactiveTime = newValue.getTime();
-                        changeHighLimitActive();
+                        changeHighLimitActive(time);
                     }
             	}
             }
@@ -141,33 +148,25 @@ public class AnalogHighLimitDetectorRT extends TimeDelayedEventDetectorRT<Analog
         return highLimitActiveTime;
     }
 
-    /**
-     * This method is only called when the event changes between being active or not, i.e. if the event currently is
-     * active, then it should never be called with a value of true. That said, provision is made to ensure that the high
-     * limit is active before allowing the event to go active.
-     * 
-     * @param b
-     */
     @Override
-    synchronized public void setEventActive(boolean b) {
-        eventActive = b;
-        if (eventActive) {
-            // Just for the fun of it, make sure that the high limit is active.
-            if (highLimitActive)
-                // Ok, things are good. Carry on...
-                // Raise the event.
-                raiseEvent(highLimitActiveTime + getDurationMS(), createEventContext());
-            else
-                eventActive = false;
-        }
-        else
-            // Deactive the event.
-            returnToNormal(highLimitInactiveTime);
+    protected void setEventInactive(long timestamp) {
+        this.eventActive = false;
+        returnToNormal(highLimitInactiveTime);
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
+    @Override
+    protected void setEventActive(long timestamp) {
+        this.eventActive = true;
+        // Just for the fun of it, make sure that the high limit is active.
+        if (highLimitActive)
+            raiseEvent(highLimitActiveTime + getDurationMS(), createEventContext());
+        else {
+            // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
+            log.warn("Call to set event active when high limit detector is not active. Ignoring.");
+            eventActive = false;
+        }
+    }
+    
 	@Override
 	public String getThreadNameImpl() {
 		return "AnalogHighLimit Detector " + this.vo.getXid();

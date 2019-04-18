@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.event.detectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -78,28 +79,27 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogL
      * This method is only called when the low limit changes between being active or not, i.e. if the point's value is
      * currently below the low limit, then it should never be called with a value of true.
      * 
-     * @param b
      */
-    private void changeLowLimitActive() {
+    private void changeLowLimitActive(long time) {
         lowLimitActive = !lowLimitActive;
 
         if (lowLimitActive)
             // Schedule a job that will call the event active if it runs.
-            scheduleJob();
+            scheduleJob(time);
         else
             unscheduleJob(lowLimitInactiveTime);
     }
 
     @Override
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+        long time = Common.timer.currentTimeMillis();
         double newDouble = newValue.getDoubleValue();
-        
         if(vo.isNotLower()){
         	//Not Lower than
             if (newDouble >= vo.getLimit()) {
                 if (!lowLimitActive) {
                     lowLimitActiveTime = newValue.getTime();
-                    changeLowLimitActive();
+                    changeLowLimitActive(time);
                 }
             }
             else {
@@ -107,12 +107,12 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogL
             	if(vo.isUseResetLimit()){
 	                if ((lowLimitActive)&&(newDouble <= vo.getResetLimit())) {
 	                    lowLimitInactiveTime = newValue.getTime();
-	                    changeLowLimitActive();
+	                    changeLowLimitActive(time);
 	                }
             	}else{
 	                if (lowLimitActive) {
 	                    lowLimitInactiveTime = newValue.getTime();
-	                    changeLowLimitActive();
+	                    changeLowLimitActive(time);
 	                }
             	}
             }
@@ -121,7 +121,7 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogL
             if (newDouble < vo.getLimit()) {
                 if (!lowLimitActive) {
                     lowLimitActiveTime = newValue.getTime();
-                    changeLowLimitActive();
+                    changeLowLimitActive(time);
                 }
             }
             else {
@@ -129,12 +129,12 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogL
             	if(vo.isUseResetLimit()){
 	                if ((lowLimitActive)&&(newDouble >= vo.getResetLimit())) {
                         lowLimitInactiveTime = newValue.getTime();
-                        changeLowLimitActive();
+                        changeLowLimitActive(time);
 	                }
             	}else{
                     if (lowLimitActive) {
                         lowLimitInactiveTime = newValue.getTime();
-                        changeLowLimitActive();
+                        changeLowLimitActive(time);
                     }
             	}
             }
@@ -145,37 +145,26 @@ public class AnalogLowLimitDetectorRT extends TimeDelayedEventDetectorRT<AnalogL
     protected long getConditionActiveTime() {
         return lowLimitActiveTime;
     }
-
-    /**
-     * This method is only called when the event changes between being active or not, i.e. if the event currently is
-     * active, then it should never be called with a value of true. That said, provision is made to ensure that the low
-     * limit is active before allowing the event to go active.
-     * 
-     * @param b
-     */
+    
     @Override
-    synchronized public void setEventActive(boolean b) {
-        eventActive = b;
-        if (eventActive) {
-            // Just for the fun of it, make sure that the low limit is active.
-            if (lowLimitActive)
-                // Ok, things are good. Carry on...
-                // Raise the event.
-                raiseEvent(lowLimitActiveTime + getDurationMS(), createEventContext());
-            else {
-                // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
-                log.warn("Call to set event active when low limit is not active. Ignoring.");
-                eventActive = false;
-            }
-        }
-        else
-            // Deactivate the event.
-            returnToNormal(lowLimitInactiveTime);
+    protected void setEventInactive(long timestamp) {
+        this.eventActive = false;
+        returnToNormal(lowLimitInactiveTime);
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
+    @Override
+    protected void setEventActive(long timestamp) {
+        this.eventActive = true;
+        // Just for the fun of it, make sure that the high limit is active.
+        if (lowLimitActive)
+            raiseEvent(lowLimitActiveTime + getDurationMS(), createEventContext());
+        else {
+            // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
+            log.warn("Call to set event active when low limit detector is not active. Ignoring.");
+            eventActive = false;
+        }
+    }
+    
 	@Override
 	public String getThreadNameImpl() {
 		return "AnalogLowLimit Detector " + this.vo.getXid();
