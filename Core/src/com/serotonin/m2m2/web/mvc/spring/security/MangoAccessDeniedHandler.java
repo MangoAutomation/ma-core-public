@@ -50,7 +50,7 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
 
-        LOG.warn("Denying access to Mango resource " + request.getRequestURI() + " to IP " + request.getRemoteAddr(), accessDeniedException);
+        LOG.warn("Denying access to Mango resource " + request.getRequestURI() + " to IP " + request.getRemoteAddr());
 
         if (!response.isCommitted()) {
             if (browserHtmlRequestMatcher.matches(request)) {
