@@ -153,7 +153,7 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
             if (prop.startsWith("-")) {
             	descending = true;
                 prop = prop.substring(1);
-            } if (prop.startsWith("+")) {
+            }else if (prop.startsWith("+")) {
                 prop = prop.substring(1);
                 descending = false;
             } else {
