@@ -23,6 +23,7 @@
         <warPluginPhase>generate-resources</warPluginPhase>
         <yarnInstallPhase>generate-resources</yarnInstallPhase>
         <webpackPhase>generate-resources</webpackPhase>
+        <jspcPhase>prepare-package</jspcPhase>
     </properties>
     <profiles>
         <profile>
@@ -37,6 +38,16 @@
                 <warPluginPhase>none</warPluginPhase>
                 <yarnInstallPhase>none</yarnInstallPhase>
                 <webpackPhase>none</webpackPhase>
+            </properties>
+        </profile>
+        <profile>
+            <id>compile-only</id>
+            <properties>
+                <warPluginPhase>none</warPluginPhase>
+                <yarnInstallPhase>none</yarnInstallPhase>
+                <webpackPhase>none</webpackPhase>
+                <jspcPhase>none</jspcPhase>
+                <skipModuleInstall>true</skipModuleInstall>
             </properties>
         </profile>
     </profiles>
@@ -188,7 +199,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                     <executions>
                         <execution>
                             <id>compile-jsp</id>
-                            <phase>prepare-package</phase>
+                            <phase>${jspcPhase}</phase>
                             <goals>
                                 <goal>jspc</goal>
                             </goals>
