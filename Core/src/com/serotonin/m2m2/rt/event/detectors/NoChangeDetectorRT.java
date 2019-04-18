@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.event.detector.NoChangeDetectorVO;
@@ -19,7 +20,7 @@ public class NoChangeDetectorRT extends DifferenceDetectorRT<NoChangeDetectorVO>
 
     @Override
     public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
-        pointData();
+        pointData(Common.timer.currentTimeMillis());
     }
 
     @Override
@@ -28,9 +29,6 @@ public class NoChangeDetectorRT extends DifferenceDetectorRT<NoChangeDetectorVO>
                 getDurationDescription());
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
 	@Override
 	public String getThreadNameImpl() {
 		return "NoChange Detector " + this.vo.getXid();

@@ -22,18 +22,36 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 		super(vo);
 	}
 
+	@Deprecated
 	synchronized protected void scheduleJob() {
         if (getDurationMS() > 0)
-            scheduleJob(Common.timer.currentTimeMillis() + getDurationMS());
+            super.scheduleJob(Common.timer.currentTimeMillis() + getDurationMS());
         else
             // Otherwise call the event active immediately.
             setEventActive(true);
     }
+	
+	/**
+	 * Schedule a job passing in the time of now for reference
+	 */
+    synchronized protected void scheduleJob(long now) {
+        if (getDurationMS() > 0)
+            super.scheduleJob(now + getDurationMS());
+        else if(!isEventActive())
+            setEventActive(now);
+    }	
 
+    /**
+     * Unschedule a job, 
+     *  - set event inactive if its active
+     *  - raise and RTN an event in the past if it is inactive now
+     * @param conditionInactiveTime
+     */
     synchronized protected void unscheduleJob(long conditionInactiveTime) {
         // Reset the eventActive if it is on
         if (isEventActive())
-            setEventActive(false);
+            setEventInactive(conditionInactiveTime);
+        
         // Check whether there is a tolerance duration.
         else if (getDurationMS() > 0) {
             if (isJobScheduled()) {
@@ -53,9 +71,35 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
         }
     }
 
+    /**
+     * The timestamp for when the condition has gone active
+     * @return
+     */
     abstract protected long getConditionActiveTime();
 
-    abstract void setEventActive(boolean b);
+    /**
+     * TODO Make abstract
+     * Change the state of the event, raise using the supplied timestamp if necessary
+     * @param state
+     * @param timestamp
+     */
+    protected void setEventActive(long timestamp) { }
+    
+    /**
+     * TODO Make abstract
+     * Change the state of the event, rtn using the supplied timestamp if necessary
+     * @param state
+     * @param timestamp
+     */
+    protected void setEventInactive(long timestamp) { }
+    
+    /**
+     * TODO Remove this method
+     * @param b
+     */
+    @Deprecated
+    void setEventActive(boolean b) { }
+    
 
     @Override
     public void initialize() {
@@ -73,6 +117,7 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
     @Override
     public void scheduleTimeoutImpl(long fireTime) {
-        setEventActive(true);
+        //setEventActive(true);
+        setEventActive(fireTime);
     }
 }

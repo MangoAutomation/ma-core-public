@@ -9,12 +9,10 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 
 /**
- * @author Matthew Lohbihler
+ * @author Matthew Lohbihler, Terry Packer
  */
 abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeDelayedEventDetectorRT<T> {
-    /**
-	 * @param vo
-	 */
+
 	public DifferenceDetectorRT(T vo) {
 		super(vo);
 	}
@@ -25,6 +23,9 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
      */
     protected boolean eventActive;
 
+    /**
+     * Time which we last changed value
+     */
     protected long lastChange;
 
     @Override
@@ -32,18 +33,22 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
         return eventActive;
     }
 
-    synchronized protected void pointData() {
-    	lastChange = Common.timer.currentTimeMillis();
-    	if (!eventActive)
-            unscheduleJob(Common.timer.currentTimeMillis());
+    /**
+     * Received point data
+     * @param fireTime
+     */
+    synchronized protected void pointData(long fireTime) {
+        if (!eventActive)
+            unscheduleJob(fireTime);
         else
-            setEventActive(false);
-        
-        scheduleJob();
+            setEventInactive(fireTime);
+        lastChange = fireTime;      
+        scheduleJob(fireTime);
     }
 
     @Override
     public void initializeState() {
+        long now = Common.timer.currentTimeMillis();
         // Get historical data for the point out of the database.
         int pointId = vo.getDataPoint().getId();
         PointValueTime latest = Common.runtimeManager.getDataPoint(pointId).getPointValue();
@@ -51,29 +56,38 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
             lastChange = latest.getTime();
         else
             // The point may be new or not logged, so don't go active immediately.
-            lastChange = Common.timer.currentTimeMillis();
+            lastChange = now;
 
-        if (lastChange + getDurationMS() < Common.timer.currentTimeMillis())
+        if (lastChange + getDurationMS() < now)
             // Nothing has happened in the time frame, so set the event active.
-            setEventActive(true);
+            setEventActive(lastChange + getDurationMS());
         else
             // Otherwise, set the timeout.
-            scheduleJob();
+            scheduleJob(now);
     }
 
     @Override
     protected long getConditionActiveTime() {
         return lastChange;
     }
-
+    
     @Override
-    synchronized public void setEventActive(boolean b) {
-        eventActive = b;
-        if (eventActive)
-            // Raise the event.
-            raiseEvent(lastChange + getDurationMS(), createEventContext());
-        else
-            // Deactivate the event.
-            returnToNormal(lastChange);
+    public void scheduleTimeoutImpl(long fireTime) {
+        //Ensure that the pointData() method hasn't updated our last change time and that we are not active already 
+        //TODO I don't think we need !eventActive here
+        if(lastChange + getDurationMS() < fireTime && !eventActive)
+            setEventActive(fireTime);
+    }
+    
+    @Override
+    public synchronized void setEventActive(long timestamp) {
+        eventActive = true;
+        raiseEvent(timestamp, createEventContext());
+    }
+    
+    @Override
+    protected void setEventInactive(long timestamp) {
+        eventActive = false;
+        returnToNormal(timestamp);
     }
 }
