@@ -93,9 +93,9 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 @Service
 public class MangoJavaScriptService {
 
-    private final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
-    private final String SCRIPT_SUFFIX = "\r\n}\r\n";
-    private final String SCRIPT_POSTFIX = "\r\n__scriptExecutor__();";
+    public static final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
+    public static final String SCRIPT_SUFFIX = "\r\n}\r\n";
+    public static final String SCRIPT_POSTFIX = "\r\n__scriptExecutor__();";
 
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
@@ -452,7 +452,7 @@ public class MangoJavaScriptService {
      * @param permissions
      * @return
      */
-    protected ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result, ScriptPermissions permissions) {
+    public ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result, ScriptPermissions permissions) {
        return new ScriptPointValueSetter(permissions) {
             
            @Override

@@ -93,4 +93,14 @@ public class MangoJavaScriptResult {
         return this.errors != null && this.errors.size() > 0;
     }
     
+    /**
+     * Reset the result for next execution
+     */
+    public void reset() {
+        this.scriptOutput = null;
+        this.result = null;
+        this.errors = null;
+        this.actions = null;
+    }
+    
 }
