@@ -534,6 +534,9 @@ public class MangoJavaScriptService {
                 
         // Put the context variables into the engine with engine scope.
         List<String> points = getPointList(script.getEngine());
+        if(points != null)
+            points.clear();
+        
         if(context != null) {
             for (String varName : context.keySet()) {
                 IDataPointValueSource point = context.get(varName);
@@ -627,8 +630,10 @@ public class MangoJavaScriptService {
         ScriptEngine engine = script.getEngine();
         engine.put(varName, wrapPoint(engine, dprt, setCallback));
         List<String> points = getPointList(engine);
-        if (points != null)
+        if (points != null) {
+            points.remove(varName);
             points.add(varName);
+        }
     }
 
     public void removeFromContext(CompiledScript script, String varName) {
