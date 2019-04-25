@@ -141,7 +141,7 @@ abstract public class AbstractPointWrapper {
     }
 
     public void set(Object value) throws ScriptPermissionsException {
-        set(value, getContext().getRuntime());
+        set(value, getContext().getComputeTime());
     }
     
     public void set(Object value, long timestamp) throws ScriptPermissionsException {

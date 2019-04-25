@@ -35,7 +35,7 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
     }
     
     public StartsAndRuntimeListWrapper past(int periodType, int count, boolean cache) {
-        long to = getContext().getRuntime();
+        long to = getContext().getComputeTime();
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to, cache);
     }
@@ -69,7 +69,7 @@ abstract public class DistinctPointWrapper extends AbstractPointWrapper {
     }
     
     public StartsAndRuntimeListWrapper previous(int periodType, int count, boolean cache) {
-        long to = DateUtils.truncate(getContext().getRuntime(), periodType);
+        long to = DateUtils.truncate(getContext().getComputeTime(), periodType);
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to, cache);
     }

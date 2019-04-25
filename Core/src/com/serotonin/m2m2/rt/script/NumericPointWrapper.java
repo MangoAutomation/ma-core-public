@@ -44,7 +44,7 @@ public class NumericPointWrapper extends AbstractPointWrapper {
     }
 
     public Double ago(int periodType, int count, boolean cache) {
-        long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
+        long from = DateUtils.minus(getContext().getComputeTime(), periodType, count);
         PointValueTime pvt;
         if(cache || historical)
             pvt = point.getPointValueBefore(from);
@@ -68,7 +68,7 @@ public class NumericPointWrapper extends AbstractPointWrapper {
     }
 
     public AnalogStatisticsWrapper past(int periodType, int count, boolean cache) {
-        long to = getContext().getRuntime();
+        long to = getContext().getComputeTime();
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to, cache);
     }
@@ -102,7 +102,7 @@ public class NumericPointWrapper extends AbstractPointWrapper {
     }
 
     public AnalogStatisticsWrapper previous(int periodType, int count, boolean cache) {
-        long to = DateUtils.truncate(getContext().getRuntime(), periodType);
+        long to = DateUtils.truncate(getContext().getComputeTime(), periodType);
         long from = DateUtils.minus(to, periodType, count);
         return getStats(from, to, cache);
     }

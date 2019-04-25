@@ -8,12 +8,15 @@ import java.util.regex.Pattern;
 
 import javax.script.ScriptException;
 
+import com.serotonin.m2m2.i18n.TranslatableException;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+
 /**
  * 
  * @author Matthew Lohbihler, Terry Packer
  *
  */
-public class ScriptError extends Exception {
+public class ScriptError extends TranslatableException {
     private static final long serialVersionUID = 1L;
     private static final Pattern PATTERN = Pattern.compile("<eval>(.*?):(.*?) ([\\s\\S]*)");
 
@@ -58,11 +61,28 @@ public class ScriptError extends Exception {
             return new ScriptError(cause.getClass().getName() + ": " + cause.getMessage(), null, null, cause);
     }
     
+    public static TranslatableMessage createMessage(String message, Integer lineNumber, Integer columnNumber) {
+        if(lineNumber == null) {
+            return  new TranslatableMessage("literal", message);
+        } else {
+            if (columnNumber == null)
+                return new TranslatableMessage("javascript.validate.rhinoException", message, lineNumber);
+            else
+                return new TranslatableMessage("javascript.validate.rhinoExceptionCol", message, lineNumber, columnNumber);
+        }
+    }
+    
     private final Integer lineNumber;
     private final Integer columnNumber;
 
+    ScriptError(TranslatableMessage message){
+        super(message);
+        this.lineNumber = null;
+        this.columnNumber = null;
+    }
+    
     ScriptError(String message, Integer lineNumber, Integer columnNumber, Throwable cause) {
-        super(message, cause);
+        super(createMessage(message, lineNumber, columnNumber), cause);
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
     }

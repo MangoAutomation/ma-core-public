@@ -39,7 +39,7 @@ public class ImagePointWrapper extends AbstractPointWrapper {
     }
     
     public byte[] ago(int periodType, int periods, boolean cache) {
-        long from = DateUtils.minus(getContext().getRuntime(), periodType, periods);
+        long from = DateUtils.minus(getContext().getComputeTime(), periodType, periods);
         PointValueTime pvt;
         if(cache || historical)
             pvt = point.getPointValueBefore(from);

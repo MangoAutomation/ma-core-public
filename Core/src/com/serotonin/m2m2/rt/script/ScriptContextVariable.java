@@ -40,8 +40,6 @@ public class ScriptContextVariable implements Serializable{
 	private String variableName;
 	private boolean contextUpdate; //Do we update the context?
 	
-	
-	
 	/**
 	 * @param dataPointId
 	 * @param variableName

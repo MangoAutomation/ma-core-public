@@ -20,8 +20,6 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.script.CompiledScript;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -30,6 +28,7 @@ import org.joda.time.DateTime;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
@@ -63,7 +62,6 @@ import com.serotonin.m2m2.rt.script.OneTimePointAnnotation;
 import com.serotonin.m2m2.rt.script.ResultTypeException;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.rt.script.ScriptLog;
-import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
@@ -409,29 +407,27 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 
                 try (ScriptLog scriptLog = new ScriptLog("emailScript-" + evt.getId())) {
                     MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
-                    CompiledScript compiledScript = service.compile(script, true, permissions);
                     long time = evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp();
-                    MangoJavaScriptResult r = new MangoJavaScriptResult();
-                    service.execute(
-                            compiledScript, 
-                            Common.timer.currentTimeMillis(), 
-                            time, 
-                            DataTypes.ALPHANUMERIC,
-                            context,
+                    CompiledMangoJavaScript compiledScript = new CompiledMangoJavaScript(
+                            setCallback,
+                            scriptLog,
                             modelContext,
                             null,
-                            permissions,
-                            scriptLog,
-                            setCallback,
                             importExclusions,
-                            r,
-                            false);
+                            false,
+                            service,
+                            permissions
+                            );
+                    compiledScript.compile(script, true);
+                    compiledScript.initialize(context);
+                    MangoJavaScriptResult r = compiledScript.execute(Common.timer.currentTimeMillis(), time, DataTypes.ALPHANUMERIC);
+
                     PointValueTime result = (PointValueTime)r.getResult();
                     if(result != null && result.getValue() == MangoJavaScriptService.UNCHANGED) //The script cancelled the email
                         return;
 
-                } catch(ScriptPermissionsException | ScriptError | ResultTypeException e) {
-                    LOG.error("Exception running email handler script: " + e.getMessage(), e);
+                } catch(ScriptError | ResultTypeException e) {
+                    LOG.error("Exception running email handler script: " + e.getTranslatableMessage(), e);
                 }
             }
 
@@ -469,7 +465,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 EmailWorkItem.queueEmail(toAddrs, content, postEmail);
         }
         catch (Exception e) {
-            LOG.error("", e);
+            LOG.error("Error sending email", e);
         }
     }
 

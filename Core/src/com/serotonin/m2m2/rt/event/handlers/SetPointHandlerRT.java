@@ -6,10 +6,7 @@ package com.serotonin.m2m2.rt.event.handlers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import javax.script.CompiledScript;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -17,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.ShouldNeverHappenException;
@@ -47,50 +45,12 @@ import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 
 public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> implements SetPointSource {
     private static final Log LOG = LogFactory.getLog(SetPointHandlerRT.class);
-    private CompiledScript activeScript;
-    private CompiledScript inactiveScript;
-    private final List<JsonImportExclusion> importExclusions;
-    private final SetCallback setCallback;
-    private final MangoJavaScriptService service;
+ 
+    private MangoJavaScriptService service;
 
     public SetPointHandlerRT(SetPointEventHandlerVO vo) {
         super(vo);
         this.service = Common.getBean(MangoJavaScriptService.class);
-        if(vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-        	try {
-        		activeScript = service.compile(vo.getActiveScript(), true, vo.getScriptPermissions());
-        	} catch(ScriptError e) {
-        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", 
-        				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
-        	}
-        } else
-        	activeScript = null;
-        
-        if(vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-        	try {
-        		inactiveScript = service.compile(vo.getInactiveScript(), true, vo.getScriptPermissions());
-        	} catch(ScriptError e) {
-        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", 
-        				e.getMessage() == null ? e.getCause().getMessage() : e.getMessage()), null);
-        	}
-        } else
-        	inactiveScript = null;
-        
-        if(activeScript != null || inactiveScript != null) {
-        	importExclusions = new ArrayList<JsonImportExclusion>();
-        	importExclusions.add(new JsonImportExclusion("xid", vo.getXid()) {
-				@Override
-				public String getImporterType() {
-					return ConfigurationExportData.EVENT_HANDLERS;
-				}
-        	});
-        } else
-        	importExclusions = null;
-        
-        if(activeScript != null || inactiveScript != null)
-        	setCallback = new SetCallback(vo.getScriptPermissions());
-        else
-        	setCallback = null;
     }
 
     @Override
@@ -138,32 +98,39 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
             value = DataValue.stringToValue(vo.getActiveValueToSet(), targetDataType);
         }
         else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-        	if(activeScript == null) {
-        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScript"), evt.getEventType());
-        		return;
-        	}
+            ArrayList<JsonImportExclusion> importExclusions = new ArrayList<JsonImportExclusion>();
+            importExclusions.add(new JsonImportExclusion("xid", vo.getXid()) {
+                @Override
+                public String getImporterType() {
+                    return ConfigurationExportData.EVENT_HANDLERS;
+                }
+            });
+
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         	context.put(SetPointEventHandlerVO.TARGET_CONTEXT_KEY, targetPoint);
         	Map<String, Object> additionalContext = new HashMap<String, Object>();
         	additionalContext.put(EventInstanceWrapper.CONTEXT_KEY, new EventInstanceWrapper(evt));
-        	try (ScriptLog scriptLog = new ScriptLog("setPointHandler-" + evt.getId())){
-        		for(IntStringPair cxt : vo.getAdditionalContext()) {
+        	try (ScriptLog scriptLog = new ScriptLog("setPointHandler-" + evt.getId())) {
+        		
+        	    for(IntStringPair cxt : vo.getAdditionalContext()) {
         			DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
         			if(dprt != null)
         				context.put(cxt.getValue(), dprt);
         		}
-        		MangoJavaScriptResult result = new MangoJavaScriptResult();
-	        	service.execute(
-	        	        activeScript, 
-	        	        evt.getActiveTimestamp(),
-	        	        evt.getActiveTimestamp(),
-	        	        targetPoint.getDataTypeId(),
-	        	        context, 
-	        	        additionalContext,
-	        	        null,
-	        			vo.getScriptPermissions(), 
-	        			scriptLog, 
-	        			setCallback, importExclusions, result, false);
+
+                CompiledMangoJavaScript activeScript = new CompiledMangoJavaScript(
+                        new SetCallback(vo.getScriptPermissions()),
+                        scriptLog,
+                        additionalContext,
+                        null,
+                        importExclusions,
+                        false,
+                        service,
+                        vo.getScriptPermissions());
+                activeScript.compile(vo.getActiveScript(), true);
+                activeScript.initialize(context);
+                
+                MangoJavaScriptResult result = activeScript.execute(Common.timer.currentTimeMillis(), evt.getActiveTimestamp(), targetPoint.getDataTypeId());
 	        	PointValueTime pvt = (PointValueTime)result.getResult();
 	        	if(pvt != null)
 	        	    value = pvt.getValue();
@@ -171,7 +138,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                 raiseFailureEvent(e.getTranslatableMessage(), evt.getEventType());
                 return;
             } catch(ScriptError e) {
-        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getCause().getMessage()), evt.getEventType());
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getTranslatableMessage()), evt.getEventType());
         		return;
         	} catch(ResultTypeException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidActiveScriptError", e.getMessage()), evt.getEventType());
@@ -231,33 +198,40 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE)
             value = DataValue.stringToValue(vo.getInactiveValueToSet(), targetDataType);
         else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-        	if(inactiveScript == null) {
-        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScript"), evt.getEventType());
-        		return;
-        	}
+            ArrayList<JsonImportExclusion> importExclusions = new ArrayList<JsonImportExclusion>();
+            importExclusions.add(new JsonImportExclusion("xid", vo.getXid()) {
+                @Override
+                public String getImporterType() {
+                    return ConfigurationExportData.EVENT_HANDLERS;
+                }
+            });
+            
         	Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         	context.put("target", targetPoint);
         	Map<String, Object> additionalContext = new HashMap<String, Object>();
         	additionalContext.put(EventInstance.CONTEXT_KEY, evt);
             additionalContext.put(EventInstanceWrapper.CONTEXT_KEY, new EventInstanceWrapper(evt));
-        	try {
+            try (ScriptLog scriptLog = new ScriptLog("setPointHandler-" + evt.getId())){
         	    for(IntStringPair cxt : vo.getAdditionalContext()) {
                     DataPointRT dprt = Common.runtimeManager.getDataPoint(cxt.getKey());
                     if(dprt != null)
                         context.put(cxt.getValue(), dprt);
                 }
-        	    MangoJavaScriptResult result = new MangoJavaScriptResult();
-	        	service.execute(
-	        	        inactiveScript, 
-	        	        evt.getRtnTimestamp(),
-	        	        evt.getRtnTimestamp(),
-	        	        targetPoint.getDataTypeId(),
-	        	        context, 
-	        	        additionalContext,
-	        	        null,
-	        	        vo.getScriptPermissions(),
-	        	        new ScriptLog("setPointHandler-" + evt.getId()),
-	        			setCallback, importExclusions, result, false);
+        	    
+                CompiledMangoJavaScript inactiveScript = new CompiledMangoJavaScript(
+                        new SetCallback(vo.getScriptPermissions()),
+                        scriptLog,
+                        additionalContext,
+                        null,
+                        importExclusions,
+                        false,
+                        service,
+                        vo.getScriptPermissions());
+                inactiveScript.compile(vo.getInactiveScript(), true);
+                inactiveScript.initialize(context);
+                
+                MangoJavaScriptResult result = inactiveScript.execute(Common.timer.currentTimeMillis(), evt.getRtnTimestamp(), targetPoint.getDataTypeId());
+
 	        	PointValueTime pvt = (PointValueTime)result.getResult();
 	        	if(pvt != null)
 	        	    value = pvt.getValue();
@@ -265,7 +239,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         	    raiseFailureEvent(e.getTranslatableMessage(), evt.getEventType());
         	    return;
         	} catch(ScriptError e) {
-        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getCause().getMessage()), evt.getEventType());
+        		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getTranslatableMessage()), evt.getEventType());
         		return;
         	} catch(ResultTypeException e) {
         		raiseFailureEvent(new TranslatableMessage("eventHandlers.invalidInactiveScriptError", e.getMessage()), evt.getEventType());
@@ -321,17 +295,11 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
     }
     
     class SetCallback extends ScriptPointValueSetter {
+        
         public SetCallback(ScriptPermissions permissions) {
 			super(permissions);
 		}
 
-		/*
-         * (non-Javadoc)
-         * 
-         * @see
-         * com.serotonin.mango.util.script.ScriptPointValueSetter#setImpl(com.serotonin.mango.rt.dataImage.IDataPointValueSource,
-         * java.lang.Object, long)
-         */
         @Override
         public void setImpl(IDataPointValueSource point, Object value, long timestamp, String annotation) {
             DataPointRT dprt = (DataPointRT) point;

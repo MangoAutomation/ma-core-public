@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.script.CompiledScript;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,6 +25,7 @@ import org.directwebremoting.WebContextFactory;
 
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
@@ -447,6 +446,12 @@ public class EventHandlersDwr extends BaseDwr {
         TranslatableMessage message;
         User user = Common.getHttpUser();
         ScriptPermissions scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(permissions), user.getPermissionHolderName());
+        
+        //Ensure they can't escalate privileges
+        Permissions.validateAddedPermissions(scriptPermissions.getPermissionsSet(), user, response, "permissions");
+        if(response.getHasMessages())
+            return response;
+        
         Map<String, IDataPointValueSource> context = new HashMap<String, IDataPointValueSource>();
         int targetDataType;
         if(type == SetPointEventHandlerDefinition.ACTIVE_SCRIPT_TYPE || type == SetPointEventHandlerDefinition.INACTIVE_SCRIPT_TYPE) {
@@ -529,19 +534,18 @@ public class EventHandlersDwr extends BaseDwr {
                 }
             };
             MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
-
-            CompiledScript compiledScript = service.compile(script, true, user);
-            MangoJavaScriptResult result = new MangoJavaScriptResult();
-            service.execute(
-                    compiledScript, 
-                    System.currentTimeMillis(),
-                    System.currentTimeMillis(),
-                    targetDataType,
-                    context, 
+            CompiledMangoJavaScript compiledScript = new CompiledMangoJavaScript(
+                    loggingSetter,
+                    scriptLog,
                     otherContext,
                     null,
-                    scriptPermissions,
-                    scriptLog, loggingSetter, null, result, true);
+                    null,
+                    true,
+                    service,
+                    scriptPermissions);
+            compiledScript.compile(script, true);
+            MangoJavaScriptResult result = compiledScript.execute(System.currentTimeMillis(), System.currentTimeMillis(), targetDataType);
+
             PointValueTime pvt = (PointValueTime)result.getResult();
             if (pvt == null || pvt.getValue() == null)
                 message = new TranslatableMessage("eventHandlers.script.nullResult");
@@ -559,7 +563,7 @@ public class EventHandlersDwr extends BaseDwr {
             message = e.getTranslatableMessage();
         }
         catch (ScriptError e) {
-            message = new TranslatableMessage("eventHandlers.script.failure", e.getMessage());
+            message = new TranslatableMessage("eventHandlers.script.failure", e.getTranslatableMessage());
         }
         catch (ResultTypeException e) {
             message = e.getTranslatableMessage();

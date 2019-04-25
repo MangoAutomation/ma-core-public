@@ -10,8 +10,9 @@ import com.serotonin.m2m2.util.DateUtils;
  * @author Matthew Lohbihler
  */
 public class WrapperContext {
-    private final long runtime;
-    private final long timestamp;
+    
+    private final long runtime; //Wall clock time of execution
+    private final long timestamp; //Scheduled time of execution (Point event time)
     private long compute;
     
     public WrapperContext(long runtime) {
@@ -21,7 +22,7 @@ public class WrapperContext {
     public WrapperContext(long runtime, long timestamp) {
         this.runtime = runtime;
         this.timestamp = timestamp;
-        this.compute = runtime;
+        this.compute = timestamp;
     }
 
     public long getRuntime() {
@@ -30,6 +31,10 @@ public class WrapperContext {
     
     public long getTimestamp() {
         return timestamp;
+    }
+    
+    public long getComputeTime() {
+        return compute;
     }
 
     public long millisInPrev(int periodType) {
