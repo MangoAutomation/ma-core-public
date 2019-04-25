@@ -187,6 +187,10 @@ public class MangoRuntimeContextConfiguration {
             if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.COMMON)
                 mapper.registerModule(def.getJacksonModule());
         }
+        
+        //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        
         return mapper;
     }
 
@@ -202,6 +206,10 @@ public class MangoRuntimeContextConfiguration {
             if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.DATABASE)
                 mapper.registerModule(def.getJacksonModule());
         }
+        
+        //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        
         return mapper;
     }
 
