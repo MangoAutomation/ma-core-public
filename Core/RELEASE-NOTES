@@ -51,6 +51,7 @@
 * Fix bug in RQL queries where empty IN clause would fail on MySQL
 * Fix bug introduced in 3.6.0-beta.1 where the JavaScript POINTS global variable was an ever-growing list of strings added to at each run of the script
 * Configure both database and common Jackson Object Mappers to not fail when de-serializing JSON with extra unused fields
+* Supply the terminated Data Point VO in DataPointListener.terminate method to determine if the point is stopped by the data source or was disabled and the source is still running
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions

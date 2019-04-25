@@ -12,6 +12,7 @@ import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO.PublishType;
 
@@ -67,7 +68,7 @@ public class PublishedPointRT<T extends PublishedPointVO> implements DataPointLi
             publishAttributes(rt, false);
     }
     @Override
-    public void pointTerminated() {
+    public void pointTerminated(DataPointVO dp) {
         pointEnabled = false;
         parent.pointTerminated(this);
         //Publish that its unreliable

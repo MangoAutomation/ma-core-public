@@ -436,7 +436,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
             // Stop the data points.
             for (DataPointRT p : dataPoints.values()) {
                 if (p.getDataSourceId() == id)
-                    stopDataPointShutdown(p.getId());
+                    stopDataPointShutdown(p.getVO());
             }
             synchronized (runningDataSources) {
             	runningDataSources.remove(dataSource.getId());
@@ -458,7 +458,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     
     @Override
     public void saveDataPoint(DataPointVO point) {    	
-        stopDataPoint(point.getId());
+        stopDataPoint(point);
 
         // Since the point's data type may have changed, we must ensure that the other attrtibutes are still ok with
         // it.
@@ -495,7 +495,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
         dp.setEnabled(enabled);
         
         if (running && !enabled) {
-            stopDataPoint(dp.getId());
+            stopDataPoint(dp);
         } else if (!running && enabled) {
             // Ensure the event detectors are loaded
             DataPointDao.getInstance().setEventDetectors(dp);
@@ -510,7 +510,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
     @Override
     public void deleteDataPoint(DataPointVO point) {
         if (point.isEnabled())
-            stopDataPoint(point.getId());
+            stopDataPoint(point);
         DataPointDao.getInstance().deleteDataPoint(point.getId());
         Common.eventManager.cancelEventsForDataPoint(point.getId());
     }
@@ -549,7 +549,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
                         DataPointListener l = getDataPointListeners(vo.getId());
                         if (l != null)
                             try {
-                                l.pointTerminated();
+                                l.pointTerminated(vo);
                             } catch(ExceptionListWrapper e) {
                                 LOG.warn("Exceptions in point terminated listeners' methods.");
                                 for(Exception e2 : e.getExceptions())
@@ -602,25 +602,25 @@ public class RuntimeManagerImpl implements RuntimeManager{
         }
     }
     
-    private void stopDataPoint(int dataPointId) {
+    private void stopDataPoint(DataPointVO dp) {
         synchronized (dataPoints) {
             // Remove this point from the data image if it is there. If not, just quit.
-            DataPointRT p = dataPoints.remove(dataPointId);
+            DataPointRT p = dataPoints.remove(dp.getId());
 
             // Remove it from the data source, and terminate it.
             if (p != null) {
             	try{
             		getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
             	}catch(Exception e){
-            		LOG.error("Failed to stop point RT with ID: " + dataPointId
+            		LOG.error("Failed to stop point RT with ID: " + dp.getId()
                 			+ " stopping point."
                 			, e);
             	}
             	
-                DataPointListener l = getDataPointListeners(dataPointId);
+                DataPointListener l = getDataPointListeners(dp.getId());
                 if (l != null)
                     try {
-                        l.pointTerminated();
+                        l.pointTerminated(dp);
                     } catch(ExceptionListWrapper e) {
                         LOG.warn("Exceptions in point terminated method.");
                         for(Exception e2 : e.getExceptions())
@@ -634,26 +634,26 @@ public class RuntimeManagerImpl implements RuntimeManager{
     /**
      * Only to be used at shutdown as synchronization has been reduced for performance
      */
-    private void stopDataPointShutdown(int dataPointId) {
+    private void stopDataPointShutdown(DataPointVO dp) {
         
     	DataPointRT p = null;
     	synchronized (dataPoints) {
             // Remove this point from the data image if it is there. If not, just quit.
-            p = dataPoints.remove(dataPointId);
+            p = dataPoints.remove(dp.getId());
     	}
         // Remove it from the data source, and terminate it.
         if (p != null) {
         	try{
         		getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
         	}catch(Exception e){
-        		LOG.error("Failed to stop point RT with ID: " + dataPointId
+        		LOG.error("Failed to stop point RT with ID: " + dp.getId()
             			+ " stopping point."
             			, e);
         	}
-            DataPointListener l = getDataPointListeners(dataPointId);
+            DataPointListener l = getDataPointListeners(dp.getId());
             if (l != null)
                 try {
-                    l.pointTerminated();
+                    l.pointTerminated(dp);
                 } catch(ExceptionListWrapper e) {
                     LOG.warn("Exceptions in point terminated method.");
                     for(Exception e2 : e.getExceptions())
@@ -683,7 +683,7 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 DataPointListener l = getDataPointListeners(vo.getId());
                 if (l != null)
                     try {
-                        l.pointTerminated();
+                        l.pointTerminated(vo);
                     } catch(ExceptionListWrapper e) {
                         LOG.warn("Exceptions in point terminated method.");
                         for(Exception e2 : e.getExceptions())

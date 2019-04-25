@@ -458,6 +458,25 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null, null));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
+    
+    /**
+     * Is a data point enabled, returns false if point is disabled or DNE.
+     * @param id
+     * @return
+     */
+    public boolean isEnabled(int id) {
+        return query("select dp.enabled from dataPoints as dp WHERE id=?", new Object[] {id}, new ResultSetExtractor<Boolean>() {
+
+            @Override
+            public Boolean extractData(ResultSet rs) throws SQLException, DataAccessException {
+                if(rs.next()) {
+                    return charToBool(rs.getString(1));
+                }else
+                    return false;
+            }
+            
+        });
+    }
 
     public void deleteDataPoints(final int dataSourceId) {
         List<DataPointVO> old = getDataPoints(dataSourceId, null, true);
@@ -1749,4 +1768,5 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("dataType", map.get("dataTypeId"));
         return map;
     }
+
 }

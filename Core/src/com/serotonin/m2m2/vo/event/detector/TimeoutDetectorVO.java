@@ -53,9 +53,6 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
         return Common.getPeriodDescription(durationType, duration);
     }
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
 	@Override
 	public void validate(ProcessResult response) {
 		super.validate(response);

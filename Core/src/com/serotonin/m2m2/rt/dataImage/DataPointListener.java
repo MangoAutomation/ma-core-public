@@ -6,6 +6,8 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.Map;
 
+import com.serotonin.m2m2.vo.DataPointVO;
+
 public interface DataPointListener {
 	
 	/**
@@ -54,7 +56,7 @@ public interface DataPointListener {
     /**
      * This method is called when the point has been terminated, allowing listeners to react as necessary.
      */
-    void pointTerminated();
+    void pointTerminated(DataPointVO vo);
     
     /**
      * This method is called when the value is sent to the database for saving.  There is no guarantee that 

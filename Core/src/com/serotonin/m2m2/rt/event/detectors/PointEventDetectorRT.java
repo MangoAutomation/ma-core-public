@@ -112,7 +112,7 @@ abstract public class PointEventDetectorRT<T extends AbstractPointEventDetectorV
         // no op
     }
     @Override
-    public void pointTerminated() {
+    public void pointTerminated(DataPointVO vo) {
         // no op
     }
     @Override

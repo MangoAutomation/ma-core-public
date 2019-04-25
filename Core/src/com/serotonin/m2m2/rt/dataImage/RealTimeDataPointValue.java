@@ -190,7 +190,8 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	}
 
 	@Override
-	public void pointTerminated() {
+	public void pointTerminated(DataPointVO vo) {
+	    this.vo = vo;
 		this.rt = null;
 	}
 	

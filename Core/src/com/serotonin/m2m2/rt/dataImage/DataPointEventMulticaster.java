@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.util.Map;
 
 import com.serotonin.m2m2.util.ExceptionListWrapper;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 public class DataPointEventMulticaster implements DataPointListener {
     protected final DataPointListener a, b;
@@ -214,10 +215,10 @@ public class DataPointEventMulticaster implements DataPointListener {
             throw exceptionWrapper;
     }
 	@Override
-    public void pointTerminated() throws ExceptionListWrapper {
+    public void pointTerminated(DataPointVO vo) throws ExceptionListWrapper {
 	    ExceptionListWrapper exceptionWrapper = null;
 	    try {
-	        a.pointTerminated();
+	        a.pointTerminated(vo);
 	    } catch(Exception e) {
             if(!(e instanceof ExceptionListWrapper)) 
                 exceptionWrapper = new ExceptionListWrapper(e);
@@ -226,7 +227,7 @@ public class DataPointEventMulticaster implements DataPointListener {
         }
 	    
 	    try {
-	        b.pointTerminated();
+	        b.pointTerminated(vo);
 	    } catch(Exception e) {
             if(exceptionWrapper != null)
                 exceptionWrapper.addException(e);
