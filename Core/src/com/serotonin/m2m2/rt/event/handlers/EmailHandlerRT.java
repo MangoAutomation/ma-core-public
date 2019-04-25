@@ -605,7 +605,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
     @Override
     public TranslatableMessage getSetPointSourceMessage() {
-        return new TranslatableMessage("annotation.eventHandler");
+        return new TranslatableMessage("annotation.email.setPointMessage", vo.getName());
     }
 
     @Override
