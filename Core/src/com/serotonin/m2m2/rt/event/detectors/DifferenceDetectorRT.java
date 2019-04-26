@@ -49,12 +49,14 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
     @Override
     public void initializeState() {
         long now = Common.timer.currentTimeMillis();
+        long nextJobOffset = now;
         // Get historical data for the point out of the database.
         int pointId = vo.getDataPoint().getId();
         PointValueTime latest = Common.runtimeManager.getDataPoint(pointId).getPointValue();
-        if (latest != null)
+        if (latest != null) {
             lastChange = latest.getTime();
-        else
+            nextJobOffset = latest.getTime();
+        }else
             // The point may be new or not logged, so don't go active immediately.
             lastChange = now;
 
@@ -64,7 +66,7 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
             raiseEvent(lastChange + getDurationMS(), createEventContext());
         } else
             // Otherwise, set the timeout.
-            scheduleJob(now);
+            scheduleJob(nextJobOffset);
     }
 
     @Override
