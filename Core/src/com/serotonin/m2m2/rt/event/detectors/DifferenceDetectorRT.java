@@ -58,10 +58,11 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
             // The point may be new or not logged, so don't go active immediately.
             lastChange = now;
 
-        if (lastChange + getDurationMS() < now)
+        if (lastChange + getDurationMS() <= now) {
             // Nothing has happened in the time frame, so set the event active.
-            setEventActive(lastChange + getDurationMS());
-        else
+            eventActive = true;
+            raiseEvent(lastChange + getDurationMS(), createEventContext());
+        } else
             // Otherwise, set the timeout.
             scheduleJob(now);
     }
@@ -74,15 +75,15 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
     @Override
     public void scheduleTimeoutImpl(long fireTime) {
         //Ensure that the pointData() method hasn't updated our last change time and that we are not active already 
-        //TODO I don't think we need !eventActive here
-        if(lastChange + getDurationMS() < fireTime && !eventActive)
-            setEventActive(fireTime);
+        setEventActive(fireTime);
     }
     
     @Override
-    public synchronized void setEventActive(long timestamp) {
-        eventActive = true;
-        raiseEvent(timestamp, createEventContext());
+    public synchronized void setEventActive(long fireTime) {
+        if(lastChange + getDurationMS() <= fireTime) {
+            eventActive = true;
+            raiseEvent(fireTime, createEventContext());
+        }
     }
     
     @Override
