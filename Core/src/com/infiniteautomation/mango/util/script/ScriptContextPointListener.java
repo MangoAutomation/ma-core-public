@@ -10,6 +10,7 @@ import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.script.ScriptContextVariable;
+import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * 
@@ -86,7 +87,7 @@ public class ScriptContextPointListener implements DataPointListener {
     }
 
     @Override
-    public void pointTerminated() {
+    public void pointTerminated(DataPointVO vo) {
         if(this.pointStateHandler != null)
             this.pointStateHandler.accept(this, false);
         this.runtime = null;
