@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -29,6 +33,8 @@ import com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO;
  * 
  */
 public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT<AnalogRangeDetectorVO> {
+    private final Log log = LogFactory.getLog(AnalogRangeDetectorRT.class);
+
     /**
      * State field. Whether the range is currently active or not. This field is used to prevent multiple events
      * being raised during the duration of a single high limit exceed.
@@ -78,36 +84,34 @@ public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT<AnalogRang
     /**
      * This method is only called when the high limit changes between being active or not, i.e. if the point's value is
      * currently above the high limit, then it should never be called with a value of true.
-     * 
-     * @param b
      */
-    private void changeRangeActive() {
+    private void changeRangeActive(long time) {
     	rangeActive = !rangeActive;
 
         if (rangeActive)
             // Schedule a job that will call the event active if it runs.
-            scheduleJob();
+            scheduleJob(time);
         else
             unscheduleJob(rangeInactiveTime);
     }
 
     @Override
     synchronized public void pointChanged(PointValueTime oldValue, PointValueTime newValue) {
+        long time = Common.timer.currentTimeMillis();
         double newDouble = newValue.getDoubleValue();
-        
         //Are we supposed to be within or outside?
         if(vo.isWithinRange()){
         	//Fire event if within range
 	        if ((newDouble <= vo.getHigh())&&(newDouble >= vo.getLow())) {
 	            if (!rangeActive) {
 	            	rangeActiveTime = newValue.getTime();
-	                changeRangeActive();
+	                changeRangeActive(time);
 	            }
 	        }
 	        else {
 	            if (rangeActive) {
 	            	rangeInactiveTime = newValue.getTime();
-	                changeRangeActive();
+	                changeRangeActive(time);
 	            }
 	        }
         }else{
@@ -115,13 +119,13 @@ public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT<AnalogRang
 	        if ((newDouble >= vo.getHigh())||(newDouble <= vo.getLow())) {
 	            if (!rangeActive) {
 	            	rangeActiveTime = newValue.getTime();
-	                changeRangeActive();
+	                changeRangeActive(time);
 	            }
 	        }
 	        else {
 	            if (rangeActive) {
 	            	rangeInactiveTime = newValue.getTime();
-	                changeRangeActive();
+	                changeRangeActive(time);
 	            }
 	        }
         }
@@ -131,34 +135,26 @@ public class AnalogRangeDetectorRT extends TimeDelayedEventDetectorRT<AnalogRang
     protected long getConditionActiveTime() {
         return rangeActiveTime;
     }
-
-    /**
-     * This method is only called when the event changes between being active or not, i.e. if the event currently is
-     * active, then it should never be called with a value of true. That said, provision is made to ensure that the high
-     * limit is active before allowing the event to go active.
-     * 
-     * @param b
-     */
+    
     @Override
-    synchronized public void setEventActive(boolean b) {
-        eventActive = b;
-        if (eventActive) {
-            // Just for the fun of it, make sure that the high limit is active.
-            if (rangeActive)
-                // Ok, things are good. Carry on...
-                // Raise the event.
-                raiseEvent(rangeActiveTime + getDurationMS(), createEventContext());
-            else
-                eventActive = false;
-        }
-        else
-            // Deactive the event.
-            returnToNormal(rangeInactiveTime);
+    protected void setEventInactive(long timestamp) {
+        this.eventActive = false;
+        returnToNormal(rangeInactiveTime);
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
+    @Override
+    protected void setEventActive(long timestamp) {
+        this.eventActive = true;
+        // Just for the fun of it, make sure that the high limit is active.
+        if (rangeActive)
+            raiseEvent(rangeActiveTime + getDurationMS(), createEventContext());
+        else {
+            // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
+            log.warn("Call to set event active when range detector is not active. Ignoring.");
+            eventActive = false;
+        }
+    }
+
 	@Override
 	public String getThreadNameImpl() {
 		return "AnalogLowLimit Detector " + this.vo.getXid();

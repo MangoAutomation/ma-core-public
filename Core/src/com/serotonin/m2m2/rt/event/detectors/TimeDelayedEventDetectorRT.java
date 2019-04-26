@@ -21,19 +21,28 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 	public TimeDelayedEventDetectorRT(T vo) {
 		super(vo);
 	}
-
-	synchronized protected void scheduleJob() {
+	
+	/**
+	 * Schedule a job passing in the time of now for reference
+	 */
+    synchronized protected void scheduleJob(long now) {
         if (getDurationMS() > 0)
-            scheduleJob(Common.timer.currentTimeMillis() + getDurationMS());
-        else
-            // Otherwise call the event active immediately.
-            setEventActive(true);
-    }
+            super.scheduleJob(now + getDurationMS());
+        else if(!isEventActive())
+            setEventActive(now);
+    }	
 
+    /**
+     * Unschedule a job, 
+     *  - set event inactive if its active
+     *  - raise and RTN an event in the past if it is inactive now
+     * @param conditionInactiveTime
+     */
     synchronized protected void unscheduleJob(long conditionInactiveTime) {
         // Reset the eventActive if it is on
         if (isEventActive())
-            setEventActive(false);
+            setEventInactive(conditionInactiveTime);
+        
         // Check whether there is a tolerance duration.
         else if (getDurationMS() > 0) {
             if (isJobScheduled()) {
@@ -53,9 +62,26 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
         }
     }
 
+    /**
+     * The timestamp for when the condition has gone active
+     * @return
+     */
     abstract protected long getConditionActiveTime();
 
-    abstract void setEventActive(boolean b);
+    /**
+     * Change the state of the event, raise using the supplied timestamp if necessary
+     * @param state
+     * @param timestamp
+     */
+    protected abstract void setEventActive(long timestamp);
+    
+    /**
+     * Change the state of the event, rtn using the supplied timestamp if necessary
+     * @param state
+     * @param timestamp
+     */
+    protected abstract void setEventInactive(long timestamp);
+    
 
     @Override
     public void initialize() {
@@ -63,6 +89,9 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
         initializeState();
     }
 
+    /**
+     * Initialize the state of the detector
+     */
     protected void initializeState() {
         int pointId = vo.getDataPoint().getId();
         PointValueTime latest = Common.runtimeManager.getDataPoint(pointId).getPointValue();
@@ -73,6 +102,6 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
 
     @Override
     public void scheduleTimeoutImpl(long fireTime) {
-        setEventActive(true);
+        setEventActive(fireTime);
     }
 }

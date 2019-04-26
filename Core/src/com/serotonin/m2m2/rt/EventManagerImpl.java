@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.rt;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
@@ -49,7 +50,7 @@ import com.serotonin.timer.RejectedTaskReason;
  * @author Matthew Lohbihler
  */
 public class EventManagerImpl implements EventManager {
-    private final Log log = LogFactory.getLog(EventManager.class);
+    private final Log log = LogFactory.getLog(EventManagerImpl.class);
     private static final int RECENT_EVENT_PERIOD = 1000 * 60 * 10; // 10
     // minutes.
 
@@ -109,6 +110,16 @@ public class EventManagerImpl implements EventManager {
         if(state != RUNNING)
             return;
 
+        long nowTimestamp = Common.timer.currentTimeMillis();
+        if(time > nowTimestamp) {
+            log.warn("Raising event in the future! type=" + type + 
+                    ", message='" + message.translate(Common.getTranslations()) +
+                    "' now=" + new Date(nowTimestamp) + 
+                    " event=" + new Date(time) +
+                    " deltaMs=" + (time - nowTimestamp)
+                    );
+        }
+        
         if(alarmLevel == AlarmLevels.IGNORE)
             return;
 
@@ -184,7 +195,7 @@ public class EventManagerImpl implements EventManager {
         if(multicaster != null)
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
-        DateTime now = new DateTime(Common.timer.currentTimeMillis());
+        DateTime now = new DateTime(time);
         // add email addresses for mailing lists which have been configured to receive events over a certain level
         for(MailingList ml : MailingListDao.getInstance().getAlarmMailingLists(alarmLevel)) {
             ml.appendAddresses(emailUsers, now);
@@ -231,7 +242,7 @@ public class EventManagerImpl implements EventManager {
             // Call raiseEvent handlers.
             handleRaiseEvent(evt, emailUsers);
 
-            if (log.isDebugEnabled())
+            if (log.isTraceEnabled())
                 log.trace("Event raised: type=" + type + ", message="
                         + message.translate(Common.getTranslations()));
         }
@@ -297,6 +308,17 @@ public class EventManagerImpl implements EventManager {
         EventInstance evt = remove(type);
         if(evt == null)
             return;
+        
+        long nowTimestamp = Common.timer.currentTimeMillis();
+        if(time > nowTimestamp) {
+            log.warn("Returning event to normal in future! type=" + type + 
+                    ", message='" + evt.getMessage().translate(Common.getTranslations()) +
+                    "' now=" + new Date(nowTimestamp) + 
+                    " event=" + new Date(time) +
+                    " deltaMs=" + (time - nowTimestamp)
+                    );
+        }
+        
         List<User> activeUsers = userDao.getActiveUsers();
         UserEventListener multicaster = userEventMulticaster;
 

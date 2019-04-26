@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -18,6 +22,8 @@ import com.serotonin.util.queue.ObjectQueue;
  * @author Matthew Lohbihler
  */
 public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessDetectorVO> {
+    private final Log log = LogFactory.getLog(SmoothnessDetectorRT.class);
+
     /**
      * State field. The current boxcar.
      */
@@ -60,20 +66,20 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
     /**
      * This method is only called when the smoothness crossed the configured limit in either direction.
      */
-    private void changeLimitBreech() {
+    private void changeLimitBreech(long time) {
         limitBreech = !limitBreech;
 
         if (limitBreech)
             // Schedule a job that will call the event active if it runs.
-            scheduleJob();
+            scheduleJob(time);
         else
             unscheduleJob(limitBreechInactiveTime);
     }
 
     @Override
     synchronized public void pointUpdated(PointValueTime newValue) {
+        long time = Common.timer.currentTimeMillis();
         double newDouble = newValue.getDoubleValue();
-
         // Add the value to the boxcar.
         boxcar.push(newDouble);
 
@@ -87,13 +93,13 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
         if (smoothness < vo.getLimit()) {
             if (!limitBreech) {
                 limitBreechActiveTime = newValue.getTime();
-                changeLimitBreech();
+                changeLimitBreech(time);
             }
         }
         else {
             if (limitBreech) {
                 limitBreechInactiveTime = newValue.getTime();
-                changeLimitBreech();
+                changeLimitBreech(time);
             }
         }
     }
@@ -102,31 +108,26 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
     protected long getConditionActiveTime() {
         return limitBreechActiveTime;
     }
-
-    /**
-     * This method is only called when the event changes between being active or not, i.e. if the event currently is
-     * active, then it should never be called with a value of true. That said, provision is made to ensure that the
-     * limit is breeched before allowing the event to go active.
-     * 
-     * @param b
-     */
+    
     @Override
-    synchronized public void setEventActive(boolean b) {
-        eventActive = b;
-        if (eventActive) {
-            // Just for the fun of it, make sure that the limit is breeched.
-            if (limitBreech)
-                // Ok, things are good. Carry on...
-                // Raise the event.
-                raiseEvent(limitBreechActiveTime + getDurationMS(), createEventContext());
-            else
-                eventActive = false;
-        }
-        else
-            // Deactive the event.
-            returnToNormal(limitBreechInactiveTime);
+    protected void setEventInactive(long timestamp) {
+        this.eventActive = false;
+        returnToNormal(limitBreechInactiveTime);
     }
-
+    
+    @Override
+    protected void setEventActive(long timestamp) {
+        this.eventActive = true;
+        // Just for the fun of it, make sure that the high limit is active.
+        if (limitBreech)
+            raiseEvent(limitBreechActiveTime + getDurationMS(), createEventContext());
+        else {
+            // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
+            log.warn("Call to set event active when smootheness detector is not active. Ignoring.");
+            eventActive = false;
+        }
+    }
+ 
     private double calc() {
         if (boxcar.size() < 3)
             return 1;
@@ -159,9 +160,6 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
         return (float) (1 - err);
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
 	@Override
 	public String getThreadNameImpl() {
 		return "Smoothness Detector " + this.vo.getXid();

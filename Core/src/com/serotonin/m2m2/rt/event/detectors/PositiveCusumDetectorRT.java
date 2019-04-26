@@ -4,6 +4,10 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
@@ -17,7 +21,8 @@ import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
  * @author Matthew Lohbihler
  */
 public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<PositiveCusumDetectorVO> {
-    /**
+    private final Log log = LogFactory.getLog(PositiveCusumDetectorRT.class);
+   /**
      * State field. The current positive CUSUM for the point.
      */
     private double cusum;
@@ -62,20 +67,20 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
      * 
      * @param b
      */
-    private void changePositiveCusumActive() {
+    private void changePositiveCusumActive(long time) {
         positiveCusumActive = !positiveCusumActive;
 
         if (positiveCusumActive)
             // Schedule a job that will call the event active if it runs.
-            scheduleJob();
+            scheduleJob(time);
         else
             unscheduleJob(positiveCusumInactiveTime);
     }
 
     @Override
     synchronized public void pointUpdated(PointValueTime newValue) {
+        long time = Common.timer.currentTimeMillis();
         double newDouble = newValue.getDoubleValue();
-
         cusum += newDouble - vo.getWeight();
         if (cusum < 0)
             cusum = 0;
@@ -83,13 +88,13 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
         if (cusum > vo.getLimit()) {
             if (!positiveCusumActive) {
                 positiveCusumActiveTime = newValue.getTime();
-                changePositiveCusumActive();
+                changePositiveCusumActive(time);
             }
         }
         else {
             if (positiveCusumActive) {
                 positiveCusumInactiveTime = newValue.getTime();
-                changePositiveCusumActive();
+                changePositiveCusumActive(time);
             }
         }
     }
@@ -99,33 +104,25 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
         return positiveCusumActiveTime;
     }
 
-    /**
-     * This method is only called when the event changes between being active or not, i.e. if the event currently is
-     * active, then it should never be called with a value of true. That said, provision is made to ensure that the
-     * postive CUSUM is active before allowing the event to go active.
-     * 
-     * @param b
-     */
     @Override
-    synchronized public void setEventActive(boolean b) {
-        eventActive = b;
-        if (eventActive) {
-            // Just for the fun of it, make sure that the positive CUSUM is active.
-            if (positiveCusumActive)
-                // Ok, things are good. Carry on...
-                // Raise the event.
-                raiseEvent(positiveCusumActiveTime + getDurationMS(), createEventContext());
-            else
-                eventActive = false;
-        }
-        else
-            // Deactive the event.
-            returnToNormal(positiveCusumInactiveTime);
+    protected void setEventInactive(long timestamp) {
+        this.eventActive = false;
+        returnToNormal(positiveCusumInactiveTime);
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
+    @Override
+    protected void setEventActive(long timestamp) {
+        this.eventActive = true;
+        // Just for the fun of it, make sure that the high limit is active.
+        if (positiveCusumActive)
+            raiseEvent(positiveCusumActiveTime + getDurationMS(), createEventContext());
+        else {
+            // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
+            log.warn("Call to set event active when positive cusum detector is not active. Ignoring.");
+            eventActive = false;
+        }
+    }
+    
 	@Override
 	public String getThreadNameImpl() {
 		return "PosCusumDetector " + this.vo.getXid();
