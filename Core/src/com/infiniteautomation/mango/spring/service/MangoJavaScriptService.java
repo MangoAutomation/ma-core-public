@@ -104,6 +104,8 @@ public class MangoJavaScriptService {
     public static final String UNCHANGED_KEY = "UNCHANGED";
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM YYYY HH:mm:ss z");
+    
+    private static final Object globalFunctionsLock = new Object();
 
     public MangoJavaScriptService() {
 
@@ -554,23 +556,27 @@ public class MangoJavaScriptService {
      * @return
      */
     public String getGlobalFunctions() {
-        if (FUNCTIONS == null) {
-            StringWriter sw = new StringWriter();
-            List<ScriptSourceDefinition> defs = ModuleRegistry.getDefinitions(ScriptSourceDefinition.class);
-            for (ScriptSourceDefinition def : defs) {
-                for (String s : def.getScripts())
-                    sw.append(s).append("\r\n");
+        synchronized(globalFunctionsLock) {
+            if (FUNCTIONS == null) {
+                StringWriter sw = new StringWriter();
+                List<ScriptSourceDefinition> defs = ModuleRegistry.getDefinitions(ScriptSourceDefinition.class);
+                for (ScriptSourceDefinition def : defs) {
+                    for (String s : def.getScripts())
+                        sw.append(s).append("\r\n");
+                }
+                FUNCTIONS = sw.toString();
             }
-            FUNCTIONS = sw.toString();
+            return FUNCTIONS;
         }
-        return FUNCTIONS;
     }
 
     /**
      * Clear all functions so they are re-loaded on next 'get'
      */
     public void clearGlobalFunctions() {
-        FUNCTIONS = null;
+        synchronized(globalFunctionsLock) {
+            FUNCTIONS = null;
+        }
     }
     
     /**
