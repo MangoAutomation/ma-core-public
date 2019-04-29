@@ -7,7 +7,7 @@ package com.serotonin.m2m2.i18n;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -27,8 +27,6 @@ public class Translations {
     private static final Map<Locale, Translations> TRANSLATIONS_CACHE = new ConcurrentHashMap<Locale, Translations>();
     //Class loader that contains all of the translation property files (including ones from modules)
     private static final AtomicReference<ClassLoader> ROOT_CLASSLOADER = new AtomicReference<>();
-
-    static final Charset UTF8 = Charset.forName("UTF-8");
 
     public static Translations getTranslations() {
         return getTranslations(Locale.getDefault());
@@ -112,7 +110,7 @@ public class Translations {
             URL url = urls.nextElement();
 
             Properties props = new Properties();
-            try (InputStreamReader r = new InputStreamReader(url.openStream(), UTF8)) {
+            try (InputStreamReader r = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
                 props.load(r);
             }
 
