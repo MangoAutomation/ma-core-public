@@ -290,8 +290,10 @@ public class MangoJavaScriptService {
         try {
             final ScriptEngine engine = newEngine(user);
             
-            // Add constants to the context.
+            // Add constants to the context
             Bindings globalBindings = new SimpleBindings();
+            
+            //left here for legacy compatibility
             globalBindings.put("SECOND", Common.TimePeriods.SECONDS);
             globalBindings.put("MINUTE", Common.TimePeriods.MINUTES);
             globalBindings.put("HOUR", Common.TimePeriods.HOURS);
@@ -299,6 +301,9 @@ public class MangoJavaScriptService {
             globalBindings.put("WEEK", Common.TimePeriods.WEEKS);
             globalBindings.put("MONTH", Common.TimePeriods.MONTHS);
             globalBindings.put("YEAR", Common.TimePeriods.YEARS);
+            
+            for(IntStringPair isp : Common.TIME_PERIOD_CODES.getIdKeys())
+                globalBindings.put(Common.TIME_PERIOD_CODES.getCode(isp.getKey()), isp.getKey());
             
             for(IntStringPair isp : Common.ROLLUP_CODES.getIdKeys(Common.Rollups.NONE))
                 globalBindings.put(Common.ROLLUP_CODES.getCode(isp.getKey()), isp.getKey());
