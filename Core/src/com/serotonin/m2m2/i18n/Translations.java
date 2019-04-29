@@ -112,9 +112,9 @@ public class Translations {
             URL url = urls.nextElement();
 
             Properties props = new Properties();
-            InputStreamReader r = new InputStreamReader(url.openStream(), UTF8);
-            props.load(r);
-            r.close();
+            try (InputStreamReader r = new InputStreamReader(url.openStream(), UTF8)) {
+                props.load(r);
+            }
 
             for (Object keyo : props.keySet()) {
                 String key = (String) keyo;
