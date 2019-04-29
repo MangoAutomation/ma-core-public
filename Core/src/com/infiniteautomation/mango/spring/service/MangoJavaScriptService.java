@@ -347,10 +347,10 @@ public class MangoJavaScriptService {
         //Holder for modifying timestamps of meta points, in Engine Scope so it can be modified by all
         engineScope.put(MangoJavaScriptService.TIMESTAMP_CONTEXT_KEY, null);
 
-        if(script.getUser() != null) {
+        if(script.getPermissionHolder() != null) {
             script.getUtilities().clear();
             for(MangoJavascriptContextObjectDefinition def : ModuleRegistry.getMangoJavascriptContextObjectDefinitions()) {
-                ScriptUtility util = script.isTestRun() ? def.initializeTestContextObject(script.getUser()) : def.initializeContextObject(script.getUser());
+                ScriptUtility util = script.isTestRun() ? def.initializeTestContextObject(script.getPermissionHolder()) : def.initializeContextObject(script.getPermissionHolder());
                 util.setScriptLog(script.getLog());
                 util.setResult(script.getResult());
                 util.takeContext(script.getEngine(), engineScope, script.getSetter(), script.getImportExclusions(), script.isTestRun());

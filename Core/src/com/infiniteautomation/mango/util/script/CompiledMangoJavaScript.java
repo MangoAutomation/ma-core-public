@@ -61,7 +61,7 @@ public class CompiledMangoJavaScript {
 
     private final MangoJavaScriptResult result;
     private final List<ScriptUtility> utilities;
-    private final PermissionHolder user;
+    private final PermissionHolder permissionHolder;
     
     //State settings
     private boolean initialized;
@@ -85,8 +85,8 @@ public class CompiledMangoJavaScript {
         this.service = service;
         this.result = result;
         this.utilities = new ArrayList<>();
-        this.user = vo.getPermissions();
-        this.setter = service.createValidationSetter(result, user);
+        this.permissionHolder = vo.getPermissions();
+        this.setter = service.createValidationSetter(result, permissionHolder);
     }
     
     /**
@@ -109,7 +109,7 @@ public class CompiledMangoJavaScript {
         this.service = service;
         this.result = result;
         this.utilities = Collections.emptyList();
-        this.user = vo.getPermissions();
+        this.permissionHolder = vo.getPermissions();
         this.setter = setter;
     }
     
@@ -123,14 +123,14 @@ public class CompiledMangoJavaScript {
      * @param setter
      * @param log
      * @param importExclusions
-     * @param user
+     * @param permissionHolder
      */
     public CompiledMangoJavaScript(
             ScriptPointValueSetter setter,
             ScriptLog log,
             List<JsonImportExclusion> importExclusions,
-            PermissionHolder user) {
-        this(setter, log, null, null, importExclusions, false, Common.getBean(MangoJavaScriptService.class), user);
+            PermissionHolder permissionHolder) {
+        this(setter, log, null, null, importExclusions, false, Common.getBean(MangoJavaScriptService.class), permissionHolder);
     }
     
     /**
@@ -142,7 +142,7 @@ public class CompiledMangoJavaScript {
      * @param importExclusions
      * @param testRun
      * @param service
-     * @param user
+     * @param permissionHolder
      */
     public CompiledMangoJavaScript(
             ScriptPointValueSetter setter,
@@ -152,7 +152,7 @@ public class CompiledMangoJavaScript {
             List<JsonImportExclusion> importExclusions,
             boolean testRun, 
             MangoJavaScriptService service, 
-            PermissionHolder user) {
+            PermissionHolder permissionHolder) {
         this.setter = setter;
         this.log = log;
         this.additionalContext = additionalContext == null ? Collections.emptyMap() : additionalContext;
@@ -163,7 +163,7 @@ public class CompiledMangoJavaScript {
 
         this.result = new MangoJavaScriptResult();
         this.utilities = new ArrayList<>();
-        this.user = user;
+        this.permissionHolder = permissionHolder;
     }
     
     /**
@@ -174,7 +174,7 @@ public class CompiledMangoJavaScript {
      * @throws ScriptError
      */
     public void compile(String script, boolean wrapInFunction) throws ScriptError {
-        this.compiledScript = service.compile(script, wrapInFunction, user);
+        this.compiledScript = service.compile(script, wrapInFunction, permissionHolder);
     }
     
     /**
@@ -314,7 +314,7 @@ public class CompiledMangoJavaScript {
     public boolean isCompiled() {
         return compiledScript != null;
     }
-    public PermissionHolder getUser() {
-        return this.user;
+    public PermissionHolder getPermissionHolder() {
+        return this.permissionHolder;
     }
 }
