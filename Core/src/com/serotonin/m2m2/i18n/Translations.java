@@ -4,9 +4,12 @@
  */
 package com.serotonin.m2m2.i18n;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -16,6 +19,8 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -110,8 +115,21 @@ public class Translations {
             URL url = urls.nextElement();
 
             Properties props = new Properties();
-            try (InputStreamReader r = new InputStreamReader(url.openStream(), StandardCharsets.UTF_8)) {
-                props.load(r);
+
+            Charset charset = StandardCharsets.UTF_8;
+            try (BOMInputStream is = new BOMInputStream(url.openStream(), false,
+                    ByteOrderMark.UTF_8,
+                    ByteOrderMark.UTF_16LE, ByteOrderMark.UTF_16BE,
+                    ByteOrderMark.UTF_32LE, ByteOrderMark.UTF_32BE)) {
+
+                String charsetName = is.getBOMCharsetName();
+                if (charsetName != null) {
+                    charset = Charset.forName(charsetName);
+                }
+
+                try (Reader r = new BufferedReader(new InputStreamReader(is, charset))) {
+                    props.load(r);
+                }
             }
 
             for (Object keyo : props.keySet()) {
