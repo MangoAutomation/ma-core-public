@@ -33,6 +33,7 @@ import com.serotonin.m2m2.Common;
 public class ProcessLog implements Closeable {
     private static final Log LOG = LogFactory.getLog(ProcessLog.class);
 
+    private static final Object lock = new Object();
     private static List<ProcessLog> processLogs = new CopyOnWriteArrayList<ProcessLog>();
 
     public static List<String> getProcessLogIds() {
@@ -291,7 +292,7 @@ public class ProcessLog implements Closeable {
         if (level.ordinal() < logLevel.ordinal())
             return;
         
-        synchronized (out) {
+        synchronized (lock) {
             //Check to roll
             if(roll)
                 sizeCheck();
@@ -368,7 +369,7 @@ public class ProcessLog implements Closeable {
     }
     
     public boolean trouble() {
-        synchronized (out) {
+        synchronized (lock) {
             return out.checkError();
         }
     }

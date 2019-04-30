@@ -21,7 +21,6 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
-import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
@@ -265,10 +264,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             user = Common.getBackgroundContextUser();
         if(!StringUtils.isEmpty(script)) {
             try {
-                
                 Common.getBean(MangoJavaScriptService.class).compile(script, true, scriptPermissions);
             } catch(ScriptError e) {
-                response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getMessage() == null ? e.getCause().getMessage() : e.getMessage());
+                response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
             }
         }
         //TODO Review this as per adding permissions

@@ -6,8 +6,8 @@ package com.serotonin.m2m2.rt.script;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.infiniteautomation.mango.util.script.ScriptPermissions;
 
 /**
  * 
@@ -15,9 +15,9 @@ import com.infiniteautomation.mango.util.script.ScriptPermissions;
  *
  */
 public abstract class ScriptPointValueSetter {
-    protected ScriptPermissions permissions;
+    protected PermissionHolder permissions;
 
-    public ScriptPointValueSetter(ScriptPermissions permissions) {
+    public ScriptPointValueSetter(PermissionHolder permissions) {
         this.permissions = permissions;
     }
 

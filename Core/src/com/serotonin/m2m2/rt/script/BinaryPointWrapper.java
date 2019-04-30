@@ -39,7 +39,7 @@ public class BinaryPointWrapper extends DistinctPointWrapper {
     }
     
     public Boolean ago(int periodType, int count, boolean cache) {
-        long from = DateUtils.minus(getContext().getRuntime(), periodType, count);
+        long from = DateUtils.minus(getContext().getComputeTime(), periodType, count);
         PointValueTime pvt;
         if(cache)
             pvt = point.getPointValueBefore(from);

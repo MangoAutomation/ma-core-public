@@ -14,21 +14,17 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.script.CompiledScript;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
-import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
@@ -44,8 +40,6 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * 
  */
 public class ScriptingTest extends MangoTestBase {
-
-    private final MangoJavaScriptService service = new MangoJavaScriptService();
     
     @Test
     public void testAnalogStatistics() {
@@ -69,25 +63,26 @@ public class ScriptingTest extends MangoTestBase {
 
             context.put(p1.getVariableName(), p1Rt);
 
-            Set<String> permissionsSet = new HashSet<>();
-            permissionsSet.add("superadmin");
-            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
-
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", LogLevel.TRACE, scriptWriter)){
     
-                CompiledScript s = service.compile(script, true, admin);
-                MangoJavaScriptResult result = new MangoJavaScriptResult();
-                service.execute(
-                        s,
+                ScriptPointValueSetter setter = null;
+                CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
+                        setter,
+                        scriptLog,
+                        new ArrayList<>(),
+                        admin
+                        );
+                compiled.compile(script, true);
+                compiled.initialize(context);
+
+                MangoJavaScriptResult result = compiled.execute(
+                        Common.timer.currentTimeMillis(), 
                         Common.timer.currentTimeMillis(),
-                        Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC,
-                        context, null, null,
-                        permissions,
-                        scriptLog, null, null, result, false);
+                        DataTypes.NUMERIC);
+
                 PointValueTime pvt = (PointValueTime)result.getResult();
                 assertNotNull(pvt);
             }
@@ -111,26 +106,27 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            Set<String> permissionsSet = new HashSet<>();
-            permissionsSet.add("superadmin");
-            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
-
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", LogLevel.TRACE, scriptWriter)) {
 
-                CompiledScript s = service.compile(script, true, admin);
-                MangoJavaScriptResult r = new MangoJavaScriptResult();
-                service.execute(s, 
+                
+                ScriptPointValueSetter setter = null;
+                CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
+                        setter,
+                        scriptLog,
+                        new ArrayList<>(),
+                        admin
+                        );
+                compiled.compile(script, true);
+                compiled.initialize(context);
+
+                compiled.execute(
+                        Common.timer.currentTimeMillis(), 
                         Common.timer.currentTimeMillis(),
-                        Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC,
-                        context,
-                        null,
-                        null,
-                        permissions,
-                        scriptLog, null, null, r, false);
+                        DataTypes.NUMERIC);
+                
                 String result = scriptOut.toString();
                 String[] messages = result.split("\\n");
                 Assert.assertEquals(6, messages.length);
@@ -182,19 +178,21 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            Set<String> permissionsSet = new HashSet<>();
-            permissionsSet.add("superadmin");
-            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
-            MangoJavaScriptResult result = new MangoJavaScriptResult();
             try(ScriptLog scriptLog = new ScriptLog("testNullWriter")){
-                CompiledScript s = service.compile(script, true, admin);
-                service.execute(s,
+                ScriptPointValueSetter setter = null;
+                CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
+                        setter,
+                        scriptLog,
+                        new ArrayList<>(),
+                        admin
+                        );
+                compiled.compile(script, true);
+                compiled.initialize(context);
+
+                compiled.execute(
+                        Common.timer.currentTimeMillis(), 
                         Common.timer.currentTimeMillis(),
-                        Common.timer.currentTimeMillis(),
-                        DataTypes.NUMERIC,
-                        context, null, null,
-                        permissions,
-                        scriptLog, null, null, result, false);
+                        DataTypes.NUMERIC);
                 Assert.assertTrue(!scriptLog.getFile().exists());
             }
         }catch(Exception e) {
@@ -217,10 +215,6 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            Set<String> permissionsSet = new HashSet<>();
-            permissionsSet.add("superadmin");
-            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
-
             //Delete the file
             File log = new File(Common.getLogsDir(), "testFileWriter-1.log");
             if(log.exists()) {
@@ -230,15 +224,20 @@ public class ScriptingTest extends MangoTestBase {
             
             try(ScriptLog scriptLog = new ScriptLog("testFileWriter-1", LogLevel.TRACE, 100000, 2)){
             
-                CompiledScript s = service.compile(script, true, admin);
-                MangoJavaScriptResult r = new MangoJavaScriptResult();
-                service.execute(s,
+                ScriptPointValueSetter setter = null;
+                CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
+                        setter,
+                        scriptLog,
+                        new ArrayList<>(),
+                        admin
+                        );
+                compiled.compile(script, true);
+                compiled.initialize(context);
+
+                compiled.execute(
                         Common.timer.currentTimeMillis(), 
-                        Common.timer.currentTimeMillis(), 
-                        DataTypes.NUMERIC,
-                        context, null, null,
-                        permissions,
-                        scriptLog, null, null, r, false);
+                        Common.timer.currentTimeMillis(),
+                        DataTypes.NUMERIC);
     
                 Assert.assertTrue(scriptLog.getFile().exists());
                 
@@ -288,22 +287,23 @@ public class ScriptingTest extends MangoTestBase {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
 
-            Set<String> permissionsSet = new HashSet<>();
-            permissionsSet.add("superadmin");
-            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
-
             final StringWriter scriptOut = new StringWriter();
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("testContextWriter-", LogLevel.TRACE, scriptWriter)) {
-                MangoJavaScriptResult r = new MangoJavaScriptResult();
-                CompiledScript s = service.compile(script, true, admin);
-                service.execute(s,
+                ScriptPointValueSetter setter = null;
+                CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
+                        setter,
+                        scriptLog,
+                        new ArrayList<>(),
+                        admin
+                        );
+                compiled.compile(script, true);
+                compiled.initialize(context);
+
+                compiled.execute(
                         Common.timer.currentTimeMillis(), 
-                        Common.timer.currentTimeMillis(), 
-                        DataTypes.NUMERIC,
-                        context, null, null,
-                        permissions,
-                        scriptLog, null, null, r, false);
+                        Common.timer.currentTimeMillis(),
+                        DataTypes.NUMERIC);
                 
                 String result = scriptOut.toString();
                 Assert.assertEquals("testing context writer\n", result);
@@ -327,10 +327,6 @@ public class ScriptingTest extends MangoTestBase {
         try {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
-            
-            Set<String> permissionsSet = new HashSet<>();
-            permissionsSet.add("superadmin");
-            ScriptPermissions permissions = new ScriptPermissions(permissionsSet);
 
             //Delete the file
             File log = new File(Common.getLogsDir(), "testNullValueWriter-1.log");
@@ -341,15 +337,20 @@ public class ScriptingTest extends MangoTestBase {
             
             try(ScriptLog scriptLog = new ScriptLog("testNullValueWriter-1", LogLevel.TRACE, 100000, 2)){
             
-                CompiledScript s = service.compile(script, true, admin);
-                MangoJavaScriptResult r = new MangoJavaScriptResult();
-                service.execute(s,
+                ScriptPointValueSetter setter = null;
+                CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
+                        setter,
+                        scriptLog,
+                        new ArrayList<>(),
+                        admin
+                        );
+                compiled.compile(script, true);
+                compiled.initialize(context);
+
+                compiled.execute(
                         Common.timer.currentTimeMillis(), 
-                        Common.timer.currentTimeMillis(), 
-                        DataTypes.NUMERIC,
-                        context, null, null,
-                        permissions,
-                        scriptLog, null, null, r, false);
+                        Common.timer.currentTimeMillis(),
+                        DataTypes.NUMERIC);
     
                 Assert.assertTrue(scriptLog.getFile().exists());
                 

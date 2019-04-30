@@ -21,6 +21,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
  * @author Matthew Lohbihler
  */
 abstract public class AbstractPointWrapper {
+    
     protected final IDataPointValueSource point;
     protected final PointValueFacade valueFacade;
     protected final ScriptEngine engine;
@@ -140,7 +141,7 @@ abstract public class AbstractPointWrapper {
     }
 
     public void set(Object value) throws ScriptPermissionsException {
-        set(value, getContext().getRuntime());
+        set(value, getContext().getComputeTime());
     }
     
     public void set(Object value, long timestamp) throws ScriptPermissionsException {
