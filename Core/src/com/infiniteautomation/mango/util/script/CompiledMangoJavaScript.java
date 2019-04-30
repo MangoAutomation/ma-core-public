@@ -4,7 +4,6 @@
 package com.infiniteautomation.mango.util.script;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,29 +66,6 @@ public class CompiledMangoJavaScript {
     private boolean initialized;
     
     /**
-     * Create a compiled script container for testing
-     * 
-     * NOTE: Script engine and utilities are run using permissions of vo
-     * 
-     * @param vo
-     * @param log
-     * @param result
-     * @param service
-     */
-    public CompiledMangoJavaScript(MangoJavaScript vo, ScriptLog log, MangoJavaScriptResult result, MangoJavaScriptService service) {
-        this.log = log;
-        this.additionalContext = vo.getAdditionalContext() == null ? Collections.emptyMap() : vo.getAdditionalContext();
-        this.additionalUtilities = vo.getAdditionalUtilities() == null ? Collections.emptyList() : vo.getAdditionalUtilities();
-        this.importExclusions = Collections.emptyList();
-        this.testRun = true;
-        this.service = service;
-        this.result = result;
-        this.utilities = new ArrayList<>();
-        this.permissionHolder = vo.getPermissions();
-        this.setter = service.createValidationSetter(result, permissionHolder);
-    }
-    
-    /**
      * Create a compiled script container to run live
      * 
      * NOTE: Script engine and utilities are run using permissions of vo
@@ -102,13 +78,13 @@ public class CompiledMangoJavaScript {
      */
     public CompiledMangoJavaScript(MangoJavaScript vo, ScriptPointValueSetter setter, ScriptLog log, MangoJavaScriptResult result, MangoJavaScriptService service) {
         this.log = log;
-        this.additionalContext = vo.getAdditionalContext() == null ? Collections.emptyMap() : vo.getAdditionalContext();
-        this.additionalUtilities = vo.getAdditionalUtilities() == null ? Collections.emptyList() : vo.getAdditionalUtilities();
-        this.importExclusions = Collections.emptyList();
+        this.additionalContext = vo.getAdditionalContext() == null ? new HashMap<>(0) : vo.getAdditionalContext();
+        this.additionalUtilities = vo.getAdditionalUtilities() == null ? new ArrayList<>(0) : vo.getAdditionalUtilities();
+        this.importExclusions = new ArrayList<>(0);
         this.testRun = true;
         this.service = service;
         this.result = result;
-        this.utilities = Collections.emptyList();
+        this.utilities = new ArrayList<>(0);
         this.permissionHolder = vo.getPermissions();
         this.setter = setter;
     }
@@ -155,9 +131,9 @@ public class CompiledMangoJavaScript {
             PermissionHolder permissionHolder) {
         this.setter = setter;
         this.log = log;
-        this.additionalContext = additionalContext == null ? Collections.emptyMap() : additionalContext;
-        this.additionalUtilities = additionalUtilities == null ? Collections.emptyList() : additionalUtilities;
-        this.importExclusions = importExclusions == null ? Collections.emptyList() : importExclusions;
+        this.additionalContext = additionalContext == null ? new HashMap<>(0) : additionalContext;
+        this.additionalUtilities = additionalUtilities == null ? new ArrayList<>(0) : additionalUtilities;
+        this.importExclusions = importExclusions == null ? new ArrayList<>(0) : importExclusions;
         this.testRun = testRun;
         this.service = service;
 
