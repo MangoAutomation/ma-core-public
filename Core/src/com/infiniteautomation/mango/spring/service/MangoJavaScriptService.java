@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -103,7 +104,7 @@ public class MangoJavaScriptService {
     public static final DataValue UNCHANGED = new BinaryValue(false);
     public static final String UNCHANGED_KEY = "UNCHANGED";
 
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM YYYY HH:mm:ss z");
+    private final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM YYYY HH:mm:ss z");
     
     private static final Object globalFunctionsLock = new Object();
 
@@ -196,14 +197,25 @@ public class MangoJavaScriptService {
      * @throws PermissionException
      */
     public MangoJavaScriptResult testScript(MangoJavaScript vo, PermissionHolder user) throws ValidationException, PermissionException {
+        return testScript(vo, (result, holder) ->{ return createValidationSetter(result, holder);}, user);
+    }
+    
+    /**
+     * 
+     * @param vo
+     * @param createSetter
+     * @param user
+     * @return
+     */
+    public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter, PermissionHolder user) {
         ensureValid(vo, user);
         final StringWriter scriptOut = new StringWriter();
-        MangoJavaScriptResult result = new MangoJavaScriptResult();
+        MangoJavaScriptResult result = new  MangoJavaScriptResult();
         try {
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter);){
                 CompiledMangoJavaScript script = new CompiledMangoJavaScript(
-                        vo, scriptLog, result, this);
+                        vo, createSetter.apply(result, vo.getPermissions()), scriptLog, result, this);
                 
                 script.compile(vo.getScript(), vo.isWrapInFunction());
                 script.initialize(vo.getContext());
@@ -702,6 +714,10 @@ public class MangoJavaScriptService {
                     DataTypes.getDataTypeMessage(toDataTypeId)));
 
         return value;
+    }
+    
+    public SimpleDateFormat getDateFormat() {
+        return sdf;
     }
 
     private class ScriptLogExtender extends ScriptLog {
