@@ -54,7 +54,7 @@ public class ScriptError extends TranslatableException {
         Integer line = e.getLineNumber() == -1 ? null : e.getLineNumber();
         Integer column = e.getColumnNumber() == -1 ? null : e.getColumnNumber();
         if(wrapped) {
-            if(column != null && line == 1) {
+            if(column != null && line != null && line == 1) {
                 //adjust the column by the amound of our prefix
                 column = column - MangoJavaScriptService.SCRIPT_PREFIX.length();
             }
