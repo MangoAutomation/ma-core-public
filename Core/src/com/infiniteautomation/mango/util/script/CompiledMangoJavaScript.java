@@ -64,6 +64,7 @@ public class CompiledMangoJavaScript {
     
     //State settings
     private boolean initialized;
+    private boolean wrapInFunction;
     
     /**
      * Create a compiled script container to run live
@@ -151,6 +152,7 @@ public class CompiledMangoJavaScript {
      */
     public void compile(String script, boolean wrapInFunction) throws ScriptError {
         this.compiledScript = service.compile(script, wrapInFunction, permissionHolder);
+        this.wrapInFunction = wrapInFunction;
     }
     
     /**
@@ -292,5 +294,8 @@ public class CompiledMangoJavaScript {
     }
     public PermissionHolder getPermissionHolder() {
         return this.permissionHolder;
+    }
+    public boolean isWrapInFunction() {
+        return wrapInFunction;
     }
 }

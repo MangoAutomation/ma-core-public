@@ -94,8 +94,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 public class MangoJavaScriptService {
 
     public static final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
-    public static final String SCRIPT_SUFFIX = "\r\n}\r\n";
-    public static final String SCRIPT_POSTFIX = "\r\n__scriptExecutor__();";
+    public static final String SCRIPT_SUFFIX = " } __scriptExecutor__();";
 
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
@@ -330,14 +329,14 @@ public class MangoJavaScriptService {
 
             String toCompile;
             if(wrapInFunction) {
-                toCompile = MangoJavaScriptService.SCRIPT_PREFIX + script + MangoJavaScriptService.SCRIPT_SUFFIX + MangoJavaScriptService.SCRIPT_POSTFIX;
+                toCompile = SCRIPT_PREFIX + script + SCRIPT_SUFFIX;
             }else {
                 toCompile = script;
             }
             
             return ((Compilable)engine).compile(toCompile);
         }catch(ScriptException e) {
-            throw ScriptError.create(e);
+            throw ScriptError.create(e, wrapInFunction);
         }
     }
     
@@ -401,13 +400,13 @@ public class MangoJavaScriptService {
         try {
             script.getEngine().eval(getGlobalFunctions());
         } catch (ScriptException e) {
-            throw ScriptError.create(e);
+            throw ScriptError.create(e, script.isWrapInFunction());
         } catch (RuntimeException e) {
             // Nashorn seems to like to wrap exceptions in RuntimeException
             if (e.getCause() instanceof ScriptPermissionsException)
                 throw (ScriptPermissionsException) e.getCause();
             else if (e.getCause() != null)
-                throw ScriptError.create(e.getCause());
+                throw ScriptError.createFromThrowable(e.getCause());
             else
                 throw new ShouldNeverHappenException(e);
         }
@@ -443,7 +442,7 @@ public class MangoJavaScriptService {
             Object resultObject = script.getCompiledScript().eval();
             script.getResult().setResult(resultObject);
         }catch(ScriptException e) {
-            throw ScriptError.create(e);
+            throw ScriptError.create(e, script.isWrapInFunction());
         }catch (RuntimeException e) {
             //Nashorn seems to like to wrap exceptions in RuntimeException 
             if(e.getCause() instanceof ScriptPermissionsException)

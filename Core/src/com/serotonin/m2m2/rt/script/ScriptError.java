@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import javax.script.ScriptException;
 
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
@@ -22,10 +23,12 @@ public class ScriptError extends TranslatableException {
 
     /**
      * Extract a useful message and line/col info for the exception
+     * 
      * @param e
+     * @param wrapped - was this script wrapped within a function calls (hidden to submitting user)
      * @return
      */
-    public static ScriptError create(ScriptException e) {
+    public static ScriptError create(ScriptException e, boolean wrapped) {        
         Throwable t = e;
         while (t.getCause() != null && t.getCause().getMessage() != null) {
             t = t.getCause();
@@ -37,14 +40,29 @@ public class ScriptError extends TranslatableException {
             message = "null pointer exception";
         else if(message == null){
             message = e.getMessage(); //Fallback
-        }{
+        }else {
             Matcher matcher = PATTERN.matcher(message);
             if (matcher.find())
                 message = matcher.group(3);
         }
+        
+        //Replace any message context around our prefix/suffix of wrapped scripts
+        message = message.replace(MangoJavaScriptService.SCRIPT_PREFIX, "");
+        message = message.replace(MangoJavaScriptService.SCRIPT_SUFFIX, "");
+        
+        //Convert the line numbers
+        Integer line = e.getLineNumber() == -1 ? null : e.getLineNumber();
+        Integer column = e.getColumnNumber() == -1 ? null : e.getColumnNumber();
+        if(wrapped) {
+            if(column != null && line == 1) {
+                //adjust the column by the amound of our prefix
+                column = column - MangoJavaScriptService.SCRIPT_PREFIX.length();
+            }
+        }
+        
         return new ScriptError(message, 
-                e.getLineNumber() == -1 ? null : e.getLineNumber(),
-                e.getColumnNumber() == -1 ? null : e.getColumnNumber(),
+                line,
+                column,
                 t);       
     }
 
@@ -54,7 +72,7 @@ public class ScriptError extends TranslatableException {
      * @param cause
      * @return
      */
-    public static ScriptError create(Throwable cause) {
+    public static ScriptError createFromThrowable(Throwable cause) {
         if(cause == null)
             return new ScriptError("null pointer exception", null, null, null);
         else
