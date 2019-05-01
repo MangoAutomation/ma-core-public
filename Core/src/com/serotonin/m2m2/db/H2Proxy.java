@@ -155,7 +155,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         
         //We need to do this if a db exists and is version 196 or below
         if(existingDbPath.toFile().exists() && h2Version <= H2_PAGE_STORE_UPGRADE_VERSION) {
-            
+            LOG.info("Database exists wihtout H2 version file, making backup and checking if upgrade is necessary.");
             try {
                 //Did a previous attempt fail?
                 if(bakDbPath.toFile().exists()){
@@ -172,9 +172,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 String fullUrl = getUrl(propertyPrefix);
                 String user = Common.envProps.getString(propertyPrefix + "db.username", null);
                 String password = Common.envProps.getString(propertyPrefix + "db.password", null);
-                
 
-                
                 try(Connection conn = DriverManager.getConnection(fullUrl, user, password);){
                     Statement stat = conn.createStatement();
                     ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
@@ -186,9 +184,12 @@ public class H2Proxy extends AbstractDatabaseProxy {
                             h2Properties.put("h2Version", Integer.toString(version));
                             deleteTempFiles = true;
                             saveProperties = true;
+                            LOG.info("H2 database is version " + version + " , not upgrading.");
                             return;
                         }
+                        LOG.info("H2 database is version " + version + " , will upgrade to " + h2Version + ".");
                     }
+                    LOG.info("Exporting exisiting H2 database...");
                     stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
                     stat.close();
                 }
@@ -197,6 +198,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 Files.delete(existingDbPath);
 
                 //Open a connection and import the dump script
+                LOG.info("Importing exisiting H2 database...");
                 String runScript = fullUrl + ";init=RUNSCRIPT FROM '" + dumpPath.toString() + "' COMPRESSION ZIP";
                 try(Connection conn = DriverManager.getConnection(runScript, user, password);){
                     Statement stat = conn.createStatement();
@@ -213,31 +215,30 @@ public class H2Proxy extends AbstractDatabaseProxy {
                     stat.close();
                 }
                 
-                
-                
                 deleteTempFiles = true;
                 saveProperties = true;
             }catch(Exception e) {
                 throw new ShouldNeverHappenException(e);
             }finally {
+                LOG.info("Cleaning up H2 initializataion tests...");
                 if(deleteTempFiles) {
                     try {
                         Files.deleteIfExists(dumpPath);
                     } catch (IOException e) {
-                        LOG.warn("Unable to delete un-necessary h2 dump file " + dumpPath.toString(), e);
+                        LOG.warn("Unable to delete un-necessary H2 dump file " + dumpPath.toString(), e);
                     }
                     
                     try {
                         Files.deleteIfExists(bakDbPath);
                     } catch (IOException e) {
-                        LOG.warn("Unable to delete un-necessary h2 backup file " + bakDbPath.toString(), e);
+                        LOG.warn("Unable to delete un-necessary H2 backup file " + bakDbPath.toString(), e);
                     }
                 }
                 if(saveProperties) {
                     try(FileOutputStream out = new FileOutputStream(h2VersionPath.toFile())) {
                         h2Properties.store(out, null);
                     } catch (IOException e) {
-                        LOG.warn("Problem saving h2 version to file " + h2VersionPath.toString(), e);
+                        LOG.warn("Problem saving H2 version to file " + h2VersionPath.toString(), e);
                     }
                 }
             }
