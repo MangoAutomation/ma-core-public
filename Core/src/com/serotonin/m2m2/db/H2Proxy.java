@@ -27,7 +27,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.tools.Recover;
 import org.h2.tools.Server;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -127,8 +126,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 String user = Common.envProps.getString(propertyPrefix + "db.username", null);
                 String password = Common.envProps.getString(propertyPrefix + "db.password", null);
                 
-
-                
                 try(Connection conn = DriverManager.getConnection(fullUrl, user, password);){
                     Statement stat = conn.createStatement();
                     ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
@@ -172,9 +169,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         url = StringUtils.replaceMacros(url, System.getProperties());
-        if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
-            url += ";DB_CLOSE_ON_EXIT=FALSE";
-        }
         if (!url.contains(";MV_STORE=")) {
             url += ";MV_STORE=FALSE";
         }
