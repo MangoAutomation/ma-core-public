@@ -168,7 +168,7 @@ public class ModuleRegistry {
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
     private static Map<String, ModuleQueryDefinition> MODULE_QUERY_DEFINITIONS;
     private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
-    
+
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
     private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();
@@ -502,7 +502,7 @@ public class ModuleRegistry {
     //
     // Event Detector special handling
     //
-    
+
     /**
      * Get based on definition type name
      * @param type
@@ -513,7 +513,7 @@ public class ModuleRegistry {
         ensureEventDetectorDefinitions();
         return (T) EVENT_DETECTOR_DEFINITIONS.get(type);
     }
-    
+
     @SuppressWarnings("unchecked")
     public static <T extends EventDetectorDefinition<?>> List<T> getEventDetectorDefinitionsBySourceType(String sourceType) {
         ensureEventDetectorDefinitions();
@@ -615,7 +615,8 @@ public class ModuleRegistry {
                     for(AngularJSModuleDefinition def : Module.getDefinitions(postDefaults, AngularJSModuleDefinition.class)){
                         list.add(def);
                     }
-                    ANGULARJS_MODULE_DEFINITIONS = list;
+                    list.sort((a, b) -> ((Integer) b.priority()).compareTo(a.priority()));
+                    ANGULARJS_MODULE_DEFINITIONS = Collections.unmodifiableList(list);
                 }
             }
         }
@@ -764,7 +765,7 @@ public class ModuleRegistry {
      * This function returns a FileStoreDefinition if it exists in a module element definition.
      *  It is preferred to go through the FileStoreDao.getInstance().getfileStoreDefinition method
      *  as that will also resolve any user defined filestores with that file store name. This is
-     *  an acceptable method to call in a module if the module doesn't permit use of custom filestores. 
+     *  an acceptable method to call in a module if the module doesn't permit use of custom filestores.
      * @param name
      * @return
      */
@@ -1156,7 +1157,7 @@ public class ModuleRegistry {
         /* Module Queries */
         preDefaults.add(new DataPointEventsByTagQueryDefinition());
         preDefaults.add(new DataPointEventsByDataPointRQLQueryDefinition());
-        
+
         /* Script Utilities */
         preDefaults.add(new DataPointQueryScriptUtilityDefinition());
         preDefaults.add(new DataSourceQueryScriptUtilityDefinition());
@@ -1164,7 +1165,7 @@ public class ModuleRegistry {
         preDefaults.add(new JsonEmportScriptUtilityDefinition());
         preDefaults.add(new PointValueTimeStreamScriptUtilityDefinition());
         preDefaults.add(new RuntimeManagerScriptUtilityDefinition());
-        
+
         /* System Event Types */
         preDefaults.add(new BackupFailureEventTypeDefinition());
         preDefaults.add(new EmailSendFailureEventTypeDefinition());
@@ -1179,7 +1180,7 @@ public class ModuleRegistry {
         preDefaults.add(new SystemStartupEventTypeDefinition());
         preDefaults.add(new UpgradeCheckEventTypeDefinition());
         preDefaults.add(new UserLoginEventTypeDefinition());
-        
+
     }
 
     static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
