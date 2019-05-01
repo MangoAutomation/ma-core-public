@@ -77,8 +77,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         
         transactionManager = new DataSourceTransactionManager(getDataSource());
 
+        boolean newDatabase = false;
         try {
             if (newDatabaseCheck(ejt)) {
+                newDatabase = true;
                 // Check if we should convert from another database.
                 String convertTypeStr = null;
                 try {
@@ -170,7 +172,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             DBUpgrade.checkUpgrade(def, classLoader);
 
-        postInitialize(ejt);
+        postInitialize(ejt, "", newDatabase);
     }
 
 	private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
@@ -270,7 +272,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     abstract public int getIdleConnections();
 
-    protected void postInitialize(ExtendedJdbcTemplate ejt) {
+    protected void postInitialize(ExtendedJdbcTemplate ejt, String propertyPrefix, boolean newDatabase) {
         // no op - override as necessary
     }
 
