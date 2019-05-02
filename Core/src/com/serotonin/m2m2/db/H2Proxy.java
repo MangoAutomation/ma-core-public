@@ -6,13 +6,14 @@ package com.serotonin.m2m2.db;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,15 +24,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import javax.sql.DataSource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.h2.engine.Constants;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.tools.Recover;
 import org.h2.tools.Server;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -58,7 +58,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     @Override
     protected void initializeImpl(String propertyPrefix) {
         LOG.info("Initializing H2 connection manager");
-        
+
         upgradePageStore(propertyPrefix);
         
         JdbcDataSource jds = new JdbcDataSource();
@@ -93,27 +93,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
             }
         }
     }
-
-    @Override
-    protected void postInitialize(ExtendedJdbcTemplate ejt, String propertyPrefix, boolean newDatabase) {
-        
-        if(newDatabase) {
-            //Update our version file 
-            int version = ejt.queryForInt(H2_CREATE_VERSION_SELECT, new Object[0], 0);
-            Path dbPath = getDbPathFromUrl(propertyPrefix);
-            Path h2VersionPath = dbPath.getParent().resolve("mah2-version.properties");
-            Properties h2Properties = new Properties();
-            h2Properties.put("h2Version", Integer.toString(version));
-            try(FileOutputStream out = new FileOutputStream(h2VersionPath.toFile())) {
-                h2Properties.store(out, null);
-            } catch (IOException e) {
-                LOG.warn("Problem saving h2 version to file " + h2VersionPath.toString(), e);
-            }
-        }
-    }
     
-    private Path getDbPathFromUrl(String propertyPrefix) {
-        String url = Common.envProps.getString(propertyPrefix + "db.url");
+    public static Path getDbPathFromUrl(String url) {
         url = StringUtils.replaceMacros(url, System.getProperties());
         String [] jdbcParts = url.split(":");
         String [] commandParts = jdbcParts[2].split(";");
@@ -127,120 +108,47 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private void upgradePageStore(String propertyPrefix) {
         
         //Parse out the useful sections of the url
-        Path dbPath = getDbPathFromUrl(propertyPrefix);
-        Path existingDbPath = dbPath.getParent().resolve(dbPath.getFileName() + ".h2.db");
+        String dbUrl = Common.envProps.getString(propertyPrefix + "db.url");
+        Path dbPath = getDbPathFromUrl(dbUrl);
         
-        //TODO Determine a good place for these files
-        Path dumpPath = dbPath.getParent().resolve(dbPath.getFileName() + ".h2.196.sql.zip");
-        Path bakDbPath = dbPath.getParent().resolve("mah2.h2.196.db");
-        Path h2VersionPath = dbPath.getParent().resolve("mah2-version.properties");
-        
-        boolean deleteTempFiles = false;
-        boolean saveProperties = false;
-        
-        //Use a properties file to ensure we don't have to make a backup and check the version of the db each startup
-        int h2Version = H2_PAGE_STORE_UPGRADE_VERSION;
-        Properties h2Properties = new Properties();
-        h2Properties.put("h2Version", Integer.toString(h2Version));
-        try(FileInputStream is = new FileInputStream(h2VersionPath.toFile())) {
-            h2Properties.load(is);
-            h2Version = Integer.parseInt(h2Properties.getProperty("h2Version"));
-        } catch (FileNotFoundException e1) {
-            saveProperties = true;
-        } catch (IOException e1) {
-            saveProperties = true;
-        } catch (NumberFormatException e) {
-            saveProperties = true;
-        }
-        
-        //We need to do this if a db exists and is version 196 or below
-        if(existingDbPath.toFile().exists() && h2Version <= H2_PAGE_STORE_UPGRADE_VERSION) {
-            LOG.info("Database exists wihtout H2 version file, making backup and checking if upgrade is necessary.");
+        //Check to see if we are a legacy database
+        Path legacy = dbPath.getParent().resolve(dbPath.getFileName().toString() + ".h2.db");
+        if(legacy.toFile().exists()) {
+            LOG.info("Converting legacy h2 database...");
+            //We will need to convert it. 
+            //Create a reference for the dump file
+            String dumpFileName = "mah2.h2.196.sql.zip";
+            Path dumpPath = Common.MA_HOME_PATH.resolve("backup").resolve(dumpFileName);
             try {
-                //Did a previous attempt fail?
-                if(bakDbPath.toFile().exists()){
-                    //TODO is this logic ideal?
-                    //Failed attempt assume the backup is the best one to keep so replace the existing
-                    Files.copy(bakDbPath, existingDbPath);
-                }else {
-                    //Move existing db (for safety)
-                    Files.copy(existingDbPath, bakDbPath);
-                }
-
-                //First we will try to get the version from the existing db to make sure 
-                org.h2.Driver.load();
-                String fullUrl = getUrl(propertyPrefix);
-                String user = Common.envProps.getString(propertyPrefix + "db.username", null);
-                String password = Common.envProps.getString(propertyPrefix + "db.password", null);
-
-                try(Connection conn = DriverManager.getConnection(fullUrl, user, password);){
-                    Statement stat = conn.createStatement();
-                    ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
-                    if(rs.next()) {
-                        int version = rs.getInt(1);
-                        if(version > h2Version) {
-                            // This would be when we don't need to do the upgrade but no properties file 
-                            // was found? i.e. someone deleted it or edited it poorly
-                            h2Properties.put("h2Version", Integer.toString(version));
-                            deleteTempFiles = true;
-                            saveProperties = true;
-                            LOG.info("H2 database is version " + version + " , not upgrading.");
-                            return;
-                        }
-                        LOG.info("H2 database is version " + version + " , will upgrade to " + h2Version + ".");
-                    }
-                    LOG.info("Exporting exisiting H2 database...");
-                    stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
-                    stat.close();
-                }
+                LOG.info("Dumping legacy database to file " + dumpPath.toString());
+                dump(legacy, dumpPath);
                 
                 //Delete existing so we can re-create it using the dump script
-                Files.delete(existingDbPath);
+                Files.delete(legacy);
 
+                String user = Common.envProps.getString(propertyPrefix + "db.username", null);
+                String password = Common.envProps.getString(propertyPrefix + "db.password", null);
+                
+                String url = getUrl(propertyPrefix);
                 //Open a connection and import the dump script
                 LOG.info("Importing exisiting H2 database...");
-                String runScript = fullUrl + ";init=RUNSCRIPT FROM '" + dumpPath.toString() + "' COMPRESSION ZIP";
+                String runScript = url + ";init=RUNSCRIPT FROM '" + dumpPath.toString() + "' COMPRESSION ZIP";
                 try(Connection conn = DriverManager.getConnection(runScript, user, password);){
                     Statement stat = conn.createStatement();
-                    
-                    //Update our version
-                    ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
-                    if(rs.next()) {
-                        int version = rs.getInt(1);
-                        h2Properties.put("h2Version", Integer.toString(version));
-                    }
-                    
                     //Might as well do a compaction here
                     stat.execute("shutdown compact");
                     stat.close();
                 }
                 
-                deleteTempFiles = true;
-                saveProperties = true;
-            }catch(Exception e) {
+                try {
+                    LOG.info("Cleaning up H2 initializataion tests...");
+                    Files.deleteIfExists(dumpPath);
+                } catch (IOException e) {
+                    LOG.warn("Unable to delete un-necessary H2 dump file " + dumpPath.toString(), e);
+                }
+                
+            } catch(Exception e) {
                 throw new ShouldNeverHappenException(e);
-            }finally {
-                LOG.info("Cleaning up H2 initializataion tests...");
-                if(deleteTempFiles) {
-                    try {
-                        Files.deleteIfExists(dumpPath);
-                    } catch (IOException e) {
-                        LOG.warn("Unable to delete un-necessary H2 dump file " + dumpPath.toString(), e);
-                    }
-                    
-                    try {
-                        Files.deleteIfExists(bakDbPath);
-                    } catch (IOException e) {
-                        LOG.warn("Unable to delete un-necessary H2 backup file " + bakDbPath.toString(), e);
-                    }
-                }
-                if(saveProperties) {
-                    try(FileOutputStream out = new FileOutputStream(h2VersionPath.toFile())) {
-                        h2Properties.store(out, null);
-                    } catch (IOException e) {
-                        LOG.warn("Problem saving H2 version to file " + h2VersionPath.toString(), e);
-                    }
-                }
             }
         }
     }
@@ -248,6 +156,34 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         url = StringUtils.replaceMacros(url, System.getProperties());
+        
+        Path dbPath = getDbPathFromUrl(url);
+        
+        //Determine the version info
+        Path dbFolder = dbPath.getParent();
+        String[] matchingDbs = dbFolder.toFile().list((dir, filename) ->{
+            if(filename.startsWith(dbPath.getFileName().toString()))
+                return true;
+            else
+                return false;
+        });
+        
+        int version = 0;
+        for(String match : matchingDbs) {
+            try {
+                int newVersion = getVersion(match);
+                if(newVersion > version)
+                    version = newVersion;
+            } catch (IOException e) {
+                //Ignore
+            }
+        }
+        
+        if(version == 0)
+            version = getCurrentVersion();
+        
+        url = url + "." + version;
+        
         if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
             url += ";DB_CLOSE_ON_EXIT=FALSE";
         }
@@ -404,14 +340,16 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 web.shutdown();
             }
         }
-        
-        if (Common.envProps.getBoolean("db.h2.shutdownCompact", false)) {
-            runScript(new String[] {"SHUTDOWN COMPACT;"}, null);
-        }else
-            runScript(new String[] {"SHUTDOWN;"}, null);
-        
-        if (dataSource != null)
+
+        if (dataSource != null) {
             dataSource.dispose();
+            if (Common.envProps.getBoolean("db.h2.shutdownCompact", false)) {
+                runScript(new String[] {"SHUTDOWN COMPACT;"}, null);
+            }else
+                runScript(new String[] {"SHUTDOWN;"}, null);
+        }
+        
+
     }
 
     @Override
@@ -420,6 +358,117 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 "SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
                         + tableName.toUpperCase() + "' AND table_schema='PUBLIC'",
                 new Object[] {}, Integer.class, 0) > 0;
+    }
+    
+    /**
+     * Get the current version of the database.
+     * @return
+     */
+    public int getCurrentVersion() {
+        return Constants.BUILD_ID;
+    }
+
+    /**
+     * Get the expected runtime database name
+     * @return
+     */
+    public String getDatabaseFileSuffix() {
+        return Constants.BUILD_ID + ".h2.db";
+    }
+    
+    /**
+     * Parse the version out of a database name, the format should be
+     * *.[version].h2.db
+     *   This method takes into account that there may be extra periods in the name
+     * @param databaseName
+     * @return
+     * @throws NumberFormatException
+     */
+    public int getVersion(String databaseName) throws IOException {
+        String[] parts = databaseName.split("\\.");
+        try{
+            return getVersion(parts);
+        }catch(NumberFormatException e) {
+            throw new IOException("Invalid h2 database name format: " + databaseName);
+        }
+    }
+    
+    private static int getVersion(String[] parts) throws NumberFormatException {
+        return Integer.parseInt(parts[parts.length - 3]);
+    }
+    
+    /**
+     * Check the name of the database file to see if it is a legacy db.
+     * 
+     * *.h2.db = legacy
+     * *.[version].h2.db = current
+     * 
+     * @return
+     */
+    public static boolean isLegacy(String databaseName) throws IOException {
+        String[] parts = databaseName.split("\\.");
+        if(parts.length < 4)
+            return true;
+        else {
+            //Try to parse version
+            getVersion(parts);
+            return true;
+        }
+    }
+    
+    /**
+     * Dump a database to SQL using a legacy driver
+     * @param legacy
+     * @param dumpPath
+     * @throws Exception
+     */
+    public void dump(Path legacy, Path dumpPath) throws Exception {
+        
+        //First load in the 196 Driver
+        Path tempDirectory = Paths.get(System.getProperty("java.io.tmpdir"), H2Proxy.class.getName());
+        File tempDirectoryFile = tempDirectory.toFile();
+        tempDirectoryFile.mkdirs();
+        tempDirectoryFile.deleteOnExit();
+        
+        URLClassLoader jarLoader = loadLegacyJar();
+
+        Class<?> driverManager = Class.forName("java.sql.DriverManager", false, jarLoader);
+        
+        String url = Common.envProps.getString("db.url");
+        url = StringUtils.replaceMacros(url, System.getProperties());
+        if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
+            url += ";DB_CLOSE_ON_EXIT=FALSE";
+        }
+        if (!url.contains(";MV_STORE=")) {
+            url += ";MV_STORE=FALSE";
+        }
+        if (!url.contains(";IGNORECASE=")) {
+            url += ";IGNORECASE=TRUE";
+        }
+        String user = Common.envProps.getString("db.username", null);
+        String password = Common.envProps.getString("db.password", null);
+
+        Method connect = driverManager.getMethod("getConnection", String.class, String.class, String.class);
+        try(Connection conn = (Connection)connect.invoke(null, url, user, password)){
+            Statement stat = conn.createStatement();
+            ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
+            if(rs.next()) {
+                int version = rs.getInt(1);
+                LOG.info("H2 database is version " + version + " , will upgrade to " + Constants.BUILD_ID + ".");
+            }
+            LOG.info("Exporting exisiting H2 database...");
+            stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
+            stat.close();
+        }
+    }
+    
+    /**
+     * Load the legacy H2 Driver into an isolated class loaded
+     * @return
+     * @throws MalformedURLException
+     */
+    public static URLClassLoader loadLegacyJar() throws MalformedURLException {
+        return new URLClassLoader(new URL[] {Common.MA_HOME_PATH.resolve("libs/h2-1.4.196.jar").toUri().toURL()});
     }
     
 }

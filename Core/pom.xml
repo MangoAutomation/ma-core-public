@@ -136,6 +136,25 @@
                             <skip>false</skip>
                         </configuration>
                     </execution>
+					 <execution>
+                        <id>copy-legacy-h2</id>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+ 								<artifactItem>
+                                    <groupId>com.h2database</groupId>
+                                    <artifactId>h2</artifactId>
+                                    <version>1.4.196</version>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.basedir}/boot/</outputDirectory>
+                            <stripVersion>false</stripVersion>
+                            <stripClassifier>false</stripClassifier>
+                            <skip>false</skip>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
