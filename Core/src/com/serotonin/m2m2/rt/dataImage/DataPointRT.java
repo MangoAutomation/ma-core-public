@@ -48,7 +48,7 @@ import com.serotonin.timer.Task;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.util.ILifecycle;
 
-public final class DataPointRT implements IDataPointValueSource, ILifecycle {
+public class DataPointRT implements IDataPointValueSource, ILifecycle {
     private static final Log LOG = LogFactory.getLog(DataPointRT.class);
     private static final PvtTimeComparator pvtTimeComparator = new PvtTimeComparator();
     private static final String prefix = "INTVL_LOG-";
@@ -692,7 +692,7 @@ public final class DataPointRT implements IDataPointValueSource, ILifecycle {
     // / Listeners
     // /
     //
-    private void fireEvents(PointValueTime oldValue, PointValueTime newValue, Map<String, Object> attributes, boolean set, 
+    protected void fireEvents(PointValueTime oldValue, PointValueTime newValue, Map<String, Object> attributes, boolean set, 
             boolean backdate, boolean logged, boolean updated, boolean attributesChanged) {
         DataPointListener l = Common.runtimeManager.getDataPointListeners(vo.getId());
         if (l != null)
