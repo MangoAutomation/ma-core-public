@@ -76,6 +76,7 @@ import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.util.log.NullPrintWriter;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -220,9 +221,20 @@ public class MangoJavaScriptService {
                 script.initialize(vo.getContext());
                 
                 long time = Common.timer.currentTimeMillis();
-                if(vo.getResultDataTypeId() != null)
+                if(vo.getResultDataTypeId() != null) {
                     script.execute(time, time, vo.getResultDataTypeId());
-                else
+                    //Convert the UNCHANGED value
+                    Object o = script.getResult().getResult();
+                    if(o != null && o instanceof PointValueTime && ((PointValueTime)o).getValue().equals(UNCHANGED)) {
+                        String unchanged;
+                        if(user instanceof User) {
+                            unchanged = new TranslatableMessage("eventHandlers.script.successUnchanged").translate(((User)user).getTranslations());
+                        }else {
+                            unchanged = new TranslatableMessage("eventHandlers.script.successUnchanged").translate(Common.getTranslations());
+                        }
+                        script.getResult().setResult(new PointValueTime(unchanged, ((PointValueTime)o).getTime()));
+                    }
+                }else
                     script.execute(time, time);
             }
         }catch (ScriptError e) {
