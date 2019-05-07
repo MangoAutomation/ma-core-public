@@ -205,8 +205,9 @@ public class H2Proxy extends AbstractDatabaseProxy {
         if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
             url += ";DB_CLOSE_ON_EXIT=FALSE";
         }
+        //Enforce use a MV Store
         if (!url.contains(";MV_STORE=")) {
-            url += ";MV_STORE=FALSE";
+            url = url.replaceAll(";MV_STORE=", "");
         }
         if (!url.contains(";IGNORECASE=")) {
             url += ";IGNORECASE=TRUE";
