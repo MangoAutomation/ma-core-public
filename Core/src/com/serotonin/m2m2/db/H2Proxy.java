@@ -131,12 +131,12 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 
                 String url = getUrl(propertyPrefix);
                 //Open a connection and import the dump script
-                LOG.info("Importing exisiting H2 database...");
+                LOG.info("Importing existing H2 database...");
                 String runScript = url + ";init=RUNSCRIPT FROM '" + dumpPath.toString() + "' COMPRESSION ZIP";
                 try(Connection conn = DriverManager.getConnection(runScript, user, password);){
                     Statement stat = conn.createStatement();
                     //Might as well do a compaction here
-                    stat.execute("shutdown compact");
+                    stat.execute("SHUTDOWN COMPACT");
                     stat.close();
                 }
                 
@@ -156,8 +156,9 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         url = StringUtils.replaceMacros(url, System.getProperties());
-        
-        Path dbPath = getDbPathFromUrl(url);
+        String [] jdbcParts = url.split(":");
+        String [] commandParts = jdbcParts[2].split(";");
+        Path dbPath = Paths.get(commandParts[0]);
         
         //Determine the version info
         Path dbFolder = dbPath.getParent();
@@ -168,6 +169,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 return false;
         });
         
+        //Check to see if we have an existing db with a version number in it
+        // if there are more than 1, select the latest version number in the list
         int version = 0;
         for(String match : matchingDbs) {
             try {
@@ -179,10 +182,25 @@ public class H2Proxy extends AbstractDatabaseProxy {
             }
         }
         
+        //If version is 0 then there is not an existing database we can open,
+        // create a new one with our current version.
         if(version == 0)
             version = getCurrentVersion();
         
-        url = url + "." + version;
+        //Rebuild URL
+        StringBuilder builder = new StringBuilder();
+        builder.append("jdbc:h2:");
+        
+        //Put in the db path
+        builder.append(commandParts[0]);
+        builder.append("." + version);
+        
+        //Add back on any command parts
+        for(int i=1; i<commandParts.length; i++) {
+            builder.append(";");
+            builder.append(commandParts[i]);
+        }
+        url = builder.toString();
         
         if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
             url += ";DB_CLOSE_ON_EXIT=FALSE";
@@ -411,8 +429,12 @@ public class H2Proxy extends AbstractDatabaseProxy {
             return true;
         else {
             //Try to parse version
-            getVersion(parts);
-            return true;
+            try{
+                getVersion(parts);
+                return false;
+            }catch(NumberFormatException e) {
+                return true;
+            }
         }
     }
     
@@ -456,7 +478,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 int version = rs.getInt(1);
                 LOG.info("H2 database is version " + version + " , will upgrade to " + Constants.BUILD_ID + ".");
             }
-            LOG.info("Exporting exisiting H2 database...");
+            LOG.info("Exporting existing H2 database...");
             stat.executeQuery("SCRIPT DROP TO '" + dumpPath.toString() + "' COMPRESSION ZIP");
             stat.close();
         }
@@ -468,7 +490,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
      * @throws MalformedURLException
      */
     public static URLClassLoader loadLegacyJar() throws MalformedURLException {
-        return new URLClassLoader(new URL[] {Common.MA_HOME_PATH.resolve("libs/h2-1.4.196.jar").toUri().toURL()});
+        return new URLClassLoader(new URL[] {Common.MA_HOME_PATH.resolve("boot/h2-1.4.196.jar").toUri().toURL()});
     }
     
 }
