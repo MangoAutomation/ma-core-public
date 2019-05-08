@@ -96,8 +96,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
     
     public static Path getDbPathFromUrl(String url) {
         url = StringUtils.replaceMacros(url, System.getProperties());
-        String [] jdbcParts = url.split(":");
-        String [] commandParts = jdbcParts[2].split(";");
+        String [] jdbcParts = url.split("jdbc:h2:");
+        String [] commandParts = jdbcParts[1].split(";");
         return Paths.get(commandParts[0]);
     }
     
@@ -156,8 +156,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         url = StringUtils.replaceMacros(url, System.getProperties());
-        String [] jdbcParts = url.split(":");
-        String [] commandParts = jdbcParts[2].split(";");
+        String [] jdbcParts = url.split("jdbc:h2:");
+        String [] commandParts = jdbcParts[1].split(";");
         Path dbPath = Paths.get(commandParts[0]);
         
         //Determine the version info
