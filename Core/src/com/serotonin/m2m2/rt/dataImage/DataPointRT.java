@@ -432,6 +432,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     newValue.getTime(), source.getSetPointSourceMessage());
         }
 
+        valueCache.savePointValue(newValue, source, logValue, async);
+        
         //Update our value if it is newer
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
@@ -439,9 +441,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             if(fireEvents == FireEvents.ON_CURRENT_VALUE_UPDATE || fireEvents == FireEvents.ALWAYS)
                 fireEvents(oldValue, newValue, null, source != null, false, logValue, true, false);
         }else if(fireEvents == FireEvents.ALWAYS)
-            fireEvents(pointValue, newValue, null, source != null, false, logValue, true, false);
-        
-    	valueCache.savePointValue(newValue, source, logValue, async);
+            fireEvents(pointValue, newValue, null, source != null, false, logValue, false, false);
+
     }
 
     //
