@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -67,12 +68,16 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
 
     private boolean terminated;
 
+    /* Thread safe set of active event types */
+    private ConcurrentHashMap<Integer, Boolean> activeEventTypes;
+    
     public DataSourceRT(VO vo) {
         super(vo);
 
         eventTypes = new ArrayList<DataSourceEventType>();
         for (EventTypeVO etvo : vo.getEventTypes())
             eventTypes.add((DataSourceEventType) etvo.getEventType());
+        activeEventTypes = new ConcurrentHashMap<>();
     }
 
     public int getId() {
@@ -169,11 +174,22 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
         context.put("dataSource", vo);
 
         Common.eventManager.raiseEvent(type, time, rtn, type.getAlarmLevel(), message, context);
+        activeEventTypes.compute(eventId, (k,v)->{
+            return true;
+        });
     }
 
     protected void returnToNormal(int eventId, long time) {
-        DataSourceEventType type = getEventType(eventId);
-        Common.eventManager.returnToNormal(type, time);
+        //For performance ensure we have an active event to RTN
+        if(activeEventTypes.compute(eventId, (k,v)->{
+            if(v == null || v == false)
+                return false;
+            else
+                return true;
+        })) {
+            DataSourceEventType type = getEventType(eventId);
+            Common.eventManager.returnToNormal(type, time);
+        }
     }
 
     private DataSourceEventType getEventType(int eventId) {

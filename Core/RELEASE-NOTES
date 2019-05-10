@@ -71,6 +71,7 @@
 * Add env property web.security.followSymlinks to allow Jetty to follow symbolic links, default true
 * Case sensitivity for web resources is now enforced on Windows machines
 * Removing stacktrace for Log message about access denied to Mango resources to shorten logfile
+* Improve performance of polling data sources to only RTN events that are actually active
 
 *Version 3.5.2*
 * Improve performance for events by only preparing emails that will be sent.
