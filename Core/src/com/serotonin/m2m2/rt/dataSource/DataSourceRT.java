@@ -69,7 +69,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     private boolean terminated;
 
     /* Thread safe set of active event types */
-    private ConcurrentHashMap<Integer, Boolean> activeEventTypes;
+    private ConcurrentHashMap<Integer, Boolean> activeRtnEventTypes;
     
     public DataSourceRT(VO vo) {
         super(vo);
@@ -77,7 +77,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
         eventTypes = new ArrayList<DataSourceEventType>();
         for (EventTypeVO etvo : vo.getEventTypes())
             eventTypes.add((DataSourceEventType) etvo.getEventType());
-        activeEventTypes = new ConcurrentHashMap<>();
+        activeRtnEventTypes = new ConcurrentHashMap<>();
     }
 
     public int getId() {
@@ -174,14 +174,16 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
         context.put("dataSource", vo);
 
         Common.eventManager.raiseEvent(type, time, rtn, type.getAlarmLevel(), message, context);
-        activeEventTypes.compute(eventId, (k,v)->{
-            return true;
-        });
+        if(rtn) {
+            activeRtnEventTypes.compute(eventId, (k,v)->{
+                return true;
+            });
+        }
     }
 
     protected void returnToNormal(int eventId, long time) {
         //For performance ensure we have an active event to RTN
-        if(activeEventTypes.compute(eventId, (k,v)->{
+        if(activeRtnEventTypes.compute(eventId, (k,v)->{
             if(v == null || v == false)
                 return false;
             else
