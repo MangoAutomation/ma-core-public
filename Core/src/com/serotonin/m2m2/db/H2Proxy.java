@@ -30,6 +30,7 @@ import javax.sql.DataSource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.Server;
@@ -119,6 +120,11 @@ public class H2Proxy extends AbstractDatabaseProxy {
             //Create a reference for the dump file
             String dumpFileName = "mah2.h2.196.sql.zip";
             Path dumpPath = Common.MA_HOME_PATH.resolve("backup").resolve(dumpFileName);
+            
+            //Check dump file existence, if so abort startup
+            if(dumpPath.toFile().exists())
+                throw new ShouldNeverHappenException("Found upgrade database backup, aborting startup.  Likely corrupt database, replace with contents from " + dumpPath.toString());
+            
             try {
                 LOG.info("Dumping legacy database to file " + dumpPath.toString());
                 dump(legacy, dumpPath);
@@ -148,7 +154,11 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 }
                 
             } catch(Exception e) {
-                throw new ShouldNeverHappenException(e);
+                if(e.getCause() instanceof JdbcSQLIntegrityConstraintViolationException) {
+                    //This is very likely a db that failed to open due to it being a legacy DB that was already opened 1x by a later H2 driver
+                    throw new ShouldNeverHappenException("H2 Failed to start, likely corrupt database replace with contents of backup at: " + dumpPath.toString());
+                }else
+                    throw new ShouldNeverHappenException(e);
             }
         }
     }
