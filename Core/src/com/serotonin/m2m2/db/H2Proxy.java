@@ -138,7 +138,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 String url = getUrl(propertyPrefix);
                 //Open a connection and import the dump script
                 LOG.info("Importing existing H2 database...");
-                String runScript = url + ";init=RUNSCRIPT FROM '" + dumpPath.toString() + "' COMPRESSION ZIP";
+                String runScript = url + ";init=RUNSCRIPT FROM '" + dumpPath.toString().replaceAll("\\\\", "/") + "' COMPRESSION ZIP";
                 try(Connection conn = DriverManager.getConnection(runScript, user, password);){
                     Statement stat = conn.createStatement();
                     //Might as well do a compaction here
