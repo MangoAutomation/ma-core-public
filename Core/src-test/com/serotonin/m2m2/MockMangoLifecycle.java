@@ -253,25 +253,21 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.freemarkerConfiguration = cfg;
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#isTerminated()
-     */
     @Override
     public boolean isTerminated() {
         return false;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#terminate()
-     */
     @Override
     public void terminate() {
-        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
-        try {
-            proxy.clean();
-        } catch (Exception e) {
-            throw new ShouldNeverHappenException(e);
-        }
+//        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
+//        try {
+//            proxy.clean();
+//        } catch (Exception e) {
+//            throw new ShouldNeverHappenException(e);
+//        }
+        if(Common.databaseProxy != null)
+            Common.databaseProxy.terminate(true);
         
         if(Common.serialPortManager != null) {
            try {
@@ -283,78 +279,51 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#addStartupTask(java.lang.Runnable)
-     */
     @Override
     public void addStartupTask(Runnable task) {
         STARTUP_TASKS.add(task);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#addShutdownTask(java.lang.Runnable)
-     */
     @Override
     public void addShutdownTask(Runnable task) {
         SHUTDOWN_TASKS.add(task);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#getLifecycleState()
-     */
     @Override
     public int getLifecycleState() {
         // TODO Auto-generated method stub
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#getStartupProgress()
-     */
     @Override
     public float getStartupProgress() {
         // TODO Auto-generated method stub
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#getShutdownProgress()
-     */
     @Override
     public float getShutdownProgress() {
         // TODO Auto-generated method stub
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#loadLic()
-     */
     @Override
     public void loadLic() {
         // TODO Auto-generated method stub
 
     }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#dataPointLimit()
-     */
+    
     @Override
     public Integer dataPointLimit() {
         return Integer.MAX_VALUE;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#scheduleShutdown(long, boolean, com.serotonin.m2m2.vo.User)
-     */
     @Override
     public Thread scheduleShutdown(long timeout, boolean b, User user) {
 
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#isRestarting()
-     */
     @Override
     public boolean isRestarting() {
         return false;
@@ -453,9 +422,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         this.backgroundProcessing = backgroundProcessing;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.IMangoLifecycle#verifyProperties(java.io.InputStream, boolean, java.util.Map)
-     */
     @Override
     public boolean verifyProperties(InputStream in, boolean signed, Map<String, String> verify) {
         return true;

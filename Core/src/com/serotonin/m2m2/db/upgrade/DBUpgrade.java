@@ -35,7 +35,7 @@ abstract public class DBUpgrade extends BaseDao {
     public static void checkUpgrade() {
         checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
                 .getPackage().getName(), "core", DBUpgrade.class.getClassLoader());
-        LOG.info("Starting instance with core version " + Common.getVersion() + ", db "
+        LOG.info("Starting instance with core version " + Common.getVersion() + ", schema v"
                 + Common.getDatabaseSchemaVersion());
     }
 

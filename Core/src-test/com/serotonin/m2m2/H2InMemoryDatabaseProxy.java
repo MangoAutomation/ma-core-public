@@ -93,22 +93,23 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         this.defaultDataScript = defaultDataScript;
     }
     
+    public String getUrl() {
+        return "jdbc:h2:mem:" + databaseName+ ";DB_CLOSE_DELAY=-1";
+    }
+    
     public void runScriptPreInitialize(InputStream scriptStream) {
         JdbcDataSource jds = new JdbcDataSource();
-        String url = "jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1";
+        String url = getUrl();
         jds.setUrl(url);
         JdbcConnectionPool dataSource = JdbcConnectionPool.create(jds);
         
         dataSource.dispose();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#initialize(java.lang.ClassLoader)
-     */
     @Override
     public void initialize(ClassLoader classLoader) {
         JdbcDataSource jds = new JdbcDataSource();
-        String url = "jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1";
+        String url = getUrl();
         jds.setUrl(url);
         dataSource = JdbcConnectionPool.create(jds);
         transactionManager = new DataSourceTransactionManager(dataSource);
@@ -186,17 +187,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         initialized = true;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getType()
-     */
     @Override
     public DatabaseType getType() {
        return DatabaseType.H2;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#terminate(boolean)
-     */
     @Override
     public void terminate(boolean terminateNoSql) {
         if (dataSource != null)
@@ -214,84 +209,55 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#terminateImpl()
-     */
     @Override
     public void terminateImpl() {
 
         
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDataSource()
-     */
     @Override
     public DataSource getDataSource() {
         return dataSource;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#applyBounds(double)
-     */
     @Override
     public double applyBounds(double value) {
         return value;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDataDirectory()
-     */
     @Override
     public File getDataDirectory() {
 
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDatabaseSizeInBytes()
-     */
     @Override
     public Long getDatabaseSizeInBytes() {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#executeCompress(com.serotonin.db.spring.ExtendedJdbcTemplate)
-     */
     @Override
     public void executeCompress(ExtendedJdbcTemplate ejt) {
 
         
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#tableExists(com.serotonin.db.spring.ExtendedJdbcTemplate, java.lang.String)
-     */
     @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
         return ejt.queryForObject("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
                 + tableName.toUpperCase() + "' AND table_schema='PUBLIC'", new Object[]{}, Integer.class, 0) > 0;
     }
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getActiveConnections()
-     */
+
     @Override
     public int getActiveConnections() {
         return dataSource.getActiveConnections();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getIdleConnections()
-     */
     @Override
     public int getIdleConnections() {
         return dataSource.getMaxConnections() - dataSource.getActiveConnections();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#runScript(java.lang.String[], java.io.OutputStream)
-     */
     @Override
     public void runScript(String[] script, OutputStream out) throws Exception {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
@@ -307,19 +273,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
             if (line.startsWith("--"))
                 continue;
 
-            // Replace macros in the line
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "blob", replacement("blob"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "char", replacement("char"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "clob", replacement("clob"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "double", replacement("double"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "identity", replacement("identity"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "int", replacement("int"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "varchar", replacement("varchar"));
-            //
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "ALTER COLUMN", replacement("ALTER COLUMN"));
-            //            line = com.serotonin.util.StringUtils.replaceMacro(line, "DROP FOREIGN KEY",
-            //                    replacement("DROP FOREIGN KEY"));
-
             statement.append(line);
             statement.append(" ");
             if (line.endsWith(";")) {
@@ -331,9 +284,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#runScript(java.io.InputStream, java.io.OutputStream)
-     */
     @Override
     public void runScript(InputStream input, OutputStream out) {
         BufferedReader in = null;
@@ -363,17 +313,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getTableListQuery()
-     */
     @Override
     public String getTableListQuery() {
         return "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='PUBLIC'";
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#runScriptFile(java.lang.String, java.io.OutputStream)
-     */
     @Override
     public void runScriptFile(String scriptFile, OutputStream out) {
         try {
@@ -384,9 +328,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#doInConnection(com.serotonin.db.spring.ConnectionCallbackVoid)
-     */
     @Override
     public void doInConnection(ConnectionCallbackVoid callback) {
         DataSource dataSource = getDataSource();
@@ -416,9 +357,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#doLimitQuery(com.serotonin.db.DaoUtils, java.lang.String, java.lang.Object[], org.springframework.jdbc.core.RowMapper, int)
-     */
     @Override
     public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper,
             int limit) {
@@ -427,9 +365,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         return dao.query(sql, args, rowMapper);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#doLimitDelete(com.serotonin.db.spring.ExtendedJdbcTemplate, java.lang.String, java.lang.Object[], int, int, int)
-     */
     @Override
     public long doLimitDelete(ExtendedJdbcTemplate ejt, String sql, Object[] args, int chunkSize,
             int chunkWait, int limit) {
@@ -465,25 +400,16 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
         return sql + " LIMIT " + chunkSize;
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDatabasePassword(java.lang.String)
-     */
     @Override
     public String getDatabasePassword(String propertyPrefix) {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#setNoSQLProxy(com.serotonin.m2m2.db.NoSQLProxy)
-     */
     @Override
     public void setNoSQLProxy(NoSQLProxy proxy) {
         this.noSQLProxy = proxy;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#newPointValueDao()
-     */
     @Override
     public PointValueDao newPointValueDao() {
         if(initialized) {
@@ -500,17 +426,14 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
             return mockPointValueDao;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getNoSQLProxy()
-     */
     @Override
     public NoSQLProxy getNoSQLProxy() {
         return noSQLProxy;
     }
 
     /**
-     * @throws Exception 
-     * 
+     * Drop all data and reset to initial state
+     * @throws Exception
      */
     public void clean() throws Exception {
         

@@ -358,20 +358,91 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             fireEvents(null, newValue, null, false, true, logValue, false, false);
     }
 
+    public static enum FireEvents {
+        ALWAYS,
+        ON_CURRENT_VALUE_UPDATE,
+        NEVER;
+    }
+    
     /**
-     * @param newValue
-     * @param source
-     * @param logValue
-     * @param async
      * 
      * This method is called by modules that have the potential to generate a rapid flow of values and backdates
      *  for the purpose of circumventing the update method's various controls on logging behaviors. It does not
      *  generate events because the expected rate of calls from the modules which use it is somewhere between high
      *  and very high.
+     * 
+     * @param newValue - the new value
+     * @param source - for annotation
+     * @param logValue - should the value be logged?
+     * @param async - should this be done asynchronously i.e. queued in a batch 
      */
     public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
             boolean async) {
-    	 valueCache.savePointValue(newValue, source, logValue, async);
+        savePointValueDirectToCache(newValue, source, logValue, async, FireEvents.NEVER);
+    }
+    
+    /**
+     * This method is called by modules that have the potential to generate a rapid flow of values and backdates
+     *  for the purpose of circumventing the update method's various controls on logging behaviors. It can generate events
+     *  if desired.
+     * 
+     * @param newValue - the new value
+     * @param source - for annotation
+     * @param logValue - should the value be logged?
+     * @param async - should this be done asynchronously i.e. queued in a batch 
+     * @param fireEvents - how to fire events, 0=never, 1=if new value's ts is >= pointValue's ts, 2=always
+     */
+    public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
+            boolean async, FireEvents fireEvents) {
+        // Null values are not very nice, and since they don't have a specific meaning they are hereby ignored.
+        if (newValue == null)
+            return;
+
+        // Check the data type of the value against that of the locator, just for fun.
+        int valueDataType = DataTypes.getDataType(newValue.getValue());
+        if (valueDataType != DataTypes.UNKNOWN && valueDataType != vo.getPointLocator().getDataTypeId())
+            // This should never happen, but if it does it can have serious downstream consequences. Also, we need
+            // to know how it happened, and the stack trace here provides the best information.
+            throw new ShouldNeverHappenException("Data type mismatch between new value and point locator: newValue="
+                    + DataTypes.getDataType(newValue.getValue()) + ", locator=" + vo.getPointLocator().getDataTypeId());
+
+        // Check if this value qualifies for discardation.
+        if (vo.isDiscardExtremeValues() && DataTypes.getDataType(newValue.getValue()) == DataTypes.NUMERIC) {
+            double newd = newValue.getDoubleValue();
+            //Discard if NaN
+            if(Double.isNaN(newd))
+                return;
+            
+            if (newd < vo.getDiscardLowLimit() || newd > vo.getDiscardHighLimit())
+                // Discard the value
+                return;
+        }
+
+        if (newValue.getTime() > Common.timer.currentTimeMillis() + SystemSettingsDao.instance.getFutureDateLimit()) {
+            // Too far future dated. Toss it. But log a message first.
+            LOG.warn("Discarding point value", new Exception("Future dated value detected: pointId=" + vo.getId() + ", value=" + newValue.getValue().toString()
+                    + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime()));
+            return;
+        }
+        
+        // add annotation to newValue before firing events so event detectors can
+        // fetch the annotation
+        if (source != null) {
+            newValue = new AnnotatedPointValueTime(newValue.getValue(),
+                    newValue.getTime(), source.getSetPointSourceMessage());
+        }
+
+        valueCache.savePointValue(newValue, source, logValue, async);
+        
+        //Update our value if it is newer
+        if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
+            PointValueTime oldValue = pointValue;
+            pointValue = newValue;
+            if(fireEvents == FireEvents.ON_CURRENT_VALUE_UPDATE || fireEvents == FireEvents.ALWAYS)
+                fireEvents(oldValue, newValue, null, source != null, false, logValue, true, false);
+        }else if(fireEvents == FireEvents.ALWAYS)
+            fireEvents(pointValue, newValue, null, source != null, false, logValue, false, false);
+
     }
 
     //
