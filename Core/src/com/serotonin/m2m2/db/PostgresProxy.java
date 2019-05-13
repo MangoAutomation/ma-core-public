@@ -50,11 +50,17 @@ public class PostgresProxy extends BasePooledProxy {
 
     @Override
     public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit) {
-        if (limit > 0)
-            sql += " LIMIT " + limit;
+        sql = getLimitQuerySql(sql, limit);
         return dao.query(sql, args, rowMapper);
     }
-
+    
+    @Override
+    public String getLimitQuerySql(String sql, int limit) {
+        if (limit > 0)
+            return sql + " LIMIT " + limit;
+        return sql;
+    }
+    
     @Override
     public String getTableListQuery() {
         return "SELECT table_name FROM information_schema.tables "

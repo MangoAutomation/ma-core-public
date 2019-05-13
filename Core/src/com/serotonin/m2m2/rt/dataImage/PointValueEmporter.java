@@ -264,9 +264,9 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	else{
 	    	    if (pointValueDao instanceof EnhancedPointValueDao) {
 	    	        DataSourceVO<?> ds = getDataSource(dp.getDataSourceId());
-	    	        ((EnhancedPointValueDao) pointValueDao).savePointValueAsync(dp, ds, pvt,null);
+	    	        ((EnhancedPointValueDao) pointValueDao).savePointValueAsync(dp, ds, pvt, null, null);
 	    	    } else {
-	    	        pointValueDao.savePointValueAsync(dp.getId(),pvt,null);
+	    	        pointValueDao.savePointValueAsync(dp.getId(), pvt, null, null);
 	    	    }
 	    	}
 

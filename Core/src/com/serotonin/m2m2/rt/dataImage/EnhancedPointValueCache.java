@@ -22,21 +22,11 @@ public class EnhancedPointValueCache extends PointValueCache {
     
     @Override
     void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
-        enhancedDao.savePointValueAsync(dataPoint, dataSource, pvt, source);
+        enhancedDao.savePointValueAsync(dataPoint, dataSource, pvt, source, valueSavedCallback);
     }
     
     @Override
     PointValueTime savePointValueSync(PointValueTime pvt, SetPointSource source) {
         return enhancedDao.savePointValueSync(dataPoint, dataSource, pvt, source);
-    }
-    
-    @Override
-    void updatePointValueAsync(PointValueTime pvt, SetPointSource source) {
-        enhancedDao.updatePointValueAsync(dataPoint, dataSource, pvt, source);
-    }
-    
-    @Override
-    PointValueTime updatePointValueSync(PointValueTime pvt, SetPointSource source) {
-        return enhancedDao.updatePointValueSync(dataPoint, dataSource, pvt, source);
     }
 }

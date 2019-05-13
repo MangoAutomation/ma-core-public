@@ -121,5 +121,13 @@ public interface DatabaseProxy {
      * @return
      */
     NoSQLProxy getNoSQLProxy();
+    
+    /**
+     * Databases have different syntax for limiting queries, this puts the limit directly into the SQL
+     * @param sql
+     * @param limit
+     * @return
+     */
+    String getLimitQuerySql(String sql, int limit);
 
 }
