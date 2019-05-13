@@ -47,7 +47,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
         //throw new NotImplementedException();
         DataPointRT dprt = Common.runtimeManager.getDataPoint(vo.getId());
         if(dprt == null) //point isn't running, we can save the value through the DAO
-            pointValueDao.savePointValueAsync(vo.getId(), newValue, source);
+            pointValueDao.savePointValueAsync(vo.getId(), newValue, source, null);
         else //Give the point a chance to cache the new value
             dprt.savePointValueDirectToCache(newValue, source, true, true);
     }

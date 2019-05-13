@@ -328,6 +328,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         case DataPointVO.LoggingTypes.INTERVAL:
             if (!backdated)
                 intervalSave(newValue);
+            saveValue = true; //We want to save the intra-interval values in the cache
         default:
             logValue = false;
         }
@@ -476,7 +477,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     if(averagingValues.size() > 0) {
                             AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, null, averagingValues);
                             PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
-                        valueCache.logPointValueAsync(newValue, null);
+                        valueCache.savePointValue(newValue, null, true, true);
                         //Fire logged Events
                         fireEvents(null, newValue, null, false, false, true, false, false);
                             averagingValues.clear();
@@ -654,7 +655,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
             if (value != null){
             	PointValueTime newValue = new PointValueTime(value, fireTime);
-                valueCache.logPointValueAsync(newValue, null);
+                valueCache.savePointValue(newValue, null, true, true);
                 //Fire logged Events
                 fireEvents(null, newValue, null, false, false, true, false, false);
             }
@@ -941,23 +942,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         terminateIntervalLogging();
         pointValue = valueCache.getLatestPointValue();
     }
-
-
-    /**
-     * Update the value in the cache with the option to log to DB.
-     * 
-     * This only updates an existing value
-     * 
-     * Caution, this bypasses the Logging Settings
-     * 
-     * @param newValue
-     * @param source
-     * @param logValue
-     * @param async
-     */
-	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
-        valueCache.updatePointValue(newValue, source, logValue, async);
-	}
 	
 	/**
 	 * Get a copy of the current cache

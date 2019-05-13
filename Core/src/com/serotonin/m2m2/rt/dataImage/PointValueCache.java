@@ -7,19 +7,20 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 
 /**
  * This class maintains an ordered list of the most recent values for a data point. It will mirror values in the
- * database, but provide a much faster lookup for a limited number of values.
+ *  database, but provide a much faster lookup for a limited number of values.
  * 
- * Because there is not a significant performance problem for time-based lookups, they are not handled here, but rather
- * are still handled by the database.
+ * This is also used as a store for values that are queued to be saved but may not be saved yet i.e. in a batch 
+ *  write queue allowing a place to access all saved values reliably.
  * 
- * @author Matthew Lohbihler
+ * @author Matthew Lohbihler, Terry Packer
  */
 public class PointValueCache {
     private final int dataPointId;
@@ -37,10 +38,38 @@ public class PointValueCache {
      * time, always use a local copy of the variable for read purposes.
      */
     private List<PointValueTime> cache;
+    private final AtomicLong latestSavedValueTime;
+    protected final Consumer<Long> valueSavedCallback;
 
+    /**
+     * Create a cache for a data point.
+     * 
+     * @param dataPointId
+     * @param defaultSize - the base size of the cache, it will never be smaller than this
+     * @param cache - initial cache, if null then the cache is populated to default size from the database contents
+     */
     public PointValueCache(int dataPointId, int defaultSize, List<PointValueTime> cache) {
         this.dataPointId = dataPointId;
         this.defaultSize = defaultSize;
+        this.latestSavedValueTime = new AtomicLong();
+        this.valueSavedCallback = (time) -> {
+            //Prune cache
+            //TODO Synchronization
+            latestSavedValueTime.set(time);
+            List<PointValueTime> c = this.cache;
+            if(c.size() > maxSize) {
+                List<PointValueTime> newCache = new ArrayList<PointValueTime>(c.size() + 1);
+                newCache.addAll(c);
+                
+                while (newCache.size() > maxSize) {
+                    //If the value has not been saved we are not discarding any data
+                    if(newCache.get(newCache.size() - 1).getTime() > latestSavedValueTime.get())
+                        break;
+                    newCache.remove(newCache.size() - 1);
+                }
+                this.cache = newCache;
+            }
+        };
         
         if (cache == null) {
             this.cache = new ArrayList<>();
@@ -54,76 +83,32 @@ public class PointValueCache {
             } else {
                 this.cache = cache;
             }
+            
+            //Set our known state of saved values
+            if (cache.size() > 0)
+                this.latestSavedValueTime.set(cache.get(0).getTime());
+            
             this.maxSize = defaultSize;
         }
     }
-    
-    void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
-        dao.savePointValueAsync(dataPointId, pvt, source);
-    }
-    
-    PointValueTime savePointValueSync(PointValueTime pvt, SetPointSource source) {
-        return dao.savePointValueSync(dataPointId, pvt, source);
-    }
-    
-    void updatePointValueAsync(PointValueTime pvt, SetPointSource source) {
-        dao.updatePointValueAsync(dataPointId, pvt, source);
-    }
-    
-    PointValueTime updatePointValueSync(PointValueTime pvt, SetPointSource source) {
-        return dao.updatePointValueSync(dataPointId, pvt, source);
-    }
 
     /**
-     * Update a value in the system
-     * @param pvt
-     * @param source
-     * @param logValue - Store in DB and Cache or Just Cache
-     * @param async
-     * @return true if point value existed and was updated, false if value DNE in cache
+     * Save a point value, placing it in the cache.
      * 
+     * @param pvt - value to save
+     * @param source - source to use for annotation
+     * @param logValue - save to database or just cache it
+     * @param async - queue this value into a batch for performance writes
      */
-    public void updatePointValue(PointValueTime pvt, SetPointSource source, boolean logValue, boolean async){
-    	
-        if (logValue) {
-            if (async)
-                updatePointValueAsync(pvt, source);
-            else
-                pvt = updatePointValueSync(pvt, source);
-        }
-    	
-        
-        //Update our point in the cache if it exists
-        List<PointValueTime> c = cache;
-        List<PointValueTime> newCache = new ArrayList<PointValueTime>(c.size() + 1);
-        newCache.addAll(c);
-
-        // Insert the value in the cache.
-        if (newCache.size() == 0)
-            return; //Empty anyway
-        else {
-            ListIterator<PointValueTime> it = newCache.listIterator();
-            while (it.hasNext()) {
-                PointValueTime cachedValue = it.next();
-                if(cachedValue.getTime() == pvt.getTime()){
-                    it.set(pvt); //Replace it and break out
-                    break;
-                }
-            }
-        }
-
-        cache = newCache;
-    	return;
-    }
-    
     public void savePointValue(PointValueTime pvt, SetPointSource source, boolean logValue, boolean async) {
         if (logValue) {
-            if (async)
+            if (async) {
                 savePointValueAsync(pvt, source);
-            else
+            }else
                 pvt = savePointValueSync(pvt, source);
         }
 
+        //TODO Synchronization
         List<PointValueTime> c = cache;
         List<PointValueTime> newCache = new ArrayList<PointValueTime>(c.size() + 1);
         newCache.addAll(c);
@@ -133,27 +118,31 @@ public class PointValueCache {
         if (newCache.size() == 0)
             newCache.add(pvt);
         else {
+            //Find where in the cache we want to place the new value
             while (pos < newCache.size() && newCache.get(pos).getTime() > pvt.getTime())
                 pos++;
-            if (pos < maxSize)
-                newCache.add(pos, pvt);
+            newCache.add(pos, pvt);
         }
 
         // Check if we need to clean up the list
-        while (newCache.size() > maxSize)
+        while (newCache.size() > maxSize) {
+            //If the value has not been saved we are not discarding any data
+            if(newCache.get(newCache.size() - 1).getTime() > latestSavedValueTime.get())
+                break;
             newCache.remove(newCache.size() - 1);
+        }
 
         cache = newCache;
     }
 
-    /**
-     * Saves the given value to the database without adding it to the cache.
-     */
-    void logPointValueAsync(PointValueTime pointValue, SetPointSource source) {
-        // Save the new value and get a point value time back that has the id and annotations set, as appropriate.
-        savePointValueAsync(pointValue, source);
+    void savePointValueAsync(PointValueTime pvt, SetPointSource source) {
+        dao.savePointValueAsync(dataPointId, pvt, source, valueSavedCallback);
     }
-
+    
+    PointValueTime savePointValueSync(PointValueTime pvt, SetPointSource source) {
+        return dao.savePointValueSync(dataPointId, pvt, source);
+    }
+    
     public PointValueTime getLatestPointValue() {
         if (maxSize == 0)
             refreshCache(1);
@@ -192,15 +181,15 @@ public class PointValueCache {
                     List<PointValueTime> c = new ArrayList<PointValueTime>();
                     c.add(pvt);
                     cache = c;
+                    latestSavedValueTime.set(pvt.getTime());
                 }
             }
             else {
-                List<Integer> ids = new ArrayList<>();
-                ids.add(dataPointId);
-                List<PointValueTime> cc = new ArrayList<>();
-                cc.addAll(cache);
+                List<PointValueTime> c = cache;
+                List<PointValueTime> cc = new ArrayList<>(c.size());
+                cc.addAll(c);
                 List<PointValueTime> nc = new ArrayList<PointValueTime>(size);
-                dao.getLatestPointValues(ids, Common.timer.currentTimeMillis() + 1, false, size, (value, index) -> {
+                dao.getLatestPointValues(dataPointId, Common.timer.currentTimeMillis() + 1, size, (value, index) -> {
                     //Cache is in same order as rows
                     if(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
                         //The cached value is newer so add it
@@ -217,6 +206,8 @@ public class PointValueCache {
                     }
                 });
                 cache = nc;
+                if(nc.size() > 0)
+                    latestSavedValueTime.set(nc.get(0).getTime());
             }
         }
     }
