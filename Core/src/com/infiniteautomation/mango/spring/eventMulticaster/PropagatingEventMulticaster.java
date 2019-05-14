@@ -5,8 +5,6 @@ package com.infiniteautomation.mango.spring.eventMulticaster;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
-import java.util.concurrent.ForkJoinWorkerThread;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -30,48 +28,17 @@ import org.springframework.core.ResolvableType;
  */
 
 public class PropagatingEventMulticaster extends SimpleApplicationEventMulticaster {
-    // max #workers - 1
-    static final int MAX_CAP = 0x7fff;
+
     private final Log log = LogFactory.getLog(PropagatingEventMulticaster.class);
 
     private final ApplicationContext context;
     private final EventMulticasterRegistry registry;
 
-    public PropagatingEventMulticaster(ApplicationContext context, EventMulticasterRegistry registry) {
+    public PropagatingEventMulticaster(ForkJoinPool pool, ApplicationContext context, EventMulticasterRegistry registry) {
         super();
-        //We need our threads to have access to the class loader that contains our module loaded classes,
-        //  so we set the class loader for any threads that are created.  The parameters for this constructor
-        //  were lifted from ForkJoinPool.makeCommonPool().  Note that we are not catering for a Security Manager
-        //  by using this code as the ForkJoinPool.makeCommonPool() does.
-        int parallelism = -1;
-        if (parallelism < 0 && // default 1 less than #cores
-            (parallelism = Runtime.getRuntime().availableProcessors() - 1) <= 0)
-            parallelism = 1;
-        if (parallelism > MAX_CAP)
-            parallelism = MAX_CAP;
-        ForkJoinPool pool = new ForkJoinPool(parallelism,
-                new ForkJoinWorkerThreadFactory() {
-                    @Override
-                    public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-                        return new MangoForkJoinWorkerThread(context.getClassLoader(), pool);
-                    }
-                }, null, false);
         this.setTaskExecutor(pool);
         this.registry = registry;
         this.context = context;
-    }
-
-    class MangoForkJoinWorkerThread extends ForkJoinWorkerThread {
-
-        /**
-         * @param classLoader 
-         * @param pool
-         */
-        protected MangoForkJoinWorkerThread(ClassLoader classLoader, ForkJoinPool pool) {
-            super(pool);
-            this.setContextClassLoader(classLoader);
-        }
-        
     }
     
     @PostConstruct
