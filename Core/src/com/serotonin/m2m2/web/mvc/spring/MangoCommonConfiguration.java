@@ -14,7 +14,6 @@ import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
-import com.infiniteautomation.mango.spring.eventMulticaster.MangoForkJoinThreadPoolManager;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
 
 /**
@@ -37,10 +36,9 @@ public class MangoCommonConfiguration {
         return configurer;
     }
 
-
     @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
-    public ApplicationEventMulticaster eventMulticaster(MangoForkJoinThreadPoolManager manager, ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
-        return new PropagatingEventMulticaster(manager.getPool(), context, eventMulticasterRegistry);
+    public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
+        return new PropagatingEventMulticaster(context, eventMulticasterRegistry);
     }
 
 }

@@ -34,9 +34,9 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
     private final ApplicationContext context;
     private final EventMulticasterRegistry registry;
 
-    public PropagatingEventMulticaster(ForkJoinPool pool, ApplicationContext context, EventMulticasterRegistry registry) {
+    public PropagatingEventMulticaster(ApplicationContext context, EventMulticasterRegistry registry) {
         super();
-        this.setTaskExecutor(pool);
+        this.setTaskExecutor(ForkJoinPool.commonPool());
         this.registry = registry;
         this.context = context;
     }
