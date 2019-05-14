@@ -170,6 +170,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     @Override
     public List<PointValueTime> getLatestPointValues(int limit) {
+        //TODO This can expand the cache, perhaps we want to not expand the cache and then fill to limit
+        // from the db.
         return valueCache.getLatestPointValues(limit);
     }
     
@@ -948,10 +950,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 	 * @return
 	 */
 	public List<PointValueTime> getCacheCopy(){
-		List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
-		for(PointValueTime pvt : this.valueCache.getCacheContents())
-			copy.add(pvt);
-		return copy;
+	    List<PointValueTime> c = this.valueCache.getCacheContents();
+		return new ArrayList<PointValueTime>(c);
 	}
 	
 	/**

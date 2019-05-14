@@ -35,6 +35,8 @@ public class PointValueCacheTest extends MangoTestBase {
     private MockDataSourceVO dsVo;
     private DataPointVO dpVo;
     private MockPointLocatorVO plVo;
+    private MockPointLocatorRT plRt;
+    private DataPointRT rt;
 
     
     //TODO Test RT saves callback does prune list properly
@@ -44,14 +46,10 @@ public class PointValueCacheTest extends MangoTestBase {
     
     @Test
     public void testSaveCallbackPrune() {
+        setupRuntime();
+        
         //Insert some test data
-        List<PointValueTime> values = insertValues(5);
-
-        //There should only be 5 values
-        dpVo.setDefaultCacheSize(10);
-        MockPointLocatorRT plRt = new MockPointLocatorRT(plVo);
-        DataPointRT rt = new DataPointRT(dpVo, plRt, dsVo, null, timer);
-        rt.initialize();
+        List<PointValueTime> values = insertValuesIntoRuntime(5);
 
         List<PointValueTime> latest = rt.getLatestPointValues(5);
         assertEquals(5, latest.size());
@@ -63,42 +61,60 @@ public class PointValueCacheTest extends MangoTestBase {
         
         //Insert another 5 values
         for(int i=0; i<5; i++) {
-            rt.updatePointValue(new PointValueTime(currentValue, timer.currentTimeMillis()));
+            PointValueTime pvt = new PointValueTime(currentValue, timer.currentTimeMillis());
+            rt.updatePointValue(pvt);
+            values.add(pvt);
             timer.fastForwardTo(timer.currentTimeMillis() + 1000);
             currentValue += 1.0d;
         }
+        
+        //TODO Sleep/wait/advance timer?
         
         latest = rt.getLatestPointValues(10);
         assertEquals(10, latest.size());
         for(int i=0; i<10; i++) {
             assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
         }
+        
+        //Insert another 5 to see the cache > 10 and then trim back to 10
+        for(int i=0; i<5; i++) {
+            PointValueTime pvt = new PointValueTime(currentValue, timer.currentTimeMillis());
+            rt.updatePointValue(pvt);
+            values.add(pvt);
+            timer.fastForwardTo(timer.currentTimeMillis() + 1000);
+            currentValue += 1.0d;
+        }
+        List<PointValueTime> cacheCopy = rt.getCacheCopy();
+        assertEquals(10, cacheCopy.size());
     }
     
     @Test
     public void testCacheReset() {
         //Insert some test data
-        List<PointValueTime> values = insertValues(5);
+        List<PointValueTime> values = insertValuesIntoDatabase(5);
 
+        setupRuntime();
+        
         //There should only be 5 values
-        PointValueCache cache = new PointValueCache(dataPointId, 10, null);
-        assertEquals(5, cache.getCacheContents().size());
+        List<PointValueTime> cache = rt.getCacheCopy();
+        assertEquals(5, cache.size());
         
         //Check the order (cache is time descending)
         for(int i=0; i<5; i++) {
-            assertEquals(values.get(i), cache.getCacheContents().get(cache.getCacheContents().size() - (i + 1)));
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
         }
         
         //Insert another 5 values
-        values.addAll(insertValues(5));
+        values.addAll(insertValuesIntoRuntime(5));
         
         //Expand cache by resetting it
-        cache.reset();
+        rt.resetValues();
         
-        List<PointValueTime> latest = cache.getLatestPointValues(10);
-        assertEquals(10, cache.getCacheContents().size());
+        List<PointValueTime> latest = rt.getLatestPointValues(10);
+        cache = rt.getCacheCopy();
+        assertEquals(10, cache.size());
         for(int i=0; i<10; i++) {
-            assertEquals(values.get(i), cache.getCacheContents().get(cache.getCacheContents().size() - (i + 1)));
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
             assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
         }
     }
@@ -106,27 +122,31 @@ public class PointValueCacheTest extends MangoTestBase {
     
     @Test
     public void testCacheGetLatestPointValues() {
+        
+        setupRuntime();
+        
         //Insert some test data
-        List<PointValueTime> values = insertValues(5);
+        List<PointValueTime> values = insertValuesIntoRuntime(5);
 
         //There should only be 5 values
-        PointValueCache cache = new PointValueCache(dataPointId, 10, null);
-        assertEquals(5, cache.getCacheContents().size());
+        List<PointValueTime> cache = rt.getCacheCopy();
+        assertEquals(5, cache.size());
         
         //Check the order (cache is time descending)
         for(int i=0; i<5; i++) {
-            assertEquals(values.get(i), cache.getCacheContents().get(cache.getCacheContents().size() - (i + 1)));
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
         }
         
         //Insert another 5 values
-        values.addAll(insertValues(5));
+        values.addAll(insertValuesIntoRuntime(5));
         
         //TODO This revealed a bug?  The cache is 5 and won't expand to 10...
         //Expand cache
-        List<PointValueTime> latest = cache.getLatestPointValues(10);
-        assertEquals(10, cache.getCacheContents().size());
+        List<PointValueTime> latest = rt.getLatestPointValues(10);
+        cache = rt.getCacheCopy();
+        assertEquals(10, cache.size());
         for(int i=0; i<10; i++) {
-            assertEquals(values.get(i), cache.getCacheContents().get(cache.getCacheContents().size() - (i + 1)));
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
             assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
         }
     }
@@ -154,6 +174,17 @@ public class PointValueCacheTest extends MangoTestBase {
         
         currentValue = 0;
     }
+
+    /**
+     * Setup the runtime, useful to fill database with values to load in cache on initialization of point
+     */
+    private void setupRuntime() {
+        //There should only be 5 values
+        dpVo.setDefaultCacheSize(10);
+        plRt = new MockPointLocatorRT(plVo);
+        rt = new DataPointRT(dpVo, plRt, dsVo, null, timer);
+        rt.initialize();
+    }
     
     @After
     public void afterPointValueCacheTest() {
@@ -163,7 +194,31 @@ public class PointValueCacheTest extends MangoTestBase {
             DataSourceDao.getInstance().delete(dataSourceId);
     }
     
-    private List<PointValueTime> insertValues(int count) {
+    /**
+     * Insert values directly into the DataPointRT and its cache.  Used to simulate a running point
+     * saving values.
+     * @param count
+     * @return
+     */
+    private List<PointValueTime> insertValuesIntoRuntime(int count) {
+        List<PointValueTime> values = new ArrayList<>();
+        for(int i=0; i<count; i++) {
+            PointValueTime pvt = new PointValueTime(currentValue, timer.currentTimeMillis());
+            rt.updatePointValue(pvt);
+            values.add(pvt);
+            timer.fastForwardTo(timer.currentTimeMillis() + 1000);
+            currentValue += 1.0d;
+        }
+        return values;
+    }
+    
+    /**
+     * Put the values directly into the database, bypass the cache.  Helps to simulate a point not running
+     * and its values being updated externally via a sync or import.
+     * @param count
+     * @return
+     */
+    private List<PointValueTime> insertValuesIntoDatabase(int count) {
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         List<PointValueTime> values = new ArrayList<>();
         for(int i=0; i<count; i++) {
