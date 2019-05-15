@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,14 +39,14 @@ public class PointValueCacheTest extends MangoTestBase {
     private MockPointLocatorRT plRt;
     private DataPointRT rt;
 
-    
-    //TODO Test RT saves callback does prune list properly
     //TODO Test synchronization
     //TODO Test public void reset(long before)
     //TODO Test public PointValueTime getLatestPointValue() 
+    //TODO Test insert backdated values 
+    
     
     @Test
-    public void testSaveCallbackPrune() {
+    public void testSaveCallbackPrune() throws InterruptedException {
         setupRuntime();
         
         //Insert some test data
@@ -60,15 +61,7 @@ public class PointValueCacheTest extends MangoTestBase {
         }
         
         //Insert another 5 values
-        for(int i=0; i<5; i++) {
-            PointValueTime pvt = new PointValueTime(currentValue, timer.currentTimeMillis());
-            rt.updatePointValue(pvt);
-            values.add(pvt);
-            timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-            currentValue += 1.0d;
-        }
-        
-        //TODO Sleep/wait/advance timer?
+        values.addAll(insertValuesIntoRuntime(5));
         
         latest = rt.getLatestPointValues(10);
         assertEquals(10, latest.size());
@@ -77,15 +70,28 @@ public class PointValueCacheTest extends MangoTestBase {
         }
         
         //Insert another 5 to see the cache > 10 and then trim back to 10
-        for(int i=0; i<5; i++) {
-            PointValueTime pvt = new PointValueTime(currentValue, timer.currentTimeMillis());
-            rt.updatePointValue(pvt);
-            values.add(pvt);
-            timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-            currentValue += 1.0d;
+        values.addAll(insertValuesIntoRuntime(5));
+        
+        int retries = 10;
+        while(retries > 0) {
+            //Force refresh so that all saved values get cleared out
+            rt.resetValues();
+            List<PointValueTime> cacheCopy = rt.getCacheCopy();
+            if(cacheCopy.size() == 10)
+                break;
+            Thread.sleep(100);
+            retries--;
         }
+        if(retries == 0)
+            fail("Didn't recieve all values into cache.  Cache size is " + rt.getCacheCopy().size());
+        
+        //assert cache contents, there will have been 15 inserted and we will compare the latest 10 which should be
+        // in the cache
         List<PointValueTime> cacheCopy = rt.getCacheCopy();
         assertEquals(10, cacheCopy.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i + 5), cacheCopy.get(cacheCopy.size() - (i + 1)));
+        }
     }
     
     @Test
@@ -179,7 +185,6 @@ public class PointValueCacheTest extends MangoTestBase {
      * Setup the runtime, useful to fill database with values to load in cache on initialization of point
      */
     private void setupRuntime() {
-        //There should only be 5 values
         dpVo.setDefaultCacheSize(10);
         plRt = new MockPointLocatorRT(plVo);
         rt = new DataPointRT(dpVo, plRt, dsVo, null, timer);
