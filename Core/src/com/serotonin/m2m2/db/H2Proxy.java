@@ -215,10 +215,6 @@ public class H2Proxy extends AbstractDatabaseProxy {
         if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
             url += ";DB_CLOSE_ON_EXIT=FALSE";
         }
-        //Enforce use a MV Store
-        if (!url.contains(";MV_STORE=")) {
-            url = url.replaceAll(";MV_STORE=", "");
-        }
         if (!url.contains(";IGNORECASE=")) {
             url += ";IGNORECASE=TRUE";
         }
@@ -353,7 +349,15 @@ public class H2Proxy extends AbstractDatabaseProxy {
         if (dataDir == null) {
             return null;
         }
-        File dbData = new File(dataDir + ".h2.db"); // Good until we change to MVStore
+        
+        File dbData;
+        //Detect page store or mv store
+        String url = getUrl("");
+        if(url.toLowerCase().contains("mv_store=false"))
+            dbData = new File(dataDir + ".h2.db"); // Good until we change to MVStore
+        else
+            dbData = new File(dataDir + ".mv.db");
+        
         if (dbData.exists()) {
             DirectoryInfo dbInfo = DirectoryUtils.getSize(dbData);
             return dbInfo.getSize();
