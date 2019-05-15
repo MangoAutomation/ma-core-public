@@ -18,9 +18,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -162,6 +164,18 @@ public class Common {
         }
     }
 
+    private static final AtomicReference<ClassLoader> MODULE_CLASS_LOADER_HOLDER = new AtomicReference<>();
+
+    public static void setModuleClassLoader(ClassLoader loader) {
+        if (!MODULE_CLASS_LOADER_HOLDER.compareAndSet(null, loader)) {
+            throw new IllegalStateException("Module class loader is already set");
+        }
+    }
+
+    public static ClassLoader getModuleClassLoader() {
+        return Objects.requireNonNull(MODULE_CLASS_LOADER_HOLDER.get());
+    }
+
     //
     // License
     static InstanceLicense license;
@@ -207,13 +221,13 @@ public class Common {
     public static final int getLicenseAgreementVersion() {
         return CoreVersion.INSTANCE.licenseAgreementVersion;
     }
-    
+
     private enum CoreVersion {
         INSTANCE();
         final Version version;
         //Track license agreement version to ensure the admin users have accepted the current version of our license
         final int licenseAgreementVersion = 1;
-        
+
         CoreVersion() {
             Version version = CompiledCoreVersion.VERSION;
 
@@ -658,7 +672,7 @@ public class Common {
 
     //
     // HttpClient
-    
+
     /**
      * Get default HTTP Client with 30s timeout
      * @return
@@ -677,14 +691,14 @@ public class Common {
         // Create global request configuration
         Builder defaultRequestConfigBuilder = getDefaultRequestConfig();
         defaultRequestConfigBuilder.setSocketTimeout(timeout)
-            .setConnectTimeout(timeout);
-        
+        .setConnectTimeout(timeout);
+
         HttpClientBuilder builder = getDefaultHttpClientBuilder();
         builder.setRetryHandler(new DefaultHttpRequestRetryHandler(retries, false));
         builder.setDefaultRequestConfig(defaultRequestConfigBuilder.build());
         return builder.build();
     }
-    
+
     /**
      * Get an HTTP Client with default settings and assigned timeout
      * @param timeout
@@ -694,12 +708,12 @@ public class Common {
         // Create global request configuration
         Builder defaultRequestConfigBuilder = getDefaultRequestConfig();
         defaultRequestConfigBuilder.setSocketTimeout(timeout).setConnectTimeout(timeout).build();
-        
+
         HttpClientBuilder builder = getDefaultHttpClientBuilder();
         builder.setDefaultRequestConfig(defaultRequestConfigBuilder.build());
         return builder.build();
     }
-    
+
     /**
      * Get a builder defaulted with System Settings values
      * @return
@@ -723,16 +737,16 @@ public class Common {
             return HttpClients.custom();
         }
     }
-    
+
     /**
      * Get the default request config builder to customize
      * @return
      */
     public static Builder getDefaultRequestConfig() {
         return RequestConfig.custom().setCookieSpec(CookieSpecs.DEFAULT)
-        .setExpectContinueEnabled(true)
-        .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
-        .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC));
+                .setExpectContinueEnabled(true)
+                .setTargetPreferredAuthSchemes(Arrays.asList(AuthSchemes.NTLM, AuthSchemes.DIGEST))
+                .setProxyPreferredAuthSchemes(Arrays.asList(AuthSchemes.BASIC));
 
     }
 
