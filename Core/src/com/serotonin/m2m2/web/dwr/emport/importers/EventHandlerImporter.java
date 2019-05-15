@@ -55,51 +55,53 @@ public class EventHandlerImporter extends Importer {
         JsonObject et = json.getJsonObject("eventType");
         JsonArray ets = json.getJsonArray("eventTypes");
         
-        try {
-            ctx.getReader().readInto(handler, json);
-            
-            Set<EventType> eventTypes;
-            if(handler.getEventTypes() == null) {
-                eventTypes = new HashSet<>();
-            }else {
-                eventTypes = new HashSet<>(handler.getEventTypes());
-            }
-            // Find the event type.
-            if(et != null)
-                eventTypes.add(ctx.getReader().read(EventType.class, et));
-            else if(ets != null) {
-                Iterator<JsonValue> iter = ets.iterator();
-                while(iter.hasNext())
-                    eventTypes.add(ctx.getReader().read(EventType.class, iter.next()));
-            }
-            
-            if(eventTypes.size() > 0)
-                handler.setEventTypes(new ArrayList<>(eventTypes));
-
-            // Now validate it. Use a new response object so we can distinguish errors in this vo from other errors.
-            ProcessResult voResponse = new ProcessResult();
-            handler.validate(voResponse);
-            if (voResponse.getHasMessages())
-                setValidationMessages(voResponse, "emport.eventHandler.prefix", xid);
-            else {
-                // Sweet.
-                boolean isnew = handler.getId() == Common.NEW_ID;
-                if(isnew) {
-                    ctx.getEventHandlerDao().insert(handler, true);
-                }else {
-                    AbstractEventHandlerVO<?> existing = ctx.getEventHandlerDao().getEventHandler(xid);
-                    ctx.getEventHandlerDao().update(existing, handler, true);
-                }
-                // Save it.
+        if(handler != null) {
+            try {
+                ctx.getReader().readInto(handler, json);
                 
-                addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
+                Set<EventType> eventTypes;
+                if(handler.getEventTypes() == null) {
+                    eventTypes = new HashSet<>();
+                }else {
+                    eventTypes = new HashSet<>(handler.getEventTypes());
+                }
+                // Find the event type.
+                if(et != null)
+                    eventTypes.add(ctx.getReader().read(EventType.class, et));
+                else if(ets != null) {
+                    Iterator<JsonValue> iter = ets.iterator();
+                    while(iter.hasNext())
+                        eventTypes.add(ctx.getReader().read(EventType.class, iter.next()));
+                }
+                
+                if(eventTypes.size() > 0)
+                    handler.setEventTypes(new ArrayList<>(eventTypes));
+    
+                // Now validate it. Use a new response object so we can distinguish errors in this vo from other errors.
+                ProcessResult voResponse = new ProcessResult();
+                handler.validate(voResponse);
+                if (voResponse.getHasMessages())
+                    setValidationMessages(voResponse, "emport.eventHandler.prefix", xid);
+                else {
+                    // Sweet.
+                    boolean isnew = handler.getId() == Common.NEW_ID;
+                    if(isnew) {
+                        ctx.getEventHandlerDao().insert(handler, true);
+                    }else {
+                        AbstractEventHandlerVO<?> existing = ctx.getEventHandlerDao().getEventHandler(xid);
+                        ctx.getEventHandlerDao().update(existing, handler, true);
+                    }
+                    // Save it.
+                    
+                    addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
+                }
             }
-        }
-        catch (TranslatableJsonException e) {
-            addFailureMessage("emport.eventHandler.prefix", xid, e.getMsg());
-        }
-        catch (JsonException e) {
-            addFailureMessage("emport.eventHandler.prefix", xid, getJsonExceptionMessage(e));
+            catch (TranslatableJsonException e) {
+                addFailureMessage("emport.eventHandler.prefix", xid, e.getMsg());
+            }
+            catch (JsonException e) {
+                addFailureMessage("emport.eventHandler.prefix", xid, getJsonExceptionMessage(e));
+            }
         }
     }
 }
