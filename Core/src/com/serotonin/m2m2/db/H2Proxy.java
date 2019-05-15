@@ -123,7 +123,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             
             //Check dump file existence, if so abort startup
             if(dumpPath.toFile().exists())
-                throw new ShouldNeverHappenException("Found upgrade database backup, aborting startup.  Likely corrupt database, replace with contents from " + dumpPath.toString());
+                throw new ShouldNeverHappenException("Found upgrade database backup, aborting startup.  Likely corrupt database, a clean backup can be found here: " + dumpPath.toString());
             
             try {
                 LOG.info("Dumping legacy database to file " + dumpPath.toString());
@@ -156,7 +156,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             } catch(Exception e) {
                 if(e.getCause() instanceof JdbcSQLIntegrityConstraintViolationException) {
                     //This is very likely a db that failed to open due to it being a legacy DB that was already opened 1x by a later H2 driver
-                    throw new ShouldNeverHappenException("H2 Failed to start, likely corrupt database replace with contents of backup at: " + dumpPath.toString());
+                    throw new ShouldNeverHappenException("H2 Failed to start. Likely corrupt database, a clean backup can be found here: " + dumpPath.toString());
                 }else
                     throw new ShouldNeverHappenException(e);
             }
