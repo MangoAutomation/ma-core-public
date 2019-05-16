@@ -56,7 +56,7 @@
 * Fix bug where Change and NoChange event detectors could be initialized to wait too long for the first change/no change event 
 * Upgrade H2 to stop size of database from continuously growing, for this fix Mango will automatically dump and re-import your database on startup as H2 databases from older versions are not compatible in binary form
 * H2 databases will now force use of the MVStore engine (previously Mango used the PageStore)
-* ALPN support for Java 10+, set the environment property ssl.alpn.on=true and make sure the ALPN startup extension is not in use as that will cause problems
+* ALPN (Application-Layer Protocol Negotiation) for HTTP/2 on Java 10+, make sure the ALPN startup extension is not in use as that will cause problems
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions
