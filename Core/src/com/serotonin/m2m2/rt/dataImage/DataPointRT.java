@@ -87,16 +87,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param initialCache
      */
     public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
-        this.vo = vo;
-        this.dsVo = dsVo;
-        this.pointLocator = pointLocator;
-        if (enhanced) {
-            valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache);
-        } else {
-            valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);
-        }
-        if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
-        	averagingValues = new ArrayList<IValueTime>();
+        this(vo, pointLocator, dsVo, initialCache, Common.timer);
     }
 
     /**
@@ -108,8 +99,18 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param timer
      */
     public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
-        this(vo, pointLocator, dsVo, initialCache);
+        this.vo = vo;
+        this.dsVo = dsVo;
+        this.pointLocator = pointLocator;
         this.timer = timer;
+        if (enhanced) {
+            valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache, timer);
+        } else {
+            valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache, timer);
+        }
+        if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
+            averagingValues = new ArrayList<IValueTime>();
+
     }
     
 	//
@@ -136,6 +137,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         return Common.databaseProxy.newPointValueDao().getPointValueAt(vo.getId(), time);
     }
 
+    /**
+     * Get the point value at or just after this time
+     */
     @Override
     public PointValueTime getPointValueAfter(long time) {
     	
@@ -170,8 +174,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     //
     @Override
     public List<PointValueTime> getLatestPointValues(int limit) {
-        //TODO This can expand the cache, perhaps we want to not expand the cache and then fill to limit
-        // from the db.
         return valueCache.getLatestPointValues(limit);
     }
     
@@ -910,8 +912,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             pedRT.initialize();
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
         }
-
-        //initializeIntervalLogging();
     }
 
     @Override

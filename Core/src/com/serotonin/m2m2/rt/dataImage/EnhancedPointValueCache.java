@@ -8,14 +8,15 @@ import java.util.List;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.timer.AbstractTimer;
 
 public class EnhancedPointValueCache extends PointValueCache {
     private final DataPointVO dataPoint;
     private final DataSourceVO<?> dataSource;
     private static final EnhancedPointValueDao enhancedDao = (EnhancedPointValueDao)PointValueCache.dao; //See PointValueCache.dao
 
-    public EnhancedPointValueCache(DataPointVO dataPoint, DataSourceVO<?> dataSource, int defaultSize, List<PointValueTime> cache) {
-        super(dataPoint.getId(), defaultSize, cache);
+    public EnhancedPointValueCache(DataPointVO dataPoint, DataSourceVO<?> dataSource, int defaultSize, List<PointValueTime> cache, AbstractTimer timer) {
+        super(dataPoint.getId(), defaultSize, cache, timer);
         this.dataPoint = dataPoint;
         this.dataSource = dataSource;
     }

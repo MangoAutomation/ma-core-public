@@ -227,7 +227,7 @@ abstract public class AbstractPointWrapper {
     }
     
     /**
-     * Get the nearest point value after the timestamp, not using cache
+     * Get the nearest point value after or at the timestamp, not using cache
      * @param timestamp
      * @return nearest value OR null
      */
@@ -236,7 +236,7 @@ abstract public class AbstractPointWrapper {
     }
     
     /**
-     * Get the nearest point value after the timestamp, optionally using cache
+     * Get the nearest point value after or at the timestamp, optionally using cache
      * @param timestamp
      * @param cache
      * @return nearest value OR null

@@ -4,50 +4,311 @@
 package com.serotonin.m2m2.rt.dataImage;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
-import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
-import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
-
 /**
+ * Tests for cache expansion, contraction and unsaved values tracking
+ * 
  * @author Terry Packer
  *
  */
-public class PointValueCacheTest extends MangoTestBase {
-
-    private int dataSourceId = Common.NEW_ID;
-    private int dataPointId = Common.NEW_ID;
-    private double currentValue;
-    private MockDataSourceVO dsVo;
-    private DataPointVO dpVo;
-    private MockPointLocatorVO plVo;
-    private MockPointLocatorRT plRt;
-    private DataPointRT rt;
-
-    //TODO Test synchronization
-    //TODO Test public void reset(long before)
-    //TODO Test public PointValueTime getLatestPointValue() 
-    //TODO Test insert backdated values 
-    
+public class PointValueCacheTest extends AbstractPointValueCacheTestBase {
     
     @Test
+    public void testBackDates() {
+        setupRuntime(10);
+        
+        //Fast forward to 10s
+        currentValue = 5;
+        timer.fastForwardTo(timer.currentTimeMillis() + 10000);
+        
+        List<PointValueTime> values = insertValuesIntoRuntime(10);
+        List<PointValueTime> latest = rt.getLatestPointValues(10);
+        assertEquals(10, latest.size());
+        //Check the order (cache is time descending)
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Insert values in the past
+        PointValueTime value = new PointValueTime(0.0d, 0);
+        rt.updatePointValue(value);
+        values.add(0, value);
+        currentValue++;
+        
+        value = new PointValueTime(1.0d, 1000);
+        rt.updatePointValue(value);
+        values.add(0, value);
+        currentValue++;
+        
+        value = new PointValueTime(2.0d, 2000);
+        rt.updatePointValue(value);
+        values.add(0, value);
+        currentValue++;
+        
+        value = new PointValueTime(3.0d, 3000);
+        rt.updatePointValue(value);
+        values.add(0, value);
+        currentValue++;
+        
+        value = new PointValueTime(4.0d, 4000);
+        rt.updatePointValue(value);
+        values.add(0, value);
+        currentValue++;
+        
+        //Validate that the cache does not contain these values, the cache should be size 10
+        latest = rt.getLatestPointValues(10);
+        List<PointValueTime> cache = rt.getCacheCopy();
+        assertEquals(10, latest.size());
+        assertEquals(10, cache.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i + 5), cache.get(cache.size() - (i + 1)));
+            assertEquals(values.get(i + 5), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Reset the cache and see that is has the latest 10 values
+        rt.resetValues();
+        latest = rt.getLatestPointValues(10);
+        cache = rt.getCacheCopy();
+        assertEquals(10, latest.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i + 5), cache.get(cache.size() - (i + 1)));
+            assertEquals(values.get(i + 5), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
+    }
+
+    @Test
+    public void testFutureDates() {
+        setupRuntime(10);
+        
+        List<PointValueTime> values = insertValuesIntoRuntime(10);
+        List<PointValueTime> latest = rt.getLatestPointValues(10);
+        assertEquals(10, latest.size());
+        //Check the order (cache is time descending)
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Insert values in the future
+        PointValueTime value = new PointValueTime(currentValue, timer.currentTimeMillis());
+        rt.updatePointValue(value);
+        values.add(value);
+        currentValue++;
+        
+        value = new PointValueTime(currentValue, timer.currentTimeMillis() + 1000);
+        rt.updatePointValue(value);
+        values.add(value);
+        currentValue++;
+        
+        value = new PointValueTime(currentValue, timer.currentTimeMillis() + 2000);
+        rt.updatePointValue(value);
+        values.add(value);
+        currentValue++;
+        
+        value = new PointValueTime(currentValue, timer.currentTimeMillis() + 3000);
+        rt.updatePointValue(value);
+        values.add(value);
+        currentValue++;
+        
+        value = new PointValueTime(currentValue, timer.currentTimeMillis() + 4000);
+        rt.updatePointValue(value);
+        values.add(value);
+        currentValue++;
+        
+        //Validate that the cache contains these values, note the cache copy may be larger than 10 here
+        latest = rt.getLatestPointValues(10);
+        List<PointValueTime> cache = rt.getCacheCopy();
+        int cacheOffset = cache.size() - latest.size();
+        assertEquals(10, latest.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i + 5), cache.get(cache.size() - (i + 1 + cacheOffset)));
+            assertEquals(values.get(i + 5), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Reset the cache and see that is has the latest 10 values
+        rt.resetValues();
+        latest = rt.getLatestPointValues(10);
+        cache = rt.getCacheCopy();
+        assertEquals(10, latest.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i + 5), cache.get(cache.size() - (i + 1)));
+            assertEquals(values.get(i + 5), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
+        
+    }
+    
+    @Test 
+    public void testResetBefore() {
+        //Insert some test data
+        List<PointValueTime> values = insertValuesIntoDatabase(5);
+
+        setupRuntime(10);
+        
+        //There should only be 5 values
+        List<PointValueTime> cache = rt.getCacheCopy();
+        assertEquals(5, cache.size());
+        
+        //Check the order (cache is time descending)
+        for(int i=0; i<5; i++) {
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
+        }
+        
+        //Insert another 10 values
+        values.addAll(insertValuesIntoRuntime(5));
+        
+        //Reset cache, this will expand it to max
+        rt.resetValues((1000 * 3) + 1);
+        ensureValuesInDatabase(10, 5);
+        
+        //Confirm cache is expanded and correct
+        cache = rt.getCacheCopy();
+        assertEquals(10, cache.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
+        }
+        
+        //Get all cached values
+        List<PointValueTime> latest = rt.getLatestPointValues(10);
+        cache = rt.getCacheCopy();
+        assertEquals(10, cache.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
+        
+        //Totally reset the cache
+        rt.resetValues((values.size() * 1000) + 1);
+        //Confirm cache is expanded and correct
+        cache = rt.getCacheCopy();
+        assertEquals(10, cache.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
+        }
+        
+        //Reset the cache in a way that no values are removed
+        rt.resetValues(0);
+        //Confirm cache is expanded and correct
+        cache = rt.getCacheCopy();
+        assertEquals(10, cache.size());
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
+        }
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
+    }
+    
+    @Test
+    public void testLatestPointValuesSynchronization() {
+        setupRuntime(1);
+        List<PointValueTime> values = insertValuesIntoRuntime(10);
+        List<PointValueTime> latest = rt.getLatestPointValues(10);
+        assertEquals(10, latest.size());
+        //Check the order (cache is time descending)
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        ensureValuesInDatabase(10, 5);
+        rt.resetValues();
+        
+        //Try expanding the cache
+        latest = rt.getLatestPointValues(10);
+        assertEquals(10, latest.size());
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
+    }
+    
+    @Test
+    public void testCacheSize1() {
+        setupRuntime(1);
+        
+        List<PointValueTime> values = insertValuesIntoRuntime(10);
+        List<PointValueTime> latest = rt.getLatestPointValues(10);
+        assertEquals(10, latest.size());
+        //Check the order (cache is time descending)
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        ensureValuesInDatabase(10, 5);
+        rt.resetValues();
+        
+        latest = rt.getLatestPointValues(1);
+        assertEquals(1, latest.size());
+        assertEquals(values.get(9), latest.get(0));
+        
+        //Try expanding the cache
+        latest = rt.getLatestPointValues(10);
+        assertEquals(10, latest.size());
+        
+        //Check the order (cache is time descending)
+        for(int i=0; i<10; i++) {
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
+    }
+    
+    @Test
+    public void testManyUnsavedInCache() throws InterruptedException {
+        setupRuntime(10);
+        
+        //Insert some test data
+        int inserted = 1000;
+        List<PointValueTime> values = insertValuesIntoRuntime(inserted);
+        
+        //Get a snapshot of the cache in an expanded state
+        List<PointValueTime> cacheCopy = rt.getCacheCopy();
+        //Ensure the order is correct
+        int valuePos = values.size() - 1;
+        for(int i=0; i<cacheCopy.size(); i++) {
+            assertEquals(values.get(valuePos), cacheCopy.get(i));
+            valuePos--;
+        }
+        
+        List<PointValueTime> latest = rt.getLatestPointValues(inserted);
+        assertEquals(inserted, latest.size());
+        //Check the order (cache is time descending)
+        for(int i=0; i<inserted; i++) {
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        ensureValuesInDatabase(inserted, 50);
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
+    }
+    
+    /**
+     * Insert 5 values - confirm they are in the cache
+     * 
+     * Insert 5 more values - confirm they are in the cache
+     * 
+     * Insert 5 more values - reset cache until until it drops to size 10
+     * 
+     * Confirm the 10 values in cache are the latest 10
+     * 
+     * Query for all 15 values inserted, this expands the cache
+     * @throws InterruptedException
+     */
+    @Test
     public void testSaveCallbackPrune() throws InterruptedException {
-        setupRuntime();
+        setupRuntime(10);
         
         //Insert some test data
         List<PointValueTime> values = insertValuesIntoRuntime(5);
@@ -72,26 +333,29 @@ public class PointValueCacheTest extends MangoTestBase {
         //Insert another 5 to see the cache > 10 and then trim back to 10
         values.addAll(insertValuesIntoRuntime(5));
         
-        int retries = 10;
-        while(retries > 0) {
-            //Force refresh so that all saved values get cleared out
-            rt.resetValues();
-            List<PointValueTime> cacheCopy = rt.getCacheCopy();
-            if(cacheCopy.size() == 10)
-                break;
-            Thread.sleep(100);
-            retries--;
-        }
-        if(retries == 0)
-            fail("Didn't recieve all values into cache.  Cache size is " + rt.getCacheCopy().size());
+        //This cache will very likely be > 10 as the point values are in the batch writer
+        List<PointValueTime> cacheCopy = rt.getCacheCopy();
+        
+        rt.resetValues();
+        ensureValuesInDatabase(15, 5);
         
         //assert cache contents, there will have been 15 inserted and we will compare the latest 10 which should be
         // in the cache
-        List<PointValueTime> cacheCopy = rt.getCacheCopy();
+        cacheCopy = rt.getCacheCopy();
         assertEquals(10, cacheCopy.size());
         for(int i=0; i<10; i++) {
             assertEquals(values.get(i + 5), cacheCopy.get(cacheCopy.size() - (i + 1)));
         }
+        
+        //Check for all 15 values
+        latest = rt.getLatestPointValues(15);
+        assertEquals(15, latest.size());
+        for(int i=0; i<15; i++) {
+            assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
+        }
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
     }
     
     @Test
@@ -99,7 +363,7 @@ public class PointValueCacheTest extends MangoTestBase {
         //Insert some test data
         List<PointValueTime> values = insertValuesIntoDatabase(5);
 
-        setupRuntime();
+        setupRuntime(10);
         
         //There should only be 5 values
         List<PointValueTime> cache = rt.getCacheCopy();
@@ -115,6 +379,7 @@ public class PointValueCacheTest extends MangoTestBase {
         
         //Expand cache by resetting it
         rt.resetValues();
+        ensureValuesInDatabase(10, 5);
         
         List<PointValueTime> latest = rt.getLatestPointValues(10);
         cache = rt.getCacheCopy();
@@ -123,13 +388,16 @@ public class PointValueCacheTest extends MangoTestBase {
             assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
             assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
         }
+        
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
     }
     
     
     @Test
     public void testCacheGetLatestPointValues() {
         
-        setupRuntime();
+        setupRuntime(10);
         
         //Insert some test data
         List<PointValueTime> values = insertValuesIntoRuntime(5);
@@ -146,7 +414,6 @@ public class PointValueCacheTest extends MangoTestBase {
         //Insert another 5 values
         values.addAll(insertValuesIntoRuntime(5));
         
-        //TODO This revealed a bug?  The cache is 5 and won't expand to 10...
         //Expand cache
         List<PointValueTime> latest = rt.getLatestPointValues(10);
         cache = rt.getCacheCopy();
@@ -155,84 +422,8 @@ public class PointValueCacheTest extends MangoTestBase {
             assertEquals(values.get(i), cache.get(cache.size() - (i + 1)));
             assertEquals(values.get(i), latest.get(latest.size() - (i + 1)));
         }
-    }
-    
-    @Before
-    public void beforePointValueCacheTest() {
-        //Create data source
-        dsVo = new MockDataSourceVO();
-        dsVo.setXid("DS_MOCK_ME");
-        dsVo.setName("data source");
-        validate(dsVo);
-        DataSourceDao.getInstance().save(dsVo);
-        dataSourceId = dsVo.getId();
         
-        //Create a data point
-        plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
-        dpVo = new DataPointVO();
-        dpVo.setXid("DP_MOCK_ME");
-        dpVo.setName("point");
-        dpVo.setPointLocator(plVo);
-        dpVo.setDataSourceId(dataSourceId);
-        validate(dpVo);
-        DataPointDao.getInstance().save(dpVo);
-        dataPointId = dpVo.getId();
-        
-        currentValue = 0;
-    }
-
-    /**
-     * Setup the runtime, useful to fill database with values to load in cache on initialization of point
-     */
-    private void setupRuntime() {
-        dpVo.setDefaultCacheSize(10);
-        plRt = new MockPointLocatorRT(plVo);
-        rt = new DataPointRT(dpVo, plRt, dsVo, null, timer);
-        rt.initialize();
-    }
-    
-    @After
-    public void afterPointValueCacheTest() {
-        if(dataPointId != Common.NEW_ID)
-            DataPointDao.getInstance().delete(dataPointId);
-        if(dataSourceId != Common.NEW_ID)
-            DataSourceDao.getInstance().delete(dataSourceId);
-    }
-    
-    /**
-     * Insert values directly into the DataPointRT and its cache.  Used to simulate a running point
-     * saving values.
-     * @param count
-     * @return
-     */
-    private List<PointValueTime> insertValuesIntoRuntime(int count) {
-        List<PointValueTime> values = new ArrayList<>();
-        for(int i=0; i<count; i++) {
-            PointValueTime pvt = new PointValueTime(currentValue, timer.currentTimeMillis());
-            rt.updatePointValue(pvt);
-            values.add(pvt);
-            timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-            currentValue += 1.0d;
-        }
-        return values;
-    }
-    
-    /**
-     * Put the values directly into the database, bypass the cache.  Helps to simulate a point not running
-     * and its values being updated externally via a sync or import.
-     * @param count
-     * @return
-     */
-    private List<PointValueTime> insertValuesIntoDatabase(int count) {
-        PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        List<PointValueTime> values = new ArrayList<>();
-        for(int i=0; i<count; i++) {
-            PointValueTime pvt = new PointValueTime(currentValue, timer.currentTimeMillis());
-            dao.savePointValueSync(dataPointId, pvt, null);
-            values.add(pvt);
-            timer.fastForwardTo(timer.currentTimeMillis() + 1000);
-            currentValue += 1.0d;
-        }
-        return values;
+        //Test getLatestPointValue via the reset
+        assertEquals(values.get(values.size() - 1), rt.getPointValue());
     }
 }

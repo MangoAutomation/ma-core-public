@@ -53,6 +53,11 @@ public class PointValueFacade {
         return pointValueDao.getPointValueAt(dataPointId, time);
     }
 
+    /**
+     * Get the value at or just after this time
+     * @param time
+     * @return
+     */
     public PointValueTime getPointValueAfter(long time) {
     	if ((point != null)&&(useCache))
             return point.getPointValueAfter(time);
