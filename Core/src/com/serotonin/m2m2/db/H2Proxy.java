@@ -211,7 +211,11 @@ public class H2Proxy extends AbstractDatabaseProxy {
             builder.append(commandParts[i]);
         }
         url = builder.toString();
-        
+
+        //Force page store
+        if (!url.contains(";MV_STORE=")) {
+            url += ";MV_STORE=FALSE";
+        }
         if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
             url += ";DB_CLOSE_ON_EXIT=FALSE";
         }
