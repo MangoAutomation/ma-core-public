@@ -39,7 +39,9 @@ public class AbstractPointValueCacheTestBase extends MangoTestBase {
     protected DataPointRT rt;
     
     @Before
-    public void beforePointValueCacheTest() {
+    @Override
+    public void before() {
+        super.before();
         //Create data source
         dsVo = new MockDataSourceVO();
         dsVo.setXid("DS_MOCK_ME");
@@ -73,11 +75,13 @@ public class AbstractPointValueCacheTestBase extends MangoTestBase {
     }
     
     @After
-    public void afterPointValueCacheTest() {
+    @Override
+    public void after() {
         if(dataPointId != Common.NEW_ID)
             DataPointDao.getInstance().delete(dataPointId);
         if(dataSourceId != Common.NEW_ID)
             DataSourceDao.getInstance().delete(dataSourceId);
+        super.after();
         
     }
     

@@ -50,6 +50,7 @@ import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDef
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
+import com.serotonin.timer.SimulationTimer;
 
 /**
  * Using an H2 in memory database we can easily mock the database proxy.
@@ -450,7 +451,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     public void clean() throws Exception {
         
         //If the SQL Batch writer is executing we need to allow it to finish 
-        if(initialized && noSQLProxy == null) {
+        if(initialized) {
+            SimulationTimer timer = Common.timer instanceof SimulationTimer ? (SimulationTimer)Common.timer : null;
             IntegerMonitor m = (IntegerMonitor)Common.MONITORED_VALUES.getValueMonitor(PointValueDaoSQL.INSTANCES_MONITOR_ID);
             if(m != null) {
                 int retries = 100;
@@ -458,6 +460,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                     if(m.getValue() == 0)
                         break;
                     retries--;
+                    if(timer != null)
+                        timer.fastForwardTo(timer.currentTimeMillis() + 1000);
                     Thread.sleep(100);
                 }
                 if(retries == 0)
