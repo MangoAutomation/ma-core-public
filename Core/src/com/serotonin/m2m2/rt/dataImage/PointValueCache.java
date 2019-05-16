@@ -210,12 +210,14 @@ public class PointValueCache {
                     List<PointValueTime> cc = new ArrayList<>(cache.size());
                     cc.addAll(cache);
                     nc = new ArrayList<PointValueTime>(size);
-                    dao.getLatestPointValues(dataPointId, timer.currentTimeMillis() + 1, size, (value, index) -> {
-                        //Reset our latest time, 
-                        if(index == 0)
-                            latestSavedValueTime.accumulateAndGet(value.getTime(), (updated, current) ->{
-                                return updated > current ? updated : current;
-                            });
+                    List<PointValueTime> latest = dao.getLatestPointValues(dataPointId, size, timer.currentTimeMillis() + 1);
+                    //Reset our latest time, 
+                    if(latest.size() > 0)
+                        latestSavedValueTime.accumulateAndGet(latest.get(0).getTime(), (updated, current) ->{
+                            return updated > current ? updated : current;
+                        });
+
+                    for(PointValueTime value : latest) {
                         //Cache is in same order as rows
                         if(nc.size() < size && cc.size() > 0 && cc.get(0).getTime() >= value.getTime()) {
                             //The cached value is newer or unsaved retain it
@@ -235,7 +237,7 @@ public class PointValueCache {
                             if(nc.size() < size)
                                 nc.add(value);
                         }
-                    });
+                    }
                     //No values in database, make sure we keep the unsaved values
                     if(nc.size() == 0) {
                         while((nc.size() < size && cc.size() > 0) || (cc.size() > 0 && cc.get(0).getTime() > latestSavedValueTime.get()))
