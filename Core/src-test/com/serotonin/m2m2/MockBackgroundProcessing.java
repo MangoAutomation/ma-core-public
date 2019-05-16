@@ -89,7 +89,7 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
                     60L,
                     TimeUnit.SECONDS,
                     new LinkedBlockingQueue<Runnable>(),
-                    new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+                    new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader()),
                     mediumPriorityRejectionHandler,
                     Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
                     Common.timer.getTimeSource());
@@ -99,7 +99,7 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
         if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
             corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
         this.lowPriorityService = new ThreadPoolExecutor(corePoolSize, corePoolSize, 0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY));
+                    new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY, Thread.currentThread().getContextClassLoader()));
         this.state = RUNNING;
     }
 

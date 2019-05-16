@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.exceptionHandling.MangoUncaughtExceptionHandler;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.m2m2.Common;
 
 /**
  * Creates executors and shuts them down
@@ -38,6 +39,7 @@ public final class MangoExecutors {
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r, "Mango shared scheduled executor");
             thread.setDaemon(true);
+            thread.setContextClassLoader(Common.getModuleClassLoader());
             return thread;
         }
     });
@@ -47,6 +49,7 @@ public final class MangoExecutors {
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r, "Mango shared executor service");
             thread.setDaemon(true);
+            thread.setContextClassLoader(Common.getModuleClassLoader());
             return thread;
         }
     });

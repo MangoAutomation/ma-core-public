@@ -8,29 +8,31 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
+ * Thread factory to set a priority and the module's classloader to ensure
+ * one has access to the module defined classes during execution. 
+ * 
  * @author Terry Packer
  *
  */
-public class MangoThreadFactory implements ThreadFactory{
+public class MangoThreadFactory implements ThreadFactory {
 
-	private String prefix;
-	private ThreadFactory factory;
-	private int priority;
+	private final String prefix;
+	private final ThreadFactory factory;
+	private final int priority;
+	private final ClassLoader contextClassLoader;
 	
 	/**
 	 * 
 	 * @param namePrefix
 	 * @param threadPriority
 	 */
-	public MangoThreadFactory(String namePrefix, int threadPriority){
+	public MangoThreadFactory(String namePrefix, int threadPriority, ClassLoader moduleClassLoader){
 		this.prefix = namePrefix + "-";
 		this.priority = threadPriority;
 		this.factory = Executors.defaultThreadFactory();
+		this.contextClassLoader = moduleClassLoader;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.ThreadFactory#newThread(java.lang.Runnable)
-	 */
 	@Override
 	public Thread newThread(Runnable r) {
 		Thread t = factory.newThread(r);
@@ -41,6 +43,7 @@ public class MangoThreadFactory implements ThreadFactory{
 		name = prefix + name;
 		t.setName(name);
 		t.setPriority(priority);
+		t.setContextClassLoader(contextClassLoader);
 		return t;
 	}
 	

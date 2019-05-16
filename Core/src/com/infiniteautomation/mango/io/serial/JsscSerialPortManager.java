@@ -31,7 +31,7 @@ public class JsscSerialPortManager {
     private volatile boolean running = true;
     
     private JsscSerialPortManager() {
-        this.readExecutor = new ScheduledThreadPoolExecutor(1, new MangoThreadFactory("Mango Serial Port Reader", Thread.MAX_PRIORITY));
+        this.readExecutor = new ScheduledThreadPoolExecutor(1, new MangoThreadFactory("Mango Serial Port Reader", Thread.MAX_PRIORITY, Common.getModuleClassLoader()));
         this.eventQueue = new ArrayBlockingQueue<SerialPortProxyEventTask>(Common.envProps.getInt("serial.port.eventQueueSize", 10000));
     }
     

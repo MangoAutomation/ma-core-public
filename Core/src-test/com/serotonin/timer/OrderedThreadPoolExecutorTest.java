@@ -54,7 +54,7 @@ public class OrderedThreadPoolExecutorTest {
                 60L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(),
-                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader()),
                 new RejectedExecutionHandler() {
                     
                     @Override
@@ -144,7 +144,7 @@ public class OrderedThreadPoolExecutorTest {
                 60L,
                 TimeUnit.SECONDS,
                 new LinkedBlockingQueue<Runnable>(),
-                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader()),
                 new RejectedExecutionHandler() {
                     
                     @Override
@@ -230,7 +230,7 @@ public class OrderedThreadPoolExecutorTest {
                 60L,
                 TimeUnit.SECONDS,
                 new SynchronousQueue<Runnable>(),
-                new MangoThreadFactory("high", Thread.MAX_PRIORITY - 2),
+                new MangoThreadFactory("high", Thread.MAX_PRIORITY - 2, Thread.currentThread().getContextClassLoader()),
                 new RejectedExecutionHandler() {
                     
                     @Override

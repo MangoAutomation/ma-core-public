@@ -455,7 +455,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     	      		60L,
     	      		TimeUnit.SECONDS,
     	            new LinkedBlockingQueue<Runnable>(),
-    	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2),
+    	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Common.getModuleClassLoader()),
     	      		mediumPriorityRejectionHandler,
     	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
     	      		Common.timer.getTimeSource());
@@ -465,7 +465,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     	if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
     	    corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
         lowPriorityService = new ThreadPoolExecutor(corePoolSize, corePoolSize, 0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY));
+                    new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY, Common.getModuleClassLoader()));
         this.state = RUNNING;
     }
 

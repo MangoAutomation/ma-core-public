@@ -43,7 +43,7 @@ public class MonitoredValuesTest {
         		30L, 
         		TimeUnit.SECONDS, 
         		new SynchronousQueue<Runnable>(), 
-        		new MangoThreadFactory("high", Thread.MAX_PRIORITY),
+        		new MangoThreadFactory("high", Thread.MAX_PRIORITY, Thread.currentThread().getContextClassLoader()),
         		new RejectedExecutionHandler(){
 
 					@Override
