@@ -230,13 +230,6 @@ public class PointValueCache {
                             if(nc.size() < size)
                                 nc.add(value);
                             
-                            //TODO REMOVE ME AFTER TEST to see if cache is ever out of order
-                            long lastTime = Long.MAX_VALUE;
-                            for(PointValueTime pvt : nc) {
-                                if(pvt.getTime() >= lastTime)
-                                    System.out.print("fail");
-                                lastTime = pvt.getTime();
-                            }
                         }else {
                             //Past cached value times
                             if(nc.size() < size)
