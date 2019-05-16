@@ -17,7 +17,7 @@ import org.junit.Test;
  * @author Terry Packer
  *
  */
-public class TestDataPointRTQueries extends AbstractPointValueCacheTestBase {
+public class DataPointRTQueriesTest extends AbstractPointValueCacheTestBase {
 
     @Test
     public void getPointValueBefore() {
