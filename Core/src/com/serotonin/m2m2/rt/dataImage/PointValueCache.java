@@ -80,10 +80,10 @@ public class PointValueCache {
             }
             
             //Set our known state of saved values
-            if (cache.size() > 0)
+            if (cache.size() > 0) {
                 this.latestSavedValueTime.set(cache.get(0).getTime());
-            
-            this.maxSize = defaultSize;
+                this.maxSize = cache.size();
+            }
         }
     }
 
