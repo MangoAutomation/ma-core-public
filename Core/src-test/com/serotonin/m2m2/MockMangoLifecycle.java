@@ -112,7 +112,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.MA_HOME =  maHome;
 
         Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
-
+        
         //Add in modules
         for(Module module : modules)
             ModuleRegistry.addModule(module);
@@ -141,7 +141,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
 
         freemarkerInitialize();
-
+        
         //TODO This must be done only once because we have a static
         // final referece to the PointValueDao in the PointValueCache class
         // and so if you try to restart the database it doesn't get the new connection
@@ -216,17 +216,17 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     private void freemarkerInitialize() {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
-        File baseTemplateDir = new File(Common.MA_HOME, "ftl");
+        File baseTemplateDir = Common.MA_HOME_PATH.resolve("ftl").toFile();
         if(!baseTemplateDir.exists()) {
             LOG.info("Not initializing Freemarker, this test is not running in Core source tree.  Requires ./ftl directory to initialize.");
             return;
         }
-
+            
         try {
             List<TemplateLoader> loaders = new ArrayList<>();
 
             // Add the overrides directory.
-            File override = new File(Common.MA_HOME, "overrides/ftl");
+            File override = Common.MA_HOME_PATH.resolve("overrides/ftl").toFile();
             if (override.exists())
                 loaders.add(new FileTemplateLoader(override));
 
@@ -259,22 +259,16 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     @Override
     public void terminate() {
-        //        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
-        //        try {
-        //            proxy.clean();
-        //        } catch (Exception e) {
-        //            throw new ShouldNeverHappenException(e);
-        //        }
         if(Common.databaseProxy != null)
             Common.databaseProxy.terminate(true);
-
+        
         if(Common.serialPortManager != null) {
-            try {
-                Common.serialPortManager.terminate();
-            } catch (LifecycleException e) {
-                fail(e.getMessage());
-            }
-            Common.serialPortManager.joinTermination();
+           try {
+            Common.serialPortManager.terminate();
+        } catch (LifecycleException e) {
+            fail(e.getMessage());
+        }
+           Common.serialPortManager.joinTermination();
         }
     }
 
@@ -311,14 +305,14 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         // TODO Auto-generated method stub
 
     }
-
+    
     @Override
     public Integer dataPointLimit() {
         return Integer.MAX_VALUE;
     }
 
     @Override
-    public Thread scheduleShutdown(Long timeout, boolean b, User user) {
+    public Thread scheduleShutdown(long timeout, boolean b, User user) {
 
         return null;
     }
