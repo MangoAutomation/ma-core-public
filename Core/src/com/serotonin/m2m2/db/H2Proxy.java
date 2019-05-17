@@ -380,9 +380,12 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
         if (dataSource != null) {
             if (Common.envProps.getBoolean("db.h2.shutdownCompact", false)) {
+                LOG.info("Terminating and Compacting database.");
                 runScript(new String[] {"SHUTDOWN COMPACT;"}, null);
-            }else
+            }else {
+                LOG.info("Terminating database.");
                 runScript(new String[] {"SHUTDOWN;"}, null);
+            }
             dataSource.dispose();
         }
         
