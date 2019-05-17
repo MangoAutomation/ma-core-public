@@ -114,6 +114,8 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
         Common.MA_HOME =  maHome;
 
+        Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
+        
         //Add in modules
         for(Module module : modules)
             ModuleRegistry.addModule(module);
