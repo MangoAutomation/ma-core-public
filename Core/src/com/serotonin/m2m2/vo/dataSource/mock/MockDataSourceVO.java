@@ -19,9 +19,14 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
     
     public MockDataSourceVO(){
-    	    this.setDefinition(new MockDataSourceDefinition());
+        this.setDefinition(new MockDataSourceDefinition());
     }
     
+    public MockDataSourceVO(String xid, String name) {
+        this.xid = xid;
+        this.name = name;
+        this.setDefinition(new MockDataSourceDefinition());
+    }
 
     @Override
     public TranslatableMessage getConnectionDescription() {

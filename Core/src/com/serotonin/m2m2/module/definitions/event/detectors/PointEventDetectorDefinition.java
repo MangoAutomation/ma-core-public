@@ -82,6 +82,11 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
         return Permissions.hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
     }
     
+    @Override
+    protected T createEventDetectorVO(int sourceId) {
+        return createEventDetectorVO(DataPointDao.getInstance().get(sourceId));
+    }
+    
     /**
      * Implement in concrete classes
      * @param dp

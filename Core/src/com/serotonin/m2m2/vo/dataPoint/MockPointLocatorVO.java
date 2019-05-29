@@ -112,9 +112,13 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
+        out.writeInt(dataTypeId);
+        out.writeBoolean(settable);
     }
     private void readObject(ObjectInputStream in) throws IOException {
         in.readInt();
+        dataTypeId = in.readInt();
+        settable = in.readBoolean();
     }
     
 

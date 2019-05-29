@@ -47,6 +47,7 @@ import com.serotonin.m2m2.module.definitions.event.detectors.NoChangeEventDetect
 import com.serotonin.m2m2.module.definitions.event.detectors.NoUpdateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointChangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.PositiveCusumEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
@@ -1016,6 +1017,7 @@ public class ModuleRegistry {
         preDefaults.add(new SmoothnessEventDetectorDefinition());
         preDefaults.add(new StateChangeCountEventDetectorDefinition());
         preDefaults.add(new NoUpdateEventDetectorDefinition());
+        preDefaults.add(new RateOfChangeDetectorDefinition());
 
         preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",
