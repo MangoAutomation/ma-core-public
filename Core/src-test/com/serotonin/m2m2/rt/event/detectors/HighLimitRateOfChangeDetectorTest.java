@@ -25,7 +25,7 @@ import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
-import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.HighLimitRateOfChangeDetectorDefinition;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.RuntimeManagerImpl;
@@ -42,13 +42,13 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.HighLimitRateOfChangeDetectorVO;
 
 /**
  * @author Terry Packer
  *
  */
-public class RateOfChangeDetectorTest extends MangoTestBase {
+public class HighLimitRateOfChangeDetectorTest extends MangoTestBase {
 
     private EventDetectorEventListener listener;
     
@@ -75,7 +75,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodSingleValueOutOfRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS, false, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(10.0, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
@@ -90,7 +90,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodSingleValueInRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS, false, 0, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
@@ -105,7 +105,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoValuesOutOfRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS, false, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
@@ -113,7 +113,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         timer.fastForwardTo(timer.currentTimeMillis() + 4500);
                 
         assertEquals(1, listener.raised.size());
-        assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(500, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
     }
     
@@ -123,7 +123,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoValuesInRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, 1, TimePeriods.SECONDS, false, 0, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
@@ -141,7 +141,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesInRange() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, 1, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, 1, TimePeriods.SECONDS, false, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
@@ -169,8 +169,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      * @param periodType - period type for change
      * @return
      */
-    protected DataPointRT createRunningPoint(double change, int periods, int periodType) {
-        DataPointVO dpVo = createDisabledPoint(change, periods, periodType);
+    protected DataPointRT createRunningPoint(double change, int rocDuration, int rocDurationType, boolean notHigher, int periods, int periodType) {
+        DataPointVO dpVo = createDisabledPoint(change, rocDuration, rocDurationType, notHigher, periods, periodType);
         dpVo.setEnabled(true);
         Common.runtimeManager.saveDataPoint(dpVo);
         return Common.runtimeManager.getDataPoint(dpVo.getId());
@@ -178,12 +178,16 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     
     /**
      * Create a point in the database that is not running
+     * 
      * @param change
+     * @param rocDuration
+     * @param rocDurationType
+     * @param notHigher
      * @param periods
      * @param periodType
      * @return
      */
-    protected DataPointVO createDisabledPoint(double change, int periods, int periodType) {
+    protected DataPointVO createDisabledPoint(double change, int rocDuration, int rocDurationType, boolean notHigher, int periods, int periodType) {
         MockDataSourceVO dsVo = new MockDataSourceVO("test", "DS_1");
         dsVo.setEnabled(true);
         validate(dsVo);
@@ -202,9 +206,12 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dpVo.setDataSourceId(dsVo.getId());
         
         //Setup our ROC Detector
-        RateOfChangeDetectorVO rocVo = new RateOfChangeDetectorVO(dpVo);
-        rocVo.setDefinition(new RateOfChangeDetectorDefinition());
+        HighLimitRateOfChangeDetectorVO rocVo = new HighLimitRateOfChangeDetectorVO(dpVo);
+        rocVo.setDefinition(new HighLimitRateOfChangeDetectorDefinition());
         rocVo.setChange(change);
+        rocVo.setRocDuration(rocDuration);
+        rocVo.setRocDurationType(rocDurationType);
+        rocVo.setNotHigher(notHigher);
         rocVo.setDuration(periods);
         rocVo.setDurationType(periodType);
         List<AbstractPointEventDetectorVO<?>> eventDetectors = new ArrayList<>();
