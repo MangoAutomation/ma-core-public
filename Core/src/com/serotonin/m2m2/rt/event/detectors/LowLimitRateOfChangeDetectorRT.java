@@ -16,6 +16,7 @@ import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.LowLimitRateOfChangeDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.LowLimitRateOfChangeDetectorVO.ComparisonMode;
 
 /**
  * Detector that takes the average rate of change during a period 
@@ -72,9 +73,10 @@ public class LowLimitRateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<L
     public void initialize() {
         super.initialize();
         fillHistory();
-        this.comparisonRoCPerMs = vo.getChange() / (double)Common.getMillis(vo.getRocDurationType(), vo.getRocDuration());
-        this.resetRoCPerMs = vo.getResetChange() / (double)Common.getMillis(vo.getRocDurationType(), vo.getRocDuration());
-        this.rocDurationMs = Common.getMillis(vo.getRocDurationType(), vo.getRocDuration());
+        this.comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeDurationType(), vo.getRateOfChangeDurationPeriods());
+        if(vo.getResetThreshold() != null)
+            this.resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeDurationType(), vo.getRateOfChangeDurationPeriods());
+        this.rocDurationMs = Common.getMillis(vo.getRateOfChangeDurationType(), vo.getRateOfChangeDurationPeriods());
     }
 
 
@@ -86,10 +88,10 @@ public class LowLimitRateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<L
     @Override
     protected TranslatableMessage getMessage() {
         String name = vo.getDataPoint().getExtendedName();
-        String prettyChange = vo.getDataPoint().getTextRenderer().getText(vo.getChange(), TextRenderer.HINT_SPECIFIC);
+        String prettyChange = vo.getDataPoint().getTextRenderer().getText(vo.getRateOfChangeThreshold(), TextRenderer.HINT_SPECIFIC);
         TranslatableMessage durationDescription = getDurationDescription();
         
-        if(vo.isNotLower()){
+        if(vo.getComparisonMode() == ComparisonMode.GREATER_THAN_OR_EQUALS){
             //Not Higher than 
             if (durationDescription == null)
                 return new TranslatableMessage("event.detector.lowLimitRateOfChangeNotLower", name, prettyChange);
@@ -130,7 +132,7 @@ public class LowLimitRateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<L
         if(this.history.size() >=2) {
             double newDouble = firstLastRocAlgorithm();
             
-            if(vo.isNotLower()){
+            if(vo.getComparisonMode() == ComparisonMode.GREATER_THAN_OR_EQUALS){
                 //Not Lower than
                 if (newDouble >= comparisonRoCPerMs) {
                     if (!lowLimitActive) {
@@ -140,7 +142,7 @@ public class LowLimitRateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<L
                 }
                 else {
                     //Are we using a reset value
-                    if(vo.isUseResetChange()){
+                    if(vo.getResetThreshold() != null){
                         if ((lowLimitActive)&&(newDouble <= resetRoCPerMs)) {
                             lowLimitInactiveTime = newValue.getTime();
                             changeLowLimitActive(time);
@@ -162,7 +164,7 @@ public class LowLimitRateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<L
                 }
                 else {
                     //Are we using a reset value
-                    if(vo.isUseResetChange()){
+                    if(vo.getResetThreshold() != null){
                         if ((lowLimitActive)&&(newDouble >= resetRoCPerMs)) {
                             lowLimitInactiveTime = newValue.getTime();
                             changeLowLimitActive(time);

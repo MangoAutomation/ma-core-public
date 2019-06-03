@@ -4,6 +4,7 @@
 package com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors;
 
 import com.serotonin.m2m2.vo.event.detector.HighLimitRateOfChangeDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.HighLimitRateOfChangeDetectorVO.ComparisonMode;
 
 /**
  * @author Terry Packer
@@ -15,52 +16,44 @@ public class HighLimitRateOfChangeDetectorModel extends TimeoutDetectorModel<Hig
         super(data);
     }
     
-    public double getChange() {
-        return this.data.getChange();
-    }
-    
-    public void setChange(double change) {
-        this.data.setChange(change);
-    }
-    
-    public double getResetChange() {
-        return this.data.getResetChange();
+    public double getRateOfChangeThreshold() {
+        return data.getRateOfChangeThreshold();
     }
 
-    public void setResetChange(double resetChange) {
-        this.data.setResetChange(resetChange);
+    public void setRateOfChangeThreshold(double rateOfChangeThreshold) {
+        this.data.setRateOfChangeThreshold(rateOfChangeThreshold);
     }
 
-    public boolean isUseResetChange() {
-        return this.data.isUseResetChange();
+    public int getRateOfChangeDurationPeriods() {
+        return data.getRateOfChangeDurationPeriods();
     }
 
-    public void setUseResetChange(boolean useResetChange) {
-        this.data.setUseResetChange(useResetChange);
+    public void setRateOfChangeDurationPeriods(int rateOfChangeDurationPeriods) {
+        this.data.setRateOfChangeDurationPeriods(rateOfChangeDurationPeriods);
     }
 
-    public boolean isNotHigher() {
-        return this.data.isNotHigher();
+    public int getRateOfChangeDurationType() {
+        return data.getRateOfChangeDurationType();
     }
 
-    public void setNotHigher(boolean notHigher) {
-        this.data.setNotHigher(notHigher);
+    public void setRateOfChangeDurationType(int rateOfChangeDurationType) {
+        this.data.setRateOfChangeDurationType(rateOfChangeDurationType);
     }
 
-    public int getRocDuration() {
-        return this.data.getRocDuration();
+    public Double getResetThreshold() {
+        return data.getResetThreshold();
     }
 
-    public void setRocDuration(int rocDuration) {
-        this.data.setRocDuration(rocDuration);
+    public void setResetThreshold(Double resetThreshold) {
+        this.data.setResetThreshold(resetThreshold);
     }
 
-    public int getRocDurationType() {
-        return this.data.getRocDurationType();
+    public ComparisonMode getComparisonMode() {
+        return data.getComparisonMode();
     }
 
-    public void setRocDurationType(int rocDurationType) {
-        this.data.setRocDurationType(rocDurationType);
+    public void setComparisonMode(ComparisonMode comparisonMode) {
+        this.data.setComparisonMode(comparisonMode);
     }
 
 }

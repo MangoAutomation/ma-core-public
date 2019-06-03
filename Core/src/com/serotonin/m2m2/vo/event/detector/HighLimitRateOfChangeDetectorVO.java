@@ -26,86 +26,87 @@ import com.serotonin.m2m2.vo.DataPointVO;
  */
 public class HighLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<HighLimitRateOfChangeDetectorVO> {
     
+    public static enum ComparisonMode {
+        GREATER_THAN,
+        LESS_THAN_OR_EQUALS
+    }
+    
     private static final long serialVersionUID = 1L;
     
     @JsonProperty
-    private double change;
-    private double resetChange;
-    private boolean useResetChange;
+    private double rateOfChangeThreshold;
+    private int rateOfChangeDurationPeriods;
+    private int rateOfChangeDurationType = Common.TimePeriods.SECONDS;
+    private Double resetThreshold;
     @JsonProperty
-    private boolean notHigher;
-    protected int rocDuration;
-    protected int rocDurationType = Common.TimePeriods.SECONDS;
+    private ComparisonMode comparisonMode;
     
     
     public HighLimitRateOfChangeDetectorVO(DataPointVO vo) {
         super(vo, new int[] {DataTypes.NUMERIC} );
     }
-    
-    public double getChange() {
-        return change;
+
+    public double getRateOfChangeThreshold() {
+        return rateOfChangeThreshold;
     }
 
-    public void setChange(double change) {
-        this.change = change;
+    public void setRateOfChangeThreshold(double rateOfChangeThreshold) {
+        this.rateOfChangeThreshold = rateOfChangeThreshold;
     }
 
-    public double getResetChange() {
-        return resetChange;
+    public int getRateOfChangeDurationPeriods() {
+        return rateOfChangeDurationPeriods;
     }
 
-    public void setResetChange(double resetChange) {
-        this.resetChange = resetChange;
+    public void setRateOfChangeDurationPeriods(int rateOfChangeDurationPeriods) {
+        this.rateOfChangeDurationPeriods = rateOfChangeDurationPeriods;
     }
 
-    public boolean isUseResetChange() {
-        return useResetChange;
+    public int getRateOfChangeDurationType() {
+        return rateOfChangeDurationType;
     }
 
-    public void setUseResetChange(boolean useResetChange) {
-        this.useResetChange = useResetChange;
+    public void setRateOfChangeDurationType(int rateOfChangeDurationType) {
+        this.rateOfChangeDurationType = rateOfChangeDurationType;
     }
 
-    public boolean isNotHigher() {
-        return notHigher;
+    public Double getResetThreshold() {
+        return resetThreshold;
     }
 
-    public void setNotHigher(boolean notHigher) {
-        this.notHigher = notHigher;
+    public void setResetThreshold(Double resetThreshold) {
+        this.resetThreshold = resetThreshold;
     }
 
-    public int getRocDuration() {
-        return rocDuration;
+    public ComparisonMode getComparisonMode() {
+        return comparisonMode;
     }
 
-    public void setRocDuration(int rocDuration) {
-        this.rocDuration = rocDuration;
-    }
-
-    public int getRocDurationType() {
-        return rocDurationType;
-    }
-
-    public void setRocDurationType(int rocDurationType) {
-        this.rocDurationType = rocDurationType;
+    public void setComparisonMode(ComparisonMode comparisonMode) {
+        this.comparisonMode = comparisonMode;
     }
 
     @Override
     public void validate(ProcessResult response) {
         super.validate(response);
 
-        if(useResetChange) {
-            if(notHigher && resetChange <= change) {
-                response.addContextualMessage("resetChange", "validate.greaterThan", change);
-            } else if(!notHigher && resetChange >= change) {
-                response.addContextualMessage("resetChange", "validate.lessThan", change);
+        if(comparisonMode == null) {
+            response.addContextualMessage("comparisonMode", "validate.required");
+            return;
+        }
+        
+        if(resetThreshold != null) {
+            if(comparisonMode == ComparisonMode.LESS_THAN_OR_EQUALS && resetThreshold >= rateOfChangeThreshold) {
+                response.addContextualMessage("resetThreshold", "validate.greaterThan", rateOfChangeThreshold);
+            } else if(comparisonMode == ComparisonMode.GREATER_THAN && resetThreshold <= rateOfChangeThreshold) {
+                response.addContextualMessage("resetThreshold", "validate.lessThan", rateOfChangeThreshold);
             }
         }
         
-        if (!Common.TIME_PERIOD_CODES.isValidId(rocDurationType))
-            response.addContextualMessage("rocDurationType", "validate.invalidValue");
-        if (rocDuration < 0)
-            response.addContextualMessage("rocDuration", "validate.greaterThanZero");
+        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeDurationType))
+            response.addContextualMessage("rateOfChangeDurationType", "validate.invalidValue");
+        if (rateOfChangeDurationPeriods < 0)
+            response.addContextualMessage("rateOfChangeDurationPeriods", "validate.greaterThanZero");
     }
     
     @Override
@@ -116,55 +117,53 @@ public class HighLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<HighLimit
     @Override
     protected TranslatableMessage getConfigurationDescription() {
         TranslatableMessage durationDesc = getDurationDescription();
-        if (notHigher) {
+        if (comparisonMode == ComparisonMode.LESS_THAN_OR_EQUALS) {
             //Check if Not above
             if (durationDesc == null)
                 return new TranslatableMessage("event.detectorVo.highLimitRateOfChangeNotHigher", dataPoint
-                        .getTextRenderer().getText(change, TextRenderer.HINT_SPECIFIC));
+                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC));
             return new TranslatableMessage("event.detectorVo.highLimitRateOfChangeNotHigherPeriod", dataPoint
-                        .getTextRenderer().getText(change, TextRenderer.HINT_SPECIFIC), durationDesc);
+                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), durationDesc);
         }
         else {
             //Must be above
             if (durationDesc == null)
                 return new TranslatableMessage("event.detectorVo.highLimitRateOfChange", dataPoint.getTextRenderer()
-                        .getText(change, TextRenderer.HINT_SPECIFIC));
+                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC));
             return new TranslatableMessage("event.detectorVo.highLimitRateOfChangePeriod", dataPoint.getTextRenderer()
-                        .getText(change, TextRenderer.HINT_SPECIFIC), durationDesc);
+                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), durationDesc);
         }
 
         
     }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        if (useResetChange)
-            writer.writeEntry("resetChange", resetChange);
-        writer.writeEntry("rocDurationType", Common.TIME_PERIOD_CODES.getCode(rocDurationType));
-        writer.writeEntry("rocDuration", rocDuration);
+        if (resetThreshold != null)
+            writer.writeEntry("resetThreshold", resetThreshold);
+        writer.writeEntry("rateOfChangeDurationType", Common.TIME_PERIOD_CODES.getCode(rateOfChangeDurationType));
+        writer.writeEntry("rateOfChangeDurationPeriods", rateOfChangeDurationPeriods);
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
         
-        if (jsonObject.containsKey("resetChange")) {
-            useResetChange = true;
-            resetChange = getDouble(jsonObject, "resetChange");
-        }
+        if (jsonObject.containsKey("resetThreshold"))
+            resetThreshold = getDouble(jsonObject, "resetThreshold");
         
-        String text = jsonObject.getString("rocDurationType");
+        String text = jsonObject.getString("rateOfChangeDurationType");
         if (text == null)
-            throw new TranslatableJsonException("emport.error.ped.missing", "rocDurationType",
+            throw new TranslatableJsonException("emport.error.ped.missing", "rateOfChangeDurationType",
                     Common.TIME_PERIOD_CODES.getCodeList());
 
-        rocDurationType = Common.TIME_PERIOD_CODES.getId(text);
-        if (!Common.TIME_PERIOD_CODES.isValidId(rocDurationType))
+        rateOfChangeDurationType = Common.TIME_PERIOD_CODES.getId(text);
+        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeDurationType))
             throw new TranslatableJsonException("emport.error.ped.invalid", "rocDurationType", text,
                     Common.TIME_PERIOD_CODES.getCodeList());
 
-        rocDuration = getInt(jsonObject, "rocDuration");
+        rateOfChangeDurationPeriods = getInt(jsonObject, "rateOfChangeDurationPeriods");
     }
 
 }
