@@ -108,7 +108,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
     }
     
     private static final long serialVersionUID = -1;
-    private static final int version = 1;
+    private static final int version = 2;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -116,9 +116,13 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
         out.writeBoolean(settable);
     }
     private void readObject(ObjectInputStream in) throws IOException {
-        in.readInt();
-        dataTypeId = in.readInt();
-        settable = in.readBoolean();
+        int version = in.readInt();
+        if(version == 1) {
+            
+        }else if(version == 2) {
+            dataTypeId = in.readInt();
+            settable = in.readBoolean();
+        }
     }
     
 
