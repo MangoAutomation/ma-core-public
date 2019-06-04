@@ -643,10 +643,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 } else
                     value = null;
 
-                if(this.timer == null) // ...and reschedule
-                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), createIntervalLoggingTimeoutClient());
-                else
-                    intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), createIntervalLoggingTimeoutClient(), timer);
+                if(intervalStartTime != Long.MIN_VALUE) {
+                    if(this.timer == null) // ...and reschedule
+                        intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), createIntervalLoggingTimeoutClient());
+                    else
+                        intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod())), createIntervalLoggingTimeoutClient(), timer);
+                }
             } else
                 value = null;
 
