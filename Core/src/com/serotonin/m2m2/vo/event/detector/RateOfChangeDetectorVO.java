@@ -16,7 +16,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
-import com.serotonin.m2m2.rt.event.detectors.LowLimitRateOfChangeDetectorRT;
+import com.serotonin.m2m2.rt.event.detectors.RateOfChangeDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -24,11 +24,13 @@ import com.serotonin.m2m2.vo.DataPointVO;
  * @author Terry Packer
  *
  */
-public class LowLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<LowLimitRateOfChangeDetectorVO> {
-    
+public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetectorVO> {
+
     public static enum ComparisonMode {
+        GREATER_THAN,
         GREATER_THAN_OR_EQUALS,
-        LESS_THAN
+        LESS_THAN,
+        LESS_THAN_OR_EQUALS
     }
     
     private static final long serialVersionUID = 1L;
@@ -40,8 +42,10 @@ public class LowLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<LowLimitRa
     private Double resetThreshold;
     @JsonProperty
     private ComparisonMode comparisonMode;
+    @JsonProperty
+    private boolean useAbsoluteValue; 
     
-    public LowLimitRateOfChangeDetectorVO(DataPointVO vo) {
+    public RateOfChangeDetectorVO(DataPointVO vo) {
         super(vo, new int[] {DataTypes.NUMERIC} );
     }
     
@@ -84,7 +88,15 @@ public class LowLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<LowLimitRa
     public void setComparisonMode(ComparisonMode comparisonMode) {
         this.comparisonMode = comparisonMode;
     }
-    
+
+    public boolean isUseAbsoluteValue() {
+        return useAbsoluteValue;
+    }
+
+    public void setUseAbsoluteValue(boolean useAbsoluteValue) {
+        this.useAbsoluteValue = useAbsoluteValue;
+    }
+
     @Override
     public void validate(ProcessResult response) {
         super.validate(response);
@@ -95,10 +107,14 @@ public class LowLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<LowLimitRa
         }
         
         if(resetThreshold != null) {
-            if(comparisonMode == ComparisonMode.GREATER_THAN_OR_EQUALS && resetThreshold <= rateOfChangeThreshold) {
+            if(comparisonMode == ComparisonMode.LESS_THAN && resetThreshold <= rateOfChangeThreshold) {
                 response.addContextualMessage("resetThreshold", "validate.greaterThan", rateOfChangeThreshold);
-            } else if(comparisonMode == ComparisonMode.LESS_THAN && resetThreshold >= rateOfChangeThreshold) {
+            } else if(comparisonMode == ComparisonMode.LESS_THAN_OR_EQUALS && resetThreshold <= rateOfChangeThreshold) {
+                response.addContextualMessage("resetThreshold", "validate.greaterThan", rateOfChangeThreshold);
+            } else if(comparisonMode == ComparisonMode.GREATER_THAN && resetThreshold >= rateOfChangeThreshold) {
                 response.addContextualMessage("resetThreshold", "validate.lessThan", rateOfChangeThreshold);
+            } else if(comparisonMode == ComparisonMode.GREATER_THAN_OR_EQUALS && resetThreshold >= rateOfChangeThreshold) {
+                response.addContextualMessage("resetThreshold", "validate.greaterThan", rateOfChangeThreshold);
             }
         }
         
@@ -109,29 +125,49 @@ public class LowLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<LowLimitRa
     }
     
     @Override
-    public AbstractEventDetectorRT<LowLimitRateOfChangeDetectorVO> createRuntime() {
-        return new LowLimitRateOfChangeDetectorRT(this);
+    public AbstractEventDetectorRT<RateOfChangeDetectorVO> createRuntime() {
+        return new RateOfChangeDetectorRT(this);
     }
-
+    
     @Override
     protected TranslatableMessage getConfigurationDescription() {
         TranslatableMessage durationDesc = getDurationDescription();
+        TranslatableMessage rateOfChangeDurationDesc = getRateOfChangeDurationDescription();
         if (comparisonMode == ComparisonMode.GREATER_THAN_OR_EQUALS) {
             //Check if Not above
             if (durationDesc == null)
                 return new TranslatableMessage("event.detectorVo.lowLimitRateOfChangeNotLower", dataPoint
-                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC));
+                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
             return new TranslatableMessage("event.detectorVo.lowLimitRateOfChangeNotLowerPeriod", dataPoint
-                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), durationDesc);
+                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
+        }
+        else if(comparisonMode == ComparisonMode.LESS_THAN){
+            //Must be above
+            if (durationDesc == null)
+                return new TranslatableMessage("event.detectorVo.lowLimitRateOfChange", dataPoint.getTextRenderer()
+                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
+            return new TranslatableMessage("event.detectorVo.lowLimitRateOfChangePeriod", dataPoint.getTextRenderer()
+                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
+        }else if (comparisonMode == ComparisonMode.LESS_THAN_OR_EQUALS) {
+            //Check if Not above
+            if (durationDesc == null)
+                return new TranslatableMessage("event.detectorVo.highLimitRateOfChangeNotHigher", dataPoint
+                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
+            return new TranslatableMessage("event.detectorVo.highLimitRateOfChangeNotHigherPeriod", dataPoint
+                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
         }
         else {
             //Must be above
             if (durationDesc == null)
-                return new TranslatableMessage("event.detectorVo.lowLimitRateOfChange", dataPoint.getTextRenderer()
-                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC));
-            return new TranslatableMessage("event.detectorVo.lowLimitRateOfChangePeriod", dataPoint.getTextRenderer()
-                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), durationDesc);
+                return new TranslatableMessage("event.detectorVo.highLimitRateOfChange", dataPoint.getTextRenderer()
+                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
+            return new TranslatableMessage("event.detectorVo.highLimitRateOfChangePeriod", dataPoint.getTextRenderer()
+                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
         }
+    }
+    
+    public TranslatableMessage getRateOfChangeDurationDescription() {
+        return Common.getPeriodDescription(rateOfChangeDurationType, rateOfChangeDurationPeriods);
     }
     
     @Override
@@ -162,5 +198,4 @@ public class LowLimitRateOfChangeDetectorVO extends TimeoutDetectorVO<LowLimitRa
 
         rateOfChangeDurationPeriods = getInt(jsonObject, "rateOfChangeDurationPeriods");
     }
-
 }

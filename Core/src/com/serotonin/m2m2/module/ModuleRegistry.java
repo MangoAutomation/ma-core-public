@@ -41,14 +41,13 @@ import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEven
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.BinaryStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.HighLimitRateOfChangeDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.LowLimitRateOfChangeDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.MultistateStateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.NegativeCusumEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.NoChangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.NoUpdateEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointChangeEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.PositiveCusumEventDetectorDefinition;
+import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
@@ -1018,8 +1017,7 @@ public class ModuleRegistry {
         preDefaults.add(new SmoothnessEventDetectorDefinition());
         preDefaults.add(new StateChangeCountEventDetectorDefinition());
         preDefaults.add(new NoUpdateEventDetectorDefinition());
-        preDefaults.add(new HighLimitRateOfChangeDetectorDefinition());
-        preDefaults.add(new LowLimitRateOfChangeDetectorDefinition());
+        preDefaults.add(new RateOfChangeDetectorDefinition());
 
         preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
         preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",

@@ -3,16 +3,16 @@
  */
 package com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors;
 
-import com.serotonin.m2m2.vo.event.detector.HighLimitRateOfChangeDetectorVO;
-import com.serotonin.m2m2.vo.event.detector.HighLimitRateOfChangeDetectorVO.ComparisonMode;
+import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.ComparisonMode;
+import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO;
 
 /**
  * @author Terry Packer
  *
  */
-public class HighLimitRateOfChangeDetectorModel extends TimeoutDetectorModel<HighLimitRateOfChangeDetectorVO> {
+public class RateOfChangeDetectorModel extends TimeoutDetectorModel<RateOfChangeDetectorVO> {
 
-    public HighLimitRateOfChangeDetectorModel(HighLimitRateOfChangeDetectorVO data) {
+    public RateOfChangeDetectorModel(RateOfChangeDetectorVO data) {
         super(data);
     }
     
@@ -56,4 +56,11 @@ public class HighLimitRateOfChangeDetectorModel extends TimeoutDetectorModel<Hig
         this.data.setComparisonMode(comparisonMode);
     }
 
+    public boolean isUseAbsoluteValue() {
+        return this.data.isUseAbsoluteValue();
+    }
+    
+    public void setUseAbsoluteValue(boolean useAbsoluteValue) {
+        this.data.setUseAbsoluteValue(useAbsoluteValue);
+    }
 }
