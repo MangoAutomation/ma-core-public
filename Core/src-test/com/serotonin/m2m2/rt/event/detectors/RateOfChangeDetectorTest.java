@@ -312,8 +312,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         rocVo.setDefinition(new RateOfChangeDetectorDefinition());
         rocVo.setRateOfChangeThreshold(rocThreshold);
         rocVo.setResetThreshold(resetThreshold);
-        rocVo.setRateOfChangeDurationPeriods(rocDuration);
-        rocVo.setRateOfChangeDurationType(rocDurationType);
+        rocVo.setRateOfChangePeriods(rocDuration);
+        rocVo.setRateOfChangePeriodType(rocDurationType);
         rocVo.setComparisonMode(comparisonMode);
         rocVo.setUseAbsoluteValue(useAbsoluteValue);
         rocVo.setDuration(periods);

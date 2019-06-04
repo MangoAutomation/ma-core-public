@@ -90,10 +90,10 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
  
     @Override
     public void initializeState() {
-        this.comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeDurationType(), vo.getRateOfChangeDurationPeriods());
+        this.comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
         if(vo.getResetThreshold() != null)
-            this.resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeDurationType(), vo.getRateOfChangeDurationPeriods());
-        this.rocDurationMs = Common.getMillis(vo.getRateOfChangeDurationType(), vo.getRateOfChangeDurationPeriods());
+            this.resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
+        this.rocDurationMs = Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
 
         long time = Common.timer.currentTimeMillis();
         fillHistory(time);

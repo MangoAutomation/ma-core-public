@@ -37,8 +37,8 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     
     @JsonProperty
     private double rateOfChangeThreshold;
-    private int rateOfChangeDurationPeriods;
-    private int rateOfChangeDurationType = Common.TimePeriods.SECONDS;
+    private int rateOfChangePeriods;
+    private int rateOfChangePeriodType = Common.TimePeriods.SECONDS;
     private Double resetThreshold;
     @JsonProperty
     private ComparisonMode comparisonMode;
@@ -56,29 +56,28 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     public void setRateOfChangeThreshold(double rateOfChangeThreshold) {
         this.rateOfChangeThreshold = rateOfChangeThreshold;
     }
-
-    public int getRateOfChangeDurationPeriods() {
-        return rateOfChangeDurationPeriods;
-    }
-
-    public void setRateOfChangeDurationPeriods(int rateOfChangeDurationPeriods) {
-        this.rateOfChangeDurationPeriods = rateOfChangeDurationPeriods;
-    }
-
-    public int getRateOfChangeDurationType() {
-        return rateOfChangeDurationType;
-    }
-
-    public void setRateOfChangeDurationType(int rateOfChangeDurationType) {
-        this.rateOfChangeDurationType = rateOfChangeDurationType;
-    }
-
     public Double getResetThreshold() {
         return resetThreshold;
     }
 
     public void setResetThreshold(Double resetThreshold) {
         this.resetThreshold = resetThreshold;
+    }
+
+    public int getRateOfChangePeriods() {
+        return rateOfChangePeriods;
+    }
+
+    public void setRateOfChangePeriods(int rateOfChangePeriods) {
+        this.rateOfChangePeriods = rateOfChangePeriods;
+    }
+
+    public int getRateOfChangePeriodType() {
+        return rateOfChangePeriodType;
+    }
+
+    public void setRateOfChangePeriodType(int rateOfChangePeriodType) {
+        this.rateOfChangePeriodType = rateOfChangePeriodType;
     }
 
     public ComparisonMode getComparisonMode() {
@@ -118,10 +117,10 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
             }
         }
         
-        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeDurationType))
-            response.addContextualMessage("rateOfChangeDurationType", "validate.invalidValue");
-        if (rateOfChangeDurationPeriods < 0)
-            response.addContextualMessage("rateOfChangeDurationPeriods", "validate.greaterThanZero");
+        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangePeriodType))
+            response.addContextualMessage("rateOfChangePeriodType", "validate.invalidValue");
+        if (rateOfChangePeriods < 0)
+            response.addContextualMessage("rateOfChangePeriods", "validate.greaterThanZero");
     }
     
     @Override
@@ -167,7 +166,7 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     }
     
     public TranslatableMessage getRateOfChangeDurationDescription() {
-        return Common.getPeriodDescription(rateOfChangeDurationType, rateOfChangeDurationPeriods);
+        return Common.getPeriodDescription(rateOfChangePeriodType, rateOfChangePeriods);
     }
     
     @Override
@@ -175,8 +174,8 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
         super.jsonWrite(writer);
         if (resetThreshold != null)
             writer.writeEntry("resetThreshold", resetThreshold);
-        writer.writeEntry("rateOfChangeDurationType", Common.TIME_PERIOD_CODES.getCode(rateOfChangeDurationType));
-        writer.writeEntry("rateOfChangeDurationPeriods", rateOfChangeDurationPeriods);
+        writer.writeEntry("rateOfChangePeriodType", Common.TIME_PERIOD_CODES.getCode(rateOfChangePeriodType));
+        writer.writeEntry("rateOfChangePeriods", rateOfChangePeriods);
     }
 
     @Override
@@ -186,16 +185,16 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
         if (jsonObject.containsKey("resetThreshold"))
             resetThreshold = getDouble(jsonObject, "resetThreshold");
         
-        String text = jsonObject.getString("rateOfChangeDurationType");
+        String text = jsonObject.getString("rateOfChangePeriodType");
         if (text == null)
-            throw new TranslatableJsonException("emport.error.ped.missing", "rateOfChangeDurationType",
+            throw new TranslatableJsonException("emport.error.ped.missing", "rateOfChangePeriodType",
                     Common.TIME_PERIOD_CODES.getCodeList());
 
-        rateOfChangeDurationType = Common.TIME_PERIOD_CODES.getId(text);
-        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeDurationType))
-            throw new TranslatableJsonException("emport.error.ped.invalid", "rocDurationType", text,
+        rateOfChangePeriodType = Common.TIME_PERIOD_CODES.getId(text);
+        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangePeriodType))
+            throw new TranslatableJsonException("emport.error.ped.invalid", "rateOfChangePeriodType", text,
                     Common.TIME_PERIOD_CODES.getCodeList());
 
-        rateOfChangeDurationPeriods = getInt(jsonObject, "rateOfChangeDurationPeriods");
+        rateOfChangePeriods = getInt(jsonObject, "rateOfChangePeriods");
     }
 }
