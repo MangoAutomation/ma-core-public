@@ -113,7 +113,7 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
             } else if(comparisonMode == ComparisonMode.GREATER_THAN && resetThreshold >= rateOfChangeThreshold) {
                 response.addContextualMessage("resetThreshold", "validate.lessThan", rateOfChangeThreshold);
             } else if(comparisonMode == ComparisonMode.GREATER_THAN_OR_EQUALS && resetThreshold >= rateOfChangeThreshold) {
-                response.addContextualMessage("resetThreshold", "validate.greaterThan", rateOfChangeThreshold);
+                response.addContextualMessage("resetThreshold", "validate.lessThan", rateOfChangeThreshold);
             }
         }
         
