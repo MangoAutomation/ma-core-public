@@ -57,6 +57,7 @@
 * Upgrade H2 to stop size of database from continuously growing, for this fix Mango will automatically dump and re-import your database on startup as H2 databases from older versions are not compatible in binary form
 * ALPN (Application-Layer Protocol Negotiation) for HTTP/2 on Java 10+, make sure the ALPN startup extension is not in use as that will cause problems
 * Fix bug in ON_CHANGE_INTERVAL logging, prevent errant logging tasks at point termination
+* Use UTF8 for encoding email address names, better language support
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions

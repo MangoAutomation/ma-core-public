@@ -76,7 +76,7 @@ public class EmailWorkItem implements WorkItem {
             if (fromAddress == null) {
                 String addr = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
                 String pretty = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_NAME);
-                fromAddress = new InternetAddress(addr, pretty);
+                fromAddress = new InternetAddress(addr, pretty, Common.UTF8);
             }
 
             EmailSender emailSender = new EmailSender(

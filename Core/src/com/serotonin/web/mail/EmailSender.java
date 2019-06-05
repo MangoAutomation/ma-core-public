@@ -14,6 +14,8 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 
+import com.serotonin.m2m2.Common;
+
 public class EmailSender {
     private final JavaMailSenderImpl senderImpl;
 
@@ -65,7 +67,7 @@ public class EmailSender {
 
     public void send(String fromAddr, String fromPersonal, String toAddr, String subject, EmailContent content) {
         try {
-            send(new InternetAddress(fromAddr, fromPersonal), new InternetAddress[] { new InternetAddress(toAddr) },
+            send(new InternetAddress(fromAddr, fromPersonal, Common.UTF8), new InternetAddress[] { new InternetAddress(toAddr) },
                     null, null, subject, content);
         }
         catch (AddressException e) {
@@ -106,7 +108,7 @@ public class EmailSender {
             InternetAddress[] toIAddr = new InternetAddress[toAddr.length];
             for (int i = 0; i < toAddr.length; i++)
                 toIAddr[i] = new InternetAddress(toAddr[i]);
-            send(new InternetAddress(fromAddr, fromPersonal), toIAddr, null, null, subject, content);
+            send(new InternetAddress(fromAddr, fromPersonal, Common.UTF8), toIAddr, null, null, subject, content);
         }
         catch (AddressException e) {
             throw new MailPreparationException(e);
