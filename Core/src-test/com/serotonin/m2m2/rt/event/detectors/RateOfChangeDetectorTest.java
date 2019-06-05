@@ -105,13 +105,20 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointRT rt = createRunningPoint(1.0, null, false, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
-        timer.fastForwardTo(timer.currentTimeMillis() + 500);
+        timer.fastForwardTo(500);
         ensureSetPointValue(rt, new PointValueTime(1.1, timer.currentTimeMillis()));
-        timer.fastForwardTo(timer.currentTimeMillis() + 4500);
-                
+        
+        timer.fastForwardTo(1000);
         assertEquals(1, listener.raised.size());
         assertEquals(500, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
+        
+        //Our event will RTN as the period slides along and our RoC returns to 0
+        timer.fastForwardTo(5000);
+        assertEquals(1, listener.raised.size());
+        assertEquals(500, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(1, listener.rtn.size());
+
     }
     
     /**
@@ -176,28 +183,31 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
-
+    
     @Test
-    public void testOneSecondPeriodTwoInitialValuesTwoValuesOutInRange() {
+    public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeForOneSecond() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, null, false, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, null, false, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
-        dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.9, 0), null);
-        dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.1, 100), null);
-        timer.fastForwardTo(timer.currentTimeMillis() + 200);
+        dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
+        dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.101, 100), null);
+        timer.fastForwardTo(200);
         
         dpVo.setEnabled(true);
         Common.runtimeManager.saveDataPoint(dpVo);
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
-        ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
-        timer.fastForwardTo(timer.currentTimeMillis() + 500);
-        ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
-        timer.fastForwardTo(timer.currentTimeMillis() + 4500);
+        ensureSetPointValue(rt, new PointValueTime(1.5, timer.currentTimeMillis()));
+        timer.fastForwardTo(500);
+        ensureSetPointValue(rt, new PointValueTime(1.9, timer.currentTimeMillis()));
+        timer.fastForwardTo(1100); //1s after the change of grater than 1
+        assertEquals(1, listener.raised.size());
+        assertEquals(0, listener.rtn.size());        
         
-        assertEquals(0, listener.raised.size());
-        assertEquals(0, listener.rtn.size());
+        timer.fastForwardTo(4500); //Well after we have had no changes and our RoC has dropped to RTN the event
+        assertEquals(1, listener.raised.size());
+        assertEquals(1, listener.rtn.size());        
     }
     
     @Test

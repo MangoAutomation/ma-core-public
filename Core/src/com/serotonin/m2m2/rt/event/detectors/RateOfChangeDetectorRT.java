@@ -148,11 +148,11 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         return eventActive;
     }
     
-    private void changeHighLimitActive(long time) {
+    private void changeHighLimitActive() {
         rocBreachActive = !rocBreachActive;
         if (rocBreachActive)
             // Schedule a job that will call the event active if it runs.
-            scheduleJob(time);
+            scheduleJob(rocBreachActiveTime);
         else
             unscheduleJob(rocBreachInactiveTime);
     }
@@ -188,7 +188,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if (currentRoc <= comparisonRoCPerMs) {
                 if (!rocBreachActive) {
                     rocBreachActiveTime = latestValueTime;
-                    changeHighLimitActive(fireTime);
+                    changeHighLimitActive();
                 }
             }
             else {
@@ -196,13 +196,13 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 if(vo.getResetThreshold() != null){
                     if ((rocBreachActive)&&(currentRoc >= resetRoCPerMs)) {
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }else{
                     //Not using reset
                     if (rocBreachActive) {
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }
             }
@@ -210,7 +210,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if (currentRoc > comparisonRoCPerMs) {
                 if (!rocBreachActive) {
                     rocBreachActiveTime = latestValueTime;
-                    changeHighLimitActive(fireTime);
+                    changeHighLimitActive();
                 }
             }
             else {
@@ -219,13 +219,13 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                     //Turn off alarm if we are active and below the Reset value
                     if ((rocBreachActive) &&(currentRoc <= resetRoCPerMs)){
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }else{
                     //Turn off alarm if we are active
                     if (rocBreachActive){
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }
             }
@@ -234,7 +234,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if (currentRoc >= comparisonRoCPerMs) {
                 if (!rocBreachActive) {
                     rocBreachActiveTime = latestValueTime;
-                    changeHighLimitActive(fireTime);
+                    changeHighLimitActive();
                 }
             }
             else {
@@ -242,12 +242,12 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 if(vo.getResetThreshold() != null){
                     if ((rocBreachActive) && (currentRoc <= resetRoCPerMs)) {
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }else{
                     if (rocBreachActive) {
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }
             }
@@ -256,7 +256,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if (currentRoc < comparisonRoCPerMs) {
                 if (!rocBreachActive) {
                     rocBreachActiveTime = latestValueTime;
-                    changeHighLimitActive(fireTime);
+                    changeHighLimitActive();
                 }
             }
             else {
@@ -264,19 +264,19 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 if(vo.getResetThreshold() != null){
                     if ((rocBreachActive) && (currentRoc >= resetRoCPerMs)) {
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }else{
                     if (rocBreachActive) {
                         rocBreachInactiveTime = latestValueTime;
-                        changeHighLimitActive(fireTime);
+                        changeHighLimitActive();
                     }
                 }
             }
         }
-        //Schedule our timeout task to check our RoC next period if we are not active
-        if(!this.eventActive)
-            scheduleRocTimeoutTask(fireTime + rocDurationMs);
+        //Schedule our timeout task to check our RoC next period as if no values show up 
+        // old ones may slide out of our window and change our RoC
+        scheduleRocTimeoutTask(fireTime + rocDurationMs);
     }
     
     private void scheduleRocTimeoutTask(long nextCheck) {
@@ -320,7 +320,14 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         if(this.history.size() == 0)
             return;
         long since = computePeriodStart(now);
+        
+        //If we trim all our history we want to know what the value 'was' so keep the latest value
+        PointValueTime latest = history.get(history.size() - 1);
+        //Trim to be after since
         this.history = this.history.stream().filter(pvt -> pvt.getTime() >= since).collect(Collectors.toList());
+        //If we fully trimmed then add back on a bookend value
+        if(this.history.size() == 0)
+            this.history.add(new PointValueTime(latest.getValue(), since));
     }
 
     private void fillHistory(long now) {
@@ -331,7 +338,16 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             return;
         
         long since = computePeriodStart(now);
+        //Get point values >= since
         List<PointValueTime> pvts = rt.getPointValues(since);
+        
+        //Determine our initial value if there are no values or a single value that is not at the period start
+        if(pvts.size() == 0 || (pvts.size() == 1 && pvts.get(0).getTime() != since)) {
+            PointValueTime initial = rt.getPointValueAt(since);
+            if(initial != null)
+                history.add(new PointValueTime(initial.getValue(), since));
+        }
+        
         for(PointValueTime pvt : pvts)
             history.add(pvt);
         
