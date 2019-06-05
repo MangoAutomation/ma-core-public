@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.math3.analysis.UnivariateFunction;
+import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -162,6 +164,9 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
      */
     @Override
     synchronized public void pointUpdated(PointValueTime newValue) {
+        //TODO now might be a good time to check that if the history size is 2 
+        //  and the timestamps of both entries are equal to remove the entry at position 0 (the 'bookend') so we can 
+        //  do a computation using only values within the period
         history.add(newValue);
         long time = Common.timer.currentTimeMillis();
         rocChanged(time);
@@ -343,9 +348,19 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         
         //Determine our initial value if there are no values or a single value that is not at the period start
         if(pvts.size() == 0 || (pvts.size() == 1 && pvts.get(0).getTime() != since)) {
-            PointValueTime initial = rt.getPointValueAt(since);
-            if(initial != null)
-                history.add(new PointValueTime(initial.getValue(), since));
+            PointValueTime initial = rt.getPointValueBefore(since);
+            if(initial != null) {
+                double value;
+                if(pvts.size() == 1) {
+                    //Compute the slope and put this value on the line at time since
+                    LinearInterpolator li = new LinearInterpolator();
+                    UnivariateFunction function = li.interpolate(new double[] {initial.getTime(), pvts.get(0).getTime() }, new double[] {initial.getDoubleValue(), pvts.get(0).getDoubleValue()});
+                    value = function.value(since);
+                }else {
+                    value = initial.getDoubleValue();
+                }
+                history.add(new PointValueTime(value, since));
+            }
         }
         
         for(PointValueTime pvt : pvts)

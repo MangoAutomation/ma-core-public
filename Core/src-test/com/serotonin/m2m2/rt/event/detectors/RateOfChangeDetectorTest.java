@@ -157,6 +157,34 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(0, listener.rtn.size());
     }
     
+    @Test
+    public void testLinearInterpolationOfInitialValue() {
+        
+        DataPointVO dpVo = createDisabledPoint(1.0, null, false, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        //Save some values
+        PointValueDao dao = Common.databaseProxy.newPointValueDao();
+        dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
+        dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.3, 100), null);
+        timer.fastForwardTo(1001);
+        
+        dpVo.setEnabled(true);
+        Common.runtimeManager.saveDataPoint(dpVo);
+        DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
+
+        ensureSetPointValue(rt, new PointValueTime(1.5, timer.currentTimeMillis()));
+        timer.fastForwardTo(1500);
+        
+        //We should have fired an event at
+        assertEquals(1, listener.raised.size());
+        assertEquals(1001, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(0, listener.rtn.size());
+        
+        ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
+        timer.fastForwardTo(4500);
+        
+        assertEquals(1, listener.raised.size());
+        assertEquals(1, listener.rtn.size());
+    }
     
     /**
      * Test 2 values in the database and then set 2 values that do not cause a detected change within the first period
