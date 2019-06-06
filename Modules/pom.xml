@@ -54,6 +54,18 @@
                 <skipModuleInstall>true</skipModuleInstall>
             </properties>
         </profile>
+        <profile>
+            <!-- skips webpack when building inside Eclipse -->
+            <id>eclipse-build</id>
+            <activation>
+                <property>
+                    <name>m2e.version</name>
+                </property>
+            </activation>
+            <properties>
+                <webpackPhase>none</webpackPhase>
+            </properties>
+        </profile>
     </profiles>
     <build>
         <pluginManagement>
@@ -295,8 +307,6 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                                         <artifactId>frontend-maven-plugin</artifactId>
                                         <versionRange>[1.6,)</versionRange>
                                         <goals>
-                                            <goal>install-node-and-npm</goal>
-                                            <goal>npm</goal>
                                             <goal>install-node-and-yarn</goal>
                                             <goal>yarn</goal>
                                         </goals>
