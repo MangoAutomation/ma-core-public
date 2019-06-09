@@ -228,6 +228,7 @@ public class MangoSecurityConfiguration {
     RequestMatcher legacyUiMatcher = new OrRequestMatcher(
             new AntPathRequestMatcher("/*.htm"),
             new AntPathRequestMatcher("/**/*.shtm"),
+            new AntPathRequestMatcher("/**/*.jsp"),
             new AntPathRequestMatcher("/swagger/**"));
     RequestMatcher legacyCspMatcher = new AndRequestMatcher(notRestRequestMatcher, legacyUiMatcher);
     RequestMatcher standardCspMatcher = new AndRequestMatcher(notRestRequestMatcher, new NegatedRequestMatcher(legacyUiMatcher));
