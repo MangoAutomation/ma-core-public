@@ -3,27 +3,29 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.commons.math3.analysis.UnivariateFunction;
-import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.text.TextRenderer;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.CalculationMode;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.ComparisonMode;
 
 /**
+ * 
+ * RoC = (latestValue - periodStartValue)/periodDurationMs
+ * 
  * @author Terry Packer
  *
  */
@@ -36,11 +38,21 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
      * raised during the duration of a single range event.
      */
     private boolean eventActive;
+
+    /**
+     * Time when the RoC started to change, raise events using this offset
+     */
+    private long periodStartTime;
     
     /**
-     * Historical queue of values to track
+     * Oldest value to use in RoC computation
      */
-    private List<PointValueTime> history;
+    private Double periodStartValue;
+    
+    /**
+     * Latest value to use in RoC computation
+     */
+    private PointValueTime latestValue;
     
     /**
      * The RoC per millisecond to compare to
@@ -56,6 +68,11 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
      * The duration for the roc computation
      */
     private long rocDurationMs;
+    
+    /**
+     * How often to check the RoC when no values are coming in
+     */
+    private long rocCheckPeriodMs;
     
     /**
      * State field. Whether the RoC event is currently active or not. This field is used to prevent multiple events
@@ -75,11 +92,17 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     
     public RateOfChangeDetectorRT(RateOfChangeDetectorVO vo) {
         super(vo);
-        this.history = new ArrayList<>();
         this.rocTimeoutClient = new TimeoutClient() {
 
             @Override
             public void scheduleTimeout(long fireTime) {
+                //Slide the window
+                if(fireTime >= periodStartTime + rocDurationMs) {
+                    if(latestValue != null)
+                        periodStartValue = latestValue.getDoubleValue();
+                    periodStartTime = computePeriodStart(fireTime);
+                    latestValue = null;
+                }
                 rocChanged(fireTime);
             }
 
@@ -92,20 +115,45 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
  
     @Override
     public void initializeState() {
-        this.comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
-        if(vo.getResetThreshold() != null)
-            this.resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
-        this.rocDurationMs = Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
-
         long time = Common.timer.currentTimeMillis();
-        fillHistory(time);
+        DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getDataPoint().getId());
         
-        if(this.history.size() >=2) {
+        if(vo.getCalculationMode() == CalculationMode.AVERAGE) {
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
+            rocDurationMs = Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
+            if(vo.isUseResetThreshold())
+                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
+
+            DataSourceVO<?> ds = DataSourceDao.getInstance().get(rt.getDataSourceId());
+            if(ds instanceof PollingDataSourceVO) {
+                //Use poll period
+                rocCheckPeriodMs = Common.getMillis(((PollingDataSourceVO<?>)ds).getUpdatePeriodType(), ((PollingDataSourceVO<?>)ds).getUpdatePeriods());
+            }else {
+                //Use factor of rocDurationMs
+                rocCheckPeriodMs = rocDurationMs/10;
+                if(rocCheckPeriodMs == 0)
+                    rocCheckPeriodMs = 5;
+            }
+        }else {
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold();
+            if(vo.isUseResetThreshold())
+                resetRoCPerMs = vo.getResetThreshold();
+        }
+        
+        //Fill our  values
+        latestValue = rt.getPointValue();
+        periodStartTime = computePeriodStart(time);
+        
+        //Do we have a value exactly at the period start?
+        PointValueTime start = rt.getPointValueAt(periodStartTime);
+        if(start == null)
+            start = rt.getPointValueBefore(periodStartTime);
+        
+        //Do we have a value to compute the RoC?
+        if(start != null) {
+            periodStartValue = start.getDoubleValue();
             double currentRoc = firstLastRocAlgorithm();
-            checkState(currentRoc, time, history.get(history.size() - 1).getTime());
-        }else if(this.history.size() == 1) {
-            //Assume 0 RoC
-            checkState(0.0d, time, history.get(0).getTime());
+            checkState(currentRoc, time, latestValue != null ? latestValue.getTime() : time);
         }
     }
 
@@ -164,22 +212,30 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
      */
     @Override
     synchronized public void pointUpdated(PointValueTime newValue) {
-        //TODO now might be a good time to check that if the history size is 2 
-        //  and the timestamps of both entries are equal to remove the entry at position 0 (the 'bookend') so we can 
-        //  do a computation using only values within the period
-        history.add(newValue);
-        long time = Common.timer.currentTimeMillis();
-        rocChanged(time);
+        //Is our new value in a new period?
+        long now = Common.timer.currentTimeMillis();
+        if(newValue.getTime() >= periodStartTime + rocDurationMs) {
+            if(latestValue == null) {
+                //First value ever
+                periodStartValue = newValue.getDoubleValue();
+            }else
+                periodStartValue = latestValue.getDoubleValue();
+            periodStartTime = computePeriodStart(now);
+            latestValue = newValue;
+        }else {
+            latestValue = newValue;   
+        }
+        
+        rocChanged(now);
     }
     
     private synchronized void rocChanged(long now) {
-        trimHistory(now);
-        if(this.history.size() >=2) {
+        if(latestValue != null) {
             double currentRoc = firstLastRocAlgorithm();
-            checkState(currentRoc, now, history.get(history.size() - 1).getTime());
-        }else if(this.history.size() == 1) {
+            checkState(currentRoc, now, latestValue.getTime());
+        }else {
             //Assume 0 RoC
-            checkState(0.0d, now, history.get(0).getTime());
+            checkState(0.0d, now, periodStartTime);
         }
     }
     
@@ -198,7 +254,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             }
             else {
                 //Are we using a reset value
-                if(vo.getResetThreshold() != null){
+                if(vo.isUseResetThreshold()){
                     if ((rocBreachActive)&&(currentRoc >= resetRoCPerMs)) {
                         rocBreachInactiveTime = latestValueTime;
                         changeHighLimitActive();
@@ -220,7 +276,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             }
             else {
                 //Are we using a reset value
-                if(vo.getResetThreshold() != null){
+                if(vo.isUseResetThreshold()){
                     //Turn off alarm if we are active and below the Reset value
                     if ((rocBreachActive) &&(currentRoc <= resetRoCPerMs)){
                         rocBreachInactiveTime = latestValueTime;
@@ -244,7 +300,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             }
             else {
                 //Are we using a reset value
-                if(vo.getResetThreshold() != null){
+                if(vo.isUseResetThreshold()){
                     if ((rocBreachActive) && (currentRoc <= resetRoCPerMs)) {
                         rocBreachInactiveTime = latestValueTime;
                         changeHighLimitActive();
@@ -266,7 +322,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             }
             else {
                 //Are we using a reset value
-                if(vo.getResetThreshold() != null){
+                if(vo.isUseResetThreshold()){
                     if ((rocBreachActive) && (currentRoc >= resetRoCPerMs)) {
                         rocBreachInactiveTime = latestValueTime;
                         changeHighLimitActive();
@@ -281,14 +337,10 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         }
         //Schedule our timeout task to check our RoC next period as if no values show up 
         // old ones may slide out of our window and change our RoC
-        scheduleRocTimeoutTask(fireTime + rocDurationMs);
+        if(vo.getCalculationMode() == CalculationMode.AVERAGE)
+            rocTimeoutTask = new TimeoutTask(new Date(fireTime + rocCheckPeriodMs), rocTimeoutClient);
     }
     
-    private void scheduleRocTimeoutTask(long nextCheck) {
-        if(rocTimeoutTask != null)
-            cancelRocTimeoutTask();
-        rocTimeoutTask = new TimeoutTask(new Date(nextCheck), rocTimeoutClient);
-    }
     
     synchronized private void cancelRocTimeoutTask() {
         if (rocTimeoutTask != null) {
@@ -321,53 +373,6 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         }
     }
     
-    private void trimHistory(long now) {
-        if(this.history.size() == 0)
-            return;
-        long since = computePeriodStart(now);
-        
-        //If we trim all our history we want to know what the value 'was' so keep the latest value
-        PointValueTime latest = history.get(history.size() - 1);
-        //Trim to be after since
-        this.history = this.history.stream().filter(pvt -> pvt.getTime() >= since).collect(Collectors.toList());
-        //If we fully trimmed then add back on a bookend value
-        if(this.history.size() == 0)
-            this.history.add(new PointValueTime(latest.getValue(), since));
-    }
-
-    private void fillHistory(long now) {
-        history.clear();
-
-        DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getDataPoint().getId());
-        if(rt == null)
-            return;
-        
-        long since = computePeriodStart(now);
-        //Get point values >= since
-        List<PointValueTime> pvts = rt.getPointValues(since);
-        
-        //Determine our initial value if there are no values or a single value that is not at the period start
-        if(pvts.size() == 0 || (pvts.size() == 1 && pvts.get(0).getTime() != since)) {
-            PointValueTime initial = rt.getPointValueBefore(since);
-            if(initial != null) {
-                double value;
-                if(pvts.size() == 1) {
-                    //Compute the slope and put this value on the line at time since
-                    LinearInterpolator li = new LinearInterpolator();
-                    UnivariateFunction function = li.interpolate(new double[] {initial.getTime(), pvts.get(0).getTime() }, new double[] {initial.getDoubleValue(), pvts.get(0).getDoubleValue()});
-                    value = function.value(since);
-                }else {
-                    value = initial.getDoubleValue();
-                }
-                history.add(new PointValueTime(value, since));
-            }
-        }
-        
-        for(PointValueTime pvt : pvts)
-            history.add(pvt);
-        
-    }
-    
     private long computePeriodStart(long now){
         return now - rocDurationMs;
     }
@@ -377,47 +382,15 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
      * @return
      */
     protected double firstLastRocAlgorithm(){
-        PointValueTime oldest = history.get(0);
-        PointValueTime latest = history.get(history.size() - 1);
-        return (latest.getDoubleValue() - oldest.getDoubleValue())/(double)rocDurationMs;
+        if(vo.getCalculationMode() == CalculationMode.AVERAGE)
+            return (latestValue.getDoubleValue() - periodStartValue)/(double)rocDurationMs;
+        else
+            return (latestValue.getDoubleValue() - periodStartValue);
     }
     
-    /**
-     * Compute the Rate Of Change by using the first and last values
-     *  in the period as points on a line
-     * @return
-     */
-    protected double firstLastValuesRocAlgorithm(){
-        PointValueTime oldest = history.get(0);
-        PointValueTime latest = history.get(history.size() - 1);
-        return (latest.getDoubleValue() - oldest.getDoubleValue())/(double)(latest.getTime() - oldest.getTime());
+    @Override
+    public void terminate() {
+        cancelRocTimeoutTask();
+        super.terminate();
     }
-    
-    /**
-     * Compute the Rate Of Change by using the average of the 
-     * first and last halves of the period as the points on a line
-     * @return
-     */
-    protected double halfPeriodRocValuesAlgorithm(){
-        
-        int midpoint = history.size()/2;
-        double firstAvg=0d,lastAvg=0d;
-        
-        for(int i=0; i<midpoint; i++){
-            firstAvg += history.get(i).getDoubleValue();
-        }
-        firstAvg = firstAvg / (double)(midpoint);
-        
-        for(int i=midpoint; i<history.size(); i++){
-            lastAvg += history.get(i).getDoubleValue();
-        }
-        lastAvg = lastAvg / (double)(history.size() - midpoint);
-        
-        
-        PointValueTime oldest = history.get(0);
-        PointValueTime latest = history.get(history.size() - 1);
-        
-        return (lastAvg - firstAvg)/(double)(latest.getTime() - oldest.getTime());
-    }
-    
 }
