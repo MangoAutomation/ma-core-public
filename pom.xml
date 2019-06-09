@@ -8,7 +8,7 @@
  <properties>
   <jettyVersion>9.4.12.v20180830</jettyVersion>
   <springVersion>5.1.7.RELEASE</springVersion>
-  <springSecurityVersion>5.0.12.RELEASE</springSecurityVersion>
+  <springSecurityVersion>5.1.5.RELEASE</springSecurityVersion>
   <log4jVersion>2.10.0</log4jVersion>
   <slf4jVersion>1.8.0-beta4</slf4jVersion>
   <jacksonVersion>2.9.9</jacksonVersion>

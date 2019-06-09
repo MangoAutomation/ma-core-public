@@ -14,8 +14,8 @@
 * Adding validation to User to notify when creating a user with a username that is already used
 * Restricting non-admin users from executing JavaScript that has access to Java classes. This means for anything with Script Permissions the 'superadmin' permission must be present to access any Java Classes.
 * Add publisher control to RuntimeManager script utility
-* Upgrade Apache POI to 4.0.1 for Excel file generation
-* Upgrade Spring Framework to 5.1.5
+* Upgrade Spring Framework to 5.1.7
+* Upgrade Spring Security to 5.1.5
 * Fix bug in RealTimeDataPointValueCache where tags/permissions could become out of sync with the database during point save/restarts
 * Fix bug in RealTimeDataPointValueCache where the data source permission was not checked to see if a User has access to see the point
 * Users cannot update their password to the same thing
