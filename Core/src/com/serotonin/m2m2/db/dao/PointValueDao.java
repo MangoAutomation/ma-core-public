@@ -19,6 +19,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.infiniteautomation.mango.db.query.BookendQueryCallback;
 import com.infiniteautomation.mango.db.query.PVTQueryCallback;
@@ -38,8 +39,13 @@ public interface PointValueDao {
 
     /**
      * Only the PointValueCache should call this method during runtime. Do not use.
+     * 
+     * @param pointId
+     * @param pointValue
+     * @param source
+     * @param savedCallback - callback with timestamp of saved value
      */
-    public void savePointValueAsync(int pointId, PointValueTime pointValue, SetPointSource source);
+    public void savePointValueAsync(int pointId, PointValueTime pointValue, SetPointSource source, Consumer<Long> savedCallback);
 
     /**
      * Get the point values >= since
@@ -83,6 +89,15 @@ public interface PointValueDao {
      * @return
      */
     public List<PointValueTime> getLatestPointValues(int pointId, int limit, long before);
+    
+    /**
+     * Get point values < before in reverse time order using a callback
+     * @param pointId
+     * @param before
+     * @param limit
+     * @param callback
+     */
+    public void getLatestPointValues(int pointId, long before, Integer limit, final PVTQueryCallback<PointValueTime> callback);
 
     /**
      * Get point values < before in reverse time order

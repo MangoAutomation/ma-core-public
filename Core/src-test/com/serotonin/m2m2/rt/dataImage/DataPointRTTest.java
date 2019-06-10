@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.junit.Test;
 
@@ -118,10 +119,7 @@ public class DataPointRTTest extends MangoTestBase {
     
     //TODO Test for Historical Generation
     //TODO Test Quantized
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.MangoTestBase#getLifecycle()
-     */
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         return new DataPointRtMockMangoLifecycle(modules, enableH2Web, h2WebPort);
@@ -139,9 +137,6 @@ public class DataPointRTTest extends MangoTestBase {
             super(modules, enableWebConsole, webPort);
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.MockMangoLifecycle#getDatabaseProxy()
-         */
         @Override
         protected H2InMemoryDatabaseProxy getDatabaseProxy() {
             return new DataPointRtMockDatabaseProxy();
@@ -150,35 +145,28 @@ public class DataPointRTTest extends MangoTestBase {
     
     class DataPointRtMockDatabaseProxy extends H2InMemoryDatabaseProxy {
         
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.H2InMemoryDatabaseProxy#newPointValueDao()
-         */
         @Override
         public PointValueDao newPointValueDao() {
             return new MockPointValueDao();
         }
     }
 
-    private List<PointValueTime> values = new ArrayList<PointValueTime>();
+    protected List<PointValueTime> values = new ArrayList<PointValueTime>();
 
     class MockPointValueDao extends PointValueDaoSQL {
         
         
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.db.dao.PointValueDaoSQL#getLatestPointValue(int)
-         */
         @Override
         public PointValueTime getLatestPointValue(int dataPointId) {
             return values.get(values.size() - 1);
         }
         
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.db.dao.PointValueDaoSQL#savePointValueAsync(int, com.serotonin.m2m2.rt.dataImage.PointValueTime, com.serotonin.m2m2.rt.dataImage.SetPointSource)
-         */
         @Override
         public void savePointValueAsync(int pointId, PointValueTime pointValue,
-                SetPointSource source) {
+                SetPointSource source, Consumer<Long> savedCallback) {
             values.add(pointValue);
+            if(savedCallback != null)
+                savedCallback.accept(pointValue.getTime());
         }
         
     }

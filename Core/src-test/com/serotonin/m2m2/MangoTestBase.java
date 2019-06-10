@@ -122,8 +122,6 @@ public class MangoTestBase {
 	
 	@After
 	public void after() {
-        SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
-        provider.reset();
         Common.runtimeManager.terminate();
         Common.runtimeManager.joinTermination();
 	    H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
@@ -132,6 +130,8 @@ public class MangoTestBase {
         } catch (Exception e) {
             throw new ShouldNeverHappenException(e);
         }
+        SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
+        provider.reset();
 	}
 
 	@AfterClass

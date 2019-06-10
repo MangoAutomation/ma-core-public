@@ -87,16 +87,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param initialCache
      */
     public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
-        this.vo = vo;
-        this.dsVo = dsVo;
-        this.pointLocator = pointLocator;
-        if (enhanced) {
-            valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache);
-        } else {
-            valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);
-        }
-        if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
-        	averagingValues = new ArrayList<IValueTime>();
+        this(vo, pointLocator, dsVo, initialCache, Common.timer);
     }
 
     /**
@@ -108,8 +99,18 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param timer
      */
     public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
-        this(vo, pointLocator, dsVo, initialCache);
+        this.vo = vo;
+        this.dsVo = dsVo;
+        this.pointLocator = pointLocator;
         this.timer = timer;
+        if (enhanced) {
+            valueCache = new EnhancedPointValueCache(vo, dsVo, vo.getDefaultCacheSize(), initialCache, timer);
+        } else {
+            valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache, timer);
+        }
+        if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
+            averagingValues = new ArrayList<IValueTime>();
+
     }
     
 	//
@@ -136,6 +137,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         return Common.databaseProxy.newPointValueDao().getPointValueAt(vo.getId(), time);
     }
 
+    /**
+     * Get the point value at or just after this time
+     */
     @Override
     public PointValueTime getPointValueAfter(long time) {
     	
@@ -328,6 +332,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         case DataPointVO.LoggingTypes.INTERVAL:
             if (!backdated)
                 intervalSave(newValue);
+            saveValue = true; //We want to save the intra-interval values in the cache
         default:
             logValue = false;
         }
@@ -476,7 +481,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     if(averagingValues.size() > 0) {
                             AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, null, averagingValues);
                             PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
-                        valueCache.logPointValueAsync(newValue, null);
+                        valueCache.savePointValue(newValue, null, true, true);
                         //Fire logged Events
                         fireEvents(null, newValue, null, false, false, true, false, false);
                             averagingValues.clear();
@@ -654,7 +659,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
             if (value != null){
             	PointValueTime newValue = new PointValueTime(value, fireTime);
-                valueCache.logPointValueAsync(newValue, null);
+                valueCache.savePointValue(newValue, null, true, true);
                 //Fire logged Events
                 fireEvents(null, newValue, null, false, false, true, false, false);
             }
@@ -907,8 +912,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             pedRT.initialize();
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
         }
-
-        //initializeIntervalLogging();
     }
 
     @Override
@@ -941,33 +944,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         terminateIntervalLogging();
         pointValue = valueCache.getLatestPointValue();
     }
-
-
-    /**
-     * Update the value in the cache with the option to log to DB.
-     * 
-     * This only updates an existing value
-     * 
-     * Caution, this bypasses the Logging Settings
-     * 
-     * @param newValue
-     * @param source
-     * @param logValue
-     * @param async
-     */
-	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
-        valueCache.updatePointValue(newValue, source, logValue, async);
-	}
 	
 	/**
 	 * Get a copy of the current cache
 	 * @return
 	 */
 	public List<PointValueTime> getCacheCopy(){
-		List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
-		for(PointValueTime pvt : this.valueCache.getCacheContents())
-			copy.add(pvt);
-		return copy;
+	    List<PointValueTime> c = this.valueCache.getCacheContents();
+		return new ArrayList<PointValueTime>(c);
 	}
 	
 	/**

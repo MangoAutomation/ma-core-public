@@ -19,13 +19,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -59,7 +57,6 @@ import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
-import freemarker.template.Version;
 
 /**
  * Dummy implementation for Mango Lifecycle for use in testing,
@@ -219,7 +216,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     private void freemarkerInitialize() {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
-        File baseTemplateDir = new File(Common.MA_HOME, "ftl");
+        File baseTemplateDir = Common.MA_HOME_PATH.resolve("ftl").toFile();
         if(!baseTemplateDir.exists()) {
             LOG.info("Not initializing Freemarker, this test is not running in Core source tree.  Requires ./ftl directory to initialize.");
             return;
@@ -229,7 +226,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             List<TemplateLoader> loaders = new ArrayList<>();
 
             // Add the overrides directory.
-            File override = new File(Common.MA_HOME, "overrides/ftl");
+            File override = Common.MA_HOME_PATH.resolve("overrides/ftl").toFile();
             if (override.exists())
                 loaders.add(new FileTemplateLoader(override));
 
@@ -262,12 +259,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     @Override
     public void terminate() {
-//        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
-//        try {
-//            proxy.clean();
-//        } catch (Exception e) {
-//            throw new ShouldNeverHappenException(e);
-//        }
         if(Common.databaseProxy != null)
             Common.databaseProxy.terminate(true);
         

@@ -63,7 +63,8 @@ public class MSSQLProxy extends BasePooledProxy {
         return dao.query(getLimitQuerySql(sql, limit), args, rowMapper);
     }
 
-    private String getLimitQuerySql(String sql, int limit) {
+    @Override
+    public String getLimitQuerySql(String sql, int limit) {
         if (limit > 0) {
             if (sql.length() > 6 && sql.substring(0, 7).equalsIgnoreCase("select "))
                 sql = "select top " + limit + " " + sql.substring(7);

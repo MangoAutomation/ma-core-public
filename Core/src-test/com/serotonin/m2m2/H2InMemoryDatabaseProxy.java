@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2;
 
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,6 +29,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
@@ -47,6 +50,7 @@ import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDef
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
+import com.serotonin.timer.SimulationTimer;
 
 /**
  * Using an H2 in memory database we can easily mock the database proxy.
@@ -361,8 +365,15 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
     public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper,
             int limit) {
         if (limit > 0)
-            sql += " LIMIT " + limit;
+            sql = getLimitQuerySql(sql, limit);
         return dao.query(sql, args, rowMapper);
+    }
+    
+    @Override
+    public String getLimitQuerySql(String sql, int limit) {
+        if (limit > 0)
+            return sql + " LIMIT " + limit;
+        return sql;
     }
 
     @Override
@@ -437,10 +448,31 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
      */
     public void clean() throws Exception {
         
+        //If the SQL Batch writer is executing we need to allow it to finish 
+        if(initialized) {
+            SimulationTimer timer = Common.timer instanceof SimulationTimer ? (SimulationTimer)Common.timer : null;
+            IntegerMonitor m = (IntegerMonitor)Common.MONITORED_VALUES.getValueMonitor(PointValueDaoSQL.INSTANCES_MONITOR_ID);
+            if(m != null) {
+                int retries = 100;
+                while(retries > 0) {
+                    if(m.getValue() == 0)
+                        break;
+                    retries--;
+                    if(timer != null)
+                        timer.fastForwardTo(timer.currentTimeMillis() + 1000);
+                    Thread.sleep(100);
+                }
+                if(retries == 0)
+                    fail("SQL Batch write behind still running.");
+            }
+        }
+        
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
         
+        //Drop everything
         runScript(new String[] {"DROP ALL OBJECTS;"}, null);
+        //Create database
         runScript(this.getClass().getResourceAsStream("/createTables-" + getType().name() + ".sql"), null);
 
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))

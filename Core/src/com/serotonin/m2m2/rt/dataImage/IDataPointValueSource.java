@@ -20,18 +20,53 @@ public interface IDataPointValueSource {
 
     void updatePointValue(PointValueTime newValue, boolean async);
 
+    /**
+     * Set the value, optionally supply a source for the annotation
+     * @param newValue
+     * @param source
+     */
     void setPointValue(PointValueTime newValue, SetPointSource source);
 
+    /**
+     * Get the current value
+     * @return
+     */
     PointValueTime getPointValue();
 
+    /**
+     * Get the nearest point value before time
+     * @param time
+     * @return
+     */
     PointValueTime getPointValueBefore(long time);
 
+    /**
+     * Get the point value at or just after this time
+     * @param time
+     * @return
+     */
     PointValueTime getPointValueAfter(long time);
 
+    /**
+     * Get values >= since
+     * @param since
+     * @return
+     */
     List<PointValueTime> getPointValues(long since);
 
+    /**
+     * Get point values >= from < to
+     * @param from
+     * @param to
+     * @return
+     */
     List<PointValueTime> getPointValuesBetween(long from, long to);
 
+    /**
+     * Get the point value exactly at this time or return null if there isn't one
+     * @param time
+     * @return
+     */
     PointValueTime getPointValueAt(long time);
     
     int getDataTypeId();

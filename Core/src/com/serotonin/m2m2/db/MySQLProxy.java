@@ -82,7 +82,8 @@ public class MySQLProxy extends BasePooledProxy {
         return dao.query(getLimitQuerySql(sql, limit), args, rowMapper);
     }
 
-    private String getLimitQuerySql(String sql, int limit) {
+    @Override
+    public String getLimitQuerySql(String sql, int limit) {
         if (limit > 0)
             sql += " limit " + limit;
         return sql;
