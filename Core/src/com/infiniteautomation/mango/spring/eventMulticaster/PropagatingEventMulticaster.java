@@ -40,7 +40,7 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
         this.registry = registry;
         this.context = context;
     }
-    
+
     @PostConstruct
     protected void init() {
         this.registry.register(this);
@@ -78,13 +78,20 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
 
         Executor executor = this.getTaskExecutor();
 
+        if (log.isDebugEnabled()) {
+            log.debug("Invoking listeners for " + event);
+        }
+
         for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
             executor.execute(() -> {
-                if (log.isDebugEnabled()) {
-                    log.debug("Invoking listeners for " + event);
-                }
-                if (((ConfigurableApplicationContext) context).isActive()) {
-                    invokeListener(listener, event);
+                try {
+                    if (((ConfigurableApplicationContext) context).isActive()) {
+                        invokeListener(listener, event);
+                    }
+                } catch (Exception e) {
+                    if (log.isErrorEnabled()) {
+                        log.error("Error invoking listener " + listener + " for " + event, e);
+                    }
                 }
             });
         }
