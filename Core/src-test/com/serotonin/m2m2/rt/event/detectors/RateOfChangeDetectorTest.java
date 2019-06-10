@@ -563,7 +563,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         ConfirmedDataPointListener l = new ConfirmedDataPointListener();
         Common.runtimeManager.addDataPointListener(rt.getId(), l);
         rt.setPointValue(value, null);
-        int retries = 10;
+        int retries = 20;
         while(retries > 0) {
             if(l.changed.get())
                 break;
