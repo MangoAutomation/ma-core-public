@@ -21,6 +21,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.provider.Providers;
@@ -140,7 +141,10 @@ public class StatusServlet extends HttpServlet{
 		case IMangoLifecycle.EVENT_MANAGER_INITIALIZE:
 			return this.translations.translate("startup.state.eventManagerInitialize");
 		case IMangoLifecycle.RUNTIME_MANAGER_INITIALIZE:
-		    return Common.runtimeManager.getStateMessage().translate(this.translations);
+		    if(Common.runtimeManager != null)
+		        return Common.runtimeManager.getStateMessage().translate(this.translations);
+		    else
+		        return new TranslatableMessage("startup.state.runtimeManagerInitialize").translate(this.translations);
 		case IMangoLifecycle.MAINTENANCE_INITIALIZE:
 			return this.translations.translate("startup.state.maintenanceInitialize");
 		case IMangoLifecycle.IMAGE_SET_INITIALIZE:
