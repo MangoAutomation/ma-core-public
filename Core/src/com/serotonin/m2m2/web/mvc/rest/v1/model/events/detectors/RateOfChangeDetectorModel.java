@@ -23,14 +23,6 @@ public class RateOfChangeDetectorModel extends TimeoutDetectorModel<RateOfChange
     public void setRateOfChangeThreshold(double rateOfChangeThreshold) {
         this.data.setRateOfChangeThreshold(rateOfChangeThreshold);
     }
-
-    public int getRateOfChangeThresholdPeriods() {
-        return this.data.getRateOfChangeThresholdPeriods();
-    }
-
-    public void setRateOfChangeThresholdPeriods(int rateOfChangeThresholdPeriods) {
-        this.data.setRateOfChangeThresholdPeriods(rateOfChangeThresholdPeriods);
-    }
     
     public int getRateOfChangeThresholdPeriodType() {
         return this.data.getRateOfChangeThresholdPeriodType();

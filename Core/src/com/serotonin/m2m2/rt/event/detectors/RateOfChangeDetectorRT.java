@@ -128,10 +128,10 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         rt = Common.runtimeManager.getDataPoint(vo.getDataPoint().getId());
         
         if(vo.getCalculationMode() == CalculationMode.AVERAGE) {
-            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
             rocDurationMs = Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
             if(vo.isUseResetThreshold())
-                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());
+                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
 
             DataSourceVO<?> ds = DataSourceDao.getInstance().get(rt.getDataSourceId());
             if(ds instanceof PollingDataSourceVO) {
@@ -144,9 +144,9 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                     rocCheckPeriodMs = 5;
             }
         }else {
-            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());;
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
             if(vo.isUseResetThreshold())
-                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());;
+                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
         }
         
         //Fill our  values

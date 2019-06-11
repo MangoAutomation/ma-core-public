@@ -42,7 +42,6 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     
     @JsonProperty
     private double rateOfChangeThreshold;
-    private int rateOfChangeThresholdPeriods;
     private int rateOfChangeThresholdPeriodType;
     private int rateOfChangePeriods;
     private int rateOfChangePeriodType = Common.TimePeriods.SECONDS;
@@ -65,14 +64,6 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
 
     public void setRateOfChangeThreshold(double rateOfChangeThreshold) {
         this.rateOfChangeThreshold = rateOfChangeThreshold;
-    }
-    
-    public int getRateOfChangeThresholdPeriods() {
-        return rateOfChangeThresholdPeriods;
-    }
-
-    public void setRateOfChangeThresholdPeriods(int rateOfChangeThresholdPeriods) {
-        this.rateOfChangeThresholdPeriods = rateOfChangeThresholdPeriods;
     }
 
     public int getRateOfChangeThresholdPeriodType() {
@@ -171,9 +162,6 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
             }
         }
         
-        if(rateOfChangeThresholdPeriods < 1)
-            response.addContextualMessage("rateOfChangeThresholdPeriods", "validate.greaterThanZero");
-        
         if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeThresholdPeriodType))
             response.addContextualMessage("rateOfChangeThresholdPeriodType", "validate.invalidValue");
         
@@ -231,7 +219,6 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("rateOfChangeThresholdPeriodType", Common.TIME_PERIOD_CODES.getCode(rateOfChangeThresholdPeriodType));
-        writer.writeEntry("rateOfChangeThresholdPeriods", rateOfChangeThresholdPeriods);
         if (useResetThreshold)
             writer.writeEntry("resetThreshold", resetThreshold);
         writer.writeEntry("rateOfChangePeriodType", Common.TIME_PERIOD_CODES.getCode(rateOfChangePeriodType));
@@ -255,7 +242,6 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
             resetThreshold = getDouble(jsonObject, "resetThreshold");
             useResetThreshold = true;
         }
-        rateOfChangeThresholdPeriods = getInt(jsonObject, "rateOfChangeThresholdPeriods");
         
         text = jsonObject.getString("rateOfChangePeriodType");
         if (text == null)

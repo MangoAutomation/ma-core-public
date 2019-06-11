@@ -70,7 +70,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodSingleValueOutOfRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(10.0, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
@@ -82,7 +82,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodSingleValueInRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
@@ -94,7 +94,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoValuesOutOfRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
         timer.fastForwardTo(500);
@@ -120,7 +120,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoValuesInRange() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
@@ -134,7 +134,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testLessThanChange() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 1, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 1, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
@@ -149,7 +149,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesInRange() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.001, 0), null);
@@ -172,7 +172,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeForOneSecond() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN_OR_EQUALS, 0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN_OR_EQUALS, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
@@ -201,7 +201,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeReset() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, 0.9, 1, TimePeriods.SECONDS, false,  CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, 0.9, TimePeriods.SECONDS, false,  CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
@@ -248,7 +248,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testNoValuesSetTwoInitialValues() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, 1.1, 1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, 1.1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
@@ -276,7 +276,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodSingleValueOutOfRangeAverage() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(10.0, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
@@ -288,7 +288,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodSingleValueInRangeAverage() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
@@ -300,7 +300,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoValuesOutOfRangeAverage() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
         timer.fastForwardTo(500);
@@ -321,7 +321,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoValuesInRangeAverage() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
@@ -335,7 +335,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testLessThanChangeAverage() {
         
-        DataPointRT rt = createRunningPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 1, TimePeriods.SECONDS);
+        DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 1, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
@@ -350,7 +350,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesInRangeAverage() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.001, 0), null);
@@ -373,7 +373,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeForOneSecondAverage() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, null, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
@@ -407,7 +407,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeResetAverage() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, 0.9, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, 0.9, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
@@ -436,7 +436,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testNoValuesSetTwoInitialValuesAverage() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, 1.1, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, 1.1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
@@ -468,7 +468,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     @Test
     public void testDifferentThresholdPeriodToAverage() {
         
-        DataPointVO dpVo = createDisabledPoint(1.0, 0.5, 1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 10, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
+        DataPointVO dpVo = createDisabledPoint(1.0, 0.5, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 10, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
@@ -532,8 +532,8 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      * @param durationPeriodType - duration for RoC to match its comparison before event will go active
      * @return
      */
-    protected DataPointRT createRunningPoint(double change, Double resetRange, int rocThresholdPeriods, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
-        DataPointVO dpVo = createDisabledPoint(change, resetRange, rocThresholdPeriods, rocThresholdPeriodType, useAbsoluteValue, calculationMode, rocDuration, rocDurationType, comparisonMode, durationPeriods, durationPeriodType);
+    protected DataPointRT createRunningPoint(double change, Double resetRange, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
+        DataPointVO dpVo = createDisabledPoint(change, resetRange, rocThresholdPeriodType, useAbsoluteValue, calculationMode, rocDuration, rocDurationType, comparisonMode, durationPeriods, durationPeriodType);
         dpVo.setEnabled(true);
         Common.runtimeManager.saveDataPoint(dpVo);
         return Common.runtimeManager.getDataPoint(dpVo.getId());
@@ -557,7 +557,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      * @param durationPeriodType
      * @return
      */
-    protected DataPointVO createDisabledPoint(double rocThreshold, Double resetThreshold, int rocThresholdPeriods, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
+    protected DataPointVO createDisabledPoint(double rocThreshold, Double resetThreshold, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
         MockDataSourceVO dsVo = new MockDataSourceVO("test", "DS_1");
         dsVo.setEnabled(true);
         dsVo.setUpdatePeriods(1);
@@ -582,7 +582,6 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         rocVo.setXid(EventDetectorDao.getInstance().generateUniqueXid());
         rocVo.setDefinition(new RateOfChangeDetectorDefinition());
         rocVo.setRateOfChangeThreshold(rocThreshold);
-        rocVo.setRateOfChangeThresholdPeriods(rocThresholdPeriods);
         rocVo.setRateOfChangeThresholdPeriodType(rocThresholdPeriodType);
         if(resetThreshold != null) {
             rocVo.setUseResetThreshold(true);
