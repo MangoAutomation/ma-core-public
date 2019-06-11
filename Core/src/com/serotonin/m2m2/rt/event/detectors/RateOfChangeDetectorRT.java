@@ -84,6 +84,11 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     private long rocBreachInactiveTime;
     
     /**
+     * So we have access to our point's latest value
+     */
+    private DataPointRT rt;
+    
+    /**
      * Task used to see if we have dropped below our threshold due to
      * no changes be recorded.
      */
@@ -101,7 +106,11 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                     if(latestValue != null)
                         periodStartValue = latestValue.getDoubleValue();
                     periodStartTime = computePeriodStart(fireTime);
-                    latestValue = null;
+                    PointValueTime pvt = rt.getPointValue();
+                    if(pvt != null)
+                        latestValue = new PointValueTime(rt.getPointValue().getDoubleValue(), fireTime);
+                    else
+                        latestValue = null;
                 }
                 rocChanged(fireTime);
             }
@@ -116,13 +125,13 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     @Override
     public void initializeState() {
         long time = Common.timer.currentTimeMillis();
-        DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getDataPoint().getId());
+        rt = Common.runtimeManager.getDataPoint(vo.getDataPoint().getId());
         
         if(vo.getCalculationMode() == CalculationMode.AVERAGE) {
-            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());
             rocDurationMs = Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
             if(vo.isUseResetThreshold())
-                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
+                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());
 
             DataSourceVO<?> ds = DataSourceDao.getInstance().get(rt.getDataSourceId());
             if(ds instanceof PollingDataSourceVO) {
@@ -135,9 +144,9 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                     rocCheckPeriodMs = 5;
             }
         }else {
-            comparisonRoCPerMs = vo.getRateOfChangeThreshold();
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());;
             if(vo.isUseResetThreshold())
-                resetRoCPerMs = vo.getResetThreshold();
+                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), vo.getRateOfChangeThresholdPeriods());;
         }
         
         //Fill our  values
@@ -218,9 +227,17 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if(latestValue == null) {
                 //First value ever
                 periodStartValue = newValue.getDoubleValue();
-            }else
+                if(vo.getCalculationMode() == CalculationMode.INSTANTANEOUS)
+                    periodStartTime = newValue.getTime();
+            }else {
                 periodStartValue = latestValue.getDoubleValue();
-            periodStartTime = computePeriodStart(now);
+                if(vo.getCalculationMode() == CalculationMode.INSTANTANEOUS)
+                    periodStartTime = latestValue.getTime();
+            }
+            
+            if(vo.getCalculationMode() == CalculationMode.AVERAGE)
+                periodStartTime = computePeriodStart(now);
+            
             latestValue = newValue;
         }else {
             latestValue = newValue;   
@@ -384,8 +401,13 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     protected double firstLastRocAlgorithm(){
         if(vo.getCalculationMode() == CalculationMode.AVERAGE)
             return (latestValue.getDoubleValue() - periodStartValue)/(double)rocDurationMs;
-        else
-            return (latestValue.getDoubleValue() - periodStartValue);
+        else {
+            long duration = latestValue.getTime() - periodStartTime;
+            if(duration > 0)
+                return (latestValue.getDoubleValue() - periodStartValue)/(double)duration;
+            else
+                return 0; //TODO what do we do here?
+        }
     }
     
     @Override

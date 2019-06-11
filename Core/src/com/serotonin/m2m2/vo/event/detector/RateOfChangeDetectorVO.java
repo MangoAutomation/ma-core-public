@@ -42,6 +42,8 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     
     @JsonProperty
     private double rateOfChangeThreshold;
+    private int rateOfChangeThresholdPeriods;
+    private int rateOfChangeThresholdPeriodType;
     private int rateOfChangePeriods;
     private int rateOfChangePeriodType = Common.TimePeriods.SECONDS;
     @JsonProperty
@@ -64,6 +66,23 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     public void setRateOfChangeThreshold(double rateOfChangeThreshold) {
         this.rateOfChangeThreshold = rateOfChangeThreshold;
     }
+    
+    public int getRateOfChangeThresholdPeriods() {
+        return rateOfChangeThresholdPeriods;
+    }
+
+    public void setRateOfChangeThresholdPeriods(int rateOfChangeThresholdPeriods) {
+        this.rateOfChangeThresholdPeriods = rateOfChangeThresholdPeriods;
+    }
+
+    public int getRateOfChangeThresholdPeriodType() {
+        return rateOfChangeThresholdPeriodType;
+    }
+
+    public void setRateOfChangeThresholdPeriodType(int rateOfChangeThresholdPeriodType) {
+        this.rateOfChangeThresholdPeriodType = rateOfChangeThresholdPeriodType;
+    }
+
     public double getResetThreshold() {
         return resetThreshold;
     }
@@ -152,6 +171,12 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
             }
         }
         
+        if(rateOfChangeThresholdPeriods < 1)
+            response.addContextualMessage("rateOfChangeThresholdPeriods", "validate.greaterThanZero");
+        
+        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeThresholdPeriodType))
+            response.addContextualMessage("rateOfChangeThresholdPeriodType", "validate.invalidValue");
+        
         if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangePeriodType))
             response.addContextualMessage("rateOfChangePeriodType", "validate.invalidValue");
     }
@@ -205,6 +230,8 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
+        writer.writeEntry("rateOfChangeThresholdPeriodType", Common.TIME_PERIOD_CODES.getCode(rateOfChangeThresholdPeriodType));
+        writer.writeEntry("rateOfChangeThresholdPeriods", rateOfChangeThresholdPeriods);
         if (useResetThreshold)
             writer.writeEntry("resetThreshold", resetThreshold);
         writer.writeEntry("rateOfChangePeriodType", Common.TIME_PERIOD_CODES.getCode(rateOfChangePeriodType));
@@ -215,16 +242,25 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
         
+        String text = jsonObject.getString("rateOfChangeThresholdPeriodType");
+        if (text == null)
+            throw new TranslatableJsonException("emport.error.ped.missing", "rateOfChangeThresholdPeriodType",
+                    Common.TIME_PERIOD_CODES.getCodeList());
+        rateOfChangeThresholdPeriodType = Common.TIME_PERIOD_CODES.getId(text);
+        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeThresholdPeriodType))
+            throw new TranslatableJsonException("emport.error.ped.invalid", "rateOfChangeThresholdPeriodType", text,
+                    Common.TIME_PERIOD_CODES.getCodeList());
+        
         if (jsonObject.containsKey("resetThreshold")) {
             resetThreshold = getDouble(jsonObject, "resetThreshold");
             useResetThreshold = true;
         }
+        rateOfChangeThresholdPeriods = getInt(jsonObject, "rateOfChangeThresholdPeriods");
         
-        String text = jsonObject.getString("rateOfChangePeriodType");
+        text = jsonObject.getString("rateOfChangePeriodType");
         if (text == null)
             throw new TranslatableJsonException("emport.error.ped.missing", "rateOfChangePeriodType",
                     Common.TIME_PERIOD_CODES.getCodeList());
-
         rateOfChangePeriodType = Common.TIME_PERIOD_CODES.getId(text);
         if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangePeriodType))
             throw new TranslatableJsonException("emport.error.ped.invalid", "rateOfChangePeriodType", text,
