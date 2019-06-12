@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
-import java.util.Date;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -15,12 +13,12 @@ import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
-import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PollingDataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.CalculationMode;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.ComparisonMode;
+import com.serotonin.timer.FixedRateTrigger;
 
 /**
  * 
@@ -101,22 +99,15 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
 
             @Override
             public void scheduleTimeout(long fireTime) {
-                //Slide the window
-                if(fireTime >= periodStartTime + rocDurationMs) {
-                    if(latestValue != null)
-                        periodStartValue = latestValue.getDoubleValue();
-                    periodStartTime = computePeriodStart(fireTime);
-                    PointValueTime pvt = rt.getPointValue();
-                    if(pvt != null)
-                        latestValue = new PointValueTime(rt.getPointValue().getDoubleValue(), fireTime);
-                    else
-                        latestValue = null;
-                }
-                rocChanged(fireTime);
+                rocCheckTimeout(fireTime);
             }
 
             @Override
             public String getThreadName() {
+                return "ROCD" + vo.getXid();
+            }
+            @Override
+            public String getTaskId() {
                 return "ROCD" + vo.getXid();
             }
         };
@@ -151,19 +142,25 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         
         //Fill our  values
         latestValue = rt.getPointValue();
-        periodStartTime = computePeriodStart(time);
+        
+        //Initialize our period
+        //periodStartTime = time; //Use if we don't want to caclulate while window is filling
+        periodStartTime = computePeriodStart(time); //Use if we want to calculate while the window is filling up
         
         //Do we have a value exactly at the period start?
-        PointValueTime start = rt.getPointValueAt(periodStartTime);
-        if(start == null)
-            start = rt.getPointValueBefore(periodStartTime);
+        PointValueTime start = getValueAtOrBefore(periodStartTime);
         
         //Do we have a value to compute the RoC?
         if(start != null) {
             periodStartValue = start.getDoubleValue();
             double currentRoc = firstLastRocAlgorithm();
-            checkState(currentRoc, time, latestValue != null ? latestValue.getTime() : time);
+            long eventTime = latestValue != null ? latestValue.getTime() : time;
+            checkState(currentRoc, time, eventTime);
         }
+
+        //Start our check task if we need one
+        if(vo.getCalculationMode() == CalculationMode.AVERAGE)
+            rocTimeoutTask = new TimeoutTask(new FixedRateTrigger(0, rocCheckPeriodMs), rocTimeoutClient);
     }
 
 
@@ -175,31 +172,22 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     @Override
     protected TranslatableMessage getMessage() {
         String name = vo.getDataPoint().getExtendedName();
-        String prettyChange = vo.getDataPoint().getTextRenderer().getText(vo.getRateOfChangeThreshold(), TextRenderer.HINT_SPECIFIC);
-        TranslatableMessage durationDescription = getDurationDescription();
-        TranslatableMessage rocDurationDescription = vo.getRateOfChangeDurationDescription();
-        
-        if(vo.getComparisonMode() == ComparisonMode.LESS_THAN_OR_EQUALS){
-            //Not Higher than 
-            if (durationDescription == null)
-                return new TranslatableMessage("event.detector.highLimitRateOfChangeNotHigher", name, prettyChange, rocDurationDescription);
-            return new TranslatableMessage("event.detector.highLimitRateOfChangeNotHigherPeriod", name, prettyChange, rocDurationDescription, durationDescription);
-        }else if(vo.getComparisonMode() == ComparisonMode.GREATER_THAN){
-            //Higher than
-            if (durationDescription == null)
-                return new TranslatableMessage("event.detector.highLimitRateOfChange", name, prettyChange, rocDurationDescription);
-            return new TranslatableMessage("event.detector.highLimitRateofChangePeriod", name, prettyChange, rocDurationDescription, durationDescription);
-        }else if(vo.getComparisonMode() == ComparisonMode.GREATER_THAN_OR_EQUALS){
-            //Not Higher than 
-            if (durationDescription == null)
-                return new TranslatableMessage("event.detector.lowLimitRateOfChangeNotLower", name, prettyChange, rocDurationDescription);
-            return new TranslatableMessage("event.detector.lowLimitRateofChangeNotLowerPeriod", name, prettyChange, rocDurationDescription, durationDescription);
-        }else{
-            //Higher than
-            if (durationDescription == null)
-                return new TranslatableMessage("event.detector.lowLimitRateOfChange", name, prettyChange, rocDurationDescription);
-            return new TranslatableMessage("event.detector.lowLimitRateOfChangePeriod", name, prettyChange, rocDurationDescription, durationDescription);
+        TranslatableMessage comparison = vo.getComparisonDescription();
+        TranslatableMessage durationDesc = vo.getDurationDescription();
+        TranslatableMessage rateOfChangeDurationDesc = vo.getRateOfChangeDurationDescription();
+ 
+        if (vo.getCalculationMode() == CalculationMode.INSTANTANEOUS) {
+            if(durationDesc == null)
+                return new TranslatableMessage("event.detector.rocInstantaneous", name, comparison);
+            else
+                return new TranslatableMessage("event.detector.rocInstantaneousDuration", name, comparison, durationDesc);
+        }else {
+            if(durationDesc == null)
+                return new TranslatableMessage("event.detector.rocAverage", name, comparison, rateOfChangeDurationDesc);
+            else
+                return new TranslatableMessage("event.detector.rocAverageDuration", name, comparison, rateOfChangeDurationDesc, durationDesc);
         }
+
     }
 
     @Override
@@ -223,41 +211,39 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     synchronized public void pointUpdated(PointValueTime newValue) {
         //Is our new value in a new period?
         long now = Common.timer.currentTimeMillis();
-        if(newValue.getTime() >= periodStartTime + rocDurationMs) {
+        if(vo.getCalculationMode() == CalculationMode.INSTANTANEOUS) {
             if(latestValue == null) {
                 //First value ever
                 periodStartValue = newValue.getDoubleValue();
                 if(vo.getCalculationMode() == CalculationMode.INSTANTANEOUS)
                     periodStartTime = newValue.getTime();
             }else {
+                //Slide values
                 periodStartValue = latestValue.getDoubleValue();
-                if(vo.getCalculationMode() == CalculationMode.INSTANTANEOUS)
-                    periodStartTime = latestValue.getTime();
+                periodStartTime = latestValue.getTime();
             }
-            
-            if(vo.getCalculationMode() == CalculationMode.AVERAGE)
-                periodStartTime = computePeriodStart(now);
-            
-            latestValue = newValue;
+            latestValue = newValue;            
+            rocChanged(now);
         }else {
-            latestValue = newValue;   
+            latestValue = newValue;
         }
-        
-        rocChanged(now);
     }
     
     private synchronized void rocChanged(long now) {
+        //Don't compute if there is not a period start value
+        if(periodStartValue == null)
+            return;
+        
         if(latestValue != null) {
             double currentRoc = firstLastRocAlgorithm();
             checkState(currentRoc, now, latestValue.getTime());
         }else {
             //Assume 0 RoC
-            checkState(0.0d, now, periodStartTime);
+            checkState(0.0d, now, now);
         }
     }
     
     private synchronized void checkState(double currentRoc, long fireTime, long latestValueTime) {
-        cancelRocTimeoutTask();
         
         if(vo.isUseAbsoluteValue())
             currentRoc = Math.abs(currentRoc);
@@ -352,12 +338,29 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 }
             }
         }
-        //Schedule our timeout task to check our RoC next period as if no values show up 
-        // old ones may slide out of our window and change our RoC
-        if(vo.getCalculationMode() == CalculationMode.AVERAGE)
-            rocTimeoutTask = new TimeoutTask(new Date(fireTime + rocCheckPeriodMs), rocTimeoutClient);
     }
     
+    synchronized private void rocCheckTimeout(long fireTime) {
+        //Slide the window
+        if(fireTime > periodStartTime + rocDurationMs) {
+            periodStartTime = computePeriodStart(fireTime);
+            PointValueTime start = getValueAtOrBefore(periodStartTime);
+            if(start != null)
+                periodStartValue = start.getDoubleValue();
+            if(rt.getPointValue() != null && rt.getPointValue().getTime() >= periodStartTime)
+                latestValue = rt.getPointValue();
+            else
+                latestValue = null;
+        }
+        rocChanged(fireTime);
+    }
+    
+    private PointValueTime getValueAtOrBefore(long time) {
+        PointValueTime start = rt.getPointValueAt(time);
+        if(start == null)
+            start = rt.getPointValueBefore(time);
+        return start;
+    }
     
     synchronized private void cancelRocTimeoutTask() {
         if (rocTimeoutTask != null) {

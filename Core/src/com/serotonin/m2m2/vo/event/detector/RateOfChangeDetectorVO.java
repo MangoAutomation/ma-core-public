@@ -5,6 +5,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -12,6 +13,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -176,43 +178,63 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
     
     @Override
     protected TranslatableMessage getConfigurationDescription() {
+        TranslatableMessage comparison = getComparisonDescription();
         TranslatableMessage durationDesc = getDurationDescription();
         TranslatableMessage rateOfChangeDurationDesc = getRateOfChangeDurationDescription();
-        if (comparisonMode == ComparisonMode.GREATER_THAN_OR_EQUALS) {
-            //Check if Not above
-            if (durationDesc == null)
-                return new TranslatableMessage("event.detectorVo.lowLimitRateOfChangeNotLower", dataPoint
-                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
-            return new TranslatableMessage("event.detectorVo.lowLimitRateOfChangeNotLowerPeriod", dataPoint
-                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
-        }
-        else if(comparisonMode == ComparisonMode.LESS_THAN){
-            //Must be above
-            if (durationDesc == null)
-                return new TranslatableMessage("event.detectorVo.lowLimitRateOfChange", dataPoint.getTextRenderer()
-                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
-            return new TranslatableMessage("event.detectorVo.lowLimitRateOfChangePeriod", dataPoint.getTextRenderer()
-                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
-        }else if (comparisonMode == ComparisonMode.LESS_THAN_OR_EQUALS) {
-            //Check if Not above
-            if (durationDesc == null)
-                return new TranslatableMessage("event.detectorVo.highLimitRateOfChangeNotHigher", dataPoint
-                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
-            return new TranslatableMessage("event.detectorVo.highLimitRateOfChangeNotHigherPeriod", dataPoint
-                        .getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
-        }
-        else {
-            //Must be above
-            if (durationDesc == null)
-                return new TranslatableMessage("event.detectorVo.highLimitRateOfChange", dataPoint.getTextRenderer()
-                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc);
-            return new TranslatableMessage("event.detectorVo.highLimitRateOfChangePeriod", dataPoint.getTextRenderer()
-                        .getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), rateOfChangeDurationDesc, durationDesc);
+ 
+        if (calculationMode == CalculationMode.INSTANTANEOUS) {
+            if(durationDesc == null)
+                return new TranslatableMessage("event.detectorVo.rocInstantaneous", comparison);
+            else
+                return new TranslatableMessage("event.detectorVo.rocInstantaneousDuration", comparison, durationDesc);
+        }else {
+            if(durationDesc == null)
+                return new TranslatableMessage("event.detectorVo.rocAverage", comparison, rateOfChangeDurationDesc);
+            else
+                return new TranslatableMessage("event.detectorVo.rocAverageDuration", comparison, rateOfChangeDurationDesc, durationDesc);
         }
     }
     
     public TranslatableMessage getRateOfChangeDurationDescription() {
         return Common.getPeriodDescription(rateOfChangePeriodType, rateOfChangePeriods);
+    }
+    
+    public TranslatableMessage getUnitsDescription() {
+        switch(this.rateOfChangeThresholdPeriodType) {
+            case TimePeriods.MILLISECONDS:
+                return new TranslatableMessage("dateAndTime.millisecond.per");
+            case TimePeriods.SECONDS:
+                return new TranslatableMessage("dateAndTime.second.per");
+            case TimePeriods.MINUTES:
+                return new TranslatableMessage("dateAndTime.minute.per");
+            case TimePeriods.HOURS:
+                return new TranslatableMessage("dateAndTime.hour.per");
+            case TimePeriods.DAYS:
+                return new TranslatableMessage("dateAndTime.day.per");
+            case TimePeriods.WEEKS:
+                return new TranslatableMessage("dateAndTime.week.per");
+            case TimePeriods.MONTHS:
+                return new TranslatableMessage("dateAndTime.month.per");
+            case TimePeriods.YEARS:
+                return new TranslatableMessage("dateAndTime.year.per");
+            default:
+                throw new ShouldNeverHappenException("Unsupported time period: " + rateOfChangeThresholdPeriodType);
+        }
+
+    }
+    
+    public TranslatableMessage getComparisonDescription() {
+        switch(comparisonMode) {
+            case GREATER_THAN:
+                return new TranslatableMessage("event.detectorVo.roc.greaterThan", dataPoint.getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), getUnitsDescription());
+            case GREATER_THAN_OR_EQUALS:
+                return new TranslatableMessage("event.detectorVo.roc.greaterThanEqualTo", dataPoint.getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), getUnitsDescription());
+            case LESS_THAN:
+                return new TranslatableMessage("event.detectorVo.roc.lessThan", dataPoint.getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), getUnitsDescription());
+            case LESS_THAN_OR_EQUALS:
+            default:
+                return new TranslatableMessage("event.detectorVo.roc.lessThanEqualTo", dataPoint.getTextRenderer().getText(rateOfChangeThreshold, TextRenderer.HINT_SPECIFIC), getUnitsDescription());
+        }
     }
     
     @Override

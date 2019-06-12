@@ -303,19 +303,21 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
-        timer.fastForwardTo(500);
+        //This highlights the timing problem with the listener vs. the check task
+        // if we ff to 1000 the task will fire before we set the point value and the RoC will be too small
+        timer.fastForwardTo(999);
         ensureSetPointValue(rt, new PointValueTime(1.1, timer.currentTimeMillis()));
         
-        timer.fastForwardTo(1000);
+        timer.fastForwardTo(1500);
         assertEquals(1, listener.raised.size());
-        assertEquals(500, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(999, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
         
         //Our event will RTN as the period slides along and our RoC returns to 0
-        timer.fastForwardTo(5000);
+        timer.fastForwardTo(3000);
         assertEquals(1, listener.raised.size());
         assertEquals(1, listener.rtn.size());
-        assertEquals(1500, listener.rtn.get(0).getRtnTimestamp());
+        assertEquals(2000, listener.rtn.get(0).getRtnTimestamp());
     }
     
     @Test
@@ -338,12 +340,15 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 1, TimePeriods.SECONDS);
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
-        timer.fastForwardTo(timer.currentTimeMillis() + 500);
+        timer.fastForwardTo(500);
+        assertEquals(0, listener.raised.size());
+        assertEquals(0, listener.rtn.size());
+    
         ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
-        timer.fastForwardTo(timer.currentTimeMillis() + 4500);
+        timer.fastForwardTo(4500);
         
         assertEquals(1, listener.raised.size());
-        assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(1500, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
     }
     
@@ -447,19 +452,18 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         Common.runtimeManager.saveDataPoint(dpVo);
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
-        timer.fastForwardTo(1000);
-        
+        timer.fastForwardTo(1499);
         
         assertEquals(1, listener.raised.size());
         assertEquals(500, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
 
-        ensureSetPointValue(rt, new PointValueTime(2.2, 1000));
-        timer.fastForwardTo(1100);
+        ensureSetPointValue(rt, new PointValueTime(2.2, timer.currentTimeMillis()));
+        timer.fastForwardTo(2000);
         
         assertEquals(1, listener.raised.size());
         assertEquals(1, listener.rtn.size());
-        assertEquals(1000, listener.rtn.get(0).getRtnTimestamp());
+        assertEquals(1499, listener.rtn.get(0).getRtnTimestamp());
     }
     
     /**
@@ -487,27 +491,33 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
         ensureSetPointValue(rt, new PointValueTime(10.3, timer.currentTimeMillis()));
         timer.fastForwardTo(11000);
-        //Nothing raised as our RoC was equal at 11s and dropping
-        assertEquals(0, listener.raised.size());
+        assertEquals(1, listener.raised.size());
+        assertEquals(10999, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
         
         ensureSetPointValue(rt, new PointValueTime(11.3, timer.currentTimeMillis()));
         timer.fastForwardTo(13000);
         //Nothing raised as our change is only 1 in the last 10s
-        assertEquals(0, listener.raised.size());
+        assertEquals(1, listener.raised.size());
         assertEquals(0, listener.rtn.size());
         
         ensureSetPointValue(rt, new PointValueTime(21.4, timer.currentTimeMillis()));
         timer.fastForwardTo(13999);
         assertEquals(1, listener.raised.size());
-        assertEquals(13000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
 
-        //Allow reset of alarm after 1s and no change
-        timer.fastForwardTo(14000);
+        //Allow reset of alarm after 10s and no change
+        timer.fastForwardTo(26000);
         
         assertEquals(1, listener.rtn.size());
-        assertEquals(14000, listener.rtn.get(0).getRtnTimestamp());
+        assertEquals(13000, listener.rtn.get(0).getRtnTimestamp());
+        
+        ensureSetPointValue(rt, new PointValueTime(41.4, timer.currentTimeMillis()));
+        timer.fastForwardTo(33000);
+        assertEquals(2, listener.raised.size());
+        assertEquals(26000, listener.raised.get(1).getActiveTimestamp());
+        assertEquals(1, listener.rtn.size());
+        
     }
     
     
