@@ -19,7 +19,6 @@ import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 
 
 /**
- * TODO This class is a work in progress and IS NOT USABLE in its current state.
  *
  * The AnalogChangeDetector is used to detect occurrences of point values changing by a given amount within a duration of time.
  *
