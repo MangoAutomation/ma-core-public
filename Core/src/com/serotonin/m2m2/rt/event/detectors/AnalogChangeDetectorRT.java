@@ -195,7 +195,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             max = newValue.getDoubleValue();
         if(newValue.getDoubleValue() < min)
             min = newValue.getDoubleValue();
-        return active;
+        return active || max - min > vo.getLimit();
     }
 
     private void handleValue(PointValueTime newValue) {
