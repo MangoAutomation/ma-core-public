@@ -57,6 +57,8 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 
     private double max = Double.NEGATIVE_INFINITY;
     private double min = Double.POSITIVE_INFINITY;
+    private long maxTime = Long.MIN_VALUE;
+    private long minTime = Long.MIN_VALUE;
     private long latestTime;
     private boolean dirty = false;
     private final long durationMillis;
@@ -87,10 +89,14 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         Iterator<PointValueTime> iter = periodValues.iterator();
         while(iter.hasNext()) {
             PointValueTime pvt = iter.next();
-            if(pvt.getDoubleValue() > max)
+            if(pvt.getDoubleValue() > max) {
                 max = pvt.getDoubleValue();
-            if(pvt.getDoubleValue() < min)
+                maxTime = pvt.getTime();
+            }
+            if(pvt.getDoubleValue() < min) {
                 min = pvt.getDoubleValue();
+                minTime = pvt.getTime();
+            }
             if(pvt.getTime() > latestTime)
                 latestTime = pvt.getTime();
         }
@@ -159,18 +165,28 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         if(recomputeMaximum || recomputeMinimum) {
             double newMax = Double.NEGATIVE_INFINITY;
             double newMin = Double.POSITIVE_INFINITY;
+            long newMaxTime = Long.MIN_VALUE;
+            long newMinTime = Long.MIN_VALUE;
             Iterator<PointValueTime> iter = periodValues.iterator();
             while(iter.hasNext()) {
                 PointValueTime pvt = iter.next();
-                if(pvt.getDoubleValue() > newMax)
+                if(pvt.getDoubleValue() > newMax) {
                     newMax = pvt.getDoubleValue();
-                if(pvt.getDoubleValue() < newMin)
+                    newMaxTime = pvt.getTime();
+                } 
+                if(pvt.getDoubleValue() < newMin) {
                     newMin = pvt.getDoubleValue();
+                    newMinTime = pvt.getTime();
+                }
             }
-            if(recomputeMaximum)
+            if(recomputeMaximum) {
                 max = newMax;
-            if(recomputeMinimum)
+                maxTime = newMaxTime;
+            }
+            if(recomputeMinimum) {
                 min = newMin;
+                minTime = newMinTime;
+            }
         }
     }
 
@@ -190,11 +206,18 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             latestTime = newValue.getTime();
         else
             dirty = true;
-        if(newValue.getDoubleValue() > max)
+        if(newValue.getDoubleValue() > max) {
             max = newValue.getDoubleValue();
-        if(newValue.getDoubleValue() < min)
+            maxTime = newValue.getTime();
+        }
+        if(newValue.getDoubleValue() < min) {
             min = newValue.getDoubleValue();
-        return active || max - min > vo.getLimit();
+            minTime = newValue.getTime();
+        }
+        
+        return active || (vo.isCheckIncrease() && vo.isCheckDecrease() && max - min > vo.getLimit()) ||
+               (vo.isCheckDecrease() && maxTime < minTime && max - min > vo.getLimit()) || 
+               (vo.isCheckIncrease() && maxTime > minTime && max - min > vo.getLimit());
     }
 
     private void handleValue(PointValueTime newValue) {
@@ -260,9 +283,11 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             if(lastValue != null) {
                 periodValues.add(lastValue);
                 min = max = lastValue.getDoubleValue();
+                minTime = maxTime = lastValue.getTime();
             } else {
                 max = Double.NEGATIVE_INFINITY;
                 min = Double.POSITIVE_INFINITY;
+                maxTime = minTime = Long.MIN_VALUE;
             }
             returnToNormal(fireTime);
             eventActive = false;
