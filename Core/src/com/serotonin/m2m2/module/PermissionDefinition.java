@@ -6,9 +6,6 @@ package com.serotonin.m2m2.module;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.permission.Permission;
@@ -57,12 +54,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return
      */
     public Permission getPermission() {
-        Set<String> roles;
         String permission = SystemSettingsDao.instance.getValue(getPermissionTypeName());
-        if(StringUtils.isNotEmpty(permission))
-            roles = Permissions.explodePermissionGroups(permission);
-        else
-            roles = Collections.emptySet();
-        return new Permission(getPermissionTypeName(), roles);
+        return new Permission(getPermissionTypeName(), Permissions.explodePermissionGroups(permission));
     }
 }

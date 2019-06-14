@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -33,6 +34,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 /**
  * @author Matthew Lohbihler
  *
+ * When this class refers to "permissions" it actually means "roles" or "groups". We refer to system settings that map to a list of roles as "granted permissions".
  */
 public class Permissions {
 
@@ -446,12 +448,34 @@ public class Permissions {
      * @return
      */
     public static boolean hasGrantedPermission(PermissionHolder user, Permission permission) {
-        if(!isValidPermissionHolder(user))
+        if(!isValidPermissionHolder(user)) {
             return false;
-        if(user.hasAdminPermission())
+        } else if (user.hasAdminPermission()) {
             return true;
-        else
-            return containsAny(user.getPermissionsSet(), permission.getRoles());
+        }
+
+        return containsAny(user.getPermissionsSet(), permission.getRoles());
+    }
+
+    public static boolean hasGrantedPermission(PermissionHolder user, String permissionName) {
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(permissionName);
+        if (def == null) {
+            throw new TranslatableRuntimeException(new TranslatableMessage("permissions.accessDeniedInvalidPermission", permissionName));
+        }
+
+        return hasGrantedPermission(user, def.getPermission());
+    }
+
+    public static void ensureGrantedPermission(PermissionHolder user, Permission permission) {
+        if (!hasGrantedPermission(user, permission)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user.getPermissionHolderName()), user);
+        }
+    }
+
+    public static void ensureGrantedPermission(PermissionHolder user, String permissionName) {
+        if (!hasGrantedPermission(user, permissionName)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user.getPermissionHolderName()), user);
+        }
     }
 
     private static boolean containsSinglePermission(Set<String> heldPermissions, String requiredPermission) {
