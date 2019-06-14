@@ -4,42 +4,32 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
  *
  */
 public class LegacyPointDetailsViewPermissionDefinition extends PermissionDefinition{
-	public static final String PERMISSION = "legacypointdetails.view";
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.PermissionDefinition#getPermissionKey()
-	 */
-	@Override
-	public String getPermissionKey() {
-		return "legacypointdetails.permission.view";
-	}
+    public static final String PERMISSION = "legacypointdetails.view";
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.PermissionDefinition#getPermissionTypeName()
-	 */
-	@Override
-	public String getPermissionTypeName() {
-		return PERMISSION;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.PermissionDefinition#getDefaultGroups()
-	 */
-	@Override
-	public List<String> getDefaultGroups() {
-		List<String> groups = new ArrayList<String>();
-		groups.add("user");
-		return groups;
-	}
+    @Override
+    public String getPermissionKey() {
+        return "legacypointdetails.permission.view";
+    }
+
+    @Override
+    public String getPermissionTypeName() {
+        return PERMISSION;
+    }
+
+    @Override
+    public List<String> getDefaultGroups() {
+        return Collections.singletonList(Permissions.USER_DEFAULT);
+    }
 
 }
