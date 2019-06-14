@@ -3,14 +3,15 @@
  */
 package com.serotonin.m2m2.vo.permission;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
  * Container for a Mango Permission such as 'permissionDatasource' or  'permissions.user.editSelf'
  *   not to be confused with a role which are defined for these permissions.
- * 
+ *
  * This class is sorted/ordered and equaled on the typeName only
- * 
+ *
  * @author Terry Packer
  *
  */
@@ -21,23 +22,23 @@ public class Permission {
 
     public Permission(String typeName, Set<String> roles) {
         this.typeName = typeName;
-        this.roles = roles;
+        this.roles = Collections.unmodifiableSet(roles);
     }
-    
+
     public String getTypeName() {
         return typeName;
     }
-    
+
     public void setTypeName(String typeName) {
         this.typeName = typeName;
     }
-    
+
     public Set<String> getRoles() {
         return roles;
     }
-    
+
     public void setRoles(Set<String> roles) {
-        this.roles = roles;
+        this.roles = Collections.unmodifiableSet(roles);
     }
 
     @Override
@@ -64,5 +65,5 @@ public class Permission {
             return false;
         return true;
     }
-    
+
 }

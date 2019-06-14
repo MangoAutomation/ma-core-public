@@ -42,18 +42,18 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
     private String dataPointReadPermissions = "";
     @JsonProperty
     private String customPermissions = "";
-    
+
     public ScriptPermissions(Set<String> permissions) {
         this(permissions == null ? null : Permissions.implodePermissionGroups(permissions));
     }
-    
+
     public ScriptPermissions(String permissions) {
         this.dataPointReadPermissions = permissions;
         this.dataSourcePermissions = permissions;
         this.dataPointSetPermissions = permissions;
         this.customPermissions = permissions;
     }
-    
+
     public ScriptPermissions() {
         dataSourcePermissions = "";
         dataPointSetPermissions = "";
@@ -180,7 +180,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
         }
     }
 
-    @Override
+    @Deprecated
     public String getPermissions() {
         return Permissions.implodePermissionGroups(this.getPermissionsSet());
     }

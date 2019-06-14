@@ -3,9 +3,9 @@
  */
 package com.serotonin.m2m2.rt.event.type.definition;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,7 +28,7 @@ public class UserLoginEventTypeDefinition extends SystemEventTypeDefinition {
 
     @Override
     public String getTypeName() {
-       return SystemEventType.TYPE_USER_LOGIN;
+        return SystemEventType.TYPE_USER_LOGIN;
     }
 
     @Override
@@ -50,27 +50,26 @@ public class UserLoginEventTypeDefinition extends SystemEventTypeDefinition {
     public boolean supportsReferenceId2() {
         return false;
     }
-    
+
     @Override
     public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user, String subtype) {
         if(!StringUtils.equals(SystemEventType.TYPE_USER_LOGIN, subtype))
             return Collections.emptyList();
 
         AlarmLevels level = AlarmLevels.fromValue(SystemSettingsDao.instance.getIntValue(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN));
-        if(user.hasAdminPermission()) {
-            List<User> users = UserDao.getInstance().getActiveUsers();
-            List<EventTypeVO> types = new ArrayList<>(users.size());
-            for(User u : users)
-                types.add(new EventTypeVO(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, u.getId()), new TranslatableMessage("event.system.userLoginForUser", u.getName()), level));
-            
-            return types;            
-        }else {
-            List<EventTypeVO> types = new ArrayList<>(1);
-            User u = UserDao.getInstance().getUser(user.getPermissionHolderId());
-            types.add(new EventTypeVO(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, u.getId()), new TranslatableMessage("event.system.userLoginForUser", u.getName()), level));
-            return types;
+
+        List<User> users;
+        if (user.hasAdminPermission()) {
+            users = UserDao.getInstance().getActiveUsers();
+        } else if (user instanceof User) {
+            users = Collections.singletonList((User) user);
+        } else {
+            users = Collections.emptyList();
         }
 
+        return users.stream()
+                .map(u -> new EventTypeVO(new SystemEventType(SystemEventType.TYPE_USER_LOGIN, u.getId()), new TranslatableMessage("event.system.userLoginForUser", u.getName()), level))
+                .collect(Collectors.toList());
     }
 
 }

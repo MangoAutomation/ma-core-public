@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security.permissions;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -93,16 +95,9 @@ implements MethodSecurityExpressionOperations {
      */
     public boolean hasAllPermissions(String...permissions){
         User user =  (User) this.getPrincipal();
-        if(user.hasAdminPermission())
-            return true;
-
-        Set<String> userPermissions = user.getPermissionsSet();
-        //TODO Use Collections.disjoint?
-        for(String permission : permissions){
-            if(!userPermissions.contains(permission))
-                return false;
-        }
-        return true;
+        HashSet<String> set = new HashSet<>(permissions.length);
+        Collections.addAll(set, permissions);
+        return Permissions.hasAllPermissions(user, set);
     }
 
     /**
@@ -189,15 +184,12 @@ implements MethodSecurityExpressionOperations {
      * @param permissions
      * @return
      */
-    public boolean hasAnyPermission(String...permissions){
+    public boolean hasAnyPermission(String...permissions) {
         User user =  (User) this.getPrincipal();
-        Set<String> userPermissions = user.getPermissionsSet();
-        //TODO Use Intersect (See Permissions)
-        for(String permission : permissions){
-            if(userPermissions.contains(permission))
-                return true;
-        }
-        return false;
+
+        HashSet<String> set = new HashSet<>(permissions.length);
+        Collections.addAll(set, permissions);
+        return Permissions.hasAnyPermission(user, set);
     }
 
     public boolean isPasswordAuthenticated() {

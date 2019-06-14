@@ -11,6 +11,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Set;
@@ -127,11 +128,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
-    //TODO More aptly named rolesSet 
+    //TODO More aptly named rolesSet
     private transient final LazyInitializer<Set<String>> permissionsSet = new LazyInitializer<>();
     private transient final LazyInitializer<Set<Permission>> grantedPermissions = new LazyInitializer<>();
 
-    private transient boolean admin;
+    private transient volatile boolean admin;
 
     //
     //Spring Security
@@ -373,7 +374,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.disabled = disabled;
     }
 
-    @Override
+    @Deprecated
     public String getPermissions() {
         return permissions;
     }
@@ -588,17 +589,17 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public void setSessionExpirationPeriodType(String sessionExpirationPeriodType) {
         this.sessionExpirationPeriodType = sessionExpirationPeriodType;
     }
-    
+
     public Set<Permission> getGrantedPermissions() {
         return grantedPermissions.get(() -> {
-            return Collections.unmodifiableSet(Permissions.getGrantedPermissions(this));  
+            return Collections.unmodifiableSet(Permissions.getGrantedPermissions(this));
         });
     }
 
     public void resetGrantedPermissions() {
         this.grantedPermissions.reset();
     }
-    
+
     @Override
     public void validate(ProcessResult response) {
 
@@ -606,7 +607,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             response.addMessage("username", new TranslatableMessage("validate.required"));
         else if(!UserDao.getInstance().isUsernameUnique(username, id))
             response.addMessage("username", new TranslatableMessage("validate.required"));
-        
+
         if (StringUtils.isBlank(email))
             response.addMessage("email", new TranslatableMessage("validate.required"));
 
@@ -623,17 +624,17 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                 if ((PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
                     response.addMessage("password", new TranslatableMessage("validate.required"));
                 }
-                
+
                 //Leverage the cache to get the user to compare passwords
                 User existing = UserDao.getInstance().getUser(username);
-                
+
                 //Validate against our rules
                 if (PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)){
 
                     //Can't use same one 2x
                     if(existing != null && Common.checkPassword(hashOrPassword, existing.getPassword(), false))
                         response.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
-                    
+
                     PasswordValidator validator = new PasswordValidator(Arrays.asList(
                             new LengthRule(8, 255)));
                     RuleResult result = validator.validate(new PasswordData(hashOrPassword));
@@ -670,7 +671,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                 }
             }
         }
-        
+
         if(sessionExpirationOverride) {
             //TODO Pass in saving user during validation
             User savingUser = Common.getHttpUser();
@@ -869,12 +870,16 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     @Override
     public Set<String> getPermissionsSet() {
         return permissionsSet.get(() -> {
-            return Permissions.explodePermissionGroups(this.permissions);
+            HashSet<String> groups = new HashSet<>(Permissions.explodePermissionGroups(this.permissions));
+            groups.add(Permissions.USER_DEFAULT);
+            return Collections.unmodifiableSet(groups);
         });
     }
 
     public void setPermissionsSet(Set<String> permissionsSet) {
-        this.setPermissions(Permissions.implodePermissionGroups(permissionsSet));
+        HashSet<String> groups = new HashSet<>(permissionsSet);
+        groups.remove(Permissions.USER_DEFAULT);
+        this.setPermissions(Permissions.implodePermissionGroups(groups));
     }
 
     @Override
@@ -885,11 +890,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     @Override
     public boolean isPermissionHolderDisabled() {
         return this.disabled;
-    }
-    
-    @Override
-    public Integer getPermissionHolderId() {
-        return id;
     }
 
 }

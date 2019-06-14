@@ -37,11 +37,11 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 public class Permissions {
 
     /**
-     * The role that all users have by default. By adding this role 
+     * The role that all users have by default. By adding this role
      * to a permission all users will have access
      */
     public static final String USER_DEFAULT = "user";
-    
+
     public interface DataPointAccessTypes {
         int NONE = 0;
         int READ = 1;
@@ -61,7 +61,7 @@ public class Permissions {
 
     //To check permissions for spaces
     private static final Pattern SPACE_PATTERN = Pattern.compile("\\s");
-    
+
     private Permissions() {
         // no op
     }
@@ -355,7 +355,7 @@ public class Permissions {
      * Validate permissions that are being set on an item.
      *
      * Any permissions that the PermissionHolder does not have are invalid unless that user is an admin.
-     * 
+     *
      * @param itemPermissionsSet
      * @param user
      * @param response
@@ -366,10 +366,10 @@ public class Permissions {
             response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
             return;
         }
-        
+
         if(itemPermissionsSet == null)
             return;
-        
+
         for(String permission : itemPermissionsSet) {
             Matcher matcher = SPACE_PATTERN.matcher(permission);
             if(matcher.find()) {
@@ -383,7 +383,7 @@ public class Permissions {
             response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
         }
     }
-    
+
     public static boolean hasSinglePermission(PermissionHolder user, String requiredPermission) {
         ensureValidPermissionHolder(user);
         Set<String> heldPermissions = user.getPermissionsSet();
@@ -434,11 +434,11 @@ public class Permissions {
             Permission permission = def.getValue().getPermission();
             if(hasGrantedPermission(user, permission))
                 grantedPermissions.add(permission);
-            
+
         }
         return grantedPermissions;
     }
-    
+
     /**
      * Does this permission holder have access to this permission
      * @param user
@@ -453,7 +453,7 @@ public class Permissions {
         else
             return containsAny(user.getPermissionsSet(), permission.getRoles());
     }
-    
+
     private static boolean containsSinglePermission(Set<String> heldPermissions, String requiredPermission) {
         if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
@@ -463,9 +463,6 @@ public class Permissions {
         if (requiredPermission == null || requiredPermission.isEmpty()) {
             return false;
         }
-        
-        if(USER_DEFAULT.equals(requiredPermission))
-            return true;
 
         return heldPermissions.contains(requiredPermission);
     }
@@ -491,9 +488,6 @@ public class Permissions {
         if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
         }
-        
-        if(requiredPermissions.contains(USER_DEFAULT))
-            return true;
 
         // empty permissions string indicates that only superadmins are allowed access
         if (requiredPermissions.isEmpty()) {

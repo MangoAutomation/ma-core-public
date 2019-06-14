@@ -250,7 +250,7 @@ public class SystemSettingsDao extends BaseDao {
         }
 
     }
-    
+
     @Deprecated
     public String getValue(String key, String defaultValue) {
         String result = cache.computeIfAbsent(key, (k) -> {
@@ -732,13 +732,12 @@ public class SystemSettingsDao extends BaseDao {
 
         for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
             String defaultValue = "";
-            if(def.getValue().getDefaultGroups() != null)
-                for(String s : def.getValue().getDefaultGroups()) {
-                    if(defaultValue.isEmpty())
-                        defaultValue += s;
-                    else
-                        defaultValue += ","+s;
-                }
+            for(String s : def.getValue().getDefaultGroups()) {
+                if(defaultValue.isEmpty())
+                    defaultValue += s;
+                else
+                    defaultValue += ","+s;
+            }
             DEFAULT_VALUES.put(def.getKey(), defaultValue);
         }
 

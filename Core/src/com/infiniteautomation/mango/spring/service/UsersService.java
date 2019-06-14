@@ -3,7 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -25,10 +25,10 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
- * 
+ *
  * @author Terry Packer
  *
- */ 
+ */
 @Service
 public class UsersService extends AbstractVOService<User, UserDao> {
 
@@ -49,46 +49,45 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         ensureReadPermission(user, vo);
         return vo;
     }
-    
+
     @Override
     protected User insert(User vo, PermissionHolder user, boolean full)
             throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
-        
+
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
-        
+
         ensureValid(vo, user);
         dao.saveUser(vo);
         return vo;
     }
-    
+
     @Override
     protected User update(User existing, User vo, PermissionHolder user, boolean full)
             throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
-        
+
         String newPassword = vo.getPassword();
         if (StringUtils.isBlank(newPassword)) {
             // just use the old password
             vo.setPassword(existing.getPassword());
         }
-        
+
         ensureValid(existing, vo, user);
         dao.saveUser(vo);
         return vo;
     }
-    
+
     @Override
-    public User delete(String xid, PermissionHolder user)
-            throws PermissionException, NotFoundException {
+    public User delete(String xid, PermissionHolder user) throws PermissionException, NotFoundException {
         User vo = get(xid, user);
-        
+
         //You cannot delete yourself
-        if(user.getPermissionHolderId() == vo.getId())
+        if (user instanceof User && ((User) user).getId() == vo.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.badDelete"), user);
 
         //Only admin can delete
@@ -97,7 +96,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         dao.deleteUser(vo.getId());
         return vo;
     }
-    
+
     /**
      * Lock a user's password
      * @param username
@@ -109,11 +108,11 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             throws PermissionException, NotFoundException {
         user.ensureHasAdminPermission();
         User toLock = get(username, user);
-        if(toLock.getId() == user.getPermissionHolderId()) 
+        if (user instanceof User && ((User) user).getId() == toLock.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), user);
         dao.lockPassword(toLock);
     }
-    
+
 
     /**
      * Get User Permissions Information for all users, exclude provided groups in query
@@ -130,77 +129,75 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         }
         return details;
     }
-    
+
     /**
      * Get All User Groups that a user can 'see', exclude any groups listed
      * @param exclude
      * @param user
      * @return
      */
-    public Set<String> getUserGroups(List<String> exclude, PermissionHolder user) {
+    public Set<String> getUserGroups(Collection<String> exclude, PermissionHolder user) {
         Set<String> groups = new TreeSet<>();
-        //All users have this role
-        groups.add(Permissions.USER_DEFAULT);
-        if(user.hasAdminPermission()) {
-            for (User u : UserDao.getInstance().getActiveUsers())
-                groups.addAll(Permissions.explodePermissionGroups(u.getPermissions()));
-        }else {
-            groups.addAll(user.getPermissionsSet());
+        groups.addAll(user.getPermissionsSet());
+
+        if (user.hasAdminPermission()) {
+            for (User u : this.dao.getActiveUsers())
+                groups.addAll(u.getPermissionsSet());
         }
-        
+
         if (exclude != null) {
             for (String part : exclude)
                 groups.remove(part);
         }
-        
+
         return groups;
     }
-    
-    
+
+
     @Override
     public ProcessResult validate(User vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
         vo.validate(result);
         return result;
     }
-    
+
     @Override
     public ProcessResult validate(User existing, User vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
-        
+
         //Things we cannot do to ourselves
-        if(existing.getId() == user.getPermissionHolderId()) {
-            
+        if (user instanceof User && ((User) user).getId() == existing.getId()) {
+
             //Cannot remove admin permission
             if(existing.hasAdminPermission())
                 if(!vo.hasAdminPermission())
                     result.addContextualMessage("permissions", "users.validate.adminInvalid");
-            
+
             //Cannot disable
             if(vo.isDisabled())
                 result.addContextualMessage("permissions", "users.validate.adminDisable");
-                
+
         }
-        
+
         //Things we cannot do as non-admin
-        if(!user.hasAdminPermission()) {
-            //We cannot modify our own privs
-            if(!StringUtils.equals(existing.getPermissions(), vo.getPermissions()))
+        if (!user.hasAdminPermission()) {
+            if (!vo.getPermissionsSet().equals(existing.getPermissionsSet())) {
                 result.addContextualMessage("permissions", "users.validate.cannotChangePermissions");
+            }
         }
 
         //Cannot Rename a User to an existing Username
         if(!StringUtils.equals(vo.getUsername(), existing.getUsername())){
-            User existingUser = UserDao.getInstance().getUser(vo.getUsername());
+            User existingUser = this.dao.getUser(vo.getUsername());
             if(existingUser != null){
                 result.addContextualMessage("username", "users.validate.usernameInUse");
             }
         }
-        
+
         vo.validate(result);
         return result;
     }
-    
+
     @Override
     public boolean hasCreatePermission(PermissionHolder user, User vo) {
         return user.hasAdminPermission();
@@ -210,7 +207,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     public boolean hasEditPermission(PermissionHolder user, User vo) {
         if(user.hasAdminPermission())
             return true;
-        else if(user.getPermissionHolderId() == vo.getId() && Permissions.hasAnyPermission(user, Permissions.explodePermissionGroups(SystemSettingsDao.instance.getValue(UserEditSelfPermission.PERMISSION))))
+        else if (user instanceof User && ((User) user).getId()  == vo.getId() && Permissions.hasAnyPermission(user, Permissions.explodePermissionGroups(SystemSettingsDao.instance.getValue(UserEditSelfPermission.PERMISSION))))
             return true;
         else
             return false;
@@ -220,7 +217,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     public boolean hasReadPermission(PermissionHolder user, User vo) {
         if(user.hasAdminPermission())
             return true;
-        else if(user.getPermissionHolderId() == vo.getId())
+        else if (user instanceof User && ((User) user).getId()  == vo.getId())
             return true;
         else
             return false;

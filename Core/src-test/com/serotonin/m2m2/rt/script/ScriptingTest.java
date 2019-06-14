@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
- * 
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.rt.script;
@@ -15,8 +15,10 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +30,7 @@ import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.log.LogLevel;
@@ -37,10 +40,10 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
- * 
+ *
  */
 public class ScriptingTest extends MangoTestBase {
-    
+
     @Test
     public void testAnalogStatistics() {
 
@@ -67,7 +70,7 @@ public class ScriptingTest extends MangoTestBase {
             final PrintWriter scriptWriter = new PrintWriter(scriptOut);
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", LogLevel.TRACE, scriptWriter)){
-    
+
                 ScriptPointValueSetter setter = null;
                 CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
                         setter,
@@ -79,7 +82,7 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.initialize(context);
 
                 MangoJavaScriptResult result = compiled.execute(
-                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC);
 
@@ -111,7 +114,7 @@ public class ScriptingTest extends MangoTestBase {
             try(ScriptLog scriptLog =
                     new ScriptLog("testScriptLogger", LogLevel.TRACE, scriptWriter)) {
 
-                
+
                 ScriptPointValueSetter setter = null;
                 CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
                         setter,
@@ -123,14 +126,14 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.initialize(context);
 
                 compiled.execute(
-                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC);
-                
+
                 String result = scriptOut.toString();
                 String[] messages = result.split("\\n");
                 Assert.assertEquals(6, messages.length);
-                
+
                 for(int i=0; i<messages.length; i++) {
                     Pattern p = Pattern.compile(logRegex);
                     Matcher m = p.matcher(messages[i]);
@@ -156,7 +159,7 @@ public class ScriptingTest extends MangoTestBase {
                         case "FATAL":
                             Assert.assertEquals("Fatal message", message);
                             break;
-                    }   
+                    }
                 }
             }
         } catch (Exception e) {
@@ -173,7 +176,7 @@ public class ScriptingTest extends MangoTestBase {
         script += "LOG.warn('Warn message');";
         script += "LOG.error('Error message');";
         script += "LOG.fatal('Fatal message');";
-        
+
         try {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
@@ -190,7 +193,7 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.initialize(context);
 
                 compiled.execute(
-                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC);
                 Assert.assertTrue(!scriptLog.getFile().exists());
@@ -200,7 +203,7 @@ public class ScriptingTest extends MangoTestBase {
             fail(e.getMessage());
         }
     }
-    
+
     @Test
     public void testScriptLogFileWriter() {
         String script = "LOG.trace('Trace message');";
@@ -210,7 +213,7 @@ public class ScriptingTest extends MangoTestBase {
         script += "LOG.error('Error message');";
         script += "LOG.fatal('Fatal message');";
         script += "print('Print message');";
-        
+
         try {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
@@ -221,9 +224,9 @@ public class ScriptingTest extends MangoTestBase {
                 log.delete();
                 log.createNewFile();
             }
-            
+
             try(ScriptLog scriptLog = new ScriptLog("testFileWriter-1", LogLevel.TRACE, 100000, 2)){
-            
+
                 ScriptPointValueSetter setter = null;
                 CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
                         setter,
@@ -235,16 +238,16 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.initialize(context);
 
                 compiled.execute(
-                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC);
-    
+
                 Assert.assertTrue(scriptLog.getFile().exists());
-                
+
                 String result = readFile(scriptLog.getFile().toPath());
                 String[] messages = result.split("\\n");
                 Assert.assertEquals(6, messages.length);
-                
+
                 for(int i=0; i<messages.length; i++) {
                     Pattern p = Pattern.compile(logRegex);
                     Matcher m = p.matcher(messages[i]);
@@ -278,11 +281,11 @@ public class ScriptingTest extends MangoTestBase {
             fail(e.getMessage());
         }
     }
-    
+
     @Test
     public void testScriptContextWriter() {
         String script = "print('testing context writer');";
-        
+
         try {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
@@ -301,10 +304,10 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.initialize(context);
 
                 compiled.execute(
-                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC);
-                
+
                 String result = scriptOut.toString();
                 Assert.assertEquals("testing context writer\n", result);
             }
@@ -323,7 +326,7 @@ public class ScriptingTest extends MangoTestBase {
         script += "LOG.error(null);";
         script += "LOG.fatal(null);";
         script += "print(null);";
-        
+
         try {
             Map<String, IDataPointValueSource> context =
                     new HashMap<String, IDataPointValueSource>();
@@ -334,9 +337,9 @@ public class ScriptingTest extends MangoTestBase {
                 log.delete();
                 log.createNewFile();
             }
-            
+
             try(ScriptLog scriptLog = new ScriptLog("testNullValueWriter-1", LogLevel.TRACE, 100000, 2)){
-            
+
                 ScriptPointValueSetter setter = null;
                 CompiledMangoJavaScript compiled = new CompiledMangoJavaScript(
                         setter,
@@ -348,16 +351,16 @@ public class ScriptingTest extends MangoTestBase {
                 compiled.initialize(context);
 
                 compiled.execute(
-                        Common.timer.currentTimeMillis(), 
+                        Common.timer.currentTimeMillis(),
                         Common.timer.currentTimeMillis(),
                         DataTypes.NUMERIC);
-    
+
                 Assert.assertTrue(scriptLog.getFile().exists());
-                
+
                 String result = readFile(scriptLog.getFile().toPath());
                 String[] messages = result.split("\\n");
                 Assert.assertEquals(6, messages.length);
-                
+
                 for(int i=0; i<messages.length; i++) {
                     Pattern p = Pattern.compile(logRegex);
                     Matcher m = p.matcher(messages[i]);
@@ -391,13 +394,8 @@ public class ScriptingTest extends MangoTestBase {
             fail(e.getMessage());
         }
     }
-    
-    private PermissionHolder admin = new PermissionHolder() {
 
-        @Override
-        public String getPermissions() {
-            return "superadmin";
-        }
+    private PermissionHolder admin = new PermissionHolder() {
 
         @Override
         public String getPermissionHolderName() {
@@ -408,12 +406,17 @@ public class ScriptingTest extends MangoTestBase {
         public boolean isPermissionHolderDisabled() {
             return false;
         }
-        
+
+        @Override
+        public Set<String> getPermissionsSet() {
+            return Collections.unmodifiableSet(Collections.singleton(SuperadminPermissionDefinition.GROUP_NAME));
+        }
+
     };
-    
+
     /**
      * Helper to read files in
-     * 
+     *
      * @param path
      * @return
      * @throws IOException
