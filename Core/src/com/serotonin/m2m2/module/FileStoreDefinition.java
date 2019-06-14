@@ -12,12 +12,9 @@ import java.nio.file.Paths;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.StreamUtils;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -46,13 +43,14 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
 
 
     /**
-     * Get the TypeName of the read permission definition
+     * Get the TypeName of the read permission definition, return null to allow access to all (including unauthenticated / public users)
      * @return
      */
     abstract protected String getReadPermissionTypeName();
 
     /**
      * Prefer getting permissions directly if available
+     * Return null to use getReadPermissionTypeName instead
      * @return
      */
     protected String getReadPermissions() {
@@ -60,13 +58,14 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     }
 
     /**
-     * Get the TypeName of the write permission definition
+     * Get the TypeName of the write permission definition, return null to allow access to all (including unauthenticated / public users)
      * @return
      */
     abstract protected String getWritePermissionTypeName();
 
     /**
      * Prefer getting permissions directly if available
+     * Return null to use getWritePermissionTypeName instead
      * @return
      */
     protected String getWritePermissions() {
@@ -77,20 +76,14 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * Ensure that a User has read permission
      * @throws PermissionException
      */
-    public void ensureStoreReadPermission(User user) throws AccessDeniedException{
-        if(getReadPermissions() == null) {
-            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
-            if(def == null) {
-                if(Permissions.hasAdminPermission(user))
-                    return;
-                else
-                    throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), "").translate(Common.getTranslations()));
-            }
-            if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
-                throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
-        } else {
-            if(!Permissions.hasPermission(user, getReadPermissions()))
-                throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), "").translate(Common.getTranslations()));
+    public void ensureStoreReadPermission(User user) {
+        String roles = getReadPermissions();
+        String permissionName = getReadPermissionTypeName();
+
+        if (roles != null) {
+            Permissions.ensureHasAnyPermission(user, Permissions.explodePermissionGroups(roles));
+        } else if (permissionName != null) {
+            Permissions.ensureGrantedPermission(user, permissionName);
         }
     }
 
@@ -98,20 +91,14 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * Ensure that a User has read permission
      * @throws PermissionException
      */
-    public void ensureStoreWritePermission(User user) throws AccessDeniedException{
-        if(getWritePermissions() == null) {
-            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
-            if(def == null) {
-                if(Permissions.hasAdminPermission(user))
-                    return;
-                else
-                    throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), "").translate(Common.getTranslations()));
-            }
-            if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
-                throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
-        } else {
-            if(!Permissions.hasPermission(user, getWritePermissions()))
-                throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), "").translate(Common.getTranslations()));
+    public void ensureStoreWritePermission(User user) {
+        String roles = getWritePermissions();
+        String permissionName = getWritePermissionTypeName();
+
+        if (roles != null) {
+            Permissions.ensureHasAnyPermission(user, Permissions.explodePermissionGroups(roles));
+        } else if (permissionName != null) {
+            Permissions.ensureGrantedPermission(user, permissionName);
         }
     }
 
