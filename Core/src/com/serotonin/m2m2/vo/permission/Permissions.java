@@ -39,9 +39,13 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 public class Permissions {
 
     /**
-     * The role that all users have by default. By adding this role
-     * to a permission all users will have access
+     * Static Roles:
+     * These roles should never be checked for in code. To do so removes the administrator's ability
+     * to restrict the action. Instead they serve to guarantee easily granting permissions to all
+     * members who get that role by default. They should not need to be manually added to sets as the
+     * PermissionsHolder implementor is expected to return them in the getPermissionsSet method
      */
+    // The role that all users have by default. By adding this role to a permission all users will have access
     public static final String USER_DEFAULT = "user";
 
     public interface DataPointAccessTypes {
