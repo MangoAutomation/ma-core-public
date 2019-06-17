@@ -316,7 +316,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
 		File file = new File(fullFilePath);
 		if (file.exists() && file.canRead()) {
-
+		    LOG.info("Attempting to restore database backup from: " + fullFilePath);
 			try {
 
 				switch (Common.databaseProxy.getType()) {
@@ -361,6 +361,8 @@ public class DatabaseBackupWorkItem implements WorkItem {
 				result.addMessage(new TranslatableMessage("common.default", e.getMessage()));
 			}
 
+		} else {
+		    LOG.info("Database backup not found at: " + fullFilePath);
 		}
 
 		return result;
