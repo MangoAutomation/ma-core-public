@@ -50,8 +50,12 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     }
 
     public ScriptPermissions(Set<String> permissionsSet, String permissionHolderName) {
-        Set<String> permissions = permissionsSet.stream().map(p -> p.trim()).collect(Collectors.toSet());
-        this.permissionsSet = Collections.unmodifiableSet(permissions);
+        if (permissionsSet != null) {
+            Set<String> permissions = permissionsSet.stream().map(p -> p.trim()).collect(Collectors.toSet());
+            this.permissionsSet = Collections.unmodifiableSet(permissions);
+        } else {
+            this.permissionsSet = Collections.unmodifiableSet(Collections.emptySet());
+        }
 
         this.permissionHolderName = permissionHolderName;
     }
