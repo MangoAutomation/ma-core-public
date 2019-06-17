@@ -171,6 +171,8 @@ public class SystemSettingsDao extends BaseDao {
     public static final String DATABASE_BACKUP_FILE_COUNT = "databaseBackupFileCount";
     public static final String DATABASE_BACKUP_ENABLED = "databaseBackupEnabled";
 
+    public static final String RESTART_DELAY = "restart.delay";
+
     // Permissions
     public static final String PERMISSION_DATASOURCE = "permissionDatasource";
 
@@ -715,6 +717,8 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(USAGE_TRACKING_ENABLED, false);
         DEFAULT_VALUES.put(UPGRADE_CHECKS_ENABLED, true);
         DEFAULT_VALUES.put(LICENSE_AGREEMENT_VERSION, 0);
+
+        DEFAULT_VALUES.put(RESTART_DELAY, 10);
 
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
