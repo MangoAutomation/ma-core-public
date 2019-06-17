@@ -19,13 +19,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
 
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -59,7 +57,6 @@ import freemarker.cache.MultiTemplateLoader;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.DefaultObjectWrapper;
-import freemarker.template.Version;
 
 /**
  * Dummy implementation for Mango Lifecycle for use in testing,
@@ -103,8 +100,8 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     /**
      * Startup a dummy Mango with a basic infrastructure
-     * @throws ExecutionException 
-     * @throws InterruptedException 
+     * @throws ExecutionException
+     * @throws InterruptedException
      */
     public void initialize() throws InterruptedException, ExecutionException {
         String maHome = System.getProperty("ma.home");
@@ -115,7 +112,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.MA_HOME =  maHome;
 
         Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
-        
+
         //Add in modules
         for(Module module : modules)
             ModuleRegistry.addModule(module);
@@ -144,7 +141,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
 
         freemarkerInitialize();
-        
+
         //TODO This must be done only once because we have a static
         // final referece to the PointValueDao in the PointValueCache class
         // and so if you try to restart the database it doesn't get the new connection
@@ -224,7 +221,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             LOG.info("Not initializing Freemarker, this test is not running in Core source tree.  Requires ./ftl directory to initialize.");
             return;
         }
-            
+
         try {
             List<TemplateLoader> loaders = new ArrayList<>();
 
@@ -254,7 +251,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         cfg.setObjectWrapper(new DefaultObjectWrapper());
         Common.freemarkerConfiguration = cfg;
     }
-    
+
     @Override
     public boolean isTerminated() {
         return false;
@@ -262,22 +259,22 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     @Override
     public void terminate() {
-//        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
-//        try {
-//            proxy.clean();
-//        } catch (Exception e) {
-//            throw new ShouldNeverHappenException(e);
-//        }
+        //        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
+        //        try {
+        //            proxy.clean();
+        //        } catch (Exception e) {
+        //            throw new ShouldNeverHappenException(e);
+        //        }
         if(Common.databaseProxy != null)
             Common.databaseProxy.terminate(true);
-        
+
         if(Common.serialPortManager != null) {
-           try {
-            Common.serialPortManager.terminate();
-        } catch (LifecycleException e) {
-            fail(e.getMessage());
-        }
-           Common.serialPortManager.joinTermination();
+            try {
+                Common.serialPortManager.terminate();
+            } catch (LifecycleException e) {
+                fail(e.getMessage());
+            }
+            Common.serialPortManager.joinTermination();
         }
     }
 
@@ -314,14 +311,14 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         // TODO Auto-generated method stub
 
     }
-    
+
     @Override
     public Integer dataPointLimit() {
         return Integer.MAX_VALUE;
     }
 
     @Override
-    public Thread scheduleShutdown(long timeout, boolean b, User user) {
+    public Thread scheduleShutdown(Long timeout, boolean b, User user) {
 
         return null;
     }

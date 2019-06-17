@@ -64,7 +64,7 @@ public interface IMangoLifecycle extends Provider {
      * @param restart (should Mango restart?)
      * @return
      */
-    Thread scheduleShutdown(long timeout, boolean restart, User user);
+    Thread scheduleShutdown(Long timeout, boolean restart, User user);
 
     /**
      * @return

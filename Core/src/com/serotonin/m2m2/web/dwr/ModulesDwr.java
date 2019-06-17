@@ -56,7 +56,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
@@ -74,23 +73,23 @@ import com.serotonin.web.http.HttpUtils4;
 
 public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     static final Log LOG = LogFactory.getLog(ModulesDwr.class);
-    
+
     private static final List<ModuleNotificationListener> listeners = new CopyOnWriteArrayList<ModuleNotificationListener>();
-    
+
     private static Thread SHUTDOWN_TASK;
     private static final Object SHUTDOWN_TASK_LOCK = new Object();
-    
+
     private static UpgradeDownloader UPGRADE_DOWNLOADER;
     private static final Object UPGRADE_DOWNLOADER_LOCK = new Object();
-    
+
     /**
-     * 
+     *
      */
     public ModulesDwr() {
         //We are a listener
         listeners.add(this);
     }
-    
+
     @DwrPermission(admin = true)
     public boolean toggleDeletion(String moduleName) {
         Module module = ModuleRegistry.getModule(moduleName);
@@ -102,16 +101,15 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     public static ProcessResult scheduleRestart() {
         ProcessResult result = new ProcessResult();
         synchronized(SHUTDOWN_TASK_LOCK){
-	        if (SHUTDOWN_TASK == null) {
-	            long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
-	            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, true, Common.getHttpUser());
-	            //Get the redirect page
-	            result.addData("shutdownUri", "/shutdown.htm");
-	        }
-	        else {
-	            result.addData("message", Common.translate("modules.restartAlreadyScheduled"));
-	        }
+            if (SHUTDOWN_TASK == null) {
+                IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
+                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, true, Common.getHttpUser());
+                //Get the redirect page
+                result.addData("shutdownUri", "/shutdown.htm");
+            }
+            else {
+                result.addData("message", Common.translate("modules.restartAlreadyScheduled"));
+            }
         }
 
         return result;
@@ -121,18 +119,16 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     public static ProcessResult scheduleShutdown() {
         ProcessResult result = new ProcessResult();
         synchronized(SHUTDOWN_TASK_LOCK){
-	        if (SHUTDOWN_TASK == null) {
-	            long timeout = Common.getMillis(Common.TimePeriods.SECONDS, 10);
-	
-	            //Ensure our lifecycle state is set to PRE_SHUTDOWN
-	            IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-	            SHUTDOWN_TASK = lifecycle.scheduleShutdown(timeout, false, Common.getHttpUser());
-	            //Get the redirect page
-	            result.addData("shutdownUri", "/shutdown.htm");
-	        }
-	        else {
-	            result.addData("message", Common.translate("modules.shutdownAlreadyScheduled"));
-	        }
+            if (SHUTDOWN_TASK == null) {
+                //Ensure our lifecycle state is set to PRE_SHUTDOWN
+                IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
+                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, false, Common.getHttpUser());
+                //Get the redirect page
+                result.addData("shutdownUri", "/shutdown.htm");
+            }
+            else {
+                result.addData("message", Common.translate("modules.shutdownAlreadyScheduled"));
+            }
         }
 
         return result;
@@ -181,7 +177,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
         return result;
     }
 
-    
+
     @DwrPermission(admin = true)
     public static String startDownloads(List<StringStringPair> modules, boolean backup, boolean restart) {
         synchronized(UPGRADE_DOWNLOADER_LOCK){
@@ -197,7 +193,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             json.put("modules", jsonModules);
 
             Version coreVersion = Common.getVersion();
-            
+
             jsonModules.put("core", coreVersion.toString());
             for (StringStringPair module : modules)
                 jsonModules.put(module.getKey(), module.getValue());
@@ -231,19 +227,19 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
         }
 
         synchronized(UPGRADE_DOWNLOADER_LOCK){
-	        // Ensure that 2 downloads cannot start at the same time.
-	        if (UPGRADE_DOWNLOADER == null) {
-                    UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart, Common.getHttpUser());
-                    //Clear out common info
-                    resetUpgradeStatus();
-                    Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
-	        } else
-                    return Common.translate("modules.versionCheck.occupied");
+            // Ensure that 2 downloads cannot start at the same time.
+            if (UPGRADE_DOWNLOADER == null) {
+                UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart, Common.getHttpUser());
+                //Clear out common info
+                resetUpgradeStatus();
+                Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
+            } else
+                return Common.translate("modules.versionCheck.occupied");
         }
 
         return null;
     }
-    
+
     @DwrPermission(admin = true)
     public ProcessResult tryCancelDownloads() {
         ProcessResult pr = new ProcessResult();
@@ -253,7 +249,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             pr.addGenericMessage("modules.versionCheck.notRunning");
         return pr;
     }
-    
+
 
     /**
      * Try and Cancel the Upgrade
@@ -269,7 +265,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             }
         }
     }
-    
+
     @DwrPermission(admin = true)
     public static ProcessResult monitorDownloads() {
         ProcessResult result = new ProcessResult();
@@ -285,7 +281,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                 result.addData("error", error);
             result.addData("stage", stage);
             result.addData("results", getUpgradeResults(Common.getTranslations()));
-            
+
             if(finished)
                 stage = UpgradeState.IDLE;
         }
@@ -335,7 +331,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
         //If upgrade checks are not enabled we won't contact the store at all
         if(!SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED))
             return null;
-        
+
         // Create the request
         List<Module> modules = ModuleRegistry.getModules();
         Module.sortByName(modules);
@@ -380,7 +376,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             if (!module.isMarkedForDeletion())
                 jsonModules.put(module.getName(), module.getVersion().toString());
 
-        //Optionally Add Usage Data Check if first login for admin has happened to ensure they have 
+        //Optionally Add Usage Data Check if first login for admin has happened to ensure they have
         if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.USAGE_TRACKING_ENABLED)) {
             //Collect statistics
             List<DataSourceUsageStatistics> dataSourceCounts =  DataSourceDao.getInstance().getUsage();
@@ -392,7 +388,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             json.put("publishersUsage", publisherCounts);
             List<PublisherPointsUsageStatistics> publisherPointsCounts =  stats.getPublisherPointsUsageStatistics();
             json.put("publisherPointsUsage", publisherPointsCounts);
-            
+
             for(ValueMonitor<?> m : Common.MONITORED_VALUES.getMonitors()) {
                 if(m.uploadUsageToStore()) {
                     if(m instanceof AtomicIntegerMonitor) {
@@ -405,7 +401,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             }
         }
 
-        
+
         StringWriter stringWriter = new StringWriter();
         new JsonWriter(Common.JSON_CONTEXT, stringWriter).writeObject(json);
         String requestData = stringWriter.toString();
@@ -429,7 +425,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     }
 
     public static class UpgradeDownloader extends HighPriorityTask {
-    	
+
         private final List<StringStringPair> modules;
         private final boolean backup;
         private final boolean restart;
@@ -445,13 +441,13 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
          * @param restart
          */
         public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart, User user) {
-        	super("Upgrade downloader", "UpgradeDownloader", 0);
+            super("Upgrade downloader", "UpgradeDownloader", 0);
             this.modules = modules;
             this.backup = backup;
             this.restart = restart;
             this.user = user;
         }
-        
+
         @Override
         public boolean cancel() {
             this.cancelled = true;
@@ -471,13 +467,13 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         listener.upgradeStateChanged(UpgradeState.DONE);
                     return;
                 }
-    
+
                 if (backup) {
                     // Run the backup.
                     LOG.info("UpgradeDownloader: " + UpgradeState.BACKUP);
                     for (ModuleNotificationListener listener : listeners)
                         listener.upgradeStateChanged(UpgradeState.BACKUP);
-    
+
                     // Do the backups. They run async, so this returns immediately. The shutdown will
                     // wait for the
                     // background processes to finish though.
@@ -490,14 +486,14 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                 LOG.info("UpgradeDownloader: " + UpgradeState.DOWNLOAD);
                 for (ModuleNotificationListener listener : listeners)
                     listener.upgradeStateChanged(UpgradeState.DOWNLOAD);
-    
+
                 HttpClient httpClient = Common.getHttpClient();
-    
+
                 // Create the temp directory into which to download, if necessary.
                 File tempDir = new File(Common.MA_HOME, ModuleUtils.DOWNLOAD_DIR);
                 if (!tempDir.exists())
                     tempDir.mkdirs();
-    
+
                 // Delete anything that is currently the temp directory.
                 try {
                     FileUtils.cleanDirectory(tempDir);
@@ -508,12 +504,12 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         listener.upgradeError(error);
                     return;
                 }
-    
+
                 // Delete all upgrade files of any version from the target directories. Only do this for
                 // names in the
                 // modules list so that custom modules do not get deleted.
                 cleanDownloads();
-    
+
                 for (StringStringPair mod : modules) {
                     if (cancelled) {
                         LOG.info("UpgradeDownloader: Cancelled");
@@ -531,12 +527,12 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                     }
                     String name = mod.getKey();
                     Version version = Version.valueOf(mod.getValue());
-    
+
                     String filename = ModuleUtils.moduleFilename(name, version.getNormalVersion());
                     String url = baseStoreUrl + "/"
                             + ModuleUtils.downloadFilename(name, version.getNormalVersion());
                     HttpGet get = new HttpGet(url);
-    
+
                     FileOutputStream out = null;
                     File outFile = new File(tempDir, filename);
                     try {
@@ -559,7 +555,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                             // no op
                         }
                     }
-                    
+
                     //Validate that module.properties exists and is properly readable
                     if(!"core".equals(name)) {
                         Map<String, String> expectedProperties = new HashMap<String, String>();
@@ -588,7 +584,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                 LOG.info("UpgradeDownloader: " + UpgradeState.INSTALL);
                 for (ModuleNotificationListener listener : listeners)
                     listener.upgradeStateChanged(UpgradeState.INSTALL);
-    
+
                 // Move the downloaded files to their proper places.
                 File[] files = tempDir.listFiles();
                 if (files == null || files.length == 0) {
@@ -598,11 +594,11 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         listener.upgradeError(error);
                     return;
                 }
-    
+
                 for (File file : files) {
                     File targetDir =
                             file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + "core")
-                                    ? coreDir
+                            ? coreDir
                                     : moduleDir;
                     try {
                         FileUtils.moveFileToDirectory(file, targetDir, false);
@@ -617,14 +613,14 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         throw new ShouldNeverHappenException(e);
                     }
                 }
-    
+
                 // Delete the download dir.
                 try {
                     FileUtils.deleteDirectory(tempDir);
                 } catch (IOException e) {
                     LOG.warn(e);
                 }
-    
+
                 // Final chance to be cancelled....
                 if (cancelled) {
                     // Delete what we downloaded.
@@ -634,18 +630,18 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                         listener.upgradeStateChanged(UpgradeState.CANCELLED);
                     return;
                 }
-    
+
                 if (restart) {
                     LOG.info("UpgradeDownloader: " + UpgradeState.RESTART);
                     synchronized (SHUTDOWN_TASK_LOCK) {
                         if (SHUTDOWN_TASK == null) {
                             IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-                            SHUTDOWN_TASK = lifecycle.scheduleShutdown(5000, true, user);
+                            SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, true, user);
                         }
                     }
                     for (ModuleNotificationListener listener : listeners)
                         listener.upgradeStateChanged(UpgradeState.RESTART);
-    
+
                 } else {
                     LOG.info("UpgradeDownloader: " + UpgradeState.DONE);
                     for (ModuleNotificationListener listener : listeners)
@@ -657,7 +653,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
                 }
                 synchronized (UPGRADE_DOWNLOADER_LOCK) {
                     UPGRADE_DOWNLOADER = null;
-                }       
+                }
             }
         }
 
@@ -675,14 +671,14 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
             }
         }
     }
-    
+
     public static void addModuleNotificationListener(ModuleNotificationListener listener){
         listeners.add(listener);
     }
     public static void removeModuleNotificationListener(ModuleNotificationListener listener){
         listeners.remove(listener);
     }
-    
+
     //For status about upgrade state (Preferably use your own listener)
     protected static UpgradeState stage = UpgradeState.IDLE;
     protected static boolean cancelled;
@@ -690,7 +686,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     protected static boolean restart;
     protected static String error = null;
     protected static final List<StringStringPair> moduleResults = new ArrayList<>();
-    
+
     protected static void resetUpgradeStatus() {
         cancelled = false;
         finished = false;
@@ -698,7 +694,7 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
         error = null;
         moduleResults.clear();
     }
-    
+
     public static List<StringStringPair> getUpgradeResults(Translations translations) {
         synchronized (moduleResults) {
             return new ArrayList<>(moduleResults);
@@ -741,10 +737,10 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
         switch(stage) {
             case CANCELLED:
                 cancelled = true;
-            break;
+                break;
             case RESTART:
                 restart = true;
-            break;
+                break;
             default:
                 break;
         }
@@ -773,5 +769,5 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
     public void newModuleAvailable(String name, String version) {
         //no-op
     }
-    
+
 }
