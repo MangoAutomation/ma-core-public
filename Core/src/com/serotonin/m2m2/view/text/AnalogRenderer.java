@@ -82,6 +82,7 @@ public class AnalogRenderer extends ConvertingRenderer {
     @Override
     protected void setDefaults() {
     	super.setDefaults();
+    	useUnitAsSuffix = false; 
         format = "0.00";
         suffix = "";
     }

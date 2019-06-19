@@ -40,7 +40,7 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
      * and constructor
      */
     protected void setDefaults() {
-        useUnitAsSuffix = true; 
+        useUnitAsSuffix = false; 
         unit = Unit.ONE;
         renderedUnit = Unit.ONE;
     }
