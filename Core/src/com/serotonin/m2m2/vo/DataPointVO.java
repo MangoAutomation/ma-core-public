@@ -41,6 +41,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
+import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -1000,9 +1001,15 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
         // Check text renderer type
         if (textRenderer != null) {
-            if(!textRenderer.getDef().supports(pointLocator.getDataTypeId()))
-                response.addGenericMessage("validate.text.incompatible");
-            textRenderer.validate(response);
+            ProcessResult contextResult = new ProcessResult();
+            textRenderer.validate(contextResult, pointLocator.getDataTypeId());
+            for (ProcessMessage msg : contextResult.getMessages()) {
+                String contextKey = msg.getContextKey();
+                if (contextKey != null) {
+                    msg.setContextKey("textRenderer." + contextKey);
+                }
+                response.addMessage(msg);
+            }
         }
 
         // Check chart renderer type

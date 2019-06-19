@@ -217,9 +217,8 @@ public class PlainRenderer extends ConvertingRenderer {
         
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
 	@Override
-	public void validate(ProcessResult result) {}
+	public void validate(ProcessResult result, int sourcePointDataTypeId) {
+	    super.validate(result, sourcePointDataTypeId);
+	}
 }

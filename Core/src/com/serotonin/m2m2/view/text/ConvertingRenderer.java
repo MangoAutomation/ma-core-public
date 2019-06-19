@@ -15,6 +15,8 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.util.SerializationHelper;
@@ -109,5 +111,30 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
         if(jsonObject.containsKey("useUnitAsSuffix")){
         	useUnitAsSuffix = AbstractVO.getBoolean(jsonObject, "useUnitAsSuffix");
         }      
+    }
+    
+    @Override
+    public void validate(ProcessResult result, int sourcePointDataTypeId) {
+        super.validate(result, sourcePointDataTypeId);
+        switch(sourcePointDataTypeId) {
+            case DataTypes.ALPHANUMERIC:
+            case DataTypes.BINARY:
+            case DataTypes.IMAGE:
+            case DataTypes.MULTISTATE:
+                if(useUnitAsSuffix) {
+                    result.addContextualMessage("useUnitAsSuffix", "validate.textRenderer.unitNotSupported");
+                }
+                if(unit != null && unit != Unit.ONE) {
+                    result.addContextualMessage("unit", "validate.textRenderer.unitNotSupported");
+                }
+                if(renderedUnit != null && renderedUnit != Unit.ONE) {
+                    result.addContextualMessage("renderedUnit", "validate.textRenderer.unitNotSupported");
+                }
+            break;
+            case DataTypes.NUMERIC:
+                if(!renderedUnit.isCompatible(unit))
+                    result.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
+            break;
+        }
     }
 }

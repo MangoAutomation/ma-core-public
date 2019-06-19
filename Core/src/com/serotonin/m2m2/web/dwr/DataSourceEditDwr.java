@@ -240,14 +240,7 @@ public class DataSourceEditDwr extends DataSourceListDwr {
                 response.addContextualMessage("name", "validate.required");
         } else {
             //New validation on save for all settings on existing points
-
             dp.validate(response);
-
-            if (dp.getChartRenderer() != null)
-                dp.getChartRenderer().validate(response);
-
-            if (dp.getTextRenderer() != null)
-                dp.getTextRenderer().validate(response);
         }
         //Validate Locator
         locator.validate(response, dp, ds);

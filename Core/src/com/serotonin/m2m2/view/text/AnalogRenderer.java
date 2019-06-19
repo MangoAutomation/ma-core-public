@@ -233,12 +233,9 @@ public class AnalogRenderer extends ConvertingRenderer {
         }
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
 	@Override
-	public void validate(ProcessResult result) {
-		
+	public void validate(ProcessResult result, int sourceDataTypeId) {
+		super.validate(result, sourceDataTypeId);
 		if((format == null)||(format.equals("")))
 			result.addContextualMessage("textRenderer.format", "validate.required");
 		if(format.startsWith("0x") || format.startsWith("0X")) {

@@ -132,19 +132,17 @@ public class MultistateRenderer extends BaseTextRenderer {
             multistateValues = (List<MultistateValue>) in.readObject();
         }
     }
-    
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-	@Override
-	public void validate(ProcessResult result) {
 
-		if(multistateValues.size() < 1)
+	@Override
+	public void validate(ProcessResult result, int sourcePointDataTypeId) {
+	    super.validate(result, sourcePointDataTypeId);
+		if(multistateValues == null || multistateValues.size() == 0)
 			result.addContextualMessage("textRenderer.multistateValues", "validate.atLeast1");
-		
-		//TODO Could validate the values too
+		else {
+		    for(MultistateValue value : multistateValues) {
+		        value.validate(result);
+		    }
+		}
 	}
-    
     
 }

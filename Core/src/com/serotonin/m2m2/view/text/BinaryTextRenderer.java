@@ -9,11 +9,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.serotonin.InvalidArgumentException;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.view.ImplDefinition;
 import com.serotonin.util.SerializationHelper;
 
@@ -170,21 +174,28 @@ public class BinaryTextRenderer extends BaseTextRenderer {
         }
     }
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
 	@Override
-	public void validate(ProcessResult result) {
-		
-		//The colours can be null (that's default)
+	public void validate(ProcessResult result, int sourcePointDataType) {
+	    super.validate(result, sourcePointDataType);
+        try {
+            if (!StringUtils.isBlank(zeroColour))
+                ColorUtils.toColor(zeroColour);
+        }
+        catch (InvalidArgumentException e) {
+            result.addContextualMessage("zeroColour", "systemSettings.validation.invalidColour");
+        }
+        
+        try {
+            if (!StringUtils.isBlank(oneColour))
+                ColorUtils.toColor(oneColour);
+        }
+        catch (InvalidArgumentException e) {
+            result.addContextualMessage("oneColour", "systemSettings.validation.invalidColour");
+        }
+        
 		if((zeroLabel == null)||(zeroLabel.equals("")))
 			result.addContextualMessage("textRenderer.zeroLabel", "validate.required");
 		if((oneLabel == null)||(oneLabel.equals("")))
 			result.addContextualMessage("textRenderer.oneLabel", "validate.required");
-		
 	}
-  
-    
-    
 }

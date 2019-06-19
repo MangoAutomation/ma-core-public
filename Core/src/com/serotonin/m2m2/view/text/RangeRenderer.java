@@ -194,13 +194,18 @@ public class RangeRenderer extends ConvertingRenderer {
     }
 
     @Override
-    public void validate(ProcessResult result) {
+    public void validate(ProcessResult result, int sourcePointDataTypeId) {
+        super.validate(result, sourcePointDataTypeId);
         if((format == null)||(format.equals("")))
             result.addContextualMessage("textRenderer.format", "validate.required");
 
-        if((rangeValues == null)||(rangeValues.size() == 0))
+        if((rangeValues == null)||(rangeValues.size() == 0)) {
             result.addContextualMessage("textRenderer.rangeValues", "validate.atLeast1");
-
-        //TODO Validate the range values too
+        } else {
+            for(RangeValue value : rangeValues) {
+                value.validate(result);
+            }
+        }
+            
     }
 }

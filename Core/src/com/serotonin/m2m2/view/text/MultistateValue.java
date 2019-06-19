@@ -9,6 +9,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.serotonin.InvalidArgumentException;
+import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 
 public class MultistateValue implements Serializable {
@@ -84,6 +89,19 @@ public class MultistateValue implements Serializable {
             key = in.readInt();
             text = SerializationHelper.readSafeUTF(in);
             colour = SerializationHelper.readSafeUTF(in);
+        }
+    }
+    
+    public void validate(ProcessResult result) {
+        if(StringUtils.isEmpty(this.text))
+            result.addContextualMessage("text", "validate.required");
+    
+        try {
+            if (!StringUtils.isBlank(colour))
+                ColorUtils.toColor(colour);
+        }
+        catch (InvalidArgumentException e) {
+            result.addContextualMessage("colour", "systemSettings.validation.invalidColour");
         }
     }
 }

@@ -124,14 +124,10 @@ public class TimeRenderer extends BaseTextRenderer {
         }
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.view.text.TextRenderer#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
-	@Override
-	public void validate(ProcessResult result) {
+    @Override
+    public void validate(ProcessResult result, int sourcePointDataTypeId) {
+        super.validate(result, sourcePointDataTypeId);
 		if((format == null)||(format.equals("")))
 			result.addContextualMessage("textRenderer.format", "validate.required");
-
-		
 	}
 }

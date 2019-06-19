@@ -11,6 +11,11 @@ import java.io.Serializable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+
+import com.serotonin.InvalidArgumentException;
+import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.util.SerializationHelper;
 
 public class RangeValue implements Serializable, Comparable<RangeValue> {
@@ -138,4 +143,17 @@ public class RangeValue implements Serializable, Comparable<RangeValue> {
             }
         }
     }
+    
+    public void validate(ProcessResult result) {
+        if(StringUtils.isEmpty(this.text))
+            result.addContextualMessage("text", "validate.required");
+    
+        try {
+            if (!StringUtils.isBlank(colour))
+                ColorUtils.toColor(colour);
+        }
+        catch (InvalidArgumentException e) {
+            result.addContextualMessage("colour", "systemSettings.validation.invalidColour");
+        }
+    }    
 }

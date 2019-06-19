@@ -357,7 +357,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         if (textRenderer == null){
             response.addContextualMessage("textRenderer", "validate.required");
         }else {
-            textRenderer.validate(response);
+            textRenderer.validate(response, dataTypeId);
         }
         
         
