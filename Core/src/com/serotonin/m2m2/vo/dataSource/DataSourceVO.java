@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
@@ -35,7 +36,9 @@ import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
     public static final String XID_PREFIX = "DS_";
@@ -214,6 +217,18 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
             if (purgePeriod <= 0)
                 response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
         }
+        //Validate permissions
+        Set<String> existingPermissions;
+        if(this.id != Common.NEW_ID) {
+            existingPermissions = Permissions.explodePermissionGroups(DataSourceDao.getInstance().getEditPermission(this.id));
+        }else {
+            existingPermissions = null;
+        }
+        
+        User user = Common.getHttpUser();
+        if(user == null)
+            user = Common.getBackgroundContextUser();
+        Permissions.validatePermissions(response, "editPermission", user, false, existingPermissions, Permissions.explodePermissionGroups(this.editPermission));
     }
 
     protected String getMessage(Translations translations, String key, Object... args) {

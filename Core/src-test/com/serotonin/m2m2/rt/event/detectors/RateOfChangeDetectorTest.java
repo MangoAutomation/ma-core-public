@@ -24,6 +24,7 @@ import com.serotonin.m2m2.MockEventManager;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
@@ -39,7 +40,9 @@ import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -572,9 +575,14 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dsVo.setEnabled(true);
         dsVo.setUpdatePeriods(1);
         dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
-        validate(dsVo);
-        Common.runtimeManager.saveDataSource(dsVo);
-        
+        User admin = UserDao.getInstance().getUser("admin");
+        BackgroundContext.set(admin);
+        try {
+            validate(dsVo);
+            Common.runtimeManager.saveDataSource(dsVo);
+        }finally {
+            BackgroundContext.remove(); 
+        }
         //Create point locator
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
         
@@ -610,8 +618,13 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         eventDetectors.add(rocVo);
         dpVo.setEventDetectors(eventDetectors);
         
-        validate(dpVo);
-        Common.runtimeManager.saveDataPoint(dpVo);
+        BackgroundContext.set(admin);
+        try {
+            validate(dpVo);
+            Common.runtimeManager.saveDataPoint(dpVo);
+        }finally {
+            BackgroundContext.remove();
+        }
         return dpVo;
     }
     

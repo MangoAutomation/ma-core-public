@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -1100,14 +1101,16 @@ public class SystemSettingsDao extends BaseDao {
 
         setting = settings.get(PERMISSION_DATASOURCE);
         if(setting != null) {
-            Permissions.validateAddedPermissions((String)setting, user, response, PERMISSION_DATASOURCE);
+            Set<String> existing = Permissions.explodePermissionGroups(getValue(PERMISSION_DATASOURCE));
+            Permissions.validatePermissions(response, PERMISSION_DATASOURCE, user, false, existing, Permissions.explodePermissionGroups((String)setting));
         }
 
         //Check all permissions
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
             setting = settings.get(def.getPermissionTypeName());
             if(setting != null) {
-                Permissions.validateAddedPermissions((String)setting, user, response, def.getPermissionTypeName());
+                Set<String> existing = Permissions.explodePermissionGroups(getValue(def.getPermissionTypeName()));
+                Permissions.validatePermissions(response, def.getPermissionTypeName(), user, false, existing, Permissions.explodePermissionGroups((String)setting));
             }
         }
 

@@ -64,6 +64,7 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
+import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.SerializationHelper;
 import com.serotonin.validation.StringValidation;
@@ -1105,6 +1106,28 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             }
         }
 
+        //Validate permissions
+        Set<String> existingReadPermission;
+        Set<String> existingSetPermission;
+        if(this.id != Common.NEW_ID) {
+            DataPointVO vo = DataPointDao.getInstance().get(id);
+            if(vo != null) {
+                existingReadPermission = Permissions.explodePermissionGroups(vo.getReadPermission());
+                existingSetPermission = Permissions.explodePermissionGroups(vo.getSetPermission());
+            }else {
+                existingReadPermission = null;
+                existingSetPermission = null;
+            }
+        }else {
+            existingReadPermission = null;
+            existingSetPermission = null;
+        }
+        User user = Common.getHttpUser();
+        if(user == null)
+            user = Common.getBackgroundContextUser();
+        Permissions.validatePermissions(response, "readPermission", user, false, existingReadPermission, Permissions.explodePermissionGroups(this.readPermission));
+        Permissions.validatePermissions(response, "setPermission", user, false, existingSetPermission, Permissions.explodePermissionGroups(this.setPermission));
+        
         if((templateId!=null) &&(templateId > 0)){
             DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
             if(template == null){

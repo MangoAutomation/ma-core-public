@@ -447,8 +447,10 @@ public class EventHandlersDwr extends BaseDwr {
         User user = Common.getHttpUser();
         ScriptPermissions scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(permissions), user.getPermissionHolderName());
         
-        //Ensure they can't escalate privileges
-        Permissions.validateAddedPermissions(scriptPermissions.getPermissionsSet(), user, response, "permissions");
+        //Ensure the user has ALL of the permissions as we will likely test/run this script
+        if(!Permissions.hasAllPermissions(user, scriptPermissions.getPermissionsSet()))
+            response.addContextualMessage("permissions", "permission.exception.doesNotHaveRequiredPermission");
+
         if(response.getHasMessages())
             return response;
         

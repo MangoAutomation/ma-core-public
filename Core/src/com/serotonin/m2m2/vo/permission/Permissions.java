@@ -338,55 +338,74 @@ public class Permissions {
     }
 
     /**
-     * Validate permissions that are being set on an item.
-     *
-     * Any permissions that the PermissionHolder does not have are invalid unless that user is an admin.
-     *
-     * @param itemPermissions
-     * @param user
-     * @param response
-     * @param contextKey - UI Element ID
+     * Validate roles.  This will validate that:
+     * 
+     *   1. the new permissions are non null 
+     *   2. all new permissions are not empty
+     *   3. the new permissions do not contain spaces
+     *   (then for non admin/owners)
+     *   4. the saving user will at least retain one permission
+     *   5. the user cannot not remove an existing permission they do not have
+     *   6. the user has all of the new permissions being added
+   
+     * @param response - the result of the validation
+     * @param contextKey - the key to apply the messages to
+     * @param holder - the saving permission holder
+     * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
+     * @param existingPermissions - the currently saved permissions
+     * @param newPermissions - the new permissions to validate
      */
-    public static void validateAddedPermissions(String itemPermissions, PermissionHolder user, ProcessResult response, String contextKey) {
-        if (user == null) {
-            response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
+    public static void validatePermissions(ProcessResult response, String contextKey, PermissionHolder holder, boolean savedByOwner,
+            Set<String> existingPermissions, Set<String> newPermissions) {
+        if (holder == null) {
+            response.addContextualMessage(contextKey, "validate.userRequired");
             return;
         }
-
-        Set<String> itemPermissionsSet = explodePermissionGroups(itemPermissions);
-        validateAddedPermissions(itemPermissionsSet, user, response, contextKey);
-    }
-
-    /**
-     * Validate permissions that are being set on an item.
-     *
-     * Any permissions that the PermissionHolder does not have are invalid unless that user is an admin.
-     *
-     * @param itemPermissionsSet
-     * @param user
-     * @param response
-     * @param contextKey
-     */
-    public static void validateAddedPermissions(Set<String> itemPermissionsSet, PermissionHolder user, ProcessResult response, String contextKey) {
-        if (user == null) {
-            response.addContextualMessage(contextKey, "validate.invalidPermission", "No user found");
+        
+        if(newPermissions == null) {
+            response.addContextualMessage(contextKey, "validate.invalidPermissionEmpty");
             return;
         }
-
-        if(itemPermissionsSet == null)
-            return;
-
-        for(String permission : itemPermissionsSet) {
+        
+        for (String permission : newPermissions) {
+            if (permission == null || permission.isEmpty()) {
+                response.addContextualMessage(contextKey, "validate.invalidPermissionEmpty");
+                return;
+            }
+        }
+        
+        //Ensure there are no spaces
+        for(String permission : newPermissions) {
             Matcher matcher = SPACE_PATTERN.matcher(permission);
             if(matcher.find()) {
                 response.addContextualMessage(contextKey, "validate.invalidPermissionWithSpace", permission);
                 return;
             }
         }
-        Set<String> invalid = findInvalidPermissions(user, itemPermissionsSet);
-        if (invalid.size() > 0) {
-            String notGranted = implodePermissionGroups(invalid);
-            response.addContextualMessage(contextKey, "validate.invalidPermission", notGranted);
+        
+        if(holder.hasAdminPermission())
+            return;
+        
+        //Ensure the holder has at least one of the new permissions
+        if(!savedByOwner && Collections.disjoint(holder.getPermissionsSet(), newPermissions)) {
+            response.addContextualMessage(contextKey, "validate.mustRetainPermission");
+        }
+        
+        if(existingPermissions != null) {
+            //Check for permissions being added that the user does not have
+            Set<String> added = new HashSet<>(newPermissions);
+            added.removeAll(existingPermissions);
+            added.removeAll(holder.getPermissionsSet());
+            if(added.size() > 0) {
+                response.addContextualMessage(contextKey, "validate.invalidPermissionModification", Permissions.implodePermissionGroups(holder.getPermissionsSet()));
+            }
+            //Check for permissions being removed that the user does not have
+            Set<String> removed = new HashSet<>(existingPermissions);
+            removed.removeAll(newPermissions);
+            removed.removeAll(holder.getPermissionsSet());
+            if(removed.size() > 0) {
+                response.addContextualMessage(contextKey, "validate.invalidPermissionModification", Permissions.implodePermissionGroups(holder.getPermissionsSet()));
+            }
         }
     }
 

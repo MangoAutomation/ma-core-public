@@ -557,19 +557,24 @@ public class SystemSettingsDwr extends BaseDwr {
 
     @DwrPermission(admin = true)
     public ProcessResult saveSystemPermissions(String datasource, List<StringStringPair> modulePermissions) {
-        SystemSettingsDao systemSettingsDao = SystemSettingsDao.instance;
         ProcessResult result = new ProcessResult();
         List<ProcessMessage> messages = new ArrayList<>();
-        Permissions.validateAddedPermissions(datasource, Common.getHttpUser(), result, SystemSettingsDao.PERMISSION_DATASOURCE);
+        User user = Common.getHttpUser();
+        
+        String existingDataSource = SystemSettingsDao.instance.getValue(SystemSettingsDao.PERMISSION_DATASOURCE);
+        Permissions.validatePermissions(result, SystemSettingsDao.PERMISSION_DATASOURCE, user, false, Permissions.explodePermissionGroups(existingDataSource), Permissions.explodePermissionGroups(datasource));
+
         if(!result.getHasMessages())
-            systemSettingsDao.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
+            SystemSettingsDao.instance.setValue(SystemSettingsDao.PERMISSION_DATASOURCE, datasource);
         for (StringStringPair p : modulePermissions) {
             //Don't allow saving the superadmin permission as it doesn't do anything it's hard coded
             if(!p.getKey().equals(SuperadminPermissionDefinition.PERMISSION)) {
                 ProcessResult partial = new ProcessResult();
-                Permissions.validateAddedPermissions(p.getValue(), Common.getHttpUser(), partial, p.getKey());
+                String existing = SystemSettingsDao.instance.getValue(p.getKey());
+                Permissions.validatePermissions(partial, p.getKey(), user, false, Permissions.explodePermissionGroups(existing), Permissions.explodePermissionGroups(p.getValue()));
+
                 if(!partial.getHasMessages())
-                    systemSettingsDao.setValue(p.getKey(), p.getValue());
+                    SystemSettingsDao.instance.setValue(p.getKey(), p.getValue());
                 else
                     messages.addAll(partial.getMessages());
             }
