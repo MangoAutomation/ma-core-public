@@ -202,8 +202,10 @@ public class RangeRenderer extends ConvertingRenderer {
         if((rangeValues == null)||(rangeValues.size() == 0)) {
             result.addContextualMessage("textRenderer.rangeValues", "validate.atLeast1");
         } else {
+            int i=0;
             for(RangeValue value : rangeValues) {
-                value.validate(result);
+                value.validate("rangeValues[" + i + "]", result);
+                i++;
             }
         }
             

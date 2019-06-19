@@ -14,9 +14,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.util.ColorUtils;
+import com.serotonin.m2m2.vo.Validatable;
 import com.serotonin.util.SerializationHelper;
 
-public class MultistateValue implements Serializable {
+public class MultistateValue implements Serializable, Validatable {
     private int key;
     private String text;
     private String colour;

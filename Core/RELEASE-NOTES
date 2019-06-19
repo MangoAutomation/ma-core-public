@@ -60,6 +60,7 @@
 * Use UTF8 for encoding email address names, better language support
 * Adding Rate of Change data point event detector 
 * Analog Change detector event stays active if the change remains in its period (the "duration" setting)
+* Improve validation of Data Point Text Renderers
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions

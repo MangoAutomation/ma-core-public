@@ -16,9 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.util.ColorUtils;
+import com.serotonin.m2m2.vo.Validatable;
 import com.serotonin.util.SerializationHelper;
 
-public class RangeValue implements Serializable, Comparable<RangeValue> {
+public class RangeValue implements Serializable, Comparable<RangeValue>, Validatable {
     private double from;
     private double to;
     private String text;
@@ -144,6 +145,7 @@ public class RangeValue implements Serializable, Comparable<RangeValue> {
         }
     }
     
+    @Override
     public void validate(ProcessResult result) {
         if(StringUtils.isEmpty(this.text))
             result.addContextualMessage("text", "validate.required");

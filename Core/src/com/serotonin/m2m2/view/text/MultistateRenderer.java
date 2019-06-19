@@ -139,8 +139,10 @@ public class MultistateRenderer extends BaseTextRenderer {
 		if(multistateValues == null || multistateValues.size() == 0)
 			result.addContextualMessage("textRenderer.multistateValues", "validate.atLeast1");
 		else {
+		    int i=0;
 		    for(MultistateValue value : multistateValues) {
-		        value.validate(result);
+                value.validate("multistateValues[" + i + "]", result);
+                i++;
 		    }
 		}
 	}
