@@ -6,7 +6,6 @@ package com.serotonin.m2m2.web.mvc.spring.security.permissions;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
@@ -17,10 +16,7 @@ import org.springframework.security.core.Authentication;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -101,25 +97,22 @@ implements MethodSecurityExpressionOperations {
     }
 
     /**
-     * Does the user have any of the given permissions assigned to the type
-     * @param permissionType
+     * Checks if a user is granted a permission
+     * @param permissionName System setting key for the granted permission
      * @return
      */
-    public boolean hasPermissionType(String permissionType){
-        User user =  (User) this.getPrincipal();
-        if(user.hasAdminPermission())
-            return true;
-        Set<String> userPermissions = user.getPermissionsSet();
-        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
-            String groups = SystemSettingsDao.instance.getValue(def.getPermissionTypeName());
-            Set<String> permissions = Permissions.explodePermissionGroups(groups);
-            //TODO Use Collections.disjoint?
-            for(String permission : permissions){
-                if(userPermissions.contains(permission))
-                    return true;
-            }
-        }
-        return false;
+    @Deprecated
+    public boolean hasPermissionType(String permissionName) {
+        return this.isGrantedPermission(permissionName);
+    }
+
+    /**
+     * Checks if a user is granted a permission
+     * @param permissionName System setting key for the granted permission
+     * @return
+     */
+    public boolean isGrantedPermission(String permissionName) {
+        return Permissions.hasGrantedPermission((User) this.getPrincipal(), permissionName);
     }
 
     /**
