@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -26,6 +27,7 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -253,12 +255,25 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         else
             setAdditionalContext(new ArrayList<>());
         
-        //TODO Review this as per adding permissions
+        User user = Common.getHttpUser();
+        if(user == null)
+            user = Common.getBackgroundContextUser();
+        
         if(scriptPermissions != null) {
-            User user = Common.getHttpUser();
-            if(user == null)
-                user = Common.getBackgroundContextUser();
-            scriptPermissions.validate(response, user);
+            boolean owner = false;
+            Set<String> existingPermissions;
+            if(this.id != Common.NEW_ID) {
+                AbstractEventHandlerVO<?> existing = EventHandlerDao.getInstance().get(id);
+                if(existing instanceof SetPointEventHandlerVO) {
+                    existingPermissions = ((SetPointEventHandlerVO)existing).scriptPermissions != null ? ((SetPointEventHandlerVO)existing).scriptPermissions.getPermissionsSet() : Collections.emptySet();
+                    //If it already exists we don't want to check to make sure we have access as we may not already
+                    owner = true;
+                }else
+                    existingPermissions = null;
+            }else {
+                existingPermissions = null;
+            }
+            Permissions.validatePermissions(response, "scriptPermissions", user, owner, existingPermissions, scriptPermissions.getPermissionsSet());
         }
     }
     

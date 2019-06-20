@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,6 +30,7 @@ import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
@@ -269,9 +271,22 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
                 response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
             }
         }
-        //TODO Review this as per adding permissions
+        
         if(scriptPermissions != null) {
-            scriptPermissions.validate(response, user);
+            Set<String> existingPermissions;
+            boolean owner = false;
+            if(this.id != Common.NEW_ID) {
+                AbstractEventHandlerVO<?> existing = EventHandlerDao.getInstance().get(id);
+                if(existing instanceof EmailEventHandlerVO) {
+                    existingPermissions = ((EmailEventHandlerVO)existing).scriptPermissions != null ? ((EmailEventHandlerVO)existing).scriptPermissions.getPermissionsSet() : Collections.emptySet();
+                    //If it already exists we don't want to check to make sure we have access as we may not already
+                    owner = true;
+                }else
+                    existingPermissions = null;
+            }else {
+                existingPermissions = null;
+            }
+            Permissions.validatePermissions(response, "scriptPermissions", user, owner, existingPermissions, scriptPermissions.getPermissionsSet());
         }
         
         if(!SUBJECT_INCLUDE_CODES.isValidId(subject))

@@ -22,7 +22,6 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -58,29 +57,6 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
         }
 
         this.permissionHolderName = permissionHolderName;
-    }
-
-    public void validate(ProcessResult response, User user) {
-        if (user == null) {
-            response.addContextualMessage("scriptPermissions", "validate.invalidPermission", "No User Found");
-            return;
-        }
-
-        Set<String> invalid = Permissions.findInvalidPermissions(user, this.permissionsSet);
-        if (!invalid.isEmpty()) {
-            String notGranted = Permissions.implodePermissionGroups(invalid);
-            response.addContextualMessage("scriptPermissions", "validate.invalidPermission", notGranted);
-        }
-    }
-
-    public void validate(ProcessResult response, User user, ScriptPermissions oldPermissions) {
-        HashSet<String> invalid = new HashSet<>(this.getPermissionsSet());
-        invalid.removeAll(oldPermissions.getPermissionsSet());
-        invalid.removeAll(user.getPermissionsSet());
-        if (!invalid.isEmpty()) {
-            String notGranted = Permissions.implodePermissionGroups(invalid);
-            response.addContextualMessage("scriptPermissions", "validate.invalidPermissionModification", notGranted);
-        }
     }
 
     @Override

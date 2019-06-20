@@ -388,7 +388,7 @@ public class Permissions {
         
         if(holder.hasAdminPermission())
             return;
-        
+
         //Ensure the holder has at least one of the new permissions
         if(!savedByOwner && Collections.disjoint(holder.getPermissionsSet(), newPermissions)) {
             response.addContextualMessage(contextKey, "validate.mustRetainPermission");
@@ -410,6 +410,7 @@ public class Permissions {
                 response.addContextualMessage(contextKey, "validate.invalidPermissionModification", Permissions.implodePermissionGroups(holder.getPermissionsSet()));
             }
         }
+        return;
     }
 
     public static boolean hasSinglePermission(PermissionHolder user, String requiredPermission) {
