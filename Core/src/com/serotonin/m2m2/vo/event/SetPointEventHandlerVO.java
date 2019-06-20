@@ -164,10 +164,14 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     	super.validate(response);
         DataPointVO dp = DataPointDao.getInstance().getDataPoint(targetPointId, false);
 
+        int dataType = DataTypes.UNKNOWN;
         if (dp == null)
             response.addContextualMessage("targetPointId", "eventHandlers.noTargetPoint");
-
-        int dataType = dp == null ? DataTypes.UNKNOWN : dp.getPointLocator().getDataTypeId();
+        else {
+            dataType = dp.getPointLocator().getDataTypeId();
+            if(!dp.getPointLocator().isSettable())
+                response.addContextualMessage("targetPointId", "event.setPoint.targetNotSettable");
+        }
 
         if (activeAction == SetPointEventHandlerVO.SET_ACTION_NONE && inactiveAction == SetPointEventHandlerVO.SET_ACTION_NONE) {
             response.addContextualMessage("activeAction", "eventHandlers.noSetPointAction");
