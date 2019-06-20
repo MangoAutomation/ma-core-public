@@ -228,7 +228,11 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         User user = Common.getHttpUser();
         if(user == null)
             user = Common.getBackgroundContextUser();
-        Permissions.validatePermissions(response, "editPermission", user, false, existingPermissions, Permissions.explodePermissionGroups(this.editPermission));
+        
+        //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
+        boolean owner = user != null ? Permissions.hasDataSourcePermission(user) : false;
+        
+        Permissions.validatePermissions(response, "editPermission", user, owner, existingPermissions, Permissions.explodePermissionGroups(this.editPermission));
     }
 
     protected String getMessage(Translations translations, String key, Object... args) {
