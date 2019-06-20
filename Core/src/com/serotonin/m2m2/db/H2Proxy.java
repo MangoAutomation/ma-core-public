@@ -172,6 +172,14 @@ public class H2Proxy extends AbstractDatabaseProxy {
         
         //Determine the version info
         Path dbFolder = dbPath.getParent();
+        
+        //Make sure we have a db folder, create if not
+        if(!dbFolder.toFile().exists()) {
+            if(!dbFolder.toFile().mkdirs()) {
+                throw new ShouldNeverHappenException("Could not create databases directory at " + dbFolder.toString());
+            }
+        }
+        
         String[] matchingDbs = dbFolder.toFile().list((dir, filename) ->{
             if(filename.startsWith(dbPath.getFileName().toString()))
                 return true;
