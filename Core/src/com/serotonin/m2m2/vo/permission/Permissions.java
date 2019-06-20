@@ -347,7 +347,10 @@ public class Permissions {
      *   4. the saving user will at least retain one permission
      *   5. the user cannot not remove an existing permission they do not have
      *   6. the user has all of the new permissions being added
-   
+     *   
+     *   If the saving user is also the owner, then the new permissions need not contain 
+     *   one of the user's roles
+     *   
      * @param response - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
