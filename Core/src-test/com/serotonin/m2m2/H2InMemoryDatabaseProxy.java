@@ -56,7 +56,7 @@ import com.serotonin.provider.Providers;
  *  
  * @author Terry Packer
  */
-public class H2InMemoryDatabaseProxy implements DatabaseProxy{
+public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
@@ -94,7 +94,9 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy{
     }
     
     public String getUrl() {
-        return "jdbc:h2:mem:" + databaseName+ ";DB_CLOSE_DELAY=-1";
+        //Using lock mode 0 to avoid lock timeouts from constantly rebuilding the database between tests
+        //TODO remove when we can restart the database between tests instead of cleaning it
+        return "jdbc:h2:mem:" + databaseName+ ";DB_CLOSE_DELAY=-1;LOCK_MODE=0";
     }
     
     public void runScriptPreInitialize(InputStream scriptStream) {
