@@ -132,7 +132,13 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
                 }
             break;
             case DataTypes.NUMERIC:
-                if(!renderedUnit.isCompatible(unit))
+                if(useUnitAsSuffix) {
+                    if(unit == null)
+                        result.addContextualMessage("unit", "validate.required");
+                    if(renderedUnit == null)
+                        result.addContextualMessage("renderedUnit", "validate.required");
+                }
+                if(unit != null && renderedUnit!= null & !renderedUnit.isCompatible(unit))
                     result.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
             break;
         }
