@@ -64,6 +64,7 @@
 * Enforce permission access rule where saving user must retain permission to item
 * Enforce permission access rule where saving user must have any added/removed permission
 * Enforce permission rule where roles with spaces are not allowed
+* Ensure only superadmin users can change the per-user session override settings
 
 *Version 3.5.4*
 * Bugfix: Convert dataPointTags, installedModules, and fileStores tables in database conversions

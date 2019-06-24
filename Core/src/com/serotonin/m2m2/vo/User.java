@@ -602,7 +602,14 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
 
     @Override
     public void validate(ProcessResult response) {
-
+        //TODO Pass in saving user during validation
+        User savingUser = Common.getHttpUser();
+        if(savingUser == null)
+            savingUser = Common.getBackgroundContextUser();
+        
+        //Leverage the cache to get the user to compare passwords
+        User existing = UserDao.getInstance().getUser(username);
+        
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         else if(!UserDao.getInstance().isUsernameUnique(username, id))
@@ -624,9 +631,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                 if ((PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
                     response.addMessage("password", new TranslatableMessage("validate.required"));
                 }
-
-                //Leverage the cache to get the user to compare passwords
-                User existing = UserDao.getInstance().getUser(username);
 
                 //Validate against our rules
                 if (PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)){
@@ -672,20 +676,32 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             }
         }
 
-        if(sessionExpirationOverride) {
-            //TODO Pass in saving user during validation
-            User savingUser = Common.getHttpUser();
-            if(savingUser == null)
-                savingUser = Common.getBackgroundContextUser();
-            if(savingUser == null || !savingUser.hasAdminPermission()) {
+        if(existing != null) {
+            if(existing.isSessionExpirationOverride() != sessionExpirationOverride && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
-            }else {
-                if (-1 == Common.TIME_PERIOD_CODES.getId(sessionExpirationPeriodType, Common.TimePeriods.MILLISECONDS))
-                    response.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
-                if(sessionExpirationPeriods <= 0)
-                    response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
+            }
+            
+            if(existing.getSessionExpirationPeriods() != sessionExpirationPeriods && (savingUser == null || !savingUser.hasAdminPermission())) {
+                response.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
+            }
+            
+            if(existing.getSessionExpirationPeriodType() != sessionExpirationPeriodType && (savingUser == null || !savingUser.hasAdminPermission())) {
+                response.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
+            }
+        }else {
+            if(sessionExpirationOverride) {
+                if(savingUser == null || !savingUser.hasAdminPermission()) {
+                    response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
+                }
             }
         }
+        if(sessionExpirationOverride) {
+            if (-1 == Common.TIME_PERIOD_CODES.getId(sessionExpirationPeriodType, Common.TimePeriods.MILLISECONDS))
+                response.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
+            if(sessionExpirationPeriods <= 0)
+                response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
+        }
+
     }
 
     @Override
