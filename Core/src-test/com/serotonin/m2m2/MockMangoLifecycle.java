@@ -262,13 +262,13 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         if(Common.databaseProxy != null)
             Common.databaseProxy.terminate(true);
         
-        if(Common.serialPortManager != null) {
-           try {
-            Common.serialPortManager.terminate();
-        } catch (LifecycleException e) {
-            fail(e.getMessage());
-        }
-           Common.serialPortManager.joinTermination();
+        if (Common.serialPortManager != null) {
+            try {
+                Common.serialPortManager.terminate();
+            } catch (LifecycleException e) {
+                fail(e.getMessage());
+            }
+            Common.serialPortManager.joinTermination();
         }
     }
 
@@ -312,8 +312,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     @Override
-    public Thread scheduleShutdown(long timeout, boolean b, User user) {
-
+    public Thread scheduleShutdown(Long timeout, boolean b, User user) {
         return null;
     }
 
