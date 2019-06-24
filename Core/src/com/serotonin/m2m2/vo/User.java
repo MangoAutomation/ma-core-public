@@ -685,7 +685,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                 response.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
             }
             
-            if(existing.getSessionExpirationPeriodType() != sessionExpirationPeriodType && (savingUser == null || !savingUser.hasAdminPermission())) {
+            if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), sessionExpirationPeriodType) && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
             }
         }else {
