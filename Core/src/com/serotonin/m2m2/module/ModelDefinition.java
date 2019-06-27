@@ -9,7 +9,13 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
 /**
  * @author Terry Packer
  *
+ * This is deprecated, use com.serotonin.m2m2.web.mvc.rest.v1.model.RestModelMapping and 
+ *   com.infiniteautomation.mango.rest.v2.model.RestModelMapping
+ *   
+ *   TODO Mango 3.7 (Remove class)
+ *
  */
+@Deprecated
 public abstract class ModelDefinition extends ModuleElementDefinition{
 	
     /**
