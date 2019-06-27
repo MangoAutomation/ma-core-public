@@ -1,3 +1,6 @@
+*Version 3.6.1*
+* Fix small javascript bug on legacy system settings page where data source permissions were being set 2x
+
 *Version 3.6.0*
 * Add missing convenience methods for getStats in Numeric and Alphanumeric script context points, third argument cache defaults false
 * Fixing debug logging in serial server input stream

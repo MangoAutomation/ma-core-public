@@ -176,7 +176,6 @@
             
             //1
             // Permissions
-            $set("<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>", settings.<c:out value="<%= SystemSettingsDao.PERMISSION_DATASOURCE %>"/>);
             dwr.util.addRows("modulePermissions", settings.modulePermissions, [
                     function(p) { return p.label },
                     function(p) {
@@ -199,6 +198,7 @@
             // Set the values in the text boxes
             for (var i=0; i<settings.modulePermissions.length; i++)
                 $set(settings.modulePermissions[i].name, settings.modulePermissions[i].value);
+
             // Add onclick to the bullets
             require(["dojo/query"], function(query) {
                 query(".permissionBtn").forEach(function(e) {
