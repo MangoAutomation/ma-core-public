@@ -55,6 +55,13 @@
             </properties>
         </profile>
         <profile>
+            <id>skip-jspc</id>
+            <properties>
+                <warPluginPhase>none</warPluginPhase>
+                <jspcPhase>none</jspcPhase>
+            </properties>
+        </profile>
+        <profile>
             <!-- skips webpack when building inside Eclipse -->
             <id>eclipse-build</id>
             <activation>
