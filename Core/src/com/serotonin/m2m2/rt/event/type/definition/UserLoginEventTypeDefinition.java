@@ -72,4 +72,9 @@ public class UserLoginEventTypeDefinition extends SystemEventTypeDefinition {
                 .collect(Collectors.toList());
     }
 
+    
+    @Override
+    public AlarmLevels getDefaultAlarmLevel() {
+        return AlarmLevels.INFORMATION;
+    }
 }

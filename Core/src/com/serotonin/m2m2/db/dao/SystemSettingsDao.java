@@ -679,20 +679,6 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(DATABASE_BACKUP_ENABLED, true);
         DEFAULT_VALUES.put(BACKUP_ENABLED, true);
 
-        // Add built-in system event type defaults
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, AlarmLevels.IGNORE.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, AlarmLevels.URGENT.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_PROCESS_FAILURE, AlarmLevels.URGENT.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_LICENSE_CHECK, AlarmLevels.URGENT.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_BACKUP_FAILURE, AlarmLevels.URGENT.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_UPGRADE_CHECK, AlarmLevels.INFORMATION.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_REJECTED_WORK_ITEM, AlarmLevels.URGENT.value());
-        DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MISSING_MODULE_DEPENDENCY, AlarmLevels.URGENT.value());
-
         // Add module system event type defaults
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             DEFAULT_VALUES.put(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), def.getDefaultAlarmLevel().value());

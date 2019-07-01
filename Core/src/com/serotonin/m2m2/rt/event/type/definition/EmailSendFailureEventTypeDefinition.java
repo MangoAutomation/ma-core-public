@@ -5,6 +5,7 @@ package com.serotonin.m2m2.rt.event.type.definition;
 
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 
 /**
@@ -38,4 +39,8 @@ public class EmailSendFailureEventTypeDefinition extends SystemEventTypeDefiniti
         return false;
     }
 
+    @Override
+    public AlarmLevels getDefaultAlarmLevel() {
+        return AlarmLevels.INFORMATION;
+    }
 }
