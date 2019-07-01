@@ -35,7 +35,7 @@ dataSourcePropertiesDiv.onUnload = function(){
 //Quick check to see if we can Export CSV
 var dataSourcesButtons;
 if(mangoApiExists)
-	dataSourcesButtons = ['toggle','edit','delete','copy','export','exportCSV'];
+	dataSourcesButtons = ['toggle','edit','delete','copy','export'];
 else
 	dataSourcesButtons = ['toggle','edit','delete','copy','export'];
 
@@ -380,17 +380,7 @@ dataSources = new StoreView({
             exportDialog.show();
         });
 
-    },
-    
-    exportCSV: function(dsXid){
-	   	 if(dsXid === null){
-	   		 return;
-	   	 }
-	   	 window.open("/rest/v1/data-points/data-source/" + dsXid + "?format=csv", '_self');
-	   	 return;
     }
-    
-        
 });
 
 //TODO Can most likely remove when done debugging

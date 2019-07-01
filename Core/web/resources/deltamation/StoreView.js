@@ -114,8 +114,8 @@ return declare("deltamation.StoreView", null, {
             this.postGridInit();
     },
     
-    imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue', 'exportCSV': 'csv'},
-    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run', 'exportCSV': 'exportCSV'},
+    imgMap: {'delete': 'delete', edit: 'pencil', 'export': 'emport', copy: 'add', toggleOn: 'database_go', toggleOff: 'database_stop', run: 'control_play_blue'},
+    fnMap: {'delete': 'remove', edit: 'open', 'export': 'showExport', copy: 'copy', toggleOn: 'toggle', toggleOff: 'toggle', run: 'run'},
     
     renderButtonsHeader: function(th){
     	
@@ -146,15 +146,8 @@ return declare("deltamation.StoreView", null, {
             if (src.substring(0,1) !== '/')
                 src = '/images/' + src + '.png';
 
-            if (button === 'exportCSV') {
-                var url = '/rest/v1/data-points/data-source/' + encodeURIComponent(object.xid) + '?format=csv';
-                var filename = object.xid + '.csv';
-                var a = put(span, 'a[href=$][download=$]', url, filename);
-                put(a, 'img.ptr#$[src=$][title=$]', elementId, src, title);
-            } else {
-                var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
-                put(span, 'img.ptr#$[src=$][title=$][onclick=$]', elementId, src, title, action);
-            }
+            var action = this.varName + '.' + this.fnMap[button] + '(' + id + ');';
+            put(span, 'img.ptr#$[src=$][title=$][onclick=$]', elementId, src, title, action);
         }
         return span;
     },

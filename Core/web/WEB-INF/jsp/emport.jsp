@@ -9,118 +9,17 @@
 <c:set var="definitions" value="<%= ModuleRegistry.getDefinitions(EmportDefinition.class) %>"/>
 <tag:page showHeader="${param.showHeader}" showToolbar="${param.showToolbar}" dwr="EmportDwr" onload="init">
   <script type="text/javascript">
-  var doCsvImport;
   
-  require(['dojo/json', 'dojo/_base/xhr', "dojo/request/xhr", "dojo/cookie", "dojo/domReady!"], 
+    require(['dojo/json', 'dojo/_base/xhr', "dojo/request/xhr", "dojo/cookie", "dojo/domReady!"], 
 	        function(JSON, baseXhr, xhr, cookie){
-	    doCsvImport = function () {
-	        setDisabled("importBtn", true);
-	        hideGenericMessages("importMessages");
-	        $set("alternateMessage", "<fmt:message key="emport.importProgress"/>");
-			
-	        var emportData = $get("emportData");
-	        xhr("/rest/v1/data-points", {
-					method: "PUT",
-	        		data: emportData,
-	        		headers: {
-	        			'Content-Type' : 'text/csv; charset=utf-8',
-	        			'Accept' : 'application/json',
-	        			'X-XSRF-TOKEN' : cookie('XSRF-TOKEN')
-	        			},
-	        		handleAs: "json",
-	        	}
-	        	).then(function(data){
-	        		$set("alternateMessage"); //Clear out message
-	        		show("csvMessageTable");
-	        		//Should be an array of validated point models
-        			var messages = new Array();
-	        		for(var i=0; i<data.length; i++){
-	        			var dp = data[i];
-	        			if(dp.validationMessages != null){
-	        				
-	        				for(var m=0; m<dp.validationMessages.length; m++){
-	        					var msg = dp.validationMessages[m];
-	        					messages.push({
-	        						'xid': dp.xid, 
-	        						'property': msg.property, 
-	        						'level': msg.level,
-	        						'message': msg.message});
-	        				}
-	        			}
-	        		}
-    				showImportMessages(messages);
-
-	        	}, function(err){
-	        		//Set the overall message:
-	        		if(Array.isArray(err.response.data)){
-	        			show("csvMessageTable");
-	        			$set("alternateMessage", err.message);
-	        			var messages = new Array();
-	        			for(var i=0; i<err.response.data.length; i++){
-	            			var dp = err.response.data[i];
-	            			if(dp.validationMessages != null){
-	            				for(var key in dp.validationMessages){
-	            					messages.push({
-	            							'xid': dp.xid, 
-	            						 	'property': dp.validationMessages[key].property, 
-	            						 	'level' : dp.validationMessages[key].level,
-	            						 	'message': dp.validationMessages[key].message});
-	            				}	
-	            			}
-	        			}
-	    				showImportMessages(messages);	        			
-	        		}else{
-	        			//We are a stacktrace
-	        			var message = '<pre style="color:red;">' + err.message;
-	        			if(typeof err.response.data.message != 'undefined')
-	        				message += '<br><br>' + err.response.data.message;
-	        			$set("alternateMessage", message + '</pre>');
-	        		}
-
-	        	}, function(evt){ });
-	        
-	        //When done
-	        setDisabled("importBtn", false);
-	    };
-  });
-  
-  
-  function showImportMessages(messages){
-	  dwr.util.removeAllRows("importCsvMessages");
-      dwr.util.addRows("importCsvMessages", messages, [
-              function(m) { return m.xid; },
-              function(m) { return m.property; },
-              function(m) { 
-            	  return m.message; 
-           	  }
-          ],
-          {
-              rowCreator: function(options) {
-                  var tr = document.createElement("tr");
-                  tr.className = "row"+ (options.rowIndex % 2 == 0 ? "" : "Alt");
-                  return tr;
-              },
-              cellCreator: function(options) {
-                  var td = document.createElement("td");
-                  td.vAlign = "top";
-                  if(options.rowData.level == 'ERROR')
-                	  td.style.color = "red";
-                  if(options.rowData.level == 'INFORMATION')
-                	  td.style.color = "green";
-                  return td;
-              }
-          }
-      );	
-  }
-  
-  
+    });
+    
     function init() {
         setDisabled("cancelBtn", true);
         importUpdate();
     }
     
     function doExport() {
-    	hide("csvMessageTable");
         setDisabled("exportBtn", true);
         EmportDwr.createExportData($get("prettyIndent"), $get("exportElement"), function(data) {
             $set("emportData", data);
@@ -129,13 +28,7 @@
     }
     
     function doImport(){
-    	hide("csvMessageTable");
-    	dwr.util.removeAllRows("importCsvMessages");
-    	var importType = $get('importType');
-		if(importType == "JSON")
-    		doJsonImport();
-		else if(importType == "CSV")
-			doCsvImport();
+		doJsonImport();
     }
     
     function doJsonImport() {
@@ -156,9 +49,6 @@
             }
         });
     }
-    
-
-    
     
     function importUpdate() {
         EmportDwr.importUpdate(function(response) {
@@ -261,26 +151,8 @@
           <input id="cancelBtn" type="button" value="<fmt:message key="common.cancel"/>" onclick="importCancel()" disabled="disabled"/>
         </td>
       </tr>
-      <tr>
-        <td>
-          <select id="importType">
-            <option value="JSON" selected="selected">JSON</option>
-            <m2m2:moduleExists name="mangoApi"><option value="CSV">CSV</option></m2m2:moduleExists>
-          </select>
-        </td>
-      </tr>
       <tbody id="importMessages"></tbody>
       <tr><td id="alternateMessage"></td></tr>
-    </table>
-    <table id="csvMessageTable" style="margin: 5px auto; display: none">
-      <thead>
-        <tr class="rowHeader">
-          <td><fmt:message key="common.xid"/></td>
-          <td>property</td>
-          <td>message</td>
-        </tr>
-      </thead>
-      <tbody id="importCsvMessages"></tbody>
     </table>
   </div>
   

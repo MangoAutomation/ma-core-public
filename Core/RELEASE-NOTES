@@ -1,6 +1,7 @@
 *Version 3.6.1*
 * Fix small javascript bug on legacy system settings page where data source permissions were being set 2x
 * Restore System Event default alarm levels to be the same as in Mango 3.5
+* Remove ability to export data points as CSV from legacy UI, this is supported with features in the new UI that are more flexible
 
 *Version 3.6.0*
 * Add missing convenience methods for getStats in Numeric and Alphanumeric script context points, third argument cache defaults false
