@@ -219,7 +219,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws ValidationException
      */
     protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
-        //Ensure they can create a list
+        //Ensure they can create
         ensureCreatePermission(user, vo);
         
         //Generate an Xid if necessary

@@ -11,6 +11,7 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -50,6 +51,13 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
         
+        //Ensure we don't presume to exist
+        if(vo.getId() != Common.NEW_ID) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("id", "validate.invalidValue");
+            throw new ValidationException(result);
+        }
+        
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
@@ -65,6 +73,14 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     protected PublisherVO<T> update(PublisherVO<T> existing, PublisherVO<T> vo,
             PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
+        
+        //Ensure matching data source types
+        if(!StringUtils.equals(existing.getDefinition().getPublisherTypeName(), vo.getDefinition().getPublisherTypeName())) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("definition.publisherTypeName", "validate.publisher.incompatiblePublisherType");
+            throw new ValidationException(result);
+        }
+        
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
         Common.runtimeManager.savePublisher(vo);
