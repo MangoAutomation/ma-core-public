@@ -27,6 +27,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
@@ -102,11 +104,11 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
         }
     }
 
-    public PublisherVO<? extends PublishedPointVO> getPublisher(int id) {
+    public PublisherVO<T> getPublisher(int id) {
         return queryForObject(PUBLISHER_SELECT + " where id=?", new Object[] { id }, new PublisherRowMapper(), null);
     }
 
-    public PublisherVO<? extends PublishedPointVO> getPublisher(String xid) {
+    public PublisherVO<T> getPublisher(String xid) {
         return queryForObject(PUBLISHER_SELECT + " where xid=?", new Object[] { xid }, new PublisherRowMapper(), null);
     }
 
@@ -158,21 +160,23 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
                     "insert into publishers (xid, publisherType, data) values (?,?,?)",
                     new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
                             SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                    		Types.BINARY})); //TP Edit Nov 2013 had to change from BINARY to BLOB... Did we upgrade Derby version since this code was last touched?
-        	AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
+                    		Types.BINARY}));
+            this.publishEvent(new DaoEvent(this, DaoEventType.CREATE, vo, null, null));
+            AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
         	this.countMonitor.increment();
         }else{
             PublisherVO<?> old = getPublisher(vo.getId());
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
                     SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
                     Types.INTEGER });
+            this.publishEvent(new DaoEvent(this, DaoEventType.UPDATE, vo, null, null));
         	AuditEventType.raiseChangedEvent(AuditEventType.TYPE_PUBLISHER, old, vo);
         }
                     
     }
 
     public void deletePublisher(final int publisherId) {
-    	PublisherVO<?> vo = getPublisher(publisherId);
+    	PublisherVO<T> vo = getPublisher(publisherId);
         final ExtendedJdbcTemplate ejt2 = ejt;
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
@@ -180,11 +184,11 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
                 ejt2.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=?", new Object[] {
                         EventType.EventTypeNames.PUBLISHER, publisherId });
                 ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
-                AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
-                countMonitor.decrement();
             }
         });
-        
+        publishEvent(new DaoEvent<PublisherVO<T>>(this, DaoEventType.DELETE, vo, null, null));
+        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
+        countMonitor.decrement();
     }
 
     public void deletePublisherType(final String publisherType) {
