@@ -29,7 +29,7 @@ public class JsonDataCreatePermissionDefinition extends PermissionDefinition{
 
     @Override
     public List<String> getDefaultGroups() {
-        return Arrays.asList(new String[] {"superadmin", "edit-ui-pages"});
+        return Arrays.asList(new String[] {SuperadminPermissionDefinition.GROUP_NAME, "edit-ui-pages"});
     }
 
 }
