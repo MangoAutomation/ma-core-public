@@ -126,7 +126,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         UriComponentsBuilder builder;
         String baseUrl = SystemSettingsDao.instance.getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL);
         if (!StringUtils.isEmpty(baseUrl)) {
-            builder = UriComponentsBuilder.fromPath(baseUrl);
+            builder = UriComponentsBuilder.fromHttpUrl(baseUrl);
         } else {
             boolean sslOn = Common.envProps.getBoolean("ssl.on", false);
             int port = sslOn ? Common.envProps.getInt("ssl.port", 443) : Common.envProps.getInt("web.port", 8080);
