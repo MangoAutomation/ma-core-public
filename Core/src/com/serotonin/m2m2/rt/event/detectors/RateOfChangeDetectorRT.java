@@ -112,7 +112,6 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if(vo.isUseResetThreshold())
                 resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
 
-
             //Go back duration + averaging period loop over all values to get state
             periodStartTime = time - (getDurationMS() + rocDurationMs);
             currentValueFunction = (l) -> { return getValueAtOrBefore(l);};
@@ -145,9 +144,6 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                     rocTimeoutTasks.add(task);
                     task.schedule();
                 }
-            }else {
-                //TODO We should schedule one task here?
-                scheduleRocTimeoutTask(time);                
             }
             currentValueFunction = (l) -> {return rt.getPointValue();};
         }else {
@@ -155,18 +151,32 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if(vo.isUseResetThreshold())
                 resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
 
-            //Fill our  values
-            latestValue = rt.getPointValue();
-            
-            //Do we have a value exactly at the period start?
-            PointValueTime start = getValueAtOrBefore(periodStartTime);
-            
-            //Do we have a value to compute the RoC?
-            if(start != null) {
-                periodStartValue = start.getDoubleValue();
-                double currentRoc = firstLastRocAlgorithm();
-                long eventTime = latestValue != null ? latestValue.getTime() : time;
-                checkState(currentRoc, time, eventTime);
+            //Determine our start state if we are using a duration
+            long duration = getDurationMS();
+            if(duration > 0) {
+                long historyStartTime = time - duration;
+                List<PointValueTime> history = rt.getPointValues(historyStartTime);
+                //Swap in simulation timer
+                SimulationTimer simTimer = new SimulationTimer();
+                simTimer.setStartTime(historyStartTime);
+                timer = simTimer;
+                
+                for(PointValueTime past : history) {
+                    simTimer.fastForwardTo(past.getTime());
+                    pointUpdated(past);
+                }
+                simTimer.fastForwardTo(time);
+                
+                //Reset timer
+                timer = Common.timer;
+                
+                //Reset our timeout task if necessary
+                if(isJobScheduled()) {
+                    rescheduleJob();
+                }
+            }else {
+                //Simple initialize of our value, to await our next value
+                latestValue = rt.getPointValue();
             }
         }
     }
@@ -223,8 +233,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             if(latestValue == null) {
                 //First value ever
                 periodStartValue = newValue.getDoubleValue();
-                if(vo.getCalculationMode() == CalculationMode.INSTANTANEOUS)
-                    periodStartTime = newValue.getTime();
+                periodStartTime = newValue.getTime();
             }else {
                 //Slide values
                 periodStartValue = latestValue.getDoubleValue();
@@ -235,6 +244,8 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         }else {
             latestValue = newValue;
             rocCheckTimeout(now, newValue);
+            //Schedule timeout task in case we don't get any more updates
+            scheduleRocTimeoutTask(now);
         }
     }
     
@@ -368,9 +379,6 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         }else {
             latestValue = null;
         }
-
-        //Schedule timeout task in case we don't get any more updates
-        scheduleRocTimeoutTask(fireTime);
         
         // Don't compute if there is not a period start value
         if (periodStartValue == null)

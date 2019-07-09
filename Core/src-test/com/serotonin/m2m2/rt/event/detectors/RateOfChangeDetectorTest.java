@@ -262,17 +262,23 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         Common.runtimeManager.saveDataPoint(dpVo);
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
-        //An event will be active as the RoC is 0 at startup and < 1.0
-        assertEquals(1, listener.raised.size());
-        assertEquals(500, listener.raised.get(0).getActiveTimestamp());
+        //An event will not be active as the RoC is uncomputable with no value at the period start
+        assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
 
-        ensureSetPointValue(rt, new PointValueTime(2.2, timer.currentTimeMillis()));
+        ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
         timer.fastForwardTo(1200);
+
+        //An event will active as the RoC is (0.9 - 0.5)/500 < 1/s
+        assertEquals(1, listener.raised.size());
+        assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
+
+        ensureSetPointValue(rt, new PointValueTime(2.2, timer.currentTimeMillis()));
+        timer.fastForwardTo(1500);
 
         assertEquals(1, listener.raised.size());
         assertEquals(1, listener.rtn.size());
-        assertEquals(1000, listener.rtn.get(0).getRtnTimestamp());
+        assertEquals(1200, listener.rtn.get(0).getRtnTimestamp());
     }
     
     //Average Mode Tests
@@ -380,6 +386,34 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
     }
     
     @Test
+    public void testOneSecondPeriodTwoInitialValuesOneValueOutOfRangeForOneSecondAverage() {
+        
+        DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
+        //Save some values
+        PointValueDao dao = Common.databaseProxy.newPointValueDao();
+        dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
+        dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.101, 100), null);
+        timer.fastForwardTo(1000);
+        
+        dpVo.setEnabled(true);
+        Common.runtimeManager.saveDataPoint(dpVo);
+        DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
+
+        assertEquals(0, listener.raised.size());
+        
+        ensureSetPointValue(rt, new PointValueTime(2.5, timer.currentTimeMillis()));
+        timer.fastForwardTo(1001);
+        assertEquals(0, listener.raised.size());
+        assertEquals(0, listener.rtn.size());   
+        
+        timer.fastForwardTo(2000);
+        assertEquals(1, listener.raised.size());
+        assertEquals(2000, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(1, listener.rtn.size());   
+        assertEquals(2000, listener.rtn.get(0).getRtnTimestamp());
+    }
+    
+    @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeForOneSecondAverage() {
         
         DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
@@ -395,22 +429,23 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
         assertEquals(0, listener.raised.size());
         
-        ensureSetPointValue(rt, new PointValueTime(2.5, 1100));
-        timer.fastForwardTo(1001);
+        ensureSetPointValue(rt, new PointValueTime(2.5, timer.currentTimeMillis()));
+        timer.fastForwardTo(1500);
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());   
-        
-        timer.fastForwardTo(2001);
+
+        ensureSetPointValue(rt, new PointValueTime(3.6, timer.currentTimeMillis()));
+        timer.fastForwardTo(2000);
         assertEquals(1, listener.raised.size());
         assertEquals(2000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());   
-        
-        //Ensure we get RTN, 1s after our last set
-        timer.fastForwardTo(2100);
+
+        timer.fastForwardTo(3000);
         assertEquals(1, listener.raised.size());
-        assertEquals(1, listener.rtn.size());
-        assertEquals(2100, listener.rtn.get(0).getRtnTimestamp());      
+        assertEquals(1, listener.rtn.size());   
+        assertEquals(2500, listener.rtn.get(0).getRtnTimestamp());
     }
+
     
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeResetAverage() {
