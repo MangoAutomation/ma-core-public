@@ -38,6 +38,10 @@ public class DataSourceWrapper {
 		return vo.getDefinition().getDataSourceTypeName();
 	}
 	
+	public List<DataPointWrapper> getPoints() {
+	    return points;
+	}
+	
     public String getHelp(){
     	return toString();
     }
