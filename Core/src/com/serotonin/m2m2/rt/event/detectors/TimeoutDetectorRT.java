@@ -11,6 +11,8 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
+import com.serotonin.timer.AbstractTimer;
+import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
 
 /**
@@ -20,6 +22,9 @@ import com.serotonin.timer.TimerTask;
  * @author Matthew Lohbihler
  */
 abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends PointEventDetectorRT<T> {
+
+    protected AbstractTimer timer;
+    
     /**
 	 * @param vo
 	 */
@@ -72,6 +77,7 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
 
     @Override
     public void initialize() {
+        timer = Common.timer;
         durationMS = Common.getMillis(vo.getDurationType(), vo.getDuration());
         durationDescription = vo.getDurationDescription();
 
@@ -99,7 +105,18 @@ abstract public class TimeoutDetectorRT<T extends TimeoutDetectorVO<T>> extends 
     protected void scheduleJob(long timeout) {
         if (task != null)
             cancelTask();
-        task = new TimeoutTask(new Date(timeout), this.timeoutClient);
+        task = new TimeoutTask(new OneTimeTrigger(new Date(timeout)), this.timeoutClient, this.timer);
+    }
+    
+    /**
+     * Move the task to another timer
+     */
+    protected void rescheduleJob() {
+        TimerTask ref = task;
+        if (task != null) {
+            cancelTask();
+            task = new TimeoutTask(new OneTimeTrigger(new Date(ref.getNextExecutionTime())), this.timeoutClient, this.timer);
+        }
     }
 
     protected void unscheduleJob() {

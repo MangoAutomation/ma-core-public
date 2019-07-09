@@ -62,9 +62,6 @@ public class TimeoutTask extends TimerTask {
     	}
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.TimerTask#rejected(com.serotonin.timer.RejectedTaskReason)
-     */
     @Override
     public void rejected(RejectedTaskReason reason) {
     	this.client.rejected(reason);

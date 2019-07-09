@@ -395,22 +395,21 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
         assertEquals(0, listener.raised.size());
         
-        ensureSetPointValue(rt, new PointValueTime(2.5, timer.currentTimeMillis()));
+        ensureSetPointValue(rt, new PointValueTime(2.5, 1100));
         timer.fastForwardTo(1001);
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());   
         
-        timer.fastForwardTo(1100);
+        timer.fastForwardTo(2001);
         assertEquals(1, listener.raised.size());
-        assertEquals(1100, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(2000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());   
         
-        //Ensure we get the RTN
-        ensureSetPointValue(rt, new PointValueTime(2.9, timer.currentTimeMillis()));
-        timer.fastForwardTo(2500); //1s after the change of greater than 1
+        //Ensure we get RTN, 1s after our last set
+        timer.fastForwardTo(2100);
         assertEquals(1, listener.raised.size());
         assertEquals(1, listener.rtn.size());
-        assertEquals(2100, listener.rtn.get(0).getRtnTimestamp());    
+        assertEquals(2100, listener.rtn.get(0).getRtnTimestamp());      
     }
     
     @Test
@@ -430,8 +429,9 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         timer.fastForwardTo(1500);
         
         assertEquals(1, listener.raised.size());
-        assertEquals(100, listener.raised.get(0).getActiveTimestamp());
-        assertEquals(0, listener.rtn.size());
+        assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(1, listener.rtn.size());
+        assertEquals(1100, listener.rtn.get(0).getRtnTimestamp());
         
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(2000);
@@ -439,7 +439,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         timer.fastForwardTo(4500);
         
         assertEquals(1, listener.rtn.size());
-        assertEquals(1500, listener.rtn.get(0).getRtnTimestamp());
+        assertEquals(1, listener.raised.size());
     }
     
     @Test
@@ -459,7 +459,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         timer.fastForwardTo(1499);
         
         assertEquals(1, listener.raised.size());
-        assertEquals(500, listener.raised.get(0).getActiveTimestamp());
+        assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
 
         ensureSetPointValue(rt, new PointValueTime(2.2, timer.currentTimeMillis()));
