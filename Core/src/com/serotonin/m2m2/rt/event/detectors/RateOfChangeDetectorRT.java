@@ -436,7 +436,6 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         else {
             // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
             log.warn("Call to set event active when roc detector is not active. Ignoring.");
-            eventActive = rocBreachActive;
         }
     }
     
