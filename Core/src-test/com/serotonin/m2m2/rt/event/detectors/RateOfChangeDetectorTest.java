@@ -70,8 +70,24 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         Common.eventManager = new SimpleEventManager();
     }
 
+    /**
+     * Settings:
+     *   RoC Threshold: 1.0/Second
+     *   reset Threshold: none
+     *   RoC Averaging Period: N/A
+     *   useAbsoluteValue: false
+     *   calculationMode: INSTANTANEOUS
+     *   comparisonMode: GREATER_THAN
+     *   duration: 0 Seconds
+     *   
+     * Initial value(s): none
+     * 
+     * Test: Set value to 10 at time 0 advance 5s
+     * 
+     * Result: No events raised
+     */
     @Test
-    public void testOneSecondPeriodSingleValueOutOfRange() {
+    public void test1() {
         
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
@@ -248,6 +264,9 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
     }
     
+    /**
+     * Two initial values before point starts, no values set during test
+     */
     @Test
     public void testNoValuesSetTwoInitialValues() {
         
@@ -385,6 +404,27 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(0, listener.rtn.size());
     }
     
+    /**
+     * Settings:
+     *   RoC Threshold: 1.0/Second
+     *   reset Threshold: none
+     *   RoC Averaging Period: 1 Second
+     *   useAbsoluteValue: false
+     *   calculationMode: AVERAGE
+     *   comparisonMode: GREATER_THAN
+     *   duration: 1 Seconds
+     *   
+     * Initial value(s): 0.1 at 0, 1.101 at 100
+     * 
+     * Test:
+     *   advance to 1000 and start point, ensure no events raised
+     *   set value to 2.5 at 1000
+     *   advance to 1001 ensure no events raised
+     *   advance to 2000
+     *   
+     * 
+     * Result: No events raised
+     */
     @Test
     public void testOneSecondPeriodTwoInitialValuesOneValueOutOfRangeForOneSecondAverage() {
         
@@ -568,21 +608,20 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      * 
      *  NOTE: The poll period is 1s for the data source
      * 
-     * @param change
-     * @param resetRange
-     * @param rocThresholdPeriods
+     * @param rocThreshold
+     * @param resetThreshold
      * @param rocThresholdPeriodType
      * @param useAbsoluteValue
      * @param calculationMode
      * @param rocDuration
      * @param rocDurationType
-     * @param comparisonMode     
+     * @param comparisonMode
      * @param durationPeriods - duration for RoC to match its comparison before event will go active
      * @param durationPeriodType - duration for RoC to match its comparison before event will go active
      * @return
      */
-    protected DataPointRT createRunningPoint(double change, Double resetRange, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
-        DataPointVO dpVo = createDisabledPoint(change, resetRange, rocThresholdPeriodType, useAbsoluteValue, calculationMode, rocDuration, rocDurationType, comparisonMode, durationPeriods, durationPeriodType);
+    protected DataPointRT createRunningPoint(double rocThreshold, Double resetThreshold, int rocThresholdPeriodType, boolean useAbsoluteValue, CalculationMode calculationMode, int rocDuration, int rocDurationType, ComparisonMode comparisonMode, int durationPeriods, int durationPeriodType) {
+        DataPointVO dpVo = createDisabledPoint(rocThreshold, resetThreshold, rocThresholdPeriodType, useAbsoluteValue, calculationMode, rocDuration, rocDurationType, comparisonMode, durationPeriods, durationPeriodType);
         dpVo.setEnabled(true);
         Common.runtimeManager.saveDataPoint(dpVo);
         return Common.runtimeManager.getDataPoint(dpVo.getId());

@@ -428,15 +428,15 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     }
     
     @Override
-    protected void setEventActive(long timestamp) {
-        this.eventActive = true;
-        // Just for the fun of it, make sure that the high limit is active.
+    protected synchronized void setEventActive(long timestamp) {
+        this.eventActive = rocBreachActive;
+        // Just for the fun of it, make sure that there is a breach
         if (rocBreachActive)
             raiseEvent(rocBreachActiveTime + getDurationMS(), createEventContext());
         else {
             // Perhaps the job wasn't successfully unscheduled. Write a log entry and ignore.
             log.warn("Call to set event active when roc detector is not active. Ignoring.");
-            eventActive = false;
+            eventActive = rocBreachActive;
         }
     }
     
