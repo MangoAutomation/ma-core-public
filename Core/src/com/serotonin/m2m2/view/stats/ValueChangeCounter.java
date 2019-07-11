@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
@@ -50,6 +51,11 @@ public class ValueChangeCounter implements StatisticsGenerator {
         latestValue = this.startValue = startValue;
     }
 
+    @Override
+    public void reset(long periodStart, long periodEnd, IValueTime startValue) {
+        throw new ShouldNeverHappenException("Should not use this class.");
+    }
+    
     @Override
     public void addValueTime(IValueTime vt) {
         addValue(vt.getValue(), vt.getTime());

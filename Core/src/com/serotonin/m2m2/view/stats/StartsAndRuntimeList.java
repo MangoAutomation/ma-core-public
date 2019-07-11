@@ -13,6 +13,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.ObjectUtils;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
@@ -63,6 +64,11 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         }
     }
 
+    @Override
+    public void reset(long periodStart, long periodEnd, IValueTime startValue) {
+        throw new ShouldNeverHappenException("Should not use this class.");
+    }
+    
     @Override
     public void addValueTime(IValueTime vt) {
         addValueTime(vt.getValue(), vt.getTime());

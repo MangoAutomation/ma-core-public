@@ -6,6 +6,7 @@ package com.serotonin.m2m2.view.stats;
 
 import java.util.List;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 
 /**
@@ -58,6 +59,10 @@ public class AnalogStatistics implements StatisticsGenerator {
         }
     }
    
+    @Override
+    public void reset(long periodStart, long periodEnd, IValueTime startValue) {
+        throw new ShouldNeverHappenException("Should not use this class.");
+    }
 
     @Override
     public void addValueTime(IValueTime vt) {

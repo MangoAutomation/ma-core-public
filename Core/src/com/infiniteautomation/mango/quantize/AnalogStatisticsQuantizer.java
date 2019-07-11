@@ -11,17 +11,21 @@ import com.serotonin.m2m2.view.stats.IValueTime;
 
 public class AnalogStatisticsQuantizer extends AbstractPointValueTimeQuantizer<AnalogStatistics> {
 
+    private AnalogStatistics stats;
+    
     public AnalogStatisticsQuantizer(BucketCalculator bucketCalculator,
             StatisticsGeneratorQuantizerCallback<AnalogStatistics> callback) {
         super(bucketCalculator, callback);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.view.quantize3.AbstractDataQuantizer#createStatistics(java.time.Instant, java.time.Instant, com.serotonin.m2m2.rt.dataImage.types.DataValue)
-     */
     @Override
     protected AnalogStatistics createStatistics(Instant start, Instant end, IValueTime startValue) {
-        return new AnalogStatistics(start.toEpochMilli(), end.toEpochMilli(), startValue);
+        if(stats == null) {
+            stats = new AnalogStatistics(start.toEpochMilli(), end.toEpochMilli(), startValue);
+        }else {
+            stats.reset(start.toEpochMilli(), end.toEpochMilli(), startValue);
+        }
+        return stats;
     }
     
 }

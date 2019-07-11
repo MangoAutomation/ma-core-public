@@ -30,6 +30,14 @@ public class NoStatisticsGenerator implements StatisticsGenerator {
     }
     
     @Override
+    public void reset(long periodStart, long periodEnd, IValueTime startValue) {
+        this.done = false;
+        this.periodStart = periodStart;
+        this.periodEnd = periodEnd;
+        this.values.clear();
+    }
+    
+    @Override
     public void addValueTime(IValueTime vt) {
         this.values.add(vt);
     }
