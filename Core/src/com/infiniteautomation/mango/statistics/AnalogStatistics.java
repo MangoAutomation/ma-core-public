@@ -80,11 +80,11 @@ public class AnalogStatistics implements StatisticsGenerator {
             this.minimumTime = this.maximumTime = this.latestTime = periodStart;
         }else {
             this.startValue = null;
-            this.minimumValue = null;
+            this.minimumValue = Double.NaN;
             this.minimumTime = null;
             this.latestValue = null;
             this.latestTime = 0;
-            this.maximumTime = null;
+            this.maximumValue =  Double.NaN;
             this.maximumTime = null;
         }
 
