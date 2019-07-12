@@ -8,12 +8,14 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -78,6 +80,25 @@ public class DataPointImporter extends Importer {
             	//Override the settings if we need to
                 if(template != null){
                 	template.updateDataPointVO(vo);
+                }
+                
+                //Ensure we don't allow legacy invalid Converting renderers 
+                if (vo.getTextRenderer() instanceof ConvertingRenderer) {
+                    ConvertingRenderer cr = (ConvertingRenderer) vo.getTextRenderer();
+                    //Ensure that we have a valid renderer configuration
+                    if(vo.getPointLocator() != null) {
+                        switch(vo.getPointLocator().getDataTypeId()) {
+                            case DataTypes.ALPHANUMERIC:
+                            case DataTypes.BINARY:
+                            case DataTypes.IMAGE:
+                            case DataTypes.MULTISTATE:
+                                //These types can't have a unit
+                                cr.setUseUnitAsSuffix(false);
+                            case DataTypes.NUMERIC:
+                            default:
+                                break;
+                        }
+                    }
                 }
                 
                 // If the name is not provided, default to the XID

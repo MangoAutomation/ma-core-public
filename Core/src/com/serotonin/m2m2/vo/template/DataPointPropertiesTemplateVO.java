@@ -386,8 +386,9 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	response.addContextualMessage("rollup", "validate.invalidValue");
 
         // Check text renderer type
-        if (textRenderer != null && !textRenderer.getDef().supports(dataTypeId))
-            response.addGenericMessage("validate.text.incompatible");
+        if (textRenderer != null) {
+            textRenderer.validate(response, dataTypeId);
+        }
 
         // Check chart renderer type
         if (chartRenderer != null && !chartRenderer.getDef().supports(dataTypeId))
@@ -494,6 +495,24 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
+            //The units are not used in the template so the renderer shan't care what they are
+            if(textRenderer instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+                cr.setUnit(Unit.ONE);
+                cr.setRenderedUnit(Unit.ONE);
+                //Ensure that we have a valid renderer configuration
+                switch(dataTypeId) {
+                    case DataTypes.ALPHANUMERIC:
+                    case DataTypes.BINARY:
+                    case DataTypes.IMAGE:
+                    case DataTypes.MULTISTATE:
+                        //These types can't have a unit
+                        cr.setUseUnitAsSuffix(false);
+                    case DataTypes.NUMERIC:
+                    default:
+                        break;
+                }
+            }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
@@ -525,6 +544,24 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
+            //The units are not used in the template so the renderer shan't care what they are
+            if(textRenderer instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+                cr.setUnit(Unit.ONE);
+                cr.setRenderedUnit(Unit.ONE);
+                //Ensure that we have a valid renderer configuration
+                switch(dataTypeId) {
+                    case DataTypes.ALPHANUMERIC:
+                    case DataTypes.BINARY:
+                    case DataTypes.IMAGE:
+                    case DataTypes.MULTISTATE:
+                        //These types can't have a unit
+                        cr.setUseUnitAsSuffix(false);
+                    case DataTypes.NUMERIC:
+                    default:
+                        break;
+                }
+            }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = false;
             setExtremeLowLimit = -Double.MAX_VALUE;
@@ -556,6 +593,24 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
+            //The units are not used in the template so the renderer shan't care what they are
+            if(textRenderer instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+                cr.setUnit(Unit.ONE);
+                cr.setRenderedUnit(Unit.ONE);
+                //Ensure that we have a valid renderer configuration
+                switch(dataTypeId) {
+                    case DataTypes.ALPHANUMERIC:
+                    case DataTypes.BINARY:
+                    case DataTypes.IMAGE:
+                    case DataTypes.MULTISTATE:
+                        //These types can't have a unit
+                        cr.setUseUnitAsSuffix(false);
+                    case DataTypes.NUMERIC:
+                    default:
+                        break;
+                }
+            }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
@@ -587,6 +642,24 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgeType = in.readInt();
         	purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
+            //The units are not used in the template so the renderer shan't care what they are
+            if(textRenderer instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+                cr.setUnit(Unit.ONE);
+                cr.setRenderedUnit(Unit.ONE);
+                //Ensure that we have a valid renderer configuration
+                switch(dataTypeId) {
+                    case DataTypes.ALPHANUMERIC:
+                    case DataTypes.BINARY:
+                    case DataTypes.IMAGE:
+                    case DataTypes.MULTISTATE:
+                        //These types can't have a unit
+                        cr.setUseUnitAsSuffix(false);
+                    case DataTypes.NUMERIC:
+                    default:
+                        break;
+                }
+            }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
@@ -618,6 +691,24 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
             purgeType = in.readInt();
             purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
+            //The units are not used in the template so the renderer shan't care what they are
+            if(textRenderer instanceof ConvertingRenderer) {
+                ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
+                cr.setUnit(Unit.ONE);
+                cr.setRenderedUnit(Unit.ONE);
+                //Ensure that we have a valid renderer configuration
+                switch(dataTypeId) {
+                    case DataTypes.ALPHANUMERIC:
+                    case DataTypes.BINARY:
+                    case DataTypes.IMAGE:
+                    case DataTypes.MULTISTATE:
+                        //These types can't have a unit
+                        cr.setUseUnitAsSuffix(false);
+                    case DataTypes.NUMERIC:
+                    default:
+                        break;
+                }
+            }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
             setExtremeLowLimit = in.readDouble();
@@ -654,6 +745,18 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
                 cr.setUnit(Unit.ONE);
                 cr.setRenderedUnit(Unit.ONE);
+                //Ensure that we have a valid renderer configuration
+                switch(dataTypeId) {
+                    case DataTypes.ALPHANUMERIC:
+                    case DataTypes.BINARY:
+                    case DataTypes.IMAGE:
+                    case DataTypes.MULTISTATE:
+                        //These types can't have a unit
+                        cr.setUseUnitAsSuffix(false);
+                    case DataTypes.NUMERIC:
+                    default:
+                        break;
+                }
             }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
