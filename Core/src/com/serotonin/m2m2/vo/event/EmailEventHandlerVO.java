@@ -521,7 +521,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         writer.writeEntry("additionalContext", context);
         writer.writeEntry("script", script);
         writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissions());
-        writer.writeEntry("subject", SUBJECT_INCLUDE_CODES.getCode(escalationDelayType));
+        writer.writeEntry("subject", SUBJECT_INCLUDE_CODES.getCode(subject));
     }
     
     @SuppressWarnings("unchecked")

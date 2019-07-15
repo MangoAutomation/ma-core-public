@@ -4,6 +4,7 @@
 * Fix bug where default Alphanumeric and Multistate templates prior to 3.6.0 had an invalid renderer configuration, no visual change in rendering will occur
 * Fix bug where non numeric data points created prior to 3.6.0 without a template could have an invalid renderer configuration, no visual change in rendering will occur
 * HttpBuilder script utility only adds Content-Type application/json header if missing on POST and PUT requests
+* Fix bug in Email Handler JSON export subject type
 
 *Version 3.6.1*
 * Fix small javascript bug on legacy system settings page where data source permissions were being set 2x
