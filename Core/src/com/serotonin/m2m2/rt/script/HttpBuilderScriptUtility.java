@@ -312,7 +312,7 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
         }
 
         try {
-            if(request.getHeaders("Content-Type").length == 0 && !(request instanceof HttpGet))
+            if(request.getHeaders("Content-Type").length == 0 && (request instanceof HttpPost || request instanceof HttpPut))
                 request.setHeader("Content-Type", "application/json");
             response = Common.getHttpClient().execute(request);
         } catch(IOException e) {
