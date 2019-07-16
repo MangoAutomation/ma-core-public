@@ -1758,22 +1758,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             else {
                 cr.setRenderedUnit(unit);
             }
-            //Ensure that we have a valid renderer configuration
-            //TODO Mango 3.7 defaultTextRenderer() calls this and for some reason
-            // doesn't require a point locator to be set
-            if(pointLocator != null) {
-                switch(pointLocator.getDataTypeId()) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.BINARY:
-                    case DataTypes.IMAGE:
-                    case DataTypes.MULTISTATE:
-                        //These types can't have a unit
-                        cr.setUseUnitAsSuffix(false);
-                    case DataTypes.NUMERIC:
-                    default:
-                        break;
-                }
-            }
         }
     }
 

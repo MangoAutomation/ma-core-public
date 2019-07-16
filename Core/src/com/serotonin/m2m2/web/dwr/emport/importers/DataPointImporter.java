@@ -81,26 +81,7 @@ public class DataPointImporter extends Importer {
                 if(template != null){
                 	template.updateDataPointVO(vo);
                 }
-                
-                //Ensure we don't allow legacy invalid Converting renderers 
-                if (vo.getTextRenderer() instanceof ConvertingRenderer) {
-                    ConvertingRenderer cr = (ConvertingRenderer) vo.getTextRenderer();
-                    //Ensure that we have a valid renderer configuration
-                    if(vo.getPointLocator() != null) {
-                        switch(vo.getPointLocator().getDataTypeId()) {
-                            case DataTypes.ALPHANUMERIC:
-                            case DataTypes.BINARY:
-                            case DataTypes.IMAGE:
-                            case DataTypes.MULTISTATE:
-                                //These types can't have a unit
-                                cr.setUseUnitAsSuffix(false);
-                            case DataTypes.NUMERIC:
-                            default:
-                                break;
-                        }
-                    }
-                }
-                
+
                 // If the name is not provided, default to the XID
                 if (StringUtils.isBlank(vo.getName()))
                     vo.setName(xid);

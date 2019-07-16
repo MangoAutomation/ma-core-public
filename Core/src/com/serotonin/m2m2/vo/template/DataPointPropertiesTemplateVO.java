@@ -500,18 +500,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
                 cr.setUnit(Unit.ONE);
                 cr.setRenderedUnit(Unit.ONE);
-                //Ensure that we have a valid renderer configuration
-                switch(dataTypeId) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.BINARY:
-                    case DataTypes.IMAGE:
-                    case DataTypes.MULTISTATE:
-                        //These types can't have a unit
-                        cr.setUseUnitAsSuffix(false);
-                    case DataTypes.NUMERIC:
-                    default:
-                        break;
-                }
             }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = false;
@@ -549,18 +537,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
                 cr.setUnit(Unit.ONE);
                 cr.setRenderedUnit(Unit.ONE);
-                //Ensure that we have a valid renderer configuration
-                switch(dataTypeId) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.BINARY:
-                    case DataTypes.IMAGE:
-                    case DataTypes.MULTISTATE:
-                        //These types can't have a unit
-                        cr.setUseUnitAsSuffix(false);
-                    case DataTypes.NUMERIC:
-                    default:
-                        break;
-                }
             }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = false;
@@ -594,22 +570,11 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
             //The units are not used in the template so the renderer shan't care what they are
+            //The units are not used in the template so the renderer shan't care what they are
             if(textRenderer instanceof ConvertingRenderer) {
                 ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
                 cr.setUnit(Unit.ONE);
                 cr.setRenderedUnit(Unit.ONE);
-                //Ensure that we have a valid renderer configuration
-                switch(dataTypeId) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.BINARY:
-                    case DataTypes.IMAGE:
-                    case DataTypes.MULTISTATE:
-                        //These types can't have a unit
-                        cr.setUseUnitAsSuffix(false);
-                    case DataTypes.NUMERIC:
-                    default:
-                        break;
-                }
             }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
@@ -643,22 +608,11 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
         	purgePeriod = in.readInt();
             textRenderer = (TextRenderer) in.readObject();
             //The units are not used in the template so the renderer shan't care what they are
+            //The units are not used in the template so the renderer shan't care what they are
             if(textRenderer instanceof ConvertingRenderer) {
                 ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
                 cr.setUnit(Unit.ONE);
                 cr.setRenderedUnit(Unit.ONE);
-                //Ensure that we have a valid renderer configuration
-                switch(dataTypeId) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.BINARY:
-                    case DataTypes.IMAGE:
-                    case DataTypes.MULTISTATE:
-                        //These types can't have a unit
-                        cr.setUseUnitAsSuffix(false);
-                    case DataTypes.NUMERIC:
-                    default:
-                        break;
-                }
             }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
@@ -696,18 +650,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
                 cr.setUnit(Unit.ONE);
                 cr.setRenderedUnit(Unit.ONE);
-                //Ensure that we have a valid renderer configuration
-                switch(dataTypeId) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.BINARY:
-                    case DataTypes.IMAGE:
-                    case DataTypes.MULTISTATE:
-                        //These types can't have a unit
-                        cr.setUseUnitAsSuffix(false);
-                    case DataTypes.NUMERIC:
-                    default:
-                        break;
-                }
             }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();
@@ -745,18 +687,6 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
                 ConvertingRenderer cr = (ConvertingRenderer) textRenderer;
                 cr.setUnit(Unit.ONE);
                 cr.setRenderedUnit(Unit.ONE);
-                //Ensure that we have a valid renderer configuration
-                switch(dataTypeId) {
-                    case DataTypes.ALPHANUMERIC:
-                    case DataTypes.BINARY:
-                    case DataTypes.IMAGE:
-                    case DataTypes.MULTISTATE:
-                        //These types can't have a unit
-                        cr.setUseUnitAsSuffix(false);
-                    case DataTypes.NUMERIC:
-                    default:
-                        break;
-                }
             }
             chartRenderer = (ChartRenderer) in.readObject();
             preventSetExtremeValues = in.readBoolean();

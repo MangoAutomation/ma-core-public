@@ -116,31 +116,13 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     @Override
     public void validate(ProcessResult result, int sourcePointDataTypeId) {
         super.validate(result, sourcePointDataTypeId);
-        switch(sourcePointDataTypeId) {
-            case DataTypes.ALPHANUMERIC:
-            case DataTypes.BINARY:
-            case DataTypes.IMAGE:
-            case DataTypes.MULTISTATE:
-                if(useUnitAsSuffix) {
-                    result.addContextualMessage("useUnitAsSuffix", "validate.textRenderer.unitNotSupported");
-                }
-                if(unit != null && unit != Unit.ONE) {
-                    result.addContextualMessage("unit", "validate.textRenderer.unitNotSupported");
-                }
-                if(renderedUnit != null && renderedUnit != Unit.ONE) {
-                    result.addContextualMessage("renderedUnit", "validate.textRenderer.unitNotSupported");
-                }
-            break;
-            case DataTypes.NUMERIC:
-                if(useUnitAsSuffix) {
-                    if(unit == null)
-                        result.addContextualMessage("unit", "validate.required");
-                    if(renderedUnit == null)
-                        result.addContextualMessage("renderedUnit", "validate.required");
-                }
-                if(unit != null && renderedUnit!= null & !renderedUnit.isCompatible(unit))
-                    result.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
-            break;
+        if(useUnitAsSuffix) {
+            if(unit == null)
+                result.addContextualMessage("unit", "validate.required");
+            if(renderedUnit == null)
+                result.addContextualMessage("renderedUnit", "validate.required");
         }
+        if(unit != null && renderedUnit!= null & !renderedUnit.isCompatible(unit))
+            result.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
     }
 }
