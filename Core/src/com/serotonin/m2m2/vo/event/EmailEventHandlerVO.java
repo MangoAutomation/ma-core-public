@@ -324,6 +324,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     @SuppressWarnings({"unchecked", "deprecation"})
 	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
+        subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
         if (ver == 1) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
@@ -344,7 +345,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = new ArrayList<IntStringPair>();
             scriptPermissions = new ScriptPermissions();
             script = null;
-            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 2) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -366,7 +366,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = new ArrayList<IntStringPair>();
             scriptPermissions = new ScriptPermissions();
             script = null;
-            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 3) {
         	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -388,7 +387,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = (List<IntStringPair>) in.readObject();
             scriptPermissions = new ScriptPermissions();
             script = null;
-            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 4) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -414,7 +412,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             else
                 scriptPermissions = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
-            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
         else if (ver == 5) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -440,7 +437,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             else
                 scriptPermissions = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
-            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }else if (ver == 6) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
@@ -461,7 +457,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = (List<IntStringPair>) in.readObject();
             scriptPermissions = (ScriptPermissions)in.readObject();
             script = SerializationHelper.readSafeUTF(in);
-            subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }else if(ver == 7) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
