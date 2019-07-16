@@ -68,9 +68,7 @@ public class MangoShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
         String header = null;
 
         if (restMatcher.matches(request)) {
-            response.addHeader(HttpHeaders.CACHE_CONTROL, restHeader);
-            filterChain.doFilter(request, response);
-            return;
+            header = restHeader;
         } else if (resourcesMatcher.matches(request)) {
             String queryString = request.getQueryString();
             if (queryString != null && VERSION_QUERY_PARAMETER.matcher(queryString).find()) {
