@@ -4,6 +4,7 @@
 * Remove validation for using unit as suffix in text renderers, all renderers with units can use unit as suffix even if unit is ONE
 * HttpBuilder script utility only adds Content-Type application/json header if missing on POST and PUT requests
 * Fix bug in Email event handler JSON export subject type
+* Fix possible database corruption in database upgrade from schema 27 if data source modules are missing
 
 *Version 3.6.1*
 * Fix small javascript bug on legacy system settings page where data source permissions were being set 2x

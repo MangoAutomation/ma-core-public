@@ -8,6 +8,8 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.serotonin.m2m2.db.DatabaseProxy;
@@ -21,7 +23,9 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 public class Upgrade27 extends DBUpgrade {
-
+    
+    private static final Log LOG = LogFactory.getLog(Upgrade27.class);
+    
     @Override
     protected void upgrade() throws Exception {
         
@@ -37,10 +41,13 @@ public class Upgrade27 extends DBUpgrade {
 
             @Override
             public void processRow(ResultSet rs) throws SQLException {
-                int i = 0;
-                DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
-                int id = rs.getInt(++i);
-                ejt.update("UPDATE dataPoints SET settable=? WHERE id=?", new Object[] {boolToChar(dp.getPointLocator().isSettable()), id});
+                try {
+                    int id = rs.getInt(2);
+                    DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(1));
+                    ejt.update("UPDATE dataPoints SET settable=? WHERE id=?", new Object[] {boolToChar(dp.getPointLocator().isSettable()), id});
+                }catch(Exception e) {
+                    LOG.error("Failed to settable column on data point with id " + rs.getInt(2), e);
+                }
             }
             
         });
