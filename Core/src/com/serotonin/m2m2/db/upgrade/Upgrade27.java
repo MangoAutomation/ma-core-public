@@ -46,7 +46,7 @@ public class Upgrade27 extends DBUpgrade {
                     DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(1));
                     ejt.update("UPDATE dataPoints SET settable=? WHERE id=?", new Object[] {boolToChar(dp.getPointLocator().isSettable()), id});
                 }catch(Exception e) {
-                    LOG.error("Failed to settable column on data point with id " + rs.getInt(2), e);
+                    LOG.error("Failed to set settable column on data point with id " + rs.getInt(2), e);
                 }
             }
             
