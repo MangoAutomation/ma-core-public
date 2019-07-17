@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -1145,6 +1146,14 @@ public class SystemSettingsDao extends BaseDao {
         if(setting != null)
             response.addContextualMessage(LICENSE_AGREEMENT_VERSION, "validate.readOnly");
 
+        setting = settings.get(PUBLICLY_RESOLVABLE_BASE_URL);
+        if (setting != null) {
+            try {
+                UriComponentsBuilder.fromHttpUrl((String) setting).build().toUri();
+            } catch (Exception e) {
+                response.addContextualMessage(PUBLICLY_RESOLVABLE_BASE_URL, "validate.invalidValue");
+            }
+        }
     }
 
 
