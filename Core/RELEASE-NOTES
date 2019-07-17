@@ -1,5 +1,6 @@
 *Version 3.6.3*
 * Disable ETag header generation for no-store web and REST requests to improve memory use and performance
+* Change default env property rest.indentJSON to false as to not indent JSON on the REST api
 
 *Version 3.6.2*
 * Add public getter method for points list in DataSourceWrapper from DataSourceQuery
