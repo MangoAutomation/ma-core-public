@@ -1,3 +1,6 @@
+*Version 3.6.3*
+* Disable ETag header generation for no-store web and REST requests to improve memory use and performance
+
 *Version 3.6.2*
 * Add public getter method for points list in DataSourceWrapper from DataSourceQuery
 * Improve memory use for quantized statistics, point value rollups for example use this

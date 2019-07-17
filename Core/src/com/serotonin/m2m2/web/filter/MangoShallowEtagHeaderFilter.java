@@ -23,13 +23,13 @@ import com.serotonin.m2m2.Common;
 
 /**
  * @author Terry Packer
- *
+ * TODO Mango 3.7 Remove Filter
  */
 public class MangoShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
 
     public static final String MAX_AGE_TEMPLATE = "max-age=%d, must-revalidate";
     public static final String NO_STORE = "no-cache, no-store, max-age=0, must-revalidate";
-
+    private static final String DIRECTIVE_NO_STORE = "no-store";
     public static final Pattern VERSION_QUERY_PARAMETER = Pattern.compile("(?:^|&)v=");
 
     final RequestMatcher restMatcher;
@@ -83,7 +83,12 @@ public class MangoShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
         }
 
         response.addHeader(HttpHeaders.CACHE_CONTROL, header);
-
+        
+        //Disable content caching for non GET or no-store requests 
+        if(!HttpMethod.GET.matches(request.getMethod()) || header.contains(DIRECTIVE_NO_STORE)) {
+            disableContentCaching(request);
+        }
+        
         super.doFilterInternal(request, response, filterChain);
     }
 }
