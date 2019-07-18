@@ -67,8 +67,6 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         this.periodStart = periodStart;
         this.periodEnd = periodEnd;
         
-        this.data.clear();
-        
         //Check for null and also bookend values
         if (startValue != null && startValue.getValue() != null) {
             this.startValue = startValue.getValue();
@@ -77,12 +75,12 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         }else {
             this.startValue = null;
             this.latestTime = 0;
-            this.sar = null;
         }
         this.firstValue = null;
         this.firstTime = null;
         this.lastValue = null;
         this.lastTime = null;
+        this.data.clear();
         this.count = 0;
     }
     

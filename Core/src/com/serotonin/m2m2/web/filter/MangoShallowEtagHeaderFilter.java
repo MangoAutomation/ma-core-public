@@ -61,6 +61,9 @@ public class MangoShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
         versionedResourcesHeader = resourcesNoStore ? NO_STORE : String.format(MAX_AGE_TEMPLATE, Common.envProps.getLong("web.cache.maxAge.versionedResources", 31536000L));
     }
 
+    /* (non-Javadoc)
+     * @see org.springframework.web.filter.ShallowEtagHeaderFilter#doFilterInternal(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, javax.servlet.FilterChain)
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
