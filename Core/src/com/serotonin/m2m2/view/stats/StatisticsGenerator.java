@@ -31,15 +31,6 @@ public interface StatisticsGenerator {
      * 
      */
     void done();
-    
-    /**
-     * Reset to initial state for re-use
-     * @param periodStart
-     * @param periodEnd
-     * @param startValue
-     */
-    void reset(long periodStart, long periodEnd, IValueTime startValue);
-
 
     /**
      * @return the start time of the period

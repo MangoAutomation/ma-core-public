@@ -20,8 +20,8 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
 public class AnalogStatistics implements StatisticsGenerator {
     
     // Configuration values.
-    private long periodStart;
-    private long periodEnd;
+    private final long periodStart;
+    private final long periodEnd;
     private boolean done = false;
     
     // Calculated values.
@@ -64,44 +64,6 @@ public class AnalogStatistics implements StatisticsGenerator {
         }
     }
 
-    /**
-     * Reset for re-use
-     * @param periodStart
-     * @param periodEnd
-     * @param startValue
-     */
-    public void reset(long periodStart, long periodEnd, IValueTime startValue) {
-        this.done = false;
-        this.periodStart = periodStart;
-        this.periodEnd = periodEnd;
-        //Check for null and also bookend values
-        if (startValue != null && startValue.getValue() != null) {
-            this.minimumValue = this.maximumValue = this.latestValue = this.startValue = startValue.getValue().getDoubleValue();
-            this.minimumTime = this.maximumTime = this.latestTime = periodStart;
-        }else {
-            this.startValue = null;
-            this.minimumValue = null;
-            this.minimumTime = null;
-            this.latestValue = null;
-            this.latestTime = 0;
-            this.maximumTime = null;
-            this.maximumTime = null;
-        }
-
-        // Calculated values.
-        this.average = Double.NaN;
-        this.integral = Double.NaN;
-        this.sum = 0d;
-        this.firstValue = null;
-        this.firstTime = null;
-        this.lastValue = null;
-        this.lastTime = null;
-        this.count = 0;
-        this.delta = Double.NaN;
-
-        // State values used for calculating weighted average.
-        this.totalDuration = 0;
-    }
 
     @Override
     public void addValueTime(IValueTime vt) {

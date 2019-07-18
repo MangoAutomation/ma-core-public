@@ -14,8 +14,6 @@ import com.serotonin.m2m2.view.stats.IValueTime;
  */
 public class NoStatisticsQuantizer extends AbstractPointValueTimeQuantizer<NoStatisticsGenerator>{
 
-    private NoStatisticsGenerator stats;
-    
     /**
      * @param bucketCalculator
      * @param callback
@@ -25,15 +23,13 @@ public class NoStatisticsQuantizer extends AbstractPointValueTimeQuantizer<NoSta
         super(bucketCalculator, callback);
     }
 
+    /* (non-Javadoc)
+     * @see com.infiniteautomation.mango.quantize.AbstractPointValueTimeQuantizer#createStatistics(java.time.Instant, java.time.Instant, com.serotonin.m2m2.rt.dataImage.types.DataValue)
+     */
     @Override
     protected NoStatisticsGenerator createStatistics(Instant start, Instant end,
             IValueTime startValue) {
-        if(stats == null) {
-            stats = new NoStatisticsGenerator(start.toEpochMilli(), end.toEpochMilli());
-        }else {
-            stats.reset(start.toEpochMilli(), end.toEpochMilli(), startValue);
-        }
-        return stats;
+        return new NoStatisticsGenerator(start.toEpochMilli(), end.toEpochMilli());
     }
 
 }

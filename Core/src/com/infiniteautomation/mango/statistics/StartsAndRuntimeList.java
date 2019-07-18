@@ -24,8 +24,8 @@ import com.serotonin.m2m2.view.stats.StatisticsGenerator;
  */
 public class StartsAndRuntimeList implements StatisticsGenerator {
     // Configuration values.
-    private long periodStart;
-    private long periodEnd;
+    private final long periodStart;
+    private final long periodEnd;
     private boolean done = false;
 
     // Calculated values.
@@ -56,34 +56,11 @@ public class StartsAndRuntimeList implements StatisticsGenerator {
         //Check for null and also bookend values
         if (startValue != null && startValue.getValue() != null) {
             this.startValue = startValue.getValue();
-            this.latestTime = periodStart;
-            this.sar = get(this.startValue);
+            latestTime = periodStart;
+            sar = get(this.startValue);
         }
     }
 
-    @Override
-    public void reset(long periodStart, long periodEnd, IValueTime startValue) {
-        this.done = false;
-        this.periodStart = periodStart;
-        this.periodEnd = periodEnd;
-        
-        //Check for null and also bookend values
-        if (startValue != null && startValue.getValue() != null) {
-            this.startValue = startValue.getValue();
-            this.latestTime = periodStart;
-            this.sar = get(this.startValue);
-        }else {
-            this.startValue = null;
-            this.latestTime = 0;
-        }
-        this.firstValue = null;
-        this.firstTime = null;
-        this.lastValue = null;
-        this.lastTime = null;
-        this.data.clear();
-        this.count = 0;
-    }
-    
     @Override
     public void addValueTime(IValueTime vt) {
         addValueTime(vt.getValue(), vt.getTime());
