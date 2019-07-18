@@ -1,6 +1,10 @@
 *Version 3.6.3*
 * Disable ETag header generation for no-store web and REST requests to improve memory use and performance
 * Change default env property rest.indentJSON to false as to not indent JSON on the REST api
+* Validate the Publicly resolvable url system setting
+* Add JMX startup extension for linux
+* Add comments to debug startup extension for java 9+
+* Remove quantized statistics memory improvements, to be added back in Mango 3.7
 
 *Version 3.6.2*
 * Add public getter method for points list in DataSourceWrapper from DataSourceQuery
