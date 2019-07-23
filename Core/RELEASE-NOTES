@@ -1,3 +1,6 @@
+*Version 3.6.4*
+* Revert data source management permission to only allow creating new data sources, not give access to all data sources
+
 *Version 3.6.3*
 * Disable ETag header generation for no-store web and REST requests to improve memory use and performance
 * Change default env property rest.indentJSON to false as to not indent JSON on the REST api
