@@ -13,7 +13,6 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -39,9 +38,9 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     private List<EmailRecipient> entries;
     private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
     @JsonProperty
-    private Set<String> readPermissions;
+    private Set<String> readPermissions = Collections.emptySet();
     @JsonProperty
-    private Set<String> editPermissions;
+    private Set<String> editPermissions = Collections.emptySet();
 
     /**
      * Integers that are present in the inactive intervals set are times at which the mailing list schedule is not to be
@@ -183,12 +182,12 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
                 existingReadPermission = vo.getReadPermissions();
                 existingEditPermission = vo.getEditPermissions();
             }else {
-                existingReadPermission = Collections.emptySet();
-                existingEditPermission = Collections.emptySet();
+                existingReadPermission = null;
+                existingEditPermission = null;
             }
         }else {
-            existingReadPermission = Collections.emptySet();
-            existingEditPermission = Collections.emptySet();
+            existingReadPermission = null;
+            existingEditPermission = null;
         }
         Permissions.validatePermissions(result, "readPermissions", user, false, existingReadPermission, readPermissions);
         Permissions.validatePermissions(result, "editPermissions", user, false, existingEditPermission, editPermissions);
@@ -197,8 +196,6 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
             if(inactiveIntervals.size() > 672)
                 result.addContextualMessage("inactiveSchedule", "validate.invalidValue");
         }
-        if(result.getHasMessages())
-            throw new ValidationException(result);
     }
 
     @Override
@@ -208,13 +205,14 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        // Don't call the super method, because a mailing list can't be a member of a mailing list.
-        writer.writeEntry("xid", xid);
+        // Don't call the EmailRecipient.super.jsonWrite method, because a mailing list can't be a member of a mailing list.
+        super.jsonWrite(writer);
         writer.writeEntry("receiveAlarmEmails", receiveAlarmEmails.name());
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+        super.jsonRead(reader, jsonObject);
         String text = jsonObject.getString("recieveAlarmEmails");
         if(text != null){
             receiveAlarmEmails = AlarmLevels.fromName(text);
