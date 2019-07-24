@@ -400,14 +400,13 @@ public class RuntimeManagerImpl implements RuntimeManager{
             }
         }
 
-        LOG.info("Data source '" + vo.getName() + "' initialized");
-
     	long endTime = System.nanoTime();
 
     	long duration = endTime - startTime;
         int took = (int)((double)duration/(double)1000000);
     	stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), took);
-        
+        LOG.info(new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), took).translate(Common.getTranslations()));
+    	
     	return true;
     }
     

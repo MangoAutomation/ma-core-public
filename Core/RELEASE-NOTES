@@ -1,7 +1,8 @@
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
 * Upgrade bouncy Castle Encryption libraries to 1.62 for latest security enhancements
-* Fix bug in mailing list validation
+* Fix bug in mailing list permission validation
+* Add back in startup time INFO log level message for data sources
 
 *Version 3.6.3*
 * Disable ETag header generation for no-store web and REST requests to improve memory use and performance
