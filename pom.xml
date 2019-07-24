@@ -20,7 +20,7 @@
   <mango.build.versionState>0</mango.build.versionState>
   <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
   <buildNumber>${maven.build.timestamp}</buildNumber>
-  <bouncyCastleVersion>1.60</bouncyCastleVersion>
+  <bouncyCastleVersion>1.62</bouncyCastleVersion>
  </properties>
  <organization>
    <name>Infinite Automation Systems, Inc.</name>
