@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -182,12 +183,12 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
                 existingReadPermission = vo.getReadPermissions();
                 existingEditPermission = vo.getEditPermissions();
             }else {
-                existingReadPermission = null;
-                existingEditPermission = null;
+                existingReadPermission = Collections.emptySet();
+                existingEditPermission = Collections.emptySet();
             }
         }else {
-            existingReadPermission = null;
-            existingEditPermission = null;
+            existingReadPermission = Collections.emptySet();
+            existingEditPermission = Collections.emptySet();
         }
         Permissions.validatePermissions(result, "readPermissions", user, false, existingReadPermission, readPermissions);
         Permissions.validatePermissions(result, "editPermissions", user, false, existingEditPermission, editPermissions);
