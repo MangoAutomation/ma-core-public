@@ -4,7 +4,7 @@
 * Fix bug in mailing list JSON import/export
 * Add back in startup time INFO log level message for data sources
 * Support streaming large files into Mango for future support of point value REST api
-* Ignore null values when saving point values direct to cache
+* Ignore null values when saving point values direct to cache and otherwise
 
 *Version 3.6.3*
 * Disable ETag header generation for no-store web and REST requests to improve memory use and performance

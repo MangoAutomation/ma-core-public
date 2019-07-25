@@ -243,7 +243,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     private void savePointValue(PointValueTime newValue, SetPointSource source, boolean async, boolean saveToDatabase) {
         // Null values are not very nice, and since they don't have a specific meaning they are hereby ignored.
-        if (newValue == null)
+        if (newValue == null || newValue.getValue() == null)
             return;
 
         // Check the data type of the value against that of the locator, just for fun.
