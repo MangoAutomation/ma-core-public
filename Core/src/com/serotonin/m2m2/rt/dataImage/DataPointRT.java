@@ -441,7 +441,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             if(fireEvents == FireEvents.ON_CURRENT_VALUE_UPDATE || fireEvents == FireEvents.ALWAYS)
                 fireEvents(oldValue, newValue, null, source != null, false, logValue, true, false);
         }else if(fireEvents == FireEvents.ALWAYS)
-            fireEvents(pointValue, newValue, null, source != null, false, logValue, false, false);
+            fireEvents(pointValue, newValue, null, source != null, true, logValue, false, false);
 
     }
 
@@ -518,9 +518,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 				scheduleTimeoutImpl(fireTime);
 			}
 
-			/* (non-Javadoc)
-			 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-			 */
 			@Override
 			public String getTaskId() {
 				return prefix + vo.getXid();
@@ -839,34 +836,22 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             return WorkItem.PRIORITY_MEDIUM;
         }
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
-		 */
 		@Override
 		public String getDescription() {
 			return descriptionPrefix + sourceXid;
 		}
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-		 */
 		@Override
 		public String getTaskId() {
 			//So there is one task for each listener
 			return prefix + sourceXid + "-" + listener.hashCode();
 		}
-		
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-		 */
+
 		@Override
 		public int getQueueSize() {
 			return Task.UNLIMITED_QUEUE_SIZE;
 		}
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-		 */
 		@Override
 		public void rejected(RejectedTaskReason reason) {
 			//No special handling, tracking/logging is handled by the WorkItemRunnable
@@ -881,8 +866,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     /*
      * For future use if we want to allow data points to startup
      *  in safe mode, will require changes to RuntimeManager
-     * (non-Javadoc)
-     * @see com.serotonin.util.ILifecycle#initialize(boolean)
+     * 
      */
     public void initialize(boolean safe){
     	if(!safe)
