@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.web.mvc.spring;
 
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +39,8 @@ public class MangoRootWebContextConfiguration {
     @Bean
     public CommonsMultipartResolver multipartResolver(){
         CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
-        commonsMultipartResolver.setDefaultEncoding("utf-8");
+        commonsMultipartResolver.setResolveLazily(true); //So we can optionally stream the results
+        commonsMultipartResolver.setDefaultEncoding(StandardCharsets.UTF_8.name());
         commonsMultipartResolver.setMaxUploadSize(Common.envProps.getLong("web.fileUpload.maxSize", 50000000));
         return commonsMultipartResolver;
     }
