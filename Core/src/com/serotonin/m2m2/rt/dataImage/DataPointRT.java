@@ -395,7 +395,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
             boolean async, FireEvents fireEvents) {
         // Null values are not very nice, and since they don't have a specific meaning they are hereby ignored.
-        if (newValue == null)
+        if (newValue == null || newValue.getValue() == null)
             return;
 
         // Check the data type of the value against that of the locator, just for fun.
