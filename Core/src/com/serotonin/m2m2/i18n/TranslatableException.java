@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.i18n;
 
 import com.infiniteautomation.mango.util.exception.TranslatableExceptionI;
+import com.serotonin.m2m2.Common;
 
 /**
  * @author Matthew Lohbihler
@@ -38,6 +39,6 @@ public class TranslatableException extends Exception implements TranslatableExce
 
     @Override
     public String getMessage() {
-        return super.getMessage();
+        return this.translatableMessage.translate(Common.getTranslations());
     }
 }
