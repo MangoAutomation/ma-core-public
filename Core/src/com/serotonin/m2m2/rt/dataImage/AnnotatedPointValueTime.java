@@ -31,6 +31,9 @@ public class AnnotatedPointValueTime extends PointValueTime implements IAnnotate
     }
     @Override
     public String getAnnotation(Translations translations) {
-        return sourceMessage.translate(translations);
+        if(sourceMessage != null)
+         return sourceMessage.translate(translations);
+        else
+            return null;
     }
 }
