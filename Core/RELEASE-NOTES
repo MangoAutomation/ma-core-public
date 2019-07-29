@@ -6,6 +6,7 @@
 * Support streaming large files into Mango for future support of point value REST api
 * Ignore null values when saving point values direct to cache and otherwise
 * Fix bug for point value listeners in ALWAYS mode where point value was backdated and the backdated() method was not called
+* Ensure point value annotations cannot be null when saving a value to a point
 
 *Version 3.6.3*
 * Disable ETag header generation for no-store web and REST requests to improve memory use and performance

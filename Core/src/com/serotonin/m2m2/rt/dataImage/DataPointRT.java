@@ -343,7 +343,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         // add annotation to newValue before firing events so event detectors can
         // fetch the annotation
-        if (source != null) {
+        if (source != null && source.getSetPointSourceMessage() != null) {
             newValue = new AnnotatedPointValueTime(newValue.getValue(),
                     newValue.getTime(), source.getSetPointSourceMessage());
         }
