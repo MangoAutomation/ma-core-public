@@ -256,7 +256,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                 <plugin>
                     <groupId>com.github.eirslett</groupId>
                     <artifactId>frontend-maven-plugin</artifactId>
-                    <version>1.6</version>
+                    <version>1.7.6</version>
                     <executions>
                         <execution>
                             <phase>${installNodeAndYarnPhase}</phase>
