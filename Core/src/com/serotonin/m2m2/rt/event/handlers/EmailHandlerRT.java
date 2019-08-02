@@ -268,7 +268,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
             // Send the email.
             Map<String, Object> model = new HashMap<String, Object>();
-            model.put("evt", evt);
+            model.put(EventInstance.CONTEXT_KEY, evt);
             model.put(EventInstanceWrapper.CONTEXT_KEY, new EventInstanceWrapper(evt));
             if (evt.getContext() != null)
                 model.putAll(evt.getContext());
