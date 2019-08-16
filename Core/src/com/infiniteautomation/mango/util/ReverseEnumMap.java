@@ -24,7 +24,7 @@ public class ReverseEnumMap<V, E extends Enum<E> & ReverseEnum<V>> {
     public E get(V value) {
         E enumConstant = this.map.get(Objects.requireNonNull(value));
         if (enumConstant == null) {
-            throw new IllegalArgumentException("Invalid enum value");
+            throw new IllegalArgumentException("Invalid enum value: " + value.toString());
         }
         return enumConstant;
     }
