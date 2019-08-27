@@ -89,7 +89,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>ascii-ds</artifactId>
-			<version>3.6.1-SNAPSHOT</version>
+			<version>3.6.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -227,7 +227,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>virtual-ds</artifactId>
-			<version>3.6.1-SNAPSHOT</version>
+			<version>3.6.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -252,7 +252,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>controlcore-ds</artifactId>
-			<version>3.6.1-SNAPSHOT</version>
+			<version>3.6.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -306,7 +306,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>meta-ds</artifactId>
-			<version>3.6.2-SNAPSHOT</version>
+			<version>3.6.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -348,13 +348,13 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>pid-ds</artifactId>
-			<version>3.6.1-SNAPSHOT</version>
+			<version>3.6.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>pop3-ds</artifactId>
-			<version>3.6.1-SNAPSHOT</version>
+			<version>3.6.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -372,7 +372,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>sql-ds</artifactId>
-			<version>3.6.1-SNAPSHOT</version>
+			<version>3.6.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
