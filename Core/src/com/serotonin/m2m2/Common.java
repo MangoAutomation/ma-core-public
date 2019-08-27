@@ -264,7 +264,7 @@ public class Common {
     }
 
     public static final int getDatabaseSchemaVersion() {
-        return 28;
+        return 29;
     }
 
     /**

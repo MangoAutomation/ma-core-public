@@ -111,6 +111,8 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private int sessionExpirationPeriods;
     @JsonProperty
     private String sessionExpirationPeriodType;
+    @JsonProperty
+    private String organization;
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -514,10 +516,15 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public long getPasswordChangeTimestamp() {
         return this.passwordChangeTimestamp;
     }
-    /*
-     * (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#getAuthorities()
-     */
+    
+    public String getOrganization() {
+        return organization;
+    }
+    
+    public void setOrganization(String organization) {
+        this.organization = organization;
+    }
+    
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities.get(() -> {
@@ -525,25 +532,16 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         });
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonExpired()
-     */
     @Override
     public boolean isAccountNonExpired() {
         return true; //Don't have this feature
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isAccountNonLocked()
-     */
     @Override
     public boolean isAccountNonLocked() {
         return true; //Don't have this feature
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.core.userdetails.UserDetails#isCredentialsNonExpired()
-     */
     @Override
     public boolean isCredentialsNonExpired() {
         if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.PASSWORD_EXPIRATION_ENABLED)) {
@@ -661,7 +659,9 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
         if (StringValidation.isLengthGreaterThan(name, 255))
             response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
-        if (StringValidation.isLengthGreaterThan(locale, 50))
+        if(locale == null) {
+            response.addMessage("locale", new TranslatableMessage("validate.required"));
+        }else if (StringValidation.isLengthGreaterThan(locale, 50))
             response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
         if (StringValidation.isLengthGreaterThan(timezone, 50))
             response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
@@ -701,7 +701,12 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             if(sessionExpirationPeriods <= 0)
                 response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
         }
-
+        
+        if(StringUtils.isNotEmpty(organization)) {
+            if (StringValidation.isLengthGreaterThan(organization, 80)) {
+                response.addMessage("organization", new TranslatableMessage("validate.notLongerThan", 80));
+            }
+        }
     }
 
     @Override

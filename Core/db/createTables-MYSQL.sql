@@ -52,6 +52,7 @@ create table users (
   sessionExpirationOverride char(1),
   sessionExpirationPeriods int,
   sessionExpirationPeriodType varchar(25),
+  organization varchar(80),
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);

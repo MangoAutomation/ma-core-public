@@ -48,6 +48,7 @@ create table users (
   sessionExpirationOverride char(1),
   sessionExpirationPeriods int,
   sessionExpirationPeriodType nvarchar(25),
+  organization nvarchar(80),
   primary key (id)
 );
 alter table users add constraint username_unique unique (username);

@@ -50,6 +50,7 @@ CREATE TABLE users (
   sessionExpirationOverride char(1),
   sessionExpirationPeriods int,
   sessionExpirationPeriodType varchar(25),
+  organization varchar(80),
   PRIMARY KEY (id)
 );
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);

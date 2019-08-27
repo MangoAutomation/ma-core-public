@@ -146,7 +146,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             user.setSessionExpirationOverride(charToBool(rs.getString(++i)));
             user.setSessionExpirationPeriods(rs.getInt(++i));
             user.setSessionExpirationPeriodType(rs.getString(++i));
-           
+            user.setOrganization(rs.getString(++i));
             return user;
         }
     }
@@ -174,8 +174,8 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
             + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, " //
             + "name, locale, tokenVersion, passwordVersion, passwordChangeTimestamp, " //
-            + "sessionExpirationOverride, sessionExpirationPeriods, sessionExpirationPeriodType) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "sessionExpirationOverride, sessionExpirationPeriods, sessionExpirationPeriodType, organization) " //
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
         int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
@@ -190,11 +190,11 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                 user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                                 boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
                                 user.getPasswordVersion(), user.getPasswordChangeTimestamp(), boolToChar(user.isSessionExpirationOverride()), 
-                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType()},
+                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(), user.getOrganization()},
                         new int[] { Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BIGINT, Types.CHAR, Types.INTEGER, Types.VARCHAR}
+                                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BIGINT, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR}
                         );
             }
         });
@@ -209,7 +209,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     private static final String USER_UPDATE = "UPDATE users SET " //
             + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
             + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=?, passwordVersion=?, passwordChangeTimestamp=?," //
-            + " sessionExpirationOverride=?, sessionExpirationPeriods=?, sessionExpirationPeriodType=? "
+            + " sessionExpirationOverride=?, sessionExpirationPeriods=?, sessionExpirationPeriodType=?, organization=?"
             + " WHERE id=?";
 
     void updateUser(User user) {
@@ -253,11 +253,12 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                     user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
                                     user.getPasswordVersion(), user.getPasswordChangeTimestamp(), 
                                     boolToChar(user.isSessionExpirationOverride()), user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
+                                    user.getOrganization(), 
                                     user.getId() },
                             new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                     Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                     Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT,
-                                    Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.INTEGER}
+                                    Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER}
                             );
 
                     return old;
@@ -432,10 +433,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         throw new UnsupportedOperationException("Use deleteUser()");
     }
 
-    //Overrides for use in AbstractBasicDao
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
-     */
     @Override
     protected Object[] voToObjectArray(User vo) {
         return new Object[]{
@@ -458,22 +455,16 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 vo.getPasswordChangeTimestamp(),
                 vo.isSessionExpirationOverride(),
                 vo.getSessionExpirationPeriods(),
-                vo.getSessionExpirationPeriodType()
+                vo.getSessionExpirationPeriodType(),
+                vo.getOrganization()
         };
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-     */
     @Override
     public RowMapper<User> getRowMapper() {
         return new UserRowMapper();
     }
 
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-     */
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
@@ -498,21 +489,15 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         map.put("sessionExpirationOverride", Types.CHAR);
         map.put("sessionExpirationPeriods", Types.INTEGER);
         map.put("sessionExpirationPeriodType", Types.VARCHAR);
+        map.put("organization", Types.VARCHAR);
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
-     */
     @Override
     protected String getTableName() {
         return SchemaDefinition.USERS_TABLE;
     }
 
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-     */
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         return new HashMap<>();
