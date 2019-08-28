@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -88,7 +87,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     }
 
     /**
-     * Ensure that a User has read permission
+     * Ensure that a User has write permission
      * @throws PermissionException
      */
     public void ensureStoreWritePermission(User user) {
@@ -111,7 +110,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
         if (location == null || location.isEmpty()) {
             location = ROOT;
         }
-        return Paths.get(Common.MA_HOME).resolve(location).resolve(getStoreName()).toFile();
+        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName()).toFile();
     }
     /**
      * Get an array of files to move into the store when the store is created
