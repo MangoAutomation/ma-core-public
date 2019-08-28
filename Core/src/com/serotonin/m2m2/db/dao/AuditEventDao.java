@@ -179,4 +179,33 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
         return query(SELECT_ALL + " WHERE typeName=? AND objectId=? ORDER BY ts ASC", new Object[]{typeName, id}, getRowMapper());
     }
 
+    /**
+     * Purge all Audit Events
+     * @return
+     */
+    public int purgeAllEvents(){
+        return ejt.update("delete from audit");
+
+    }
+    
+    /**
+     * Purge Audit Events Before a given time
+     * @param time
+     * @param typeName
+     * @return
+     */
+    public int purgeEventsBefore(final long time) {
+        return ejt.update("delete from audit where ts<?", new Object[] {time});
+    }
+    
+    /**
+     * Purge Audit Events Before a given time with a given alarmLevel
+     * @param time
+     * @param typeName
+     * @return
+     */
+    public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {
+        return ejt.update("delete from audit where ts<? and alarmLevel=?", new Object[] {time, alarmLevel.value()});
+    }
+    
 }

@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
@@ -565,8 +566,8 @@ public class EventManagerImpl implements EventManager {
         }
 
         userEventCache.purgeAllEvents();
-
-        return eventDao.purgeAllEvents();
+        int auditEventCount = AuditEventDao.getInstance().purgeAllEvents();
+        return auditEventCount + eventDao.purgeAllEvents();
     }
 
     /**
@@ -602,8 +603,8 @@ public class EventManagerImpl implements EventManager {
         }
 
         userEventCache.purgeEventsBefore(time);
-
-        return eventDao.purgeEventsBefore(time);
+        int auditCount = AuditEventDao.getInstance().purgeEventsBefore(time);
+        return auditCount + eventDao.purgeEventsBefore(time);
     }
 
     /**
@@ -640,8 +641,12 @@ public class EventManagerImpl implements EventManager {
         }
 
         userEventCache.purgeEventsBefore(time, typeName);
-
-        return eventDao.purgeEventsBefore(time, typeName);
+        
+        if(EventType.EventTypeNames.AUDIT.equals(typeName)) {
+            return AuditEventDao.getInstance().purgeEventsBefore(time);
+        }else {
+            return eventDao.purgeEventsBefore(time, typeName);
+        }
     }
 
     /**
@@ -678,8 +683,9 @@ public class EventManagerImpl implements EventManager {
         }
 
         userEventCache.purgeEventsBefore(time, alarmLevel);
-
-        return eventDao.purgeEventsBefore(time, alarmLevel);
+        
+        int auditEventCount = AuditEventDao.getInstance().purgeEventsBefore(time, alarmLevel);
+        return auditEventCount + eventDao.purgeEventsBefore(time, alarmLevel);
     }
 
     //
