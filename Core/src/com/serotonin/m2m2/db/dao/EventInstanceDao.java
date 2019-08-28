@@ -14,11 +14,17 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.impl.DSL;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.JoinClause;
+import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -37,6 +43,8 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
+
+import net.jazdw.rql.parser.ASTNode;
 
 /**
  * @author Terry Packer
@@ -71,25 +79,16 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         return springInstance.get();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
-     */
     @Override
     protected String getTableName() {
         return SchemaDefinition.EVENTS_TABLE;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-     */
     @Override
     protected String getXidPrefix() {
         return null; //No XIDs
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
-     */
     @Override
     protected Object[] voToObjectArray(EventInstanceVO vo) {
         return new Object[]{
@@ -98,18 +97,11 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         };
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-     */
     @Override
     public EventInstanceVO getNewVo() {
         return new EventInstanceVO();
     }
 
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-     */
     @Override
     protected LinkedHashMap<String,Integer> getPropertyTypeMap(){
         LinkedHashMap<String,Integer> map = new LinkedHashMap<String,Integer>();
@@ -131,9 +123,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-     */
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
@@ -187,9 +176,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getJoins()
-     */
     @Override
     protected List<JoinClause> getJoins() {
         List<JoinClause> joins = new ArrayList<JoinClause>();
@@ -201,20 +187,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     @Override
     protected Map<String, Comparator<EventInstanceVO>> getComparatorMap() {
         HashMap<String,Comparator<EventInstanceVO>> comparatorMap = new HashMap<String,Comparator<EventInstanceVO>>();
-
-        //		comparatorMap.put("messageString", new Comparator<EventInstanceVO>(){
-        //			public int compare(EventInstanceVO lhs, EventInstanceVO rhs){
-        //				return lhs.getMessageString().compareTo(rhs.getMessageString());
-        //			}
-        //		});
-
-        //		comparatorMap.put("totalTimeString", new Comparator<EventInstanceVO>(){
-        //			public int compare(EventInstanceVO lhs, EventInstanceVO rhs){
-        //				return lhs.getTotalTime().compareTo(rhs.getTotalTime());
-        //			}
-        //		});
-
-
         return comparatorMap;
     }
 
@@ -394,10 +366,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         }
     }
 
-
-
-
-
     /**
      * @param userId
      * @param level
@@ -417,8 +385,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
                 + "where ue.silenced=? and ue.userId=?", new Object[] { boolToChar(false), userId },getRowMapper());
 
     }
-
-
 
     static EventType createEventType(ResultSet rs, int offset) throws SQLException {
         String typeName = rs.getString(offset);
@@ -455,7 +421,95 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @return
      */
     public int countUnsilencedEvents(int userId, AlarmLevels level) {
-        //return ejt.queryForInt("SELECT COUNT(*) FROM events AS evt left join userEvents ue on evt.id=ue.eventId where ue.silenced=? and evt.ackUserId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level }, 0);
         return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level.value() }, 0);
+    }
+    
+    @Override
+    public ConditionSortLimit rqlToCondition(ASTNode rql) {
+        RQLToEventInstanceConditions rqlToSelect = new RQLToEventInstanceConditions(this.propertyToField, this.valueConverterMap);
+        return rqlToSelect.visit(rql);
+    }
+    
+    @Override
+    protected Map<String, Function<Object, Object>> createValueConverterMap() {
+        Map<String, Function<Object, Object>> map = new HashMap<>(super.createValueConverterMap());
+        map.put("alarmLevel", value -> {
+            if (value instanceof String) {
+                return AlarmLevels.fromName((String)value).value();
+            }else if(value instanceof AlarmLevels) {
+                return ((AlarmLevels)value).value();
+            }
+            return value;
+        });
+        return map;
+    }
+
+    @Override
+    protected Map<String, Field<Object>> createPropertyToField() {
+        Map<String, Field<Object>> map = super.createPropertyToField();
+        map.put("eventType", map.get("typeName"));
+        map.put("referenceId1", map.get("typeRef1"));
+        map.put("referenceId2", map.get("typeRef1"));
+        map.put("activeTimestamp", map.get("activeTs"));
+        map.put("acknowledged", map.get("ackTs"));
+        map.put("active", map.get("rtnTs"));
+        return map;
+    }
+    
+    public static class RQLToEventInstanceConditions extends RQLToCondition {
+        
+        public RQLToEventInstanceConditions(Map<String, Field<Object>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
+            super(fieldMapping, valueConverterMap);
+        }
+        
+        @Override
+        protected Condition visitConditionNode(ASTNode node) {
+            String property = (String) node.getArgument(0);
+            switch(property) {
+                case "acknowledged":
+                    Field<Object> ackField = getField(property);
+                    Function<Object, Object> ackValueConverter = getValueConverter(ackField);
+                    Object ackFirstArg = ackValueConverter.apply(node.getArgument(1));
+                    switch (node.getName().toLowerCase()) {
+                        case "eq":
+                            if(ackFirstArg == null) {
+                                return ackField.isNull();
+                            }else {
+                                return (Boolean)ackFirstArg ? ackField.isNotNull() : ackField.isNull();
+                            }
+                        case "ne":
+                            if(ackFirstArg == null) {
+                                return ackField.isNotNull();
+                            }else {
+                                return (Boolean)ackFirstArg ? ackField.isNull() : ackField.isNotNull();
+                            }
+                        default:
+                            return super.visitConditionNode(node);
+                    }
+                case "active":
+                    Field<Object> activeField = getField(property);
+                    Function<Object, Object> activeValueConverter = getValueConverter(activeField);
+                    Object activeFirstArg = activeValueConverter.apply(node.getArgument(1));
+                    Condition rtnApplicable = getField("rtnApplicable").eq("Y");
+                    switch (node.getName().toLowerCase()) {
+                        case "eq":
+                            if(activeFirstArg == null) {
+                                return activeField.isNull();
+                            }else {
+                                return (Boolean)activeFirstArg ? activeField.isNull().and(rtnApplicable) : activeField.isNotNull().and(rtnApplicable);
+                            }
+                        case "ne":
+                            if(activeFirstArg == null) {
+                                return activeField.isNull().and(rtnApplicable);
+                            }else {
+                                return (Boolean)activeFirstArg ? activeField.isNotNull().and(rtnApplicable) : activeField.isNull().and(rtnApplicable);
+                            }
+                        default:
+                            return super.visitConditionNode(node);
+                    }
+                default:
+                    return super.visitConditionNode(node);
+            }
+        }
     }
 }
