@@ -9,6 +9,7 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -221,6 +222,13 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
+        
+        //Ensure id is not set
+        if(vo.getId() != Common.NEW_ID) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("id", "validate.invalidValue");
+            throw new ValidationException(result);
+        }
         
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -57,6 +58,13 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         //Ensure they can create
         ensureCreatePermission(user, vo);
 
+        //Ensure id is not set
+        if(vo.getId() != Common.NEW_ID) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("id", "validate.invalidValue");
+            throw new ValidationException(result);
+        }
+        
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
