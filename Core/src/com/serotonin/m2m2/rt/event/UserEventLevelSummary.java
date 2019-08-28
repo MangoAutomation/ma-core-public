@@ -58,5 +58,7 @@ public class UserEventLevelSummary {
     public void setLatest(EventInstance latest) {
         this.latest = latest;
     }
-
+    public void incrementUnsilencedCount() {
+        this.unsilencedCount++;
+    }
 }
