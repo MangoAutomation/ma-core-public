@@ -659,13 +659,21 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
         if (StringValidation.isLengthGreaterThan(name, 255))
             response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
+        
+        if(receiveAlarmEmails == null) {
+            response.addMessage("receiveAlarmEmails", new TranslatableMessage("validate.required"));
+        }
+        
         if(locale == null) {
             response.addMessage("locale", new TranslatableMessage("validate.required"));
-        }else if (StringValidation.isLengthGreaterThan(locale, 50))
+        }else if (StringValidation.isLengthGreaterThan(locale, 50)) {
             response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
-        if (StringValidation.isLengthGreaterThan(timezone, 50))
+        }
+        
+        if (StringValidation.isLengthGreaterThan(timezone, 50)) {
             response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
-
+        }
+        
         //Validate Permissions (Can't be blank)
         if (!StringUtils.isEmpty(this.permissions)) {
             for (String s : this.permissions.split(",")) {

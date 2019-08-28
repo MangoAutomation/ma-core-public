@@ -105,6 +105,7 @@ import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.BackupFailureEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.DisabledUserCreatedEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.EmailSendFailureEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.FailedUserLoginEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.LicenseCheckEventTypeDefinition;
@@ -1186,6 +1187,7 @@ public class ModuleRegistry {
         preDefaults.add(new SystemStartupEventTypeDefinition());
         preDefaults.add(new UpgradeCheckEventTypeDefinition());
         preDefaults.add(new UserLoginEventTypeDefinition());
+        preDefaults.add(new DisabledUserCreatedEventTypeDefinition());
 
     }
 

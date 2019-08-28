@@ -1102,18 +1102,6 @@ public class SystemSettingsDao extends BaseDao {
         }
 
         //Validate system alarm levels
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_STARTUP, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SYSTEM_SHUTDOWN, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MAX_ALARM_LEVEL_CHANGED, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_USER_LOGIN, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_EMAIL_SEND_FAILURE, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_PROCESS_FAILURE, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_LICENSE_CHECK, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_BACKUP_FAILURE, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_UPGRADE_CHECK, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_REJECTED_WORK_ITEM, settings, response);
-        validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + SystemEventType.TYPE_MISSING_MODULE_DEPENDENCY, settings, response);
         for (SystemEventTypeDefinition def : ModuleRegistry.getDefinitions(SystemEventTypeDefinition.class))
             validateAlarmLevel(SystemEventType.SYSTEM_SETTINGS_PREFIX + def.getTypeName(), settings, response);
 

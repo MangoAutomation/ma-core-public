@@ -1,7 +1,8 @@
 *Version 3.7.0*
 * Add organization field to User limit of 80 chars
-* Add permission to allow user to create other disabled users via REST api
-* Add permission to allow user to send email to a mailing list via REST api
+* Add permission to allow user to create other disabled users
+* Add event for when a disabled user is created
+* Add permission to allow user to send email to a mailing list
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources

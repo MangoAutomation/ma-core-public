@@ -41,6 +41,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
@@ -201,6 +202,16 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
 
         user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
+        //Raise an event if a disabled user was created
+        if(user.isDisabled()) {
+            User savingUser = Common.getHttpUser();
+            if(savingUser == null) {
+                savingUser = Common.getBackgroundContextUser();
+            }
+            SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_DISABLED_USER_CREATED, savingUser == null ? Common.NEW_ID : savingUser.getId());
+            TranslatableMessage message = new TranslatableMessage("event.disabledUserCreated", savingUser == null ? "unknown" : savingUser.getUsername(), user.getUsername());
+            SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
+        }
         this.countMonitor.increment();
 
         this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.CREATE, user, null, null));
