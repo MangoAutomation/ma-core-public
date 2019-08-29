@@ -27,6 +27,14 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
+ * Service to access Users
+ * 
+ * NOTES:
+ *  Users are cached by username
+ * 
+ *  by using any variation of the get(String, user) methods you are returned 
+ *   a cached user, any modifications to this will result in changes to a session user
+ *   to avoid this use the get(Integer, user) variations 
  *
  * @author Terry Packer
  *
@@ -177,15 +185,17 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         //Things we cannot do to ourselves
         if (user instanceof User && ((User) user).getId() == existing.getId()) {
 
-            //Cannot remove admin permission
-            if(existing.hasAdminPermission())
-                if(!vo.hasAdminPermission())
-                    result.addContextualMessage("permissions", "users.validate.adminInvalid");
-
             //Cannot disable
-            if(vo.isDisabled())
+            if(vo.isDisabled()) {
                 result.addContextualMessage("permissions", "users.validate.adminDisable");
-
+            }else {
+                //If we are disabled this check will throw an exception, we are invalid anyway so 
+                // don't check
+                //Cannot remove admin permission
+                if(existing.hasAdminPermission())
+                    if(!vo.hasAdminPermission())
+                        result.addContextualMessage("permissions", "users.validate.adminInvalid");
+            }
         }
 
         //Things we cannot do as non-admin

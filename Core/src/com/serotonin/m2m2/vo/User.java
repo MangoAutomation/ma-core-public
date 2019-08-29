@@ -605,8 +605,13 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         if(savingUser == null)
             savingUser = Common.getBackgroundContextUser();
         
-        //Leverage the cache to get the user to compare passwords
-        User existing = UserDao.getInstance().getUser(username);
+        //get the existing user if there is one (don't use username as it can change)
+        User existing;
+        if(id != Common.NEW_ID) {
+            existing = UserDao.getInstance().get(id);
+        }else {
+            existing = null;
+        }
         
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
