@@ -265,7 +265,7 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @Override
     @DwrPermission(user = true)
     public ProcessResult getCopy(int id) {
-        ProcessResult result = super.getCopy(id);
+        ProcessResult result = new ProcessResult();
 
         //Store the edit point
         DataPointVO editPoint = (DataPointVO) result.getData().get("vo");
