@@ -1,3 +1,6 @@
+*Version 3.6.5*
+* Fix data point copy button in old UI
+
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
 * Upgrade bouncy Castle Encryption libraries to 1.62 for latest security enhancements
