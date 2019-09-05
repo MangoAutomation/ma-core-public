@@ -227,7 +227,8 @@ public class MangoJavaScriptService {
                     script.execute(time, time, vo.getResultDataTypeId());
                     //Convert the UNCHANGED value
                     Object o = script.getResult().getResult();
-                    if(o != null && o instanceof PointValueTime && ((PointValueTime)o).getValue().equals(UNCHANGED)) {
+                    if(o == UNCHANGED) {
+                        //TODO fix this display hack:
                         String unchanged;
                         if(user instanceof User) {
                             unchanged = new TranslatableMessage("eventHandlers.script.successUnchanged").translate(((User)user).getTranslations());
@@ -663,6 +664,8 @@ public class MangoJavaScriptService {
         
         if(input instanceof DataValue)
             return (DataValue)input;
+        else if(input instanceof PointValueTime)
+            return ((PointValueTime)input).getValue();
         
         if (input == null) {
             if (toDataTypeId == DataTypes.BINARY)
