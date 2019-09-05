@@ -4,6 +4,8 @@
 * Add event for when a disabled user is created
 * Add permission to allow user to send email to a mailing list
 * Fix bug where audit events were not being purged
+* Fix validation bug for binary scripts returning false
+* Treat PointValueTime like DataValue in script return value coercion
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
