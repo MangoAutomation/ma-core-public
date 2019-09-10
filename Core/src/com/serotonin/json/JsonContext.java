@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.json.convert.ArrayConverter;
 import com.serotonin.json.convert.BigDecimalConverter;
 import com.serotonin.json.convert.BigIntegerConverter;
@@ -28,6 +29,7 @@ import com.serotonin.json.convert.DoubleConverter;
 import com.serotonin.json.convert.EnumConverter;
 import com.serotonin.json.convert.FloatConverter;
 import com.serotonin.json.convert.IntegerConverter;
+import com.serotonin.json.convert.JacksonJsonNodeConverter;
 import com.serotonin.json.convert.JsonArrayConverter;
 import com.serotonin.json.convert.JsonBooleanConverter;
 import com.serotonin.json.convert.JsonNumberConverter;
@@ -136,6 +138,7 @@ public class JsonContext {
 
         // Other converters
         addConverter(new UUIDConverter(), UUID.class);
+        addConverter(new JacksonJsonNodeConverter(), JsonNode.class);
 
         // Object factories
         addFactory(new ListFactory(), List.class);

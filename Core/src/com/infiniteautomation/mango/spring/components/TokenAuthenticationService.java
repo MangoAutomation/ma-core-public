@@ -7,15 +7,19 @@ import java.security.KeyPair;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.AuthTokensRevokedEvent;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -35,12 +39,18 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
 
     private static final int DEFAULT_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
-    private final UserDao userDao;
+    private final PermissionHolder systemSuperadmin;
+    private final UsersService usersService;
     private final ApplicationContext context;
 
     @Autowired
-    public TokenAuthenticationService(UserDao userDao, ApplicationContext context) {
-        this.userDao = userDao;
+    public TokenAuthenticationService(
+            @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
+            PermissionHolder systemSuperadmin, 
+            UsersService usersService, 
+            ApplicationContext context) {
+        this.systemSuperadmin = systemSuperadmin;
+        this.usersService = usersService;
         this.context = context;
     }
 
@@ -100,11 +110,7 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
             throw new NotFoundException();
         }
 
-        User user = this.userDao.getUser(username);
-        if (user == null) {
-            throw new NotFoundException();
-        }
-
+        User user = this.usersService.get(username, this.systemSuperadmin);
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
 

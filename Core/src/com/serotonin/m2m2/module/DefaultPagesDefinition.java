@@ -132,6 +132,16 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         }
         return uri;
     }
+    
+    public static String getEmailVerificationUri() {
+        String uri = null;
+        for (DefaultPagesDefinition def : ModuleRegistry.getDefinitions(DefaultPagesDefinition.class)) {
+            uri = def.getEmailVerificationPageUri();
+            if (!StringUtils.isBlank(uri))
+                break;
+        }
+        return uri;
+    }
 
     private static String getFirstLoginUri(HttpServletRequest request, HttpServletResponse response) {
         String uri = null;
@@ -231,6 +241,16 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * @return the URI of the login page to use, or null.
      */
     public String getPasswordResetPageUri() {
+        return null;
+    }
+    
+    /**
+     * Returns the URI of the email verification page to use. The default value is "/ui/verify-email". If this method returns null, the
+     * next definition (if available) will be used.
+     * 
+     * @return the URI of the login page to use, or null.
+     */
+    public String getEmailVerificationPageUri() {
         return null;
     }
 

@@ -53,9 +53,14 @@ create table users (
   sessionExpirationPeriods int,
   sessionExpirationPeriodType varchar(25),
   organization varchar(80),
+  organizationalRole varchar(80),
+  createdTs bigint NOT NULL,
+  emailVerifiedTs bigint,
+  data JSON,
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);
+ALTER TABLE users ADD CONSTRAINT email_unique UNIQUE(email);
 
 create table userComments (
   id int not null auto_increment,
