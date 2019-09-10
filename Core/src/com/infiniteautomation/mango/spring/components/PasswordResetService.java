@@ -16,20 +16,22 @@ import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
-import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
@@ -53,12 +55,19 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public static final String USER_ID_CLAIM = "id";
     public static final String USER_PASSWORD_VERSION_CLAIM = "v";
 
-    private final UserDao userDao;
-
+    private final PermissionHolder systemSuperadmin;
+    private final UsersService usersService;
+    
     @Autowired
-    public PasswordResetService(UserDao userDao) {
-        this.userDao = userDao;
+    public PasswordResetService(
+            @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
+            PermissionHolder systemSuperadmin, 
+            UsersService usersService) {
+        this.systemSuperadmin = systemSuperadmin;
+        this.usersService = usersService;
     }
+
+
 
     @Override
     protected String tokenType() {
@@ -70,10 +79,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        User user = this.userDao.getUser(username);
-        if (user == null) {
-            throw new NotFoundException();
-        }
+        User user = this.usersService.get(username, this.systemSuperadmin);
 
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
@@ -111,7 +117,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
 
     public String generateToken(User user, Date expirationDate) {
         if (expirationDate == null) {
-            int expiryDuration = SystemSettingsDao.instance.getIntValue(EXPIRY_SYSTEM_SETTING, DEFAULT_EXPIRY_DURATION);
+            int expiryDuration = SystemSettingsDao.instance.getIntValue(EXPIRY_SYSTEM_SETTING);
             expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000);
         }
 
@@ -152,12 +158,12 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     }
 
     public User resetPassword(String token, String newPassword) {
-        User user = this.verify(token).copy();
+        User existing = this.verify(token);
         // we copy the user so that when we set the new password it doesn't modify the cached instance
-        user.setPlainTextPassword(newPassword);
-        user.ensureValid();
-        this.userDao.saveUser(user);
-        return user;
+        User updated = existing.copy();
+        updated.setPlainTextPassword(newPassword);
+        this.usersService.update(existing, updated, this.systemSuperadmin);
+        return updated;
     }
 
     public void sendEmail(User user) throws TemplateException, IOException, AddressException {

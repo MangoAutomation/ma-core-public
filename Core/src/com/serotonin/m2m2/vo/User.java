@@ -30,6 +30,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Joiner;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
@@ -113,7 +114,13 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private String sessionExpirationPeriodType;
     @JsonProperty
     private String organization;
-
+    @JsonProperty
+    private String organizationalRole;
+    private long createdTs;
+    private long emailVerifiedTs;
+    @JsonProperty
+    private JsonNode data;
+    
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
@@ -525,6 +532,38 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.organization = organization;
     }
     
+    public String getOrganizationalRole() {
+        return organizationalRole;
+    }
+
+    public void setOrganizationalRole(String organizationalRole) {
+        this.organizationalRole = organizationalRole;
+    }
+
+    public long getCreatedTs() {
+        return createdTs;
+    }
+
+    public void setCreatedTs(long createdTs) {
+        this.createdTs = createdTs;
+    }
+
+    public long getEmailVerifiedTs() {
+        return emailVerifiedTs;
+    }
+
+    public void setEmailVerifiedTs(long emailVerifiedTs) {
+        this.emailVerifiedTs = emailVerifiedTs;
+    }
+
+    public JsonNode getData() {
+        return data;
+    }
+
+    public void setData(JsonNode data) {
+        this.data = data;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities.get(() -> {
@@ -620,6 +659,8 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
 
         if (StringUtils.isBlank(email))
             response.addMessage("email", new TranslatableMessage("validate.required"));
+        else if(!UserDao.getInstance().isEmailUnique(email, id))
+            response.addMessage("username", new TranslatableMessage("users.validate.emailUnique"));
 
         if (StringUtils.isBlank(password)) {
             response.addMessage("password", new TranslatableMessage("validate.required"));
@@ -718,6 +759,12 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         if(StringUtils.isNotEmpty(organization)) {
             if (StringValidation.isLengthGreaterThan(organization, 80)) {
                 response.addMessage("organization", new TranslatableMessage("validate.notLongerThan", 80));
+            }
+        }
+        
+        if(StringUtils.isNotEmpty(organizationalRole)) {
+            if (StringValidation.isLengthGreaterThan(organizationalRole, 80)) {
+                response.addMessage("organizationalRole", new TranslatableMessage("validate.notLongerThan", 80));
             }
         }
     }

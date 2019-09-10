@@ -260,6 +260,8 @@ public class MangoSecurityConfiguration {
 
     @Value("${web.port:8080}") int webPort;
     @Value("${ssl.port:8443}") int sslPort;
+    
+    @Value("${web.security.publicRegistrationEnabled:false}") boolean publicRegistrationEnabled;
 
     final static String[] SRC_TYPES = new String[] {"default", "script", "style", "connect", "img", "font", "media", "object", "frame", "worker", "manifest"};
 
@@ -365,6 +367,10 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
             .antMatchers("/rest/*/ui-bootstrap/**").permitAll(); // UI bootstrap has a public method
+
+            if(publicRegistrationEnabled) {
+                authRequests.antMatchers("/rest/*/users/registration/public/**").permitAll(); //For public user registration (see env property: web.security.publicRegistrationEnabled)
+            }
             
             if (swaggerApiDocsProtected) {
                 authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
@@ -470,6 +476,10 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
             .antMatchers("/rest/*/ui-bootstrap/**").permitAll(); // UI bootstrap has a public method
+
+            if(publicRegistrationEnabled) {
+                authRequests.antMatchers("/rest/*/users/registration/public/**").permitAll(); //For public user registration (see env property: web.security.publicRegistrationEnabled)
+            }
             
             if (swaggerApiDocsProtected) {
                 authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs

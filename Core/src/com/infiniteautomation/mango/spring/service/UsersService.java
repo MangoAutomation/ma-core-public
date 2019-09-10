@@ -18,7 +18,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.definitions.permissions.RegisterDisabledUserPermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionDetails;
@@ -60,6 +59,21 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         return vo;
     }
 
+    /**
+     * 
+     * Get a user by their email address
+     * 
+     * @param emailAddress
+     * @return
+     */
+    public User getUserByEmail(String emailAddress, PermissionHolder holder) throws NotFoundException, PermissionException {
+        User vo =  dao.getUserByEmail(emailAddress);
+        if(vo == null)
+            throw new NotFoundException();
+        ensureReadPermission(holder, vo);
+        return vo;
+    }
+    
     @Override
     protected User insert(User vo, PermissionHolder user, boolean full)
             throws PermissionException, ValidationException {
@@ -221,8 +235,6 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     public boolean hasCreatePermission(PermissionHolder user, User vo) {
         if(user.hasAdminPermission()) {
             return true;
-        }else if(vo.isDisabled() && Permissions.hasGrantedPermission(user, RegisterDisabledUserPermission.PERMISSION)) {
-            return true;
         }else {
             return false;
         }
@@ -247,4 +259,5 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         else
             return false;
     }
+
 }

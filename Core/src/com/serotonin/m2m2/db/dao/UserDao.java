@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -28,6 +29,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -86,10 +89,29 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         return springInstance.get();
     }
 
+    /**
+     * Confirm that this username is not used
+     * @param username
+     * @param excludeId
+     * @return
+     */
     public boolean isUsernameUnique(String username, int excludeId) {
         if(username == null)
             return false;
         return ejt.queryForInt("select count(*) from " + tableName + " where username=? and id<>?", new Object[] { username,
+                excludeId }, 0) == 0;
+    }
+    
+    /**
+     * Confirm that this email address is not used
+     * @param email
+     * @param excludeId
+     * @return
+     */
+    public boolean isEmailUnique(String email, int excludeId) {
+        if(email == null)
+            return false;
+        return ejt.queryForInt("select count(*) from " + tableName + " where email=? and id<>?", new Object[] { email,
                 excludeId }, 0) == 0;
     }
     
@@ -114,6 +136,17 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             return queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
                     new UserRowMapper(), null);
         });
+    }
+    
+    /**
+     * Get a user by their email address
+     * @param emailAddress
+     * @return
+     */
+    public User getUserByEmail(String emailAddress) {
+        if (emailAddress == null) return null;
+        return queryForObject(SELECT_ALL + " WHERE email=?", new Object[] { emailAddress },
+                new UserRowMapper(), null);
     }
 
     public boolean userExists(int id) {
@@ -148,6 +181,19 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             user.setSessionExpirationPeriods(rs.getInt(++i));
             user.setSessionExpirationPeriodType(rs.getString(++i));
             user.setOrganization(rs.getString(++i));
+            user.setOrganizationalRole(rs.getString(++i));
+            user.setCreatedTs(rs.getLong(++i));
+            user.setEmailVerifiedTs(rs.getLong(++i));
+            Clob c = rs.getClob(++i);
+            try {
+                if(c != null) {
+                    user.setData(getObjectReader(JsonNode.class).readValue(c.getCharacterStream()));
+                }else {
+                    user.setData(null);
+                }
+            }catch(Exception e) {
+                throw new SQLException(e);
+            }
             return user;
         }
     }
@@ -175,15 +221,16 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
             + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, " //
             + "name, locale, tokenVersion, passwordVersion, passwordChangeTimestamp, " //
-            + "sessionExpirationOverride, sessionExpirationPeriods, sessionExpirationPeriodType, organization) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "sessionExpirationOverride, sessionExpirationPeriods, sessionExpirationPeriodType, "
+            + "organization, organizationalRole, createdTs, emailVerifiedTs, data) " //
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     void insertUser(User user) {
+
         int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 user.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
-
                 return ejt.doInsert(
                         USER_INSERT,
                         new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
@@ -191,11 +238,15 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                 user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                                 boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
                                 user.getPasswordVersion(), user.getPasswordChangeTimestamp(), boolToChar(user.isSessionExpirationOverride()), 
-                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(), user.getOrganization()},
-                        new int[] { Types.VARCHAR, Types.VARCHAR,
+                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(), 
+                                user.getOrganization(), user.getOrganizationalRole(), Common.timer.currentTimeMillis(), user.getEmailVerifiedTs(), convertData(user.getData())},
+                        new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, 
+                                Types.VARCHAR, Types.VARCHAR, 
+                                Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.BIGINT, Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR}
+                                Types.INTEGER, Types.BIGINT, Types.CHAR,
+                                Types.INTEGER, Types.VARCHAR, 
+                                Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB}
                         );
             }
         });
@@ -220,7 +271,8 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     private static final String USER_UPDATE = "UPDATE users SET " //
             + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
             + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=?, passwordVersion=?, passwordChangeTimestamp=?," //
-            + " sessionExpirationOverride=?, sessionExpirationPeriods=?, sessionExpirationPeriodType=?, organization=?"
+            + " sessionExpirationOverride=?, sessionExpirationPeriods=?, sessionExpirationPeriodType=?,"
+            + " organization=?, organizationalRole=?, createdTs=?, emailVerifiedTs=?, data=?"
             + " WHERE id=?";
 
     void updateUser(User user) {
@@ -255,7 +307,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                         user.setPasswordChangeTimestamp(old.getPasswordChangeTimestamp());
                         user.setPasswordVersion(old.getPasswordVersion());
                     }
-
                     ejt.update(
                             USER_UPDATE,
                             new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
@@ -264,12 +315,12 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                     user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
                                     user.getPasswordVersion(), user.getPasswordChangeTimestamp(), 
                                     boolToChar(user.isSessionExpirationOverride()), user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
-                                    user.getOrganization(), 
+                                    user.getOrganization(), user.getOrganizationalRole(), user.getCreatedTs(), user.getEmailVerifiedTs(), convertData(user.getData()),
                                     user.getId() },
                             new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                     Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                     Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT,
-                                    Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER}
+                                    Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB, Types.INTEGER}
                             );
 
                     return old;
@@ -422,7 +473,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -467,7 +518,11 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 vo.isSessionExpirationOverride(),
                 vo.getSessionExpirationPeriods(),
                 vo.getSessionExpirationPeriodType(),
-                vo.getOrganization()
+                vo.getOrganization(),
+                vo.getOrganizationalRole(),
+                vo.getCreatedTs(),
+                vo.getEmailVerifiedTs(),
+                convertData(vo.getData())
         };
     }
 
@@ -501,6 +556,10 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         map.put("sessionExpirationPeriods", Types.INTEGER);
         map.put("sessionExpirationPeriodType", Types.VARCHAR);
         map.put("organization", Types.VARCHAR);
+        map.put("organizationalRole", Types.VARCHAR);
+        map.put("createdTs", Types.BIGINT);
+        map.put("emailVerifiedTs", Types.BIGINT);
+        map.put("data", Types.CLOB);
         return map;
     }
 
@@ -546,5 +605,18 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             keys.add(def.getKey());
         }
         return keys;
+    }
+
+    private String convertData(JsonNode data) {
+        try {
+            if(data == null) {
+                return null;
+            }else {
+                return getObjectWriter(JsonNode.class).writeValueAsString(data);
+            }
+        }catch(JsonProcessingException e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
     }
 }

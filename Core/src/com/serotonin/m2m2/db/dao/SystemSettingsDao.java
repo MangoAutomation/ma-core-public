@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.components.EmailAddressVerificationService;
+import com.infiniteautomation.mango.spring.components.PasswordResetService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
@@ -707,6 +709,10 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(LICENSE_AGREEMENT_VERSION, 0);
 
         DEFAULT_VALUES.put(RESTART_DELAY, 10);
+        
+        //Timeouts for tokens
+        DEFAULT_VALUES.put(EmailAddressVerificationService.EXPIRY_SYSTEM_SETTING, EmailAddressVerificationService.DEFAULT_EXPIRY_DURATION);
+        DEFAULT_VALUES.put(PasswordResetService.EXPIRY_SYSTEM_SETTING, PasswordResetService.DEFAULT_EXPIRY_DURATION);
 
         // Add module audit event type defaults
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class)) {
