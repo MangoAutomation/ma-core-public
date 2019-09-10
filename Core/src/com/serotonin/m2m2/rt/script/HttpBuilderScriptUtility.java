@@ -122,9 +122,9 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
         reset();
         try {
             if(request.containsKey("excp"))
-                exceptionCallback = (ScriptExceptionCallback)request.get("excp");
+                exceptionCallback = new ScriptObjectMirrorExceptionCallbackWrapper((JSObject)request.get("excp"));
             else if(request.containsKey("exceptionCallback"))
-                exceptionCallback = (ScriptExceptionCallback)request.get("exceptionCallback");
+                exceptionCallback = new ScriptObjectMirrorExceptionCallbackWrapper((JSObject)request.get("exceptionCallback"));
 
             if(request.containsKey("err"))
                 errorCallback = new ScriptObjectMirrorCallbackWrapper((JSObject)request.get("err"));
@@ -420,5 +420,19 @@ public class HttpBuilderScriptUtility extends ScriptUtility {
             return jso.call(HttpBuilderScriptUtility.this, status, headers, content);
         }
 
+    }
+    
+    private class ScriptObjectMirrorExceptionCallbackWrapper implements ScriptExceptionCallback {
+        
+        private final JSObject jso;
+        
+        ScriptObjectMirrorExceptionCallbackWrapper(JSObject jso) {
+            this.jso = jso;
+        }
+        
+        @Override
+        public Object exception(Exception e) {
+            return jso.call(HttpBuilderScriptUtility.this, e);
+        }
     }
 }
