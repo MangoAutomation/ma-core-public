@@ -334,7 +334,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
             } finally {
                 Runnable nextTask = null;
                 LimitedTaskQueue queue = this.dependencyQueue;
-                if(queue.isEmpty())
+                if(queue.isEmpty()) {
                     queue = keyedTasks.compute(wrapper.task.id, (k, depQueue) -> {
                         depQueue.lock();
                         if(depQueue.isEmpty())
@@ -342,9 +342,15 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                         return depQueue;
                     });
                 
-                if(queue != null) { //must not be empty
-                    nextTask = queue.poll();
+                    if(queue != null) { //must not be empty
+                        nextTask = queue.poll();
+                        queue.unlock();
+                    }
+                } else {
+                    queue.lock(); //Does this lock really need to be acquired?
+                    nextTask = queue.poll(); //Reason being this should be the only thread polling from it and we know it isn't empty.
                     queue.unlock();
+                    
                 }
                 
                 // Update our task info
