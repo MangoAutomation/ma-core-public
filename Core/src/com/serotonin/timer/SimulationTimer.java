@@ -179,9 +179,6 @@ public class SimulationTimer extends AbstractTimer {
         return timeSource.currentTimeMillis();
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.timer.AbstractTimer#execute(com.serotonin.timer.OrderedRunnable, long)
-	 */
 	@Override
 	public void execute(Task command) {
 	    if(async) {
@@ -200,41 +197,26 @@ public class SimulationTimer extends AbstractTimer {
 	    }
 	}
 
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.AbstractTimer#init()
-     */
     @Override
     public void init() {
         this.executorService = new OrderedThreadPoolExecutor(0, 1000, 30L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>(), false, timeSource);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.AbstractTimer#init(java.util.concurrent.ExecutorService)
-     */
     @Override
     public void init(ExecutorService executorService) {
         this.executorService = (OrderedThreadPoolExecutor)executorService;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.AbstractTimer#init(com.serotonin.timer.TimerThread)
-     */
     @Override
     public void init(TimerThread timer) {
         
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.AbstractTimer#getExecutorService()
-     */
     @Override
     public ExecutorService getExecutorService() {
         return executorService;
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.AbstractTimer#getTimeSource()
-     */
+
     @Override
     public TimeSource getTimeSource() {
         return timeSource;

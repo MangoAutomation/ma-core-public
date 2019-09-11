@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
-import com.serotonin.timer.OrderedThreadPoolExecutor.LimitedTaskQueue;
+import com.serotonin.timer.OrderedThreadPoolExecutor.OrderedTaskQueue;
 
 /**
  *
@@ -97,7 +97,7 @@ public class OrderedThreadPoolExecutorTest {
         }
 
         //Did we run all the tasks?
-        LimitedTaskQueue queue = exe.getTaskQueue(taskId);
+        OrderedTaskQueue queue = exe.getTaskQueue(taskId);
         if(queue != null)
             fail("non empty queue");
         
@@ -182,7 +182,7 @@ public class OrderedThreadPoolExecutorTest {
         }
 
         //Did we run all the tasks?
-        LimitedTaskQueue queue = exe.getTaskQueue(taskId);
+        OrderedTaskQueue queue = exe.getTaskQueue(taskId);
         if(queue != null)
             fail("non empty queue");
         
@@ -269,12 +269,12 @@ public class OrderedThreadPoolExecutorTest {
         }
 
         //Did we run all the tasks?
-        LimitedTaskQueue queue = exe.getTaskQueue(taskId);
+        OrderedTaskQueue queue = exe.getTaskQueue(taskId);
         if(queue != null)
             fail("non empty queue");
         
         //Check for a pool rejection
-        Assert.assertEquals(poolRejection.get(), true);
+        Assert.assertEquals(true, poolRejection.get());
         
         //Check again to make sure they actually ran 
         Assert.assertEquals(poolSize, processed.size());
