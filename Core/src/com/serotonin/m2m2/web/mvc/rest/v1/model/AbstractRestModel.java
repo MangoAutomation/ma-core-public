@@ -6,13 +6,10 @@ package com.serotonin.m2m2.web.mvc.rest.v1.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.swagger.annotations.ApiModel;
-
 /**
  * @author Terry Packer
  *
  */
-@ApiModel(value="AbstractRestModel", description="Base Data Model")
 public abstract class AbstractRestModel<T> {
 	
 	@JsonIgnore
