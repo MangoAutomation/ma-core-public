@@ -18,6 +18,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
 * This Executor warrants task ordering for tasks with same id.
@@ -186,9 +187,8 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
         }
 
         AtomicBoolean first = new AtomicBoolean(true);
-        OrderedTaskCollection wrappedTask;
-
-        OrderedTaskQueue depQueue = keyedTasks.compute(worker.task.id, (key, dependencyQueue) -> {
+        AtomicReference<OrderedTaskCollection> wrappedTask = new AtomicReference<>();
+        keyedTasks.compute(worker.task.id, (key, dependencyQueue) -> {
             first.set(dependencyQueue == null);
             if (dependencyQueue == null) {
                 OrderedTaskInfo info = new OrderedTaskInfo(worker.task);
@@ -200,18 +200,23 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                     dependencyQueue = new LimitedTaskQueue(info);
                 }
             }
+            wrappedTask.set(wrap(worker, dependencyQueue));
+            
+            // Either add or reject
+            if (!first.get()) {
+                dependencyQueue.add(wrappedTask.get(), this);
+            }
+            
             return dependencyQueue;
         });
 
-        wrappedTask = wrap(worker, depQueue);
         // Either add or reject
         if (!first.get()) {
-            depQueue.add(wrappedTask, this);
             return;
         }
 
         // execute and reject methods can block, call them outside synchronize block
-        execute(wrappedTask);
+        execute(wrappedTask.get());
     }
 
 	/** 
@@ -320,13 +325,9 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                 
                     if(queue != null) { //must not be empty
                         nextTask = queue.poll();
-                        //queue.unlock();
                     }
                 } else {
-                    //queue.lock(); //Does this lock really need to be acquired?
-                    nextTask = queue.poll(); //Reason being this should be the only thread polling from it and we know it isn't empty.
-                    //queue.unlock();
-                    
+                    nextTask = queue.poll();
                 }
                 
                 // Update our task info
