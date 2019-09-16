@@ -43,36 +43,36 @@ import io.jsonwebtoken.JwtBuilder;
 
 /**
  * Service to verify email addresses belong to a user
- * 
+ *
  * @author Terry Packer
  *
  */
 @Service
 public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
 
-    public static final String PUBLIC_KEY_SYSTEM_SETTING = "jwt.emailAddressConfirmation.publicKey";
-    public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.emailAddressConfirmation.privateKey";
-    public static final String EXPIRY_SYSTEM_SETTING = "jwt.emailAddressConfirmation.expiry";
+    public static final String PUBLIC_KEY_SYSTEM_SETTING = "jwt.emailAddressVerification.publicKey";
+    public static final String PRIVATE_KEY_SYSTEM_SETTING = "jwt.emailAddressVerification.privateKey";
+    public static final String EXPIRY_SYSTEM_SETTING = "jwt.emailAddressVerification.expiry";
 
-    public static final String EMAIL_CONFIRMATION_PAGE_TOKEN_PARAMETER = "confirmToken";
+    public static final String EMAIL_VERIFICATION_PAGE_TOKEN_PARAMETER = "emailAddressVerificationToken";
 
     public static final int DEFAULT_EXPIRY_DURATION = 15 * 60; // 15 minutes
 
-    public static final String TOKEN_TYPE_VALUE = "emailaddressconfirmation";
+    public static final String TOKEN_TYPE_VALUE = "emailverify";
     public static final String USER_ID_CLAIM = "id";
 
     private final PermissionHolder systemSuperadmin;
     private final UsersService usersService;
-    
+
     @Autowired
     public EmailAddressVerificationService(
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-            PermissionHolder systemSuperadmin, 
+            PermissionHolder systemSuperadmin,
             UsersService usersService) {
         this.systemSuperadmin = systemSuperadmin;
         this.usersService = usersService;
     }
-    
+
     @Override
     protected String tokenType() {
         return TOKEN_TYPE_VALUE;
@@ -87,10 +87,11 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
         //This could be for a new uncreated user or an existing one, let's check
         try {
             user = this.usersService.getUserByEmail(emailAddress, this.systemSuperadmin);
-            Integer userId = user.getId();
-            this.verifyClaim(token, USER_ID_CLAIM, userId);
-        }catch(NotFoundException e) { }
-        
+            this.verifyClaim(token, USER_ID_CLAIM, user.getId());
+        } catch(NotFoundException e) {
+            this.verifyNoClaim(token, USER_ID_CLAIM);
+        }
+
         return user;
     }
 
@@ -110,16 +111,16 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
         }
         return null;
     }
-    
+
     /**
      * Reset the keys, invalidating existing tokens
      */
     public void resetKeys() {
         this.generateNewKeyPair();
     }
-    
+
     /**
-     * Verify 
+     * Verify
      * @param userToVerify
      * @param expirationDate
      * @throws TemplateException
@@ -130,7 +131,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
         String token = this.generateToken(userToVerify.getEmail(), userToVerify, expirationDate);
         sendEmail(userToVerify.getEmail(), token, expirationDate, userToVerify.getTranslations());
     }
-    
+
     /**
      * Send an email with an email verification token to verify email addresses
      *  this will fail if the email address is already used
@@ -141,7 +142,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
      * @throws AddressException
      */
     public void sendEmail(String emailAddress, Date expirationDate) throws TemplateException, IOException, AddressException {
-        
+
         try {
             //See if the user exists
             User existingUser = this.usersService.getUserByEmail(emailAddress, this.systemSuperadmin);
@@ -156,7 +157,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
             sendEmail(emailAddress, token, expirationDate, Common.getTranslations());
         }
     }
-    
+
     protected void sendEmail(String emailAddress, String token, Date expirationDate, Translations translations) throws TemplateException, IOException, AddressException {
         URI uri = null;
         try {
@@ -178,7 +179,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
 
         EmailWorkItem.queueEmail(emailAddress, content);
     }
-    
+
     /**
      * Generate an email verification token with optional expiry
      * @param emailAddress
@@ -227,9 +228,9 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
 
         String verificationPage = DefaultPagesDefinition.getEmailVerificationUri();
 
-        return builder.path(verificationPage).queryParam(EMAIL_CONFIRMATION_PAGE_TOKEN_PARAMETER, token).build().toUri();
+        return builder.path(verificationPage).queryParam(EMAIL_VERIFICATION_PAGE_TOKEN_PARAMETER, token).build().toUri();
     }
-    
+
     /**
      * Verify an existing user's email
      * @param tokenString
@@ -246,7 +247,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
         this.usersService.update(existing, updated, existing);
         return updated;
     }
-    
+
     /**
      * Verify an email address to create a new disabled user, this token
      *  can only be for a new non-existing user
