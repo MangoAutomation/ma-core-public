@@ -709,7 +709,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(LICENSE_AGREEMENT_VERSION, 0);
 
         DEFAULT_VALUES.put(RESTART_DELAY, 10);
-        
+
         //Timeouts for tokens
         DEFAULT_VALUES.put(EmailAddressVerificationService.EXPIRY_SYSTEM_SETTING, EmailAddressVerificationService.DEFAULT_EXPIRY_DURATION);
         DEFAULT_VALUES.put(PasswordResetService.EXPIRY_SYSTEM_SETTING, PasswordResetService.DEFAULT_EXPIRY_DURATION);
@@ -1418,5 +1418,4 @@ public class SystemSettingsDao extends BaseDao {
 
         return settings;
     }
-
 }
