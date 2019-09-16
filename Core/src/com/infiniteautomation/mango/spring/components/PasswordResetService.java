@@ -4,7 +4,6 @@
 package com.infiniteautomation.mango.spring.components;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
@@ -14,7 +13,6 @@ import java.util.Map;
 
 import javax.mail.internet.AddressException;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -57,14 +55,17 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
 
     private final PermissionHolder systemSuperadmin;
     private final UsersService usersService;
-    
+    private final PublicUrlService publicUrlService;
+
     @Autowired
     public PasswordResetService(
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-            PermissionHolder systemSuperadmin, 
-            UsersService usersService) {
+            PermissionHolder systemSuperadmin,
+            UsersService usersService,
+            PublicUrlService publicUrlService) {
         this.systemSuperadmin = systemSuperadmin;
         this.usersService = usersService;
+        this.publicUrlService = publicUrlService;
     }
 
 
@@ -129,26 +130,8 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     }
 
     public URI generateResetUrl(String token) throws UnknownHostException {
-        UriComponentsBuilder builder;
-        String baseUrl = SystemSettingsDao.instance.getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL);
-        if (!StringUtils.isEmpty(baseUrl)) {
-            builder = UriComponentsBuilder.fromHttpUrl(baseUrl);
-        } else {
-            boolean sslOn = Common.envProps.getBoolean("ssl.on", false);
-            int port = sslOn ? Common.envProps.getInt("ssl.port", 443) : Common.envProps.getInt("web.port", 8080);
-            String hostname = SystemSettingsDao.instance.getValue(SystemSettingsDao.PUBLIC_HOSTNAME);
-            if (hostname == null) {
-                hostname = InetAddress.getLocalHost().getHostName();
-            }
-
-            builder = UriComponentsBuilder.newInstance()
-                    .scheme(sslOn ? "https" : "http")
-                    .host(hostname)
-                    .port(port);
-        }
-
+        UriComponentsBuilder builder = this.publicUrlService.getUriComponentsBuilder();
         String resetPage = DefaultPagesDefinition.getPasswordResetUri();
-
         return builder.path(resetPage).queryParam(PASSWORD_RESET_PAGE_TOKEN_PARAMETER, token).build().toUri();
     }
 
