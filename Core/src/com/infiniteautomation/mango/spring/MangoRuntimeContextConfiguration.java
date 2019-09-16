@@ -5,9 +5,7 @@ package com.infiniteautomation.mango.spring;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -43,7 +41,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
@@ -259,30 +256,9 @@ public class MangoRuntimeContextConfiguration {
     public IMangoLifecycle lifecycle() {
         return Providers.get(IMangoLifecycle.class);
     }
-    
-    /**
-     * Permission Holder for System tasks, has superadmin permission
-     * @return
-     */
+
     @Bean(SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     public PermissionHolder systemSuperadminPermissionHolder() {
-        return new PermissionHolder() {
-            private final String name = "SystemSuperadminPermissionHolder";
-            private final Set<String> permissions = Collections.singleton(SuperadminPermissionDefinition.GROUP_NAME);
-            @Override
-            public String getPermissionHolderName() {
-                return name;
-            }
-
-            @Override
-            public boolean isPermissionHolderDisabled() {
-                return false;
-            }
-
-            @Override
-            public Set<String> getPermissionsSet() {
-                return permissions;
-            }
-        };
+        return PermissionHolder.SYSTEM_SUPERADMIN;
     }
 }

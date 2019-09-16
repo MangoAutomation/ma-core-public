@@ -15,20 +15,16 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -68,7 +64,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
@@ -82,7 +77,6 @@ import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.view.DynamicImage;
 import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.provider.Providers;
@@ -158,27 +152,6 @@ public class Common {
         return SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LAST_UPGRADE, 0);
     });
 
-    public static final PermissionHolder mangoUser = new PermissionHolder() {
-
-        private final Set<String> permissions = Collections.singleton(SuperadminPermissionDefinition.GROUP_NAME);
-        
-        @Override
-        public String getPermissionHolderName() {
-            return "Mango System";
-        }
-
-        @Override
-        public boolean isPermissionHolderDisabled() {
-            return false;
-        }
-
-        @Override
-        public Set<String> getPermissionsSet() {
-            return permissions;
-        }
-        
-    };
-    
     /**
      * @return epoch time in seconds of last upgrade/install of core or modules
      */
