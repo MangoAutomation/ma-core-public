@@ -22,6 +22,7 @@ import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -62,16 +63,19 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
     private final PermissionHolder systemSuperadmin;
     private final UsersService usersService;
     private final PublicUrlService publicUrlService;
+    private final SystemSettingsDao systemSettings;
 
     @Autowired
     public EmailAddressVerificationService(
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
             PermissionHolder systemSuperadmin,
             UsersService usersService,
-            PublicUrlService publicUrlService) {
+            PublicUrlService publicUrlService,
+            SystemSettingsDao systemSettings) {
         this.systemSuperadmin = systemSuperadmin;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
+        this.systemSettings = systemSettings;
     }
 
     @Override
@@ -240,6 +244,11 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<User> {
      * @throws ValidationException
      */
     public User verifyEmail(String tokenString, User newUser) throws ValidationException {
+
+        if (!systemSettings.getBooleanValue(SystemSettingsDao.USERS_PUBLIC_REGISTRATION_ENABLED)) {
+            throw new TranslatableRuntimeException(new TranslatableMessage("users.publicRegistration.disabled"));
+        }
+
         Jws<Claims> token = this.parse(tokenString);
         User user = this.verify(token);
         if(user != null) {

@@ -39,6 +39,7 @@ import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -260,5 +261,10 @@ public class MangoRuntimeContextConfiguration {
     @Bean(SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     public PermissionHolder systemSuperadminPermissionHolder() {
         return PermissionHolder.SYSTEM_SUPERADMIN;
+    }
+
+    @Bean
+    public SystemSettingsDao systemSettingsDao() {
+        return SystemSettingsDao.instance;
     }
 }
