@@ -28,8 +28,7 @@ public class MangoRequiresCsrfMatcher implements RequestMatcher {
             new AntPathRequestMatcher("/httpds"),
             new AntPathRequestMatcher("/dwr/**"),
             new AntPathRequestMatcher("/cloud-connect-proxy/dwr/**"),
-            new AntPathRequestMatcher("/haystack/**"),
-            new AntPathRequestMatcher("/rest/*/users/registration/public/**"));
+            new AntPathRequestMatcher("/haystack/**"));
 
     @Override
     public boolean matches(HttpServletRequest request) {
