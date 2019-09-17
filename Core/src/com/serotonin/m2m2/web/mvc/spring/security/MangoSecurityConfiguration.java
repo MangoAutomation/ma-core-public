@@ -365,7 +365,7 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
             .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
-            .antMatchers("/rest/*/users/registration/public/**").permitAll(); //For public user registration
+            .antMatchers("/rest/*/users/email-verification/**").permitAll(); //For public user registration
 
             if (swaggerApiDocsProtected) {
                 authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
@@ -471,7 +471,7 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/password-reset/**").permitAll() // password reset must be public
             .antMatchers("/rest/*/auth-tokens/**").permitAll() // should be able to get public key and verify tokens
             .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
-            .antMatchers("/rest/*/users/registration/public/**").permitAll(); //For public user registration
+            .antMatchers("/rest/*/users/email-verification/**").permitAll(); //For public user registration
 
             if (swaggerApiDocsProtected) {
                 authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
