@@ -18,6 +18,8 @@ import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Date;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -46,15 +48,17 @@ public abstract class JwtSignerVerifier<T> {
     public static final String MISSING_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was not present.";
 
     private KeyPair keyPair;
-    private JwtParser parser;
+    private final JwtParser parser;
 
     protected final Log log;
 
     protected JwtSignerVerifier() {
-        log = LogFactory.getLog(this.getClass());
-
+        this.log = LogFactory.getLog(this.getClass());
         this.parser = Jwts.parser().require(TOKEN_TYPE_CLAIM, this.tokenType());
+    }
 
+    @PostConstruct
+    protected synchronized void postConstruct() {
         this.keyPair = this.loadKeyPair();
         if (this.keyPair == null) {
             this.generateNewKeyPair();
@@ -63,7 +67,7 @@ public abstract class JwtSignerVerifier<T> {
         }
     }
 
-    protected final void generateNewKeyPair() {
+    protected synchronized final void generateNewKeyPair() {
         this.keyPair = EllipticCurveProvider.generateKeyPair(SignatureAlgorithm.ES512);
         this.parser.setSigningKey(this.keyPair.getPublic());
         this.saveKeyPair(this.keyPair);
