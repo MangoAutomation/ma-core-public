@@ -42,6 +42,9 @@ import io.jsonwebtoken.impl.crypto.EllipticCurveProvider;
 public abstract class JwtSignerVerifier<T> {
     public static final String TOKEN_TYPE_CLAIM = "typ";
 
+    public static final String INCORRECT_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was: %s.";
+    public static final String MISSING_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE = "Expected %s claim to be of type: %s, but was not present.";
+
     private KeyPair keyPair;
     private JwtParser parser;
 
@@ -134,6 +137,21 @@ public abstract class JwtSignerVerifier<T> {
                     claimName, null, actualClaimValue);
             throw new IncorrectClaimException(header, claims, msg);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <V> V verifyClaimType(Jws<Claims> token, String claimName, Class<V> claimType) {
+        JwsHeader<?> header = token.getHeader();
+        Claims claims = token.getBody();
+
+        Object value = claims.get(claimName);
+        if (value == null) {
+            throw new MissingClaimException(header, claims, String.format(MISSING_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE, claimName, claimType));
+        }
+        if (!claimType.isAssignableFrom(value.getClass())) {
+            throw new IncorrectClaimException(header, claims, String.format(INCORRECT_TYPE_EXPECTED_CLAIM_MESSAGE_TEMPLATE, claimName, claimType, value.getClass()));
+        }
+        return (V) value;
     }
 
     /**
