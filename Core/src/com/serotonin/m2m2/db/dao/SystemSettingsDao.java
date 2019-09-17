@@ -221,6 +221,8 @@ public class SystemSettingsDao extends BaseDao {
     //License Agreement Acceptance Tracking
     public static final String LICENSE_AGREEMENT_VERSION = "licenseAgreementVersion";
 
+    public static final String USERS_PUBLIC_REGISTRATION_ENABLED = "users.publicRegistration.enabled";
+
     public static SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
