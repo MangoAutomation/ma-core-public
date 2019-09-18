@@ -230,6 +230,11 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         return builder.path(verificationPage).queryParam(EMAIL_VERIFICATION_PAGE_TOKEN_PARAMETER, token).build().toUri();
     }
 
+    public URI generateRelativeEmailVerificationUrl(String token) {
+        String verificationPage = DefaultPagesDefinition.getEmailVerificationUri();
+        return UriComponentsBuilder.fromPath(verificationPage).queryParam(EMAIL_VERIFICATION_PAGE_TOKEN_PARAMETER, token).build().toUri();
+    }
+
     /**
      * Verify an email address token for an existing user. Updates the user's email address with the one that was verified.
      * @param tokenString
