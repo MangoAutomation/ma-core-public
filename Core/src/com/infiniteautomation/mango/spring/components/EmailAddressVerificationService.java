@@ -119,14 +119,18 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      *
      * @param emailAddress
      * @param userToUpdate Optional, may be null
+     * @param expirationDate Optional, may be null
+     * @param permissionHolder
+     * @return The generated token
      * @throws TemplateException
      * @throws IOException
      * @throws AddressException
      */
-    public void sendVerificationEmail(String emailAddress, User userToUpdate, PermissionHolder permissionHolder) throws TemplateException, IOException, AddressException {
+    public String sendVerificationEmail(String emailAddress, User userToUpdate, Date expirationDate, PermissionHolder permissionHolder) throws TemplateException, IOException, AddressException {
         try {
-            String token = this.generateToken(emailAddress, userToUpdate, null, permissionHolder);
+            String token = this.generateToken(emailAddress, userToUpdate, expirationDate, permissionHolder);
             this.doSendVerificationEmail(token, userToUpdate);
+            return token;
         } catch (EmailAddressInUseException e) {
             if (Permissions.hasAdminPermission(permissionHolder)) {
                 // rethrow the exception and notify the administrator
@@ -136,6 +140,8 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
                 this.doSendWarningEmail(e.getExistingUser());
             }
         }
+
+        return null;
     }
 
     /**
@@ -240,7 +246,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      * @param tokenString
      * @return
      */
-    public User verifyUserEmail(String tokenString) {
+    public User updateUserEmailAddress(String tokenString) {
         Jws<Claims> token = this.parse(tokenString);
         String verifiedEmail = this.verify(token);
 
@@ -266,7 +272,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      * @return
      * @throws ValidationException
      */
-    public User publicCreateNewUser(String tokenString, User newUser) throws ValidationException {
+    public User publicRegisterNewUser(String tokenString, User newUser) throws ValidationException {
         this.ensurePublicRegistrationEnabled();
 
         Jws<Claims> token = this.parse(tokenString);
