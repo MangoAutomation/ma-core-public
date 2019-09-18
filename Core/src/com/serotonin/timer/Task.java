@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
  * @author Terry Packer
  *
  */
-public abstract class Task{
+public abstract class Task {
 	
 	public static final int UNLIMITED_QUEUE_SIZE = -1;
 	

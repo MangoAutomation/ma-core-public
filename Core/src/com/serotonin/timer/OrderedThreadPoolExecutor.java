@@ -4,18 +4,21 @@
  */
 package com.serotonin.timer;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
 * This Executor warrants task ordering for tasks with same id.
@@ -35,13 +38,13 @@ import java.util.concurrent.TimeUnit;
 * Note that every queue will be removed once it is empty.  
 * 
 */
-public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements RejectedExecutionHandler{
+public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements RejectedExecutionHandler {
 
 	
 	//Task to queue map
-	private final Map<String, LimitedTaskQueue> keyedTasks = new HashMap<String, LimitedTaskQueue>();
+	private final Map<String, OrderedTaskQueue> keyedTasks = new ConcurrentHashMap<String, OrderedTaskQueue>();
 
-	private boolean flushFullQueue;
+	private final boolean flushFullQueue;
 	private RejectedExecutionHandler handler;
 	private TimeSource timer;
 	
@@ -164,9 +167,6 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 		this.timer = timer;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.util.concurrent.ThreadPoolExecutor#setRejectedExecutionHandler(java.util.concurrent.RejectedExecutionHandler)
-	 */
 	@Override
 	public void setRejectedExecutionHandler(RejectedExecutionHandler handler) {
 		super.setRejectedExecutionHandler(this);
@@ -174,11 +174,9 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	}
 	
 	/**
-	 * Execute a task that should may be ordered.  Tasks with null ID are run immediately and
+	 * Execute a task that may be ordered.  Tasks with null ID are run immediately and
 	 * potentially in parallel to other tasks of the same type.
-	 * @param worker
-	 * @param key
-	 * @param executionTime for the worker
+	 * @param worker is the task to execute
 	 */
 	public void execute(TaskWrapper worker) {
 
@@ -188,35 +186,37 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
             return;
         }
 
-        boolean first;
-        OrderedTaskCollection wrappedTask;
-        LimitedTaskQueue dependencyQueue = null;
-
-        synchronized (keyedTasks) {
-            dependencyQueue = keyedTasks.get(worker.task.id);
-            first = (dependencyQueue == null);
+        AtomicBoolean first = new AtomicBoolean(true);
+        AtomicReference<OrderedTaskCollection> wrappedTask = new AtomicReference<>();
+        keyedTasks.compute(worker.task.id, (key, dependencyQueue) -> {
+            first.set(dependencyQueue == null);
             if (dependencyQueue == null) {
                 OrderedTaskInfo info = new OrderedTaskInfo(worker.task);
-                if (flushFullQueue)
+                if(info.queueSizeLimit == 0) {
+                    dependencyQueue = new QueuelessTask(info);
+                }else if (flushFullQueue) {
                     dependencyQueue = new TimePriorityLimitedTaskQueue(info);
-                else
+                } else {
                     dependencyQueue = new LimitedTaskQueue(info);
-                keyedTasks.put(worker.task.id, dependencyQueue);
-            }
-
-            wrappedTask = wrap(worker, dependencyQueue);
-            // Either add or reject
-            if (!first) {
-                synchronized(dependencyQueue) {
-                    dependencyQueue.add(wrappedTask, this);
                 }
-                //Not first so we won't be executing this task directly now
-                return;
             }
+            wrappedTask.set(wrap(worker, dependencyQueue));
+            
+            // Either add or reject
+            if (!first.get()) {
+                dependencyQueue.add(wrappedTask.get(), this);
+            }
+            
+            return dependencyQueue;
+        });
+
+        // Either add or reject
+        if (!first.get()) {
+            return;
         }
 
         // execute and reject methods can block, call them outside synchronize block
-        execute(wrappedTask);
+        execute(wrappedTask.get());
     }
 
 	/** 
@@ -228,21 +228,19 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
 		
 		if(r instanceof OrderedTaskCollection){
-			OrderedTaskCollection t  = (OrderedTaskCollection)r;
-			OrderedTaskCollection nextTask = null;
-			synchronized (keyedTasks){
+			final OrderedTaskCollection t  = (OrderedTaskCollection)r;
+			OrderedTaskQueue depQueue = keyedTasks.compute(t.wrapper.task.id, (k, dependencyQueue) -> {
 				//Don't bother trying to run the queue we've got a problem
-				if (t.dependencyQueue.isEmpty()){
-                    keyedTasks.remove(t.wrapper.task.id);
-                }else{
-                    //Could be trouble, but let it fail if it must
-                    synchronized(t.dependencyQueue) {
-                        nextTask = t.dependencyQueue.poll();
-                    }
-                }
-			}
-			if(nextTask != null)
+				if (dependencyQueue.isEmpty())
+                    return null;
+				return dependencyQueue;
+			});
+			
+			if(depQueue != null) {
+			    //We know it isn't empty or it would be null
+			    OrderedTaskCollection nextTask = depQueue.poll();
 			    execute(nextTask);
+			}
 			this.handler.rejectedExecution(t.wrapper, e);
 			
 		}else if(r instanceof TaskWrapper){
@@ -262,27 +260,11 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	}
 	
 	/**
-	 * Update the default queue size for a given taskId
-	 * @param newSize
-	 * @param taskId
-	 */
-	public void updateDefaultQueueSize(int newSize, String taskId){
-	    synchronized(keyedTasks) {
-            LimitedTaskQueue dependencyQueue = keyedTasks.get(taskId);
-            if (dependencyQueue != null) {
-                dependencyQueue.setLimit(newSize);
-            }
-	    }
-	}
-	
-	/**
 	 * Removes the queue from the map and discards it's tasks.
 	 * @param taskId
 	 */
 	public void removeTaskQueue(String taskId) {
-	    synchronized(keyedTasks) {
-            keyedTasks.remove(taskId);
-	    }
+        keyedTasks.remove(taskId);
 	}
 	
 	/**
@@ -290,10 +272,8 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @param taskId
 	 * @return
 	 */
-	public LimitedTaskQueue getTaskQueue(String taskId) {
-	    synchronized(keyedTasks) {
-	        return keyedTasks.get(taskId);
-	    }
+	public OrderedTaskQueue getTaskQueue(String taskId) {
+	    return keyedTasks.get(taskId);
 	}
 	
 	/**
@@ -302,12 +282,10 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 * @return
 	 */
 	public boolean queueExists(String taskId){
-		synchronized (keyedTasks){
-			return keyedTasks.containsKey(taskId);
-		}
+		return keyedTasks.containsKey(taskId);
 	}
 	
-    private OrderedTaskCollection wrap(TaskWrapper task, LimitedTaskQueue dependencyQueue) {
+    private OrderedTaskCollection wrap(TaskWrapper task, OrderedTaskQueue dependencyQueue) {
         return new OrderedTaskCollection(task, dependencyQueue);
     }
 
@@ -318,13 +296,13 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
      * the entire queue is removed from the keyed tasks map
      *
      */
-    public class OrderedTaskCollection implements Runnable{
+    public class OrderedTaskCollection implements Runnable {
 
-        private final LimitedTaskQueue dependencyQueue;
+        private final OrderedTaskQueue dependencyQueue;
         private final TaskWrapper wrapper;
         private int rejectedReason;
 
-        public OrderedTaskCollection(TaskWrapper task, LimitedTaskQueue dependencyQueue) {
+        public OrderedTaskCollection(TaskWrapper task, OrderedTaskQueue dependencyQueue) {
             this.wrapper = task;
             this.dependencyQueue = dependencyQueue;
         }
@@ -336,26 +314,25 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
                 this.wrapper.run();
             } finally {
                 Runnable nextTask = null;
-                if(this.dependencyQueue.isEmpty())
-                    synchronized (keyedTasks) {
-                        //Check again, now that we have the lock
-                        if (this.dependencyQueue.isEmpty()) { 
-                            // Remove the Collection
-                            keyedTasks.remove(wrapper.task.id);
-                        } else {
-                            // Have something in our queue, process it now
-                            synchronized(this.dependencyQueue) {
-                                nextTask = this.dependencyQueue.poll();
-                            }
-                        }
+                OrderedTaskQueue queue = this.dependencyQueue;
+                if(queue.isEmpty()) {
+                    queue = keyedTasks.compute(wrapper.task.id, (k, depQueue) -> {
+                        //depQueue.lock();
+                        if(depQueue.isEmpty())
+                            return null; //no need to unlock, it is discarded
+                        return depQueue;
+                    });
+                
+                    if(queue != null) { //must not be empty
+                        nextTask = queue.poll();
                     }
-                else
-                    synchronized(this.dependencyQueue) {
-                        nextTask = this.dependencyQueue.poll();
-                    }
+                } else {
+                    nextTask = queue.poll();
+                }
+                
                 // Update our task info
-                this.dependencyQueue.info.addExecutionTime(timer.currentTimeMillis() - start);
-                this.dependencyQueue.info.updateCurrentQueueSize(this.dependencyQueue.size());
+                this.dependencyQueue.getInfo().addExecutionTime(timer.currentTimeMillis() - start);
+                this.dependencyQueue.getInfo().updateCurrentQueueSize(this.dependencyQueue.size());
                 if (nextTask != null) {
                     execute(nextTask);
                 }
@@ -367,7 +344,7 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
         }
         
         public void rejected(Executor e){
-            this.dependencyQueue.info.rejections++;
+            this.dependencyQueue.getInfo().rejections++;
             this.wrapper.task.rejected(new RejectedTaskReason(this.rejectedReason, wrapper.executionTime, wrapper.task, e));
         }
         
@@ -382,6 +359,16 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
     }
     
     /**
+     * Interface for all queued ordered tasks
+     */
+    public interface OrderedTaskQueue {
+        public void add(OrderedTaskCollection c, Executor ex);
+        public OrderedTaskCollection poll();
+        public boolean isEmpty();
+        public int size();
+        public OrderedTaskInfo getInfo();
+    }
+    /**
      * Class to hold a limited size queue and reject incoming tasks 
      * if the limit is reached false is returned from the add method.
      * 
@@ -392,43 +379,73 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
      * @author Terry Packer
      *
      */
-    public class LimitedTaskQueue extends ArrayDeque<OrderedTaskCollection>{
+    public class LimitedTaskQueue extends LinkedBlockingDeque<OrderedTaskCollection> implements OrderedTaskQueue {
 
 		private static final long serialVersionUID = 1L;
-		protected int limit;
 		protected final OrderedTaskInfo info;
 		
 		public LimitedTaskQueue(OrderedTaskInfo info){
-			super();
-			this.limit = info.queueSizeLimit;
+			super(info.queueSizeLimit == Task.UNLIMITED_QUEUE_SIZE ? Integer.MAX_VALUE : info.queueSizeLimit);
 			this.info = info;
 		}
-		
-		/*
-		 * (non-Javadoc)
-		 * @see java.util.ArrayDeque#add(java.lang.Object)
-		 */
-		public boolean add(OrderedTaskCollection c, Executor ex) {
-			//Add task to end of queue if there is room
-			if((limit == Task.UNLIMITED_QUEUE_SIZE) || this.size() < limit){
-				boolean result = super.add(c);
-				info.updateCurrentQueueSize(this.size());
-				return result;
-			}else{
-				if(this.size() == limit){
-					c.setRejectedReason(RejectedTaskReason.TASK_QUEUE_FULL);
-					c.rejected(ex);
-				}else{
-					c.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
-					c.rejected(ex);
-				}
-				return false;
+
+		@Override
+		public void add(OrderedTaskCollection c, Executor ex) {
+			try{
+			    super.add(c);
+			    info.updateCurrentQueueSize(this.size());
+			}catch(IllegalStateException e) {
+                if(info.queueSizeLimit > 0){
+                    c.setRejectedReason(RejectedTaskReason.TASK_QUEUE_FULL);
+                }else{
+                    c.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
+                }
+                c.rejected(ex);
 			}
 		}
 		
-		public void setLimit(int limit){
-			this.limit = limit;
+		@Override
+		public OrderedTaskInfo getInfo() {
+		    return info;
 		}
+    }
+    
+    /**
+     * Task with size 0 queue
+     * @author Terry Packer
+     *
+     */
+    public class QueuelessTask implements OrderedTaskQueue {
+        
+        private final OrderedTaskInfo info;
+        
+        public QueuelessTask(OrderedTaskInfo info) {
+            this.info = info;
+        }
+        
+        @Override
+        public void add(OrderedTaskCollection c, Executor ex) {
+            c.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
+            c.rejected(ex);
+        }
+        @Override
+        public OrderedTaskCollection poll() {
+            return null;
+        }
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+        
+        @Override
+        public int size() {
+            return 0;
+        }
+        
+        @Override
+        public OrderedTaskInfo getInfo() {
+            return info;
+        }
     }
     
     /**
@@ -448,36 +465,29 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 			super(info);
 		}
 		
-		/* (non-Javadoc)
-		 * @see java.util.ArrayDeque#add(java.lang.Object)
-		 */
 		@Override
-		public boolean add(OrderedTaskCollection c, Executor ex) {
-			//Add task to end of queue if there is room
-			if(this.size() < limit){
-				boolean result = super.add(c);
-				info.updateCurrentQueueSize(this.size());
-				return result;
-			}else{
-				while(this.size() >= limit){
-					OrderedTaskCollection t = this.poll();
-					if(limit > 0){
-						t.setRejectedReason(RejectedTaskReason.TASK_QUEUE_FULL);
-						t.rejected(ex);
-					}else{
-						t.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
-						t.rejected(ex);
-					}
-				}
-				/* Now add the task */
-				boolean result = super.add(c);
-				info.updateCurrentQueueSize(this.size());
-				return result;
-			}
-		}
-		
-		public void setLimit(int limit){
-			this.limit = limit;
+		public void add(OrderedTaskCollection c, Executor ex) {
+		    try {
+		        super.add(c);
+		        info.updateCurrentQueueSize(this.size());
+		    }catch(IllegalStateException e) {
+		        while(this.size() >= info.queueSizeLimit) {
+		            OrderedTaskCollection t = this.poll();
+		            if(info.queueSizeLimit > 0){
+                        t.setRejectedReason(RejectedTaskReason.TASK_QUEUE_FULL);
+                        t.rejected(ex);
+                    }else{
+                        t.setRejectedReason(RejectedTaskReason.CURRENTLY_RUNNING);
+                        t.rejected(ex);
+                    }
+		        }
+		        try {
+		            super.add(c);
+		            info.updateCurrentQueueSize(this.size());
+		        }catch(IllegalStateException e1) {
+		            
+		        }
+		    }
 		}
     }
 
@@ -488,10 +498,9 @@ public class OrderedThreadPoolExecutor extends ThreadPoolExecutor implements Rej
 	 */
 	public List<OrderedTaskInfo> getOrderedQueueInfo() {
 		List<OrderedTaskInfo> stats = new ArrayList<OrderedTaskInfo>(keyedTasks.size());
-		synchronized(keyedTasks){
-			for(LimitedTaskQueue queue : keyedTasks.values())
-				stats.add(queue.info);
-		}
+		Iterator<OrderedTaskQueue> iter = keyedTasks.values().iterator();
+		while(iter.hasNext())
+		    stats.add(iter.next().getInfo());
 		return stats;
 	}
     
