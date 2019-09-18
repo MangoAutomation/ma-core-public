@@ -14,6 +14,7 @@
 * Fix class cast exception with provided excp method in HttpBuilder.request({})
 * Remove un-necessary swagger annotation from base REST v1 model to allow more specific model descriptions in Swagger UI
 * Add internal metrics for monitoring HTTP server status (internal.monitor.SERVER_THREADS, internal.monitor.SERVER_IDLE_THREADS, and internal.monitor.SERVER_QUEUE_SIZE)
+* Fix bug where flow control out was not being set on serial ports
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
