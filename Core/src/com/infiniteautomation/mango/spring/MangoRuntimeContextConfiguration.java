@@ -38,12 +38,16 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.IMangoLifecycle;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 import com.serotonin.m2m2.web.mvc.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
+import com.serotonin.provider.Providers;
 
 /**
  *
@@ -108,6 +112,7 @@ public class MangoRuntimeContextConfiguration {
     public static final String DAO_OBJECT_MAPPER_NAME = "daoObjectMapper";
     public static final String SCHEDULED_EXECUTOR_SERVICE_NAME = "scheduledExecutorService";
     public static final String EXECUTOR_SERVICE_NAME = "executorService";
+    public static final String SYSTEM_SUPERADMIN_PERMISSION_HOLDER = "systemSuperadminPermissionHolder";
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -187,10 +192,10 @@ public class MangoRuntimeContextConfiguration {
             if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.COMMON)
                 mapper.registerModule(def.getJacksonModule());
         }
-        
+
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        
+
         return mapper;
     }
 
@@ -206,10 +211,10 @@ public class MangoRuntimeContextConfiguration {
             if(def.getSourceMapperType() == JacksonModuleDefinition.ObjectMapperSource.DATABASE)
                 mapper.registerModule(def.getJacksonModule());
         }
-        
+
         //This will allow messy JSON to be imported even if all the properties in it are part of the POJOs
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        
+
         return mapper;
     }
 
@@ -248,4 +253,18 @@ public class MangoRuntimeContextConfiguration {
         return new EventMulticasterRegistry();
     }
 
+    @Bean
+    public IMangoLifecycle lifecycle() {
+        return Providers.get(IMangoLifecycle.class);
+    }
+
+    @Bean(SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
+    public PermissionHolder systemSuperadminPermissionHolder() {
+        return PermissionHolder.SYSTEM_SUPERADMIN;
+    }
+
+    @Bean
+    public SystemSettingsDao systemSettingsDao() {
+        return SystemSettingsDao.instance;
+    }
 }

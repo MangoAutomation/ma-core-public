@@ -218,13 +218,13 @@ public class JsscSerialPortProxy extends SerialPortProxy {
         int flowOut = SerialPort.FLOWCONTROL_NONE;
         switch(out) {
             case NONE:
-                flowIn = SerialPort.FLOWCONTROL_NONE;
+                flowOut = SerialPort.FLOWCONTROL_NONE;
                 break;
             case RTSCTS:
-                flowIn = SerialPort.FLOWCONTROL_RTSCTS_OUT;
+                flowOut = SerialPort.FLOWCONTROL_RTSCTS_OUT;
                 break;
             case XONXOFF:
-                flowIn = SerialPort.FLOWCONTROL_XONXOFF_OUT;
+                flowOut = SerialPort.FLOWCONTROL_XONXOFF_OUT;
                 break;
         }
         return flowIn | flowOut;

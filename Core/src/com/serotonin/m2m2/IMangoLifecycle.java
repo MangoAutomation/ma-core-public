@@ -76,6 +76,10 @@ public interface IMangoLifecycle extends Provider {
      */
     public void reloadSslContext();
 
+    public default ServerStatus getServerStatus() {
+        return ServerStatus.NOT_RUNNING;
+    }
+
     //The Various States
     //States of the Lifecycle
     public static final int NOT_STARTED = 0;

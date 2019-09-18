@@ -49,9 +49,14 @@ create table users (
   sessionExpirationPeriods int,
   sessionExpirationPeriodType nvarchar(25),
   organization nvarchar(80),
+  organizationalRole nvarchar(80),
+  createdTs bigint NOT NULL,
+  emailVerifiedTs bigint,
+  data ntext,
   primary key (id)
 );
 alter table users add constraint username_unique unique (username);
+alter table users add constraint email_unique unique (email);
 
 create table userComments (
   id int not null identity,
