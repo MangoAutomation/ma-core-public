@@ -83,12 +83,8 @@ public class Permissions {
             throw new PermissionException(new TranslatableMessage("permission.exception.userIsDisabled"), user);
     }
 
-    public static boolean isValidPermissionHolder(PermissionHolder user){
-        if (user == null)
-            return false;
-        else if (user.isPermissionHolderDisabled())
-            return false;
-        else return true;
+    public static boolean isValidPermissionHolder(PermissionHolder user) {
+        return !(user == null || user.isPermissionHolderDisabled());
     }
 
     //
@@ -327,18 +323,18 @@ public class Permissions {
 
     /**
      * Validate roles.  This will validate that:
-     * 
-     *   1. the new permissions are non null 
+     *
+     *   1. the new permissions are non null
      *   2. all new permissions are not empty
      *   3. the new permissions do not contain spaces
      *   (then for non admin/owners)
      *   4. the saving user will at least retain one permission
      *   5. the user cannot not remove an existing permission they do not have
      *   6. the user has all of the new permissions being added
-     *   
-     *   If the saving user is also the owner, then the new permissions need not contain 
+     *
+     *   If the saving user is also the owner, then the new permissions need not contain
      *   one of the user's roles
-     *   
+     *
      * @param response - the result of the validation
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
@@ -352,19 +348,19 @@ public class Permissions {
             response.addContextualMessage(contextKey, "validate.userRequired");
             return;
         }
-        
+
         if(newPermissions == null) {
             response.addContextualMessage(contextKey, "validate.invalidPermissionEmpty");
             return;
         }
-        
+
         for (String permission : newPermissions) {
             if (permission == null || permission.isEmpty()) {
                 response.addContextualMessage(contextKey, "validate.invalidPermissionEmpty");
                 return;
             }
         }
-        
+
         //Ensure there are no spaces
         for(String permission : newPermissions) {
             Matcher matcher = SPACE_PATTERN.matcher(permission);
@@ -373,7 +369,7 @@ public class Permissions {
                 return;
             }
         }
-        
+
         if(holder.hasAdminPermission())
             return;
 
@@ -381,7 +377,7 @@ public class Permissions {
         if(!savedByOwner && Collections.disjoint(holder.getPermissionsSet(), newPermissions)) {
             response.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
-        
+
         if(existingPermissions != null) {
             //Check for permissions being added that the user does not have
             Set<String> added = new HashSet<>(newPermissions);
@@ -402,19 +398,21 @@ public class Permissions {
     }
 
     public static boolean hasSinglePermission(PermissionHolder user, String requiredPermission) {
-        ensureValidPermissionHolder(user);
+        if (!isValidPermissionHolder(user)) return false;
+
         Set<String> heldPermissions = user.getPermissionsSet();
         return containsSinglePermission(heldPermissions, requiredPermission);
     }
 
     public static boolean hasAnyPermission(PermissionHolder user, Set<String> requiredPermissions) {
-        ensureValidPermissionHolder(user);
+        if (!isValidPermissionHolder(user)) return false;
+
         Set<String> heldPermissions = user.getPermissionsSet();
         return containsAny(heldPermissions, requiredPermissions);
     }
 
     public static boolean hasAllPermissions(PermissionHolder user, Set<String> requiredPermissions) {
-        ensureValidPermissionHolder(user);
+        if (!isValidPermissionHolder(user)) return false;
 
         Set<String> heldPermissions = user.getPermissionsSet();
         return containsAll(heldPermissions, requiredPermissions);
@@ -422,18 +420,21 @@ public class Permissions {
 
     public static void ensureHasSinglePermission(PermissionHolder user, String requiredPermission) {
         if (!hasSinglePermission(user, requiredPermission)) {
+            Permissions.ensureValidPermissionHolder(user);
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
         }
     }
 
     public static void ensureHasAnyPermission(PermissionHolder user, Set<String> requiredPermissions) {
         if (!hasAnyPermission(user, requiredPermissions)) {
+            Permissions.ensureValidPermissionHolder(user);
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
         }
     }
 
     public static void ensureHasAllPermissions(PermissionHolder user, Set<String> requiredPermissions) {
         if (!hasAllPermissions(user, requiredPermissions)) {
+            Permissions.ensureValidPermissionHolder(user);
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
         }
     }
