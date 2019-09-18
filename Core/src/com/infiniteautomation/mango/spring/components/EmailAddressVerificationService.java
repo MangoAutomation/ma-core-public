@@ -33,6 +33,7 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
@@ -127,7 +128,13 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             String token = this.generateToken(emailAddress, userToUpdate, null, permissionHolder);
             this.doSendVerificationEmail(token, userToUpdate);
         } catch (EmailAddressInUseException e) {
-            this.doSendWarningEmail(e.getExistingUser());
+            if (Permissions.hasAdminPermission(permissionHolder)) {
+                // rethrow the exception and notify the administrator
+                throw e;
+            } else {
+                // notify the existing user that someone tried to register/verify their email address
+                this.doSendWarningEmail(e.getExistingUser());
+            }
         }
     }
 
@@ -239,6 +246,10 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         User updated = existing.copy();
         updated.setEmail(verifiedEmail);
         updated.setEmailVerifiedTs(Common.timer.currentTimeMillis());
+
+        // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
+        // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
+        // generating the token.
         return this.usersService.update(existing, updated, this.systemSuperadmin);
     }
 
