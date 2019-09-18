@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -101,7 +102,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         return ejt.queryForInt("select count(*) from " + tableName + " where username=? and id<>?", new Object[] { username,
                 excludeId }, 0) == 0;
     }
-    
+
     /**
      * Confirm that this email address is not used
      * @param email
@@ -114,7 +115,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         return ejt.queryForInt("select count(*) from " + tableName + " where email=? and id<>?", new Object[] { email,
                 excludeId }, 0) == 0;
     }
-    
+
     /**
      * Get a user by ID from the database (no cache)
      * @param id
@@ -137,7 +138,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                     new UserRowMapper(), null);
         });
     }
-    
+
     /**
      * Get a user by their email address
      * @param emailAddress
@@ -182,8 +183,12 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             user.setSessionExpirationPeriodType(rs.getString(++i));
             user.setOrganization(rs.getString(++i));
             user.setOrganizationalRole(rs.getString(++i));
-            user.setCreatedTs(rs.getLong(++i));
-            user.setEmailVerifiedTs(rs.getLong(++i));
+            user.setCreated(new Date(rs.getLong(++i)));
+            Date emailVerified = new Date(rs.getLong(++i));
+            if (rs.wasNull()) {
+                emailVerified = null;
+            }
+            user.setEmailVerified(emailVerified);
             Clob c = rs.getClob(++i);
             try {
                 if(c != null) {
@@ -237,15 +242,15 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                 boolToChar(user.isDisabled()), user.getHomeUrl(),
                                 user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
                                 boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
-                                user.getPasswordVersion(), user.getPasswordChangeTimestamp(), boolToChar(user.isSessionExpirationOverride()), 
-                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(), 
+                                user.getPasswordVersion(), user.getPasswordChangeTimestamp(), boolToChar(user.isSessionExpirationOverride()),
+                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
                                 user.getOrganization(), user.getOrganizationalRole(), Common.timer.currentTimeMillis(), user.getEmailVerifiedTs(), convertData(user.getData())},
-                        new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, 
-                                Types.VARCHAR, Types.VARCHAR, 
+                        new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
+                                Types.VARCHAR, Types.VARCHAR,
                                 Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                 Types.INTEGER, Types.BIGINT, Types.CHAR,
-                                Types.INTEGER, Types.VARCHAR, 
+                                Types.INTEGER, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB}
                         );
             }
@@ -313,7 +318,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                     boolToChar(user.isDisabled()), user.getHomeUrl(),
                                     user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()),
                                     user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
-                                    user.getPasswordVersion(), user.getPasswordChangeTimestamp(), 
+                                    user.getPasswordVersion(), user.getPasswordChangeTimestamp(),
                                     boolToChar(user.isSessionExpirationOverride()), user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
                                     user.getOrganization(), user.getOrganizationalRole(), user.getCreatedTs(), user.getEmailVerifiedTs(), convertData(user.getData()),
                                     user.getId() },
@@ -335,7 +340,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
 
             //Set the last login time so it is available on the saved user
             user.setLastLogin(old.getLastLogin());
-            
+
             boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
             boolean passwordChanged = user.getPasswordVersion() > originalPwVersion;
 
@@ -586,17 +591,17 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     @Override
     public void systemSettingsSaved(String key, String oldValue, String newValue) {
         this.userCache.values().stream().forEach((user) -> {
-            user.resetGrantedPermissions(); 
-         });
+            user.resetGrantedPermissions();
+        });
     }
 
     @Override
     public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
         this.userCache.values().stream().forEach((user) -> {
-           user.resetGrantedPermissions(); 
+            user.resetGrantedPermissions();
         });
     }
-    
+
     @Override
     public List<String> getKeys() {
         //We listen for permissions definition changes

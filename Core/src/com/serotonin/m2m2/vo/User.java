@@ -11,6 +11,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
@@ -116,11 +117,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private String organization;
     @JsonProperty
     private String organizationalRole;
-    private long createdTs;
-    private long emailVerifiedTs;
+    private Date created;
+    private Date emailVerified;
     @JsonProperty
     private JsonNode data;
-    
+
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
@@ -523,15 +524,15 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public long getPasswordChangeTimestamp() {
         return this.passwordChangeTimestamp;
     }
-    
+
     public String getOrganization() {
         return organization;
     }
-    
+
     public void setOrganization(String organization) {
         this.organization = organization;
     }
-    
+
     public String getOrganizationalRole() {
         return organizationalRole;
     }
@@ -540,20 +541,28 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.organizationalRole = organizationalRole;
     }
 
-    public long getCreatedTs() {
-        return createdTs;
+    public Date getCreated() {
+        return created;
     }
 
-    public void setCreatedTs(long createdTs) {
-        this.createdTs = createdTs;
+    public Long getCreatedTs() {
+        return emailVerified == null ? null : emailVerified.getTime();
     }
 
-    public long getEmailVerifiedTs() {
-        return emailVerifiedTs;
+    public void setCreated(Date created) {
+        this.created = created;
     }
 
-    public void setEmailVerifiedTs(long emailVerifiedTs) {
-        this.emailVerifiedTs = emailVerifiedTs;
+    public Date getEmailVerified() {
+        return emailVerified;
+    }
+
+    public Long getEmailVerifiedTs() {
+        return emailVerified == null ? null : emailVerified.getTime();
+    }
+
+    public void setEmailVerified(Date emailVerified) {
+        this.emailVerified = emailVerified;
     }
 
     public JsonNode getData() {
@@ -643,7 +652,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         User savingUser = Common.getHttpUser();
         if(savingUser == null)
             savingUser = Common.getBackgroundContextUser();
-        
+
         //get the existing user if there is one (don't use username as it can change)
         User existing;
         if(id != Common.NEW_ID) {
@@ -651,7 +660,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         }else {
             existing = null;
         }
-        
+
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         else if(!UserDao.getInstance().isUsernameUnique(username, id))
@@ -705,21 +714,21 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
         if (StringValidation.isLengthGreaterThan(name, 255))
             response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
-        
+
         if(receiveAlarmEmails == null) {
             response.addMessage("receiveAlarmEmails", new TranslatableMessage("validate.required"));
         }
-        
+
         if(locale == null) {
             response.addMessage("locale", new TranslatableMessage("validate.required"));
         }else if (StringValidation.isLengthGreaterThan(locale, 50)) {
             response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
         }
-        
+
         if (StringValidation.isLengthGreaterThan(timezone, 50)) {
             response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
         }
-        
+
         //Validate Permissions (Can't be blank)
         if (!StringUtils.isEmpty(this.permissions)) {
             for (String s : this.permissions.split(",")) {
@@ -734,11 +743,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             if(existing.isSessionExpirationOverride() != sessionExpirationOverride && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
             }
-            
+
             if(existing.getSessionExpirationPeriods() != sessionExpirationPeriods && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
             }
-            
+
             if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), sessionExpirationPeriodType) && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
             }
@@ -755,13 +764,13 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             if(sessionExpirationPeriods <= 0)
                 response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
         }
-        
+
         if(StringUtils.isNotEmpty(organization)) {
             if (StringValidation.isLengthGreaterThan(organization, 80)) {
                 response.addMessage("organization", new TranslatableMessage("validate.notLongerThan", 80));
             }
         }
-        
+
         if(StringUtils.isNotEmpty(organizationalRole)) {
             if (StringValidation.isLengthGreaterThan(organizationalRole, 80)) {
                 response.addMessage("organizationalRole", new TranslatableMessage("validate.notLongerThan", 80));

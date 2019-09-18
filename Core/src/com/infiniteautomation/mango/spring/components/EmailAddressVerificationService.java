@@ -245,7 +245,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
         User updated = existing.copy();
         updated.setEmail(verifiedEmail);
-        updated.setEmailVerifiedTs(Common.timer.currentTimeMillis());
+        updated.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
 
         // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
         // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
@@ -272,7 +272,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         //Totally new user
         newUser.setEmail(verifiedEmail);
         newUser.setDisabled(true); //Ensure we are disabled
-        newUser.setEmailVerifiedTs(Common.timer.currentTimeMillis());
+        newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
         return this.usersService.insert(newUser, this.systemSuperadmin);
     }
 
