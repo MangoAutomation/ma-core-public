@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -281,6 +282,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         this.verifyNoClaim(token, USER_ID_CLAIM);
 
         //Totally new user
+        newUser.setPermissionsSet(Collections.emptySet());
         newUser.setEmail(verifiedEmail);
         newUser.setDisabled(true); //Ensure we are disabled
         newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
