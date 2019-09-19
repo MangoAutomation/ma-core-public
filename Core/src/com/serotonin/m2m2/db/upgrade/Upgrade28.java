@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,7 +19,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.dao.UserDao;
 
 /**
  * Add organization column to users table
@@ -41,9 +41,9 @@ public class Upgrade28 extends DBUpgrade {
     protected void upgrade() throws Exception {
         OutputStream out = createUpdateLogOutputStream();
         //Update User table to have unique email addresses
-        //First remove duplicate users
+        //First update duplicate email addresses
         try {
-            Map<Integer, StringStringPair> toRemove = query("SELECT id,username,email FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,StringStringPair>>(){
+            Map<Integer, StringStringPair> toChange = query("SELECT id,username,email FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,StringStringPair>>(){
     
                 @Override
                 public Map<Integer, StringStringPair> extractData(ResultSet rs)
@@ -60,18 +60,22 @@ public class Upgrade28 extends DBUpgrade {
                 
             });
             
-            if(toRemove.keySet().size() > 0) {
-                toRemove.keySet().stream().forEach((key) -> {
-                    String username = toRemove.get(key).getKey();
-                    String email = toRemove.get(key).getValue();
-                    LOG.warn("Removing user with duplicate email '" + email + "' with id " + key + " and username '" + username + "'");
-                    UserDao.getInstance().deleteUser(key);
+            if(toChange.keySet().size() > 0) {
+                toChange.keySet().stream().forEach((key) -> {
+                    String username = toChange.get(key).getKey();
+                    String email = toChange.get(key).getValue();
+                    String uniqueEmail = email + UUID.randomUUID();
+                    if(uniqueEmail.length() > 255) {
+                        uniqueEmail = uniqueEmail.substring(uniqueEmail.length() - 255, uniqueEmail.length());
+                    }
+                    ejt.update("UPDATE users SET email=? WHERE id=?", new Object[] {uniqueEmail, key});
+                    LOG.warn("Changing email address for user with duplicate email '" + email + "' with id " + key + " and username '" + username + "' to " + uniqueEmail);
                     PrintWriter pw = new PrintWriter(out);
-                    pw.write("WARN: Removing user with duplicate email '" + email + "' with id " + key + " and username '" + username + "'\n");
+                    pw.write("WARN: Changing email address for user with duplicate email '" + email + "' with id " + key + " and username '" + username + "' to " + uniqueEmail);
                     pw.flush();
                 });
             } else {
-                LOG.info("No duplicate email addresses on users, no users removed.");
+                LOG.info("No duplicate email addresses on users, no user email addresses modified.");
             }
             
             //Create columns for user table
