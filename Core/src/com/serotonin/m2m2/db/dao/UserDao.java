@@ -316,6 +316,17 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                     // always set the created date back to the previous value, i.e. it can never be changed
                     user.setCreated(old.getCreated());
 
+                    // set the email verified date to null if the email was changed but the date was not
+                    Date emailVerified = user.getEmailVerified();
+                    if (emailVerified == null || emailVerified.equals(old.getEmailVerified())) {
+                        boolean emailChanged = !old.getEmail().equals(user.getEmail());
+                        if (emailChanged) {
+                            user.setEmailVerified(null);
+                        } else {
+                            user.setEmailVerified(old.getEmailVerified());
+                        }
+                    }
+
                     ejt.update(
                             USER_UPDATE,
                             new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
