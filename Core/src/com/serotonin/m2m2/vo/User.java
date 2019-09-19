@@ -546,7 +546,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     }
 
     public Long getCreatedTs() {
-        return emailVerified == null ? null : emailVerified.getTime();
+        return created == null ? null : created.getTime();
     }
 
     public void setCreated(Date created) {

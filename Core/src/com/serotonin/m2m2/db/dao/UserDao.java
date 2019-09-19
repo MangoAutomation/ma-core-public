@@ -312,6 +312,10 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                         user.setPasswordChangeTimestamp(old.getPasswordChangeTimestamp());
                         user.setPasswordVersion(old.getPasswordVersion());
                     }
+
+                    // always set the created date back to the previous value, i.e. it can never be changed
+                    user.setCreated(old.getCreated());
+
                     ejt.update(
                             USER_UPDATE,
                             new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
