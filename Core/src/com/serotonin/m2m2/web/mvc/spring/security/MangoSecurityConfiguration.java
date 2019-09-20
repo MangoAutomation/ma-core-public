@@ -233,7 +233,7 @@ public class MangoSecurityConfiguration {
     RequestMatcher legacyCspMatcher = new AndRequestMatcher(notRestRequestMatcher, legacyUiMatcher);
     RequestMatcher standardCspMatcher = new AndRequestMatcher(notRestRequestMatcher, new NegatedRequestMatcher(legacyUiMatcher));
 
-    @Value("${rateLimit.rest.anonymous.honorXForwardedFor:false}") boolean honorXForwardedFor;
+    @Value("${rateLimit.honorXForwardedFor:false}") boolean honorXForwardedFor;
 
     @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled;
     @Value("${authentication.basic.enabled:true}") boolean basicAuthenticationEnabled;
