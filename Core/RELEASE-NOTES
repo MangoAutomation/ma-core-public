@@ -16,6 +16,9 @@
 * Add internal metrics for monitoring HTTP server status (internal.monitor.SERVER_THREADS, internal.monitor.SERVER_IDLE_THREADS, and internal.monitor.SERVER_QUEUE_SIZE)
 * Fix bug where flow control out was not being set on serial ports
 * Performance enhancement to synchronization in OrderedThreadPoolExecutor the main executor of Mango tasks
+* Adding Quality of Service filter for Jetty, configure web.qos env properties to suit
+* Adding Denial of Service filter for Jetty, configure web.dos env properties to suit
+* Adding Low resource management for Jetty, configure web.lowResource env properties to suit
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
