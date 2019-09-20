@@ -28,6 +28,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.RateLimiter;
+import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoWebAuthenticationDetailsSource.MangoWebAuthenticationDetails;
 
 
 /**
@@ -78,20 +79,19 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String username = authentication.getName();
+        if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
+            return null;
+        }
 
+        if (!(authentication.getDetails() instanceof MangoWebAuthenticationDetails)) {
+            throw new InternalAuthenticationServiceException("Expected authentication details to be instance of WebAuthenticationDetails");
+        }
+
+        String username = authentication.getName();
         WebAuthenticationDetails details = (WebAuthenticationDetails) authentication.getDetails();
         String ip = details.getRemoteAddress();
 
         try {
-            if (!(authentication instanceof UsernamePasswordAuthenticationToken)) {
-                return null;
-            }
-
-            if (!(authentication.getDetails() instanceof WebAuthenticationDetails)) {
-                throw new InternalAuthenticationServiceException("Expected authentication details to be instance of WebAuthenticationDetails");
-            }
-
             boolean ipRateExceeded = this.ipRateLimiter != null && this.ipRateLimiter.checkRateExceeded(ip);
             boolean usernameRateExceeded = this.usernameRateLimiter != null && this.usernameRateLimiter.checkRateExceeded(username);
 

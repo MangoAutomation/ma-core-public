@@ -63,22 +63,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         boolean anonymous = authentication == null || authentication instanceof AnonymousAuthenticationToken;
 
         if (anonymous && this.ipRateLimiter != null) {
-            String ip = request.getRemoteAddr();
-
             // we dont check the X-FORWARDED-FOR header by default as this can be easily spoofed to bypass the rate limits
-            if (honorXForwardedFor) {
-                String value = request.getHeader(HttpHeader.X_FORWARDED_FOR.asString());
-                if (value != null) {
-                    String[] split = value.split("\\s*,\\s*");
-                    if (split.length > 0) {
-                        String lastHop = split[split.length - 1];
-                        if (!lastHop.isEmpty()) {
-                            ip = lastHop;
-                        }
-                    }
-                }
-            }
-
+            String ip = getRemoteAddr(request, honorXForwardedFor);
             rateExceeded = this.ipRateLimiter.hit(ip, multiplier);
             secondsTillRetry = this.ipRateLimiter.secondsTillRetry(ip);
 
@@ -109,4 +95,20 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
     }
 
+    public static String getRemoteAddr(HttpServletRequest request, boolean honorXForwardedFor) {
+        if (honorXForwardedFor) {
+            String value = request.getHeader(HttpHeader.X_FORWARDED_FOR.asString());
+            if (value != null) {
+                String[] split = value.split("\\s*,\\s*");
+                if (split.length > 0) {
+                    String lastHop = split[split.length - 1];
+                    if (!lastHop.isEmpty()) {
+                        return lastHop;
+                    }
+                }
+            }
+        }
+
+        return request.getRemoteAddr();
+    }
 }

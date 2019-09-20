@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,6 +23,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationEventPublisher;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -196,6 +199,8 @@ public class MangoSecurityConfiguration {
 
         return !enabled ? null : new RateLimiter<>(burstQuantity, quanitity, period, periodUnit);
     }
+
+    @Autowired AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource;
 
     @Autowired HttpFirewall httpFirewall;
     @Autowired AccessDeniedHandler accessDeniedHandler;
@@ -411,6 +416,7 @@ public class MangoSecurityConfiguration {
 
             if (basicAuthenticationEnabled) {
                 http.httpBasic()
+                .authenticationDetailsSource(authenticationDetailsSource)
                 .realmName(basicAuthenticationRealm)
                 .authenticationEntryPoint(authenticationEntryPoint);
             } else {
@@ -418,7 +424,7 @@ public class MangoSecurityConfiguration {
             }
 
             if (tokenAuthEnabled) {
-                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint), BasicAuthenticationFilter.class);
+                http.addFilterBefore(new BearerAuthenticationFilter(authenticationManagerBean(), authenticationEntryPoint, authenticationDetailsSource), BasicAuthenticationFilter.class);
             }
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
@@ -496,6 +502,7 @@ public class MangoSecurityConfiguration {
             http.requestCache().disable();
 
             http.apply(jsonLoginConfigurer)
+            .authenticationDetailsSource(authenticationDetailsSource)
             .successHandler(authenticationSuccessHandler)
             .failureHandler(authenticationFailureHandler);
 
@@ -504,6 +511,7 @@ public class MangoSecurityConfiguration {
             // this adds an authentication entry point but it wont be used as we have already specified one below in exceptionHandling()
             .loginPage("/login-xyz.htm")
             .loginProcessingUrl("/login")
+            .authenticationDetailsSource(authenticationDetailsSource)
             .successHandler(authenticationSuccessHandler)
             .failureHandler(authenticationFailureHandler)
             .permitAll();

@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -24,12 +25,14 @@ public class MangoSwitchUserFilter extends SwitchUserFilter {
 
     @Autowired
     public MangoSwitchUserFilter(UserDetailsService userDetailsService, AuthenticationSuccessHandler authenticationSuccessHandler,
-            AuthenticationFailureHandler failureHandler, ApplicationEventPublisher eventPublisher) {
+            AuthenticationFailureHandler failureHandler, ApplicationEventPublisher eventPublisher,
+            AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource) {
         this.setUserDetailsService(userDetailsService);
         this.setSuccessHandler(authenticationSuccessHandler);
         this.setFailureHandler(failureHandler);
         this.setApplicationEventPublisher(eventPublisher);
         this.setUsernameParameter("username");
+        this.setAuthenticationDetailsSource(authenticationDetailsSource);
     }
 
     @Override

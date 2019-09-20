@@ -12,12 +12,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.Assert;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -30,16 +30,21 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.BearerAuthentic
  * @author Jared Wiltshire
  */
 public class BearerAuthenticationFilter extends OncePerRequestFilter {
-    private AuthenticationEntryPoint authenticationEntryPoint;
-    private AuthenticationManager authenticationManager;
-    private WebAuthenticationDetailsSource authenticationDetailsSource = new WebAuthenticationDetailsSource();
+    private final AuthenticationEntryPoint authenticationEntryPoint;
+    private final AuthenticationManager authenticationManager;
+    private final AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource;
 
-    public BearerAuthenticationFilter(AuthenticationManager authenticationManager, AuthenticationEntryPoint authenticationEntryPoint) {
+    public BearerAuthenticationFilter(AuthenticationManager authenticationManager,
+            AuthenticationEntryPoint authenticationEntryPoint,
+            AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource) {
         Assert.notNull(authenticationManager, "authenticationManager cannot be null");
         Assert.notNull(authenticationEntryPoint,
                 "authenticationEntryPoint cannot be null");
+        Assert.notNull(authenticationDetailsSource,
+                "authenticationDetailsSource cannot be null");
         this.authenticationManager = authenticationManager;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.authenticationDetailsSource = authenticationDetailsSource;
     }
 
     @Override
