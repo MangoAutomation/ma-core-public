@@ -201,7 +201,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
 
             //Cannot disable
             if(vo.isDisabled()) {
-                result.addContextualMessage("permissions", "users.validate.adminDisable");
+                result.addContextualMessage("disabled", "users.validate.adminDisable");
             }else {
                 //If we are disabled this check will throw an exception, we are invalid anyway so 
                 // don't check
@@ -218,14 +218,14 @@ public class UsersService extends AbstractVOService<User, UserDao> {
                 result.addContextualMessage("permissions", "users.validate.cannotChangePermissions");
             }
         }
-
-        //Cannot Rename a User to an existing Username
-        if(!StringUtils.equals(vo.getUsername(), existing.getUsername())){
-            User existingUser = this.dao.getUser(vo.getUsername());
-            if(existingUser != null){
-                result.addContextualMessage("username", "users.validate.usernameInUse");
-            }
-        }
+//For now this is done in the VO.validate() method as it already validates the existing VO
+//        //Cannot Rename a User to an existing Username
+//        if(!StringUtils.equals(vo.getUsername(), existing.getUsername())){
+//            User existingUser = this.dao.getUser(vo.getUsername());
+//            if(existingUser != null){
+//                result.addContextualMessage("username", "users.validate.usernameInUse");
+//            }
+//        }
 
         vo.validate(result);
         return result;

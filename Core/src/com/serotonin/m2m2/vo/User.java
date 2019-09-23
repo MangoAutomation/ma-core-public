@@ -664,12 +664,12 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         if (StringUtils.isBlank(username))
             response.addMessage("username", new TranslatableMessage("validate.required"));
         else if(!UserDao.getInstance().isUsernameUnique(username, id))
-            response.addMessage("username", new TranslatableMessage("users.validate.usernameUnique"));
+            response.addMessage("username", new TranslatableMessage("users.validate.usernameInUse"));
 
         if (StringUtils.isBlank(email))
             response.addMessage("email", new TranslatableMessage("validate.required"));
         else if(!UserDao.getInstance().isEmailUnique(email, id))
-            response.addMessage("username", new TranslatableMessage("users.validate.emailUnique"));
+            response.addMessage("email", new TranslatableMessage("users.validate.emailUnique"));
 
         if (StringUtils.isBlank(password)) {
             response.addMessage("password", new TranslatableMessage("validate.required"));
