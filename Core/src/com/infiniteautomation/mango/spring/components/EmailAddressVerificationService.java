@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.UsersService;
+import com.infiniteautomation.mango.util.exception.FeatureDisabledException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableRuntimeException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -291,8 +292,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
     public void ensurePublicRegistrationEnabled() {
         if (!systemSettings.getBooleanValue(SystemSettingsDao.USERS_PUBLIC_REGISTRATION_ENABLED)) {
-            // TODO PermissionException deal with null permissionHolder
-            throw new TranslatableRuntimeException(new TranslatableMessage("users.publicRegistration.disabled"));
+            throw new FeatureDisabledException(new TranslatableMessage("users.publicRegistration.disabled"));
         }
     }
 
