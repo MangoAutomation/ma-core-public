@@ -59,17 +59,20 @@
   </filter>
   
   <filter>
-   <filter-name>etagFilter</filter-name>
-   <filter-class>com.serotonin.m2m2.web.filter.MangoShallowEtagHeaderFilter</filter-class>
+   <filter-name>cacheControlFilter</filter-name>
+   <filter-class>com.serotonin.m2m2.web.filter.MangoCacheControlHeaderFilter</filter-class>
    <async-supported>true</async-supported>
+   
   </filter>
   
   <!-- 
     Filter mappings.
    -->
    <filter-mapping>
-  	<filter-name>etagFilter</filter-name>
+  	<filter-name>cacheControlFilter</filter-name>
   	<url-pattern>/*</url-pattern>
+  	<dispatcher>REQUEST</dispatcher>
+  	<dispatcher>FORWARD</dispatcher>
   </filter-mapping>
 
   <filter-mapping>
