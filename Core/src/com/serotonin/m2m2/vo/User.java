@@ -757,6 +757,13 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                     response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
                 }
             }
+            //Can't set the date created 
+            if(created != null) {
+                response.addContextualMessage("created", "validate.invalidValue");
+            }
+            if(emailVerified != null) {
+                response.addContextualMessage("emailVerified", "validate.invalidValue");
+            }
         }
         if(sessionExpirationOverride) {
             if (-1 == Common.TIME_PERIOD_CODES.getId(sessionExpirationPeriodType, Common.TimePeriods.MILLISECONDS))
