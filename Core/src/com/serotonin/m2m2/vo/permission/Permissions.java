@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.permission;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -494,6 +495,21 @@ public class Permissions {
         }
     }
 
+    /**
+     * Remove null and empty permissions
+     * @param requiredPermissions
+     */
+    public static void cleanPermissionSet(Set<String> requiredPermissions) {
+        Objects.requireNonNull(requiredPermissions, "Permission set cannot be null");
+        Iterator<String> it = requiredPermissions.iterator();
+        while(it.hasNext()) {
+            String requiredPermission = it.next();
+            if (requiredPermission == null || requiredPermission.isEmpty()) {
+                it.remove();
+            }
+        }
+    }
+    
     private static boolean containsSinglePermission(Set<String> heldPermissions, String requiredPermission) {
         if (heldPermissions.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
