@@ -3,9 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,14 +21,19 @@ import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
+import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionDetails;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
+
+import freemarker.template.TemplateException;
 
 /**
  * Service to access Users
@@ -41,9 +51,12 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 @Service
 public class UsersService extends AbstractVOService<User, UserDao> {
 
+    private final SystemSettingsDao systemSettings;
+    
     @Autowired
-    public UsersService(UserDao dao) {
+    public UsersService(UserDao dao, SystemSettingsDao systemSettings) {
         super(dao);
+        this.systemSettings = systemSettings;
     }
 
     /*
@@ -258,6 +271,30 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             return true;
         else
             return false;
+    }
+
+    /**
+     * @param username
+     * @param sendEmail
+     * @param user
+     * @return
+     * @throws IOException 
+     * @throws TemplateException 
+     * @throws AddressException 
+     */
+    public User approveUser(String username, boolean sendEmail, PermissionHolder user) throws PermissionException, NotFoundException, TemplateException, IOException, AddressException {
+        User existing = get(username, user);
+        User approved = existing.copy();
+        approved.setDisabled(false);
+        update(existing, approved, user);
+        
+        Translations translations = existing.getTranslations();
+        Map<String, Object> model = new HashMap<>();
+        TranslatableMessage subject = new TranslatableMessage("ftl.userApproved.subject", this.systemSettings.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
+        MangoEmailContent content = new MangoEmailContent("accountApproved", model, translations, subject.translate(translations), Common.UTF8);
+        EmailWorkItem.queueEmail(existing.getEmail(), content);
+        
+        return approved;
     }
 
 }
