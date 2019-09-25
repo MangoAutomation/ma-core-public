@@ -4,7 +4,6 @@
 package com.serotonin.m2m2.vo;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 
 /**
@@ -35,12 +34,7 @@ public interface Validatable {
     public default void validate(String contextPrefix, ProcessResult response) {
         ProcessResult contextResult = new ProcessResult();
         this.validate(contextResult);
-        for (ProcessMessage msg : contextResult.getMessages()) {
-            String contextKey = msg.getContextKey();
-            if (contextKey != null) {
-                msg.setContextKey(contextPrefix + "." + contextKey);
-            }
-            response.addMessage(msg);
-        }
+        contextResult.prefixContextKey(contextPrefix);
+        contextResult.copyTo(response);
     }
 }

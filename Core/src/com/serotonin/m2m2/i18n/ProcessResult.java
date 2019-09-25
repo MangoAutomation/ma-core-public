@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
@@ -26,6 +27,16 @@ public class ProcessResult {
     private List<ProcessMessage> messages = new ArrayList<ProcessMessage>();
     private Map<String, Object> data = new HashMap<String, Object>();
 
+    private final String contextKeyPrefix;
+
+    public ProcessResult() {
+        this.contextKeyPrefix = "";
+    }
+
+    public ProcessResult(String contextKeyPrefix) {
+        this.contextKeyPrefix = contextKeyPrefix + ".";
+    }
+
     public boolean getHasMessages() {
         return messages != null && messages.size() > 0;
     }
@@ -35,7 +46,7 @@ public class ProcessResult {
     }
 
     public void addContextualMessage(String contextKey, String contextualMessageKey, Object... params) {
-        addMessage(new ProcessMessage(contextKey, contextualMessageKey, params));
+        addMessage(new ProcessMessage(this.contextKeyPrefix + contextKey, contextualMessageKey, params));
     }
 
     public void addMessage(TranslatableMessage genericMessage) {
@@ -43,7 +54,7 @@ public class ProcessResult {
     }
 
     public void addMessage(Level level, String contextKey, TranslatableMessage contextualMessage) {
-        addMessage(new ProcessMessage(level, contextKey, contextualMessage));
+        addMessage(new ProcessMessage(level, this.contextKeyPrefix + contextKey, contextualMessage));
     }
 
     public void addGenericMessage(Level level, String key, Object... params) {
@@ -51,7 +62,7 @@ public class ProcessResult {
     }
 
     public void addContextualMessage(Level level, String contextKey, String contextualMessageKey, Object... params) {
-        addMessage(new ProcessMessage(level, contextKey, contextualMessageKey, params));
+        addMessage(new ProcessMessage(level, this.contextKeyPrefix + contextKey, contextualMessageKey, params));
     }
 
     public void addMessage(Level level, TranslatableMessage genericMessage) {
@@ -59,7 +70,7 @@ public class ProcessResult {
     }
 
     public void addMessage(String contextKey, TranslatableMessage contextualMessage) {
-        addMessage(new ProcessMessage(contextKey, contextualMessage));
+        addMessage(new ProcessMessage(this.contextKeyPrefix + contextKey, contextualMessage));
     }
 
     public void addMessage(ProcessMessage message) {
@@ -107,5 +118,32 @@ public class ProcessResult {
     public void ensureValid() throws ValidationException {
         if(!isValid())
             throw new ValidationException(this);
+    }
+
+    /**
+     * Sets a prefix on all context messages
+     * @param prefix
+     */
+    public void prefixContextKey(String prefix) {
+        Objects.requireNonNull(prefix);
+
+        if (messages != null) {
+            for (ProcessMessage msg : messages) {
+                String contextKey = msg.getContextKey();
+                if (contextKey != null) {
+                    msg.setContextKey(prefix + "." + contextKey);
+                }
+            }
+        }
+    }
+
+    /**
+     * Copies all messages and data from this ProcessResult to another ProcessResult
+     * @param other
+     */
+    public void copyTo(ProcessResult other) {
+        Objects.requireNonNull(other);
+        other.getMessages().addAll(messages);
+        other.getData().putAll(data);
     }
 }
