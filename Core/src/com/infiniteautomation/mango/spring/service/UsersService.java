@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.common.base.Objects;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -105,6 +107,12 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             vo.setXid(dao.generateUniqueXid());
 
         ensureValid(vo, user);
+        
+        //After validation we can set the created date if necessary
+        if(vo.getCreated() == null) {
+            vo.setCreated(new Date());
+        }
+        
         dao.saveUser(vo);
         return vo;
     }
@@ -121,6 +129,21 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             vo.setPassword(existing.getPassword());
         }
 
+        if(vo.getCreated() == null) {
+            vo.setCreated(existing.getCreated());
+        }
+        
+        // set the email verified date to null if the email was changed but the date was not
+        Date emailVerified = vo.getEmailVerified();
+        if (emailVerified == null || emailVerified.equals(existing.getEmailVerified())) {
+            boolean emailChanged = !existing.getEmail().equals(vo.getEmail());
+            if (emailChanged) {
+                vo.setEmailVerified(null);
+            } else {
+                vo.setEmailVerified(existing.getEmailVerified());
+            }
+        }
+        
         ensureValid(existing, vo, user);
         dao.saveUser(vo);
         return vo;
@@ -197,10 +220,16 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         return groups;
     }
 
-
     @Override
     public ProcessResult validate(User vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
+        if(vo.getEmailVerified() != null && !user.hasAdminPermission()) {
+            result.addContextualMessage("emailVerified", "validate.invalidValue");
+        }
+        //Can't set the date created 
+        if(vo.getCreated() != null && !user.hasAdminPermission()) {
+            result.addContextualMessage("created", "validate.required");
+        }
         vo.validate(result);
         return result;
     }
@@ -239,7 +268,15 @@ public class UsersService extends AbstractVOService<User, UserDao> {
 //                result.addContextualMessage("username", "users.validate.usernameInUse");
 //            }
 //        }
-
+        
+        if(!Objects.equal(vo.getEmailVerified(), existing.getEmailVerified()) && !user.hasAdminPermission()) {
+            result.addContextualMessage("emailVerified", "validate.invalidValue");
+        }
+        
+        if(!Objects.equal(vo.getCreated(), existing.getCreated()) && !user.hasAdminPermission()) {
+            result.addContextualMessage("created", "validate.invalidValue");
+        }
+        
         vo.validate(result);
         return result;
     }

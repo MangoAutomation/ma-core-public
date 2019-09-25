@@ -33,7 +33,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Joiner;
-import com.google.common.base.Objects;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
@@ -752,24 +751,14 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), sessionExpirationPeriodType) && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
             }
-            
-            if(!Objects.equal(emailVerified, existing.getEmailVerified()) && (savingUser == null || !savingUser.hasAdminPermission())) {
-                response.addContextualMessage("emailVerified", "validate.invalidValue");
-            }
         }else {
             if(sessionExpirationOverride) {
                 if(savingUser == null || !savingUser.hasAdminPermission()) {
                     response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
                 }
             }
-            //Can't set the date created 
-            if(created != null) {
-                response.addContextualMessage("created", "validate.invalidValue");
-            }
-            if(emailVerified != null && (savingUser == null || !savingUser.hasAdminPermission())) {
-                response.addContextualMessage("emailVerified", "validate.invalidValue");
-            }
         }
+        
         if(sessionExpirationOverride) {
             if (-1 == Common.TIME_PERIOD_CODES.getId(sessionExpirationPeriodType, Common.TimePeriods.MILLISECONDS))
                 response.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
