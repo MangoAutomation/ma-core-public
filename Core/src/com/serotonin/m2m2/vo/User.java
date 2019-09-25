@@ -33,6 +33,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
@@ -751,6 +752,10 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), sessionExpirationPeriodType) && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
             }
+            
+            if(!Objects.equal(emailVerified, existing.getEmailVerified()) && !savingUser.hasAdminPermission()) {
+                response.addContextualMessage("emailVerified", "validate.invalidValue");
+            }
         }else {
             if(sessionExpirationOverride) {
                 if(savingUser == null || !savingUser.hasAdminPermission()) {
@@ -761,7 +766,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             if(created != null) {
                 response.addContextualMessage("created", "validate.invalidValue");
             }
-            if(emailVerified != null) {
+            if(emailVerified != null && !savingUser.hasAdminPermission()) {
                 response.addContextualMessage("emailVerified", "validate.invalidValue");
             }
         }
