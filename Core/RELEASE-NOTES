@@ -19,6 +19,9 @@
 * Adding Quality of Service filter for Jetty, configure web.qos env properties to suit
 * Adding Denial of Service filter for Jetty, configure web.dos env properties to suit
 * Adding Low resource management for Jetty, configure web.lowResource env properties to suit
+* Allow web.cache env properties to be modifiable during runtime
+* Remove ETag header and rely on last-modified for file resource requests
+* Add support to control cache headers on web repsonses for specific resources via module code
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources

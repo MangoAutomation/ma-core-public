@@ -47,7 +47,8 @@
     <description>Filter to ensure we properly decode/encode URLs for the REST API</description>
     <filter-name>CharacterEncodingFilter</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
-    <init-param>
+   <async-supported>true</async-supported>
+   <init-param>
         <param-name>encoding</param-name>
         <param-value>UTF-8</param-value>
     </init-param>
@@ -55,14 +56,12 @@
         <param-name>forceEncoding</param-name>
         <param-value>true</param-value>
     </init-param>
-   <async-supported>true</async-supported>
   </filter>
   
   <filter>
    <filter-name>cacheControlFilter</filter-name>
    <filter-class>com.serotonin.m2m2.web.filter.MangoCacheControlHeaderFilter</filter-class>
    <async-supported>true</async-supported>
-   
   </filter>
   
   <!-- 
@@ -73,6 +72,7 @@
   	<url-pattern>/*</url-pattern>
   	<dispatcher>REQUEST</dispatcher>
   	<dispatcher>FORWARD</dispatcher>
+  	<dispatcher>ASYNC</dispatcher>
   </filter-mapping>
 
   <filter-mapping>
