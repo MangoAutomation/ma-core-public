@@ -61,6 +61,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
     public static final String TOKEN_TYPE_VALUE = "emailverify";
     public static final String USER_ID_CLAIM = "id";
+    public static final String USERNAME_CLAIM = "u";
 
     private final PermissionHolder systemSuperadmin;
     private final UsersService usersService;
@@ -202,9 +203,11 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             this.ensurePublicRegistrationEnabled();
         }
 
+        long verificationTime = System.currentTimeMillis();
+
         if (expirationDate == null) {
             int expiryDuration = this.systemSettings.getIntValue(EXPIRY_SYSTEM_SETTING);
-            expirationDate = new Date(System.currentTimeMillis() + expiryDuration * 1000);
+            expirationDate = new Date(verificationTime + expiryDuration * 1000);
         }
 
         try {
@@ -218,9 +221,11 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         }
 
         JwtBuilder builder = this.newToken(emailAddress, expirationDate);
+        builder.setIssuedAt(new Date(verificationTime));
         if (userToUpdate != null) {
             this.usersService.ensureEditPermission(permissionHolder, userToUpdate);
             builder.claim(USER_ID_CLAIM, userToUpdate.getId());
+            builder.claim(USERNAME_CLAIM, userToUpdate.getUsername());
         }
 
         return this.sign(builder);
@@ -252,13 +257,14 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         Jws<Claims> token = this.parse(tokenString);
         String verifiedEmail = this.verify(token);
 
-        int userId = this.verifyClaimType(token, USER_ID_CLAIM, Integer.class);
+        int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
 
         User existing = this.usersService.get(userId, this.systemSuperadmin);
+        this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
 
         User updated = existing.copy();
         updated.setEmail(verifiedEmail);
-        updated.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
+        updated.setEmailVerified(token.getBody().getIssuedAt());
 
         // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
         // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
@@ -281,6 +287,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         String verifiedEmail = this.verify(token);
 
         this.verifyNoClaim(token, USER_ID_CLAIM);
+        this.verifyNoClaim(token, USERNAME_CLAIM);
 
         //Totally new user
         newUser.setPermissionsSet(Collections.emptySet());
