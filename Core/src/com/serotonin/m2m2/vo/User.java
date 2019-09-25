@@ -753,7 +753,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                 response.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
             }
             
-            if(!Objects.equal(emailVerified, existing.getEmailVerified()) && !savingUser.hasAdminPermission()) {
+            if(!Objects.equal(emailVerified, existing.getEmailVerified()) && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("emailVerified", "validate.invalidValue");
             }
         }else {
@@ -766,7 +766,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             if(created != null) {
                 response.addContextualMessage("created", "validate.invalidValue");
             }
-            if(emailVerified != null && !savingUser.hasAdminPermission()) {
+            if(emailVerified != null && (savingUser == null || !savingUser.hasAdminPermission())) {
                 response.addContextualMessage("emailVerified", "validate.invalidValue");
             }
         }
