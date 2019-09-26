@@ -22,6 +22,7 @@
 * Allow web.cache env properties to be modifiable during runtime
 * Remove ETag header and rely on last-modified for file resource requests
 * Add support to control cache headers on web repsonses for specific resources via module code
+* Increase defaults for REST request rate limit since DoS and QoS filters will handle this 
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
