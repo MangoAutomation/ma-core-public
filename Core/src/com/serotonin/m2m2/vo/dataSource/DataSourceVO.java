@@ -38,6 +38,7 @@ import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
@@ -225,14 +226,16 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
             existingPermissions = null;
         }
         
-        User user = Common.getHttpUser();
-        if(user == null)
-            user = Common.getBackgroundContextUser();
+        User savingUser = Common.getUser();
+        PermissionHolder savingPermissionHolder = savingUser;
+        if(savingUser == null) {
+            savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
+        }
         
         //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
-        boolean owner = user != null ? Permissions.hasDataSourcePermission(user) : false;
+        boolean owner = savingPermissionHolder != null ? Permissions.hasDataSourcePermission(savingPermissionHolder) : false;
         
-        Permissions.validatePermissions(response, "editPermission", user, owner, existingPermissions, Permissions.explodePermissionGroups(this.editPermission));
+        Permissions.validatePermissions(response, "editPermission", savingPermissionHolder, owner, existingPermissions, Permissions.explodePermissionGroups(this.editPermission));
     }
 
     protected String getMessage(Translations translations, String key, Object... args) {

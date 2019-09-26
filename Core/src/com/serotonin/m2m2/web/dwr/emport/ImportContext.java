@@ -6,29 +6,31 @@ package com.serotonin.m2m2.web.dwr.emport;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessMessage.Level;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 public class ImportContext {
-    private final UserDao userDao = UserDao.getInstance();
+    private final UsersService usersService;
     private final DataSourceDao<?> dataSourceDao = DataSourceDao.getInstance();
     private final DataPointDao dataPointDao = DataPointDao.getInstance();
     private final EventDao eventDao = EventDao.getInstance();
     private final MailingListDao mailingListDao = MailingListDao.getInstance();
-    private final PublisherDao publisherDao = PublisherDao.getInstance();
+    private final PublisherDao<? extends PublishedPointVO> publisherDao = PublisherDao.getInstance();
     private final EventHandlerDao<AbstractEventHandlerVO<?>> eventHandlerDao = EventHandlerDao.getInstance();
 
     private final JsonReader reader;
@@ -36,6 +38,7 @@ public class ImportContext {
     private final Translations translations;
 
     public ImportContext(JsonReader reader, ProcessResult result, Translations translations) {
+        this.usersService = Common.getBean(UsersService.class);
         this.reader = reader;
         this.result = result;
         this.translations = translations;
@@ -43,6 +46,10 @@ public class ImportContext {
         result.setMessages(new CopyOnWriteArrayList<ProcessMessage>());
     }
 
+    public UsersService getUsersService() {
+        return this.usersService;
+    }
+    
     public JsonReader getReader() {
         return reader;
     }
@@ -53,10 +60,6 @@ public class ImportContext {
 
     public Translations getTranslations() {
         return translations;
-    }
-
-    public UserDao getUserDao() {
-        return userDao;
     }
 
     public DataSourceDao<?> getDataSourceDao() {

@@ -41,9 +41,9 @@ import com.serotonin.m2m2.view.chart.BaseChartRenderer;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.text.BaseTextRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.MangoPropertySource;
 import com.serotonin.m2m2.web.mvc.spring.MangoWebApplicationInitializer;
 import com.serotonin.provider.Providers;
@@ -318,7 +318,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     @Override
-    public Thread scheduleShutdown(Long timeout, boolean b, User user) {
+    public Thread scheduleShutdown(Long timeout, boolean b, PermissionHolder user) {
 
         return null;
     }

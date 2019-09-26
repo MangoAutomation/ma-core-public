@@ -61,7 +61,7 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.util.ColorUtils;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
@@ -791,7 +791,7 @@ public class SystemSettingsDao extends BaseDao {
      * @param settings
      * @param voResponse
      */
-    public void validate(Map<String, Object> settings, ProcessResult response, User user) {
+    public void validate(Map<String, Object> settings, ProcessResult response, PermissionHolder user) {
 
         Object setting = null;
 

@@ -12,11 +12,12 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class DataSourceImporter extends Importer {
-    public DataSourceImporter(JsonObject json) {
-        super(json);
+    public DataSourceImporter(JsonObject json, PermissionHolder user) {
+        super(json, user);
     }
 
     @Override

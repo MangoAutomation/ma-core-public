@@ -3,7 +3,7 @@ package com.serotonin.m2m2;
 import java.io.InputStream;
 import java.util.Map;
 
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Provider;
 
 public interface IMangoLifecycle extends Provider {
@@ -64,7 +64,7 @@ public interface IMangoLifecycle extends Provider {
      * @param restart (should Mango restart?)
      * @return
      */
-    Thread scheduleShutdown(Long timeout, boolean restart, User user);
+    Thread scheduleShutdown(Long timeout, boolean restart, PermissionHolder user);
 
     /**
      * @return

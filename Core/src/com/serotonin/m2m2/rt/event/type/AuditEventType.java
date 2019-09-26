@@ -158,11 +158,16 @@ public class AuditEventType extends EventType{
         if (user != null)
             username = user.getUsername() + " (" + user.getId() + ")";
         else {
-            String descKey = Common.getBackgroundProcessDescription();
-            if (descKey == null)
-                username = new TranslatableMessage("common.unknown");
-            else
-                username = new TranslatableMessage(descKey);
+            PermissionHolder holder = Common.getBackgroundContextPermissionHolder();
+            if(holder == null) {
+                String descKey = Common.getBackgroundProcessDescription();
+                if (descKey == null)
+                    username = new TranslatableMessage("common.unknown");
+                else
+                    username = new TranslatableMessage(descKey);
+            }else {
+                username = holder.getPermissionHolderName();
+            }
         }
 
         TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
@@ -196,51 +201,33 @@ public class AuditEventType extends EventType{
             this.context = context;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#execute()
-         */
         @Override
         public void execute() {
             Common.eventManager.raiseEvent(type, time, false, getEventType(type.getAuditEventType())
                     .getAlarmLevel(), message, context);
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getPriority()
-         */
         @Override
         public int getPriority() {
             return WorkItem.PRIORITY_LOW;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
-         */
         @Override
         public String getDescription() {
             return message.translate(Common.getTranslations());
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-         */
         @Override
         public String getTaskId() {
             // No Order required
             return null;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getQueueSize()
-         */
         @Override
         public int getQueueSize() {
             return 0;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-         */
         @Override
         public void rejected(RejectedTaskReason reason) {
             //No special handling, tracking/logging handled by WorkItemRunnable
@@ -376,9 +363,6 @@ public class AuditEventType extends EventType{
         writer.writeEntry("auditType", auditEventType);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-     */
     @Override
     public EventTypeModel asModel() {
         return new AuditEventTypeModel(this);

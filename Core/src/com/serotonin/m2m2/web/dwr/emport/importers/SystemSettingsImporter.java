@@ -15,19 +15,20 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 /**
  * @author Terry Packer
  *
  */
-public class SystemSettingsImporter extends Importer{
+public class SystemSettingsImporter extends Importer {
 
 	/**
 	 * @param json
 	 */
-	public SystemSettingsImporter(JsonObject json) {
-		super(json);
+	public SystemSettingsImporter(JsonObject json, PermissionHolder user) {
+		super(json, user);
 	}
 
 	/* (non-Javadoc)
@@ -61,9 +62,6 @@ public class SystemSettingsImporter extends Importer{
             // Now validate it. Use a new response object so we can distinguish errors in this vo from
             // other errors.
             ProcessResult voResponse = new ProcessResult();
-            User user = Common.getHttpUser();
-            if(user == null)
-                user = BackgroundContext.get().getUser();
             SystemSettingsDao.instance.validate(settings, voResponse, user);
             if (voResponse.getHasMessages())
                 setValidationMessages(voResponse, "emport.systemSettings.prefix", new TranslatableMessage("header.systemSettings").translate(Common.getTranslations()));

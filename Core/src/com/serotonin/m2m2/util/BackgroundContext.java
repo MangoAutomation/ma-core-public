@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.util;
 
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Matthew Lohbihler
@@ -18,12 +19,16 @@ public class BackgroundContext {
     /**
      * Creates the BackgroundContext instance for this thread and adds it to the store.
      */
-    public static void set(User user) {
+    public static void set(PermissionHolder user) {
         contextStore.set(new BackgroundContext(user));
     }
 
     public static void set(String processDescriptionKey) {
         contextStore.set(new BackgroundContext(processDescriptionKey));
+    }
+    
+    public static void set(BackgroundContext context) {
+        contextStore.set(context);
     }
 
     /**
@@ -42,13 +47,13 @@ public class BackgroundContext {
         contextStore.remove();
     }
 
-    private final User user;
+    private final PermissionHolder user;
     private final String processDescriptionKey;
 
     /**
      * Constructor
      */
-    private BackgroundContext(User user) {
+    private BackgroundContext(PermissionHolder user) {
         this.user = user;
         this.processDescriptionKey = null;
     }
@@ -59,9 +64,13 @@ public class BackgroundContext {
     }
 
     public User getUser() {
+        return (User)user;
+    }
+    
+    public PermissionHolder getPermissionHolder() {
         return user;
     }
-
+    
     public String getProcessDescriptionKey() {
         return processDescriptionKey;
     }

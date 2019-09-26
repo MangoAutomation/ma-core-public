@@ -7,6 +7,7 @@ package com.serotonin.m2m2.module;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.ImportContext;
 
 /**
@@ -44,8 +45,11 @@ abstract public class EmportDefinition extends ModuleElementDefinition {
      *            the JSON data to import
      * @param importContext
      *            the import context
+     * @param importer 
+     *            the permission holder doing the import
+     * @throws JsonException
      */
-    abstract public void doImport(JsonValue json, ImportContext importContext) throws JsonException;
+    abstract public void doImport(JsonValue json, ImportContext importContext, PermissionHolder importer) throws JsonException;
     
     /**
      * Does this emporter need to show up in the UI and be included in configuration backups

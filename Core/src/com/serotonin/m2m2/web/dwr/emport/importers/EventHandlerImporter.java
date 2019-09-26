@@ -19,11 +19,12 @@ import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class EventHandlerImporter extends Importer {
-    public EventHandlerImporter(JsonObject json) {
-        super(json);
+    public EventHandlerImporter(JsonObject json, PermissionHolder user) {
+        super(json, user);
     }
 
     @Override

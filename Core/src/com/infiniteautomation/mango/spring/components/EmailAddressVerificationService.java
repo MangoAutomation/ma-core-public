@@ -32,7 +32,9 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
+import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
+import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -269,7 +271,12 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
         // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
         // generating the token.
-        return this.usersService.update(existing, updated, this.systemSuperadmin);
+        BackgroundContext.set(this.systemSuperadmin);
+        try {
+            return this.usersService.update(existing, updated, this.systemSuperadmin);
+        }finally {
+            BackgroundContext.remove();
+        }
     }
 
     /**
@@ -294,7 +301,18 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         newUser.setEmail(verifiedEmail);
         newUser.setDisabled(true); //Ensure we are disabled
         newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
-        return this.usersService.insert(newUser, this.systemSuperadmin);
+        
+        BackgroundContext.set(this.systemSuperadmin);
+        try {
+            newUser = this.usersService.insert(newUser, this.systemSuperadmin);
+        }finally {
+            BackgroundContext.remove();
+        }
+        //Raise an event upon successful insertion
+        SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_NEW_USER_REGISTERED);
+        TranslatableMessage message = new TranslatableMessage("event.newUserRegistered", newUser.getUsername(), newUser.getEmail());
+        SystemEventType.raiseEvent(eventType, Common.timer.currentTimeMillis(), false, message);
+        return newUser;
     }
 
     public void ensurePublicRegistrationEnabled() {

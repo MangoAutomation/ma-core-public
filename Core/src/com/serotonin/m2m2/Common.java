@@ -77,6 +77,7 @@ import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.view.DynamicImage;
 import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.provider.Providers;
@@ -435,7 +436,13 @@ public class Common {
     }
 
     // Get the user of the current HTTP request or the background context
-    @Deprecated
+    /**
+     * Get a User from the http context and if not from there try the background context
+     *  Ideally we will know what context to use but this may not be possible in which case 
+     *  this method is helpful.  Note that there may be a permission holder in the background context,
+     *  in which case this method will return null and you should use @see Common.getBackgroundContextPermissionHolder()
+     * @return
+     */
     public static User getUser() {
         User user = getHttpUser();
         if (user == null) {
@@ -465,7 +472,25 @@ public class Common {
     public static User getBackgroundContextUser() {
         BackgroundContext backgroundContext = BackgroundContext.get();
         if (backgroundContext != null) {
-            return backgroundContext.getUser();
+            //Safe get background context User in case its a permission holder
+            PermissionHolder holder = backgroundContext.getPermissionHolder();
+            if(holder instanceof User) {
+                return (User)holder;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * The background context can hold a User (which is a permission holder) 
+     *   but it may also hold a system permission holder which is not a user.
+     * @return
+     */
+    public static PermissionHolder getBackgroundContextPermissionHolder() {
+        BackgroundContext backgroundContext = BackgroundContext.get();
+        if (backgroundContext != null) {
+            //Safe get background context User in case its a permission holder
+            return backgroundContext.getPermissionHolder();
         }
         return null;
     }

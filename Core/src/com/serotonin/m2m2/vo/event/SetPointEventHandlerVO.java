@@ -37,6 +37,7 @@ import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.SetPointEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
@@ -255,11 +256,13 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         else
             setAdditionalContext(new ArrayList<>());
         
-        User user = Common.getHttpUser();
-        if(user == null)
-            user = Common.getBackgroundContextUser();
-        
         if(scriptPermissions != null) {
+            User savingUser = Common.getUser();
+            PermissionHolder savingPermissionHolder = savingUser;
+            if(savingUser == null) {
+                savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
+            }
+            
             boolean owner = false;
             Set<String> existingPermissions;
             if(this.id != Common.NEW_ID) {
@@ -273,7 +276,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             }else {
                 existingPermissions = null;
             }
-            Permissions.validatePermissions(response, "scriptPermissions", user, owner, existingPermissions, scriptPermissions.getPermissionsSet());
+            Permissions.validatePermissions(response, "scriptPermissions", savingPermissionHolder, owner, existingPermissions, scriptPermissions.getPermissionsSet());
         }
     }
     

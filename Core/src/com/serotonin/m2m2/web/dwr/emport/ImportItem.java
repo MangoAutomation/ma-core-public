@@ -9,6 +9,7 @@ import java.util.List;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.module.EmportDefinition;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public class ImportItem {
     private final EmportDefinition emportDefinition;
@@ -35,13 +36,13 @@ public class ImportItem {
         return true;
     }
 
-    public void importNext(ImportContext importContext) throws JsonException {
+    public void importNext(ImportContext importContext, PermissionHolder importer) throws JsonException {
         if (root != null) {
-            emportDefinition.doImport(root, importContext);
+            emportDefinition.doImport(root, importContext, importer);
             root = null;
         }
         else if (list != null)
-            emportDefinition.doImport(list.get(index++), importContext);
+            emportDefinition.doImport(list.get(index++), importContext, importer);
     }
 
     /**

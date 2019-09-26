@@ -53,7 +53,7 @@ public class SystemEventType extends EventType {
     public static final String TYPE_UPGRADE_CHECK = "UPGRADE_CHECK";
     public static final String TYPE_REJECTED_WORK_ITEM = "REJECTED_WORK_ITEM";
     public static final String TYPE_MISSING_MODULE_DEPENDENCY = "MISSING_MODULE_DEPENDENCY";
-    public static final String TYPE_DISABLED_USER_CREATED = "DISABLED_USER_CREATED";
+    public static final String TYPE_NEW_USER_REGISTERED = "TYPE_NEW_USER_REGISTERED";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
     private static final ConcurrentHashMap<String, EventTypeVO> EVENT_TYPES = new ConcurrentHashMap<>();

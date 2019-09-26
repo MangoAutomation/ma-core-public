@@ -18,14 +18,15 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class EventDetectorImporter extends Importer {
 
     private Map<String, DataPointVO> dataPointMap;
     
-	public EventDetectorImporter(JsonObject json, Map<String, DataPointVO> dataPointMap) {
-		super(json);
+	public EventDetectorImporter(JsonObject json, PermissionHolder user, Map<String, DataPointVO> dataPointMap) {
+		super(json, user);
 		this.dataPointMap = dataPointMap;
 	}
 

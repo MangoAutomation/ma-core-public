@@ -8,6 +8,7 @@ import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 /**
@@ -19,8 +20,8 @@ public class PointHierarchyImporter extends Importer {
     private final JsonArray json;
     private PointHierarchy ph = null;
   
-    public PointHierarchyImporter(JsonArray json) {
-        super(null);
+    public PointHierarchyImporter(JsonArray json, PermissionHolder user) {
+        super(null, user);
         this.json = json;
     }
 

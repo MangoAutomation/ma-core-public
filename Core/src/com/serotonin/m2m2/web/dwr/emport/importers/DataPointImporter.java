@@ -8,18 +8,17 @@ import org.apache.commons.lang3.StringUtils;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.RuntimeManager;
-import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
@@ -27,13 +26,13 @@ public class DataPointImporter extends Importer {
     final List<DataPointSummaryPathPair> hierarchyList;
     final String PATH = "path";
     
-    public DataPointImporter(JsonObject json) {
-        super(json);
+    public DataPointImporter(JsonObject json, PermissionHolder user) {
+        super(json, user);
         this.hierarchyList = null;
     }
     
-    public DataPointImporter(JsonObject json, List<DataPointSummaryPathPair> hierarchyList) {
-        super(json);
+    public DataPointImporter(JsonObject json, PermissionHolder user, List<DataPointSummaryPathPair> hierarchyList) {
+        super(json, user);
         this.hierarchyList = hierarchyList;
     }
 

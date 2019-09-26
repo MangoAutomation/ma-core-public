@@ -12,6 +12,7 @@ import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 /**
@@ -19,8 +20,8 @@ import com.serotonin.m2m2.web.dwr.emport.Importer;
  *
  */
 public class JsonDataImporter extends Importer {
-    public JsonDataImporter(JsonObject json) {
-        super(json);
+    public JsonDataImporter(JsonObject json, PermissionHolder user) {
+        super(json, user);
     }
 
     @Override

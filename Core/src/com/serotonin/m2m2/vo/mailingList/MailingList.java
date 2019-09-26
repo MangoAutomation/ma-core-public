@@ -26,6 +26,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
@@ -170,9 +171,11 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
             }
         }
 
-        User user = Common.getHttpUser();
-        if(user == null)
-            user = Common.getBackgroundContextUser();
+        User savingUser = Common.getUser();
+        PermissionHolder savingPermissionHolder = savingUser;
+        if(savingUser == null) {
+            savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
+        }
 
         Set<String> existingReadPermission;
         Set<String> existingEditPermission;
@@ -189,8 +192,8 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
             existingReadPermission = null;
             existingEditPermission = null;
         }
-        Permissions.validatePermissions(result, "readPermissions", user, false, existingReadPermission, readPermissions);
-        Permissions.validatePermissions(result, "editPermissions", user, false, existingEditPermission, editPermissions);
+        Permissions.validatePermissions(result, "readPermissions", savingPermissionHolder, false, existingReadPermission, readPermissions);
+        Permissions.validatePermissions(result, "editPermissions", savingPermissionHolder, false, existingEditPermission, editPermissions);
 
         if(inactiveIntervals != null) {
             if(inactiveIntervals.size() > 672)

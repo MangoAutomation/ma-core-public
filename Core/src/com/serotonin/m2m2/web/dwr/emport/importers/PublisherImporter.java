@@ -11,12 +11,13 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.rt.RuntimeManager;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
 public class PublisherImporter extends Importer {
-    public PublisherImporter(JsonObject json) {
-        super(json);
+    public PublisherImporter(JsonObject json, PermissionHolder user) {
+        super(json, user);
     }
 
     @Override

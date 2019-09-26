@@ -117,7 +117,9 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private String organization;
     @JsonProperty
     private String organizationalRole;
+    @JsonProperty
     private Date created;
+    @JsonProperty
     private Date emailVerified;
     @JsonProperty
     private JsonNode data;
@@ -648,8 +650,8 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
 
     @Override
     public void validate(ProcessResult response) {
-        //TODO Pass in saving user during validation
-        User savingUser = Common.getHttpUser();
+        //TODO Mango 4.0 Move this logic to Service Layer
+        PermissionHolder savingUser = Common.getHttpUser();
         if(savingUser == null)
             savingUser = Common.getBackgroundContextUser();
 

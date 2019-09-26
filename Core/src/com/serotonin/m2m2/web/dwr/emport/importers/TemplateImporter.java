@@ -13,6 +13,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.TemplateDefinition;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 import com.serotonin.m2m2.web.dwr.emport.Importer;
 
@@ -23,8 +24,8 @@ import com.serotonin.m2m2.web.dwr.emport.Importer;
  *
  */
 public class TemplateImporter extends Importer {
-    public TemplateImporter(JsonObject json) {
-        super(json);
+    public TemplateImporter(JsonObject json, PermissionHolder user) {
+        super(json, user);
     }
 
     @Override

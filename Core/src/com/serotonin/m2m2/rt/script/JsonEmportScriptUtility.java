@@ -37,7 +37,6 @@ import net.jazdw.rql.parser.RQLParser;
 public class JsonEmportScriptUtility extends ScriptUtility {
     public static String CONTEXT_KEY = "JsonEmport";
 
-    private boolean admin;
     private RQLParser parser = new RQLParser();;
     private List<JsonImportExclusion> importExclusions;
     protected boolean importDuringValidation = false;
@@ -53,11 +52,6 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
     
     @Override
-    public void setPermissions(PermissionHolder permissions) {
-        admin = Permissions.hasAdminPermission(permissions);
-    }
-    
-    @Override
     public void takeContext(ScriptEngine engine, Bindings engineScope, 
             ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun) {
         this.importExclusions = importExclusions;
@@ -68,7 +62,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getFullConfiguration(int prettyIndent) {
-        if(admin) {
+        if(Permissions.hasAdminPermission(permissions)) {
             return EmportDwr.export(ConfigurationExportData.createExportDataMap(null), prettyIndent);
         }
         return "{}";
@@ -80,7 +74,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String getConfiguration(String type, int prettyIndent) {
         Map<String, Object> data;
-        if(admin) {
+        if(Permissions.hasAdminPermission(permissions)) {
             data = ConfigurationExportData.createExportDataMap(new String[] {type});
         }else {
             data = new LinkedHashMap<>();
@@ -95,7 +89,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String dataPointQuery(String query, int prettyIndent) {
         Map<String, Object> data = new LinkedHashMap<>();
-        if(admin) {
+        if(Permissions.hasAdminPermission(permissions)) {
             ASTNode root = parser.parse(query);
             List<DataPointVO> dataPoints = new ArrayList<>();
             ConditionSortLimitWithTagKeys conditions = DataPointDao.getInstance().rqlToCondition(root);
@@ -117,7 +111,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String dataSourceQuery(String query, int prettyIndent) {
         Map<String, Object> data = new LinkedHashMap<>();
-        if(admin) {
+        if(Permissions.hasAdminPermission(permissions)) {
             ASTNode root = parser.parse(query);
             BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.getInstance().createQuery(root, true);
 
@@ -128,25 +122,25 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public void doImport(String json) throws Exception {
-        if(admin) {
+        if(Permissions.hasAdminPermission(permissions)) {
             JsonTypeReader reader = new JsonTypeReader(json);
             JsonValue value = reader.read();
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask sit = new ScriptImportTask(jo);
+            ScriptImportTask sit = new ScriptImportTask(jo, permissions);
             sit.run(Common.timer.currentTimeMillis());
         }
     }
 
     public List<ProcessMessage> doImportGetStatus(String json) throws Exception {
-        if(admin) {
+        if(Permissions.hasAdminPermission(permissions)) {
             JsonTypeReader reader = new JsonTypeReader(json);
             JsonValue value = reader.read();
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask sit = new ScriptImportTask(jo);
+            ScriptImportTask sit = new ScriptImportTask(jo, permissions);
             sit.run(Common.timer.currentTimeMillis());
             return sit.getMessages();
         }
@@ -176,8 +170,8 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     class ScriptImportTask extends ImportTask {
 
-        public ScriptImportTask(JsonObject jo) {
-            super(jo, Common.getTranslations(), null, false);
+        public ScriptImportTask(JsonObject jo, PermissionHolder holder) {
+            super(jo, Common.getTranslations(), holder, false);
         }
 
         public List<ProcessMessage> getMessages() {

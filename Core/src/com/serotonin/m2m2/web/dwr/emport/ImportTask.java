@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -30,9 +31,9 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointImporter;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataPointSummaryPathPair;
 import com.serotonin.m2m2.web.dwr.emport.importers.DataSourceImporter;
@@ -57,7 +58,7 @@ public class ImportTask extends ProgressiveTask {
 	
     protected final ImportContext importContext;
     protected final PointHierarchyImporter hierarchyImporter;
-    protected final User user;
+    protected final PermissionHolder user;
     protected float progress = 0f;
     protected float progressChunk;
     
@@ -73,7 +74,7 @@ public class ImportTask extends ProgressiveTask {
      * @param user
      * @param listener
      */
-    public ImportTask(JsonObject root, Translations translations, User user, ProgressiveTaskListener listener) {
+    public ImportTask(JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener) {
         this(root, translations, user, listener, true);
     }
     
@@ -83,7 +84,7 @@ public class ImportTask extends ProgressiveTask {
      * @param translations
      * @param user
      */
-    public ImportTask(JsonObject root, Translations translations, User user, boolean schedule) {
+    public ImportTask(JsonObject root, Translations translations, PermissionHolder user, boolean schedule) {
         this(root, translations, user, null, schedule);
     }
 
@@ -96,7 +97,7 @@ public class ImportTask extends ProgressiveTask {
      * @param listener
      * @param schedule
      */
-    public ImportTask(JsonObject root, Translations translations, User user, ProgressiveTaskListener listener, boolean schedule) {
+    public ImportTask(JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener, boolean schedule) {
         this("JSON import task", "JsonImport", 10, root, translations, user, listener, schedule);
     }
 
@@ -111,50 +112,52 @@ public class ImportTask extends ProgressiveTask {
      * @param listener
      * @param schedule
      */
-    public ImportTask(String name, String taskId, int queueSize, JsonObject root, Translations translations, User user, ProgressiveTaskListener listener, boolean schedule) {
+    public ImportTask(String name, String taskId, int queueSize, JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener, boolean schedule) {
     	    super(name, taskId, queueSize, listener);
     	
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
+        
+        Objects.requireNonNull(user);
         this.user = user;
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
-            addImporter(new UserImporter(this.user, jv.toJsonObject()));
+            addImporter(new UserImporter(jv.toJsonObject(), user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
-            addImporter(new DataSourceImporter(jv.toJsonObject()));
+            addImporter(new DataSourceImporter(jv.toJsonObject(), user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
-            addImporter(new DataPointImporter(jv.toJsonObject(), dpPathPairs));
+            addImporter(new DataPointImporter(jv.toJsonObject(), user, dpPathPairs));
         
         JsonArray phJson = root.getJsonArray(ConfigurationExportData.POINT_HIERARCHY);
         if(phJson != null) {
-            hierarchyImporter = new PointHierarchyImporter(phJson);
+            hierarchyImporter = new PointHierarchyImporter(phJson, user);
         	    addImporter(hierarchyImporter);
         } else
             hierarchyImporter = null;
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
-            addImporter(new MailingListImporter(jv.toJsonObject()));
+            addImporter(new MailingListImporter(jv.toJsonObject(), user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
-            addImporter(new PublisherImporter(jv.toJsonObject()));
+            addImporter(new PublisherImporter(jv.toJsonObject(), user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
-            addImporter(new EventHandlerImporter(jv.toJsonObject()));
+            addImporter(new EventHandlerImporter(jv.toJsonObject(), user));
         
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
-            addImporter(new SystemSettingsImporter(obj));
+            addImporter(new SystemSettingsImporter(obj, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.TEMPLATES))
-            addImporter(new TemplateImporter(jv.toJsonObject()));
+            addImporter(new TemplateImporter(jv.toJsonObject(), user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
-            addImporter(new VirtualSerialPortImporter(jv.toJsonObject()));
+            addImporter(new VirtualSerialPortImporter(jv.toJsonObject(), user));
         
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
-        	addImporter(new JsonDataImporter(jv.toJsonObject()));
+        	addImporter(new JsonDataImporter(jv.toJsonObject(), user));
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
@@ -162,7 +165,7 @@ public class ImportTask extends ProgressiveTask {
         }
         
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS)) 
-        	addImporter(new EventDetectorImporter(jv.toJsonObject(), eventDetectorPoints));
+        	addImporter(new EventDetectorImporter(jv.toJsonObject(), user, eventDetectorPoints));
 
         //Quick hack to ensure the Global Scripts are imported first in case they are used in scripts that will be loaded during this import
         final String globalScriptId = "sstGlobalScripts";
@@ -171,7 +174,7 @@ public class ImportTask extends ProgressiveTask {
             ImportItem item = it.next();
             if(globalScriptId.equals(item.getEmportDefinition().getElementId())) {
                 it.remove();
-                Importer importer = new Importer(root) {
+                Importer importer = new Importer(root, user) {
                     
                     private ImportItem gsImporter = item;
                     
@@ -179,7 +182,7 @@ public class ImportTask extends ProgressiveTask {
                     protected void importImpl() {
                         try {
                             if (!gsImporter.isComplete())
-                                gsImporter.importNext(ctx);
+                                gsImporter.importNext(ctx, user);
                         } catch (JsonException e) {
                             addException(e);
                         }
@@ -236,7 +239,7 @@ public class ImportTask extends ProgressiveTask {
         	            try {
                             for (ImportItem importItem : importItems) {
                                 if (!importItem.isComplete()) {
-                                    importItem.importNext(importContext);
+                                    importItem.importNext(importContext, user);
                                     return;
                                 }
                             }
@@ -289,7 +292,7 @@ public class ImportTask extends ProgressiveTask {
             try {
                 for (ImportItem importItem : importItems) {
                     if (!importItem.isComplete()) {
-                        importItem.importNext(importContext);
+                        importItem.importNext(importContext, user);
                         return;
                     }
                 }
