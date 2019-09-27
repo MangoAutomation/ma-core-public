@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import com.serotonin.json.convert.BigIntegerConverter;
 import com.serotonin.json.convert.BooleanConverter;
 import com.serotonin.json.convert.ByteConverter;
 import com.serotonin.json.convert.CollectionConverter;
+import com.serotonin.json.convert.DateConverter;
 import com.serotonin.json.convert.DoubleConverter;
 import com.serotonin.json.convert.EnumConverter;
 import com.serotonin.json.convert.FloatConverter;
@@ -139,7 +141,8 @@ public class JsonContext {
         // Other converters
         addConverter(new UUIDConverter(), UUID.class);
         addConverter(new JacksonJsonNodeConverter(), JsonNode.class);
-
+        addConverter(new DateConverter(), Date.class);
+        
         // Object factories
         addFactory(new ListFactory(), List.class);
         addFactory(new MapFactory(), Map.class);
