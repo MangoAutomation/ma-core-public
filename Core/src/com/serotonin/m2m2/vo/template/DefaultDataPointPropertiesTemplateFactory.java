@@ -6,13 +6,15 @@ package com.serotonin.m2m2.vo.template;
 
 import java.util.List;
 
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.Common.TimePeriods;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.view.chart.ImageChartRenderer;
 import com.serotonin.m2m2.view.chart.TableChartRenderer;
 import com.serotonin.m2m2.view.text.AnalogRenderer;
@@ -21,6 +23,7 @@ import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.vo.DataPointVO.IntervalLoggingTypes;
 import com.serotonin.m2m2.vo.DataPointVO.LoggingTypes;
 import com.serotonin.m2m2.vo.DataPointVO.PlotTypes;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -38,19 +41,22 @@ public class DefaultDataPointPropertiesTemplateFactory {
 	 * Save the Default Templates
 	 */
 	public void saveDefaultTemplates() {
-		
-		DataPointPropertiesTemplateVO defaultAlphanumericPointTemplate = createDefaultAlphanumericTemplate();
-		this.saveTemplate(defaultAlphanumericPointTemplate);
-
-		DataPointPropertiesTemplateVO defaultBinaryPointTemplate = createDefaultBinaryTemplate();
-		this.saveTemplate(defaultBinaryPointTemplate);
-		
-		DataPointPropertiesTemplateVO defaultMultistatePointTemplate = createDefaultMultistateTemplate();
-		this.saveTemplate(defaultMultistatePointTemplate);
-
-		DataPointPropertiesTemplateVO defaultNumericPointTemplate = createDefaultNumericTemplate();
-		this.saveTemplate(defaultNumericPointTemplate);
-
+		BackgroundContext.set(Common.getBean(PermissionHolder.class, MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER));
+		try {
+    		DataPointPropertiesTemplateVO defaultAlphanumericPointTemplate = createDefaultAlphanumericTemplate();
+    		this.saveTemplate(defaultAlphanumericPointTemplate);
+    
+    		DataPointPropertiesTemplateVO defaultBinaryPointTemplate = createDefaultBinaryTemplate();
+    		this.saveTemplate(defaultBinaryPointTemplate);
+    		
+    		DataPointPropertiesTemplateVO defaultMultistatePointTemplate = createDefaultMultistateTemplate();
+    		this.saveTemplate(defaultMultistatePointTemplate);
+    
+    		DataPointPropertiesTemplateVO defaultNumericPointTemplate = createDefaultNumericTemplate();
+    		this.saveTemplate(defaultNumericPointTemplate);
+		}finally {
+		    BackgroundContext.remove();
+		}
 		
 	}
 	
