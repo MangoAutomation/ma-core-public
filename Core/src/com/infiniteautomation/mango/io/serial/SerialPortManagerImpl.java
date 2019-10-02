@@ -81,7 +81,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
         this.lock.writeLock().lock();
         try {
             freePorts.clear();
-            initialize(false);
+            refreshPorts();
         } finally {
             this.lock.writeLock().unlock();
         }
@@ -96,67 +96,75 @@ public class SerialPortManagerImpl implements SerialPortManager {
         JsscSerialPortManager.instance.initialize();
         
         try {
-            String[] portNames;
-            Map<String, Boolean> portOwnership = new HashMap<String, Boolean>();
-
-            switch (SerialNativeInterface.getOsType()) {
-                case SerialNativeInterface.OS_LINUX:
-                    portNames = SerialPortList.getPortNames(
-                            Common.envProps.getString("serial.port.linux.path", "/dev/"),
-                            Pattern.compile(Common.envProps.getString("serial.port.linux.regex",
-                                    "((cu|ttyS|ttyUSB|ttyACM|ttyAMA|rfcomm|ttyO|COM)[0-9]{1,3}|rs(232|485)-[0-9])")));
-                    break;
-                case SerialNativeInterface.OS_MAC_OS_X:
-                    portNames = SerialPortList.getPortNames(
-                            Common.envProps.getString("serial.port.osx.path", "/dev/"),
-                            Pattern.compile(Common.envProps.getString("serial.port.osx.regex",
-                                    "(cu|tty)..*"))); // Was "tty.(serial|usbserial|usbmodem).*")
-                    break;
-                case SerialNativeInterface.OS_WINDOWS:
-                    portNames = SerialPortList.getPortNames(
-                            Common.envProps.getString("serial.port.windows.path", ""),
-                            Pattern.compile(
-                                    Common.envProps.getString("serial.port.windows.regex", "")));
-                default:
-                    portNames = SerialPortList.getPortNames();
-                    break;
-            }
-
-            for (SerialPortIdentifier port : ownedPorts) 
-                    portOwnership.put(port.getName(), true);
-            
-            for (String portName : portNames) {                
-                if (!portOwnership.containsKey(portName)) {
-                    freePorts.add(new SerialPortIdentifier(portName, SerialPortTypes.JSSC));
-                    portOwnership.put(portName, false);
-                } else if(LOG.isDebugEnabled())
-                    LOG.debug("Not adding port " + portName + " to free ports because it is owned.");
-            }
-
-            // Collect any Virtual Comm Ports from the DB and load them in
-            List<VirtualSerialPortConfig> list = VirtualSerialPortConfigDao.getInstance().getAll();
-            if (list != null) {
-                for (VirtualSerialPortConfig config : list) {
-                    if(!portOwnership.containsKey(config.getPortName())) {
-                        freePorts.add(new VirtualSerialPortIdentifier(config));
-                        portOwnership.put(config.getPortName(), false);
-                    } else if(LOG.isWarnEnabled()) {
-                        LOG.warn("Virtual serial port config " + config.getXid() + " named " + config.getPortName() +
-                            " not available due to name conflict with other serial port or it was open during refresh.");
-                    }
-                }
-            }
+            refreshPorts();
             initialized = true;
-        } catch (UnsatisfiedLinkError e) {
+        }catch (UnsatisfiedLinkError e) {
             throw new LifecycleException(e.getMessage());
         } catch (NoClassDefFoundError e) {
             throw new LifecycleException(
                     "Comm configuration error. Check that your serial port DLL or libraries have been correctly installed. "
                             + e.getMessage());
         }
-
     }
 
+    /**
+     * Refresh the ports list
+     * @throws UnsatisfiedLinkError
+     * @throws NoClassDefFoundError
+     */
+    protected void refreshPorts() throws UnsatisfiedLinkError,  NoClassDefFoundError {
+        String[] portNames;
+        Map<String, Boolean> portOwnership = new HashMap<String, Boolean>();
+
+        switch (SerialNativeInterface.getOsType()) {
+            case SerialNativeInterface.OS_LINUX:
+                portNames = SerialPortList.getPortNames(
+                        Common.envProps.getString("serial.port.linux.path", "/dev/"),
+                        Pattern.compile(Common.envProps.getString("serial.port.linux.regex",
+                                "((cu|ttyS|ttyUSB|ttyACM|ttyAMA|rfcomm|ttyO|COM)[0-9]{1,3}|rs(232|485)-[0-9])")));
+                break;
+            case SerialNativeInterface.OS_MAC_OS_X:
+                portNames = SerialPortList.getPortNames(
+                        Common.envProps.getString("serial.port.osx.path", "/dev/"),
+                        Pattern.compile(Common.envProps.getString("serial.port.osx.regex",
+                                "(cu|tty)..*"))); // Was "tty.(serial|usbserial|usbmodem).*")
+                break;
+            case SerialNativeInterface.OS_WINDOWS:
+                portNames = SerialPortList.getPortNames(
+                        Common.envProps.getString("serial.port.windows.path", ""),
+                        Pattern.compile(
+                                Common.envProps.getString("serial.port.windows.regex", "")));
+            default:
+                portNames = SerialPortList.getPortNames();
+                break;
+        }
+
+        for (SerialPortIdentifier port : ownedPorts) 
+                portOwnership.put(port.getName(), true);
+        
+        for (String portName : portNames) {                
+            if (!portOwnership.containsKey(portName)) {
+                freePorts.add(new SerialPortIdentifier(portName, SerialPortTypes.JSSC));
+                portOwnership.put(portName, false);
+            } else if(LOG.isDebugEnabled())
+                LOG.debug("Not adding port " + portName + " to free ports because it is owned.");
+        }
+
+        // Collect any Virtual Comm Ports from the DB and load them in
+        List<VirtualSerialPortConfig> list = VirtualSerialPortConfigDao.getInstance().getAll();
+        if (list != null) {
+            for (VirtualSerialPortConfig config : list) {
+                if(!portOwnership.containsKey(config.getPortName())) {
+                    freePorts.add(new VirtualSerialPortIdentifier(config));
+                    portOwnership.put(config.getPortName(), false);
+                } else if(LOG.isWarnEnabled()) {
+                    LOG.warn("Virtual serial port config " + config.getXid() + " named " + config.getPortName() +
+                        " not available due to name conflict with other serial port or it was open during refresh.");
+                }
+            }
+        }
+    }
+    
     @Override
     public boolean portOwned(String commPortId) {
 

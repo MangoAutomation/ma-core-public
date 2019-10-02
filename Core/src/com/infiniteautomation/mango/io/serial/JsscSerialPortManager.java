@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
 
@@ -29,6 +30,7 @@ public class JsscSerialPortManager {
     final BlockingQueue<SerialPortProxyEventTask> eventQueue;
     private Future<?> eventProcessor;
     private volatile boolean running = true;
+    private boolean initialized = false;
     
     private JsscSerialPortManager() {
         this.readExecutor = new ScheduledThreadPoolExecutor(1, new MangoThreadFactory("Mango Serial Port Reader", Thread.MAX_PRIORITY, Common.getModuleClassLoader()));
@@ -56,6 +58,9 @@ public class JsscSerialPortManager {
     }
     
     public void initialize() {
+        if(initialized == true) {
+            throw new ShouldNeverHappenException("Already initialized");
+        }
         this.eventProcessor = Common.timer.getExecutorService().submit(() ->{
             while(running) {
                 try {
@@ -69,6 +74,7 @@ public class JsscSerialPortManager {
                 }
             }
         });
+        this.initialized = true;
     }
     
     public void terminate() {
@@ -82,6 +88,7 @@ public class JsscSerialPortManager {
     public void joinTermination() {
         try {
             this.readExecutor.awaitTermination(5, TimeUnit.SECONDS);
+            this.initialized = false;
         } catch (InterruptedException e) {
             //No-op
         }
