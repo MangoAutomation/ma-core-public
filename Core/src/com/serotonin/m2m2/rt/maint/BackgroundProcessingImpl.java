@@ -623,9 +623,6 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 			this.rejectionHandler = rejectionHandler;
 		}
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.timer.Task#run(long)
-		 */
 		@Override
 		public void run(long runtime) {
             try {
@@ -640,21 +637,19 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 			return this.item;
 		}
 		
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
 		@Override
 		public String toString() {
 			return item.getDescription();
 		}
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
-		 */
 		@Override
 		public void rejected(RejectedTaskReason reason) {
-			item.rejected(reason);
-			rejectionHandler.rejectedTask(reason);
+		    try {
+    			item.rejected(reason);
+    			rejectionHandler.rejectedTask(reason);
+		    }catch(Exception e){
+	            log.error("Uncaught work item rejection exception", e);
+	        }
 		}
     }
 

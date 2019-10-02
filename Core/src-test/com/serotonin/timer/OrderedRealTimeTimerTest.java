@@ -4,6 +4,8 @@
  */
 package com.serotonin.timer;
 
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,9 +13,12 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.serotonin.m2m2.util.timeout.TimeoutClient;
 
 /**
  * @author Terry Packer
@@ -287,6 +292,81 @@ public class OrderedRealTimeTimerTest {
         Assert.assertEquals(4, (int)taskOrder.get(3));
         Assert.assertEquals(5, (int)taskOrder.get(4));
         Assert.assertEquals(6, (int)taskOrder.get(5));
+    }
+    
+    /*
+     * Simulate a timeout task getting rejected and then throwing an exception
+     */
+    @Test
+    public void testTimerThreadRejectionExceptions() throws InterruptedException {
+        OrderedRealTimeTimer timer = new OrderedRealTimeTimer();
+        OrderedThreadPoolExecutor executor = new OrderedThreadPoolExecutor(
+                0, 
+                3, 
+                30L, 
+                TimeUnit.SECONDS, 
+                new SynchronousQueue<Runnable>(), 
+                false,
+                timer.getTimeSource());
+        timer.init(executor, Thread.MAX_PRIORITY);
+        final AtomicLong time = new AtomicLong();
+        
+        //TODO 
+        //Track rejections
+        //Track executions
+        
+        List<Task> tasks = new ArrayList<>();
+        for(int i=0; i<3; i++) {
+            tasks.add(new Task("TaskName", "TaskId" + i, 0) {
+    
+                @Override
+                public void run(long runtime) {
+                    try {Thread.sleep(1000); }catch(InterruptedException e) { }
+                }
+    
+                @Override
+                public void rejected(RejectedTaskReason reason) {
+                    
+                }
+            });
+        }
+        
+        //Startup a new thread that inserts the blocking tasks
+        new Thread() {
+            public void run() {
+                
+                for(Task task : tasks) {
+                    TaskWrapper wrapper = new TaskWrapper(task, time.getAndAdd(100));
+                    executor.execute(wrapper);
+                }
+            };
+        }.start();
+        
+        //Execute the timeout task to be rejected
+        new com.serotonin.m2m2.util.timeout.TimeoutTask(
+                new OneTimeTrigger(new Date()), new TimeoutClient() {
+
+            @Override
+            public void scheduleTimeout(long fireTime) {
+                fail("Should not run");
+            }
+
+            @Override
+            public String getThreadName() {
+                return "Testing";
+            }
+            
+            @Override
+            public void rejected(RejectedTaskReason reason) {
+                //Throw exception here and ensure it doesn't kill the timer thread
+                throw new RuntimeException("Purposeful rejected exception.");
+            }
+        }, timer);
+        
+        Thread.sleep(500);
+        //This will be set to false if the Timer Thread Fails
+        Assert.assertEquals(timer.thread.newTasksMayBeScheduled, true);
+        //TODO Cleanup and shutdown timer?
     }
 	
 }
