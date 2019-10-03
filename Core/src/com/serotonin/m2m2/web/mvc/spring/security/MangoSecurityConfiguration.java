@@ -43,6 +43,7 @@ import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
@@ -200,8 +201,12 @@ public class MangoSecurityConfiguration {
         return !enabled ? null : new RateLimiter<>(burstQuantity, quanitity, period, periodUnit);
     }
 
-    @Autowired AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource;
+    @Bean
+    public AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource() {
+        return new WebAuthenticationDetailsSource();
+    }
 
+    @Autowired AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource;
     @Autowired HttpFirewall httpFirewall;
     @Autowired AccessDeniedHandler accessDeniedHandler;
     @Autowired AuthenticationEntryPoint authenticationEntryPoint;
@@ -237,8 +242,6 @@ public class MangoSecurityConfiguration {
             new AntPathRequestMatcher("/swagger/**"));
     RequestMatcher legacyCspMatcher = new AndRequestMatcher(notRestRequestMatcher, legacyUiMatcher);
     RequestMatcher standardCspMatcher = new AndRequestMatcher(notRestRequestMatcher, new NegatedRequestMatcher(legacyUiMatcher));
-
-    @Value("${rateLimit.honorXForwardedFor:false}") boolean honorXForwardedFor;
 
     @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled;
     @Value("${authentication.basic.enabled:true}") boolean basicAuthenticationEnabled;
@@ -315,7 +318,7 @@ public class MangoSecurityConfiguration {
             http.httpBasic().disable();
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
-                http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null), honorXForwardedFor), ExceptionTranslationFilter.class);
+                http.addFilterAfter(new RateLimitingFilter(proxiedRestRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null)), ExceptionTranslationFilter.class);
             }
 
             if (sslOn && sslHstsEnabled) {
@@ -428,7 +431,7 @@ public class MangoSecurityConfiguration {
             }
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
-                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null), honorXForwardedFor), ExceptionTranslationFilter.class);
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null)), ExceptionTranslationFilter.class);
             }
 
             //Configure the headers
@@ -533,7 +536,7 @@ public class MangoSecurityConfiguration {
             http.addFilterAfter(permissionExceptionFilter, ExceptionTranslationFilter.class);
 
             if (ipRateLimiter.isPresent() || userRateLimiter.isPresent()) {
-                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null), honorXForwardedFor), ExceptionTranslationFilter.class);
+                http.addFilterAfter(new RateLimitingFilter(restRequestMatcher, ipRateLimiter.orElse(null), userRateLimiter.orElse(null)), ExceptionTranslationFilter.class);
             }
 
             //Configure headers

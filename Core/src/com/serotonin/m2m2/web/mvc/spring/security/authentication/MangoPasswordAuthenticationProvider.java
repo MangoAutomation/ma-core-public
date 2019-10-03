@@ -28,7 +28,6 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.RateLimiter;
-import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoWebAuthenticationDetailsSource.MangoWebAuthenticationDetails;
 
 
 /**
@@ -83,7 +82,7 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
             return null;
         }
 
-        if (!(authentication.getDetails() instanceof MangoWebAuthenticationDetails)) {
+        if (!(authentication.getDetails() instanceof WebAuthenticationDetails)) {
             throw new InternalAuthenticationServiceException("Expected authentication details to be instance of WebAuthenticationDetails");
         }
 

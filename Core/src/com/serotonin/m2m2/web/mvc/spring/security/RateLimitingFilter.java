@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.eclipse.jetty.http.HttpHeader;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -34,17 +33,15 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private final RateLimiter<String> ipRateLimiter;
     private final RateLimiter<Integer> userRateLimiter;
     private final int multiplier;
-    private final boolean honorXForwardedFor;
 
-    public RateLimitingFilter(RequestMatcher requestMatcher, RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter, boolean honorXForwardedFor) {
-        this(requestMatcher, ipRateLimiter, userRateLimiter, honorXForwardedFor, 1);
+    public RateLimitingFilter(RequestMatcher requestMatcher, RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter) {
+        this(requestMatcher, ipRateLimiter, userRateLimiter, 1);
     }
 
-    public RateLimitingFilter(RequestMatcher requestMatcher, RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter, boolean honorXForwardedFor, int multiplier) {
+    public RateLimitingFilter(RequestMatcher requestMatcher, RateLimiter<String> ipRateLimiter, RateLimiter<Integer> userRateLimiter, int multiplier) {
         this.requestMatcher = requestMatcher;
         this.ipRateLimiter = ipRateLimiter;
         this.userRateLimiter = userRateLimiter;
-        this.honorXForwardedFor = honorXForwardedFor;
         this.multiplier = multiplier;
     }
 
@@ -64,7 +61,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         if (anonymous && this.ipRateLimiter != null) {
             // we dont check the X-FORWARDED-FOR header by default as this can be easily spoofed to bypass the rate limits
-            String ip = getRemoteAddr(request, honorXForwardedFor);
+            String ip = request.getRemoteAddr();
             rateExceeded = this.ipRateLimiter.hit(ip, multiplier);
             secondsTillRetry = this.ipRateLimiter.secondsTillRetry(ip);
 
@@ -93,22 +90,5 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         } else {
             filterChain.doFilter(request, response);
         }
-    }
-
-    public static String getRemoteAddr(HttpServletRequest request, boolean honorXForwardedFor) {
-        if (honorXForwardedFor) {
-            String value = request.getHeader(HttpHeader.X_FORWARDED_FOR.asString());
-            if (value != null) {
-                String[] split = value.split("\\s*,\\s*");
-                if (split.length > 0) {
-                    String lastHop = split[split.length - 1];
-                    if (!lastHop.isEmpty()) {
-                        return lastHop;
-                    }
-                }
-            }
-        }
-
-        return request.getRemoteAddr();
     }
 }
