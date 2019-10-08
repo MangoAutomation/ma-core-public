@@ -186,6 +186,11 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
         if(Common.serialPortManager == null) {
             Common.serialPortManager = getSerialPortManager();
+            try{
+                Common.serialPortManager.initialize(false);
+            }catch(Exception e){
+                fail(e.getMessage());
+            }
         }
 
         for (Module module : ModuleRegistry.getModules()) {
