@@ -356,11 +356,12 @@ public class DatabaseBackupWorkItem implements WorkItem {
 							Common.databaseProxy.getType()));
 					return result;
 				}
+				LOG.info("Database backup restore finished");
 			} catch (Exception e) {
 				LOG.error(e.getMessage(), e);
 				result.addMessage(new TranslatableMessage("common.default", e.getMessage()));
 			}
-
+			
 		} else {
 		    LOG.info("Database backup not found at: " + fullFilePath);
 		}
