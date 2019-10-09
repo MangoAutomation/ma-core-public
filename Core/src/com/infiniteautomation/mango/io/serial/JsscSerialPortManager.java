@@ -5,7 +5,6 @@ package com.infiniteautomation.mango.io.serial;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -28,7 +27,7 @@ public class JsscSerialPortManager {
     private final Log LOG = LogFactory.getLog(JsscSerialPortManager.class);
     private final ScheduledThreadPoolExecutor readExecutor;
     final BlockingQueue<SerialPortProxyEventTask> eventQueue;
-    private Future<?> eventProcessor;
+    private Thread eventProcessor;
     private volatile boolean running = true;
     private boolean initialized = false;
     
@@ -58,22 +57,26 @@ public class JsscSerialPortManager {
     }
     
     public void initialize() {
-        if(initialized == true) {
+        if(initialized) {
             throw new ShouldNeverHappenException("Already initialized");
         }
-        this.eventProcessor = Common.timer.getExecutorService().submit(() ->{
-            while(running) {
-                try {
-                    //Block until I have work to do
-                    SerialPortProxyEventTask t = eventQueue.take();
-                    t.run();
-                } catch (InterruptedException e) {
-                    //Don't care, this will very likely happen on terminate
-                }catch(Exception e) {
-                    LOG.error("Serial Port Event Task Failed", e);
+        this.eventProcessor = new Thread("Mango Serial Port Event Processor") { 
+            public void run() {
+                while(running) {
+                    try {
+                        //Block until I have work to do
+                        SerialPortProxyEventTask t = eventQueue.take();
+                        t.run();
+                    } catch (InterruptedException e) {
+                        //Don't care, this will very likely happen on terminate
+                    }catch(Exception e) {
+                        LOG.error("Serial Port Event Task Failed", e);
+                    }
                 }
+                LOG.info("Mango Serial Port Event Processor Terminated");
             }
-        });
+        };
+        this.eventProcessor.start();
         this.initialized = true;
     }
     
@@ -81,7 +84,7 @@ public class JsscSerialPortManager {
         this.readExecutor.shutdown();
         if(this.eventProcessor != null) {
             this.running = false;
-            this.eventProcessor.cancel(true);
+            this.eventProcessor.interrupt();
         }
     }
     

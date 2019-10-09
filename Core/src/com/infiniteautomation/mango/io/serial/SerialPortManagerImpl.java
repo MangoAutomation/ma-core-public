@@ -38,22 +38,26 @@ public class SerialPortManagerImpl implements SerialPortManager {
     private final ReadWriteLock lock;
     private final List<SerialPortIdentifier> freePorts;
     private final List<SerialPortIdentifier> ownedPorts;
-    private boolean initialized;
-
+    private volatile boolean initialized;
+    private volatile boolean portsLoaded; //For lazy loading of ports
 
     public SerialPortManagerImpl() {
         lock = new ReentrantReadWriteLock();
         freePorts = new CopyOnWriteArrayList<SerialPortIdentifier>();
         ownedPorts = new CopyOnWriteArrayList<SerialPortIdentifier>();
         initialized = false;
+        portsLoaded = false;
     }
 
     @Override
     public List<SerialPortIdentifier> getFreeCommPorts() throws Exception {
-        if (!initialized) {
+        if (!portsLoaded) {
             this.lock.writeLock().lock();
             try {
-                initialize(false);
+                if(!portsLoaded) {
+                    refreshPorts();
+                    portsLoaded = true;
+                }
             } finally {
                 this.lock.writeLock().unlock();
             }
@@ -63,10 +67,13 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     @Override
     public List<SerialPortIdentifier> getAllCommPorts() throws Exception {
-        if (!initialized) {
+        if (!portsLoaded) {
             this.lock.writeLock().lock();
             try {
-                initialize(false);
+                if(!portsLoaded) {
+                    refreshPorts();
+                    portsLoaded = true;
+                }
             } finally {
                 this.lock.writeLock().unlock();
             }
@@ -87,24 +94,21 @@ public class SerialPortManagerImpl implements SerialPortManager {
         }
     }
 
+    /**
+     * This will only start the threading infrastructure for the ports, the actual 'Lazy load' of all ports is done if/when serial devices are used'
+     */
     @Override
     public void initialize(boolean safe) throws LifecycleException {
 
-        if (safe)
+        if(initialized) {
+            throw new LifecycleException("Serial Port Manager should only be initialized once");
+        }
+        
+        if (safe) {
             return;
+        }
 
         JsscSerialPortManager.instance.initialize();
-        
-        try {
-            refreshPorts();
-            initialized = true;
-        }catch (UnsatisfiedLinkError e) {
-            throw new LifecycleException(e.getMessage());
-        } catch (NoClassDefFoundError e) {
-            throw new LifecycleException(
-                    "Comm configuration error. Check that your serial port DLL or libraries have been correctly installed. "
-                            + e.getMessage());
-        }
     }
 
     /**

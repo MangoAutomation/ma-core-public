@@ -14,7 +14,7 @@ import com.serotonin.util.LifecycleException;
  *
  * @author Terry Packer
  */
-public interface SerialPortManager extends ILifecycle{
+public interface SerialPortManager extends ILifecycle {
 
     String VIRTUAL_SERIAL_PORT_KEY = "comm.virtual.serial";
 
