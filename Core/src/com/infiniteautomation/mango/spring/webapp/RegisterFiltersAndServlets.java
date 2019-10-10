@@ -9,7 +9,6 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
@@ -65,6 +64,13 @@ public class RegisterFiltersAndServlets implements ServletContainerInitializer {
         this.registerServletDefinitionServlets(servletContext);
     }
 
+    private Map<String, String> resolveInitParameters(WebInitParam[] initParams) {
+        return Arrays.stream(initParams)
+                .collect(Collectors.toMap(WebInitParam::name, param -> {
+                    return env.resolveRequiredPlaceholders(param.value());
+                }));
+    }
+
     /**
      * Finds and adds all Filters which are annotated with @WebFilter
      * @param servletContext
@@ -73,20 +79,14 @@ public class RegisterFiltersAndServlets implements ServletContainerInitializer {
         Collection<Filter> filters = beanFactory.getBeansOfType(Filter.class).values();
         for (Filter filter : filters) {
             WebFilter annotation = filter.getClass().getAnnotation(WebFilter.class);
-            WebInitParam[] paramAnnotations = filter.getClass().getAnnotationsByType(WebInitParam.class);
             if (annotation != null) {
                 FilterRegistration.Dynamic registration = servletContext.addFilter(annotation.filterName(), filter);
                 if (registration != null) {
                     registration.setAsyncSupported(annotation.asyncSupported());
+                    registration.setInitParameters(resolveInitParameters(annotation.initParams()));
 
                     EnumSet<DispatcherType> dispatcherTypes = Arrays.stream(annotation.dispatcherTypes())
                             .collect(Collectors.toCollection(() -> EnumSet.noneOf(DispatcherType.class)));
-
-                    Map<String, String> initParameters = Stream.concat(Arrays.stream(paramAnnotations), Arrays.stream(annotation.initParams()))
-                            .collect(Collectors.toMap(WebInitParam::name, param -> {
-                                return env.resolveRequiredPlaceholders(param.value());
-                            }));
-                    registration.setInitParameters(initParameters);
 
                     if (annotation.urlPatterns().length > 0) {
                         registration.addMappingForUrlPatterns(dispatcherTypes, true, annotation.urlPatterns());
@@ -107,18 +107,12 @@ public class RegisterFiltersAndServlets implements ServletContainerInitializer {
         Collection<Servlet> servlets = beanFactory.getBeansOfType(Servlet.class).values();
         for (Servlet servlet : servlets) {
             WebServlet annotation = servlet.getClass().getAnnotation(WebServlet.class);
-            WebInitParam[] paramAnnotations = servlet.getClass().getAnnotationsByType(WebInitParam.class);
             if (annotation != null) {
                 ServletRegistration.Dynamic registration = servletContext.addServlet(annotation.name(), servlet);
                 if (registration != null) {
                     registration.setAsyncSupported(annotation.asyncSupported());
+                    registration.setInitParameters(resolveInitParameters(annotation.initParams()));
                     registration.setLoadOnStartup(annotation.loadOnStartup());
-
-                    Map<String, String> initParameters = Stream.concat(Arrays.stream(paramAnnotations), Arrays.stream(annotation.initParams()))
-                            .collect(Collectors.toMap(WebInitParam::name, param -> {
-                                return env.resolveRequiredPlaceholders(param.value());
-                            }));
-                    registration.setInitParameters(initParameters);
 
                     if (annotation.urlPatterns().length > 0) {
                         registration.addMapping(annotation.urlPatterns());
