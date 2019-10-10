@@ -18,6 +18,7 @@ import org.springframework.security.web.session.HttpSessionDestroyedEvent;
 import com.infiniteautomation.mango.spring.events.MangoHttpSessionDestroyedEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 
 /**
@@ -38,6 +39,7 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
         timeoutPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
         timeoutPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
         timeoutSeconds = (int)(Common.getMillis(timeoutPeriodType, timeoutPeriods)/1000L);
+        SystemSettingsEventDispatcher.addListener(this);
     }
 
     ApplicationContext getContext(ServletContext servletContext) {
