@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Order(300)
+@Order(0)
 public class JspServletInitializer extends JettyJasperInitializer {
 
     private final Environment env;
