@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.webapp.filters;
+package com.infiniteautomation.mango.webapp.filters;
 
 import java.security.Principal;
 
@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.eclipse.jetty.servlets.QoSFilter;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -24,7 +23,6 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * https://www.eclipse.org/jetty/documentation/current/qos-filter.html
  * @author Jared Wiltshire
  */
-@Lazy
 @Component(MangoQosFilter.NAME)
 @WebFilter(
         filterName = MangoQosFilter.NAME,

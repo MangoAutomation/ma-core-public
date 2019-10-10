@@ -6,6 +6,7 @@ package com.serotonin.m2m2.web.mvc.spring;
 
 import java.nio.charset.StandardCharsets;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
-import com.serotonin.m2m2.Common;
+import com.infiniteautomation.mango.webapp.WebAppPackage;
 import com.serotonin.m2m2.i18n.TranslatedMessageSource;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
 
@@ -24,7 +25,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
  */
 @Configuration
 @Import({MangoCommonConfiguration.class, MangoSecurityConfiguration.class})
-@ComponentScan(basePackages = {"com.serotonin.m2m2.web.mvc.spring.components"})
+@ComponentScan(basePackageClasses = {WebAppPackage.class})
 public class MangoRootWebContextConfiguration {
 
     @Bean(name="localeResolver")
@@ -38,11 +39,11 @@ public class MangoRootWebContextConfiguration {
     }
 
     @Bean
-    public CommonsMultipartResolver multipartResolver(){
+    public CommonsMultipartResolver multipartResolver(@Value("${web.fileUpload.maxSize:50000000}") long fileUploadMaxSize){
         CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
         commonsMultipartResolver.setResolveLazily(true); //So we can optionally stream the results
         commonsMultipartResolver.setDefaultEncoding(StandardCharsets.UTF_8.name());
-        commonsMultipartResolver.setMaxUploadSize(Common.envProps.getLong("web.fileUpload.maxSize", 50000000));
+        commonsMultipartResolver.setMaxUploadSize(fileUploadMaxSize);
         return commonsMultipartResolver;
     }
 }

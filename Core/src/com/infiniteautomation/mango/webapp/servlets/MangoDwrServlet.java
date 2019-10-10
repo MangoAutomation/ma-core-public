@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.webapp.servlets;
+package com.infiniteautomation.mango.webapp.servlets;
 
 import java.util.ArrayList;
 import java.util.HashMap;
