@@ -1,29 +1,27 @@
 /*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.webapp;
-
-import java.util.Set;
+package com.infiniteautomation.mango.webapp;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
-import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.web.WebApplicationInitializer;
 
 /**
  * @author Jared Wiltshire
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Order(0)
-public class JspServletInitializer extends JettyJasperInitializer {
+@Order(100)
+public class JspServletInitializer implements WebApplicationInitializer {
 
     private final Environment env;
 
@@ -33,9 +31,7 @@ public class JspServletInitializer extends JettyJasperInitializer {
     }
 
     @Override
-    public void onStartup(Set<Class<?>> types, ServletContext context) throws ServletException {
-        super.onStartup(types, context);
-
+    public void onStartup(ServletContext context) throws ServletException {
         //ServletRegistration.Dynamic holderJsp = context.addServlet("jsp", JettyJspServlet.class);
         ServletRegistration holderJsp = context.getServletRegistration("jsp");
         //holderJsp.addMapping("*.jsp");

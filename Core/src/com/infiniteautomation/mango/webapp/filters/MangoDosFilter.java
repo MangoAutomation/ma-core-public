@@ -1,14 +1,13 @@
 /*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.webapp.filters;
+package com.infiniteautomation.mango.webapp.filters;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
 import org.eclipse.jetty.servlets.DoSFilter;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +19,6 @@ import com.serotonin.m2m2.vo.User;
  *
  * @author Jared Wiltshire
  */
-@Lazy
 @Component(MangoDosFilter.NAME)
 @WebFilter(
         filterName = MangoDosFilter.NAME,

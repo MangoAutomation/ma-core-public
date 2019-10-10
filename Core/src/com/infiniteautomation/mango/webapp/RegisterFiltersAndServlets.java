@@ -1,20 +1,18 @@
 /*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.webapp;
+package com.infiniteautomation.mango.webapp;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterRegistration;
 import javax.servlet.Servlet;
-import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
@@ -30,6 +28,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 import org.springframework.stereotype.Component;
+import org.springframework.web.WebApplicationInitializer;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 import com.serotonin.m2m2.module.ServletDefinition;
@@ -40,7 +39,7 @@ import com.serotonin.m2m2.module.ServletDefinition;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Order(200)
-public class RegisterFiltersAndServlets implements ServletContainerInitializer {
+public class RegisterFiltersAndServlets implements WebApplicationInitializer {
 
     private final ListableBeanFactory beanFactory;
     private final Environment env;
@@ -52,7 +51,7 @@ public class RegisterFiltersAndServlets implements ServletContainerInitializer {
     }
 
     @Override
-    public void onStartup(Set<Class<?>> c, ServletContext servletContext) throws ServletException {
+    public void onStartup(ServletContext servletContext) throws ServletException {
         // Manually add the spring security filter as the first filter
         FilterRegistration.Dynamic springSecurity = servletContext.addFilter(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME,
                 new DelegatingFilterProxy(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME));
