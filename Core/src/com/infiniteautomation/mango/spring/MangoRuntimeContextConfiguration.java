@@ -27,7 +27,6 @@ import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.core.task.support.TaskExecutorAdapter;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -59,7 +58,6 @@ import com.serotonin.provider.Providers;
         "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
         "com.serotonin.m2m2.db.dao" //DAOs
 })
-@EnableAsync
 public class MangoRuntimeContextConfiguration {
     private static final CompletableFuture<ApplicationContext> RUNTIME_CONTEXT_FUTURE = new CompletableFuture<>();
     private static final CompletableFuture<WebApplicationContext> ROOT_WEB_CONTEXT_FUTURE = new CompletableFuture<>();

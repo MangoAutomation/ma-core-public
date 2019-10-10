@@ -12,6 +12,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
@@ -22,6 +23,7 @@ import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMult
  * @author Jared Wiltshire
  */
 @Configuration
+@EnableAsync
 public class MangoCommonConfiguration {
 
     @Bean
