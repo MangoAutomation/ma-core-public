@@ -1,17 +1,20 @@
 /*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.webapp;
+package com.infiniteautomation.mango.spring.webapp.servlets;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebInitParam;
+import javax.servlet.annotation.WebServlet;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
@@ -25,111 +28,69 @@ import org.directwebremoting.extend.CreatorManager;
 import org.directwebremoting.servlet.DwrServlet;
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import com.serotonin.m2m2.module.DataSourceDefinition;
+import com.serotonin.m2m2.module.DwrClassHolder;
 import com.serotonin.m2m2.module.DwrConversionDefinition;
-import com.serotonin.m2m2.module.DwrDefinition;
-import com.serotonin.m2m2.module.PublisherDefinition;
-import com.serotonin.m2m2.web.dwr.ModuleDwr;
 import com.serotonin.m2m2.web.dwr.StartupDwr;
 import com.serotonin.m2m2.web.dwr.util.BlabberBeanConverter;
 import com.serotonin.m2m2.web.dwr.util.BlabberConverterManager;
 import com.serotonin.m2m2.web.dwr.util.DwrClassConversion;
-import com.serotonin.m2m2.web.dwr.util.ModuleDwrCreator;
 
 /**
  * @author Jared Wiltshire
  */
+
+@WebServlet(
+        name = MangoDwrServlet.NAME,
+        loadOnStartup = 2,
+        urlPatterns = {"/dwr/*"},
+        initParams = {
+                @WebInitParam(name = "activeReverseAjaxEnabled", value = "false"),
+                @WebInitParam(name = "publishContainerAs", value = "DwrContainer"),
+                @WebInitParam(name = "crossDomainSessionSecurity", value = "true"),
+                @WebInitParam(name = "allowScriptTagRemoting", value = "false"),
+                @WebInitParam(name = "org.directwebremoting.extend.ConverterManager", value = "com.serotonin.m2m2.web.dwr.util.BlabberConverterManager"),
+                @WebInitParam(name = "sessionCookieName", value = "XSRF-TOKEN")
+        })
+@Component
 public final class MangoDwrServlet extends DwrServlet {
     private static final long serialVersionUID = 1L;
+    public static final String NAME = "dwr-invoker";
 
     private final Log log = LogFactory.getLog(this.getClass());
+
+    private final ListableBeanFactory beanFactory;
+
+    @Autowired
+    private MangoDwrServlet(ListableBeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
+    }
 
     @Override
     public void init(ServletConfig servletConfig) throws ServletException {
         super.init(servletConfig);
         ServletContext context = servletConfig.getServletContext();
         Container container = (Container) context.getAttribute(Container.class.getName());
-        WebApplicationContext webAppContext = WebApplicationContextUtils.getRequiredWebApplicationContext(context);
-
-        configureStartupDwr(container);
-        configureDwr(container, webAppContext);
+        configureDwr(container);
     }
 
-
-    /**
-     * Configure the first DWR That will poll the startup process
-     *
-     * @param context
-     */
-    private void configureStartupDwr(Container container) {
-        CreatorManager creatorManager = (CreatorManager) container.getBean(CreatorManager.class.getName());
-
-        Class<?> clazz = StartupDwr.class;
-        String js = clazz.getSimpleName();
-
-        NewCreator c = new NewCreator();
-        c.setClass(clazz.getName());
-        c.setScope(Creator.APPLICATION);
-        c.setJavascript(js);
-        try {
-            creatorManager.addCreator(js, c);
-        } catch (IllegalArgumentException e) {
-            log.info("Duplicate definition of DWR class ignored: " + clazz.getName());
-        }
-    }
-
-    private void configureDwr(Container container, ListableBeanFactory beanFactory) {
+    private void configureDwr(Container container) {
         // Register declared DWR proxy classes
         CreatorManager creatorManager = (CreatorManager) container.getBean(CreatorManager.class.getName());
 
-        Collection<DataSourceDefinition> dsDefs = BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, DataSourceDefinition.class).values();
-        for (DataSourceDefinition def : dsDefs) {
-            Class<?> clazz = def.getDwrClass();
+        Set<Class<?>> classes = new HashSet<>();
+        classes.add(StartupDwr.class);
+
+        BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, DwrClassHolder.class).values().stream()
+        .forEach(def -> classes.add(def.getDwrClass()));
+
+        for (Class<?> clazz : classes) {
             if (clazz != null) {
                 String js = clazz.getSimpleName();
 
                 NewCreator c = new NewCreator();
-                c.setClass(clazz.getName());
-                c.setScope(Creator.APPLICATION);
-                c.setJavascript(js);
-                try {
-                    creatorManager.addCreator(js, c);
-                    log.info("Added DWR definition for: " + js);
-                } catch (IllegalArgumentException e) {
-                    log.info("Duplicate definition of DWR class ignored: " + clazz.getName());
-                }
-            }
-        }
-
-        Collection<PublisherDefinition> pubDefs = BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, PublisherDefinition.class).values();
-        for (PublisherDefinition def : pubDefs) {
-            Class<?> clazz = def.getDwrClass();
-            if (clazz != null) {
-                String js = clazz.getSimpleName();
-
-                NewCreator c = new NewCreator();
-                c.setClass(clazz.getName());
-                c.setScope(Creator.APPLICATION);
-                c.setJavascript(js);
-                try {
-                    creatorManager.addCreator(js, c);
-                    log.info("Added DWR definition for: " + js);
-                } catch (IllegalArgumentException e) {
-                    log.info("Duplicate definition of DWR class ignored: " + clazz.getName());
-                }
-            }
-        }
-
-        Collection<DwrDefinition> dwrDefs = BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, DwrDefinition.class).values();
-        for (DwrDefinition def : dwrDefs) {
-            Class<? extends ModuleDwr> clazz = def.getDwrClass();
-            if (clazz != null) {
-                String js = clazz.getSimpleName();
-
-                ModuleDwrCreator c = new ModuleDwrCreator(def.getModule());
                 c.setClass(clazz.getName());
                 c.setScope(Creator.APPLICATION);
                 c.setJavascript(js);
