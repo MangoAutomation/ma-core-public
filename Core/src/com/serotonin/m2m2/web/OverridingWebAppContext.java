@@ -1,65 +1,73 @@
+/*
+ * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
+ */
 package com.serotonin.m2m2.web;
 
 import java.io.File;
-import java.io.IOException;
 
-import org.eclipse.jetty.server.handler.AllowSymLinkAliasChecker;
-import org.eclipse.jetty.server.handler.ContextHandler.ApproveNonExistentDirectoryAliases;
-import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.resource.PathResource;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.webapp.WebInfConfiguration;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.web.handler.MangoErrorHandler;
 
 public class OverridingWebAppContext extends WebAppContext {
-    public OverridingWebAppContext(ClassLoader classLoader) {
-        OverridingFileResource ofr;
-        try {
-            ofr = new OverridingFileResource(Resource.newResource(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB),
-                    Resource.newResource(Common.MA_HOME + "/" + Constants.DIR_WEB));
-        }
-        catch (IOException e) {
-            throw new ShouldNeverHappenException(e);
+
+    public OverridingWebAppContext() {
+        // Ensure we use the JavaC compiler not JDT from Eclipse (Only For Glassfish I think)
+        // No longer required - https://github.com/eclipse/jetty.project/issues/706
+        // System.setProperty("org.apache.jasper.compiler.disablejsr199","false");
+
+        // WebAppClassLoader.loadConfigurations() loads the MetaInfConfiguration class which
+        // results in the context attribute org.eclipse.jetty.tlds being set to an empty array
+        // instead of null. Therefore we need to set the container include pattern so that
+        // the JettyJasperInitializer creates a TldScanner which picks up the JSTL, Spring and Serotonin .tld files
+        this.setAttribute(WebInfConfiguration.CONTAINER_JAR_PATTERN, ".*\\.jar$");
+
+        OverridingFileResource ofr = new OverridingFileResource(new PathResource(Common.OVERRIDES_WEB), new PathResource(Common.WEB));
+
+        this.setBaseResource(ofr);
+        this.setContextPath("/");
+
+        //Detect and load any web.xml in the overrides since the baseResource doesn't account for this file
+        File overrideDescriptor = Common.OVERRIDES_WEB.resolve("web.xml").toFile();
+        if (overrideDescriptor.exists()) {
+            this.setDescriptor(overrideDescriptor.getAbsolutePath());
+        } else {
+            this.setDescriptor("/WEB-INF/web.xml");
         }
 
-        setBaseResource(ofr);
-        setContextPath("/");
-        
-        //Detect and load any web.xml in the overrides since the baseResource doesn't account for this file
-        File overrideDescriptor = new File(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB + "/web.xml");
-        if(overrideDescriptor.exists())
-        	setDescriptor(overrideDescriptor.getAbsolutePath());
-        else
-        	setDescriptor("/WEB-INF/web.xml");
-        
         //Detect and load a override-web.xml file if it exists
-        File overrideWebXml = new File(Common.MA_HOME + "/overrides/" + Constants.DIR_WEB + "/override-web.xml");
-        if(overrideWebXml.exists())
-        	setOverrideDescriptor(overrideWebXml.getAbsolutePath());
-        
-        setParentLoaderPriority(true);
-        setClassLoader(classLoader);
+        File overrideWebXml = Common.OVERRIDES_WEB.resolve("override-web.xml").toFile();
+        if (overrideWebXml.exists()) {
+            this.setOverrideDescriptor(overrideWebXml.getAbsolutePath());
+        }
+
+        this.setParentLoaderPriority(true);
+        //setClassLoader(classLoader);
         // Disallow directory listing
-        setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
-        
+        this.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+
         //Temp and JSP Compilation Settings (The order of these is important)
         //@See http://eclipse.org/jetty/documentation/current/ref-temporary-directories.html
-        String tempDirPath = Common.MA_HOME + "/work";
-        File file = new File(tempDirPath);
-        if (!file.exists())
-            file.mkdirs();
-        setAttribute("javax.servlet.context.tempdir", tempDirPath);
-        setPersistTempDirectory(true);
-        setTempDirectory(file);
-        
+        File tempDirPath = Common.TEMP.toFile();
+        if (!tempDirPath.exists()) {
+            tempDirPath.mkdirs();
+        }
+        this.setAttribute("javax.servlet.context.tempdir", tempDirPath.getAbsolutePath());
+        this.setPersistTempDirectory(true);
+        this.setTempDirectory(tempDirPath);
+
         //Setup error handling
-        setErrorHandler(new MangoErrorHandler());
-        
+        this.setErrorHandler(new MangoErrorHandler());
+
         this.getAliasChecks().clear();
-        addAliasCheck(new ApproveNonExistentDirectoryAliases());
-        if(Common.envProps.getBoolean("web.security.followSymlinks", true))
-            addAliasCheck(new AllowOverridingSymLinkAliasChecker());
+        this.addAliasCheck(new ApproveNonExistentDirectoryAliases());
+        if (Common.envProps.getBoolean("web.security.followSymlinks", true)) {
+            this.addAliasCheck(new AllowOverridingSymLinkAliasChecker());
+        }
+
     }
+
 }
