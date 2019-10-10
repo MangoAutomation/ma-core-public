@@ -1,17 +1,20 @@
 /*
  * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.web.mvc.spring.components;
+package com.infiniteautomation.mango.spring.webapp.filters;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.ForwardedHeaderFilter;
@@ -19,7 +22,13 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 /**
  * @author Jared Wiltshire
  */
-@Component(MangoForwardedHeaderFilter.NAME)
+@Lazy
+@Component
+@WebFilter(
+        filterName = MangoForwardedHeaderFilter.NAME,
+        asyncSupported = true,
+        urlPatterns = {"/*"})
+@Order(-100)
 public class MangoForwardedHeaderFilter extends ForwardedHeaderFilter {
     public static final String NAME = "mangoForwardedHeaderFilter";
 
