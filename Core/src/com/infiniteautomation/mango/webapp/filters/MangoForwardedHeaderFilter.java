@@ -18,10 +18,13 @@ import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
+
 /**
  * @author Jared Wiltshire
  */
 @Component
+@ConditionalOnProperty("${web.forwardedHeaders.enabled:true}")
 @WebFilter(
         filterName = MangoForwardedHeaderFilter.NAME,
         asyncSupported = true,
@@ -30,13 +33,10 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 public class MangoForwardedHeaderFilter extends ForwardedHeaderFilter {
     public static final String NAME = "mangoForwardedHeaderFilter";
 
-    private final boolean enabled;
     private final List<IpAddressMatcher> ipMatchers;
 
     @Autowired
-    public MangoForwardedHeaderFilter(@Value("${web.forwardedHeaders.enabled:true}") boolean enabled, @Value("${web.forwardedHeaders.trustedIpRanges}") String trustedIpRanges) {
-        this.enabled = enabled;
-
+    public MangoForwardedHeaderFilter(@Value("${web.forwardedHeaders.trustedIpRanges}") String trustedIpRanges) {
         if (trustedIpRanges == null || trustedIpRanges.isEmpty()) {
             this.ipMatchers = Collections.emptyList();
         } else {
@@ -48,7 +48,7 @@ public class MangoForwardedHeaderFilter extends ForwardedHeaderFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        if (super.shouldNotFilter(request) || !enabled) {
+        if (super.shouldNotFilter(request)) {
             return true;
         }
 

@@ -11,6 +11,7 @@ import org.eclipse.jetty.servlets.DoSFilter;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
 
@@ -20,6 +21,7 @@ import com.serotonin.m2m2.vo.User;
  * @author Jared Wiltshire
  */
 @Component(MangoDosFilter.NAME)
+@ConditionalOnProperty("${web.dos.enabled:true}")
 @WebFilter(
         filterName = MangoDosFilter.NAME,
         asyncSupported = true,
