@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.web.mvc.spring;
+package com.infiniteautomation.mango.spring;
 
 import org.springframework.core.env.PropertySource;
 

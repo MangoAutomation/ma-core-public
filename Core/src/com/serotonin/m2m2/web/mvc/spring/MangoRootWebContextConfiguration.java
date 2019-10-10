@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatedMessageSource;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
@@ -44,5 +45,4 @@ public class MangoRootWebContextConfiguration {
         commonsMultipartResolver.setMaxUploadSize(Common.envProps.getLong("web.fileUpload.maxSize", 50000000));
         return commonsMultipartResolver;
     }
-
 }
