@@ -78,7 +78,6 @@ import com.serotonin.m2m2.view.DynamicImage;
 import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.OverridingWebAppContext;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.provider.Providers;
 import com.serotonin.timer.AbstractTimer;
@@ -91,7 +90,6 @@ import freemarker.template.Configuration;
 public class Common {
     public static final String SESSION_USER_EXCEPTION  = "MANGO_USER_LAST_EXCEPTION";
 
-    public static OverridingWebAppContext owac;
     // Note the start time of the application.
     public static final long START_TIME = System.currentTimeMillis();
 
@@ -111,6 +109,10 @@ public class Common {
         String maHomeProperty = System.getProperty("ma.home");
         MA_HOME_PATH = Paths.get(maHomeProperty != null ? maHomeProperty : ".").toAbsolutePath();
     }
+    public static final Path OVERRIDES = MA_HOME_PATH.resolve("overrides");
+    public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);
+    public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
+    public static final Path TEMP = MA_HOME_PATH.resolve("work");
 
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
@@ -438,7 +440,7 @@ public class Common {
     // Get the user of the current HTTP request or the background context
     /**
      * Get a User from the http context and if not from there try the background context
-     *  Ideally we will know what context to use but this may not be possible in which case 
+     *  Ideally we will know what context to use but this may not be possible in which case
      *  this method is helpful.  Note that there may be a permission holder in the background context,
      *  in which case this method will return null and you should use @see Common.getBackgroundContextPermissionHolder()
      * @return
@@ -480,9 +482,9 @@ public class Common {
         }
         return null;
     }
-    
+
     /**
-     * The background context can hold a User (which is a permission holder) 
+     * The background context can hold a User (which is a permission holder)
      *   but it may also hold a system permission holder which is not a user.
      * @return
      */
