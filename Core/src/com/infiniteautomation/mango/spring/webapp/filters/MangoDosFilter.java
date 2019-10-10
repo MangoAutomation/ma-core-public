@@ -29,7 +29,7 @@ import com.serotonin.m2m2.vo.User;
         initParams = {
                 @WebInitParam(name = "managedAttr", value = "false"),
                 @WebInitParam(name = "maxRequestsPerSec", value = "${web.dos.maxRequestsPerSec:25}"),
-                @WebInitParam(name = "delayMs", value = "{web.dos.delayMs:100}"),
+                @WebInitParam(name = "delayMs", value = "${web.dos.delayMs:100}"),
                 @WebInitParam(name = "throttledRequests", value = "${web.dos.throttledRequests:5}"),
                 @WebInitParam(name = "maxWaitMs", value = "${web.dos.maxWaitMs:50}"),
                 @WebInitParam(name = "throttleMs", value = "${web.dos.throttleMs:30000}"),
@@ -38,7 +38,7 @@ import com.serotonin.m2m2.vo.User;
                 @WebInitParam(name = "insertHeaders", value = "${web.dos.insertHeaders:true}"),
                 @WebInitParam(name = "trackSessions", value = "${web.dos.trackSessions:true}"),
                 @WebInitParam(name = "remotePort", value = "${web.dos.remotePort:false}"),
-                @WebInitParam(name = "ipWhitelist", value = "${web.dos.ipWhitelist}")
+                @WebInitParam(name = "ipWhitelist", value = "${web.dos.ipWhitelist:}")
         })
 @Order(100)
 public class MangoDosFilter extends DoSFilter {
