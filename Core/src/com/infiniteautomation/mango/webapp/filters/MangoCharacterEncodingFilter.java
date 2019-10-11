@@ -6,12 +6,13 @@ package com.infiniteautomation.mango.webapp.filters;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * @author Jared Wiltshire
  */
-//@Component
+@Component
 @WebFilter(
         asyncSupported = true,
         urlPatterns = {"/rest/*"},
