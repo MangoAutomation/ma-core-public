@@ -6,6 +6,7 @@ import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT.FireEvents;
 import com.serotonin.m2m2.rt.script.AbstractPointWrapper;
 import com.serotonin.m2m2.rt.script.DataPointWrapper;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -49,7 +50,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
         if(dprt == null) //point isn't running, we can save the value through the DAO
             pointValueDao.savePointValueAsync(vo.getId(), newValue, source);
         else //Give the point a chance to cache the new value
-            dprt.savePointValueDirectToCache(newValue, source, true, true);
+            dprt.savePointValueDirectToCache(newValue, source, true, true, FireEvents.NEVER);
     }
 
     @Override

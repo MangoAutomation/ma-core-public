@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EnhancedPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT.FireEvents;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
@@ -260,7 +261,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
 	    	}
 	    	//Save to cache if running
 	    	if(dpRt != null)
-	    		dpRt.savePointValueDirectToCache(pvt, null, true, true);
+	    		dpRt.savePointValueDirectToCache(pvt, null, true, true, FireEvents.NEVER);
 	    	else{
 	    	    if (pointValueDao instanceof EnhancedPointValueDao) {
 	    	        DataSourceVO<?> ds = getDataSource(dp.getDataSourceId());

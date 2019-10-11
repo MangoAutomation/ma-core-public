@@ -365,23 +365,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     }
     
     /**
-     * 
-     * This method is called by modules that have the potential to generate a rapid flow of values and backdates
-     *  for the purpose of circumventing the update method's various controls on logging behaviors. It does not
-     *  generate events because the expected rate of calls from the modules which use it is somewhere between high
-     *  and very high.
-     * 
-     * @param newValue - the new value
-     * @param source - for annotation
-     * @param logValue - should the value be logged?
-     * @param async - should this be done asynchronously i.e. queued in a batch 
-     */
-    public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
-            boolean async) {
-        savePointValueDirectToCache(newValue, source, logValue, async, FireEvents.NEVER);
-    }
-    
-    /**
      * This method is called by modules that have the potential to generate a rapid flow of values and backdates
      *  for the purpose of circumventing the update method's various controls on logging behaviors. It can generate events
      *  if desired.
