@@ -26,11 +26,11 @@ import org.directwebremoting.extend.ConverterManager;
 import org.directwebremoting.extend.Creator;
 import org.directwebremoting.extend.CreatorManager;
 import org.directwebremoting.servlet.DwrServlet;
-import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.module.DwrClassHolder;
 import com.serotonin.m2m2.module.DwrConversionDefinition;
 import com.serotonin.m2m2.web.dwr.StartupDwr;
@@ -83,7 +83,7 @@ public final class MangoDwrServlet extends DwrServlet {
         Set<Class<?>> classes = new HashSet<>();
         classes.add(StartupDwr.class);
 
-        BeanFactoryUtils.beansOfTypeIncludingAncestors(beanFactory, DwrClassHolder.class).values().stream()
+        MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, DwrClassHolder.class).stream()
         .forEach(def -> classes.add(def.getDwrClass()));
 
         for (Class<?> clazz : classes) {
@@ -106,7 +106,7 @@ public final class MangoDwrServlet extends DwrServlet {
         BlabberConverterManager converterManager = (BlabberConverterManager) container.getBean(ConverterManager.class
                 .getName());
 
-        for (DwrConversionDefinition def : beanFactory.getBeansOfType(DwrConversionDefinition.class).values()) {
+        for (DwrConversionDefinition def : MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, DwrConversionDefinition.class)) {
             for (DwrClassConversion conversion : def.getConversions()) {
                 try {
                     Map<String, String> params = new HashMap<>();

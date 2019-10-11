@@ -20,9 +20,8 @@ import org.springframework.web.filter.DelegatingFilterProxy;
         filterName = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME,
         asyncSupported = true,
         urlPatterns = {"/*"})
-@Order(0)
+@Order(FilterOrder.SPRING_SECURITY)
 public class MangoSpringSecurityDelegate extends DelegatingFilterProxy {
-
     private MangoSpringSecurityDelegate() {
         super(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME);
     }

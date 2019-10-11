@@ -47,7 +47,6 @@ public class MangoInitializer implements WebApplicationInitializer {
         this.configureSessions(servletContext);
     }
 
-
     private void constantsInitialize(ServletContext ctx) {
         ctx.setAttribute("constants.Common.NEW_ID", Common.NEW_ID);
 

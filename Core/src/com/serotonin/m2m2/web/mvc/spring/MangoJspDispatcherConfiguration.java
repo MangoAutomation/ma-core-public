@@ -37,6 +37,7 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
  * @author Terry Packer
  *
  */
+@SuppressWarnings("deprecation")
 @Configuration
 @Import({MangoCommonConfiguration.class, MangoMethodSecurityConfiguration.class})
 @EnableWebMvc
@@ -67,19 +68,18 @@ public class MangoJspDispatcherConfiguration implements WebMvcConfigurer {
         return new CommonDataInterceptor();
     }
 
-    @SuppressWarnings("deprecation")
     @Bean(name="mappings")
     public BlabberUrlHandlerMapping blabberUrlHandlerMapping(CommonDataInterceptor commonDataInterceptor) {
         BlabberUrlHandlerMapping mapping = new BlabberUrlHandlerMapping();
         mapping.addInterceptor(commonDataInterceptor);
 
         // Add interceptors
-        for (HandlerInterceptorDefinition def : beanFactory.getBeansOfType(HandlerInterceptorDefinition.class).values()) {
+        for (HandlerInterceptorDefinition def : MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, HandlerInterceptorDefinition.class)) {
             mapping.addInterceptor(def.getInterceptor());
         }
         mapping.initInterceptors();
 
-        for (UriMappingDefinition def : beanFactory.getBeansOfType(UriMappingDefinition.class).values()) {
+        for (UriMappingDefinition def : MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, UriMappingDefinition.class)) {
 
             String modulePath;
             if (def.getModule() == null) // Core mapping
@@ -98,12 +98,12 @@ public class MangoJspDispatcherConfiguration implements WebMvcConfigurer {
         }
 
         //Add The ControllerMappingDefinitions
-        for(ControllerMappingDefinition def: beanFactory.getBeansOfType(ControllerMappingDefinition.class).values()) {
+        for(ControllerMappingDefinition def: MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, ControllerMappingDefinition.class)) {
             mapping.registerHandler(def.getPath(), def.getController());
         }
 
         // Add url mappings, TODO Remove this when we finally get rid of UrlMappingDefinition
-        for (UrlMappingDefinition def : beanFactory.getBeansOfType(UrlMappingDefinition.class).values()) {
+        for (UrlMappingDefinition def : MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, UrlMappingDefinition.class)) {
             String modulePath = "/" + Constants.DIR_MODULES + "/" + def.getModule().getName();
             String viewName = null;
             if (def.getJspPath() != null)
