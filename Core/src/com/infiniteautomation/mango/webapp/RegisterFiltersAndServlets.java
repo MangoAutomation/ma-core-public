@@ -86,7 +86,7 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
                     if (annotation.urlPatterns().length > 0) {
                         registration.addMappingForUrlPatterns(dispatcherTypes, true, annotation.urlPatterns());
                     }
-                    if (annotation.urlPatterns().length > 0) {
+                    if (annotation.servletNames().length > 0) {
                         registration.addMappingForServletNames(dispatcherTypes, true, annotation.servletNames());
                     }
                 }
