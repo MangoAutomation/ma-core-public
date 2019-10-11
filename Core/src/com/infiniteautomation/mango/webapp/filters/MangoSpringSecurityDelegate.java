@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.webapp.filters;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.annotation.WebFilter;
 
 import org.springframework.core.annotation.Order;
@@ -19,7 +20,8 @@ import org.springframework.web.filter.DelegatingFilterProxy;
 @WebFilter(
         filterName = AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME,
         asyncSupported = true,
-        urlPatterns = {"/*"})
+        urlPatterns = {"/*"},
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ERROR, DispatcherType.ASYNC})
 @Order(FilterOrder.SPRING_SECURITY)
 public class MangoSpringSecurityDelegate extends DelegatingFilterProxy {
     private MangoSpringSecurityDelegate() {
