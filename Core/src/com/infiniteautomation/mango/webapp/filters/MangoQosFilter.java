@@ -37,7 +37,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
                 @WebInitParam(name = "waitMs", value = "${web.qos.waitMs:50}"),
                 @WebInitParam(name = "suspendMs", value = "${web.qos.suspendMs:-1}")
         })
-@Order(200)
+@Order(FilterOrder.QOS)
 public class MangoQosFilter extends QoSFilter {
     public static final String NAME = "mangoQosFilter";
 

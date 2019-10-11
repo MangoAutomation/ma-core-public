@@ -29,7 +29,7 @@ import com.infiniteautomation.mango.spring.ConditionalOnProperty;
         filterName = MangoForwardedHeaderFilter.NAME,
         asyncSupported = true,
         urlPatterns = {"/*"})
-@Order(-100)
+@Order(FilterOrder.FORWARDED_HEADER)
 public class MangoForwardedHeaderFilter extends ForwardedHeaderFilter {
     public static final String NAME = "mangoForwardedHeaderFilter";
 

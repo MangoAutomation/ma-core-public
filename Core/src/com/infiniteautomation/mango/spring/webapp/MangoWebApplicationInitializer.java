@@ -23,6 +23,7 @@ import org.springframework.web.servlet.DispatcherServlet;
 
 import com.infiniteautomation.mango.rest.RootRestDispatcherConfiguration;
 import com.infiniteautomation.mango.rest.swagger.RootSwaggerConfig;
+import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.module.ApplicationContextDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.spring.MangoJspDispatcherConfiguration;
@@ -84,7 +85,7 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
 
         // find any WebApplicationInitializer in the web context configuration and call them during startup (before initialization) so
         // they have an opportunity to add filters / servlets
-        for (WebApplicationInitializer initializer : rootWebContext.getBeansOfType(WebApplicationInitializer.class).values()) {
+        for (WebApplicationInitializer initializer : MangoCommonConfiguration.beansOfType(rootWebContext, WebApplicationInitializer.class)) {
             initializer.onStartup(context);
         }
 

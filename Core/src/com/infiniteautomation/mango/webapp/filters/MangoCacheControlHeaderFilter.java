@@ -2,51 +2,65 @@
    Copyright (C) 2016 Infinite Automation Systems Inc. All rights reserved.
    @author Terry Packer
  */
-package com.serotonin.m2m2.web.filter;
+package com.infiniteautomation.mango.webapp.filters;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
-
-import com.serotonin.m2m2.Common;
+import org.springframework.stereotype.Component;
 
 /**
  * Filter to apply cache control headers for all requests
- * 
+ *
  * This filter is configured via web.xml for now
- * 
+ *
  * @author Terry Packer
  */
+@Component
+@WebFilter(
+        filterName = MangoCacheControlHeaderFilter.NAME,
+        asyncSupported = true,
+        urlPatterns = {"/*"},
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC})
 public class MangoCacheControlHeaderFilter implements Filter {
+    public static final String NAME = "cacheControlFilter";
 
     public static final String CACHE_OVERRIDE_SETTING = "CACHE_OVERRIDE_SETTING";
     public static final String MAX_AGE_TEMPLATE = "max-age=%d, must-revalidate";
     public static final Pattern VERSION_QUERY_PARAMETER = Pattern.compile("(?:^|&)v=");
-    
+
     final RequestMatcher restMatcher;
     final RequestMatcher resourcesMatcher;
     final RequestMatcher getMatcher;
-    final RequestMatcher uiServletMatcher; 
-    
-    final String defaultNoCache;
+    final RequestMatcher uiServletMatcher;
 
-    public MangoCacheControlHeaderFilter() {
+    final String defaultNoCache;
+    final Environment env;
+
+    @Autowired
+    private MangoCacheControlHeaderFilter(Environment env) {
+        this.env = env;
+
         getMatcher = new AntPathRequestMatcher("/**", HttpMethod.GET.name());
         restMatcher = new AntPathRequestMatcher("/rest/**", HttpMethod.GET.name());
         resourcesMatcher = new OrRequestMatcher(
@@ -67,7 +81,7 @@ public class MangoCacheControlHeaderFilter implements Filter {
             return false;
         }
     }
-    
+
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
             throws ServletException, IOException {
@@ -83,7 +97,7 @@ public class MangoCacheControlHeaderFilter implements Filter {
             filterChain.doFilter(request, response);
         }else {
             String header = null;
-            
+
             //Detect the type of settings to use, allow overriding the matching
             CacheControlLevel override = null;
             if(request.getAttribute(CACHE_OVERRIDE_SETTING) != null) {
@@ -92,7 +106,7 @@ public class MangoCacheControlHeaderFilter implements Filter {
                     override = (CacheControlLevel)o;
                 }
             }
-            
+
             if(override == null) {
                 if (restMatcher.matches(request)) {
                     override = CacheControlLevel.REST;
@@ -111,24 +125,24 @@ public class MangoCacheControlHeaderFilter implements Filter {
             }
             switch(override) {
                 case REST:
-                    if(Common.envProps.getBoolean("web.cache.noStore.rest", true)) {
+                    if(this.env.getProperty("web.cache.noStore.rest", Boolean.class, true)) {
                         header = defaultNoCache;
                     }else {
-                        header = CacheControl.maxAge(Common.envProps.getLong("web.cache.maxAge.rest", 0L), TimeUnit.SECONDS).getHeaderValue();
+                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.rest", Long.class, 0L), TimeUnit.SECONDS).getHeaderValue();
                     }
                     break;
                 case VERSIONED_RESOURCE:
-                    if(Common.envProps.getBoolean("web.cache.noStore.resources", false)) {
+                    if(this.env.getProperty("web.cache.noStore.resources", Boolean.class, false)) {
                         header = defaultNoCache;
                     }else {
-                        header = CacheControl.maxAge(Common.envProps.getLong("web.cache.maxAge.versionedResources", 31536000L), TimeUnit.SECONDS).getHeaderValue();
+                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.versionedResources", Long.class, 31536000L), TimeUnit.SECONDS).getHeaderValue();
                     }
                     break;
                 case RESOURCE:
-                    if(Common.envProps.getBoolean("web.cache.noStore.resources", false)) {
+                    if(this.env.getProperty("web.cache.noStore.resources", Boolean.class, false)) {
                         header = defaultNoCache;
                     }else {
-                        header = CacheControl.maxAge(Common.envProps.getLong("web.cache.maxAge.resources", 86400L), TimeUnit.SECONDS).getHeaderValue();
+                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.resources", Long.class, 86400L), TimeUnit.SECONDS).getHeaderValue();
                     }
                     break;
                 case NON_GET:
@@ -137,37 +151,37 @@ public class MangoCacheControlHeaderFilter implements Filter {
                 case DO_NOT_MODIFY:
                     break;
                 case DEFAULT:
-               default:
-                   if(Common.envProps.getBoolean("web.cache.noStore", false)) {
-                       header = defaultNoCache;
-                   }else {
-                       header = CacheControl.maxAge(Common.envProps.getLong("web.cache.maxAge", 0L), TimeUnit.SECONDS).getHeaderValue();
-                   }
-                   break;
+                default:
+                    if(this.env.getProperty("web.cache.noStore", Boolean.class, false)) {
+                        header = defaultNoCache;
+                    }else {
+                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge", Long.class, 0L), TimeUnit.SECONDS).getHeaderValue();
+                    }
+                    break;
             }
             response.setHeader(HttpHeaders.CACHE_CONTROL, header);
-            filterChain.doFilter(request, response);            
+            filterChain.doFilter(request, response);
         }
     }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        
+
     }
 
     @Override
     public void destroy() {
-        
+
     }
-    
+
     public static enum CacheControlLevel {
-        
+
         /**
-         * Settings for all unmatched requests 
+         * Settings for all unmatched requests
          *  no-store
          */
         DEFAULT,
-        
+
         /**
          * REST requests can be set by env properties
          *  web.cache.noStore.rest=true -> no-store
@@ -175,7 +189,7 @@ public class MangoCacheControlHeaderFilter implements Filter {
          * Defaults: not-store, must-revalidate
          */
         REST,
-        
+
         /**
          * Resource requests can be set by env properties
          *  web.cache.noStore.resources=true -> no-store
@@ -183,7 +197,7 @@ public class MangoCacheControlHeaderFilter implements Filter {
          * Defaults: max-age=86400, must-revalidate
          */
         RESOURCE,
-        
+
         /**
          * Versioned resource requests can be set by env properties
          *  web.cache.noStore.versionedResources=true -> no-store
@@ -191,17 +205,17 @@ public class MangoCacheControlHeaderFilter implements Filter {
          * Defaults: max-age=31536000, must-revalidate
          */
         VERSIONED_RESOURCE,
-        
+
         /**
          * Non GET request will not be cached
          * Default: no-store
          */
         NON_GET,
-        
+
         /**
          * Don't modify the cache control header, useful if the value is already set by custom code elsewhere
          */
         DO_NOT_MODIFY;
-       
+
     }
 }

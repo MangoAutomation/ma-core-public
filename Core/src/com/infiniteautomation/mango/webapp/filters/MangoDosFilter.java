@@ -40,7 +40,7 @@ import com.serotonin.m2m2.vo.User;
                 @WebInitParam(name = "remotePort", value = "${web.dos.remotePort:false}"),
                 @WebInitParam(name = "ipWhitelist", value = "${web.dos.ipWhitelist:}")
         })
-@Order(100)
+@Order(FilterOrder.DOS)
 public class MangoDosFilter extends DoSFilter {
     public static final String NAME = "mangoDosFilter";
 

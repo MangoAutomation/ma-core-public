@@ -22,21 +22,6 @@
       <param-value>UTF-8</param-value>
     </init-param>
   </filter>
-  
-  <filter>
-    <filter-name>UrlSecurity</filter-name>
-    <filter-class>com.serotonin.m2m2.web.filter.UrlSecurityFilter</filter-class>
-  </filter>
-
-  <filter>
-    <filter-name>WebContext</filter-name>
-    <filter-class>com.serotonin.m2m2.web.filter.WebContextFilter</filter-class>
-  </filter>
-
-  <filter>
-    <filter-name>Translations</filter-name>
-    <filter-class>com.serotonin.m2m2.web.filter.TranslationsFilter</filter-class>
-  </filter>
 
   <filter>
     <description>Filter to ensure we properly decode/encode URLs for the REST API</description>
@@ -52,23 +37,10 @@
         <param-value>true</param-value>
     </init-param>
   </filter>
-  
-  <filter>
-   <filter-name>cacheControlFilter</filter-name>
-   <filter-class>com.serotonin.m2m2.web.filter.MangoCacheControlHeaderFilter</filter-class>
-   <async-supported>true</async-supported>
-  </filter>
-  
+
   <!-- 
     Filter mappings.
    -->
-   <filter-mapping>
-  	<filter-name>cacheControlFilter</filter-name>
-  	<url-pattern>/*</url-pattern>
-  	<dispatcher>REQUEST</dispatcher>
-  	<dispatcher>FORWARD</dispatcher>
-  	<dispatcher>ASYNC</dispatcher>
-  </filter-mapping>
 
   <filter-mapping>
     <filter-name>CharacterEncodingFilter</filter-name>
@@ -85,24 +57,6 @@
     <url-pattern>*.shtm</url-pattern>
   </filter-mapping>
 
-  <filter-mapping>
-    <filter-name>UrlSecurity</filter-name>
-    <url-pattern>*.shtm</url-pattern>
-  </filter-mapping>
-
-  <filter-mapping>
-    <filter-name>WebContext</filter-name>
-    <url-pattern>*.shtm</url-pattern>
-  </filter-mapping>
-
-  <filter-mapping>
-    <filter-name>Translations</filter-name>
-    <url-pattern>/exception/*</url-pattern>
-    <dispatcher>REQUEST</dispatcher>
-    <dispatcher>ERROR</dispatcher>
-    <dispatcher>FORWARD</dispatcher>
-  </filter-mapping>
-  
   <!-- 
     Servlet definitions.
    -->

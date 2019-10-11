@@ -3,6 +3,12 @@
  */
 package com.infiniteautomation.mango.spring;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.beans.factory.BeanFactoryUtils;
+import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -43,4 +50,27 @@ public class MangoCommonConfiguration {
         return new PropagatingEventMulticaster(context, eventMulticasterRegistry);
     }
 
+    /**
+     * Calls getBeansOfType() then sorts and returns as list
+     * @param lbf
+     * @param type
+     * @return
+     */
+    public static <T> List<T> beansOfType(ListableBeanFactory lbf, Class<T> type) {
+        List<T> beans = new ArrayList<>(lbf.getBeansOfType(type).values());
+        Collections.sort(beans, AnnotationAwareOrderComparator.INSTANCE);
+        return beans;
+    }
+
+    /**
+     * Calls BeanFactoryUtils.beansOfTypeIncludingAncestors() then sorts and returns as list
+     * @param lbf
+     * @param type
+     * @return
+     */
+    public static <T> List<T> beansOfTypeIncludingAncestors(ListableBeanFactory lbf, Class<T> type) {
+        List<T> beans = new ArrayList<>(BeanFactoryUtils.beansOfTypeIncludingAncestors(lbf, type).values());
+        Collections.sort(beans, AnnotationAwareOrderComparator.INSTANCE);
+        return beans;
+    }
 }

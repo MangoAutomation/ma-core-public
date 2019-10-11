@@ -4,8 +4,8 @@
 package com.infiniteautomation.mango.webapp;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -26,14 +26,16 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
-import org.springframework.security.web.context.AbstractSecurityWebApplicationInitializer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.WebApplicationInitializer;
-import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.module.ServletDefinition;
 
 /**
+ * Responsible for registering all filters annotated with @WebFilter and servlets annotated with @WebServlet.
+ * Also registers servlets from ServletDefinitions.
+ *
  * @author Jared Wiltshire
  */
 @Component
@@ -52,12 +54,6 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
-        // Manually add the spring security filter as the first filter
-        FilterRegistration.Dynamic springSecurity = servletContext.addFilter(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME,
-                new DelegatingFilterProxy(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME));
-        springSecurity.setAsyncSupported(true);
-        springSecurity.addMappingForUrlPatterns(null, true, "/*");
-
         this.registerFilters(servletContext);
         this.registerServlets(servletContext);
         this.registerServletDefinitionServlets(servletContext);
@@ -75,7 +71,7 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
      * @param servletContext
      */
     private void registerFilters(ServletContext servletContext) {
-        Collection<Filter> filters = beanFactory.getBeansOfType(Filter.class).values();
+        List<Filter> filters = MangoCommonConfiguration.beansOfType(beanFactory, Filter.class);
         for (Filter filter : filters) {
             WebFilter annotation = filter.getClass().getAnnotation(WebFilter.class);
             if (annotation != null) {
@@ -103,7 +99,7 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
      * @param servletContext
      */
     private void registerServlets(ServletContext servletContext) {
-        Collection<Servlet> servlets = beanFactory.getBeansOfType(Servlet.class).values();
+        List<Servlet> servlets = MangoCommonConfiguration.beansOfType(beanFactory, Servlet.class);
         for (Servlet servlet : servlets) {
             WebServlet annotation = servlet.getClass().getAnnotation(WebServlet.class);
             if (annotation != null) {
@@ -122,7 +118,7 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
     }
 
     private void registerServletDefinitionServlets(ServletContext servletContext) {
-        Collection<ServletDefinition> servletDefinitions = beanFactory.getBeansOfType(ServletDefinition.class).values();
+        List<ServletDefinition> servletDefinitions = MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, ServletDefinition.class);
         for (ServletDefinition def : servletDefinitions) {
             ServletRegistration.Dynamic registration = servletContext.addServlet(def.getClass().getSimpleName(), def.getServlet());
             registration.setInitParameters(def.getInitParameters());

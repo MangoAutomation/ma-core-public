@@ -2,7 +2,7 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.serotonin.m2m2.web.filter;
+package com.infiniteautomation.mango.webapp.filters;
 
 import java.io.IOException;
 
@@ -13,15 +13,23 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.directwebremoting.impl.DefaultWebContextBuilder;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Matthew Lohbihler
  */
+@Component
+@WebFilter(
+        filterName = WebContextFilter.NAME,
+        urlPatterns = {"*.shtm"})
 public class WebContextFilter implements Filter {
+    public static final String NAME = "WebContext";
+
     private final DefaultWebContextBuilder builder = new DefaultWebContextBuilder();
     private ServletContext servletContext;
 
@@ -37,7 +45,7 @@ public class WebContextFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
-            ServletException {
+    ServletException {
         try {
             builder.set((HttpServletRequest) request, (HttpServletResponse) response, null, servletContext, null);
             chain.doFilter(request, response);
