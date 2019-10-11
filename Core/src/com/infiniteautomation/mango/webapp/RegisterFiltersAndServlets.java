@@ -75,7 +75,11 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
         for (Filter filter : filters) {
             WebFilter annotation = filter.getClass().getAnnotation(WebFilter.class);
             if (annotation != null) {
-                FilterRegistration.Dynamic registration = servletContext.addFilter(annotation.filterName(), filter);
+                String name = annotation.filterName();
+                if (name == null || name.isEmpty()) {
+                    name = filter.getClass().getSimpleName();
+                }
+                FilterRegistration.Dynamic registration = servletContext.addFilter(name, filter);
                 if (registration != null) {
                     registration.setAsyncSupported(annotation.asyncSupported());
                     registration.setInitParameters(resolveInitParameters(annotation.initParams()));
@@ -103,7 +107,11 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
         for (Servlet servlet : servlets) {
             WebServlet annotation = servlet.getClass().getAnnotation(WebServlet.class);
             if (annotation != null) {
-                ServletRegistration.Dynamic registration = servletContext.addServlet(annotation.name(), servlet);
+                String name = annotation.name();
+                if (name == null || name.isEmpty()) {
+                    name = servlet.getClass().getSimpleName();
+                }
+                ServletRegistration.Dynamic registration = servletContext.addServlet(name, servlet);
                 if (registration != null) {
                     registration.setAsyncSupported(annotation.asyncSupported());
                     registration.setInitParameters(resolveInitParameters(annotation.initParams()));
