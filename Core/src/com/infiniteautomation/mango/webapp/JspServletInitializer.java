@@ -7,6 +7,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -21,7 +22,7 @@ import org.springframework.web.WebApplicationInitializer;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Order(100)
-public class JspServletInitializer implements WebApplicationInitializer {
+public class JspServletInitializer extends JettyJasperInitializer implements WebApplicationInitializer {
 
     private final Environment env;
 
@@ -32,6 +33,9 @@ public class JspServletInitializer implements WebApplicationInitializer {
 
     @Override
     public void onStartup(ServletContext context) throws ServletException {
+        // call JettyJasperInitializer onStartup() method
+        super.onStartup(null, context);
+
         //ServletRegistration.Dynamic holderJsp = context.addServlet("jsp", JettyJspServlet.class);
         ServletRegistration holderJsp = context.getServletRegistration("jsp");
         //holderJsp.addMapping("*.jsp");
