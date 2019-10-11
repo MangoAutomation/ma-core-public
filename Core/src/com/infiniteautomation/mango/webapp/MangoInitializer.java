@@ -10,6 +10,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.SessionCookieConfig;
 
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -105,8 +106,8 @@ public class MangoInitializer implements WebApplicationInitializer {
     }
 
     private void configureSessions(ServletContext ctx) {
-        //Disable the JSESSIONID URL Parameter
-        ctx.setInitParameter("org.eclipse.jetty.servlet.SessionIdPathParameterName", "none");
+        // Disable the JSESSIONID URL Parameter, there is no option for this in SessionCookieConfig so set via init param
+        ctx.setInitParameter(SessionHandler.__SessionIdPathParameterNameProperty, "none");
 
         SessionCookieConfig sessionCookieConfig = ctx.getSessionCookieConfig();
         sessionCookieConfig.setHttpOnly(true);
