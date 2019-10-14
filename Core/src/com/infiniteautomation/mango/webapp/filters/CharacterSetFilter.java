@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.webapp.filters;
 
 import java.io.IOException;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -23,9 +24,11 @@ import org.springframework.stereotype.Component;
 @Component
 @WebFilter(
         urlPatterns = {"*.htm", "*.shtm"},
+        asyncSupported = true,
         initParams = {
                 @WebInitParam(name = "charset", value = "UTF-8")
-        })
+        },
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 public class CharacterSetFilter implements Filter {
     private String charset;
 

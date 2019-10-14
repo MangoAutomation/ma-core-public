@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.webapp.filters;
 
 import java.security.Principal;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.ServletRequest;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
@@ -36,7 +37,8 @@ import com.serotonin.m2m2.vo.permission.Permissions;
                 @WebInitParam(name = "maxPriority", value = "3"),
                 @WebInitParam(name = "waitMs", value = "${web.qos.waitMs:50}"),
                 @WebInitParam(name = "suspendMs", value = "${web.qos.suspendMs:-1}")
-        })
+        },
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 @Order(FilterOrder.QOS)
 public class MangoQosFilter extends QoSFilter {
     public static final String NAME = "mangoQosFilter";
