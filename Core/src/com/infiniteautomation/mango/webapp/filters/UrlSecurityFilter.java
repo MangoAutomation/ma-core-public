@@ -2,6 +2,7 @@ package com.infiniteautomation.mango.webapp.filters;
 
 import java.io.IOException;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -31,7 +32,8 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 @Component
 @WebFilter(
         filterName = UrlSecurityFilter.NAME,
-        urlPatterns = {"*.shtm"})
+        urlPatterns = {"*.shtm"},
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 @Order(FilterOrder.URL_SECURITY)
 public class UrlSecurityFilter implements Filter {
     public static final String NAME = "UrlSecurity";

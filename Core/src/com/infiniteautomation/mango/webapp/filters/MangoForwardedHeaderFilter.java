@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 
@@ -28,7 +29,8 @@ import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 @WebFilter(
         filterName = MangoForwardedHeaderFilter.NAME,
         asyncSupported = true,
-        urlPatterns = {"/*"})
+        urlPatterns = {"/*"},
+        dispatcherTypes = {DispatcherType.REQUEST})
 @Order(FilterOrder.FORWARDED_HEADER)
 public class MangoForwardedHeaderFilter extends ForwardedHeaderFilter {
     public static final String NAME = "mangoForwardedHeaderFilter";

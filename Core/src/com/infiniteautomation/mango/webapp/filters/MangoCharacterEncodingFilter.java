@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.webapp.filters;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
@@ -19,7 +20,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
         initParams = {
                 @WebInitParam(name = "encoding", value = "UTF-8"),
                 @WebInitParam(name = "forceEncoding", value = "true")
-        })
+        },
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 public class MangoCharacterEncodingFilter extends CharacterEncodingFilter {
 
 }

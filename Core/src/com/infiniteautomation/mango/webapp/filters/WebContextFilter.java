@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.webapp.filters;
 
 import java.io.IOException;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -26,7 +27,8 @@ import org.springframework.stereotype.Component;
 @Component
 @WebFilter(
         filterName = WebContextFilter.NAME,
-        urlPatterns = {"*.shtm"})
+        urlPatterns = {"*.shtm"},
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 public class WebContextFilter implements Filter {
     public static final String NAME = "WebContext";
 
