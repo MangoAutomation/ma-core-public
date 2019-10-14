@@ -16,10 +16,10 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @Component
 @WebFilter(
         asyncSupported = true,
-        urlPatterns = {"/rest/*"},
+        urlPatterns = {"/rest/*", "*.htm", "*.shtm"},
         initParams = {
                 @WebInitParam(name = "encoding", value = "UTF-8"),
-                @WebInitParam(name = "forceEncoding", value = "true")
+                @WebInitParam(name = "forceResponseEncoding", value = "true")
         },
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 public class MangoCharacterEncodingFilter extends CharacterEncodingFilter {
