@@ -30,6 +30,7 @@ import org.springframework.web.servlet.support.JstlUtils;
 @WebFilter(
         filterName = TranslationsFilter.NAME,
         urlPatterns = {"/exception/*"},
+        asyncSupported = true,
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ERROR, DispatcherType.FORWARD, DispatcherType.ASYNC})
 public class TranslationsFilter implements Filter {
 

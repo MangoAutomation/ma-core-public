@@ -28,6 +28,7 @@ import org.springframework.stereotype.Component;
 @WebFilter(
         filterName = WebContextFilter.NAME,
         urlPatterns = {"*.shtm"},
+        asyncSupported = false,
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 public class WebContextFilter implements Filter {
     public static final String NAME = "WebContext";

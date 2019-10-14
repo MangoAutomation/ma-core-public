@@ -33,6 +33,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 @WebFilter(
         filterName = UrlSecurityFilter.NAME,
         urlPatterns = {"*.shtm"},
+        asyncSupported = true,
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
 @Order(FilterOrder.URL_SECURITY)
 public class UrlSecurityFilter implements Filter {
