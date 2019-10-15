@@ -3,8 +3,6 @@
  */
 package com.infiniteautomation.mango.webapp.filters;
 
-import java.security.Principal;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.ServletRequest;
 import javax.servlet.annotation.WebFilter;
@@ -14,11 +12,13 @@ import javax.servlet.http.HttpSession;
 
 import org.eclipse.jetty.servlets.QoSFilter;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
@@ -26,7 +26,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  * @author Jared Wiltshire
  */
 @Component(MangoQosFilter.NAME)
-@ConditionalOnProperty("${web.dos.enabled:true}")
+@ConditionalOnProperty("${web.qos.enabled:false}")
 @WebFilter(
         filterName = MangoQosFilter.NAME,
         asyncSupported = true,
@@ -60,24 +60,27 @@ public class MangoQosFilter extends QoSFilter {
      */
     @Override
     protected int getPriority(ServletRequest request) {
-        // Override default priority levels to ensure superadmin gets the highest priority
-        HttpServletRequest baseRequest = (HttpServletRequest)request;
-        Principal principle = baseRequest.getUserPrincipal();
-        if (principle != null) {
-            //are we a mango user
-            User user = Common.getHttpUser();
-            if(user != null) {
-                return Permissions.hasAdminPermission(user) ? 3 : 2;
-            }else {
-                return 2;
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpSession session = httpRequest.getSession(false);
+        if (session != null) {
+            Object context = session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+            if (context instanceof SecurityContext) {
+                SecurityContext securityContext = (SecurityContext) context;
+                Authentication auth = securityContext.getAuthentication();
+                if (auth != null) {
+                    Object principle = auth.getPrincipal();
+                    if (principle instanceof PermissionHolder) {
+                        PermissionHolder user = (PermissionHolder) principle;
+                        return Permissions.hasAdminPermission(user) ? 3 : 2;
+                    }
+                }
             }
-        } else {
-            HttpSession session = baseRequest.getSession(false);
-            if (session != null && !session.isNew()) {
+
+            if (!session.isNew()) {
                 return 1;
-            }else {
-                return 0;
             }
         }
+
+        return 0;
     }
 }

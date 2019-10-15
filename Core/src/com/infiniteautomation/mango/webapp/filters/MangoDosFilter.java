@@ -7,13 +7,17 @@ import javax.servlet.DispatcherType;
 import javax.servlet.ServletRequest;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
 import org.eclipse.jetty.servlets.DoSFilter;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
 
 /**
@@ -51,11 +55,24 @@ public class MangoDosFilter extends DoSFilter {
      */
     @Override
     protected String extractUserId(ServletRequest request) {
-        User user = Common.getHttpUser();
-        if (user != null) {
-            return Integer.toString(user.getId());
-        } else {
-            return null;
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpSession session = httpRequest.getSession(false);
+        if (session != null) {
+            Object context = session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY);
+            if (context instanceof SecurityContext) {
+                SecurityContext securityContext = (SecurityContext) context;
+                Authentication auth = securityContext.getAuthentication();
+                if (auth != null) {
+                    Object principle = auth.getPrincipal();
+                    if (principle instanceof User) {
+                        User user = (User) principle;
+                        return Integer.toString(user.getId());
+                    }
+                    return auth.getName();
+                }
+            }
         }
+
+        return null;
     }
 }
