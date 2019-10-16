@@ -46,6 +46,7 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.UpgradeVersionState;
+import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
@@ -511,12 +512,22 @@ public class SystemSettingsDao extends BaseDao {
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                // Delete any existing value.
-                removeValue(key);
+                //There is potential deadlock in MySQL here, this avoids it
+                if(Common.databaseProxy.getType() == DatabaseType.MYSQL) {
+                    // Delete any existing value.
+                    if(value == null) {
+                        removeValue(key);
+                    }else {
+                        ejt2.update("insert into systemSettings values (?,?) on duplicate key update settingName=?", new Object[] { key, value, key });
+                    }
+                }else {
+                    // Delete any existing value.
+                    removeValue(key);
 
-                // Insert the new value if it's not null.
-                if (value != null)
-                    ejt2.update("insert into systemSettings values (?,?)", new Object[] { key, value });
+                    // Insert the new value if it's not null.
+                    if (value != null)
+                        ejt2.update("insert into systemSettings values (?,?)", new Object[] { key, value });
+                }
             }
         });
 
