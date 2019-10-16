@@ -42,7 +42,7 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
     private MangoSessionListener(SystemSettingsDao systemSettingsDao, ApplicationContext context) {
         timeoutPeriods = systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
         timeoutPeriodType = systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
-        timeoutSeconds = (int)(Common.getMillis(timeoutPeriodType, timeoutPeriods)/1000L);
+        this.updateTimeoutSeconds();
         this.context = context;
         SystemSettingsEventDispatcher.addListener(this);
     }
@@ -63,6 +63,15 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
 
     @Override
     public void systemSettingsSaved(String key, String oldValue, String newValue) {
+        this.settingChanged(key, newValue);
+    }
+
+    @Override
+    public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
+        this.settingChanged(key, defaultValue);
+    }
+
+    private void settingChanged(String key, String newValue) {
         switch(key) {
             case SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE:
                 try {
@@ -76,12 +85,11 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
                 timeoutPeriods = Integer.parseInt(newValue);
                 break;
         }
-        timeoutSeconds = (int) (Common.getMillis(timeoutPeriodType, timeoutPeriods) / 1000L);
+        this.updateTimeoutSeconds();
     }
 
-    @Override
-    public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
-
+    private void updateTimeoutSeconds() {
+        timeoutSeconds = (int) (Common.getMillis(timeoutPeriodType, timeoutPeriods) / 1000L);
     }
 
     @Override
