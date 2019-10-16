@@ -246,7 +246,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>bacnet-ds</artifactId>
-			<version>3.6.3-SNAPSHOT</version>
+			<version>3.6.4-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
