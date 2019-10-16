@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.directwebremoting.impl.DefaultWebContextBuilder;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Component;
         urlPatterns = {"*.shtm"},
         asyncSupported = false,
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
+@Order(FilterOrder.CORE_FILTERS)
 public class WebContextFilter implements Filter {
     public static final String NAME = "WebContext";
 

@@ -17,4 +17,6 @@ public interface FilterOrder {
     public static final int DOS = SPRING_SECURITY - 100;
     public static final int URL_SECURITY = SPRING_SECURITY + 100;
 
+    // other core filters are given this order to ensure they run before module defined filters with no order annotation
+    public static final int CORE_FILTERS = SPRING_SECURITY + 1000;
 }

@@ -7,6 +7,7 @@ import javax.servlet.DispatcherType;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
@@ -22,6 +23,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
                 @WebInitParam(name = "forceResponseEncoding", value = "true")
         },
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
+@Order(FilterOrder.CORE_FILTERS)
 public class MangoCharacterEncodingFilter extends CharacterEncodingFilter {
 
 }

@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -42,6 +43,7 @@ import org.springframework.stereotype.Component;
         asyncSupported = true,
         urlPatterns = {"/*"},
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC})
+@Order(FilterOrder.CORE_FILTERS)
 public class MangoCacheControlHeaderFilter implements Filter {
     public static final String NAME = "cacheControlFilter";
 

@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.JstlUtils;
 
@@ -32,6 +33,7 @@ import org.springframework.web.servlet.support.JstlUtils;
         urlPatterns = {"/exception/*"},
         asyncSupported = true,
         dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ERROR, DispatcherType.FORWARD, DispatcherType.ASYNC})
+@Order(FilterOrder.CORE_FILTERS)
 public class TranslationsFilter implements Filter {
 
     public static final String NAME = "Translations";
