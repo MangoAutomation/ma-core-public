@@ -27,6 +27,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**
  * @author Jared Wiltshire
@@ -36,10 +37,12 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 @Order(0)
 public class MangoInitializer implements WebApplicationInitializer {
     private final Environment env;
+    private final MangoSessionListener sessionListener;
 
     @Autowired
-    private MangoInitializer(Environment env) {
+    private MangoInitializer(Environment env, MangoSessionListener sessionListener) {
         this.env = env;
+        this.sessionListener = sessionListener;
     }
 
     @Override
@@ -117,5 +120,11 @@ public class MangoInitializer implements WebApplicationInitializer {
         if (cookieDomain != null && !cookieDomain.isEmpty()) {
             sessionCookieConfig.setDomain(cookieDomain);
         }
+
+        sessionCookieConfig.setMaxAge(this.sessionListener.getTimeoutSeconds());
+
+        // Use our own MangoSessionListener instead of HttpSessionEventPublisher as there is a bug in Spring which prevents getting the Authentication from the session attribute
+        // with an asynchronous event publisher
+        ctx.addListener(this.sessionListener);
     }
 }

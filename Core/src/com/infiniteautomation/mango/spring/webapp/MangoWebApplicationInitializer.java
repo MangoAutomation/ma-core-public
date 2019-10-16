@@ -28,7 +28,6 @@ import com.serotonin.m2m2.module.ApplicationContextDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.web.mvc.spring.MangoJspDispatcherConfiguration;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
-import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**
  *
@@ -146,11 +145,5 @@ public class MangoWebApplicationInitializer implements ServletContainerInitializ
                         "/swagger-resources");
             }
         }
-
-        // MangoSessionListener now publishes the events as there is a bug in Spring which prevents getting the Authentication from the session attribute
-        //context.addListener(HttpSessionEventPublisher.class);
-
-        // sets the session timeout
-        context.addListener(new MangoSessionListener());
     }
 }

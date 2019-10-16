@@ -3,17 +3,17 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.web.context.support.SecurityWebApplicationContextUtils;
 import org.springframework.security.web.session.HttpSessionCreatedEvent;
 import org.springframework.security.web.session.HttpSessionDestroyedEvent;
+import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.events.MangoHttpSessionDestroyedEvent;
 import com.serotonin.m2m2.Common;
@@ -25,25 +25,26 @@ import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
  *
  * Nice place to modify an HTTP session, i.e. set the timeout.
  *
- * <p>Also performs the work of {@link org.springframework.security.web.session.HttpSessionEventPublisher HttpSessionEventPublisher}</p>
+ * Replaces {@link org.springframework.security.web.session.HttpSessionEventPublisher HttpSessionEventPublisher} as there is a bug in Spring which prevents getting the Authentication from the session attribute
+ * with an asynchronous event publisher
  *
  * @author Terry Packer
  */
+@Component
 public class MangoSessionListener implements HttpSessionListener, SystemSettingsListener {
 
-    private int timeoutPeriods;
-    private int timeoutPeriodType;
-    private int timeoutSeconds;
+    private volatile int timeoutPeriods;
+    private volatile int timeoutPeriodType;
+    private volatile int timeoutSeconds;
+    private final ApplicationContext context;
 
-    public MangoSessionListener() {
-        timeoutPeriods = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
-        timeoutPeriodType = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
+    @Autowired
+    private MangoSessionListener(SystemSettingsDao systemSettingsDao, ApplicationContext context) {
+        timeoutPeriods = systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
+        timeoutPeriodType = systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
         timeoutSeconds = (int)(Common.getMillis(timeoutPeriodType, timeoutPeriods)/1000L);
+        this.context = context;
         SystemSettingsEventDispatcher.addListener(this);
-    }
-
-    ApplicationContext getContext(ServletContext servletContext) {
-        return SecurityWebApplicationContextUtils.findRequiredWebApplicationContext(servletContext);
     }
 
     @Override
@@ -51,13 +52,13 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
         event.getSession().setMaxInactiveInterval(timeoutSeconds);
 
         HttpSessionCreatedEvent e = new HttpSessionCreatedEvent(event.getSession());
-        getContext(event.getSession().getServletContext()).publishEvent(e);
+        context.publishEvent(e);
     }
 
     @Override
     public void sessionDestroyed(HttpSessionEvent event) {
         HttpSessionDestroyedEvent e = new MangoHttpSessionDestroyedEvent(event.getSession());
-        getContext(event.getSession().getServletContext()).publishEvent(e);
+        context.publishEvent(e);
     }
 
     @Override
@@ -75,7 +76,7 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
                 timeoutPeriods = Integer.parseInt(newValue);
                 break;
         }
-        timeoutSeconds = (int)(Common.getMillis(timeoutPeriodType, timeoutPeriods)/1000L);
+        timeoutSeconds = (int) (Common.getMillis(timeoutPeriodType, timeoutPeriods) / 1000L);
     }
 
     @Override
@@ -85,9 +86,12 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
 
     @Override
     public List<String> getKeys() {
-        List<String> keys = new ArrayList<>();
-        keys.add(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
-        keys.add(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
-        return keys;
+        return Arrays.asList(
+                SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE,
+                SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
+    }
+
+    public int getTimeoutSeconds() {
+        return timeoutSeconds;
     }
 }
