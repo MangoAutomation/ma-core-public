@@ -48,13 +48,11 @@ public class MangoCacheControlHeaderFilter implements Filter {
     public static final String NAME = "cacheControlFilter";
 
     public static final String CACHE_OVERRIDE_SETTING = "CACHE_OVERRIDE_SETTING";
-    public static final String MAX_AGE_TEMPLATE = "max-age=%d, must-revalidate";
     public static final Pattern VERSION_QUERY_PARAMETER = Pattern.compile("(?:^|&)v=");
 
     final RequestMatcher restMatcher;
     final RequestMatcher resourcesMatcher;
     final RequestMatcher getMatcher;
-    final RequestMatcher uiServletMatcher;
 
     final String defaultNoCache;
     final Environment env;
@@ -72,16 +70,7 @@ public class MangoCacheControlHeaderFilter implements Filter {
                 new AntPathRequestMatcher("/audio/**", HttpMethod.GET.name()),
                 new AntPathRequestMatcher("/dwr/**", HttpMethod.GET.name()));
 
-        uiServletMatcher = new AntPathRequestMatcher("/ui/**", HttpMethod.GET.name());
         defaultNoCache = CacheControl.noStore().getHeaderValue();
-    }
-
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        if(uiServletMatcher.matches(request)) {
-            return true;
-        }else {
-            return false;
-        }
     }
 
     @Override
@@ -94,76 +83,76 @@ public class MangoCacheControlHeaderFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
 
-        if(shouldNotFilter(request)) {
-            // Proceed without invoking this filter...
-            filterChain.doFilter(request, response);
-        }else {
-            String header = null;
+        String header = null;
 
-            //Detect the type of settings to use, allow overriding the matching
-            CacheControlLevel override = null;
-            if(request.getAttribute(CACHE_OVERRIDE_SETTING) != null) {
-                Object o = request.getAttribute(CACHE_OVERRIDE_SETTING);
-                if(o instanceof CacheControlLevel) {
-                    override = (CacheControlLevel)o;
-                }
+        //Detect the type of settings to use, allow overriding the matching
+        CacheControlLevel level = null;
+        if (request.getAttribute(CACHE_OVERRIDE_SETTING) != null) {
+            Object o = request.getAttribute(CACHE_OVERRIDE_SETTING);
+            if(o instanceof CacheControlLevel) {
+                level = (CacheControlLevel)o;
             }
-
-            if(override == null) {
-                if (restMatcher.matches(request)) {
-                    override = CacheControlLevel.REST;
-                }else if (resourcesMatcher.matches(request)) {
-                    String queryString = request.getQueryString();
-                    if (queryString != null && VERSION_QUERY_PARAMETER.matcher(queryString).find()) {
-                        override = CacheControlLevel.VERSIONED_RESOURCE;
-                    }else {
-                        override = CacheControlLevel.RESOURCE;
-                    }
-                }else if (getMatcher.matches(request)) {
-                    override = CacheControlLevel.DEFAULT;
-                }else {
-                    override = CacheControlLevel.NON_GET;
-                }
-            }
-            switch(override) {
-                case REST:
-                    if(this.env.getProperty("web.cache.noStore.rest", Boolean.class, true)) {
-                        header = defaultNoCache;
-                    }else {
-                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.rest", Long.class, 0L), TimeUnit.SECONDS).getHeaderValue();
-                    }
-                    break;
-                case VERSIONED_RESOURCE:
-                    if(this.env.getProperty("web.cache.noStore.resources", Boolean.class, false)) {
-                        header = defaultNoCache;
-                    }else {
-                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.versionedResources", Long.class, 31536000L), TimeUnit.SECONDS).getHeaderValue();
-                    }
-                    break;
-                case RESOURCE:
-                    if(this.env.getProperty("web.cache.noStore.resources", Boolean.class, false)) {
-                        header = defaultNoCache;
-                    }else {
-                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.resources", Long.class, 86400L), TimeUnit.SECONDS).getHeaderValue();
-                    }
-                    break;
-                case NON_GET:
-                    header = defaultNoCache;
-                    break;
-                case DO_NOT_MODIFY:
-                    break;
-                case DEFAULT:
-                default:
-                    if(this.env.getProperty("web.cache.noStore", Boolean.class, false)) {
-                        header = defaultNoCache;
-                    }else {
-                        header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge", Long.class, 0L), TimeUnit.SECONDS).getHeaderValue();
-                    }
-                    break;
-            }
-            response.setHeader(HttpHeaders.CACHE_CONTROL, header);
-            filterChain.doFilter(request, response);
         }
+
+        if (level == null) {
+            if (restMatcher.matches(request)) {
+                level = CacheControlLevel.REST;
+            }else if (resourcesMatcher.matches(request)) {
+                String queryString = request.getQueryString();
+                if (queryString != null && VERSION_QUERY_PARAMETER.matcher(queryString).find()) {
+                    level = CacheControlLevel.VERSIONED_RESOURCE;
+                }else {
+                    level = CacheControlLevel.RESOURCE;
+                }
+            }else if (getMatcher.matches(request)) {
+                level = CacheControlLevel.DEFAULT;
+            }else {
+                level = CacheControlLevel.NON_GET;
+            }
+        }
+
+        switch(level) {
+            case REST:
+                if(this.env.getProperty("web.cache.noStore.rest", Boolean.class, true)) {
+                    header = defaultNoCache;
+                }else {
+                    header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.rest", Long.class, 0L), TimeUnit.SECONDS).getHeaderValue();
+                }
+                break;
+            case VERSIONED_RESOURCE:
+                if(this.env.getProperty("web.cache.noStore.resources", Boolean.class, false)) {
+                    header = defaultNoCache;
+                }else {
+                    header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.versionedResources", Long.class, 31536000L), TimeUnit.SECONDS).getHeaderValue();
+                }
+                break;
+            case RESOURCE:
+                if(this.env.getProperty("web.cache.noStore.resources", Boolean.class, false)) {
+                    header = defaultNoCache;
+                }else {
+                    header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge.resources", Long.class, 86400L), TimeUnit.SECONDS).getHeaderValue();
+                }
+                break;
+            case NON_GET:
+                header = defaultNoCache;
+                break;
+            case DO_NOT_MODIFY:
+                break;
+            case DEFAULT:
+            default:
+                if(this.env.getProperty("web.cache.noStore", Boolean.class, false)) {
+                    header = defaultNoCache;
+                }else {
+                    header = CacheControl.maxAge(this.env.getProperty("web.cache.maxAge", Long.class, 0L), TimeUnit.SECONDS).getHeaderValue();
+                }
+                break;
+        }
+
+        if (header != null) {
+            response.setHeader(HttpHeaders.CACHE_CONTROL, header);
+        }
+
+        filterChain.doFilter(request, response);
     }
 
     @Override
