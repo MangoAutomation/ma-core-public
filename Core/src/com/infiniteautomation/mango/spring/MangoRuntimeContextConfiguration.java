@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -44,6 +45,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 import com.serotonin.provider.Providers;
@@ -264,5 +266,11 @@ public class MangoRuntimeContextConfiguration {
     @Bean
     public SystemSettingsDao systemSettingsDao() {
         return SystemSettingsDao.instance;
+    }
+
+    @Bean
+    public SystemSettingsEventDispatcher systemSettingsEventDispatcher() {
+        // TODO automatically find all SystemSettingsListener in context and add/remove listeners when they are initialized/destroyed
+        return SystemSettingsEventDispatcher.INSTANCE;
     }
 }

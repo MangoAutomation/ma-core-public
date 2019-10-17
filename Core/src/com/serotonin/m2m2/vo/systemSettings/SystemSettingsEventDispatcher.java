@@ -24,16 +24,25 @@ public class SystemSettingsEventDispatcher {
         SETTING_SAVED, SETTING_REMOVED
     }
 
-    private final static Map<String, Set<SystemSettingsListener>> LISTENER_MAP = new ConcurrentHashMap<String, Set<SystemSettingsListener>>();
+    /**
+     * Try not to use this, inject using spring wherever you can.
+     * Need this for now as SystemSettingsEventDispatcher is used before the Spring runtime context is initialized.
+     */
+    public static final SystemSettingsEventDispatcher INSTANCE = new SystemSettingsEventDispatcher();
+
+    private SystemSettingsEventDispatcher() {
+    }
+
+    private final Map<String, Set<SystemSettingsListener>> listenerMap = new ConcurrentHashMap<String, Set<SystemSettingsListener>>();
 
     /**
      * Add the listener to whatever keys it should listen to
      * @param l
      */
-    public static void addListener(SystemSettingsListener l) {
+    public void addListener(SystemSettingsListener l) {
         //Add the listener for all supported keys
         for (String key : l.getKeys()) {
-            LISTENER_MAP.compute(key, (k, v) -> {
+            listenerMap.compute(key, (k, v) -> {
                 if (v == null) {
                     // although the set will never be concurrently modified, it is possible that another thread will be iterating
                     // over the set when a modification occurs
@@ -49,10 +58,10 @@ public class SystemSettingsEventDispatcher {
      * Remove the listener from any keys it is listening to
      * @param l
      */
-    public static void removeListener(SystemSettingsListener l) {
+    public void removeListener(SystemSettingsListener l) {
         //Remove the listener for any keys
         for(String key : l.getKeys()){
-            LISTENER_MAP.computeIfPresent(key, (k, v) -> {
+            listenerMap.computeIfPresent(key, (k, v) -> {
                 v.remove(l);
                 if (v.isEmpty()) {
                     return null;
@@ -68,8 +77,8 @@ public class SystemSettingsEventDispatcher {
      * @param oldValue
      * @param newValue
      */
-    public static void fireSystemSettingSaved(String key, String oldValue, String newValue) {
-        Set<SystemSettingsListener> listeners = LISTENER_MAP.getOrDefault(key, Collections.emptySet());
+    public void fireSystemSettingSaved(String key, String oldValue, String newValue) {
+        Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, Collections.emptySet());
         for (SystemSettingsListener l : listeners) {
             Common.backgroundProcessing.addWorkItem(
                     new DispatcherExecution(l, key, oldValue, newValue, SystemSettingEventType.SETTING_SAVED));
@@ -81,8 +90,8 @@ public class SystemSettingsEventDispatcher {
      * @param key
      * @param lastValue
      */
-    public static void fireSystemSettingRemoved(String key, String lastValue, String defaultValue) {
-        Set<SystemSettingsListener> listeners = LISTENER_MAP.getOrDefault(key, Collections.emptySet());
+    public void fireSystemSettingRemoved(String key, String lastValue, String defaultValue) {
+        Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, Collections.emptySet());
         for (SystemSettingsListener l : listeners) {
             Common.backgroundProcessing.addWorkItem(
                     new DispatcherExecution(l, key, lastValue, defaultValue, SystemSettingEventType.SETTING_REMOVED));

@@ -20,35 +20,36 @@ import com.serotonin.m2m2.MangoTestBase;
  *
  */
 public class SystemSettingsEventDispatcherTest extends MangoTestBase {
-    
+
     @Test
     public void testMultiThreading() {
-        
+
         List<SystemSettingsListenerTester> listeners = new ArrayList<>();
         AtomicInteger running = new AtomicInteger();
         //TODO Bug in event dispatcher class where rejected tasks are ignored
         int threads = 5;
         for(int i=0; i<threads; i++) {
             Thread t = new Thread() {
+                @Override
                 public void run() {
                     SystemSettingsListenerTester l = new SystemSettingsListenerTester();
                     //save for later
                     listeners.add(l);
                     //add listener
-                    SystemSettingsEventDispatcher.addListener(l);
+                    SystemSettingsEventDispatcher.INSTANCE.addListener(l);
                     //Do work
-                    SystemSettingsEventDispatcher.fireSystemSettingSaved("testKey", "old", "new");
+                    SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingSaved("testKey", "old", "new");
                     try{ Thread.sleep(10); }catch(InterruptedException e) {}
-                    SystemSettingsEventDispatcher.fireSystemSettingRemoved("testKey", "old", "default");
+                    SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingRemoved("testKey", "old", "default");
                     //remove listener
-                    SystemSettingsEventDispatcher.removeListener(l);
+                    SystemSettingsEventDispatcher.INSTANCE.removeListener(l);
                     running.decrementAndGet();
                 };
             };
             running.incrementAndGet();
             t.start();
         }
-        
+
         int wait = 10;
         while(wait > 0) {
             try{ Thread.sleep(500); }catch(InterruptedException e) {}
@@ -61,14 +62,14 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             assertTrue(l.saved.get());
             assertTrue(l.removed.get());
         }
-        
+
     }
 
-    
+
     class SystemSettingsListenerTester implements SystemSettingsListener {
         AtomicBoolean saved = new AtomicBoolean();
         AtomicBoolean removed = new AtomicBoolean();
-        
+
         @Override
         public void systemSettingsSaved(String key, String oldValue,
                 String newValue) {
@@ -90,5 +91,5 @@ public class SystemSettingsEventDispatcherTest extends MangoTestBase {
             return Arrays.asList("testKey");
         }
     }
-    
+
 }

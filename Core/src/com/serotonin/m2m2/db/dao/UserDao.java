@@ -78,7 +78,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 new String[0], false,
                 new TranslatableMessage("internal.monitor.USER_COUNT"));
         //Register for System Settings Events for Permissions
-        SystemSettingsEventDispatcher.addListener(this);
+        SystemSettingsEventDispatcher.INSTANCE.addListener(this);
     }
 
     /**

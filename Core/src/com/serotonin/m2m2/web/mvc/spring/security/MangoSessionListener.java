@@ -6,6 +6,8 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
@@ -36,15 +38,28 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
     private volatile int timeoutPeriods;
     private volatile int timeoutPeriodType;
     private volatile int timeoutSeconds;
+    private final SystemSettingsDao systemSettingsDao;
     private final ApplicationContext context;
+    private final SystemSettingsEventDispatcher systemSettingsEventDispatcher;
 
     @Autowired
-    private MangoSessionListener(SystemSettingsDao systemSettingsDao, ApplicationContext context) {
-        timeoutPeriods = systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
-        timeoutPeriodType = systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
-        this.updateTimeoutSeconds();
+    private MangoSessionListener(SystemSettingsDao systemSettingsDao, ApplicationContext context, SystemSettingsEventDispatcher systemSettingsEventDispatcher) {
+        this.systemSettingsDao = systemSettingsDao;
         this.context = context;
-        SystemSettingsEventDispatcher.addListener(this);
+        this.systemSettingsEventDispatcher = systemSettingsEventDispatcher;
+    }
+
+    @PostConstruct
+    public void initialize() {
+        timeoutPeriods = this.systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
+        timeoutPeriodType = this.systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
+        this.updateTimeoutSeconds();
+        this.systemSettingsEventDispatcher.addListener(this);
+    }
+
+    @PreDestroy
+    private void terminate() {
+        this.systemSettingsEventDispatcher.removeListener(this);
     }
 
     @Override
