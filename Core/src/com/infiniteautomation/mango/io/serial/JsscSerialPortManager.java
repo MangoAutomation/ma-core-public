@@ -79,6 +79,7 @@ public class JsscSerialPortManager {
                 LOG.info("Mango Serial Port Event Processor Terminated");
             }
         };
+        this.eventProcessor.setPriority(Thread.MAX_PRIORITY);
         this.eventProcessor.start();
         this.initialized = true;
     }
