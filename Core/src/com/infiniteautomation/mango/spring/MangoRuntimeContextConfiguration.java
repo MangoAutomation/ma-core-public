@@ -264,6 +264,7 @@ public class MangoRuntimeContextConfiguration {
     }
 
     @Bean
+    @DependsOn(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
     public SystemSettingsDao systemSettingsDao() {
         return SystemSettingsDao.instance;
     }
