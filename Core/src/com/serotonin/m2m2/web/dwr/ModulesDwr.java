@@ -328,10 +328,6 @@ public class ModulesDwr extends BaseDwr implements ModuleNotificationListener {
 
     public static JsonValue getAvailableUpgrades() throws JsonException, IOException, HttpException {
 
-        //If upgrade checks are not enabled we won't contact the store at all
-        if(!SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED))
-            return null;
-
         // Create the request
         List<Module> modules = ModuleRegistry.getModules();
         Module.sortByName(modules);

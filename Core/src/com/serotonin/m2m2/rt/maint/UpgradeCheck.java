@@ -10,6 +10,7 @@ import org.apache.commons.logging.LogFactory;
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.ReturnCause;
@@ -50,8 +51,12 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
     public void run(long fireTime) {
         Integer available = null;
         try {
-            available = ModulesDwr.upgradesAvailable();
-            if (available > 0) {
+            //If upgrade checks are not enabled we won't contact the store at all
+            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED)) {
+                available = ModulesDwr.upgradesAvailable();
+            }
+            
+            if (available != null && available > 0) {
 
                 TranslatableMessage m = new TranslatableMessage("modules.event.upgrades",
                         ModuleRegistry.getModule("mangoUI") != null ? "/ui/administration/modules" : "/modules.shtm");
@@ -73,9 +78,6 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
-     */
     @Override
     public void reset(String monitorId) {
 

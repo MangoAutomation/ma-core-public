@@ -29,6 +29,7 @@
 * Improve error handling for rejected task executions to ensure they cannot kill the main timer thread
 * Add web.forwardedHeaders.* settings to env.properties, enables configuring Mango to honor Forwarded and X-Forwarded-* headers for operation behind a proxy server
 * Remove InputStream EPoll task from high priority executor make it a Thread as it is always running and would otherwise just take up a thread in the pool
+* Change behavior of the Check for upgrades system setting so that it only prevents mango from automatically checking.  One can now manually check
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
