@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.web;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.UUID;
@@ -15,9 +16,11 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -72,7 +75,6 @@ public class MangoHttpClient implements Closeable {
         b = b.setHost(host).setPort(port).setScheme(ssl ? "https" : "http").setPath("/rest/v2/login");
         HttpPost request = new HttpPost(b.build());
         request.setHeader("Accept", "application/json");
-        request.setHeader("Content-Type", "application/json");
         
         for(Cookie cookie : this.context.getCookieStore().getCookies()) {
             if(cookie.getName().equals("XSRF-TOKEN")) {
@@ -80,7 +82,7 @@ public class MangoHttpClient implements Closeable {
                 break;
             }
         }
-        StringEntity entity = new StringEntity("{\"username\":\"admin\",\"password\":\"admin\"}");
+        StringEntity entity = new StringEntity("{\"username\":\"admin\",\"password\":\"admin\"}", ContentType.APPLICATION_JSON);
         request.setEntity(entity);
         CloseableHttpResponse response = this.client.execute(request, context);
         return response;
@@ -126,13 +128,7 @@ public class MangoHttpClient implements Closeable {
      * @throws URISyntaxException
      */
     public CloseableHttpResponse post(String uri, HttpEntity body, NameValuePair... nvps) throws ClientProtocolException, IOException, URISyntaxException {
-        URIBuilder b = new URIBuilder();
-        b = b.setHost(host).setPort(port).setScheme(ssl ? "https" : "http").setPath(uri);
-        if(nvps != null) {
-            b.addParameters(Arrays.asList(nvps));
-        }
-        
-        HttpPost request = new HttpPost(b.build());
+        HttpPost request = new HttpPost(createURI(uri, nvps));
         request.setEntity(body);
         
         for(Cookie cookie : this.context.getCookieStore().getCookies()) {
@@ -143,6 +139,35 @@ public class MangoHttpClient implements Closeable {
         }
         CloseableHttpResponse response = this.client.execute(request, context);
         return response;
+    }
+
+    /**
+     * Execute an arbitrary request
+     * @param request
+     * @param includeXSRFHeader
+     * @return
+     * @throws ClientProtocolException
+     * @throws IOException
+     */
+    public CloseableHttpResponse execute(HttpUriRequest request, boolean includeXSRFHeader) throws ClientProtocolException, IOException {
+        if(includeXSRFHeader) {
+            for(Cookie cookie : this.context.getCookieStore().getCookies()) {
+                if(cookie.getName().equals("XSRF-TOKEN")) {
+                    request.setHeader("X-XSRF-TOKEN", cookie.getValue());
+                    break;
+                }
+            }
+        }
+        return this.client.execute(request, context);
+    }
+    
+    public URI createURI(String uri,  NameValuePair... nvps) throws URISyntaxException {
+        URIBuilder b = new URIBuilder();
+        b = b.setHost(host).setPort(port).setScheme(ssl ? "https" : "http").setPath(uri);
+        if(nvps != null) {
+            b.addParameters(Arrays.asList(nvps));
+        }
+        return b.build();
     }
     
     @Override
