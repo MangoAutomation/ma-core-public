@@ -179,7 +179,7 @@ public class MangoCacheControlHeaderFilter implements Filter {
          * REST request settings
          *  web.cache.noStore.rest=true -> no-store
          *  web.cache.noStore.rest=false -> max-age={web.cache.maxAge.rest}
-         * env property defaults: max-age=0
+         * env property defaults: no-store
          */
         REST,
 
