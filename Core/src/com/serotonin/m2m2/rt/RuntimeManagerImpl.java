@@ -834,8 +834,8 @@ public class RuntimeManagerImpl implements RuntimeManager{
 	}
 
     @Override
-    public long purgeDataPointValue(int dataPointId, long ts){
-    	long count = Common.databaseProxy.newPointValueDao().deletePointValue(dataPointId, ts);
+    public long purgeDataPointValue(int dataPointId, long ts, PointValueDao dao){
+    	long count = dao.deletePointValue(dataPointId, ts);
     	if(count > 0)
     		updateDataPointValuesRT(dataPointId);
     	return count;

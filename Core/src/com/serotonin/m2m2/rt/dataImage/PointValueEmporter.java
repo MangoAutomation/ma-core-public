@@ -193,7 +193,7 @@ public class PointValueEmporter extends AbstractSheetEmporter{
             } 
             else {
                 try {
-                	this.rowsDeleted += Common.runtimeManager.purgeDataPointValue(dp.getId(), time.getTime());
+                	this.rowsDeleted += Common.runtimeManager.purgeDataPointValue(dp.getId(), time.getTime(), pointValueDao);
                 }catch (Exception e) {
                     if(e instanceof DataIntegrityViolationException)
                         throw new SpreadsheetException(rowData.getRowNum(), "emport.error.unableToDeleteDueToConstraints");

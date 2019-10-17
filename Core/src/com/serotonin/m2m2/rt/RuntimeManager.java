@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt;
 
 import java.util.List;
 
+import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -140,9 +141,10 @@ public interface RuntimeManager extends ILifecycle{
      * Purge a value at a given time
      * @param dataPointId
      * @param ts
+     * @param dao to aid in performance of high frequency calls
      * @return
      */
-    long purgeDataPointValue(int dataPointId, long ts);
+    long purgeDataPointValue(int dataPointId, long ts, PointValueDao dao);
 
     long purgeDataPointValues(int dataPointId, long before);
 
