@@ -1,10 +1,16 @@
+/*
+ * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
+ */
 package com.serotonin.provider.impl;
 
 import com.serotonin.epoll.InputStreamEPoll;
 import com.serotonin.provider.InputStreamEPollProvider;
-import com.serotonin.provider.Providers;
-import com.serotonin.provider.TimerProvider;
 
+/**
+ * 
+ * Provide access to the shared InputStream ePoll
+ *
+ */
 public class InputStreamEPollProviderImpl implements InputStreamEPollProvider {
     private InputStreamEPoll inputStreamEPoll;
 
@@ -25,8 +31,9 @@ public class InputStreamEPollProviderImpl implements InputStreamEPollProvider {
             synchronized (this) {
                 if (inputStreamEPoll == null) {
                     inputStreamEPoll = new InputStreamEPoll();
-                    Providers.get(TimerProvider.class).getTimer()
-                            .execute(inputStreamEPoll);
+                    Thread thread = new Thread(inputStreamEPoll, inputStreamEPoll.getClass().getSimpleName());
+                    thread.setPriority(Thread.MAX_PRIORITY);
+                    thread.start();
                 }
             }
         }

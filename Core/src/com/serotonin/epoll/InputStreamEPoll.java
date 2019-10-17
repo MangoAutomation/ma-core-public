@@ -1,3 +1,6 @@
+/*
+ * Copyright (C) 2019 Infinite Automation Software. All rights reserved.
+ */
 package com.serotonin.epoll;
 
 import java.io.IOException;
@@ -9,19 +12,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.m2m2.Common;
-import com.serotonin.timer.RejectedTaskReason;
-import com.serotonin.timer.Task;
-
-public class InputStreamEPoll extends Task {
-    /**
-	 * @param name
-	 */
-	public InputStreamEPoll() {
-		super("InputStreamEPoll");
-	}
-
-	static final Log LOG = LogFactory.getLog(InputStreamEPoll.class);
+/**
+ * Poll input streams for input in a single Thread
+ *
+ */
+public class InputStreamEPoll implements Runnable {
+    static final Log LOG = LogFactory.getLog(InputStreamEPoll.class);
 
     private final List<InputStreamWrapper> wrappers = new CopyOnWriteArrayList<InputStreamWrapper>();
     private volatile boolean terminated;
@@ -75,8 +71,7 @@ public class InputStreamEPoll extends Task {
         return wrappers.size();
     }
 
-    @Override
-    public void run(long runtime) {
+    public void run() {
         while (!terminated) {
             if (wrappers.isEmpty()) {
                 // If there is nothing to do, wait until there is.
@@ -193,12 +188,4 @@ public class InputStreamEPoll extends Task {
 
         return sb.toString();
     }
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.timer.Task#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) {
-		Common.backgroundProcessing.rejectedHighPriorityTask(reason);
-	}
 }
