@@ -3,7 +3,9 @@
  */
 package com.infiniteautomation.mango.webapp;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -69,12 +72,26 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
     /**
      * Finds and adds all Filters which are annotated with @WebFilter
      * @param servletContext
+     * @throws ServletException
      */
-    private void registerFilters(ServletContext servletContext) {
-        List<Filter> filters = MangoCommonConfiguration.beansOfType(beanFactory, Filter.class);
-        for (Filter filter : filters) {
-            WebFilter annotation = filter.getClass().getAnnotation(WebFilter.class);
-            if (annotation != null) {
+    private void registerFilters(ServletContext servletContext) throws ServletException {
+        List<Object> filtersAndInitializers = new ArrayList<>();
+        filtersAndInitializers.addAll(beanFactory.getBeansOfType(FilterInitializer.class).values());
+
+        beanFactory.getBeansOfType(Filter.class).values().stream().forEach(f -> {
+            if (f.getClass().getAnnotation(WebFilter.class) != null) {
+                filtersAndInitializers.add(f);
+            }
+        });
+
+        Collections.sort(filtersAndInitializers, AnnotationAwareOrderComparator.INSTANCE);
+
+        for (Object filterObject : filtersAndInitializers) {
+            if (filterObject instanceof FilterInitializer) {
+                ((FilterInitializer) filterObject).onStartup(servletContext);
+            } else if (filterObject instanceof Filter) {
+                Filter filter = (Filter) filterObject;
+                WebFilter annotation = filter.getClass().getAnnotation(WebFilter.class);
                 String name = annotation.filterName();
                 if (name == null || name.isEmpty()) {
                     name = filter.getClass().getSimpleName();
@@ -101,12 +118,27 @@ public class RegisterFiltersAndServlets implements WebApplicationInitializer {
     /**
      * Finds and adds all Servlets which are annotated with @WebServlet
      * @param servletContext
+     * @throws ServletException
      */
-    private void registerServlets(ServletContext servletContext) {
-        List<Servlet> servlets = MangoCommonConfiguration.beansOfType(beanFactory, Servlet.class);
-        for (Servlet servlet : servlets) {
-            WebServlet annotation = servlet.getClass().getAnnotation(WebServlet.class);
-            if (annotation != null) {
+    private void registerServlets(ServletContext servletContext) throws ServletException {
+        List<Object> servletsAndInitializers = new ArrayList<>();
+        servletsAndInitializers.addAll(beanFactory.getBeansOfType(ServletInitializer.class).values());
+
+        beanFactory.getBeansOfType(Servlet.class).values().stream().forEach(f -> {
+            if (f.getClass().getAnnotation(WebServlet.class) != null) {
+                servletsAndInitializers.add(f);
+            }
+        });
+
+        Collections.sort(servletsAndInitializers, AnnotationAwareOrderComparator.INSTANCE);
+
+        for (Object servletObject : servletsAndInitializers) {
+            if (servletObject instanceof ServletInitializer) {
+                ((ServletInitializer) servletObject).onStartup(servletContext);
+            } else if (servletObject instanceof Servlet) {
+                Servlet servlet = (Servlet) servletObject;
+                WebServlet annotation = servlet.getClass().getAnnotation(WebServlet.class);
+
                 String name = annotation.name();
                 if (name == null || name.isEmpty()) {
                     name = servlet.getClass().getSimpleName();
