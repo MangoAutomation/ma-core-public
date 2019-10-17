@@ -256,7 +256,7 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                 <plugin>
                     <groupId>com.github.eirslett</groupId>
                     <artifactId>frontend-maven-plugin</artifactId>
-                    <version>1.7.6</version>
+                    <version>1.8.0</version>
                     <executions>
                         <execution>
                             <phase>${installNodeAndYarnPhase}</phase>
@@ -265,8 +265,8 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                                 <goal>install-node-and-yarn</goal>
                             </goals>
                             <configuration>
-                                <nodeVersion>v8.12.0</nodeVersion>
-                                <yarnVersion>v1.10.1</yarnVersion>
+                                <nodeVersion>v10.16.3</nodeVersion>
+                                <yarnVersion>v1.19.1</yarnVersion>
                             </configuration>
                         </execution>
                         <execution>
