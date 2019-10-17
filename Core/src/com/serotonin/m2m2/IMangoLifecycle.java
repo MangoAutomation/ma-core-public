@@ -80,6 +80,10 @@ public interface IMangoLifecycle extends Provider {
         return ServerStatus.NOT_RUNNING;
     }
 
+    public default boolean isSafeMode() {
+        return false;
+    }
+
     //The Various States
     //States of the Lifecycle
     public static final int NOT_STARTED = 0;
