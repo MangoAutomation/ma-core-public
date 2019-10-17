@@ -224,7 +224,7 @@ public class SystemSettingsDao extends BaseDao {
 
     public static final String USERS_PUBLIC_REGISTRATION_ENABLED = "users.publicRegistration.enabled";
 
-    public static SystemSettingsDao instance = new SystemSettingsDao();
+    public static final SystemSettingsDao instance = new SystemSettingsDao();
 
     private final ThreadPoolSettingsListenerDefinition threadPoolListener;
     private SystemSettingsDao(){
