@@ -17,6 +17,9 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.maint.MangoThreadFactory;
 
 /**
+ * 
+ * Container to manage the ThreadPoolExecutor that reads from serial ports and the event processor that executes the read events.
+ * 
  * @author Terry Packer
  *
  */
