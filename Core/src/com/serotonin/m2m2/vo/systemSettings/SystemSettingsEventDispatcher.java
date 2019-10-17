@@ -5,7 +5,6 @@
 package com.serotonin.m2m2.vo.systemSettings;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +35,9 @@ public class SystemSettingsEventDispatcher {
         for (String key : l.getKeys()) {
             LISTENER_MAP.compute(key, (k, v) -> {
                 if (v == null) {
-                    v = new HashSet<>();
+                    // although the set will never be concurrently modified, it is possible that another thread will be iterating
+                    // over the set when a modification occurs
+                    v = ConcurrentHashMap.newKeySet();
                 }
                 v.add(l);
                 return v;
