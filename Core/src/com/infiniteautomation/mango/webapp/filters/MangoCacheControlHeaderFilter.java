@@ -168,38 +168,40 @@ public class MangoCacheControlHeaderFilter implements Filter {
     public static enum CacheControlLevel {
 
         /**
-         * Settings for all unmatched requests
-         *  no-store
+         * Unmatched request settings
+         *  web.cache.noStore=true -> no-store
+         *  web.cache.noStore=false -> max-age={web.cache.maxAge}
+         * env property defaults: max-age=0
          */
         DEFAULT,
 
         /**
-         * REST requests can be set by env properties
+         * REST request settings
          *  web.cache.noStore.rest=true -> no-store
-         *  web.cache.maxAge.rest=0 -> max-age=0, must-revalidate
-         * Defaults: not-store, must-revalidate
+         *  web.cache.noStore.rest=false -> max-age={web.cache.maxAge.rest}
+         * env property defaults: max-age=0
          */
         REST,
 
         /**
-         * Resource requests can be set by env properties
+         * Resource request settings
          *  web.cache.noStore.resources=true -> no-store
-         *  web.cache.maxAge.resources=86400 -> max-age=86400, must-revalidate
-         * Defaults: max-age=86400, must-revalidate
+         *  web.cache.noStore.resources=false -> max-age={web.cache.maxAge.resources}
+         * env property defaults: max-age=86400
          */
         RESOURCE,
 
         /**
-         * Versioned resource requests can be set by env properties
+         * Versioned resource request settings
          *  web.cache.noStore.versionedResources=true -> no-store
-         *  web.cache.maxAge.versionedResources=31536000 -> max-age=31536000, must-revalidate
-         * Defaults: max-age=31536000, must-revalidate
+         *  web.cache.noStore.versionedResources=false -> max-age={web.cache.maxAge.versionedResources}
+         * env property defaults: max-age=31536000
          */
         VERSIONED_RESOURCE,
 
         /**
          * Non GET request will not be cached
-         * Default: no-store
+         * results in using: no-store
          */
         NON_GET,
 
