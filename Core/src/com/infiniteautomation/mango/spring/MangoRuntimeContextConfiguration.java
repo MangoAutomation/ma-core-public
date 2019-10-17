@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.webapp.MangoWebApplicationInitializer;
@@ -52,7 +53,7 @@ import com.serotonin.provider.Providers;
  * @author Terry Packer
  */
 @Configuration
-@Import(MangoCommonConfiguration.class)
+@Import({MangoCommonConfiguration.class, RegisterModuleElementDefinitions.class})
 @ComponentScan(basePackages = {
         "com.infiniteautomation.mango.spring",  //General Runtime Spring Components
         "com.serotonin.m2m2.db.dao" //DAOs
