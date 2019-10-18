@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.vo.systemSettings;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,10 +77,9 @@ public class SystemSettingsEventDispatcher {
      * @param newValue
      */
     public void fireSystemSettingSaved(String key, String oldValue, String newValue) {
-        Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, Collections.emptySet());
-        for (SystemSettingsListener l : listeners) {
-            Common.backgroundProcessing.addWorkItem(
-                    new DispatcherExecution(l, key, oldValue, newValue, SystemSettingEventType.SETTING_SAVED));
+        Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, null);
+        if(listeners != null) {
+            Common.backgroundProcessing.addWorkItem(new DispatcherExecution(listeners, key, oldValue, newValue, SystemSettingEventType.SETTING_SAVED));
         }
     }
 
@@ -89,25 +87,25 @@ public class SystemSettingsEventDispatcher {
      * Setting was removed
      * @param key
      * @param lastValue
+     * @param defaultValue
      */
     public void fireSystemSettingRemoved(String key, String lastValue, String defaultValue) {
-        Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, Collections.emptySet());
-        for (SystemSettingsListener l : listeners) {
-            Common.backgroundProcessing.addWorkItem(
-                    new DispatcherExecution(l, key, lastValue, defaultValue, SystemSettingEventType.SETTING_REMOVED));
+        Set<SystemSettingsListener> listeners = listenerMap.getOrDefault(key, null);
+        if(listeners != null) {
+            Common.backgroundProcessing.addWorkItem(new DispatcherExecution(listeners, key, lastValue, defaultValue, SystemSettingEventType.SETTING_REMOVED));
         }
     }
 
     static class DispatcherExecution implements WorkItem {
         private final String description = "System settings event dispatcher for: ";
-        private final SystemSettingsListener l;
+        private final Set<SystemSettingsListener> listeners;
         private final String key;
         private final String oldValue;
         private final String newValue;
         private final SystemSettingEventType operation;
 
-        public DispatcherExecution(SystemSettingsListener l, String key,  String oldValue, String newValue, SystemSettingEventType operation) {
-            this.l = l;
+        public DispatcherExecution(Set<SystemSettingsListener> listeners, String key,  String oldValue, String newValue, SystemSettingEventType operation) {
+            this.listeners = listeners;
             this.key = key;
             this.oldValue = oldValue;
             this.newValue = newValue;
@@ -118,10 +116,14 @@ public class SystemSettingsEventDispatcher {
         public void execute() {
             switch (operation) {
                 case SETTING_SAVED:
-                    l.systemSettingsSaved(key, oldValue, newValue);
+                    for (SystemSettingsListener l : listeners) {
+                        l.systemSettingsSaved(key, oldValue, newValue);
+                    }
                     break;
                 case SETTING_REMOVED:
-                    l.systemSettingsRemoved(key, oldValue, newValue);
+                    for (SystemSettingsListener l : listeners) {
+                        l.systemSettingsRemoved(key, oldValue, newValue);
+                    }
                     break;
             }
         }
@@ -150,7 +152,8 @@ public class SystemSettingsEventDispatcher {
 
         @Override
         public void rejected(RejectedTaskReason reason) {
-            //No special handling
+            //No special handling, as a work item this is recorded in BackgroundProcessing
+            System.out.println("OOOPS");
         }
     }
 }
