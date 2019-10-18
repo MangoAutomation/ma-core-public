@@ -128,18 +128,12 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
 
     private class FileStoreCreatorTask extends TimerTask {
         private final FileStoreDefinition def;
-        /**
-         * @param trigger
-         * @param name
-         */
+
         public FileStoreCreatorTask(TimerTrigger trigger, String name, FileStoreDefinition def) {
             super(trigger, name);
             this.def = def;
         }
 
-        /* (non-Javadoc)
-         * @see com.serotonin.timer.Task#run(long)
-         */
         @Override
         public void run(long runtime) {
             File fsRoot = def.getRoot();
