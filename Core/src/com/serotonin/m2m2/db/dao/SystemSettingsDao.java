@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
@@ -36,7 +38,6 @@ import com.fasterxml.jackson.databind.type.CollectionType;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.components.EmailAddressVerificationService;
 import com.infiniteautomation.mango.spring.components.PasswordResetService;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
@@ -55,7 +56,6 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.settings.ThreadPoolSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -226,19 +226,15 @@ public class SystemSettingsDao extends BaseDao {
 
     public static final SystemSettingsDao instance = new SystemSettingsDao();
 
-    private final ThreadPoolSettingsListenerDefinition threadPoolListener;
-    private SystemSettingsDao(){
-        this.threadPoolListener = new ThreadPoolSettingsListenerDefinition();
-    }
-
-
     /**
-     * DBUpgrade.checkUpgrade() uses the static instance of this class thus constructing it before the runtime context is created.
-     * Have to lazily get the DAO ObjectMapper.
+     * Will remain null until the runtime context is refreshed so the JSON methods of this class should not be used early in the lifecycle.
      */
-    private final LazyInitSupplier<ObjectMapper> mapper = new LazyInitSupplier<>(() -> {
-        return Common.getRuntimeContext().getBean(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME, ObjectMapper.class);
-    });
+    @Autowired
+    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
+    private final ObjectMapper mapper = null;
+
+    private SystemSettingsDao() {
+    }
 
     // Value cache
     private final Map<String, String> cache = new ConcurrentHashMap<>();
@@ -348,7 +344,7 @@ public class SystemSettingsDao extends BaseDao {
      */
     public void setAsJson(String key, Object value) {
         try {
-            this.setValue(key, mapper.get().writeValueAsString(value));
+            this.setValue(key, mapper.writeValueAsString(value));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -364,7 +360,7 @@ public class SystemSettingsDao extends BaseDao {
             if (value instanceof JsonNode) {
                 return (JsonNode) value;
             } else if (value instanceof String) {
-                return mapper.get().reader().readTree((String) value);
+                return mapper.reader().readTree((String) value);
             } else {
                 throw new IllegalArgumentException("Value must be String or JsonNode");
             }
@@ -381,7 +377,7 @@ public class SystemSettingsDao extends BaseDao {
      */
     public <T> T readAsJson(Object value, Class<T> clazz) {
         try {
-            ObjectMapper mapper = this.mapper.get();
+            ObjectMapper mapper = this.mapper;
             if (value instanceof JsonNode) {
                 JsonParser parser = mapper.treeAsTokens((JsonNode) value);
                 return mapper.readValue(parser, clazz);
@@ -410,7 +406,7 @@ public class SystemSettingsDao extends BaseDao {
      */
     public <T> T readAsJson(Object value, TypeReference<T> typeReference) {
         try {
-            ObjectMapper mapper = this.mapper.get();
+            ObjectMapper mapper = this.mapper;
             if (value instanceof JsonNode) {
                 JsonParser parser = mapper.treeAsTokens((JsonNode) value);
                 return mapper.readValue(parser, typeReference);
@@ -432,7 +428,7 @@ public class SystemSettingsDao extends BaseDao {
      * @return
      */
     public <T> T readAsJsonCollection(Object value, @SuppressWarnings("rawtypes") Class<? extends Collection> collectionClazz, Class<?> clazz) {
-        ObjectMapper mapper = this.mapper.get();
+        ObjectMapper mapper = this.mapper;
         CollectionType type = mapper.getTypeFactory().constructCollectionType(collectionClazz, clazz);
 
         try {
@@ -531,11 +527,30 @@ public class SystemSettingsDao extends BaseDao {
             }
         });
 
-        //Fire an event for this here as if the pools are full we may not be able to spawn a thread for the change
-        if(this.threadPoolListener.getKeys().contains(key))
-            this.threadPoolListener.systemSettingsSaved(key, oldValue, value);
-
+        this.updateThreadPoolSettings(key, value);
         SystemSettingsEventDispatcher.INSTANCE.fireSystemSettingSaved(key, oldValue, value);
+    }
+
+    /**
+     * We would usually use a SystemSettingsListener for this but if the pools are full we may not be able to spawn a thread to update Common.backgroundProcessing
+     * @param key
+     * @param value
+     */
+    private void updateThreadPoolSettings(String key, String value) {
+        switch (key) {
+            case HIGH_PRI_CORE_POOL_SIZE:
+                Common.backgroundProcessing.setHighPriorityServiceCorePoolSize(Integer.parseInt(value));
+                break;
+            case HIGH_PRI_MAX_POOL_SIZE:
+                Common.backgroundProcessing.setHighPriorityServiceMaximumPoolSize(Integer.parseInt(value));
+                break;
+            case MED_PRI_CORE_POOL_SIZE:
+                Common.backgroundProcessing.setMediumPriorityServiceCorePoolSize(Integer.parseInt(value));
+                break;
+            case LOW_PRI_CORE_POOL_SIZE:
+                Common.backgroundProcessing.setLowPriorityServiceCorePoolSize(Integer.parseInt(value));
+                break;
+        }
     }
 
     public void setIntValue(String key, int value) {
@@ -782,7 +797,7 @@ public class SystemSettingsDao extends BaseDao {
                     stringValue = (String) value;
             } else if (value instanceof JsonNode) {
                 try {
-                    stringValue = mapper.get().writeValueAsString(value);
+                    stringValue = mapper.writeValueAsString(value);
                 } catch (JsonProcessingException e) {
                     throw new RuntimeException(e);
                 }

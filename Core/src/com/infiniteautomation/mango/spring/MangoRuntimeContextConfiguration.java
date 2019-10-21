@@ -114,6 +114,7 @@ public class MangoRuntimeContextConfiguration {
     public static final String SCHEDULED_EXECUTOR_SERVICE_NAME = "scheduledExecutorService";
     public static final String EXECUTOR_SERVICE_NAME = "executorService";
     public static final String SYSTEM_SUPERADMIN_PERMISSION_HOLDER = "systemSuperadminPermissionHolder";
+    public static final String SYSTEM_SETTING_DAO_NAME = "systemSettingsDao";
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
@@ -269,15 +270,18 @@ public class MangoRuntimeContextConfiguration {
         return PermissionHolder.SYSTEM_SUPERADMIN;
     }
 
-    @Bean
-    @DependsOn(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
+    @Bean(SYSTEM_SETTING_DAO_NAME)
+    @DependsOn(DAO_OBJECT_MAPPER_NAME)
     public SystemSettingsDao systemSettingsDao() {
         return SystemSettingsDao.instance;
     }
 
+    /**
+     * The SystemSettingsEventDispatcher is used inside SystemSettingsListenerProcessor which means it is instantiated early and cannot use dependency injection.
+     * @return
+     */
     @Bean
     public SystemSettingsEventDispatcher systemSettingsEventDispatcher() {
-        // TODO automatically find all SystemSettingsListener in context and add/remove listeners when they are initialized/destroyed
         return SystemSettingsEventDispatcher.INSTANCE;
     }
 }
