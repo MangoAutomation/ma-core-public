@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
 import com.infiniteautomation.mango.spring.events.MangoHttpSessionDestroyedEvent;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 
 /**
@@ -40,13 +38,11 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
     private volatile int timeoutSeconds;
     private final SystemSettingsDao systemSettingsDao;
     private final ApplicationContext context;
-    private final SystemSettingsEventDispatcher systemSettingsEventDispatcher;
 
     @Autowired
-    private MangoSessionListener(SystemSettingsDao systemSettingsDao, ApplicationContext context, SystemSettingsEventDispatcher systemSettingsEventDispatcher) {
+    private MangoSessionListener(SystemSettingsDao systemSettingsDao, ApplicationContext context) {
         this.systemSettingsDao = systemSettingsDao;
         this.context = context;
-        this.systemSettingsEventDispatcher = systemSettingsEventDispatcher;
     }
 
     @PostConstruct
@@ -54,12 +50,6 @@ public class MangoSessionListener implements HttpSessionListener, SystemSettings
         timeoutPeriods = this.systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIODS);
         timeoutPeriodType = this.systemSettingsDao.getIntValue(SystemSettingsDao.HTTP_SESSION_TIMEOUT_PERIOD_TYPE);
         this.updateTimeoutSeconds();
-        this.systemSettingsEventDispatcher.addListener(this);
-    }
-
-    @PreDestroy
-    private void terminate() {
-        this.systemSettingsEventDispatcher.removeListener(this);
     }
 
     @Override

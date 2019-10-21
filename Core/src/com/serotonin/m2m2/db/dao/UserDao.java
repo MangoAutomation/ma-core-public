@@ -46,7 +46,6 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
@@ -77,8 +76,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         super(AuditEventType.TYPE_USER, "u",
                 new String[0], false,
                 new TranslatableMessage("internal.monitor.USER_COUNT"));
-        //Register for System Settings Events for Permissions
-        SystemSettingsEventDispatcher.INSTANCE.addListener(this);
     }
 
     /**

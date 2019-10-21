@@ -24,8 +24,9 @@ public class SystemSettingsEventDispatcher {
     }
 
     /**
-     * Try not to use this, inject using spring wherever you can.
-     * Need this for now as SystemSettingsEventDispatcher is used before the Spring runtime context is initialized.
+     * Try not to use this static field, inject the dispatcher using spring wherever you can
+     * (or simply declare your SystemSettingsListener as a Spring bean, it will be automatically added to the dispatcher).
+     * We need this static instance for now as SystemSettingsEventDispatcher is used before the Spring runtime context is initialized.
      */
     public static final SystemSettingsEventDispatcher INSTANCE = new SystemSettingsEventDispatcher();
 
@@ -35,7 +36,8 @@ public class SystemSettingsEventDispatcher {
     private final Map<String, Set<SystemSettingsListener>> listenerMap = new ConcurrentHashMap<String, Set<SystemSettingsListener>>();
 
     /**
-     * Add the listener to whatever keys it should listen to
+     * Add the listener, subscribing to the keys returned from {@link com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener#getKeys() getKeys()}
+     * Note: you can also simply declare your SystemSettingsListener as a Spring bean, it will be automatically added to the dispatcher (and removed when destroyed).
      * @param l
      */
     public void addListener(SystemSettingsListener l) {
@@ -54,7 +56,7 @@ public class SystemSettingsEventDispatcher {
     }
 
     /**
-     * Remove the listener from any keys it is listening to
+     * Remove the listener
      * @param l
      */
     public void removeListener(SystemSettingsListener l) {
