@@ -28,7 +28,11 @@ public interface SystemSettingsListener {
      * @param lastValue
      * @param the default value for the setting, which is now the value
      */
-    public void systemSettingsRemoved(String key, String lastValue, String defaultValue);
+    public default void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
+        if (defaultValue != null) {
+            this.systemSettingsSaved(key, lastValue, defaultValue);
+        }
+    }
 
     /**
      * Return a list of any settings you want to listen for changes to.
