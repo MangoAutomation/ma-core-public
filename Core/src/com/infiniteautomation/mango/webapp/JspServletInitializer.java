@@ -36,11 +36,10 @@ public class JspServletInitializer extends JettyJasperInitializer implements Web
         // call JettyJasperInitializer onStartup() method
         super.onStartup(null, context);
 
-        //ServletRegistration.Dynamic holderJsp = context.addServlet("jsp", JettyJspServlet.class);
+        // JettyJspServlet has already been added via webdefault.xml inside the Jetty jar
+        // see https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/jetty-webapp/src/main/config/etc/webdefault.xml
+        // it is set as async-supported via web.xml in ${MA_HOME}/web/WEB-INF/web.xml
         ServletRegistration holderJsp = context.getServletRegistration("jsp");
-        //holderJsp.addMapping("*.jsp");
-        //holderJsp.setAsyncSupported(env.getProperty("web.jsp.async", Boolean.class, true));
-        //holderJsp.setLoadOnStartup(0);
 
         //Get the descriptions here: http://www.eclipse.org/jetty/documentation/9.2.10.v20150310/configuring-jsp.html
         holderJsp.setInitParameter("xpoweredBy", "false");
