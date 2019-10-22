@@ -43,7 +43,7 @@ import com.serotonin.m2m2.module.ServletDefinition;
  */
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Order(200)
+@Order(300)
 public class RegisterFiltersAndServlets implements WebApplicationInitializer {
 
     private final ListableBeanFactory beanFactory;

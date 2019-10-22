@@ -4,6 +4,8 @@
 package com.serotonin.m2m2.web;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.eclipse.jetty.util.resource.PathResource;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -30,6 +32,15 @@ public class OverridingWebAppContext extends WebAppContext {
         this.setBaseResource(ofr);
         this.setContextPath("/");
 
+        // Copy of Jetty webdefault.xml with JSP and default servlet removed so we can configure them programmatically
+        // see https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/jetty-webapp/src/main/config/etc/webdefault.xml
+        Path webdefault = Common.WEB.resolve("WEB-INF/webdefault.xml");
+        if (Files.isRegularFile(webdefault)) {
+            this.setDefaultsDescriptor(webdefault.toFile().getAbsolutePath());
+        } else {
+            this.setDefaultsDescriptor(null);
+        }
+
         //Detect and load any web.xml in the overrides since the baseResource doesn't account for this file
         File overrideDescriptor = Common.OVERRIDES_WEB.resolve("web.xml").toFile();
         if (overrideDescriptor.exists()) {
@@ -45,9 +56,6 @@ public class OverridingWebAppContext extends WebAppContext {
         }
 
         this.setParentLoaderPriority(true);
-        //setClassLoader(classLoader);
-        // Disallow directory listing
-        this.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
         //Temp and JSP Compilation Settings (The order of these is important)
         //@See http://eclipse.org/jetty/documentation/current/ref-temporary-directories.html

@@ -11,23 +11,6 @@
    metadata-complete="false"
    version="3.1">
 
-  <!-- 
-    Servlet definitions.
-   -->
-  <servlet>
-    <servlet-name>default</servlet-name>
-    <servlet-class>org.eclipse.jetty.servlet.DefaultServlet</servlet-class>
-    <init-param>
-      <param-name>useFileMappedBuffer</param-name>
-      <param-value>false</param-value>
-    </init-param>  
-  </servlet>
-  
-  <servlet id="jsp">
-    <servlet-name>jsp</servlet-name>
-    <async-supported>true</async-supported>
-  </servlet>
-
   <servlet>
     <servlet-name>imageChart</servlet-name>
     <servlet-class>com.serotonin.m2m2.web.servlet.ImageChartServlet</servlet-class>
@@ -91,18 +74,5 @@
     <servlet-name>mangoStatus</servlet-name>
     <url-pattern>/status/*</url-pattern>
   </servlet-mapping> 
-  
-  <!-- 
-    Other stuff.
-   -->
-  <session-config>
-    <session-timeout>2880</session-timeout>
-  </session-config>
-    
-  <welcome-file-list>
-    <welcome-file>index.jsp</welcome-file>
-    <welcome-file>index.html</welcome-file>
-    <welcome-file>index.htm</welcome-file>
-  </welcome-file-list>
-  
+
 </web-app>
