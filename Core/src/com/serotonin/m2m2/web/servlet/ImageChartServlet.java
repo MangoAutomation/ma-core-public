@@ -10,7 +10,6 @@ import java.awt.Paint;
 import java.awt.Stroke;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -18,12 +17,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.Unit;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.data.time.TimeSeries;
+import org.springframework.stereotype.Component;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.m2m2.Common;
@@ -45,6 +46,8 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
 
+@Component
+@WebServlet(urlPatterns = {"/chart/*"})
 public class ImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;
     private static final long CACHE_PURGE_INTERVAL = 1000 * 60 * 10; // 10 minutes
@@ -58,29 +61,29 @@ public class ImageChartServlet extends BaseInfoServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-    	
-    	//Check out Public Graphic Views
-    	User user = Common.getUser(request);
+
+        //Check out Public Graphic Views
+        User user = Common.getUser(request);
         if (user == null){
-        	boolean allowView = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false);
-        	if(!allowView)
-        		return;
+            boolean allowView = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.ALLOW_ANONYMOUS_CHART_VIEW, false);
+            if(!allowView)
+                return;
         }
-    	
+
         String imageInfo = request.getPathInfo();
 
         CacheElement ce = cachedImages.compute(imageInfo, (k, v) -> {
-        	if(v == null) {
-        		try {
-        			byte[] data = getImageData(imageInfo, request);
-					if(data == null)
-	        			return null;
-	        		return new CacheElement(data);
-				} catch (IOException e) {
-					return null;
-				}
-        	}
-        	return v;
+            if(v == null) {
+                try {
+                    byte[] data = getImageData(imageInfo, request);
+                    if(data == null)
+                        return null;
+                    return new CacheElement(data);
+                } catch (IOException e) {
+                    return null;
+                }
+            }
+            return v;
         });
 
         ImageChartUtils.writeChart(response, ce.getData());
@@ -131,7 +134,7 @@ public class ImageChartServlet extends BaseInfoServlet {
 
             int width = getIntRequestParameter(request, "w", 200);
             int height = getIntRequestParameter(request, "h", 100);
-            
+
             String useCacheString = request.getParameter("useCache");
             boolean useCache = false;
             if(useCacheString != null && Boolean.valueOf(useCacheString))
@@ -177,14 +180,14 @@ public class ImageChartServlet extends BaseInfoServlet {
 
                         //Get the Color if there wasn't one provided
                         if(colour == null){
-                        	try{
-                        		if(dp.getChartColour() != null)
-                        			colour = ColorUtils.toColor(dp.getChartColour());
-                        	}catch(InvalidArgumentException e){
-                        		//Munch it
-                        	}
+                            try{
+                                if(dp.getChartColour() != null)
+                                    colour = ColorUtils.toColor(dp.getChartColour());
+                            }catch(InvalidArgumentException e){
+                                //Munch it
+                            }
                         }
-                        
+
                         PointValueFacade pointValueFacade = new PointValueFacade(dataPointId, useCache);
                         List<PointValueTime> data;
                         if (from == -1 && to == -1)
@@ -197,14 +200,14 @@ public class ImageChartServlet extends BaseInfoServlet {
                             data = pointValueFacade.getPointValuesBetween(from, to, true, true);
 
                         if (dp.getPointLocator().getDataTypeId() == DataTypes.NUMERIC) {
-                        	TimeSeries ts;
-                        	if(dp.isUseRenderedUnit()){
-                        		//This works because we enforce that all Units default to the ONE Unit if not used
-                        		UnitConverter converter = null;
-                        		if(dp.getRenderedUnit() != dp.getUnit())
-                        			converter = dp.getUnit().getConverterTo(dp.getRenderedUnit());
-	                            ts = new TimeSeries(dp.getExtendedName(), null, dp.getTextRenderer().getMetaText());
-	                            double value;
+                            TimeSeries ts;
+                            if(dp.isUseRenderedUnit()){
+                                //This works because we enforce that all Units default to the ONE Unit if not used
+                                UnitConverter converter = null;
+                                if(dp.getRenderedUnit() != dp.getUnit())
+                                    converter = dp.getUnit().getConverterTo(dp.getRenderedUnit());
+                                ts = new TimeSeries(dp.getExtendedName(), null, dp.getTextRenderer().getMetaText());
+                                double value;
                                 for (PointValueTime pv : data) {
                                     if(pv.getValue() != null) {
                                         if (converter != null)
@@ -214,14 +217,14 @@ public class ImageChartServlet extends BaseInfoServlet {
                                         ImageChartUtils.addMillisecond(ts, pv.getTime(), value);
                                     }
                                 }
-                        	}else{
-                        		//No renderer, don't need it
-	                            ts = new TimeSeries(dp.getExtendedName(), null, dp.getTextRenderer().getMetaText());
+                            }else{
+                                //No renderer, don't need it
+                                ts = new TimeSeries(dp.getExtendedName(), null, dp.getTextRenderer().getMetaText());
                                 for (PointValueTime pv : data) {
                                     if (pv.getValue() != null)
                                         ImageChartUtils.addMillisecond(ts, pv.getTime(), pv.getValue().numberValue());
-                                }                      		
-                        	}
+                                }
+                            }
                             ptsc.addNumericTimeSeries(new NumericTimeSeries(dp.getPlotType(), ts, colour, null));
                         }
                         else {
@@ -230,7 +233,7 @@ public class ImageChartServlet extends BaseInfoServlet {
                             for (PointValueTime pv : data)
                                 if(pv.getValue() != null)
                                     ts.addValueTime(pv);
-                                
+
                             ptsc.addDiscreteTimeSeries(ts);
                         }
                     }

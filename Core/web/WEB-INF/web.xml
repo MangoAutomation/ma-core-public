@@ -3,76 +3,11 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
 -->
-
 <web-app 
    xmlns="http://xmlns.jcp.org/xml/ns/javaee" 
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
    metadata-complete="false"
    version="3.1">
-
-  <servlet>
-    <servlet-name>imageChart</servlet-name>
-    <servlet-class>com.serotonin.m2m2.web.servlet.ImageChartServlet</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>asyncImageChart</servlet-name>
-    <servlet-class>com.serotonin.m2m2.web.servlet.AsyncImageChartServlet</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>imageValue</servlet-name>
-    <servlet-class>com.serotonin.m2m2.web.servlet.ImageValueServlet</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>chartExport</servlet-name>
-    <servlet-class>com.serotonin.m2m2.web.servlet.ChartExportServlet</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>eventExport</servlet-name>
-    <servlet-class>com.serotonin.m2m2.web.servlet.EventExportServlet</servlet-class>
-  </servlet>
-  
-  <servlet>
-    <servlet-name>mangoStatus</servlet-name>
-    <servlet-class>com.serotonin.m2m2.web.servlet.StatusServlet</servlet-class>
-  </servlet>
-  
-  <!-- 
-    Servlet mappings.
-   -->
-
-  <servlet-mapping>
-    <servlet-name>imageChart</servlet-name>
-    <url-pattern>/chart/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>asyncImageChart</servlet-name>
-    <url-pattern>/achart/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>imageValue</servlet-name>
-    <url-pattern>/imageValue/*</url-pattern>
-  </servlet-mapping>
- 
-  <servlet-mapping>
-    <servlet-name>chartExport</servlet-name>
-    <url-pattern>/chartExport/*</url-pattern>
-  </servlet-mapping>
- 
-  <servlet-mapping>
-    <servlet-name>eventExport</servlet-name>
-    <url-pattern>/eventExport/*</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>mangoStatus</servlet-name>
-    <url-pattern>/status/*</url-pattern>
-  </servlet-mapping> 
 
 </web-app>

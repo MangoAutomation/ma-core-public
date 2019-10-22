@@ -18,6 +18,7 @@ import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.infiniteautomation.mango.webapp.WebAppPackage;
 import com.serotonin.m2m2.i18n.TranslatedMessageSource;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
+import com.serotonin.m2m2.web.servlet.LegacyServletsPackage;
 
 /**
  * Core Application Configuration
@@ -25,7 +26,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
  */
 @Configuration
 @Import({MangoCommonConfiguration.class, MangoSecurityConfiguration.class})
-@ComponentScan(basePackageClasses = {WebAppPackage.class})
+@ComponentScan(basePackageClasses = {WebAppPackage.class, LegacyServletsPackage.class})
 public class MangoRootWebContextConfiguration {
 
     @Bean(name="localeResolver")

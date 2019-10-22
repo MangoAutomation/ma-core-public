@@ -7,6 +7,7 @@ package com.serotonin.m2m2.web.servlet;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -14,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -23,6 +25,8 @@ import com.serotonin.util.image.ImageUtils;
 import com.serotonin.util.image.JpegImageFormat;
 import com.serotonin.util.image.PercentScaledImage;
 
+@Component
+@WebServlet(urlPatterns = {"/imageValue/*"})
 public class ImageValueServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;
 
@@ -49,7 +53,7 @@ public class ImageValueServlet extends BaseInfoServlet {
             int dot = imageInfo.indexOf('.');
             String extension = imageInfo.substring(dot+1, imageInfo.length()).toLowerCase();
             imageInfo = imageInfo.substring(1, dot);
-            
+
 
             // Split by underscore.
             String[] imageBits = imageInfo.split("_");
@@ -82,7 +86,7 @@ public class ImageValueServlet extends BaseInfoServlet {
             else {
                 ImageValue imageValue = (ImageValue) pvt.getValue();
                 byte[] data = imageValue.getImageData();
-                
+
 
                 if (scalePercent != -1) {
                     //Definitely going to be JPEG
@@ -98,15 +102,15 @@ public class ImageValueServlet extends BaseInfoServlet {
                     BoxScaledImage scaler = new BoxScaledImage(width, height);
                     data = ImageUtils.scaleImage(scaler, data, new JpegImageFormat(0.85f));
                 }else{
-                	//Use the Image extension to se the Content Type
-                	if("jpg".equals(extension))
-                		response.setContentType(MediaType.IMAGE_JPEG_VALUE);
-                	else if("png".equals(extension))
-                		response.setContentType(MediaType.IMAGE_PNG_VALUE);
-                	else if("gif".equals(extension))
-                		response.setContentType(MediaType.IMAGE_GIF_VALUE);
+                    //Use the Image extension to se the Content Type
+                    if("jpg".equals(extension))
+                        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+                    else if("png".equals(extension))
+                        response.setContentType(MediaType.IMAGE_PNG_VALUE);
+                    else if("gif".equals(extension))
+                        response.setContentType(MediaType.IMAGE_GIF_VALUE);
                 }
-                
+
                 response.getOutputStream().write(data);
             }
         }

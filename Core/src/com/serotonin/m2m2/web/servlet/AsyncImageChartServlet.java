@@ -10,12 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jfree.data.time.TimeSeries;
+import org.springframework.stereotype.Component;
 
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.MappedRowCallback;
@@ -24,6 +26,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
+import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.util.chart.DiscreteTimeSeries;
 import com.serotonin.m2m2.util.chart.ImageChartUtils;
 import com.serotonin.m2m2.util.chart.NumericTimeSeries;
@@ -39,13 +42,14 @@ import com.serotonin.m2m2.vo.pair.LongPair;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.sync.Synchronizer;
-import com.serotonin.m2m2.util.ColorUtils;
 
 /**
  * This class is probably buggy
  * @author Matthew Lohbihler
  *
  */
+@Component
+@WebServlet(urlPatterns = {"/achart/*"})
 public class AsyncImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;
 

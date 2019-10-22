@@ -4,9 +4,12 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DojoQueryCallback;
@@ -23,6 +26,8 @@ import com.serotonin.m2m2.vo.export.EventCsvStreamer;
 import com.serotonin.m2m2.web.dwr.QueryDefinition;
 import com.serotonin.m2m2.web.dwr.beans.EventExportDefinition;
 
+@Component
+@WebServlet(urlPatterns = {"/eventExport/*"})
 public class EventExportServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
@@ -35,59 +40,59 @@ public class EventExportServlet extends HttpServlet {
         //Eventually Switch on file type
         String pathInfo = request.getPathInfo();
         if(pathInfo != null){
-	        if(pathInfo.endsWith(".xlsx"))
-	        	this.exportExcel(response, user);
-	        else{
-	            EventExportDefinition def = user.getEventExportDefinition();
-	            if (def == null)
-	                return;
-	        	this.exportCsv(response, def, user);
-	        }
+            if(pathInfo.endsWith(".xlsx"))
+                this.exportExcel(response, user);
+            else{
+                EventExportDefinition def = user.getEventExportDefinition();
+                if (def == null)
+                    return;
+                this.exportCsv(response, def, user);
+            }
         }
 
     }
 
-	/**
-	 * @param response
-	 * @param def
-	 * @param user
-	 * @throws IOException 
-	 */
-	private void exportExcel(HttpServletResponse response, User user) throws IOException {
-		
-    	// Stream the content.
+    /**
+     * @param response
+     * @param def
+     * @param user
+     * @throws IOException
+     */
+    private void exportExcel(HttpServletResponse response, User user) throws IOException {
+
+        // Stream the content.
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        
+
         final EventInstanceEmporter sheetEmporter = new EventInstanceEmporter();
         final SpreadsheetEmporter emporter = new SpreadsheetEmporter(FileType.XLSX);
 
         BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream());
         emporter.prepareExport(bos);
         emporter.prepareSheetExport(sheetEmporter);
-        
+
         QueryDefinition queryData = (QueryDefinition) user.getAttribute("eventInstanceExportDefinition");
         DojoQueryCallback<EventInstanceVO> callback = new DojoQueryCallback<EventInstanceVO>(false) {
-        	
-        	@Override
+
+            @Override
             public void row(EventInstanceVO vo, int rowIndex) {
                 sheetEmporter.exportRow(vo);
             }
         };
-        
+
         EventInstanceDao.getInstance().exportQuery(queryData.getQuery(), queryData.getSort(), null, null, queryData.isOr(),callback);
 
-       emporter.finishExport();
-	}
+        emporter.finishExport();
+    }
 
-	/**
-	 * @param response
-	 * @param def
-	 * @param user
-	 * @throws IOException 
-	 */
-	private void exportCsv(HttpServletResponse response,
-			EventExportDefinition def, User user) throws IOException {
-        
+    /**
+     * @param response
+     * @param def
+     * @param user
+     * @throws IOException
+     */
+    private void exportCsv(HttpServletResponse response,
+            EventExportDefinition def, User user) throws IOException {
+
         final Translations translations = Common.getTranslations();
         List<EventInstance> events = EventDao.getInstance().search(def.getEventId(), def.getEventType(), def.getStatus(),
                 def.getAlarmLevel(), def.getKeywords(), def.getDateFrom(), def.getDateTo(), user.getId(), translations,
@@ -96,9 +101,9 @@ public class EventExportServlet extends HttpServlet {
         response.setContentType("text/csv");
         new EventCsvStreamer(response.getWriter(), events, translations);
 
-		
-	}
-    
-    
-    
+
+    }
+
+
+
 }
