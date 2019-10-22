@@ -28,6 +28,7 @@ import com.serotonin.m2m2.web.servlet.LegacyServletsPackage;
 @Import({MangoCommonConfiguration.class, MangoSecurityConfiguration.class})
 @ComponentScan(basePackageClasses = {WebAppPackage.class, LegacyServletsPackage.class})
 public class MangoRootWebContextConfiguration {
+    public static final String CONTEXT_ID = "rootWebContext";
 
     @Bean(name="localeResolver")
     public SessionLocaleResolver getSessionLocaleResolver(){

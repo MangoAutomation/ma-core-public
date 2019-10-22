@@ -25,7 +25,6 @@ import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.infiniteautomation.mango.spring.webapp.MangoWebApplicationInitializer;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -210,7 +209,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     protected CompletableFuture<ApplicationContext>  springRuntimeContextInitialize() {
         @SuppressWarnings("resource")
         AnnotationConfigApplicationContext runtimeContext = new AnnotationConfigApplicationContext();
-        runtimeContext.setId(MangoWebApplicationInitializer.RUNTIME_CONTEXT_ID);
+        runtimeContext.setId(MangoRuntimeContextConfiguration.CONTEXT_ID);
         runtimeContext.getEnvironment().getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
         runtimeContext.register(MangoRuntimeContextConfiguration.class);
         runtimeContext.refresh();

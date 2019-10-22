@@ -43,6 +43,8 @@ import com.serotonin.propertyEditor.DefaultMessageCodesResolver;
 @EnableWebMvc
 @ComponentScan(basePackages = { "com.serotonin.m2m2.web.mvc.controller" })
 public class MangoJspDispatcherConfiguration implements WebMvcConfigurer {
+    public static final String CONTEXT_ID = "jspDispatcherContext";
+    public static final String DISPATCHER_NAME = "JSP_DISPATCHER";
 
     private final ListableBeanFactory beanFactory;
 

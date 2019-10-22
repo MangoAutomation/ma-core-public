@@ -38,7 +38,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
-import com.infiniteautomation.mango.spring.webapp.MangoWebApplicationInitializer;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.IMangoLifecycle;
@@ -62,6 +61,7 @@ import com.serotonin.provider.Providers;
         "com.serotonin.m2m2.db.dao" //DAOs
 })
 public class MangoRuntimeContextConfiguration {
+    public static final String CONTEXT_ID = "runtimeContext";
     private static final CompletableFuture<ApplicationContext> RUNTIME_CONTEXT_FUTURE = new CompletableFuture<>();
     private static final CompletableFuture<WebApplicationContext> ROOT_WEB_CONTEXT_FUTURE = new CompletableFuture<>();
 
@@ -132,9 +132,9 @@ public class MangoRuntimeContextConfiguration {
             log.info("Spring context '" + context.getId() +"' refreshed: " + context.getDisplayName());
         }
 
-        if (MangoWebApplicationInitializer.RUNTIME_CONTEXT_ID.equals(context.getId())) {
+        if (CONTEXT_ID.equals(context.getId())) {
             RUNTIME_CONTEXT_FUTURE.complete(context);
-        } else if (MangoWebApplicationInitializer.ROOT_WEB_CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
+        } else if (CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
             ROOT_WEB_CONTEXT_FUTURE.complete((WebApplicationContext) context);
         }
     }
