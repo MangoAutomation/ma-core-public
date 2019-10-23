@@ -30,6 +30,7 @@ import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.module.DwrClassHolder;
 import com.serotonin.m2m2.module.DwrConversionDefinition;
@@ -42,6 +43,8 @@ import com.serotonin.m2m2.web.dwr.util.DwrClassConversion;
  * @author Jared Wiltshire
  */
 
+@Component
+@ConditionalOnProperty("${web.dwr.enabled:true}")
 @WebServlet(
         name = MangoDwrServlet.NAME,
         loadOnStartup = 2,
@@ -54,7 +57,6 @@ import com.serotonin.m2m2.web.dwr.util.DwrClassConversion;
                 @WebInitParam(name = "org.directwebremoting.extend.ConverterManager", value = "com.serotonin.m2m2.web.dwr.util.BlabberConverterManager"),
                 @WebInitParam(name = "sessionCookieName", value = "XSRF-TOKEN")
         })
-@Component
 public final class MangoDwrServlet extends DwrServlet {
     private static final long serialVersionUID = 1L;
     public static final String NAME = "dwr-invoker";

@@ -26,6 +26,7 @@ import org.jfree.chart.plot.ValueMarker;
 import org.jfree.data.time.TimeSeries;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -47,6 +48,7 @@ import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogLowLimitDetectorVO;
 
 @Component
+@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/chart/*"})
 public class ImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;

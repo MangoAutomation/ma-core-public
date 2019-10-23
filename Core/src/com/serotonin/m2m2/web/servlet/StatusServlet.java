@@ -19,6 +19,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
@@ -35,6 +36,7 @@ import com.serotonin.provider.Providers;
  *
  */
 @Component
+@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/status/*"})
 public class StatusServlet extends HttpServlet{
 

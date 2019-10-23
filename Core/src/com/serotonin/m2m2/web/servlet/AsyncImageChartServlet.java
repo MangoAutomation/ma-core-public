@@ -19,6 +19,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.jfree.data.time.TimeSeries;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
@@ -49,6 +50,7 @@ import com.serotonin.timer.sync.Synchronizer;
  *
  */
 @Component
+@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/achart/*"})
 public class AsyncImageChartServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;

@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -34,6 +35,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.dwr.beans.DataExportDefinition;
 
 @Component
+@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/chartExport/*"})
 public class ChartExportServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;

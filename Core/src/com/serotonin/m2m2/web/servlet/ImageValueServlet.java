@@ -17,6 +17,7 @@ import org.apache.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
@@ -26,6 +27,7 @@ import com.serotonin.util.image.JpegImageFormat;
 import com.serotonin.util.image.PercentScaledImage;
 
 @Component
+@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/imageValue/*"})
 public class ImageValueServlet extends BaseInfoServlet {
     private static final long serialVersionUID = -1;

@@ -17,11 +17,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.web.WebApplicationInitializer;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
+
 /**
  * Adds and configures the JettyJspServlet
  * @author Jared Wiltshire
  */
 @Component
+@ConditionalOnProperty("${web.jsp.enabled:true}")
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 @Order(200)
 public class JspServletInitializer extends JettyJasperInitializer implements WebApplicationInitializer {

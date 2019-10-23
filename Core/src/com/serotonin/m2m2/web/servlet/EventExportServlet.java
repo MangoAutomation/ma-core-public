@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DojoQueryCallback;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -27,6 +28,7 @@ import com.serotonin.m2m2.web.dwr.QueryDefinition;
 import com.serotonin.m2m2.web.dwr.beans.EventExportDefinition;
 
 @Component
+@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/eventExport/*"})
 public class EventExportServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
