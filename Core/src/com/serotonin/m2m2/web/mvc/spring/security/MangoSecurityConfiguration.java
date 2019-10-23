@@ -378,6 +378,8 @@ public class MangoSecurityConfiguration {
             if (!swaggerApiDocsProtected) {
                 // add exceptions for the REST swagger endpoints
                 authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
+            } else {
+                authRequests.antMatchers("/swagger-resources/**").authenticated();
             }
 
             authRequests.requestMatchers(restRequestMatcher).authenticated()
@@ -479,6 +481,8 @@ public class MangoSecurityConfiguration {
             if (!swaggerApiDocsProtected) {
                 // add exceptions for the REST swagger endpoints
                 authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
+            } else {
+                authRequests.antMatchers("/swagger-resources/**").authenticated();
             }
 
             authRequests.requestMatchers(restRequestMatcher).authenticated()
