@@ -375,10 +375,8 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
             .antMatchers("/rest/*/email-verification/public/**").permitAll(); //For public user registration
 
-            if (swaggerApiDocsProtected) {
-                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
-            }else {
-                //Add exceptions for the REST swagger endpoints
+            if (!swaggerApiDocsProtected) {
+                // add exceptions for the REST swagger endpoints
                 authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
             }
 
@@ -387,10 +385,6 @@ public class MangoSecurityConfiguration {
             .antMatchers("/modules/**").denyAll()
             .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
             .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
-
-            if (swaggerApiDocsProtected) {
-                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
-            }
 
             authRequests.anyRequest().permitAll(); // default to permit all
 
@@ -482,10 +476,8 @@ public class MangoSecurityConfiguration {
             .antMatchers("/rest/*/ui-bootstrap/**").permitAll() // UI bootstrap has a public method
             .antMatchers("/rest/*/email-verification/public/**").permitAll(); //For public user registration
 
-            if (swaggerApiDocsProtected) {
-                authRequests.antMatchers(swagger2Endpoint).authenticated(); //protected swagger api-docs
-            }else {
-                //Add exceptions for the REST swagger endpoints
+            if (!swaggerApiDocsProtected) {
+                // add exceptions for the REST swagger endpoints
                 authRequests.antMatchers("/rest/*" + swagger2Endpoint).permitAll();
             }
 
