@@ -517,7 +517,7 @@
         <dependency>
             <groupId>com.infiniteautomation.mango</groupId>
             <artifactId>slack-publisher</artifactId>
-            <version>3.6.1-SNAPSHOT</version>
+            <version>3.6.2-SNAPSHOT</version>
             <type>zip</type>
         </dependency>
 	</dependencies>
