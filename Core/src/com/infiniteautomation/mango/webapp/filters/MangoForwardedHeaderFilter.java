@@ -3,28 +3,28 @@
  */
 package com.infiniteautomation.mango.webapp.filters;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import javax.servlet.DispatcherType;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.web.util.matcher.IpAddressMatcher;
-import org.springframework.stereotype.Component;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.ForwardedHeaderFilter;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
+import com.infiniteautomation.mango.webapp.TrustForwardedMatcher;
 
 /**
+ *
+ * <p>Cannot use {@link org.springframework.web.filter.ForwardedHeaderFilter ForwardedHeaderFilter} until <a href="https://github.com/spring-projects/spring-framework/issues/23260">issue is resolved</a>.
+ * Namely it does not support using the X-Forwarded-For header to override getRemoteAddr().</p>
+ *
+ * <p>Use {@link com.infiniteautomation.mango.spring.webapp.MangoForwardedRequestCustomizer MangoForwardedRequestCustomizer} instead.</p>
+ *
  * @author Jared Wiltshire
  */
-@Component
+//@Component
 @ConditionalOnProperty("${web.forwardedHeaders.enabled:true}")
 @WebFilter(
         filterName = MangoForwardedHeaderFilter.NAME,
@@ -35,17 +35,11 @@ import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 public class MangoForwardedHeaderFilter extends ForwardedHeaderFilter {
     public static final String NAME = "mangoForwardedHeaderFilter";
 
-    private final List<IpAddressMatcher> ipMatchers;
+    private final RequestMatcher matcher;
 
     @Autowired
-    public MangoForwardedHeaderFilter(@Value("${web.forwardedHeaders.trustedIpRanges}") String trustedIpRanges) {
-        if (trustedIpRanges == null || trustedIpRanges.isEmpty()) {
-            this.ipMatchers = Collections.emptyList();
-        } else {
-            this.ipMatchers = Arrays.stream(trustedIpRanges.split("\\s*,\\s*")).filter(r -> !r.isEmpty()).map(range -> {
-                return new IpAddressMatcher(range);
-            }).collect(Collectors.toList());
-        }
+    public MangoForwardedHeaderFilter(TrustForwardedMatcher matcher) {
+        this.matcher = matcher;
     }
 
     @Override
@@ -54,8 +48,7 @@ public class MangoForwardedHeaderFilter extends ForwardedHeaderFilter {
             return true;
         }
 
-        boolean trusted = ipMatchers.stream().anyMatch(m -> m.matches(request));
-        return !trusted;
+        return !this.matcher.matches(request);
     }
 
 }
