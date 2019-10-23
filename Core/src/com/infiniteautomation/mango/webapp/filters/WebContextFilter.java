@@ -22,10 +22,13 @@ import org.directwebremoting.impl.DefaultWebContextBuilder;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
+
 /**
  * @author Matthew Lohbihler
  */
 @Component
+@ConditionalOnProperty("${web.dwr.enabled:true}")
 @WebFilter(
         filterName = WebContextFilter.NAME,
         urlPatterns = {"*.shtm"},

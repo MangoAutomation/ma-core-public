@@ -22,12 +22,15 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.JstlUtils;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
+
 /**
  * Currently used to ensure that translations are available for all JSPs under the exception dir.
  *
  * @author Matthew Lohbihler
  */
 @Component
+@ConditionalOnProperty("${web.jsp.enabled:true}")
 @WebFilter(
         filterName = TranslationsFilter.NAME,
         urlPatterns = {"/exception/*"},

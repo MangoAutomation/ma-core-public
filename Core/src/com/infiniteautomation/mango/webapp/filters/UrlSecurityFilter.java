@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
+import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.ControllerMappingDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -30,6 +31,7 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 
 @SuppressWarnings("deprecation")
 @Component
+@ConditionalOnProperty("${web.jsp.enabled:true}")
 @WebFilter(
         filterName = UrlSecurityFilter.NAME,
         urlPatterns = {"*.shtm"},
