@@ -99,16 +99,17 @@ public class SerialPortManagerImpl implements SerialPortManager {
      */
     @Override
     public void initialize(boolean safe) throws LifecycleException {
+        this.lock.writeLock().lock();
+        try {
+            if(initialized) {
+                throw new LifecycleException("Serial Port Manager should only be initialized once");
+            }
 
-        if(initialized) {
-            throw new LifecycleException("Serial Port Manager should only be initialized once");
+            JsscSerialPortManager.instance.initialize();
+            initialized = true;
+        } finally {
+            this.lock.writeLock().unlock();
         }
-        
-        if (safe) {
-            return;
-        }
-
-        JsscSerialPortManager.instance.initialize();
     }
 
     /**
@@ -339,6 +340,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
             
             //Shutdown JSSC Manager
             JsscSerialPortManager.instance.terminate();
+            initialized = false;
         } catch (Exception e) {
             throw e;
         } finally {
