@@ -484,13 +484,13 @@ public class Permissions {
 
     public static void ensureGrantedPermission(PermissionHolder user, Permission permission) {
         if (!hasGrantedPermission(user, permission)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user.getPermissionHolderName()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user != null ? user.getPermissionHolderName() : ""), user);
         }
     }
 
     public static void ensureGrantedPermission(PermissionHolder user, String permissionName) {
         if (!hasGrantedPermission(user, permissionName)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user.getPermissionHolderName()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user != null ? user.getPermissionHolderName() : ""), user);
         }
     }
 
