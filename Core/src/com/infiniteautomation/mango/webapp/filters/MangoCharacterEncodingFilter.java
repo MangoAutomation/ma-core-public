@@ -22,7 +22,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
                 @WebInitParam(name = "encoding", value = "UTF-8"),
                 @WebInitParam(name = "forceResponseEncoding", value = "true")
         },
-        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC})
+        dispatcherTypes = {DispatcherType.REQUEST, DispatcherType.ASYNC, DispatcherType.FORWARD})
 @Order(FilterOrder.CORE_FILTERS)
 public class MangoCharacterEncodingFilter extends CharacterEncodingFilter {
 
