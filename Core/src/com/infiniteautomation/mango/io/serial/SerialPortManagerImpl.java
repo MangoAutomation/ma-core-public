@@ -340,6 +340,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
             
             //Shutdown JSSC Manager
             JsscSerialPortManager.instance.terminate();
+            initialized = false;
         } catch (Exception e) {
             throw e;
         } finally {
