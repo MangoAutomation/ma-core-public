@@ -265,18 +265,18 @@ public class DataPointDwr extends AbstractDwr<DataPointVO, DataPointDao> {
     @Override
     @DwrPermission(user = true)
     public ProcessResult getCopy(int id) {
-        ProcessResult result = new ProcessResult();
+        ProcessResult result = getFull(id);
 
         //Store the edit point
         DataPointVO editPoint = (DataPointVO) result.getData().get("vo");
         Permissions.ensureDataSourcePermission(Common.getHttpUser(), editPoint.getDataSourceId());
         editPoint.setId(COPY_ID);
+        editPoint.setXid(DataPointDao.getInstance().generateUniqueXid());
+        editPoint.setName(new TranslatableMessage("common.copyPrefix", editPoint.getName()).translate(Common.getHttpUser().getTranslations()));
         for(AbstractPointEventDetectorVO<?> aed : editPoint.getEventDetectors()) {
             aed.setId(Common.NEW_ID);
             aed.setXid(Common.generateXid(EventDetectorDao.getInstance().xidPrefix));
         }
-        Common.getUser().setEditPoint(editPoint);
-
         return result;
     }
 
