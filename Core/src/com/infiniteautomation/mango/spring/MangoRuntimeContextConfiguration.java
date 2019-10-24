@@ -48,6 +48,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
 import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
+import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
 
 /**
@@ -134,7 +135,7 @@ public class MangoRuntimeContextConfiguration {
 
         if (CONTEXT_ID.equals(context.getId())) {
             RUNTIME_CONTEXT_FUTURE.complete(context);
-        } else if (CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
+        } else if (MangoRootWebContextConfiguration.CONTEXT_ID.equals(context.getId()) && context instanceof WebApplicationContext) {
             ROOT_WEB_CONTEXT_FUTURE.complete((WebApplicationContext) context);
         }
     }
