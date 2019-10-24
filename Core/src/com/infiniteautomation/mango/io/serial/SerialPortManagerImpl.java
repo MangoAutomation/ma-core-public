@@ -103,10 +103,6 @@ public class SerialPortManagerImpl implements SerialPortManager {
         if(initialized) {
             throw new LifecycleException("Serial Port Manager should only be initialized once");
         }
-        
-        if (safe) {
-            return;
-        }
 
         JsscSerialPortManager.instance.initialize();
     }
