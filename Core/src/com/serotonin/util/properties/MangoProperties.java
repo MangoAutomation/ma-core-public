@@ -18,7 +18,25 @@ public interface MangoProperties {
 
     String getString(String key, String defaultValue);
 
+    /**
+     * Does not remove empty entries.
+     * Default is only returned if the property is not defined at all (i.e. commented out).
+     * A property defined as an empty string will return an empty array.
+     */
     String[] getStringArray(String key, String delimiter, String[] defaultValue);
+
+    /**
+     * Splits on comma and trims results, does not remove empty entries.
+     * Returns an empty array if the property is not defined or if it is set to an empty string.
+     */
+    String[] getStringArray(String key);
+
+    /**
+     * Splits on comma and trims results, does not remove empty entries.
+     * Default is only returned if the property is not defined at all (i.e. commented out).
+     * A property defined as an empty string will return an empty array.
+     */
+    String[] getStringArray(String key, String[] defaultValue);
 
     int getInt(String key);
 

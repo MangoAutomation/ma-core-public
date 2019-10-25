@@ -10,7 +10,7 @@ import org.apache.commons.logging.LogFactory;
 /**
  * Abstract properties, suitable for use in applications that required testing harnesses. Reloading properties can be
  * used in the functional application, while basic properties can be used for testing.
- * 
+ *
  * @author Matthew Lohbihler
  */
 abstract public class AbstractProperties implements MangoProperties {
@@ -100,14 +100,24 @@ abstract public class AbstractProperties implements MangoProperties {
         return value;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getStringArray(java.lang.String, java.lang.String, java.lang.String[])
-     */
+    @Override
+    public String[] getStringArray(String key) {
+        return this.getStringArray(key, "\\s*,\\s*", new String[] {});
+    }
+
+    @Override
+    public String[] getStringArray(String key, String[] defaultValue) {
+        return this.getStringArray(key, "\\s*,\\s*", defaultValue);
+    }
+
     @Override
     public String[] getStringArray(String key, String delimiter, String[] defaultValue) {
         String value = getString(key);
-        if (StringUtils.isBlank(value))
+        if (value == null)
             return defaultValue;
+        if (value.isEmpty()) {
+            return new String[] {};
+        }
         return value.split(delimiter);
     }
 
