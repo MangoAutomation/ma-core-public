@@ -1,6 +1,7 @@
 *Version 3.6.5*
 * Fix data point copy button in old UI for lower data points list, top list is permanantly broken use the new UI
 * Fix bug in serial port manager where more than one event processing thread could be created and result in messages being missed
+* Fix bug where task rejections that executed faulty code during the rejection could kill the real time timer
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources

@@ -64,6 +64,10 @@ public class TimeoutTask extends TimerTask {
     
     @Override
     public void rejected(RejectedTaskReason reason) {
-    	this.client.rejected(reason);
+        try {
+            this.client.rejected(reason);
+        }catch(Exception e){
+            LOG.error("Uncaught Task Rejection Exception", e);
+        }
     }
 }
