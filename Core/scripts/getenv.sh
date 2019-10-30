@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # function for getting values from .properties file
 getProp() {
