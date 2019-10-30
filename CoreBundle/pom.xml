@@ -167,7 +167,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mango-api</artifactId>
-			<version>3.6.4-SNAPSHOT</version>
+			<version>3.6.5-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -312,7 +312,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>modbus-ds</artifactId>
-			<version>3.6.6-SNAPSHOT</version>
+			<version>3.6.7-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -342,7 +342,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>persistent-pub-ds</artifactId>
-			<version>3.6.2-SNAPSHOT</version>
+			<version>3.6.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
