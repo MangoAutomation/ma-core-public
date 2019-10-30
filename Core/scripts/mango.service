@@ -1,0 +1,18 @@
+[Unit]
+Description=Mango Automation
+After=mysqld.service
+
+[Service]
+EnvironmentFile=/etc/environment
+EnvironmentFile=-/etc/default/mango
+Type=forking
+WorkingDirectory=/opt/mango
+PIDFile=/opt/mango/bin/ma.pid
+ExecStart=/opt/mango/bin/ma-start-systemd.sh
+Restart=always
+RestartSec=1s
+User=mango
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
