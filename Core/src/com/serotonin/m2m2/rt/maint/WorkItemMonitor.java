@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.maint;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collection;
@@ -100,6 +102,10 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
     public static final String USER_SESSION_MONITOR_ID = MangoSessionRegistry.class.getCanonicalName() + ".COUNT";
     private final IntegerMonitor userSessions = new IntegerMonitor(USER_SESSION_MONITOR_ID, new TranslatableMessage("internal.monitor.USER_SESSION_COUNT"), this);
 
+    public static final String LOAD_AVERAGE_MONITOR_ID = "internal.monitor.LOAD_AVERAGE";
+    private final OperatingSystemMXBean osBean;
+    private final DoubleMonitor loadAverageMonitor = new DoubleMonitor(LOAD_AVERAGE_MONITOR_ID, new TranslatableMessage("systemInfo.loadAverageDesc"), this);
+    
     private final int mb = 1024*1024;
 
     private boolean running;
@@ -131,7 +137,9 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
 
         //Set the available processors, we don't need to poll this
         javaAvailableProcessors.setValue(Runtime.getRuntime().availableProcessors());
-
+        
+        this.osBean = ManagementFactory.getOperatingSystemMXBean();
+        Common.MONITORED_VALUES.addIfMissingStatMonitor(loadAverageMonitor); 
     }
 
     @Override
@@ -197,20 +205,19 @@ public class WorkItemMonitor extends TimerTask implements ValueMonitorOwner {
         } else {
             userSessions.setValue(0);
         }
+        
+        
+        if(this.osBean != null) {
+            loadAverageMonitor.setValue(osBean.getSystemLoadAverage());
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.timer.TimerTask#cancel()
-     */
     @Override
     public boolean cancel() {
         this.running = false;
         return super.cancel();
     }
 
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(com.infiniteautomation.mango.monitor.ValueMonitor)
-     */
     @Override
     public void reset(String id) {
         //No-Op since these values are not counters
