@@ -1,6 +1,7 @@
 [Unit]
 Description=Mango Automation
 After=mysqld.service
+StartLimitIntervalSec=0
 
 [Service]
 EnvironmentFile=/etc/environment
@@ -9,8 +10,9 @@ Type=forking
 WorkingDirectory=/opt/mango
 PIDFile=/opt/mango/bin/ma.pid
 ExecStart=/opt/mango/bin/ma-start-systemd.sh
+SuccessExitStatus=0 SIGINT SIGTERM 130 143
 Restart=always
-RestartSec=1s
+RestartSec=5s
 User=mango
 NoNewPrivileges=true
 
