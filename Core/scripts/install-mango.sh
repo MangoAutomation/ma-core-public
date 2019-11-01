@@ -24,9 +24,9 @@ while [ -z "$MA_HOME" ]; do
 	fi
 done
 
-while [ -z "$MA_VERSION" ]; do
+if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
 	MA_VERSION=$(prompt 'What version of Mango should we install?' '3.6.5')
-done
+fi
 
 while [[ "$MA_DB_TYPE" != 'mysql' ]] && [[ "$MA_DB_TYPE" != 'h2' ]]; do
 	MA_DB_TYPE=$(prompt 'What type of SQL database?' 'mysql')
@@ -56,10 +56,13 @@ rm -rf "$MA_HOME"/*
 rm -f "$MA_HOME"/.ma
 
 # Download and extract the Mango enterprise archive
-MA_TMP_ZIP=$(mktemp)
-curl https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_TMP_ZIP"
-unzip "$MA_TMP_ZIP" -d "$MA_HOME"
-rm -f "$MA_TMP_ZIP"
+if [ ! -f "$MA_CORE_ZIP" ]; then
+	MA_CORE_ZIP=$(mktemp)
+	curl https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_CORE_ZIP"
+	MA_DELETE_ZIP=1
+fi
+unzip "$MA_CORE_ZIP" -d "$MA_HOME"
+[ $MA_DELETE_ZIP ] && rm -f "$MA_CORE_ZIP"
 
 # Create an overrides env.properties file
 MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
