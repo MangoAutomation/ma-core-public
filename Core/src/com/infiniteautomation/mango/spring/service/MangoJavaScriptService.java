@@ -95,7 +95,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 public class MangoJavaScriptService {
 
     public static final String SCRIPT_PREFIX = "function __scriptExecutor__() {";
-    public static final String SCRIPT_SUFFIX = " } __scriptExecutor__();";
+    public static final String SCRIPT_SUFFIX = "\n} __scriptExecutor__();";
 
     public static final String WRAPPER_CONTEXT_KEY = "CONTEXT";
     public static final String POINTS_CONTEXT_KEY = "POINTS";
