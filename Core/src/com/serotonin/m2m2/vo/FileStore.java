@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.vo;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 
 /**
@@ -50,16 +51,14 @@ public class FileStore {
         UserFileStoreDefinition(FileStore fs) {
             this.fs = fs;
         }
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.module.FileStoreDefinition#getStoreName()
-         */
+        @Override
+        public TranslatableMessage getStoreDescription() {
+            return new TranslatableMessage("filestore.user.description", fs.getStoreName());
+        }
         @Override
         public String getStoreName() {
             return fs.getStoreName();
         }
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.module.FileStoreDefinition#getReadPermissionTypeName()
-         */
         @Override
         protected String getReadPermissionTypeName() {
             return null;
@@ -68,9 +67,6 @@ public class FileStore {
         protected String getReadPermissions() {
             return fs.getReadPermission();
         }
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.module.FileStoreDefinition#getWritePermissionTypeName()
-         */
         @Override
         protected String getWritePermissionTypeName() {
             return null;

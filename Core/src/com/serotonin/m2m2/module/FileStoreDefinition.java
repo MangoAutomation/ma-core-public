@@ -14,6 +14,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.util.StreamUtils;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -33,6 +34,12 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     public static final String ROOT = "filestore";
     public static final String FILE_STORE_LOCATION_ENV_PROPERTY = "filestore.location";
 
+    /**
+     * The translation for the name of the store
+     * @return
+     */
+    abstract public TranslatableMessage getStoreDescription();
+    
     /**
      * The name of the store.  Should be unique across all Modules and Mango Core
      *

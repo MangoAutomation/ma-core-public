@@ -24,17 +24,11 @@ public class DiskInfoDefinition extends SystemInfoDefinition<List<DiskInfo>>{
 
 	public final String KEY = "diskInfo";
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.SystemInfoDefinition#getKey()
-	 */
 	@Override
 	public String getKey() {
 		return KEY;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.SystemInfoDefinition#getValue()
-	 */
 	@Override
 	public List<DiskInfo> getValue() {
         FileSystem fs = FileSystems.getDefault();

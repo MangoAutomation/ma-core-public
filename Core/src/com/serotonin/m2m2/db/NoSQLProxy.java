@@ -38,6 +38,7 @@ abstract public class NoSQLProxy {
 	public static String getDatabasePath() {
 		return StringUtils.replaceMacros(Common.envProps.getString("db.nosql.location", Common.MA_HOME+ "/databases/"), System.getProperties());
 	}
+	
 	/**
 	 * Create a Dao for general NoSQL Storage
 	 * 

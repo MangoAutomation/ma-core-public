@@ -349,7 +349,12 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 ejt.queryForObject("call DATABASE_PATH()", new Object[] {}, String.class, null);
         if (dataDir == null)
             return null;
-        return new File(dataDir);
+        String url = getUrl("");
+        if(url.toLowerCase().contains("mv_store=false")) {
+            return new File(dataDir + ".h2.db"); // Good until we change to MVStore
+        }else {
+            return new File(dataDir + ".mv.db");
+        }
     }
     
     @Override
