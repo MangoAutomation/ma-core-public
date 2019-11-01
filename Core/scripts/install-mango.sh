@@ -33,8 +33,10 @@ while [[ "$MA_CONFIRM" != 'y' ]]; do
 done
 
 # Stop and remove any existing mango service
-systemctl stop mango || true
-systemctl disable mango || true
+if [ -x "$(command -v systemctl)" ]; then
+	systemctl stop mango || true
+	systemctl disable mango || true
+fi
 
 # Drop database tables and user, create new user and table
 echo "DROP DATABASE $MA_DB_TABLE;
@@ -81,7 +83,7 @@ chmod +x "$MA_HOME"/bin/*.sh
 
 chown -R "$MA_USER":"$MA_GROUP" "$MA_HOME"
 
-# create a new service file in overrides
+# create a new systemd service file in overrides
 echo "[Unit]
 Description=Mango Automation
 After=mysqld.service
@@ -103,8 +105,14 @@ NoNewPrivileges=true
 [Install]
 WantedBy=multi-user.target" > "$MA_HOME"/overrides/mango.service
 
-# link the new service file into /etc
-ln -sf "$MA_HOME"/overrides/mango.service /etc/systemd/system/mango.service
+# Stop and remove any existing mango service
+if [ -x "$(command -v systemctl)" ] && [ -d /etc/systemd/system ]; then
+	# link the new service file into /etc
+	ln -sf "$MA_HOME"/overrides/mango.service /etc/systemd/system/mango.service
 
-# enable the sytemd service (but dont start Mango)
-systemctl enable mango
+	# enable the sytemd service (but dont start Mango)
+	systemctl enable mango
+	echo "Mango was installed successfully. Type 'systemctl start mango' to start Mango."
+else
+	echo "Mango was installed successfully. Type 'sudo -u $MA_USER $MA_HOME/bin/ma-start-systemd.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
+fi
