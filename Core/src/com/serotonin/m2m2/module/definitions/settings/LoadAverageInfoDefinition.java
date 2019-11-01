@@ -4,11 +4,11 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
+import com.infiniteautomation.mango.spring.components.ServerMonitoringService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemInfoDefinition;
-import com.serotonin.m2m2.rt.maint.WorkItemMonitor;
 
 /**
  * Class to define Read only settings/information that can be provided
@@ -26,7 +26,7 @@ public class LoadAverageInfoDefinition extends SystemInfoDefinition<Double>{
 
 	@Override
 	public Double getValue() {
-	    return (Double)Common.MONITORED_VALUES.getValueMonitor(WorkItemMonitor.LOAD_AVERAGE_MONITOR_ID).getValue();
+	    return (Double)Common.MONITORED_VALUES.getValueMonitor(ServerMonitoringService.LOAD_AVERAGE_MONITOR_ID).getValue();
 	}
 
 	
