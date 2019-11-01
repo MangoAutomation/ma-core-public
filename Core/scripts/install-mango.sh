@@ -28,8 +28,12 @@ while [ -z "$MA_VERSION" ]; do
 	MA_VERSION=$(prompt 'What version of Mango should we install?' '3.6.5')
 done
 
-while [[ "$MA_CONFIRM" != 'y' ]]; do
-	MA_CONFIRM=$(prompt "Entire contents of '$MA_HOME' will be deleted and MySQL table '$MA_DB_TABLE' will be dropped. Proceed?" 'n')
+while [[ "$MA_DB_TYPE" != 'mysql' ]] && [[ "$MA_DB_TYPE" != 'h2' ]]; do
+	MA_DB_TYPE=$(prompt 'What type of SQL database?' 'mysql')
+done
+
+while [[ "$MA_CONFIRM" != 'yes' ]]; do
+	MA_CONFIRM=$(prompt "Entire contents of '$MA_HOME' will be deleted and SQL table '$MA_DB_TABLE' will be dropped. Proceed?" 'no')
 done
 
 # Stop and remove any existing mango service
@@ -38,12 +42,14 @@ if [ -x "$(command -v systemctl)" ]; then
 	systemctl disable mango || true
 fi
 
-# Drop database tables and user, create new user and table
-echo "DROP DATABASE $MA_DB_TABLE;
-DROP USER '$MA_DB_USER'@'localhost';
-CREATE DATABASE $MA_DB_TABLE;
-CREATE USER '$MA_DB_USER'@'localhost' IDENTIFIED BY '$MA_DB_PASSWORD';
-GRANT ALL ON $MA_DB_TABLE.* TO '$MA_DB_USER'@'localhost';" | mysql -u root
+if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
+	# Drop database tables and user, create new user and table
+	echo "DROP DATABASE $MA_DB_TABLE;
+	DROP USER '$MA_DB_USER'@'localhost';
+	CREATE DATABASE $MA_DB_TABLE;
+	CREATE USER '$MA_DB_USER'@'localhost' IDENTIFIED BY '$MA_DB_PASSWORD';
+	GRANT ALL ON $MA_DB_TABLE.* TO '$MA_DB_USER'@'localhost';" | mysql -u root
+fi
 
 # Remove any old files in MA_HOME
 rm -rf "$MA_HOME"/*
@@ -56,14 +62,23 @@ unzip "$MA_TMP_ZIP" -d "$MA_HOME"
 rm -f "$MA_TMP_ZIP"
 
 # Create an overrides env.properties file
-echo "web.openBrowserOnStartup=false
-db.type=mysql
-db.url=jdbc:mysql://localhost/$MA_DB_TABLE?useSSL=false
+MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
+if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
+	echo "db.url=jdbc:mysql://localhost/$MA_DB_TABLE?useSSL=false" > "MA_ENV_FILE"
+elif [[ "$MA_DB_TYPE" = 'h2' ]]; then
+	echo 'db.url=jdbc:h2:${ma.home}/databases/mah2' > "MA_ENV_FILE"
+else
+	echo "Unknown database type $MA_DB_TYPE"
+	exit 2;
+fi
+
+echo "db.type=$MA_DB_TYPE
 db.username=$MA_DB_USER
 db.password=$MA_DB_PASSWORD
+web.openBrowserOnStartup=false
 ssl.on=true
 ssl.keystore.location=$MA_HOME/overrides/keystore.jks
-ssl.keystore.password=$(openssl rand -base64 24)" > "$MA_HOME"/overrides/properties/env.properties
+ssl.keystore.password=$(openssl rand -base64 24)" >> "$MA_ENV_FILE"
 
 # Used to download updated scripts from git main branch
 get-script() {
