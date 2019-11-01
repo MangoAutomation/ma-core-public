@@ -5,12 +5,15 @@
 # @author Matthew Lohbihler
 #
 
-PRGDIR=`dirname "$0"`
-# Only set MA_HOME if not already set
-[ -z "$MA_HOME" ] && MA_HOME=`cd "$PRGDIR/.." >/dev/null; pwd -P`
+set -e
+[ -x "$(command -v greadlink)" ] && alias readlink='greadlink'
+script_dir=$(dirname $(readlink -f "$0"))
 
-if [ -z "$MA_HOME" ]; then
-    echo 'MA_HOME is not set'
+# Only set MA_HOME if not already set
+[ -z "$MA_HOME" ] && MA_HOME=$(dirname "$script_dir")
+
+if [ ! -d "$MA_HOME" ]; then
+    echo 'Error: MA_HOME is not set or is not a directory'
     exit 1
 fi
 
@@ -24,10 +27,10 @@ cd "$MA_HOME"
 mkdir "$MA_HOME"/logs/ >&/dev/null
 
 # Determine the Java home
-if [ -z "$JAVA_HOME" ]; then
+if [ -d "$JAVA_HOME" ]; then
     EXECJAVA=java
 else
-    EXECJAVA=$JAVA_HOME/bin/java
+    EXECJAVA="$JAVA_HOME"/bin/java
 fi
 
 export MA_HOME JPDA EXECJAVA JAVAOPTS SYSOUT SYSERR
@@ -47,7 +50,7 @@ if [ -r "$MA_HOME"/m2m2-core-*.zip ]; then
 	
 	# Delete jars and work dir
 	rm -f "$MA_HOME"/lib/*.jar
-	rm -Rf "$MA_HOME"/work
+	rm -rf "$MA_HOME"/work
 	
 	# Delete the release properties files
 	if [ ! -z "$MA_HOME"/release.properties ]; then
@@ -97,8 +100,8 @@ elif [ ! -z "$SYSERR" ]; then
 fi
 
 #Delete Range.class if it exists
-if [ ! -z "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
-	rm "$MA_HOME"/classes/org/jfree/data/Range.class >/dev/null 2>&1;
+if [ -r "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
+	rm -f "$MA_HOME"/classes/org/jfree/data/Range.class
 fi
 
 echo 'ma-start: starting MA'

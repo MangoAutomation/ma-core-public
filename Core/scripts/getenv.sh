@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -e
+
+if [ -z "$script_dir" ]; then
+    [ -x "$(command -v greadlink)" ] && alias readlink='greadlink'
+    script_dir=$(dirname $(readlink -f "$0"))
+fi
+
 # function for getting values from .properties file
 getProp() {
   awk -F "=" "/^$2=/ {print "'$2'"; exit; }" "$1"
@@ -7,8 +14,6 @@ getProp() {
 
 if [ -z "$MA_HOME" ]
 then
-    script_file=$(readlink -f "$0")
-    script_dir=$(dirname "$script_file")
     possible_ma_home=$(dirname "$script_dir")
     if [ -e "$possible_ma_home/release.signed" ] || [ -e "$possible_ma_home/release.properties" ]
     then

@@ -3,13 +3,8 @@
 set -e
 umask 077
 
-if [ -x "$(command -v greadlink)" ]
-then
-	alias readlink='greadlink'
-fi
-
-script_file=$(readlink -f "$0")
-script_dir=$(dirname "$script_file")
+[ -x "$(command -v greadlink)" ] && alias readlink='greadlink'
+script_dir=$(dirname $(readlink -f "$0"))
 
 source "$script_dir"/getenv.sh
 
