@@ -49,7 +49,7 @@ rm -f "$MA_HOME"/.ma
 
 # Download and extract the Mango enterprise archive
 MA_TMP_ZIP=$(mktemp)
-curl -s https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_TMP_ZIP"
+curl https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_TMP_ZIP"
 unzip "$MA_TMP_ZIP" -d "$MA_HOME"
 rm -f "$MA_TMP_ZIP"
 
