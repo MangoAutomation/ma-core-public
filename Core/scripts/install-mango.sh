@@ -10,7 +10,7 @@ prompt() {
 }
 
 # Set default environment variables
-[ -z "$MA_DB_TABLE" ] && MA_DB_TABLE=mango
+[ -z "$MA_DB_NAME" ] && MA_DB_NAME=mango
 [ -z "$MA_DB_USER" ] && MA_DB_USER=mango
 [ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD=$(openssl rand -base64 24)
 [ -z "$MA_USER" ] && MA_USER=mango
@@ -33,7 +33,7 @@ while [[ "$MA_DB_TYPE" != 'mysql' ]] && [[ "$MA_DB_TYPE" != 'h2' ]]; do
 done
 
 while [[ "$MA_CONFIRM" != 'yes' ]]; do
-	MA_CONFIRM=$(prompt "Entire contents of '$MA_HOME' will be deleted and SQL table '$MA_DB_TABLE' will be dropped. Proceed?" 'no')
+	MA_CONFIRM=$(prompt "Entire contents of '$MA_HOME' will be deleted and SQL database '$MA_DB_NAME' will be dropped. Proceed?" 'no')
 done
 
 # Stop and remove any existing mango service
@@ -44,11 +44,11 @@ fi
 
 if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
 	# Drop database tables and user, create new user and table
-	echo "DROP DATABASE $MA_DB_TABLE;
+	echo "DROP DATABASE $MA_DB_NAME;
 	DROP USER '$MA_DB_USER'@'localhost';
-	CREATE DATABASE $MA_DB_TABLE;
+	CREATE DATABASE $MA_DB_NAME;
 	CREATE USER '$MA_DB_USER'@'localhost' IDENTIFIED BY '$MA_DB_PASSWORD';
-	GRANT ALL ON $MA_DB_TABLE.* TO '$MA_DB_USER'@'localhost';" | mysql -u root
+	GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'localhost';" | mysql -u root
 fi
 
 # Remove any old files in MA_HOME
@@ -64,9 +64,9 @@ rm -f "$MA_TMP_ZIP"
 # Create an overrides env.properties file
 MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
 if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
-	echo "db.url=jdbc:mysql://localhost/$MA_DB_TABLE?useSSL=false" > "MA_ENV_FILE"
+	echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME?useSSL=false" > "MA_ENV_FILE"
 elif [[ "$MA_DB_TYPE" = 'h2' ]]; then
-	echo 'db.url=jdbc:h2:${ma.home}/databases/'"$MA_DB_TABLE" > "MA_ENV_FILE"
+	echo 'db.url=jdbc:h2:${ma.home}/databases/'"$MA_DB_NAME" > "MA_ENV_FILE"
 else
 	echo "Unknown database type $MA_DB_TYPE"
 	exit 2;
