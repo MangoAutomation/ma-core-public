@@ -49,7 +49,7 @@ rm -f "$MA_HOME"/.ma
 
 # Download and extract the Mango enterprise archive
 MA_TMP_ZIP=$(mktemp)
-wget -O "$MA_TMP_ZIP" https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip
+curl -s https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_TMP_ZIP"
 unzip "$MA_TMP_ZIP" -d "$MA_HOME"
 rm -f "$MA_TMP_ZIP"
 
@@ -65,7 +65,7 @@ ssl.keystore.password=$(openssl rand -base64 24)" > "$MA_HOME"/overrides/propert
 
 # Used to download updated scripts from git main branch
 get-script() {
-	wget -q -O "$MA_HOME/bin/$1" "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1"
+	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
 }
 
 get-script ma-start-systemd.sh
