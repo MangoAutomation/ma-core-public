@@ -66,7 +66,7 @@ MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
 if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
 	echo "db.url=jdbc:mysql://localhost/$MA_DB_TABLE?useSSL=false" > "MA_ENV_FILE"
 elif [[ "$MA_DB_TYPE" = 'h2' ]]; then
-	echo 'db.url=jdbc:h2:${ma.home}/databases/mah2' > "MA_ENV_FILE"
+	echo 'db.url=jdbc:h2:${ma.home}/databases/'"$MA_DB_TABLE" > "MA_ENV_FILE"
 else
 	echo "Unknown database type $MA_DB_TYPE"
 	exit 2;
