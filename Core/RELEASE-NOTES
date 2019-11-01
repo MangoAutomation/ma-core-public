@@ -33,6 +33,12 @@
 * Upgrade Jackson databind to 2.9.10 for security purposes
 * Upgrade commons-beanutils to 1.9.4 for security purposes
 * Improve performance of System Settings listeners
+* Add internal metrics monitoring for load average when available
+* Add internal metrics monitoring ma home partition total and usable space
+* Add internal metrics monitoring for nosql partition total and usable space
+* Add internal metrics monitoring for sql partition total and usable space
+* Add internal metrics monitoring for filestore partition total and usable space
+* Add internal metrics monitoring for all file stores disk usage
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources

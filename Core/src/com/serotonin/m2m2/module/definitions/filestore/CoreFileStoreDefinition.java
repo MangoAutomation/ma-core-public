@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module.definitions.filestore;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
@@ -16,26 +17,22 @@ import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermi
 public class CoreFileStoreDefinition extends FileStoreDefinition{
 
 	public static final String NAME = "default";
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.FileStoreDefinition#getStoreName()
-	 */
+
+	@Override
+	public TranslatableMessage getStoreDescription() {
+	    return new TranslatableMessage("filestore.core.description");
+	}
+
 	@Override
 	public String getStoreName() {
 		return NAME;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.FileStoreDefinition#getReadPermissionTypeName()
-	 */
 	@Override
 	protected String getReadPermissionTypeName() {
 		return CoreFileStoreReadPermissionDefinition.TYPE_NAME;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.FileStoreDefinition#getWritePermissionTypeName()
-	 */
 	@Override
 	protected String getWritePermissionTypeName() {
 		return CoreFileStoreWritePermissionDefinition.TYPE_NAME;

@@ -4,12 +4,11 @@
  */
 package com.serotonin.m2m2.module.definitions.settings;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemInfoDefinition;
+import com.serotonin.m2m2.rt.maint.WorkItemMonitor;
 
 /**
  * Class to define Read only settings/information that can be provided
@@ -19,29 +18,18 @@ import com.serotonin.m2m2.module.SystemInfoDefinition;
 public class LoadAverageInfoDefinition extends SystemInfoDefinition<Double>{
 
 	public final String KEY = "loadAverage";
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getName()
-	 */
+	
 	@Override
 	public String getKey() {
 		return KEY;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getValue()
-	 */
 	@Override
 	public Double getValue() {
-        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-        if(osBean != null)
-        	return osBean.getSystemLoadAverage();
-        else
-        	return 0D;
+	    return (Double)Common.MONITORED_VALUES.getValueMonitor(WorkItemMonitor.LOAD_AVERAGE_MONITOR_ID).getValue();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.ModuleElementDefinition#getModule()
-	 */
+	
 	@Override
 	public Module getModule() {
 		return ModuleRegistry.getCoreModule();
