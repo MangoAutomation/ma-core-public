@@ -24,7 +24,9 @@ rm -f "$MA_HOME"/bin/ma.pid
 cd "$MA_HOME"
 
 #Create a logs directory if it doesn't exist
-mkdir "$MA_HOME"/logs/ >&/dev/null
+if [ ! -d "$MA_HOME"/logs ]; then
+	mkdir "$MA_HOME"/logs
+fi
 
 # Determine the Java home
 if [ -d "$JAVA_HOME" ]; then
