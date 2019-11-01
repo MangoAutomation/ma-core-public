@@ -36,6 +36,11 @@ public class MangoErrorHandler extends ErrorHandler{
     protected void generateAcceptableResponse(Request baseRequest, HttpServletRequest request,
             HttpServletResponse response, int code, String message, String mimeType) throws IOException {
 
+        //If this response is already comitted we won't bother to handle this
+        if(response.isCommitted()) {
+            return;
+        }
+        
         //The cases we need to handle
         // 1) - Not found redirects to not found URI
         // 2) - Exception redirects to error URI

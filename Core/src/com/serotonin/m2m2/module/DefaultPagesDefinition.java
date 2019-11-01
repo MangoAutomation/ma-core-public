@@ -295,6 +295,9 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
      * definition (if available) will be used. Results are not cached, so the definition can vary its response
      * contextually.
      * 
+     * @param request
+     * @param response
+     * @param user - can be null if this resource is accessed before login
      * @return the URI of the default logged in page to use, or null.
      */
     public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
