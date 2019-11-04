@@ -4,7 +4,7 @@ set -e
 
 # Prompts the user for input
 prompt() {
-	read -p "$1 [$2]: " result
+	read -r -p "$1 [$2]: " result
 	[ -z "$result" ] && result="$2"
 	echo "$result"
 }
@@ -52,8 +52,8 @@ if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
 fi
 
 # Remove any old files in MA_HOME
-rm -rf "$MA_HOME"/*
-rm -f "$MA_HOME"/.ma
+rm -rf "${MA_HOME:?}"/*
+rm -f "${MA_HOME:?}"/.ma
 
 # Download and extract the Mango enterprise archive
 if [ ! -f "$MA_CORE_ZIP" ]; then

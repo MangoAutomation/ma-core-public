@@ -6,8 +6,8 @@
 #
 
 set -e
-[ -x "$(command -v greadlink)" ] && alias readlink='greadlink'
-script_dir=$(dirname $(readlink -f "$0"))
+[ -x "$(command -v greadlink)" ] && alias readlink=greadlink
+script_dir="$(dirname "$(readlink -f "$0")")"
 
 # Only set MA_HOME if not already set
 [ -z "$MA_HOME" ] && MA_HOME=$(dirname "$script_dir")
@@ -40,45 +40,39 @@ export MA_HOME JPDA EXECJAVA JAVAOPTS SYSOUT SYSERR
 # Run enabled init extensions.
 if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
     echo 'ma-start: running init extensions...'
-    for f in "$MA_HOME"/bin/ext-enabled/*.sh
-    do
+    for f in "$MA_HOME"/bin/ext-enabled/*.sh; do
         source "$f" init
     done
 fi
 
 # Check for core upgrade
-if [ -r "$MA_HOME"/m2m2-core-*.zip ]; then
-	echo 'ma-start: upgrading core...'
-	
-	# Delete jars and work dir
-	rm -f "$MA_HOME"/lib/*.jar
-	rm -rf "$MA_HOME"/work
-	
-	# Delete the release properties files
-	if [ ! -z "$MA_HOME"/release.properties ]; then
+for f in "$MA_HOME"/m2m2-core-*.zip; do
+	if [ -r "f" ]; then
+		echo 'ma-start: upgrading core...'
+		
+		# Delete jars and work dir
+		rm -f "$MA_HOME"/lib/*.jar
+		rm -rf "$MA_HOME"/work
+		
+		# Delete the release properties files
 		rm -f "$MA_HOME"/release.properties
-	fi
-	if [ ! -z "$MA_HOME"/release.signed ]; then
 		rm -f "$MA_HOME"/release.signed
-	fi
 	
-	# Unzip core. The exact name is unknown, but there should only be one, so iterate
-	for f in "$MA_HOME"/m2m2-core-*.zip
-	do
-	    unzip -o "$f"
+		# Unzip core. The exact name is unknown, but there should only be one, so iterate
+		unzip -o "$f"
 	    rm "$f"
-	done
-	
-	chmod +x "$MA_HOME"/bin/*.sh
-	chmod +x "$MA_HOME"/bin/ext-available/*.sh
-fi
+		
+		chmod +x "$MA_HOME"/bin/*.sh
+		chmod +x "$MA_HOME"/bin/ext-available/*.sh
+	fi
+done
 
 # Construct the Java classpath
-MA_CP="$MA_HOME"/overrides/classes
-MA_CP=$MA_CP:"$MA_HOME"/classes
-MA_CP=$MA_CP:"$MA_HOME"/overrides/properties
-MA_CP=$MA_CP:"$MA_HOME"/overrides/lib/*
-MA_CP=$MA_CP:"$MA_HOME"/lib/*
+MA_CP="$MA_HOME/overrides/classes"
+MA_CP="$MA_CP:$MA_HOME/classes"
+MA_CP="$MA_CP:$MA_HOME/overrides/properties"
+MA_CP="$MA_CP:$MA_HOME/overrides/lib/*"
+MA_CP="$MA_CP:$MA_HOME/lib/*"
 
 # Run enabled start extensions
 if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
@@ -90,13 +84,13 @@ if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
 fi
 
 # Check for output redirection
-if [ ! -z "$SYSOUT" ] && [ ! -z "$SYSERR" ]; then
+if [ -n "$SYSOUT" ] && [ -n "$SYSERR" ]; then
     # Both output redirects are set
     exec >"$SYSOUT" 2>"$SYSERR"
-elif [ ! -z "$SYSOUT" ]; then
+elif [ -n "$SYSOUT" ]; then
     # Just sysout is set
     exec >"$SYSOUT"
-elif [ ! -z "$SYSERR" ]; then
+elif [ -n "$SYSERR" ]; then
     # Just syserr is set
     exec >"$SYSERR"
 fi
@@ -107,7 +101,7 @@ if [ -r "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
 fi
 
 echo 'ma-start: starting MA'
-$EXECJAVA $JPDA $JAVAOPTS -server -cp "$MA_CP" \
+"$EXECJAVA" "$JPDA" "$JAVAOPTS" -server -cp "$MA_CP" \
     "-Dma.home=$MA_HOME" \
     "-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
     com.serotonin.m2m2.Main &

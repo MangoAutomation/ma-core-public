@@ -3,8 +3,8 @@
 set -e
 
 if [ -z "$script_dir" ]; then
-    [ -x "$(command -v greadlink)" ] && alias readlink='greadlink'
-    script_dir=$(dirname $(readlink -f "$0"))
+    [ -x "$(command -v greadlink)" ] && alias readlink=greadlink
+	script_dir="$(dirname "$(readlink -f "$0")")"
 fi
 
 # function for getting values from .properties file
