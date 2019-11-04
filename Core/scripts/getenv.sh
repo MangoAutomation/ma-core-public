@@ -14,7 +14,7 @@ getProp() {
 
 if [ -z "$MA_HOME" ]
 then
-    possible_ma_home=$(dirname "$script_dir")
+    possible_ma_home="$(dirname "$script_dir")"
     if [ -e "$possible_ma_home/release.signed" ] || [ -e "$possible_ma_home/release.properties" ]
     then
         MA_HOME="$possible_ma_home"

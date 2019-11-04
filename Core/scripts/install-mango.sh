@@ -2,6 +2,9 @@
 
 set -e
 
+[ -x "$(command -v greadlink)" ] && alias readlink=greadlink
+SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+
 # Prompts the user for input
 prompt() {
 	read -r -p "$1 [$2]: " result
@@ -16,7 +19,12 @@ prompt() {
 [ -z "$MA_SERVICE_NAME" ] && MA_SERVICE_NAME=mango
 
 if [ -z "$MA_HOME" ]; then
-	MA_HOME=$(prompt 'Where should we install Mango?' '/opt/mango')
+	DEFAULT_HOME=/opt/mango
+    CHECK_DIR="$(dirname "$SCRIPT_DIR")"
+    if [ -e "$CHECK_DIR/release.signed" ] || [ -e "$CHECK_DIR/release.properties" ]; then
+        DEFAULT_HOME="$CHECK_DIR"
+    fi
+    MA_HOME="$(prompt 'Where should we install Mango?' "$DEFAULT_HOME")"
 fi
 
 # Create the MA_HOME directory if it does not exist
@@ -27,9 +35,9 @@ fi
 
 # Create the Mango user if it does not exist
 [ -z "$MA_USER" ] && MA_USER=mango
-if [ ! "$(id -u "$MA_USER")" ]; then
+if [ ! "$(id -u "$MA_USER" 2> /dev/null)" ]; then
 	NO_LOGIN_SHELL="$(command -v nologin)"
-	[ ! -x "$NO_LOGIN_SHELL" ] NO_LOGIN_SHELL=/bin/false
+	[ ! -x "$NO_LOGIN_SHELL" ] && NO_LOGIN_SHELL=/bin/false
 	
 	USER_ADD_CMD="$(command -v useradd)"
 	if [ ! -x "$USER_ADD_CMD" ]; then
@@ -42,52 +50,70 @@ if [ ! "$(id -u "$MA_USER")" ]; then
 fi
 [ -z "$MA_GROUP" ] && MA_GROUP="$(id -gn "$MA_USER")"
 
-if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
-	MA_VERSION=$(prompt 'What version of Mango should we install?' '3.6.5')
-fi
-
-while [[ "$MA_DB_TYPE" != 'mysql' ]] && [[ "$MA_DB_TYPE" != 'h2' ]]; do
-	MA_DB_TYPE=$(prompt 'What type of SQL database?' 'mysql')
-done
-
-while [[ "$MA_CONFIRM" != 'yes' ]]; do
-	MA_CONFIRM=$(prompt "Entire contents of '$MA_HOME' will be deleted and SQL database '$MA_DB_NAME' will be dropped. Proceed?" 'no')
+while [ "$MA_DB_TYPE" != 'mysql' ] && [ "$MA_DB_TYPE" != 'h2' ]; do
+	MA_DB_TYPE="$(prompt 'What type of SQL database?' 'h2')"
 done
 
 # Stop and remove any existing mango service
 if [ -x "$(command -v systemctl)" ]; then
-	systemctl stop "$MA_SERVICE_NAME" || true
-	systemctl disable "$MA_SERVICE_NAME" || true
+	systemctl stop "$MA_SERVICE_NAME" 2> /dev/null || true
+	systemctl disable "$MA_SERVICE_NAME" 2> /dev/null || true
 fi
 
-if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
-	# Drop database tables and user, create new user and table
-	echo "DROP DATABASE $MA_DB_NAME;
-	DROP USER '$MA_DB_USER'@'localhost';
-	CREATE DATABASE $MA_DB_NAME;
-	CREATE USER '$MA_DB_USER'@'localhost' IDENTIFIED BY '$MA_DB_PASSWORD';
+while [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
+	prompt_text="Drop SQL database '$MA_DB_NAME' if it exists?"
+	MA_CONFIRM_DROP="$(prompt "$prompt_text" 'no')"
+done
+if [ "$MA_CONFIRM_DROP" = 'yes' ]; then
+	if [ "$MA_DB_TYPE" = 'mysql' ]; then
+		# Drop database tables and user, create new user and table
+		echo "DROP DATABASE IF EXISTS $MA_DB_NAME;
+		DROP USER IF EXISTS '$MA_DB_USER'@'localhost';" | mysql -u root
+	elif [ "$MA_DB_TYPE" = 'h2' ]; then
+		for db in "$MA_HOME/databases/$MA_DB_NAME".*.db; do
+			rm -f "$db"
+    	done
+	fi
+fi
+
+if [ "$MA_DB_TYPE" = 'mysql' ]; then
+	echo "CREATE DATABASE IF NOT EXISTS $MA_DB_NAME;
+	CREATE USER IF NOT EXISTS '$MA_DB_USER'@'localhost' IDENTIFIED BY '$MA_DB_PASSWORD';
 	GRANT ALL ON $MA_DB_NAME.* TO '$MA_DB_USER'@'localhost';" | mysql -u root
 fi
 
 # Remove any old files in MA_HOME
-rm -rf "${MA_HOME:?}"/*
-rm -f "${MA_HOME:?}"/.ma
+if [ "$(find "$MA_HOME" -mindepth 1 -maxdepth 1 ! -name 'databases')" ]; then
+	while [ "$MA_CONFIRM_DELETE" != 'yes' ] && [ "$MA_CONFIRM_DELETE" != 'no' ]; do
+		MA_CONFIRM_DELETE="$(prompt "Installion directory is not empty, delete all files in '$MA_HOME'?" 'no')"
+	done
+	
+	if [ "$MA_CONFIRM_DELETE" = 'no' ]; then
+		exit 1
+	fi
+	
+	find "$MA_HOME" -mindepth 1 -maxdepth 1 ! -name 'databases' -exec rm -r '{}' \;
+fi
+
+if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
+	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '3.6.5')"
+fi
 
 # Download and extract the Mango enterprise archive
 if [ ! -f "$MA_CORE_ZIP" ]; then
 	MA_CORE_ZIP=$(mktemp)
 	curl https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_CORE_ZIP"
-	MA_DELETE_ZIP=1
+	MA_DELETE_ZIP=true
 fi
 unzip "$MA_CORE_ZIP" -d "$MA_HOME"
-[ $MA_DELETE_ZIP ] && rm -f "$MA_CORE_ZIP"
+[ "$MA_DELETE_ZIP" = true ] && rm -f "$MA_CORE_ZIP"
 
 # Create an overrides env.properties file
 MA_ENV_FILE="$MA_HOME"/overrides/properties/env.properties
-if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
-	echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME?useSSL=false" > "MA_ENV_FILE"
-elif [[ "$MA_DB_TYPE" = 'h2' ]]; then
-	echo 'db.url=jdbc:h2:${ma.home}/databases/'"$MA_DB_NAME" > "MA_ENV_FILE"
+if [ "$MA_DB_TYPE" = 'mysql' ]; then
+	echo "db.url=jdbc:mysql://localhost/$MA_DB_NAME?useSSL=false" > "$MA_ENV_FILE"
+elif [ "$MA_DB_TYPE" = 'h2' ]; then
+	echo "db.url=jdbc:h2:$MA_HOME/databases/$MA_DB_NAME" > "$MA_ENV_FILE"
 else
 	echo "Unknown database type $MA_DB_TYPE"
 	exit 2;
