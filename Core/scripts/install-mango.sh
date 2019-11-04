@@ -12,17 +12,34 @@ prompt() {
 # Set default environment variables
 [ -z "$MA_DB_NAME" ] && MA_DB_NAME=mango
 [ -z "$MA_DB_USER" ] && MA_DB_USER=mango
-[ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD=$(openssl rand -base64 24)
-[ -z "$MA_USER" ] && MA_USER=mango
-[ -z "$MA_GROUP" ] && MA_GROUP=$(id -gn "$MA_USER")
+[ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD="$(openssl rand -base64 24)"
 
-while [ -z "$MA_HOME" ]; do
+if [ -z "$MA_HOME" ]; then
 	MA_HOME=$(prompt 'Where should we install Mango?' '/opt/mango')
-	if [ ! -d "$MA_HOME" ]; then
-		echo 'Invalid directory specified for MA_HOME'
-		MA_HOME=''
+fi
+
+# Create the MA_HOME directory if it does not exist
+if [ ! -d "$MA_HOME" ]; then
+	mkdir "$MA_HOME"
+	echo "Created MA_HOME directory '$MA_HOME'."
+fi
+
+# Create the Mango user if it does not exist
+[ -z "$MA_USER" ] && MA_USER=mango
+if [ ! "$(id -u "$MA_USER")" ]; then
+	NO_LOGIN_SHELL="$(command -v nologin)"
+	[ ! -x "$NO_LOGIN_SHELL" ] NO_LOGIN_SHELL=/bin/false
+	
+	USER_ADD_CMD="$(command -v useradd)"
+	if [ ! -x "$USER_ADD_CMD" ]; then
+		echo "Can't create user '$MA_USER' as useradd command does not exist."
+		exit 1;
 	fi
-done
+
+	"$USER_ADD_CMD" --system --no-create-home --home-dir "$MA_HOME" --shell "$NO_LOGIN_SHELL" --comment 'Mango Automation' "$MA_USER"
+	echo "Created user '$MA_USER'."
+fi
+[ -z "$MA_GROUP" ] && MA_GROUP="$(id -gn "$MA_USER")"
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
 	MA_VERSION=$(prompt 'What version of Mango should we install?' '3.6.5')
