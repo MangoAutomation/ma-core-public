@@ -13,6 +13,7 @@ prompt() {
 [ -z "$MA_DB_NAME" ] && MA_DB_NAME=mango
 [ -z "$MA_DB_USER" ] && MA_DB_USER=mango
 [ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD="$(openssl rand -base64 24)"
+[ -z "$MA_SERVICE_NAME" ] && MA_SERVICE_NAME=mango
 
 if [ -z "$MA_HOME" ]; then
 	MA_HOME=$(prompt 'Where should we install Mango?' '/opt/mango')
@@ -55,8 +56,8 @@ done
 
 # Stop and remove any existing mango service
 if [ -x "$(command -v systemctl)" ]; then
-	systemctl stop mango || true
-	systemctl disable mango || true
+	systemctl stop "$MA_SERVICE_NAME" || true
+	systemctl disable "$MA_SERVICE_NAME" || true
 fi
 
 if [[ "$MA_DB_TYPE" = 'mysql' ]]; then
@@ -134,7 +135,7 @@ ExecStart=$MA_HOME/bin/ma-start-systemd.sh
 SuccessExitStatus=0 SIGINT SIGTERM 130 143
 Restart=always
 RestartSec=5s
-User=mango
+User=$MA_USER
 NoNewPrivileges=true
 
 [Install]
@@ -143,11 +144,11 @@ WantedBy=multi-user.target" > "$MA_HOME"/overrides/mango.service
 # Stop and remove any existing mango service
 if [ -x "$(command -v systemctl)" ] && [ -d /etc/systemd/system ]; then
 	# link the new service file into /etc
-	ln -sf "$MA_HOME"/overrides/mango.service /etc/systemd/system/mango.service
+	ln -sf "$MA_HOME"/overrides/mango.service /etc/systemd/system/"$MA_SERVICE_NAME".service
 
 	# enable the sytemd service (but dont start Mango)
-	systemctl enable mango
-	echo "Mango was installed successfully. Type 'systemctl start mango' to start Mango."
+	systemctl enable "$MA_SERVICE_NAME"
+	echo "Mango was installed successfully. Type 'systemctl start $MA_SERVICE_NAME' to start Mango."
 else
 	echo "Mango was installed successfully. Type 'sudo -u $MA_USER $MA_HOME/bin/ma-start-systemd.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
 fi
