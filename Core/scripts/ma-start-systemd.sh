@@ -39,7 +39,7 @@ export MA_HOME JPDA EXECJAVA JAVAOPTS SYSOUT SYSERR
 
 # Run enabled init extensions.
 if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
-    echo 'ma-start: running init extensions...'
+    echo 'Running init extensions...'
     for f in "$MA_HOME"/bin/ext-enabled/*.sh; do
         source "$f" init
     done
@@ -48,20 +48,20 @@ fi
 # Check for core upgrade
 for f in "$MA_HOME"/m2m2-core-*.zip; do
 	if [ -r "f" ]; then
-		echo 'ma-start: upgrading core...'
-		
+		echo 'Upgrading core...'
+
 		# Delete jars and work dir
 		rm -f "$MA_HOME"/lib/*.jar
 		rm -rf "$MA_HOME"/work
-		
+
 		# Delete the release properties files
 		rm -f "$MA_HOME"/release.properties
 		rm -f "$MA_HOME"/release.signed
-	
+
 		# Unzip core. The exact name is unknown, but there should only be one, so iterate
 		unzip -o "$f"
 	    rm "$f"
-		
+
 		chmod +x "$MA_HOME"/bin/*.sh
 		chmod +x "$MA_HOME"/bin/ext-available/*.sh
 	fi
@@ -76,9 +76,8 @@ MA_CP="$MA_CP:$MA_HOME/lib/*"
 
 # Run enabled start extensions
 if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
-    echo 'ma-start: running start extensions...'
-    for f in "$MA_HOME"/bin/ext-enabled/*.sh
-    do
+    echo 'Running start extensions...'
+    for f in "$MA_HOME"/bin/ext-enabled/*.sh; do
         source "$f" start
     done
 fi
@@ -96,18 +95,18 @@ elif [ -n "$SYSERR" ]; then
 fi
 
 #Delete Range.class if it exists
-if [ -r "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
+if [ -e "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
 	rm -f "$MA_HOME"/classes/org/jfree/data/Range.class
 fi
 
-echo 'ma-start: starting MA'
-"$EXECJAVA" "$JPDA" "$JAVAOPTS" -server -cp "$MA_CP" \
-    "-Dma.home=$MA_HOME" \
-    "-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
-    com.serotonin.m2m2.Main &
+echo 'Starting Mango Automation'
+"$EXECJAVA" $JPDA $JAVAOPTS -server -cp "$MA_CP" \
+	"-Dma.home=$MA_HOME" \
+	"-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
+	com.serotonin.m2m2.Main &
 
 PID=$!
 echo $PID > "$MA_HOME"/bin/ma.pid
-echo "ma-start: MA started with Process ID: " $PID
+echo "Mango Automation started with process ID: " $PID
 
 exit 0
