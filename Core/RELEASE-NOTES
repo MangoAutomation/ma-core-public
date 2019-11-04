@@ -40,6 +40,7 @@
 * Add internal metrics monitoring for filestore partition total and usable space
 * Add internal metrics monitoring for all file stores disk usage
 * Change Mango java script to append a newline to wrapped scripts before the execution suffix to allow for the last line of a script ending in a comment
+* Infer http to https redirect port from publicly resolvable URL system setting, default to ssl.port if setting is empty or non https url
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
