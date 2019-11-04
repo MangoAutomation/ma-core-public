@@ -1,3 +1,7 @@
+*Version 3.6.6*
+* Infer http to https redirect port from publicly resolvable URL system setting, default to ssl.port if setting is empty or non https url
+* Add linux configuration scripts
+
 *Version 3.6.5*
 * Fix data point copy button in old UI for lower data points list, top list is permanantly broken use the new UI
 * Fix bug in serial port manager where more than one event processing thread could be created and result in messages being missed

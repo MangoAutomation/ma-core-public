@@ -31,6 +31,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configurers.PortMapperConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
@@ -261,6 +262,8 @@ public class MangoSecurityConfiguration {
     @Value("${web.port:8080}") int webPort;
     @Value("${ssl.port:8443}") int sslPort;
 
+    @Autowired MangoPortMapper portMapper;
+    
     final static String[] SRC_TYPES = new String[] {"default", "script", "style", "connect", "img", "font", "media", "object", "frame", "worker", "manifest"};
 
     @Configuration
@@ -539,13 +542,15 @@ public class MangoSecurityConfiguration {
 
     private void configureHSTS(HttpSecurity http) throws Exception {
         HeadersConfigurer<HttpSecurity>.HstsConfig hsts = http.headers().httpStrictTransportSecurity();
-
         // If using SSL then enable the hsts and secure forwarding
         if (sslOn && sslHstsEnabled) {
+            // to perform a 302 redirect to https://
+            PortMapperConfigurer<HttpSecurity> configurer = new PortMapperConfigurer<>();
+            configurer.portMapper(portMapper);
+            http.apply(configurer);
+            
             // only enable "requiresSecure" for browser requests (not for XHR/REST requests)
             // this options sets the REQUIRES_SECURE_CHANNEL attribute and causes ChannelProcessingFilter
-            // to perform a 302 redirect to https://
-            http.portMapper().http(webPort).mapsTo(sslPort);
             http.requiresChannel().requestMatchers(browserHtmlRequestMatcher).requiresSecure();
             hsts.maxAgeInSeconds(sslHstsMaxAge).includeSubDomains(sslHstsIncludeSubDomains);
         } else {
