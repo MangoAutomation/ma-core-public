@@ -6,6 +6,8 @@ package com.serotonin.m2m2.web.mvc.spring.security;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +17,6 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 
 /**
@@ -38,8 +39,11 @@ public class MangoPortMapper implements PortMapper, SystemSettingsListener {
     public MangoPortMapper(@Value("${web.port:8080}") Integer webPort, @Value("${ssl.port:8443}") Integer sslPort) {
         this.webPort = webPort;
         this.sslPort = sslPort;
+    }
+    
+    @PostConstruct
+    public void initialize() {
         this.publicHttpsPort = parseHttpsPort(SystemSettingsDao.instance.getValue(SystemSettingsDao.PUBLICLY_RESOLVABLE_BASE_URL));
-        SystemSettingsEventDispatcher.INSTANCE.addListener(this);
     }
     
     @Override
