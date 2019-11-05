@@ -23,7 +23,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEventMulticaster;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
 /**
  * Beans which are instantiated per configuration (i.e. cannot be shared) but are configured the same.
@@ -81,7 +80,7 @@ public class MangoCommonConfiguration {
      * @return
      */
     @Bean
-    public SystemSettingsListenerProcessor systemSettingsListenerProcessor(SystemSettingsEventDispatcher dispatcher) {
-        return new SystemSettingsListenerProcessor(dispatcher);
+    public SystemSettingsListenerProcessor systemSettingsListenerProcessor() {
+        return new SystemSettingsListenerProcessor();
     }
 }
