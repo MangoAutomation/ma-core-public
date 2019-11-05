@@ -1,10 +1,17 @@
-#!/bin/bash
+#!/bin/sh
+
+#
+# Copyright (C) 2019 Infinite Automation Systems Inc. All rights reserved.
+# @author Jared Wiltshire
+#
 
 set -e
 
-if [ -z "$script_dir" ]; then
-    [ -x "$(command -v greadlink)" ] && alias readlink=greadlink
-	script_dir="$(dirname "$(readlink -f "$0")")"
+if [ -z "$SCRIPT_DIR" ]; then
+	SCRIPT="$0"
+	[ -x "$(command -v greadlink)" ] && alias readlink=greadlink
+	[ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
+	SCRIPT_DIR="$(dirname "$SCRIPT")"
 fi
 
 # function for getting values from .properties file
@@ -14,7 +21,7 @@ getProp() {
 
 if [ -z "$MA_HOME" ]
 then
-    possible_ma_home="$(dirname "$script_dir")"
+    possible_ma_home="$(dirname "$SCRIPT_DIR")"
     if [ -e "$possible_ma_home/release.signed" ] || [ -e "$possible_ma_home/release.properties" ]
     then
         MA_HOME="$possible_ma_home"

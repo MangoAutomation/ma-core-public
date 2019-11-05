@@ -1,16 +1,20 @@
-#!/bin/bash
-# 
+#!/bin/sh
+
+#
 # Copyright (C) 2019 Infinite Automation Systems Inc. All rights reserved.
 # @author Jared Wiltshire
 # @author Matthew Lohbihler
 #
 
 set -e
+
+SCRIPT="$0"
 [ -x "$(command -v greadlink)" ] && alias readlink=greadlink
-script_dir="$(dirname "$(readlink -f "$0")")"
+[ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
+SCRIPT_DIR="$(dirname "$SCRIPT")"
 
 # Only set MA_HOME if not already set
-[ -z "$MA_HOME" ] && MA_HOME=$(dirname "$script_dir")
+[ -z "$MA_HOME" ] && MA_HOME="$(dirname "$SCRIPT_DIR")"
 
 if [ ! -d "$MA_HOME" ]; then
     echo 'Error: MA_HOME is not set or is not a directory'
@@ -18,7 +22,16 @@ if [ ! -d "$MA_HOME" ]; then
 fi
 
 echo MA_HOME is "$MA_HOME"
-rm -f "$MA_HOME"/bin/ma.pid
+
+if [ -e "$MA_HOME"/bin/ma.pid ]; then
+	PID="$(cat "$MA_HOME"/bin/ma.pid)"
+	if ps -p "$PID" > /dev/null 2>&1; then
+		echo "PID file exists, Mango is already running at PID $PID"
+		exit 2
+	fi
+	# Clean up old PID file
+	rm -f "$MA_HOME"/bin/ma.pid
+fi
 
 # This will ensure that the logs are written to the correct directories.
 cd "$MA_HOME"
@@ -33,16 +46,6 @@ if [ -d "$JAVA_HOME" ]; then
     EXECJAVA=java
 else
     EXECJAVA="$JAVA_HOME"/bin/java
-fi
-
-export MA_HOME JPDA EXECJAVA JAVAOPTS SYSOUT SYSERR
-
-# Run enabled init extensions.
-if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
-    echo 'Running init extensions...'
-    for f in "$MA_HOME"/bin/ext-enabled/*.sh; do
-        source "$f" init
-    done
 fi
 
 # Check for core upgrade
@@ -67,6 +70,11 @@ for f in "$MA_HOME"/m2m2-core-*.zip; do
 	fi
 done
 
+# Delete Range.class if it exists
+if [ -e "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
+	rm -f "$MA_HOME"/classes/org/jfree/data/Range.class
+fi
+
 # Construct the Java classpath
 MA_CP="$MA_HOME/overrides/classes"
 MA_CP="$MA_CP:$MA_HOME/classes"
@@ -74,33 +82,18 @@ MA_CP="$MA_CP:$MA_HOME/overrides/properties"
 MA_CP="$MA_CP:$MA_HOME/overrides/lib/*"
 MA_CP="$MA_CP:$MA_HOME/lib/*"
 
-# Run enabled start extensions
-if [ "$(ls -A "$MA_HOME"/bin/ext-enabled)" ]; then
-    echo 'Running start extensions...'
-    for f in "$MA_HOME"/bin/ext-enabled/*.sh; do
-        source "$f" start
-    done
+if [ -e "$MA_HOME/overrides/ma-start-options.sh" ]; then
+	. "$MA_HOME/overrides/ma-start-options.sh"
 fi
 
-# Check for output redirection
-if [ -n "$SYSOUT" ] && [ -n "$SYSERR" ]; then
-    # Both output redirects are set
-    exec >"$SYSOUT" 2>"$SYSERR"
-elif [ -n "$SYSOUT" ]; then
-    # Just sysout is set
-    exec >"$SYSOUT"
-elif [ -n "$SYSERR" ]; then
-    # Just syserr is set
-    exec >"$SYSERR"
+if [ -n "$MA_JAVA_OPTS" ]; then
+	echo "Starting Mango Automation with options '$MA_JAVA_OPTS'"
+else
+	echo "Starting Mango Automation"
 fi
 
-#Delete Range.class if it exists
-if [ -e "$MA_HOME"/classes/org/jfree/data/Range.class ]; then
-	rm -f "$MA_HOME"/classes/org/jfree/data/Range.class
-fi
-
-echo 'Starting Mango Automation'
-"$EXECJAVA" $JPDA $JAVAOPTS -server -cp "$MA_CP" \
+CLASSPATH="$MA_CP" \
+"$EXECJAVA" $MA_JAVA_OPTS -server \
 	"-Dma.home=$MA_HOME" \
 	"-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
 	com.serotonin.m2m2.Main &

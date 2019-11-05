@@ -1,12 +1,19 @@
-#!/bin/bash
+#!/bin/sh
+
+#
+# Copyright (C) 2019 Infinite Automation Systems Inc. All rights reserved.
+# @author Jared Wiltshire
+#
 
 set -e
 umask 077
 
+SCRIPT="$0"
 [ -x "$(command -v greadlink)" ] && alias readlink=greadlink
-script_dir="$(dirname "$(readlink -f "$0")")"
+[ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
+SCRIPT_DIR="$(dirname "$SCRIPT")"
 
-source "$script_dir"/getenv.sh
+. "$SCRIPT_DIR"/getenv.sh
 
 openssl pkcs12 -export \
     -in "$RENEWED_LINEAGE/fullchain.pem" -inkey "$RENEWED_LINEAGE/privkey.pem" \

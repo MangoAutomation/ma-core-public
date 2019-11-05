@@ -1,15 +1,28 @@
-#!/bin/bash
+#!/bin/sh
+
+#
+# Copyright (C) 2019 Infinite Automation Systems Inc. All rights reserved.
+# @author Jared Wiltshire
+#
 
 set -e
 
+SCRIPT="$0"
 [ -x "$(command -v greadlink)" ] && alias readlink=greadlink
-SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
+[ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
+SCRIPT_DIR="$(dirname "$SCRIPT")"
 
-# Prompts the user for input
+# Prompts the user for input, uses the second argument as the default
 prompt() {
-	read -r -p "$1 [$2]: " result
+	printf "%s [%s]: " "$1" "$2" > /dev/tty
+	read -r result
 	[ -z "$result" ] && result="$2"
-	echo "$result"
+	printf "%s" "$result"
+}
+
+# Used to download updated scripts from git main branch
+get_script() {
+	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
 }
 
 # Set default environment variables
@@ -130,17 +143,19 @@ ssl.keystore.password=$(openssl rand -base64 24)" >> "$MA_ENV_FILE"
 chmod 600 "$MA_ENV_FILE"
 
 # Used to download updated scripts from git main branch
-get-script() {
+get_script() {
 	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
 }
 
-get-script ma-start-systemd.sh
-get-script mango.service
-get-script getenv.sh
-get-script genkey.sh
-get-script certbot-deploy.sh
+get_script ma-start-systemd.sh
+get_script mango.service
+get_script getenv.sh
+get_script genkey.sh
+get_script certbot-deploy.sh
+get_script ma-start-options.sh
 
 chmod +x "$MA_HOME"/bin/*.sh
+cp "$MA_HOME/bin/ma-start-options.sh" "$MA_HOME/overrides/"
 
 # generate a default self signed SSL/TLS certificate
 "$MA_HOME"/bin/genkey.sh
@@ -155,7 +170,6 @@ StartLimitIntervalSec=0
 
 [Service]
 EnvironmentFile=/etc/environment
-EnvironmentFile=-$MA_HOME/overrides/environment
 Type=forking
 WorkingDirectory=$MA_HOME
 PIDFile=$MA_HOME/bin/ma.pid
