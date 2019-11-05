@@ -19,6 +19,9 @@
 # Pause VM and wait for debugger to attach
 #MA_JAVA_OPTS="$MA_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,address=8090,server=y,suspend=y"
 
+# Enable remote Java JMX debugging
+#MA_JAVA_OPTS="$MA_JAVA_OPTS -Dcom.sun.management.jmxremote -Djava.rmi.server.hostname=127.0.0.1 -Dcom.sun.management.jmxremote.port=8090 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+
 # Garbage collection options
 #MA_JAVA_OPTS="$MA_JAVA_OPTS -XX:+UseConcMarkSweepGC"
 #MA_JAVA_OPTS="$MA_JAVA_OPTS -XX:+UseSerialGC"
