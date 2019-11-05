@@ -160,8 +160,6 @@ cp "$MA_HOME/bin/ma-start-options.sh" "$MA_HOME/overrides/"
 # generate a default self signed SSL/TLS certificate
 "$MA_HOME"/bin/genkey.sh
 
-chown -R "$MA_USER":"$MA_GROUP" "$MA_HOME"
-
 # create a new systemd service file in overrides
 echo "[Unit]
 Description=Mango Automation
@@ -182,6 +180,8 @@ NoNewPrivileges=true
 
 [Install]
 WantedBy=multi-user.target" > "$MA_HOME"/overrides/mango.service
+
+chown -R "$MA_USER":"$MA_GROUP" "$MA_HOME"
 
 # Stop and remove any existing mango service
 if [ -x "$(command -v systemctl)" ] && [ -d /etc/systemd/system ]; then
