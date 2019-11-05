@@ -13,7 +13,6 @@ import com.serotonin.util.properties.ReloadingProperties;
 public class Postgres {
     public static void main(String[] args) {
         Common.envProps = new ReloadingProperties("test-env");
-        Common.MA_HOME = "/Users/Matthew/git/ma-core-public/Core";
 
         //        DerbyProxy proxy = new DerbyProxy();
         //        MySQLProxy proxy = new MySQLProxy();
@@ -60,7 +59,7 @@ public class Postgres {
                     }
                 });
 
-                //                
+                //
                 //                CREATE TABLE dataPoints (
                 //                        id SERIAL,
                 //                        xid varchar(50) NOT NULL,

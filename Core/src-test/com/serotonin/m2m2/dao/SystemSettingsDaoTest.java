@@ -24,9 +24,9 @@ import com.serotonin.provider.Providers;
 
 /**
  * Test to prove there is a deadlock issue with MySQL and the SystemSettingsDao.
- * 
+ *
  * NOTE: This does not effect H2
- * 
+ *
  * @author Terry Packer
  *
  */
@@ -35,25 +35,19 @@ public class SystemSettingsDaoTest {
     private static final String dbUrl = "jdbc:mysql://localhost/mango37";
     private static final String dbUser = "mango";
     private static final String dbPass = "mango";
-    
+
     @BeforeClass
     public static void setupDatabaseProxy() {
-        String maHome = System.getProperty("ma.home");
-        if(maHome == null) {
-            maHome = ".";
-            System.setProperty("ma.home", ".");
-        }
-        Common.MA_HOME =  maHome;
         Common.envProps = new MockMangoProperties();
         Common.envProps.setDefaultValue("db.url", dbUrl);
         Common.envProps.setDefaultValue("db.username", dbUser);
         Common.envProps.setDefaultValue("db.password", dbPass);
         Common.databaseProxy = new MySQLProxy();
         Common.databaseProxy.initialize(SystemSettingsDaoTest.class.getClassLoader());
-        
+
         Providers.add(IMangoLifecycle.class, new MockMangoLifecycle(new ArrayList<>()));
     }
-    
+
     @Before
     public void cleanTable() {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
@@ -64,14 +58,14 @@ public class SystemSettingsDaoTest {
     public void after() {
         cleanTable();
     }
-    
+
     /**
-     * This test proves that there is no deadlock when a value already exists in the 
+     * This test proves that there is no deadlock when a value already exists in the
      *   system settings table
      */
     //@Test
     public void testDeadlockOnSetExistingValue() {
-        
+
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(Common.databaseProxy.getDataSource());
 
@@ -81,6 +75,7 @@ public class SystemSettingsDaoTest {
         for(int i=0; i<2; i++) {
             new Thread() {
                 private int value = id.getAndIncrement();
+                @Override
                 public void run() {
                     try { Thread.sleep(100); } catch (InterruptedException e) { }
                     try{
@@ -96,7 +91,7 @@ public class SystemSettingsDaoTest {
             }.start();
             running.incrementAndGet();
         }
-        int wait = 10; 
+        int wait = 10;
         while(wait > 0) {
             try { Thread.sleep(1000); } catch (InterruptedException e) { }
             if(failed.get() != null) {
@@ -112,23 +107,24 @@ public class SystemSettingsDaoTest {
             fail(failed.get().getMessage());
         }
     }
-    
+
     /**
-     * This test proves that with > 1 thread there is deadlock when 
+     * This test proves that with > 1 thread there is deadlock when
      *   a key is not present in the table and the value is set
      */
     //@Test
     public void testDeadlockOnSetMissingValue() {
-        
+
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(Common.databaseProxy.getDataSource());
 
-        
+
         AtomicReference<Exception> failed = new AtomicReference<>();
         AtomicInteger running = new AtomicInteger();
         AtomicInteger id = new AtomicInteger();
         for(int i=0; i<2; i++) {
             new Thread() {
+                @Override
                 public void run() {
                     int value = id.getAndIncrement();
                     try { Thread.sleep(100); } catch (InterruptedException e) { }
@@ -144,7 +140,7 @@ public class SystemSettingsDaoTest {
             }.start();
             running.incrementAndGet();
         }
-        int wait = 10; 
+        int wait = 10;
         while(wait > 0) {
             try { Thread.sleep(1000); } catch (InterruptedException e) { }
             if(failed.get() != null) {
@@ -160,5 +156,5 @@ public class SystemSettingsDaoTest {
             fail(failed.get().getMessage());
         }
     }
-    
+
 }

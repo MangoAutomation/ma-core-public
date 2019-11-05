@@ -96,19 +96,30 @@ public class Common {
     /**
      * <p>Prefer {@link Common#MA_HOME_PATH}</p>
      *
-     * <p>The Mango Automation installation directory. This is specified by the ma.home environment variable.</p>
+     * <p>The Mango Automation installation directory. This is specified by the ma.home system property or the MA_HOME environment variable.
+     * If neither is set the current working directory is used.</p>
      */
     @Deprecated
-    public static String MA_HOME;
+    public static final String MA_HOME;
 
     /**
-     * <p>The Mango Automation installation directory. This is specified by the ma.home environment variable.</p>
+     * <p>The Mango Automation installation directory. This is specified by the ma.home system property or the MA_HOME environment variable.
+     * If neither is set the current working directory is used.</p>
      */
     public static final Path MA_HOME_PATH;
     static {
-        String maHomeProperty = System.getProperty("ma.home");
-        MA_HOME_PATH = Paths.get(maHomeProperty != null ? maHomeProperty : ".").toAbsolutePath();
+        String maHome;
+        if ((maHome = System.getProperty("ma.home")) == null) {
+            if ((maHome = System.getenv("MA_HOME")) == null) {
+                maHome = ".";
+            }
+        }
+
+        MA_HOME_PATH = Paths.get(maHome).toAbsolutePath();
+        System.setProperty("ma.home", MA_HOME_PATH.toString());
+        MA_HOME = MA_HOME_PATH.toString();
     }
+
     public static final Path OVERRIDES = MA_HOME_PATH.resolve("overrides");
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);

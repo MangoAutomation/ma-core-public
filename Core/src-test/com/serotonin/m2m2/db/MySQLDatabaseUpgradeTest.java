@@ -15,11 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.Test;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -32,10 +30,10 @@ import com.serotonin.provider.Providers;
  */
 public class MySQLDatabaseUpgradeTest {
 
-    
+
     private final String createScript = "/db/version1/createTables-MySQL.sql";
     private final String dataScript = "/db/version1/defaultData-MySQL.sql";
-    
+
     @Test
     public void doUpgrade() throws Exception {
         Properties props = new Properties();
@@ -44,24 +42,17 @@ public class MySQLDatabaseUpgradeTest {
         }
         if(!props.getProperty("enabled", "false").equals("true"))
             return;
-        
-        String maHome = System.getProperty("ma.home");
-        if(maHome == null) {
-            maHome = ".";
-            System.setProperty("ma.home", ".");
-        }
-        Common.MA_HOME =  maHome;
-        
+
         //Dummy for registering the insert user startup task
         Providers.add(IMangoLifecycle.class, new MockMangoLifecycle(null, false, 0));
-        
+
         //Setup MySQL db properties
         Common.envProps = new MockMangoProperties();
         Common.envProps.setDefaultValue("db.type", "mysql");
         Common.envProps.setDefaultValue("db.url", props.getProperty("db.url") + props.getProperty("db.name"));
         Common.envProps.setDefaultValue("db.username", props.getProperty("db.username"));
         Common.envProps.setDefaultValue("db.password", props.getProperty("db.password"));
-        
+
         //Load the driver
         Class.forName("com.mysql.jdbc.Driver");
         try (Connection conn = DriverManager.getConnection(props.getProperty("db.url"), props.getProperty("db.username"), props.getProperty("db.password"))){
@@ -72,14 +63,14 @@ public class MySQLDatabaseUpgradeTest {
             //Create the database at version 1
             runScript(stmt, this.getClass().getResourceAsStream(createScript), System.out);
         }
-        
+
         //Insert the test data
-        
+
         //Start the proxy and let it upgrade
         Common.databaseProxy = AbstractDatabaseProxy.createDatabaseProxy();
         Common.databaseProxy.initialize(this.getClass().getClassLoader());
     }
-    
+
 
 
     protected void runScript(Statement stmt, InputStream input, OutputStream out) {
@@ -109,7 +100,7 @@ public class MySQLDatabaseUpgradeTest {
             }
         }
     }
-    
+
     public void runScript(Statement stmt, String[] script, OutputStream out) throws Exception {
         StringBuilder statement = new StringBuilder();
 
@@ -129,6 +120,6 @@ public class MySQLDatabaseUpgradeTest {
                 statement.delete(0, statement.length() - 1);
             }
         }
-        
+
     }
 }

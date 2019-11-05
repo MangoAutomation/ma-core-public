@@ -103,13 +103,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
      * @throws InterruptedException
      */
     public void initialize() throws InterruptedException, ExecutionException {
-        String maHome = System.getProperty("ma.home");
-        if(maHome == null) {
-            maHome = ".";
-            System.setProperty("ma.home", ".");
-        }
-        Common.MA_HOME =  maHome;
-
         Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
 
         //Add in modules
