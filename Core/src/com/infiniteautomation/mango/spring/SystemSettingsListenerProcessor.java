@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.DestructionAwareBeanPostProcessor;
 
@@ -15,6 +17,8 @@ import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
  */
 public class SystemSettingsListenerProcessor implements DestructionAwareBeanPostProcessor {
 
+    private static final Log LOG = LogFactory.getLog(SystemSettingsListenerProcessor.class);
+    
     private final SystemSettingsEventDispatcher dispatcher;
 
     public SystemSettingsListenerProcessor(SystemSettingsEventDispatcher dispatcher) {
@@ -28,6 +32,9 @@ public class SystemSettingsListenerProcessor implements DestructionAwareBeanPost
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
         if (bean instanceof SystemSettingsListener) {
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("Adding system settings listener for " + beanName);
+            }
             this.dispatcher.addListener((SystemSettingsListener) bean);
         }
         return bean;
@@ -36,6 +43,9 @@ public class SystemSettingsListenerProcessor implements DestructionAwareBeanPost
     @Override
     public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
         if (bean instanceof SystemSettingsListener) {
+            if(LOG.isDebugEnabled()) {
+                LOG.debug("Removing system settings listener for " + beanName);
+            }
             this.dispatcher.removeListener((SystemSettingsListener) bean);
         }
     }
