@@ -127,6 +127,8 @@ ssl.on=true
 ssl.keystore.location=$MA_HOME/overrides/keystore.jks
 ssl.keystore.password=$(openssl rand -base64 24)" >> "$MA_ENV_FILE"
 
+chmod 600 "$MA_ENV_FILE"
+
 # Used to download updated scripts from git main branch
 get-script() {
 	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
