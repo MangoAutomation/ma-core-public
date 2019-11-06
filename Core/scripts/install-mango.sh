@@ -10,7 +10,7 @@ set -e
 SCRIPT="$0"
 [ -x "$(command -v greadlink)" ] && alias readlink=greadlink
 [ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
-SCRIPT_DIR="$(dirname "$SCRIPT")"
+SCRIPT_DIR="$(dirname -- "$SCRIPT")"
 
 # Prompts the user for input, uses the second argument as the default
 prompt() {
@@ -33,7 +33,7 @@ get_script() {
 
 if [ -z "$MA_HOME" ]; then
 	DEFAULT_HOME=/opt/mango
-    CHECK_DIR="$(dirname "$SCRIPT_DIR")"
+    CHECK_DIR="$(dirname -- "$SCRIPT_DIR")"
     if [ -e "$CHECK_DIR/release.signed" ] || [ -e "$CHECK_DIR/release.properties" ]; then
         DEFAULT_HOME="$CHECK_DIR"
     fi
@@ -137,7 +137,7 @@ db.username=$MA_DB_USER
 db.password=$MA_DB_PASSWORD
 web.openBrowserOnStartup=false
 ssl.on=true
-ssl.keystore.location=$MA_HOME/overrides/keystore.jks
+ssl.keystore.location=$MA_HOME/overrides/keystore.p12
 ssl.keystore.password=$(openssl rand -base64 24)" >> "$MA_ENV_FILE"
 
 chmod 600 "$MA_ENV_FILE"

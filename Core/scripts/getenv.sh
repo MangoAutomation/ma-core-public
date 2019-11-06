@@ -50,7 +50,7 @@ if [ ! -e "$MA_ENV_PROPERTIES" ]; then
 fi
 
 if [ -z "$MA_KEYSTORE" ]; then
-	keystore="$(get_prop "ssl.keystore.location" "$MA_HOME/overrides/keystore.jks")"
+	keystore="$(get_prop "ssl.keystore.location" "$MA_HOME/overrides/keystore.p12")"
 	MA_KEYSTORE="$(resolve_path "$MA_HOME" "$keystore")"
 fi
 

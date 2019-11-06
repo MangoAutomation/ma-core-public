@@ -11,10 +11,10 @@ set -e
 SCRIPT="$0"
 [ -x "$(command -v greadlink)" ] && alias readlink=greadlink
 [ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
-SCRIPT_DIR="$(dirname "$SCRIPT")"
+SCRIPT_DIR="$(dirname -- "$SCRIPT")"
 
 # Only set MA_HOME if not already set
-[ -z "$MA_HOME" ] && MA_HOME="$(dirname "$SCRIPT_DIR")"
+[ -z "$MA_HOME" ] && MA_HOME="$(dirname -- "$SCRIPT_DIR")"
 
 if [ ! -d "$MA_HOME" ]; then
     echo 'Error: MA_HOME is not set or is not a directory'
