@@ -103,7 +103,6 @@ export MA_LOG4J_STDOUT_PATTERN
 CLASSPATH="$MA_CP" \
 "$EXECJAVA" $MA_JAVA_OPTS -server \
 	"-Dma.home=$MA_HOME" \
-	"-Djava.library.path=$MA_HOME/overrides/lib:$MA_HOME/lib:/usr/lib/jni/:$PATH" \
 	com.serotonin.m2m2.Main &
 
 PID=$!
