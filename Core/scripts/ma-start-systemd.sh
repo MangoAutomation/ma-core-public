@@ -26,7 +26,7 @@ echo MA_HOME is "$MA_HOME"
 if [ -e "$MA_HOME"/bin/ma.pid ]; then
 	PID="$(cat "$MA_HOME"/bin/ma.pid)"
 	if ps -p "$PID" > /dev/null 2>&1; then
-		echo "PID file exists, Mango is already running at PID $PID"
+		echo "Mango is already running at PID $PID"
 		exit 2
 	fi
 	# Clean up old PID file
@@ -82,6 +82,11 @@ MA_CP="$MA_CP:$MA_HOME/overrides/properties"
 MA_CP="$MA_CP:$MA_HOME/overrides/lib/*"
 MA_CP="$MA_CP:$MA_HOME/lib/*"
 
+# Only log error messages to stdout and dont include the date
+# Avoids duplicating too much information in the systemd log and syslog
+MA_LOG4J_STDOUT_LEVEL=error
+MA_LOG4J_STDOUT_PATTERN='%-5p (%C.%M:%L) - %m %n'
+
 if [ -e "$MA_HOME/overrides/ma-start-options.sh" ]; then
 	. "$MA_HOME/overrides/ma-start-options.sh"
 fi
@@ -91,6 +96,9 @@ if [ -n "$MA_JAVA_OPTS" ]; then
 else
 	echo "Starting Mango Automation"
 fi
+
+export MA_LOG4J_STDOUT_LEVEL
+export MA_LOG4J_STDOUT_PATTERN
 
 CLASSPATH="$MA_CP" \
 "$EXECJAVA" $MA_JAVA_OPTS -server \
