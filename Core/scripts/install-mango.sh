@@ -43,8 +43,11 @@ if [ ! -d "$MA_HOME" ]; then
 	echo "Created MA_HOME directory '$MA_HOME'."
 fi
 
+if [ -z "$MA_USER" ]; then
+	MA_USER="$(prompt 'Which OS user should Mango run as? (Will be created if it does not exist)' 'mango')"
+fi
+
 # Create the Mango user if it does not exist
-[ -z "$MA_USER" ] && MA_USER=mango
 if [ ! "$(id -u "$MA_USER" 2> /dev/null)" ]; then
 	NO_LOGIN_SHELL="$(command -v nologin)" || true
 	[ ! -x "$NO_LOGIN_SHELL" ] && NO_LOGIN_SHELL=/bin/false
