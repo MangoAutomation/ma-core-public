@@ -22,12 +22,6 @@ get_script() {
 	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
 }
 
-# Set default environment variables
-[ -z "$MA_DB_NAME" ] && MA_DB_NAME=mango
-[ -z "$MA_DB_USER" ] && MA_DB_USER=mango
-[ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD="$(openssl rand -base64 24)"
-[ -z "$MA_SERVICE_NAME" ] && MA_SERVICE_NAME=mango
-
 if [ -z "$MA_HOME" ]; then
 	DEFAULT_HOME=/opt/mango
     CHECK_DIR="$(dirname -- "$SCRIPT_DIR")"
@@ -63,15 +57,27 @@ if [ ! "$(id -u "$MA_USER" 2> /dev/null)" ]; then
 fi
 [ -z "$MA_GROUP" ] && MA_GROUP="$(id -gn "$MA_USER")"
 
-while [ "$MA_DB_TYPE" != 'mysql' ] && [ "$MA_DB_TYPE" != 'h2' ]; do
-	MA_DB_TYPE="$(prompt 'What type of SQL database?' 'h2')"
-done
-
 # Stop and remove any existing mango service
+[ -z "$MA_SERVICE_NAME" ] && MA_SERVICE_NAME=mango
 if [ -x "$(command -v systemctl)" ]; then
 	systemctl stop "$MA_SERVICE_NAME" 2> /dev/null || true
 	systemctl disable "$MA_SERVICE_NAME" 2> /dev/null || true
 fi
+
+while [ "$MA_DB_TYPE" != 'mysql' ] && [ "$MA_DB_TYPE" != 'h2' ]; do
+	MA_DB_TYPE="$(prompt 'What type of SQL database? (h2 or mysql)' 'h2')"
+done
+
+# Set default environment variables for DB
+if [ -z "$MA_DB_NAME" ]; then
+	if [ "$MA_DB_TYPE" = 'mysql' ]; then
+		MA_DB_NAME=mango
+	else
+		MA_DB_NAME=mah2
+	fi
+fi
+[ -z "$MA_DB_USER" ] && MA_DB_USER=mango
+[ -z "$MA_DB_PASSWORD" ] && MA_DB_PASSWORD="$(openssl rand -base64 24)"
 
 while [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
 	prompt_text="Drop SQL database '$MA_DB_NAME' and user '$MA_DB_USER'? (If they exist)"
