@@ -7,10 +7,7 @@
 
 set -e
 
-SCRIPT="$0"
-[ -x "$(command -v greadlink)" ] && alias readlink=greadlink
-[ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
-SCRIPT_DIR="$(dirname -- "$SCRIPT")"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 # Prompts the user for input, uses the second argument as the default
 prompt() {

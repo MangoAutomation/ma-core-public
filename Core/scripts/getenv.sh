@@ -8,10 +8,7 @@
 set -e
 
 if [ -z "$SCRIPT_DIR" ]; then
-	SCRIPT="$0"
-	[ -x "$(command -v greadlink)" ] && alias readlink=greadlink
-	[ -x "$(command -v readlink)" ] && SCRIPT="$(readlink -f "$SCRIPT")"
-	SCRIPT_DIR="$(dirname -- "$SCRIPT")"
+	SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 fi
 
 # function for getting values from env.properties file
