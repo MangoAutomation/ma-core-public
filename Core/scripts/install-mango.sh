@@ -115,7 +115,7 @@ if [ ! -f "$MA_CORE_ZIP" ]; then
 fi
 
 jar_cmd="$(command -v jar)" || true
-[ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/jar" ] jar_cmd="$JAVA_HOME/bin/jar"
+[ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/jar" ] && jar_cmd="$JAVA_HOME/bin/jar"
 
 if [ -x "$(command -v unzip)" ]; then
 	unzip "$MA_CORE_ZIP" -d "$MA_HOME"
