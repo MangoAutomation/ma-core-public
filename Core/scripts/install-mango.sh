@@ -46,10 +46,10 @@ fi
 # Create the Mango user if it does not exist
 [ -z "$MA_USER" ] && MA_USER=mango
 if [ ! "$(id -u "$MA_USER" 2> /dev/null)" ]; then
-	NO_LOGIN_SHELL="$(command -v nologin)"
+	NO_LOGIN_SHELL="$(command -v nologin)" || true
 	[ ! -x "$NO_LOGIN_SHELL" ] && NO_LOGIN_SHELL=/bin/false
 	
-	USER_ADD_CMD="$(command -v useradd)"
+	USER_ADD_CMD="$(command -v useradd)" || true
 	if [ ! -x "$USER_ADD_CMD" ]; then
 		echo "Can't create user '$MA_USER' as useradd command does not exist."
 		exit 1;
