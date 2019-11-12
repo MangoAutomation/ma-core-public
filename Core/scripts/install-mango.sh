@@ -154,15 +154,15 @@ get_script() {
 	curl -s "https://raw.githubusercontent.com/infiniteautomation/ma-core-public/main/Core/scripts/$1" > "$MA_HOME/bin/$1"
 }
 
-get_script ma-start-systemd.sh
+get_script start-mango.sh
 get_script mango.service
 get_script getenv.sh
 get_script genkey.sh
 get_script certbot-deploy.sh
-get_script ma-start-options.sh
+get_script start-options.sh
 
 chmod +x "$MA_HOME"/bin/*.sh
-cp "$MA_HOME/bin/ma-start-options.sh" "$MA_HOME/overrides/"
+cp "$MA_HOME/bin/start-options.sh" "$MA_HOME/overrides/"
 
 # generate a default self signed SSL/TLS certificate
 "$MA_HOME"/bin/genkey.sh
@@ -178,7 +178,7 @@ EnvironmentFile=/etc/environment
 Type=forking
 WorkingDirectory=$MA_HOME
 PIDFile=$MA_HOME/bin/ma.pid
-ExecStart=$MA_HOME/bin/ma-start-systemd.sh
+ExecStart=$MA_HOME/bin/start-mango.sh
 SuccessExitStatus=0 SIGINT SIGTERM 130 143
 Restart=always
 RestartSec=5s
@@ -199,5 +199,5 @@ if [ -x "$(command -v systemctl)" ] && [ -d /etc/systemd/system ]; then
 	systemctl enable "$MA_SERVICE_NAME"
 	echo "Mango was installed successfully. Type 'systemctl start $MA_SERVICE_NAME' to start Mango."
 else
-	echo "Mango was installed successfully. Type 'sudo -u $MA_USER $MA_HOME/bin/ma-start-systemd.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
+	echo "Mango was installed successfully. Type 'sudo -u $MA_USER $MA_HOME/bin/start-mango.sh' to start Mango. (systemd is not available and Mango will not start on boot)"
 fi

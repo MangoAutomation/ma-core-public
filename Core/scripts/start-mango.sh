@@ -87,8 +87,8 @@ MA_CP="$MA_CP:$MA_HOME/lib/*"
 MA_LOG4J_STDOUT_LEVEL=error
 MA_LOG4J_STDOUT_PATTERN='%-5p (%C.%M:%L) - %m %n'
 
-if [ -e "$MA_HOME/overrides/ma-start-options.sh" ]; then
-	. "$MA_HOME/overrides/ma-start-options.sh"
+if [ -e "$MA_HOME/overrides/start-options.sh" ]; then
+	. "$MA_HOME/overrides/start-options.sh"
 fi
 
 if [ -n "$MA_JAVA_OPTS" ]; then
