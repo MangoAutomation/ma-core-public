@@ -73,20 +73,14 @@ if [ -x "$(command -v systemctl)" ]; then
 	systemctl disable "$MA_SERVICE_NAME" 2> /dev/null || true
 fi
 
-while [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
-	prompt_text="Drop SQL database '$MA_DB_NAME' if it exists?"
+while [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" != 'yes' ] && [ "$MA_CONFIRM_DROP" != 'no' ]; do
+	prompt_text="Drop SQL database '$MA_DB_NAME' and user '$MA_DB_USER'? (If they exist)"
 	MA_CONFIRM_DROP="$(prompt "$prompt_text" 'no')"
 done
-if [ "$MA_CONFIRM_DROP" = 'yes' ]; then
-	if [ "$MA_DB_TYPE" = 'mysql' ]; then
-		# Drop database tables and user, create new user and table
-		echo "DROP DATABASE IF EXISTS $MA_DB_NAME;
+
+if [ "$MA_DB_TYPE" = 'mysql' ] && [ "$MA_CONFIRM_DROP" = 'yes' ]; then
+	echo "DROP DATABASE IF EXISTS $MA_DB_NAME;
 		DROP USER IF EXISTS '$MA_DB_USER'@'localhost';" | mysql -u root
-	elif [ "$MA_DB_TYPE" = 'h2' ]; then
-		for db in "$MA_HOME/databases/$MA_DB_NAME".*.db; do
-			rm -f "$db"
-    	done
-	fi
 fi
 
 if [ "$MA_DB_TYPE" = 'mysql' ]; then
@@ -96,16 +90,17 @@ if [ "$MA_DB_TYPE" = 'mysql' ]; then
 fi
 
 # Remove any old files in MA_HOME
-if [ "$(find "$MA_HOME" -mindepth 1 -maxdepth 1 ! -name 'databases')" ]; then
+if [ "$(find "$MA_HOME" -mindepth 1 -maxdepth 1)" ]; then
 	while [ "$MA_CONFIRM_DELETE" != 'yes' ] && [ "$MA_CONFIRM_DELETE" != 'no' ]; do
-		MA_CONFIRM_DELETE="$(prompt "Installion directory is not empty, delete all files in '$MA_HOME'?" 'no')"
+		prompt_text="Installion directory is not empty, delete all files in '$MA_HOME'? (May contain H2 databases and time series databases)"
+		MA_CONFIRM_DELETE="$(prompt "$prompt_text" 'no')"
 	done
 	
 	if [ "$MA_CONFIRM_DELETE" = 'no' ]; then
 		exit 1
 	fi
 	
-	find "$MA_HOME" -mindepth 1 -maxdepth 1 ! -name 'databases' -exec rm -r '{}' \;
+	find "$MA_HOME" -mindepth 1 -maxdepth 1 -exec rm -r '{}' \;
 fi
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
@@ -118,7 +113,19 @@ if [ ! -f "$MA_CORE_ZIP" ]; then
 	curl https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_CORE_ZIP"
 	MA_DELETE_ZIP=true
 fi
-unzip "$MA_CORE_ZIP" -d "$MA_HOME"
+
+jar_cmd="$(command -v jar)" || true
+[ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/jar" ] jar_cmd="$JAVA_HOME/bin/jar"
+
+if [ -x "$(command -v unzip)" ]; then
+	unzip "$MA_CORE_ZIP" -d "$MA_HOME"
+elif [ -x "$jar_cmd" ]; then
+	cd "$MA_HOME" && "$jar_cmd" xvf "$MA_CORE_ZIP"
+else
+	echo "Can't find command to extract zip file, please install unzip"
+	exit 3
+fi
+
 [ "$MA_DELETE_ZIP" = true ] && rm -f "$MA_CORE_ZIP"
 
 # Create an overrides env.properties file
