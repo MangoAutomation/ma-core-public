@@ -39,10 +39,13 @@ if [ ! -d "$MA_HOME"/logs ]; then
 fi
 
 # Determine the Java home
-if [ -d "$JAVA_HOME" ]; then
+if [ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
+    EXECJAVA="$JAVA_HOME/bin/java"
+elif [ -x "$(command -v java)" ]
     EXECJAVA=java
 else
-    EXECJAVA="$JAVA_HOME"/bin/java
+	echo "JAVA_HOME not set and java not found on path"
+	exit 3
 fi
 
 # Check for core upgrade
