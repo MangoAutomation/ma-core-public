@@ -41,7 +41,7 @@ fi
 # Determine the Java home
 if [ -d "$JAVA_HOME" ] && [ -x "$JAVA_HOME/bin/java" ]; then
     EXECJAVA="$JAVA_HOME/bin/java"
-elif [ -x "$(command -v java)" ]
+elif [ -x "$(command -v java)" ]; then
     EXECJAVA=java
 else
 	echo "JAVA_HOME not set and java not found on path"
