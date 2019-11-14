@@ -50,7 +50,7 @@ fi
 
 # Check for core upgrade
 for f in "$MA_HOME"/m2m2-core-*.zip; do
-	if [ -r "f" ]; then
+	if [ -r "$f" ]; then
 		echo 'Upgrading core...'
 
 		# Delete jars and work dir
