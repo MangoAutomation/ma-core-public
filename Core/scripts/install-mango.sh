@@ -110,7 +110,7 @@ if [ "$(find "$MA_HOME" -mindepth 1 -maxdepth 1)" ]; then
 fi
 
 if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
-	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '3.6.5')"
+	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '3.6.6')"
 fi
 
 # Download and extract the Mango enterprise archive
