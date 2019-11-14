@@ -113,10 +113,14 @@ if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_VERSION" ]; then
 	MA_VERSION="$(prompt 'What version of Mango do you want to install?' '3.6.6')"
 fi
 
+if [ ! -f "$MA_CORE_ZIP" ] && [ -z "$MA_BUNDLE_TYPE" ]; then
+	MA_BUNDLE_TYPE="$(prompt 'Install free (personal/educational use, 300 point limit) or enterprise (evaluation) bundle?' 'enterprise')"
+fi
+
 # Download and extract the Mango enterprise archive
 if [ ! -f "$MA_CORE_ZIP" ]; then
 	MA_CORE_ZIP=$(mktemp)
-	curl https://store.infiniteautomation.com/downloads/fullCores/enterprise-m2m2-core-"$MA_VERSION".zip > "$MA_CORE_ZIP"
+	curl "https://store.infiniteautomation.com/downloads/fullCores/${MA_BUNDLE_TYPE}-m2m2-core-${MA_VERSION}.zip" > "$MA_CORE_ZIP"
 	MA_DELETE_ZIP=true
 fi
 
