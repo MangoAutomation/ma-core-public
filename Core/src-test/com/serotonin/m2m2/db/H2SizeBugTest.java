@@ -204,7 +204,6 @@ public class H2SizeBugTest extends MangoTestBase {
             //url+= ";LOB_TIMEOUT=1";
             
             props.setDefaultValue("db.url", url);
-            props.setDefaultValue("db.location", baseTestDir.getAbsolutePath() +"/databases/mah2-test");
             if(useShutdownCompact)
                 props.setDefaultValue("db.h2.shutdownCompact", "true");
             

@@ -180,8 +180,9 @@ public class H2Proxy extends AbstractDatabaseProxy {
             }
         }
         
-        String[] matchingDbs = dbFolder.toFile().list((dir, filename) ->{
-            if(filename.startsWith(dbPath.getFileName().toString()))
+        String[] matchingDbs = dbFolder.toFile().list((dir, filename) -> {
+            File possibleDb = new File(dir, filename);
+            if(possibleDb.isFile() && filename.endsWith(".db") && filename.startsWith(dbPath.getFileName().toString()))
                 return true;
             else
                 return false;
