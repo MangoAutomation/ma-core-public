@@ -50,6 +50,7 @@ import com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDete
 import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.ScriptEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.filestore.CoreFileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.filestore.DocsFileStoreDefinition;
@@ -824,6 +825,7 @@ public class ModuleRegistry {
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
 
         //Add in Core Event Handlers
+        core.addDefinition(new ScriptEventHandlerDefinition());
         core.addDefinition(new EmailEventHandlerDefinition());
         core.addDefinition(new ProcessEventHandlerDefinition());
         core.addDefinition(new SetPointEventHandlerDefinition());

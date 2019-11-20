@@ -12,6 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Function;
 
+import javax.script.ScriptEngineManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -274,5 +276,10 @@ public class MangoRuntimeContextConfiguration {
     @Bean
     public SystemSettingsEventDispatcher systemSettingsEventDispatcher() {
         return SystemSettingsEventDispatcher.INSTANCE;
+    }
+
+    @Bean
+    public ScriptEngineManager scriptEngineManager() {
+        return new ScriptEngineManager();
     }
 }
