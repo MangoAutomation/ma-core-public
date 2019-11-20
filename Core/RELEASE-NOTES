@@ -45,6 +45,7 @@
 * Infer http to https redirect port from publicly resolvable URL system setting, default to ssl.port if setting is empty or non https url
 * Upgrade Jetty to 9.4.22.v20191022
 * Remove unused env property db.url from h2 configuration section
+* Remove java-9-compat extension scripts as they are not necessary anymore as those dependencies are included with Mango
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
