@@ -32,6 +32,8 @@ import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 
 /**
+ * Monitor partition sizes and optionally file stores and ma_home directories
+ * 
  * @author Terry Packer
  *
  */
@@ -58,6 +60,7 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
 
     private final ScheduledExecutorService scheduledExecutor;
     private final long period;
+    private final boolean monitorDirectories;
     
     private final LongMonitor maHomePartitionTotalSpace  = new LongMonitor(MA_HOME_PARTITION_TOTAL_SPACE, new TranslatableMessage(MA_HOME_PARTITION_TOTAL_SPACE), this);
     private final LongMonitor maHomePartitionUsableSpace  = new LongMonitor(MA_HOME_PARTITION_USABLE_SPACE, new TranslatableMessage(MA_HOME_PARTITION_USABLE_SPACE), this);
@@ -75,10 +78,19 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
     private final Map<String, LongMonitor> fileStoreMonitors;
     private volatile ScheduledFuture<?> scheduledFuture;
 
+    /**
+     * 
+     * @param scheduledExecutor
+     * @param period - how often to recalculate the usage
+     * @param monitorDirectories - monitor file stores and ma_home specifically (will require more CPU)
+     */
     @Autowired
-    private DiskUsageMonitoringService(ScheduledExecutorService scheduledExecutor, @Value("${internal.monitor.diskUsage.pollPeriod:120000}") long period) {
+    private DiskUsageMonitoringService(ScheduledExecutorService scheduledExecutor, 
+            @Value("${internal.monitor.diskUsage.pollPeriod:1800000}") long period,
+            @Value("${internal.monitor.diskUsage.monitorDirectories:false}") boolean monitorDirectories) {
         this.scheduledExecutor = scheduledExecutor;
         this.period = period;
+        this.monitorDirectories = monitorDirectories;
 
         Common.MONITORED_VALUES.addIfMissingStatMonitor(maHomePartitionTotalSpace);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(maHomePartitionUsableSpace);
@@ -91,16 +103,17 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
         
         Common.MONITORED_VALUES.addIfMissingStatMonitor(filestorePartitionTotalSpace);
         Common.MONITORED_VALUES.addIfMissingStatMonitor(filestorePartitionUsableSpace);
-        
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(maHomeSize);
-        
         this.fileStoreMonitors = new HashMap<>();
-        //Setup all filestores
-        ModuleRegistry.getFileStoreDefinitions().values().stream().forEach( fs-> {
-            LongMonitor monitor = new LongMonitor(FILE_STORE_SIZE_PREFIX + fs.getStoreName(), new TranslatableMessage("internal.monitor.fileStoreSize", fs.getStoreDescription()), this);
-            this.fileStoreMonitors.put(fs.getStoreName(), monitor);
-            Common.MONITORED_VALUES.addIfMissingStatMonitor(monitor);
-        });
+        
+        if(this.monitorDirectories) {
+            Common.MONITORED_VALUES.addIfMissingStatMonitor(maHomeSize);
+            //Setup all filestores
+            ModuleRegistry.getFileStoreDefinitions().values().stream().forEach( fs-> {
+                LongMonitor monitor = new LongMonitor(FILE_STORE_SIZE_PREFIX + fs.getStoreName(), new TranslatableMessage("internal.monitor.fileStoreSize", fs.getStoreDescription()), this);
+                this.fileStoreMonitors.put(fs.getStoreName(), monitor);
+                Common.MONITORED_VALUES.addIfMissingStatMonitor(monitor);
+            });
+        }
     }
 
     @PostConstruct
@@ -160,10 +173,12 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
             LOG.error("Unable to get Filestore partition usage", e);
         }
         
-        maHomeSize.setValue(getSize(Common.MA_HOME_PATH.toFile()));
-        fileStoreMonitors.entrySet().stream().forEach(monitor -> {
-            monitor.getValue().setValue(getSize(ModuleRegistry.getFileStoreDefinition(monitor.getKey()).getRoot()));    
-        });
+        if(this.monitorDirectories) {
+            maHomeSize.setValue(getSize(Common.MA_HOME_PATH.toFile()));
+            fileStoreMonitors.entrySet().stream().forEach(monitor -> {
+                monitor.getValue().setValue(getSize(ModuleRegistry.getFileStoreDefinition(monitor.getKey()).getRoot()));    
+            });
+        }
     }
 
     @Override
