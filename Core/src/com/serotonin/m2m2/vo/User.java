@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -23,16 +22,13 @@ import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTimeZone;
-import org.passay.LengthRule;
-import org.passay.PasswordData;
-import org.passay.PasswordValidator;
-import org.passay.RuleResult;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Joiner;
+import com.infiniteautomation.mango.spring.service.PasswordService;
+import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
@@ -694,11 +690,13 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
                     if(existing != null && Common.checkPassword(hashOrPassword, existing.getPassword(), false))
                         response.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
 
-                    PasswordValidator validator = new PasswordValidator(Arrays.asList(
-                            new LengthRule(8, 255)));
-                    RuleResult result = validator.validate(new PasswordData(hashOrPassword));
-                    if(!result.isValid()) {
-                        response.addContextualMessage("password", "common.default", Joiner.on(",").join(validator.getMessages(result)));
+                    PasswordService service = Common.getBean(PasswordService.class);
+                    try {
+                        service.validatePassword(hashOrPassword);
+                    }catch (PasswordInvalidException e) {
+                        for(TranslatableMessage message : e.getMessages()) {
+                            response.addMessage("password", message);
+                        }
                     }
                 }
             }
@@ -832,17 +830,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             setPermissions(text);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-     */
     @Override
     protected AbstractDao<User> getDao() {
         return UserDao.getInstance();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getTypeKey()
-     */
     @Override
     public String getTypeKey() {
         return "event.audit.user";

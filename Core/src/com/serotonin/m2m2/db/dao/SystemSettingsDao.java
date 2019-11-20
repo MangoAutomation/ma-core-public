@@ -67,6 +67,10 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
 /**
+ * Dao access for system settings,
+ *  this class is a spring bean declared in the MangoRuntimeContextConfiguration,
+ *  as such it is not annotated as a bean here.
+ * 
  * @author Jared Wiltshire
  */
 public class SystemSettingsDao extends BaseDao {
@@ -224,8 +228,18 @@ public class SystemSettingsDao extends BaseDao {
 
     public static final String USERS_PUBLIC_REGISTRATION_ENABLED = "users.publicRegistration.enabled";
 
+    //Password rules settings, count of 0 means no rule applied
+    public static final String PASSWORD_UPPER_CASE_COUNT = "password.rule.upperCaseCount";
+    public static final String PASSWORD_LOWER_CASE_COUNT = "password.rule.lowerCaseCount";
+    public static final String PASSWORD_DIGIT_COUNT = "password.rule.digitCount";
+    public static final String PASSWORD_SPECIAL_COUNT = "password.rule.specialCount";
+    public static final String PASSWORD_LENGTH_MIN = "password.rule.lengthMin";
+    public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
+    //TODO Dictionary
+    //TODO Validation
+    
     public static final SystemSettingsDao instance = new SystemSettingsDao();
-
+    
     /**
      * Will remain null until the runtime context is refreshed so the JSON methods of this class should not be used early in the lifecycle.
      */
@@ -769,6 +783,13 @@ public class SystemSettingsDao extends BaseDao {
 
         DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
         DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
+        
+        DEFAULT_VALUES.put(PASSWORD_UPPER_CASE_COUNT, 0);
+        DEFAULT_VALUES.put(PASSWORD_LOWER_CASE_COUNT, 0);
+        DEFAULT_VALUES.put(PASSWORD_DIGIT_COUNT, 0);
+        DEFAULT_VALUES.put(PASSWORD_SPECIAL_COUNT, 0);
+        DEFAULT_VALUES.put(PASSWORD_LENGTH_MIN, 8);
+        DEFAULT_VALUES.put(PASSWORD_LENGTH_MAX, 255);
     }
 
     /**
@@ -1176,8 +1197,60 @@ public class SystemSettingsDao extends BaseDao {
                 response.addContextualMessage(PUBLICLY_RESOLVABLE_BASE_URL, "validate.invalidValue");
             }
         }
+        
+        //Validate password settings
+        Integer passwordLengthMin = getIntValue(PASSWORD_LENGTH_MIN, settings);
+        Integer passwordLengthMax = getIntValue(PASSWORD_LENGTH_MAX, settings);
+        if(passwordLengthMin > 255) {
+            response.addContextualMessage(PASSWORD_LENGTH_MIN, "validate.lessThanOrEqualTo", 255);
+        }
+        if(passwordLengthMin < 1) {
+            response.addContextualMessage(PASSWORD_LENGTH_MIN, "validate.greaterThanOrEqualTo", 1);
+        }
+        if(passwordLengthMax > 255) {
+            response.addContextualMessage(PASSWORD_LENGTH_MAX, "validate.lessThanOrEqualTo", 255);
+        }
+        if(passwordLengthMax < 1) {
+            response.addContextualMessage(PASSWORD_LENGTH_MAX, "validate.greaterThanOrEqualTo", 1);
+        }
+        if(passwordLengthMin > passwordLengthMax) {
+            response.addContextualMessage(PASSWORD_LENGTH_MAX, "validate.greaterThanOrEqualTo", passwordLengthMin);
+            response.addContextualMessage(PASSWORD_LENGTH_MIN, "validate.lessThanOrEqualTo", passwordLengthMax);
+        }
+        
+        Integer passwordSetting = getIntValue(PASSWORD_UPPER_CASE_COUNT, settings);
+        if (passwordSetting < 0) {
+            response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.greaterThanOrEqualTo", 0);
+        }else if(passwordSetting > passwordLengthMax) {
+            response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+        }else if(passwordSetting < passwordLengthMin) {
+            response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        }
+        passwordSetting = getIntValue(PASSWORD_LOWER_CASE_COUNT, settings);
+        if (passwordSetting < 0) {
+            response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.greaterThanOrEqualTo", 0);
+        }else if(passwordSetting > passwordLengthMax) {
+            response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+        }else if(passwordSetting < passwordLengthMin) {
+            response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        }
+        passwordSetting = getIntValue(PASSWORD_DIGIT_COUNT, settings);
+        if (passwordSetting < 0) {
+            response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.greaterThanOrEqualTo", 0);
+        }else if(passwordSetting > passwordLengthMax) {
+            response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+        }else if(passwordSetting < passwordLengthMin) {
+            response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        }
+        passwordSetting = getIntValue(PASSWORD_SPECIAL_COUNT, settings);
+        if (passwordSetting < 0) {
+            response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.greaterThanOrEqualTo", 0);
+        }else if(passwordSetting > passwordLengthMax) {
+            response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+        }else if(passwordSetting < passwordLengthMin) {
+            response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        }
     }
-
 
     /**
      * @param pointDataPurgePeriodType2
