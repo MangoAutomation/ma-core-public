@@ -1219,36 +1219,36 @@ public class SystemSettingsDao extends BaseDao {
         }
         
         Integer passwordSetting = getIntValue(PASSWORD_UPPER_CASE_COUNT, settings);
-        if (passwordSetting < 0) {
-            response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.greaterThanOrEqualTo", 0);
-        }else if(passwordSetting > passwordLengthMax) {
-            response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
-        }else if(passwordSetting < passwordLengthMin) {
-            response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        if(passwordSetting != 0) {
+            if (passwordSetting < 0) {
+                response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.greaterThanOrEqualTo", 0);
+            }else if(passwordSetting > passwordLengthMax) {
+                response.addContextualMessage(PASSWORD_UPPER_CASE_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+            }
         }
         passwordSetting = getIntValue(PASSWORD_LOWER_CASE_COUNT, settings);
-        if (passwordSetting < 0) {
-            response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.greaterThanOrEqualTo", 0);
-        }else if(passwordSetting > passwordLengthMax) {
-            response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
-        }else if(passwordSetting < passwordLengthMin) {
-            response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        if(passwordSetting != 0) {
+            if (passwordSetting < 0) {
+                response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.greaterThanOrEqualTo", 0);
+            }else if(passwordSetting > passwordLengthMax) {
+                response.addContextualMessage(PASSWORD_LOWER_CASE_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+            }
         }
         passwordSetting = getIntValue(PASSWORD_DIGIT_COUNT, settings);
-        if (passwordSetting < 0) {
-            response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.greaterThanOrEqualTo", 0);
-        }else if(passwordSetting > passwordLengthMax) {
-            response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
-        }else if(passwordSetting < passwordLengthMin) {
-            response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        if(passwordSetting != 0) {
+            if (passwordSetting < 0) {
+                response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.greaterThanOrEqualTo", 0);
+            }else if(passwordSetting > passwordLengthMax) {
+                response.addContextualMessage(PASSWORD_DIGIT_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+            }
         }
         passwordSetting = getIntValue(PASSWORD_SPECIAL_COUNT, settings);
-        if (passwordSetting < 0) {
-            response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.greaterThanOrEqualTo", 0);
-        }else if(passwordSetting > passwordLengthMax) {
-            response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
-        }else if(passwordSetting < passwordLengthMin) {
-            response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.greaterThanOrEqualTo", passwordLengthMin);
+        if(passwordSetting != 0) {
+            if (passwordSetting < 0) {
+                response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.greaterThanOrEqualTo", 0);
+            }else if(passwordSetting > passwordLengthMax) {
+                response.addContextualMessage(PASSWORD_SPECIAL_COUNT, "validate.lessThanOrEqualTo", passwordLengthMax);
+            }
         }
     }
 

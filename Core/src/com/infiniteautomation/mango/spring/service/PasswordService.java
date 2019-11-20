@@ -28,11 +28,13 @@ import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
  * 
  * Class to validate passwords against the system settings defined rules.
  * 
- * Rules:
- * 
- *
- * 
- * 
+ * Possible Rules:
+ *  minimum required upper case characters
+ *  minimum required lower case characters
+ *  minimum required digit characters
+ *  minimum required special characters
+ *  minimum length
+ *  maximum length
  * @author Terry Packer
  *
  */
