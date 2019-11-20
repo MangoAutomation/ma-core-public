@@ -96,12 +96,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public static final String AND = " AND ";
     public static final String LIMIT = " LIMIT ";
 
-    // TODO Mango 3.6 add to constructor and make final
+    // TODO Mango 4.0 add to constructor and make final, also look at simplifying the constructor set in the superclass
     @Autowired
     @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
     private ObjectMapper mapper;
 
-    // TODO Mango 3.6 add to constructor and make final
+    // TODO Mango 4.0 add to constructor and make final, also look at simplifying the constructor set in the superclass
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
 

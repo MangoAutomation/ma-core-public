@@ -11,8 +11,8 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
+ * Service for access to event handlers
  * 
- * TODO Mango 3.6 we need to implement permissions on Event handlers
  * @author Terry Packer
  *
  */
@@ -26,21 +26,17 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
-        // TODO Auto-generated method stub
         return user.hasAdminPermission();
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, T vo) {
-        // TODO Auto-generated method stub
         return user.hasAdminPermission();
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, T vo) {
-        // TODO Auto-generated method stub
         return user.hasAdminPermission();
     }
-
 
 }

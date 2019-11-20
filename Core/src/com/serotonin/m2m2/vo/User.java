@@ -127,7 +127,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private final transient ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<>();
     private transient DataPointVO editPoint;
     private transient DataSourceVO<?> editDataSource;
-    // TODO Mango 3.6 remove
+    // TODO Mango 4.0 remove
     private transient TestingUtility testingUtility;
     private transient PublisherVO<? extends PublishedPointVO> editPublisher;
     private transient ImportTask importTask;
@@ -225,7 +225,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
 
     //
     // Testing utility management
-    // TODO Mango 3.6 remove
+    // TODO Mango 4.0 remove when Legacy UI goes away
     public <T extends TestingUtility> T getTestingUtility(Class<T> requiredClass) {
         TestingUtility tu = testingUtility;
 

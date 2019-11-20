@@ -537,7 +537,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     /**
-     * TODO Mango 3.6 refactor to take a data source ID and use a join on data source ID
+     * TODO Mango 4.0 refactor to take a data source ID and use a join on data source ID
      */
     void deleteDataPointImpl(String dataPointIdList) {
         dataPointIdList = "(" + dataPointIdList + ")";

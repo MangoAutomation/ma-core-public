@@ -83,7 +83,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
             response.setHeader(HttpHeaders.RETRY_AFTER, Long.toString(secondsTillRetry));
 
-            // TODO Mango 3.6 escapes from Spring and is not caught by exception handler
+            // TODO Mango 4.0 escapes from Spring and is not caught by exception handler
             // throw new RateLimitedRestException(MangoRestErrorCode.IP_RATE_LIMITED, message);
 
             response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), message.translate(Common.getTranslations()));
