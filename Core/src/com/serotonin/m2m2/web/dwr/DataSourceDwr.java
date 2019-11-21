@@ -20,6 +20,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -105,10 +106,11 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
                 response.addData("vo", vo);
 
                 //Setup the page info
-                response.addData("editPagePath", def.getModule().getWebPath() + "/" + def.getEditPagePath());
-                response.addData("statusPagePath", def.getModule().getWebPath() + "/" + def.getStatusPagePath());
-            }
-            catch (Exception e) {
+                String editPagePath = "/" + Constants.DIR_MODULES + "/" + def.getModule().getName() + def.getEditPagePath();
+                String statusPagePath = "/" + Constants.DIR_MODULES + "/" + def.getModule().getName() + def.getStatusPagePath();
+                response.addData("editPagePath", editPagePath);
+                response.addData("statusPagePath", statusPagePath);            
+            }catch (Exception e) {
                 LOG.error(e.getMessage());
                 response.addMessage(new TranslatableMessage("table.error.dwr", e.getMessage()));
             }
@@ -160,12 +162,11 @@ public class DataSourceDwr extends AbstractRTDwr<DataSourceVO<?>, DataSourceDao<
                 throw new ShouldNeverHappenException("Unable to get a new DataSource.");
             }
             //Setup the page info
-            response.addData("editPagePath", ((DataSourceVO<?>) response.getData().get("vo")).getDefinition()
-                    .getModule().getWebPath()
-                    + "/" + ((DataSourceVO<?>) response.getData().get("vo")).getDefinition().getEditPagePath());
-            response.addData("statusPagePath", ((DataSourceVO<?>) response.getData().get("vo")).getDefinition()
-                    .getModule().getWebPath()
-                    + "/" + ((DataSourceVO<?>) response.getData().get("vo")).getDefinition().getStatusPagePath());
+            DataSourceDefinition def = ((DataSourceVO<?>) response.getData().get("vo")).getDefinition();
+            String editPagePath = "/" + Constants.DIR_MODULES + "/" + def.getModule().getName() + def.getEditPagePath();
+            String statusPagePath = "/" + Constants.DIR_MODULES + "/" + def.getModule().getName() + def.getStatusPagePath();
+            response.addData("editPagePath", editPagePath);
+            response.addData("statusPagePath", statusPagePath);
         }
         catch (Exception e) {
             LOG.error(e.getMessage());

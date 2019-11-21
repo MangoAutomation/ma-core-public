@@ -321,7 +321,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void runScriptFile(String scriptFile, OutputStream out) {
+    public void runScriptFile(File scriptFile, OutputStream out) {
         try {
             runScript(new FileInputStream(scriptFile), out);
         }

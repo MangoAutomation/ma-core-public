@@ -110,32 +110,6 @@ public class Module {
     }
 
     /**
-     * <p>Prefer the {@link #modulePath()} method.</p>
-     * <p>Suitable for creating File objects within Java code.</p>
-     *
-     * TODO Mango 3.6 remove
-     *
-     * @return the path from the MA home to the module's directory.
-     */
-    @Deprecated
-    public String getDirectoryPath() {
-        return "/" + Constants.DIR_WEB + getWebPath();
-    }
-
-    /**
-     * <p>Prefer the {@link #webPath()} method.</p>
-     * <p>Suitable for creating URLs to module assets.</p>
-     *
-     * TODO Mango 3.6 remove
-     *
-     * @return the path from MA's web root to the module's directory
-     */
-    @Deprecated
-    public String getWebPath() {
-        return "/" + Constants.DIR_MODULES + "/" + name;
-    }
-
-    /**
      * <p>Suitable for creating URLs to module assets.</p>
      *
      * @return relative URI from MA web root to the module's web directory

@@ -1522,7 +1522,7 @@
 
   <c:forEach items="<%= ModuleRegistry.getDefinitions(SystemSettingsDefinition.class) %>" var="def">
     <tag:labelledSection labelKey="${def.descriptionKey}" closed="true" sectionId="${def.module.name}">
-      <c:set var="incpage">${def.module.webPath}/${def.sectionJspPath}</c:set>
+      <c:set var="incpage">/modules/${def.module.name}/${def.sectionJspPath}</c:set>
       <jsp:include page="${incpage}"/>
     </tag:labelledSection>
   </c:forEach>

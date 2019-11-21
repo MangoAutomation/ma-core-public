@@ -31,6 +31,7 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
@@ -182,7 +183,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
             try {
-                runScriptFile(Common.MA_HOME + "/db/createTables-" + getType().name() + ".sql", new FileOutputStream(
+                File installScript = Common.MA_HOME_PATH
+                        .resolve(Constants.DIR_DB)
+                        .resolve("createTables-" + getType().name() + ".sql")
+                        .toFile();
+                runScriptFile(installScript, new FileOutputStream(
                         new File(Common.getLogsDir(), "createTables.log")));
             }
             catch (FileNotFoundException e) {
@@ -294,11 +299,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     abstract public String getTableListQuery();
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#runScriptFile(java.lang.String, java.io.OutputStream)
-     */
     @Override
-    public void runScriptFile(String scriptFile, OutputStream out) {
+    public void runScriptFile(File scriptFile, OutputStream out) {
         try {
             runScript(new FileInputStream(scriptFile), out);
         }

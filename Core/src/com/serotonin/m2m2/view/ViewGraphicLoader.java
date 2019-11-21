@@ -31,17 +31,17 @@ public class ViewGraphicLoader {
 
     private static final String IGNORE_THUMBS = "Thumbs.db";
 
-    private final String path = Common.MA_HOME + "/" + Constants.DIR_WEB;
+    private final String path = Common.MA_HOME_PATH.resolve(Constants.DIR_WEB).toAbsolutePath().toString();
     private List<ViewGraphic> viewGraphics;
 
     public List<ViewGraphic> loadViewGraphics() {
         viewGraphics = new ArrayList<ViewGraphic>();
-
         for (Module module : ModuleRegistry.getModules()) {
             if (module.getGraphicsDir() != null){
             	String[] dirs = module.getGraphicsDir().split(",");
-            	for(String dir : dirs)
-            		loadModuleGraphics(new File(path + module.getWebPath(), dir), module.getName());
+            	for(String dir : dirs) {
+            	    loadModuleGraphics(module.modulePath().resolve(dir).toFile(), module.getName());
+            	}
             }
         }
 

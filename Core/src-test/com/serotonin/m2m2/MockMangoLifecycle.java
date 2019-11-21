@@ -213,7 +213,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     private void freemarkerInitialize() {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
-        File baseTemplateDir = new File(Common.MA_HOME, "ftl");
+        File baseTemplateDir = Common.MA_HOME_PATH.resolve("ftl").toFile();
         if(!baseTemplateDir.exists()) {
             LOG.info("Not initializing Freemarker, this test is not running in Core source tree.  Requires ./ftl directory to initialize.");
             return;
@@ -223,7 +223,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             List<TemplateLoader> loaders = new ArrayList<>();
 
             // Add the overrides directory.
-            File override = new File(Common.MA_HOME, "overrides/ftl");
+            File override = Common.MA_HOME_PATH.resolve("overrides/ftl").toFile();
             if (override.exists())
                 loaders.add(new FileTemplateLoader(override));
 
@@ -231,11 +231,11 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             loaders.add(new FileTemplateLoader(baseTemplateDir));
 
             // Add template dirs defined by modules.
-            String path = Common.MA_HOME + "/" + Constants.DIR_WEB;
             for (Module module : ModuleRegistry.getModules()) {
                 if (module.getEmailTemplateDirs() != null) {
-                    for(String templateDir : module.getEmailTemplateDirs())
-                        loaders.add(0, new FileTemplateLoader(new File(path + module.getWebPath(), templateDir)));
+                    for(String templateDir : module.getEmailTemplateDirs()) {
+                        loaders.add(0, new FileTemplateLoader(module.modulePath().resolve(templateDir).toFile()));
+                    }
                 }
             }
 

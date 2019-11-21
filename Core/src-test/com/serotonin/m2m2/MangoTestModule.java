@@ -16,26 +16,11 @@ import com.serotonin.m2m2.rt.event.type.MockEventTypeDefinition;
  *
  * @author Terry Packer
  */
-public class MangoTestModule extends Module{
-
-    
-    /**
-     * 
-     */
+public class MangoTestModule extends Module {
     public MangoTestModule(String name) {
         super(name, Version.forIntegers(1, 0, 0), 
                 new TranslatableMessage("common.default", name), 
                 "IAS", "https://www.infiniteautomation.com", null, 1, false);
         this.addDefinition(new MockEventTypeDefinition());
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.Module#getDirectoryPath()
-     */
-    @Override
-    public String getDirectoryPath() {
-        return "";
-    }
-   
-
 }

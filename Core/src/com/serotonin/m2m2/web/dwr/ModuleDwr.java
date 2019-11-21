@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.web.dwr;
 
+import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.module.Module;
 
 abstract public class ModuleDwr extends BaseDwr {
@@ -18,6 +19,6 @@ abstract public class ModuleDwr extends BaseDwr {
     }
 
     public String getModulePath() {
-        return module.getDirectoryPath();
+        return "/" + Constants.DIR_WEB + "/" + Constants.DIR_MODULES + "/" + module.getName();
     }
 }

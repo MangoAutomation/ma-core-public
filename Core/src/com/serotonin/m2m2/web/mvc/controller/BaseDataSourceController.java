@@ -177,7 +177,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             // The data source
             if (dataSourceVO != null) {
                 model.put("dataSource", dataSourceVO);
-                model.put("modulePath", dataSourceVO.getDefinition().getModule().getWebPath());
+                model.put("modulePath", dataSourceVO.getDefinition().getModule().modulePath().toAbsolutePath().toString());
                 dataSourceVO.addEditContext(model);
             }
     

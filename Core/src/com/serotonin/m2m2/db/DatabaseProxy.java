@@ -99,7 +99,7 @@ public interface DatabaseProxy {
 
     String getTableListQuery();
 
-    void runScriptFile(String scriptFile, OutputStream out);
+    void runScriptFile(File scriptFile, OutputStream out);
 
     void doInConnection(ConnectionCallbackVoid callback);
 

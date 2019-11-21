@@ -4,9 +4,12 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Constants;
 
 /**
  * A database schema definition allows a module to create an manage database tables and other objects as necessary to
@@ -20,16 +23,6 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
  * @author Matthew Lohbihler
  */
 abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
-    /**
-     * Provides the module an opportunity to check if it is a new installation (typically by checking if a table that it
-     * uses exists or not). Modules should perform any required installation tasks at this time.
-     * 
-     * NOTE that the dao's are NOT available yet
-     * 
-     * @param ejt
-     *            the JDBC template that provides access to the database
-     */
-    abstract public void newInstallationCheck(ExtendedJdbcTemplate ejt);
 
     /**
      * Modules should add all table names that they manage to the given list. The names are used to perform conversions
@@ -62,4 +55,63 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * @return the database schema version number required by the current code.
      */
     abstract public int getDatabaseSchemaVersion();
+    
+    /**
+     * The module will check for this table and if it does not exist the install scripts
+     *  will be run
+     * @return
+     */
+    abstract public String getNewInstallationCheckTableName();
+
+    /**
+     * Provides the module an opportunity to check if it is a new installation (typically by checking if a table that it
+     * uses exists or not). Modules should perform any required installation tasks at this time.
+     * 
+     * NOTE that the dao's are NOT available yet
+     * 
+     * @param ejt
+     *            the JDBC template that provides access to the database
+     */
+    public void newInstallationCheck(ExtendedJdbcTemplate ejt) {
+        if (!Common.databaseProxy.tableExists(ejt, getNewInstallationCheckTableName())) {
+            Path path = getInstallScriptPath();
+            Common.databaseProxy.runScriptFile(path.toFile(), null);
+        }
+    }
+    
+    /**
+     * Check and un-install if necessary
+     */
+    @Override
+    public void postRuntimeManagerTerminate(boolean uninstall) {
+        if(uninstall) {
+            // Remove the database tables.
+            Path path = getUninstallScriptPath();
+            Common.databaseProxy.runScriptFile(path.toFile(), null);
+        }
+    }
+    
+    /**
+     * Get the install script path based on the database type
+     *  assumes the scripts are within module at web/db/
+     * @return
+     */
+    protected Path getInstallScriptPath() {
+        return getModule().modulePath()
+                .resolve(Constants.DIR_WEB)
+                .resolve(Constants.DIR_DB)
+                .resolve("createTables-" + Common.databaseProxy.getType().name() + ".sql");
+    }
+    
+    /**
+     * Get the un-install script path based on the database type
+     *  assumes the scripts are within module at web/db/
+     * @return
+     */
+    protected Path getUninstallScriptPath() {
+        return getModule().modulePath()
+                .resolve(Constants.DIR_WEB)
+                .resolve(Constants.DIR_DB)
+                .resolve("uninstall.sql");
+    }
 }
