@@ -12,7 +12,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.AbstractRestModel;
  * This is deprecated, use com.serotonin.m2m2.web.mvc.rest.v1.model.RestModelMapping and 
  *   com.infiniteautomation.mango.rest.v2.model.RestModelMapping
  *   
- *   TODO Mango 3.7 (Remove class)
+ *   TODO Mango 4.0 (Remove class)
  *
  */
 @Deprecated
