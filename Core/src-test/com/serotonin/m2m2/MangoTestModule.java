@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
@@ -22,5 +25,14 @@ public class MangoTestModule extends Module {
                 new TranslatableMessage("common.default", name), 
                 "IAS", "https://www.infiniteautomation.com", null, 1, false);
         this.addDefinition(new MockEventTypeDefinition());
+    }
+    @Override
+    public Path moduleDataPath() {
+        return Paths.get("./web/data");
+    }
+    
+    @Override
+    public Path modulePath() {
+        return Paths.get(".");
     }
 }
