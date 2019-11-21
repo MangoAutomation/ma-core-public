@@ -12,6 +12,7 @@ import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
@@ -19,6 +20,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.validation.StringValidation;
 
 /**
  * 
@@ -132,4 +134,65 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         }
     }
 
+    /**
+     * Copy a data source and optionally its points
+     * @param xid
+     * @param copyXid
+     * @param copyName
+     * @param copyDeviceName
+     * @param enabled
+     * @param copyPoints
+     * @param user
+     * @return
+     * @throws PermissionException
+     * @throws NotFoundException
+     */
+    public T copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints, PermissionHolder user) throws PermissionException, NotFoundException {
+        T existing = get(xid, user);
+        ensureCreatePermission(user, existing);
+        //Determine the new name
+        String newName;
+        if(StringUtils.isEmpty(copyName)) {
+            newName = StringUtils.abbreviate(
+                    TranslatableMessage.translate(Common.getTranslations(), "common.copyPrefix", existing.getName()), 40);
+        }else {
+            newName = copyName;
+        }
+        //Determine the new xid
+        String newXid;
+        if(StringUtils.isEmpty(copyXid)) {
+            newXid = DataSourceDao.getInstance().generateUniqueXid();
+        }else {
+            newXid = copyXid;
+        }
+        
+        String newDeviceName;
+        if(StringUtils.isEmpty(copyDeviceName)) {
+            newDeviceName = existing.getName();
+        }else {
+            newDeviceName = copyDeviceName;
+        }
+        //Ensure device name is valid
+        if (StringValidation.isLengthGreaterThan(newDeviceName, 255)) {
+            ProcessResult result = new ProcessResult();
+            result.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
+            throw new ValidationException(result);
+        }
+        
+        T copy = existing.copy();
+        copy.setId(Common.NEW_ID);
+        copy.setName(newName);
+        copy.setXid(newXid);
+        copy.setEnabled(enabled);
+        copy.ensureValid();
+        
+        //Save it
+        Common.runtimeManager.saveDataSource(copy);
+        
+        if(copyPoints) {
+            DataSourceDao.getInstance().copyDataSourcePoints(existing.getId(), copy.getId(), newDeviceName);
+        }
+        return get(newXid, user);
+    }
+    
 }
