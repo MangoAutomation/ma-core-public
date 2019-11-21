@@ -115,7 +115,7 @@ public class Common {
             }
         }
 
-        MA_HOME_PATH = Paths.get(maHome).toAbsolutePath();
+        MA_HOME_PATH = Paths.get(maHome).toAbsolutePath().normalize();
         System.setProperty("ma.home", MA_HOME_PATH.toString());
         MA_HOME = MA_HOME_PATH.toString();
     }
