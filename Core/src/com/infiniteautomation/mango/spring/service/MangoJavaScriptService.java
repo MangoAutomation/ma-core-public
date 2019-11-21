@@ -227,7 +227,7 @@ public class MangoJavaScriptService {
                     script.execute(time, time, vo.getResultDataTypeId());
                     //Convert the UNCHANGED value
                     Object o = script.getResult().getResult();
-                    if(o == UNCHANGED) {
+                    if(o instanceof PointValueTime && ((PointValueTime)o).getValue() == UNCHANGED) {
                         //TODO fix this display hack:
                         String unchanged;
                         if(user instanceof User) {
@@ -491,7 +491,6 @@ public class MangoJavaScriptService {
         Object resultObject = script.getResult().getResult();
         DataValue value = coerce(resultObject, resultDataTypeId);
         script.getResult().setResult(new PointValueTime(value, timestamp));
-
     }
     
     /**
