@@ -28,7 +28,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.BrowserRequestMatcher;
  *
  * @author Terry Packer
  */
-public class MangoErrorHandler extends ErrorHandler{
+public class MangoErrorHandler extends ErrorHandler {
 
     private final String ACCESS_DENIED = "/unauthorized.htm";
 
