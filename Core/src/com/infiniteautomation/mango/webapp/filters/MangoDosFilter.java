@@ -3,7 +3,11 @@
  */
 package com.infiniteautomation.mango.webapp.filters;
 
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+
 import javax.servlet.DispatcherType;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
@@ -11,6 +15,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.eclipse.jetty.servlets.DoSFilter;
+import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.eclipse.jetty.util.thread.Scheduler;
+import org.eclipse.jetty.util.thread.Scheduler.Task;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -18,6 +26,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
+import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.serotonin.m2m2.vo.User;
 
 /**
@@ -49,6 +58,13 @@ import com.serotonin.m2m2.vo.User;
 @Order(FilterOrder.DOS)
 public class MangoDosFilter extends DoSFilter {
     public static final String NAME = "mangoDosFilter";
+    
+    private final MangoExecutors executors; 
+    
+    @Autowired
+    public MangoDosFilter(MangoExecutors executors) {
+        this.executors = executors;
+    }
 
     /**
      * To enable giving priority to logged in users
@@ -74,5 +90,49 @@ public class MangoDosFilter extends DoSFilter {
         }
 
         return null;
+    }
+    
+    @Override
+    protected Scheduler startScheduler() throws ServletException {
+        try {
+            Scheduler result = new MangoDosScheduledExecutorWrapper(executors);
+            result.start();
+            return result;
+        }catch (Exception x) {
+            throw new ServletException(x);
+        }
+    }
+    
+    /**
+     * Wrapper to use our thr
+     * @author Terry Packer
+     *
+     */
+    private static class MangoDosScheduledExecutorWrapper extends AbstractLifeCycle implements Scheduler {
+
+        private final MangoExecutors executors;
+        
+        public MangoDosScheduledExecutorWrapper(MangoExecutors executors) {
+            this.executors = executors;
+        }
+        
+        @Override
+        public Task schedule(Runnable task, long delay, TimeUnit units) {
+            ScheduledFuture<?> result = executors.getScheduledExecutor().schedule(task, delay, units);
+            return new ScheduledFutureTask(result);
+        }
+    }
+    
+    private static class ScheduledFutureTask implements Task {
+        private final ScheduledFuture<?> scheduledFuture;
+
+        ScheduledFutureTask(ScheduledFuture<?> scheduledFuture) {
+            this.scheduledFuture = scheduledFuture;
+        }
+
+        @Override
+        public boolean cancel() {
+            return scheduledFuture.cancel(false);
+        }
     }
 }
