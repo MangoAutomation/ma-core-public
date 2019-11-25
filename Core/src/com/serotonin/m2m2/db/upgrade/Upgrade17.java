@@ -3,8 +3,12 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.serotonin.m2m2.db.DatabaseProxy;
 
@@ -19,6 +23,25 @@ public class Upgrade17 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2);
+        
+        //Check event detector lengths to ensure we won't make them longer than 50 (the max XID column length)
+        this.ejt.query("SELECT id,xid FROM eventDetectors", new RowCallbackHandler() {
+
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int id = rs.getInt(1);
+                String xid = rs.getString(2);
+                String newXid = xid + "_" + id;
+                if(newXid.length() > 50) {
+                    //Trim and update
+                    int over = newXid.length() - 50;
+                    xid = xid.substring(over, xid.length());
+                    ejt.update("UPDATE eventDetectors SET xid=? WHERE id=?", new Object[] {xid, id});
+                }
+            }
+            
+        });
+        
         runScript(scripts);
 	}
 

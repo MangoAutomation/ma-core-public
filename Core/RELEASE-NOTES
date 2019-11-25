@@ -46,6 +46,7 @@
 * Upgrade Jetty to 9.4.24.v20191120
 * Remove unused env property db.url from h2 configuration section
 * Remove java-9-compat extension scripts as they are not necessary anymore as those dependencies are included with Mango
+* Bugfix for database Upgrade 17 where long event detector XIDs could cause a failure to upgrade
 
 *Version 3.6.4*
 * Revert data source management permission to only allow creating new data sources, not give access to all data sources
