@@ -42,7 +42,7 @@ import com.serotonin.m2m2.vo.User;
         urlPatterns = {"/*"},
         initParams = {
                 @WebInitParam(name = "managedAttr", value = "false"),
-                @WebInitParam(name = "maxRequestsPerSec", value = "${web.dos.maxRequestsPerSec:25}"),
+                @WebInitParam(name = "maxRequestsPerSec", value = "${web.dos.maxRequestsPerSec:75}"),
                 @WebInitParam(name = "delayMs", value = "${web.dos.delayMs:100}"),
                 @WebInitParam(name = "throttledRequests", value = "${web.dos.throttledRequests:5}"),
                 @WebInitParam(name = "maxWaitMs", value = "${web.dos.maxWaitMs:50}"),
