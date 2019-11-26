@@ -1,3 +1,9 @@
+*Version 3.7.1*
+* Fix bug in MySQL where system settings were not being saved
+* Disable Quality of Service filter by default
+* Disable Denial of Service filter by default
+* Disable Low Resource Manager by default
+
 *Version 3.7.0*
 * Add organization field to User with limit of 80 chars
 * Add organizationalRole field to User with limit of 80 chars
