@@ -35,7 +35,7 @@ import com.serotonin.m2m2.vo.User;
  * @author Jared Wiltshire
  */
 @Component(MangoDosFilter.NAME)
-@ConditionalOnProperty("${web.dos.enabled:true}")
+@ConditionalOnProperty("${web.dos.enabled:false}")
 @WebFilter(
         filterName = MangoDosFilter.NAME,
         asyncSupported = true,
@@ -58,9 +58,9 @@ import com.serotonin.m2m2.vo.User;
 @Order(FilterOrder.DOS)
 public class MangoDosFilter extends DoSFilter {
     public static final String NAME = "mangoDosFilter";
-    
-    private final MangoExecutors executors; 
-    
+
+    private final MangoExecutors executors;
+
     @Autowired
     public MangoDosFilter(MangoExecutors executors) {
         this.executors = executors;
@@ -91,7 +91,7 @@ public class MangoDosFilter extends DoSFilter {
 
         return null;
     }
-    
+
     @Override
     protected Scheduler startScheduler() throws ServletException {
         try {
@@ -102,7 +102,7 @@ public class MangoDosFilter extends DoSFilter {
             throw new ServletException(x);
         }
     }
-    
+
     /**
      * Wrapper to use our thr
      * @author Terry Packer
@@ -111,18 +111,18 @@ public class MangoDosFilter extends DoSFilter {
     private static class MangoDosScheduledExecutorWrapper extends AbstractLifeCycle implements Scheduler {
 
         private final MangoExecutors executors;
-        
+
         public MangoDosScheduledExecutorWrapper(MangoExecutors executors) {
             this.executors = executors;
         }
-        
+
         @Override
         public Task schedule(Runnable task, long delay, TimeUnit units) {
             ScheduledFuture<?> result = executors.getScheduledExecutor().schedule(task, delay, units);
             return new ScheduledFutureTask(result);
         }
     }
-    
+
     private static class ScheduledFutureTask implements Task {
         private final ScheduledFuture<?> scheduledFuture;
 
