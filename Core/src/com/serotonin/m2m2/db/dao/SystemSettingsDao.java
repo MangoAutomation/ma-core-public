@@ -528,7 +528,7 @@ public class SystemSettingsDao extends BaseDao {
                     if(value == null) {
                         removeValue(key);
                     }else {
-                        ejt2.update("insert into systemSettings values (?,?) on duplicate key update settingName=?", new Object[] { key, value, key });
+                        ejt2.update("insert into systemSettings values (?,?) on duplicate key update settingValue=?", new Object[] { key, value, value });
                     }
                 }else {
                     // Delete any existing value.
