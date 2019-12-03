@@ -14,6 +14,7 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
+import com.serotonin.json.type.JsonTypeWriter;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -39,13 +40,15 @@ public class EmportDwr extends BaseDwr {
     }
 
     public static String export(Map<String, Object> data, int prettyIndent) {
+        JsonTypeWriter typeWriter = new JsonTypeWriter(Common.JSON_CONTEXT);
         StringWriter stringWriter = new StringWriter();
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
         writer.setPrettyIndent(prettyIndent);
         writer.setPrettyOutput(true);
 
         try {
-            writer.writeObject(data);
+            JsonValue export = typeWriter.writeObject(data);
+            writer.writeObject(export);
             return stringWriter.toString();
         }
         catch (JsonException e) {
