@@ -5,18 +5,18 @@ package com.serotonin.m2m2.db.upgrade;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.dao.DataAccessException;
-import org.springframework.jdbc.core.ResultSetExtractor;
 
-import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 
@@ -28,56 +28,54 @@ import com.serotonin.m2m2.db.DatabaseProxy;
  * Add data column to users table
  * Make email addresses unique
  * Make createdTs column NOT NULL
- * 
- * 
+ *
+ *
  * @author Terry Packer
  *
  */
 public class Upgrade28 extends DBUpgrade {
-    
+
     private final Log LOG = LogFactory.getLog(Upgrade28.class);
-    
+
     @Override
     protected void upgrade() throws Exception {
         OutputStream out = createUpdateLogOutputStream();
         //Update User table to have unique email addresses
         //First update duplicate email addresses
         try {
-            Map<Integer, StringStringPair> toChange = query("SELECT id,username,email FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,StringStringPair>>(){
-    
-                @Override
-                public Map<Integer, StringStringPair> extractData(ResultSet rs)
-                        throws SQLException, DataAccessException {
-                    Map<Integer, StringStringPair> remove = new HashMap<>();
-                    Map<String, Integer> existing = new HashMap<>();
-                    while(rs.next()) {
-                        if(null != existing.put(rs.getString(3), rs.getInt(1))) {
-                            remove.put(rs.getInt(1), new StringStringPair(rs.getString(2), rs.getString(3)));
-                        }
+            List<UsernameEmail> duplicates = query("SELECT id,username,email FROM users ORDER BY id asc", rs -> {
+                List<UsernameEmail> dupes = new ArrayList<>();
+                Set<String> existing = new HashSet<>();
+
+                while (rs.next()) {
+                    int id =  rs.getInt(1);
+                    String username = rs.getString(2);
+                    String email = rs.getString(3);
+
+                    if (!existing.add(email.toLowerCase(Locale.ENGLISH))) {
+                        dupes.add(new UsernameEmail(id, username, email));
                     }
-                    return remove;
                 }
-                
+
+                return dupes;
             });
-            
-            if(toChange.keySet().size() > 0) {
-                toChange.keySet().stream().forEach((key) -> {
-                    String username = toChange.get(key).getKey();
-                    String email = toChange.get(key).getValue();
-                    String uniqueEmail = email + UUID.randomUUID();
+
+            if (duplicates.size() > 0) {
+                duplicates.stream().forEach(u -> {
+                    String uniqueEmail = u.email + UUID.randomUUID();
                     if(uniqueEmail.length() > 255) {
                         uniqueEmail = uniqueEmail.substring(uniqueEmail.length() - 255, uniqueEmail.length());
                     }
-                    ejt.update("UPDATE users SET email=? WHERE id=?", new Object[] {uniqueEmail, key});
-                    LOG.warn("Changing email address for user with duplicate email '" + email + "' with id " + key + " and username '" + username + "' to " + uniqueEmail);
+                    ejt.update("UPDATE users SET email=? WHERE id=?", new Object[] {uniqueEmail, u.id});
+                    LOG.warn("Changing email address for user with duplicate email '" + u.email + "' with id " + u.id + " and username '" + u.username + "' to " + uniqueEmail);
                     PrintWriter pw = new PrintWriter(out);
-                    pw.write("WARN: Changing email address for user with duplicate email '" + email + "' with id " + key + " and username '" + username + "' to " + uniqueEmail);
+                    pw.write("WARN: Changing email address for user with duplicate email '" + u.email + "' with id " + u.id + " and username '" + u.username + "' to " + uniqueEmail);
                     pw.flush();
                 });
             } else {
                 LOG.info("No duplicate email addresses on users, no user email addresses modified.");
             }
-            
+
             //Create columns for user table
             Map<String, String[]> scripts = new HashMap<>();
             scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sqlJSON);
@@ -85,7 +83,7 @@ public class Upgrade28 extends DBUpgrade {
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlJSON);
             runScript(scripts, out);
-            
+
             //Set all the timestamps for the created date to now
             long now = Common.timer.currentTimeMillis();
             scripts.clear();
@@ -96,7 +94,7 @@ public class Upgrade28 extends DBUpgrade {
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), setCreatedTs);
             runScript(scripts, out);
 
-            
+
             //add non null constraint to createdTs
             scripts.clear();
             scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlAlterUserCreatedTimestamp);
@@ -104,7 +102,7 @@ public class Upgrade28 extends DBUpgrade {
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sqlAlterUserCreatedTimestamp);
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlAlterUserCreatedTimestamp);
             runScript(scripts, out);
-            
+
             //add unique constraint to email
             scripts.clear();
             scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sqlUniqueEmail);
@@ -117,7 +115,7 @@ public class Upgrade28 extends DBUpgrade {
             out.close();
         }
     }
-    
+
     private String[] sql = new String[]{
             "ALTER TABLE users ADD COLUMN organization varchar(80);",
             "ALTER TABLE users ADD COLUMN organizationalRole varchar(80);",
@@ -139,7 +137,7 @@ public class Upgrade28 extends DBUpgrade {
             "ALTER TABLE users ADD COLUMN emailVerifiedTs bigint;",
             "ALTER TABLE users ADD COLUMN data ntext;",
     };
-    
+
     private String[] mysqlAlterUserCreatedTimestamp = new String[] {
             "ALTER TABLE users MODIFY COLUMN createdTs BIGINT NOT NULL;"
     };
@@ -150,9 +148,22 @@ public class Upgrade28 extends DBUpgrade {
     private String[] sqlUniqueEmail = new String[] {
             "ALTER TABLE users ADD CONSTRAINT email_unique UNIQUE(email);"
     };
-    
+
     @Override
     protected String getNewSchemaVersion() {
         return "29";
     }
+
+    private static class UsernameEmail {
+        final int id;
+        final String username;
+        final String email;
+
+        public UsernameEmail(int id, String username, String email) {
+            this.id = id;
+            this.username = username;
+            this.email = email;
+        }
+    }
+
 }
