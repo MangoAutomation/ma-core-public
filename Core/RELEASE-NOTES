@@ -1,3 +1,6 @@
+*Version 3.7.3*
+* Fix bug in leagcy UI introduced in 3.7.0 where loading module UI resources was not working
+
 *Version 3.7.2*
 * Fix bug in upgrade script for schema version 28, use case insensitive comparison for email addresses
 * Fix invalid date encoding in the configuration import/export JSON
