@@ -541,7 +541,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
      * @return
      * @throws MalformedURLException
      */
-    public static ClassLoader loadLegacyJar() throws MalformedURLException {
+    public static URLClassLoader loadLegacyJar() throws MalformedURLException {
         return new ParentLastURLClassLoader(new URL[] {Common.MA_HOME_PATH.resolve("boot/h2-1.4.196.jar").toUri().toURL()});
     }
 
@@ -551,7 +551,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
      * 
      * For those not familiar with class loading trickery, be wary
      */
-    public static class ParentLastURLClassLoader extends ClassLoader {
+    public static class ParentLastURLClassLoader extends URLClassLoader {
         private ChildURLClassLoader childClassLoader;
 
         /**
@@ -594,8 +594,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
         }
 
         public ParentLastURLClassLoader(URL[] urls) {
-            super(Thread.currentThread().getContextClassLoader());
-            childClassLoader = new ChildURLClassLoader( urls, new FindClassClassLoader(this.getParent()) );
+            super(new URL[0], Thread.currentThread().getContextClassLoader());
+            childClassLoader = new ChildURLClassLoader(urls, new FindClassClassLoader(this.getParent()) );
         }
 
         @Override
