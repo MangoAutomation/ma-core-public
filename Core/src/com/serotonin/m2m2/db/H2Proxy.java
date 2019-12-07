@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -24,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import javax.sql.DataSource;
 
@@ -157,8 +160,11 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 if(e.getCause() instanceof JdbcSQLIntegrityConstraintViolationException) {
                     //This is very likely a db that failed to open due to it being a legacy DB that was already opened 1x by a later H2 driver
                     throw new ShouldNeverHappenException("H2 Failed to start. Likely corrupt database, a clean backup can be found here: " + dumpPath.toString());
-                }else
+                }if(e instanceof InvocationTargetException) {
+                    throw new ShouldNeverHappenException(e.getCause());
+                }else {
                     throw new ShouldNeverHappenException(e);
+                }
             }
         }
     }
@@ -488,9 +494,8 @@ public class H2Proxy extends AbstractDatabaseProxy {
         tempDirectoryFile.mkdirs();
         tempDirectoryFile.deleteOnExit();
         
-        URLClassLoader jarLoader = loadLegacyJar();
-
-        Class<?> driverManager = Class.forName("java.sql.DriverManager", false, jarLoader);
+        ClassLoader jarLoader = loadLegacyJar();
+        Class<?> driverManager = Class.forName("org.h2.Driver", false, jarLoader);
         
         String url = Common.envProps.getString("db.url");
         url = StringUtils.replaceMacros(url, System.getProperties());
@@ -505,9 +510,20 @@ public class H2Proxy extends AbstractDatabaseProxy {
         }
         String user = Common.envProps.getString("db.username", null);
         String password = Common.envProps.getString("db.password", null);
-
-        Method connect = driverManager.getMethod("getConnection", String.class, String.class, String.class);
-        try(Connection conn = (Connection)connect.invoke(null, url, user, password)){
+        Properties connectionProperties = new Properties();
+        if(user != null) {
+            connectionProperties.put("user", user);
+        }
+        if(password != null) {
+            connectionProperties.put("password", password);
+        }
+        
+        Method connect = driverManager.getMethod("connect", String.class, Properties.class);
+        //Get the INSTANCE to work on
+        Field instance = driverManager.getDeclaredField("INSTANCE");
+        instance.setAccessible(true);
+        
+        try(Connection conn = (Connection)connect.invoke(instance.get(driverManager), url, connectionProperties)){
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
             if(rs.next()) {
@@ -521,12 +537,76 @@ public class H2Proxy extends AbstractDatabaseProxy {
     }
     
     /**
-     * Load the legacy H2 Driver into an isolated class loaded
+     * Load the legacy H2 Driver into an isolated class loader
      * @return
      * @throws MalformedURLException
      */
-    public static URLClassLoader loadLegacyJar() throws MalformedURLException {
-        return new URLClassLoader(new URL[] {Common.MA_HOME_PATH.resolve("boot/h2-1.4.196.jar").toUri().toURL()});
+    public static ClassLoader loadLegacyJar() throws MalformedURLException {
+        return new ParentLastURLClassLoader(new URL[] {Common.MA_HOME_PATH.resolve("boot/h2-1.4.196.jar").toUri().toURL()});
     }
-    
+
+    /**
+     * A parent-last classloader that will try the child classloader first and then the parent.
+     * This takes a fair bit of doing because java really prefers parent-first.
+     * 
+     * For those not familiar with class loading trickery, be wary
+     */
+    public static class ParentLastURLClassLoader extends ClassLoader {
+        private ChildURLClassLoader childClassLoader;
+
+        /**
+         * This class allows me to call findClass on a classloader
+         */
+        private static class FindClassClassLoader extends ClassLoader {
+            public FindClassClassLoader(ClassLoader parent) {
+                super(parent);
+            }
+
+            @Override
+            public Class<?> findClass(String name) throws ClassNotFoundException {
+                return super.findClass(name);
+            }
+        }
+
+        /**
+         * This class delegates (child then parent) for the findClass method for a URLClassLoader.
+         * We need this because findClass is protected in URLClassLoader
+         */
+        private static class ChildURLClassLoader extends URLClassLoader {
+            private FindClassClassLoader realParent;
+
+            public ChildURLClassLoader(URL[] urls, FindClassClassLoader realParent ) {
+                super(urls, null);
+
+                this.realParent = realParent;
+            }
+
+            @Override
+            public Class<?> findClass(String name) throws ClassNotFoundException {
+                try {
+                    // first try to use the URLClassLoader findClass
+                    return super.findClass(name);
+                } catch( ClassNotFoundException e ) {
+                    // if that fails, we ask our real parent classloader to load the class (we give up)
+                    return realParent.loadClass(name);
+                }
+            }
+        }
+
+        public ParentLastURLClassLoader(URL[] urls) {
+            super(Thread.currentThread().getContextClassLoader());
+            childClassLoader = new ChildURLClassLoader( urls, new FindClassClassLoader(this.getParent()) );
+        }
+
+        @Override
+        protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+            try {
+                // first we try to find a class inside the child classloader
+                return childClassLoader.findClass(name);
+            } catch( ClassNotFoundException e ) {
+                // didn't find it, try the parent
+                return super.loadClass(name, resolve);
+            }
+        }
+    }
 }
