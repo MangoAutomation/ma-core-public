@@ -185,7 +185,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>point-links</artifactId>
-			<version>3.7.1-SNAPSHOT</version>
+			<version>3.7.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -258,7 +258,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>datafile-ds</artifactId>
-			<version>3.7.1-SNAPSHOT</version>
+			<version>3.7.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
@@ -433,7 +433,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>excel-reports</artifactId>
-			<version>3.7.1-SNAPSHOT</version>
+			<version>3.7.2-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
