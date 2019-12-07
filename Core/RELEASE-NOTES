@@ -1,3 +1,6 @@
+*Version 3.7.4*
+* Improve work item failure logging
+
 *Version 3.7.3*
 * Fix bug in leagcy UI introduced in 3.7.0 where loading module UI resources was not working
 * Fix bug in H2 conversion to version 199 that could corrupt the database if the upgrade failed

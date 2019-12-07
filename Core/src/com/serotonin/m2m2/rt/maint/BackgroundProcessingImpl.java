@@ -671,7 +671,14 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
                 item.execute();
             }
             catch (Throwable t) {
-            	log.error("Error in work item", t);
+                String message = "Error in work item ";
+                if(item.getDescription() != null) {
+                    message += item.getDescription();
+                }
+                if(item.getTaskId() != null) {
+                    message += " with id " + item.getTaskId();
+                }
+            	log.error(message, t);
             }
         }
 
