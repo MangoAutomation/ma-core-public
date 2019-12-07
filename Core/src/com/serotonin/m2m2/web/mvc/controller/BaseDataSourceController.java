@@ -20,6 +20,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.infiniteautomation.mango.io.serial.SerialPortConfigException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -177,7 +178,7 @@ public abstract class BaseDataSourceController extends ParameterizableViewContro
             // The data source
             if (dataSourceVO != null) {
                 model.put("dataSource", dataSourceVO);
-                model.put("modulePath", dataSourceVO.getDefinition().getModule().modulePath().toAbsolutePath().toString());
+                model.put("modulePath", "/" + Constants.DIR_MODULES + "/" + dataSourceVO.getDefinition().getModule().getName());
                 dataSourceVO.addEditContext(model);
             }
     
