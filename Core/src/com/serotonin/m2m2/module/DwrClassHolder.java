@@ -15,5 +15,11 @@ public interface DwrClassHolder {
      * @return the DWR proxy
      */
     Class<?> getDwrClass();
+    
+    /**
+     * The module of the DWR used when creating the DWR.  Cannot be null.
+     * @return
+     */
+    Module getModule();
 
 }
