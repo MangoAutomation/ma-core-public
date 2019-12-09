@@ -38,6 +38,7 @@ import com.serotonin.m2m2.web.dwr.StartupDwr;
 import com.serotonin.m2m2.web.dwr.util.BlabberBeanConverter;
 import com.serotonin.m2m2.web.dwr.util.BlabberConverterManager;
 import com.serotonin.m2m2.web.dwr.util.DwrClassConversion;
+import com.serotonin.m2m2.web.dwr.util.ModuleDwrCreator;
 
 /**
  * @author Jared Wiltshire
@@ -82,23 +83,35 @@ public final class MangoDwrServlet extends DwrServlet {
         // Register declared DWR proxy classes
         CreatorManager creatorManager = (CreatorManager) container.getBean(CreatorManager.class.getName());
 
-        Set<Class<?>> classes = new HashSet<>();
-        classes.add(StartupDwr.class);
-
+        //Setup the startup dwr
+        String js = StartupDwr.class.getSimpleName();
+        NewCreator c = new NewCreator();
+        c.setClass(StartupDwr.class.getName());
+        c.setScope(Creator.APPLICATION);
+        c.setJavascript(js);
+        try {
+            creatorManager.addCreator(js, c);
+            log.info("Added DWR definition for: " + js);
+        } catch (IllegalArgumentException e) {
+            log.info("Duplicate definition of DWR class ignored: " + StartupDwr.class.getName());
+        }
+        
+        Set<DwrClassHolder> classes = new HashSet<>();
         MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, DwrClassHolder.class).stream()
-        .forEach(def -> classes.add(def.getDwrClass()));
+            .forEach(def -> classes.add(def));
 
-        for (Class<?> clazz : classes) {
+        for (DwrClassHolder holder : classes) {
+            Class<?> clazz = holder.getDwrClass();
             if (clazz != null) {
-                String js = clazz.getSimpleName();
+                String moduleJs = clazz.getSimpleName();
 
-                NewCreator c = new NewCreator();
-                c.setClass(clazz.getName());
-                c.setScope(Creator.APPLICATION);
-                c.setJavascript(js);
+                ModuleDwrCreator creator  = new ModuleDwrCreator(holder.getModule());
+                creator.setClass(clazz.getName());
+                creator.setScope(Creator.APPLICATION);
+                creator.setJavascript(moduleJs);
                 try {
-                    creatorManager.addCreator(js, c);
-                    log.info("Added DWR definition for: " + js);
+                    creatorManager.addCreator(moduleJs, creator);
+                    log.info("Added DWR definition for: " + moduleJs);
                 } catch (IllegalArgumentException e) {
                     log.info("Duplicate definition of DWR class ignored: " + clazz.getName());
                 }
