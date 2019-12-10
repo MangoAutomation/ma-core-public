@@ -34,6 +34,7 @@ import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.serotonin.m2m2.module.DwrClassHolder;
 import com.serotonin.m2m2.module.DwrConversionDefinition;
 import com.serotonin.m2m2.module.Module;
+import com.serotonin.m2m2.web.dwr.ModuleDwr;
 import com.serotonin.m2m2.web.dwr.StartupDwr;
 import com.serotonin.m2m2.web.dwr.util.BlabberBeanConverter;
 import com.serotonin.m2m2.web.dwr.util.BlabberConverterManager;
@@ -104,8 +105,12 @@ public final class MangoDwrServlet extends DwrServlet {
             Class<?> clazz = holder.getKey();
             if (clazz != null) {
                 String moduleJs = clazz.getSimpleName();
-
-                ModuleDwrCreator creator  = new ModuleDwrCreator(holder.getValue());
+                NewCreator creator;
+                if(ModuleDwr.class.isAssignableFrom(clazz)) {
+                    creator  = new ModuleDwrCreator(holder.getValue());
+                }else {
+                    creator = new NewCreator();
+                }
                 creator.setClass(clazz.getName());
                 creator.setScope(Creator.APPLICATION);
                 creator.setJavascript(moduleJs);
