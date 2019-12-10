@@ -84,31 +84,20 @@ public final class MangoDwrServlet extends DwrServlet {
         // Register declared DWR proxy classes
         CreatorManager creatorManager = (CreatorManager) container.getBean(CreatorManager.class.getName());
 
-        //Setup the startup dwr
-        String js = StartupDwr.class.getSimpleName();
-        NewCreator c = new NewCreator();
-        c.setClass(StartupDwr.class.getName());
-        c.setScope(Creator.APPLICATION);
-        c.setJavascript(js);
-        try {
-            creatorManager.addCreator(js, c);
-            log.debug("Added DWR definition for: " + js);
-        } catch (IllegalArgumentException e) {
-            log.warn("Duplicate definition of DWR class ignored: " + StartupDwr.class.getName());
-        }
-        
         Map<Class<?>, Module> classes = new HashMap<>();
+        classes.put(StartupDwr.class, null);
+
         MangoCommonConfiguration.beansOfTypeIncludingAncestors(beanFactory, DwrClassHolder.class).stream()
-            .forEach(def -> classes.put(def.getDwrClass(), def.getModule()));
+        .forEach(def -> classes.put(def.getDwrClass(), def.getModule()));
 
         for (Entry<Class<?>, Module> holder : classes.entrySet()) {
             Class<?> clazz = holder.getKey();
             if (clazz != null) {
                 String moduleJs = clazz.getSimpleName();
                 NewCreator creator;
-                if(ModuleDwr.class.isAssignableFrom(clazz)) {
+                if (ModuleDwr.class.isAssignableFrom(clazz)) {
                     creator  = new ModuleDwrCreator(holder.getValue());
-                }else {
+                } else {
                     creator = new NewCreator();
                 }
                 creator.setClass(clazz.getName());
