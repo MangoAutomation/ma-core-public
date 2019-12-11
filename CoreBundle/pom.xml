@@ -258,7 +258,7 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>datafile-ds</artifactId>
-			<version>3.7.2-SNAPSHOT</version>
+			<version>3.7.3-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
