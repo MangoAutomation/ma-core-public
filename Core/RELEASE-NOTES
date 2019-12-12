@@ -1,9 +1,8 @@
-*Version 3.7.5*
-* Fix DWR bug in legacy UI where module was not being assigned to the DWR upon creation
-* Fix bug in User JSON importer where new users could not be created
-
 *Version 3.7.4*
 * Improve work item failure logging
+* Fix DWR bug in legacy UI where module was not being assigned to the DWR upon creation
+* Fix bug in User JSON importer where new users could not be created
+* Fix bug where publishing lifecycle events when runtime context was closed could cause problems
 
 *Version 3.7.3*
 * Fix bug in leagcy UI introduced in 3.7.0 where loading module UI resources was not working
