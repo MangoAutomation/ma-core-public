@@ -2,6 +2,7 @@ package com.serotonin.m2m2.web.dwr.emport.importers;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
@@ -32,7 +33,12 @@ public class UserImporter extends Importer {
         else if((this.user != null)&&(StringUtils.equals(this.user.getPermissionHolderName(), username))){
             addFailureMessage("emport.user.cannotImportCurrentUser");
         }else {
-            User existing = ctx.getUsersService().get(username, user);
+            User existing = null;
+            try {
+                existing = ctx.getUsersService().get(username, user);
+            }catch(NotFoundException e) {
+                existing = null;
+            }
             User imported;
             if (existing == null) {
                 imported = new User();
