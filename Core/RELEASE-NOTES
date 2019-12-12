@@ -1,5 +1,6 @@
 *Version 3.7.5*
 * Fix DWR bug in legacy UI where module was not being assigned to the DWR upon creation
+* Fix bug in User JSON importer where new users could not be created
 
 *Version 3.7.4*
 * Improve work item failure logging
