@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 
 import com.serotonin.json.JsonException;
@@ -18,16 +17,10 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
 
@@ -137,68 +130,6 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
         interval += dt.getHourOfDay() * 4;
         interval += (dt.getDayOfWeek() - 1) * 96;
         return interval;
-    }
-
-    @Override
-    public void validate(ProcessResult result) {
-        super.validate(result);
-        if(receiveAlarmEmails == null)
-            result.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
-
-        if(entries == null || entries.size() == 0)
-            result.addContextualMessage("recipients", "mailingLists.validate.entries");
-        else {
-            int index = 0;
-            for(EmailRecipient recipient : entries) {
-                switch(recipient.getRecipientType()) {
-                    case EmailRecipient.TYPE_ADDRESS:
-                        //TODO Ensure valid email format...
-                        AddressEntry ee = (AddressEntry)recipient;
-                        if (StringUtils.isBlank(ee.getAddress()))
-                            result.addContextualMessage("recipients[" + index + "]", "validate.required");
-                        break;
-                    case EmailRecipient.TYPE_MAILING_LIST:
-                        result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
-                        break;
-                    case EmailRecipient.TYPE_USER:
-                        //Ensure the user exists
-                        UserEntry ue = (UserEntry)recipient;
-                        if(UserDao.getInstance().get(ue.getUserId()) == null)
-                            result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
-                        break;
-                }
-                index++;
-            }
-        }
-
-        User savingUser = Common.getUser();
-        PermissionHolder savingPermissionHolder = savingUser;
-        if(savingUser == null) {
-            savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
-        }
-
-        Set<String> existingReadPermission;
-        Set<String> existingEditPermission;
-        if(this.id != Common.NEW_ID) {
-            MailingList vo = MailingListDao.getInstance().get(id);
-            if(vo != null) {
-                existingReadPermission = vo.getReadPermissions();
-                existingEditPermission = vo.getEditPermissions();
-            }else {
-                existingReadPermission = null;
-                existingEditPermission = null;
-            }
-        }else {
-            existingReadPermission = null;
-            existingEditPermission = null;
-        }
-        Permissions.validatePermissions(result, "readPermissions", savingPermissionHolder, false, existingReadPermission, readPermissions);
-        Permissions.validatePermissions(result, "editPermissions", savingPermissionHolder, false, existingEditPermission, editPermissions);
-
-        if(inactiveIntervals != null) {
-            if(inactiveIntervals.size() > 672)
-                result.addContextualMessage("inactiveSchedule", "validate.invalidValue");
-        }
     }
 
     @Override

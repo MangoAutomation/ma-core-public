@@ -16,6 +16,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.validation.StringValidation;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -49,8 +50,22 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      */
     public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
-        vo.validate(result);
+        if (StringUtils.isBlank(vo.getXid()))
+            result.addContextualMessage("xid", "validate.required");
+        else if (StringValidation.isLengthGreaterThan(vo.getXid(), 100))
+            result.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 100));
+        else if (!isXidUnique(vo.getXid(), vo.getId()))
+            result.addContextualMessage("xid", "validate.xidUsed");
+
+        if (StringUtils.isBlank(vo.getName()))
+            result.addContextualMessage("name", "validate.required");
+        else if (StringValidation.isLengthGreaterThan(vo.getName(), 255))
+            result.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
         return result;
+    }
+
+    protected boolean isXidUnique(String xid, int id){
+        return dao.isXidUnique(xid,id);
     }
     
     /**
@@ -76,9 +91,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @return
      */
     public ProcessResult validate(T existing, T vo, PermissionHolder user) {
-        ProcessResult result = new ProcessResult();
-        vo.validate(result);
-        return result;
+        return validate(vo, user);
     }
     
     /**
