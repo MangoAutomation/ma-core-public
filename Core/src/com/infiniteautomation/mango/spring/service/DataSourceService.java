@@ -31,8 +31,8 @@ import com.serotonin.validation.StringValidation;
 public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOService<T, DataSourceDao<T>> {
 
     @Autowired
-    public DataSourceService(DataSourceDao<T> dao) {
-        super(dao);
+    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService) {
+        super(dao, permissionService);
     }
 
     @Override

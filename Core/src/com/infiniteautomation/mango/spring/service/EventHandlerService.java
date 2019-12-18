@@ -20,8 +20,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends AbstractVOService<T, EventHandlerDao<T>> {
 
     @Autowired
-    public EventHandlerService(EventHandlerDao<T> dao) {
-        super(dao);
+    public EventHandlerService(EventHandlerDao<T> dao, PermissionService permissionService) {
+        super(dao, permissionService);
     }
 
     @Override

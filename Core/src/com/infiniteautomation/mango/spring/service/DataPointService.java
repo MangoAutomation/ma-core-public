@@ -25,8 +25,8 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 public class DataPointService extends AbstractVOService<DataPointVO, DataPointDao> {
 
     @Autowired
-    public DataPointService(DataPointDao dao) {
-        super(dao);
+    public DataPointService(DataPointDao dao, PermissionService permissionService) {
+        super(dao, permissionService);
     }
 
     @Override

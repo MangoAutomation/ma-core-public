@@ -38,8 +38,8 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     private final DataPointService dataPointService;
     
     @Autowired
-    public EventInstanceService(EventInstanceDao dao, DataPointService dataPointService) {
-        super(dao);
+    public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointService dataPointService) {
+        super(dao, permissionService);
         this.dataPointService = dataPointService;
     }
 

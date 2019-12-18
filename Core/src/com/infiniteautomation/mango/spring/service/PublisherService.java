@@ -26,8 +26,8 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 public class PublisherService<T extends PublishedPointVO> extends AbstractVOService<PublisherVO<T>, PublisherDao<T>> {
 
     @Autowired 
-    public PublisherService(PublisherDao<T> dao) {
-        super(dao);
+    public PublisherService(PublisherDao<T> dao, PermissionService permissionService) {
+        super(dao, permissionService);
     }
 
     @Override

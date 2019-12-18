@@ -56,8 +56,8 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     private final SystemSettingsDao systemSettings;
     
     @Autowired
-    public UsersService(UserDao dao, SystemSettingsDao systemSettings) {
-        super(dao);
+    public UsersService(UserDao dao, PermissionService permissionService, SystemSettingsDao systemSettings) {
+        super(dao, permissionService);
         this.systemSettings = systemSettings;
     }
 

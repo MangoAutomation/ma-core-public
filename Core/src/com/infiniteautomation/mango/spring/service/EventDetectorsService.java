@@ -25,6 +25,11 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 @Service
 public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends AbstractVOService<T, EventDetectorDao<T>>{
 
+    @Autowired
+    public EventDetectorsService(EventDetectorDao<T> dao, PermissionService permissionService) {
+        super(dao, permissionService);
+    }
+    
     /**
      * Save a detector an optionally reload its source
      * @param vo
@@ -82,11 +87,6 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
         T vo = super.delete(xid, user);
         vo.getDefinition().restartSource(vo);
         return vo;
-    }
-    
-    @Autowired
-    public EventDetectorsService(EventDetectorDao<T> dao) {
-        super(dao);
     }
 
     @Override

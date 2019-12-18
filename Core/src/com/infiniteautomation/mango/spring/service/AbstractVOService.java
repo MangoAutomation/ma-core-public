@@ -29,9 +29,11 @@ import net.jazdw.rql.parser.ASTNode;
 public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractDao<T>> {
     
     protected final DAO dao;
+    protected final PermissionService permissionService;
     
-    public AbstractVOService(DAO dao) {
+    public AbstractVOService(DAO dao, PermissionService permissionService) {
         this.dao = dao;
+        this.permissionService = permissionService;
     }
     
     /**
