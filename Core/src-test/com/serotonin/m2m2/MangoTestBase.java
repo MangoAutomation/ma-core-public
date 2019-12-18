@@ -229,21 +229,39 @@ public class MangoTestBase {
     protected List<User> createUsers(int count, String permissions){
         List<User> users = new ArrayList<>();
         for(int i=0; i<count; i++) {
-            User user = new User();
-            user.setId(Common.NEW_ID);
-            user.setName("User" + i);
-            user.setUsername("user" + i);
-            user.setPassword(Common.encrypt("password"));
-            user.setEmail("user" + i + "@yourMangoDomain.com");
-            user.setPhone("");
-            user.setPermissions(permissions);
-            user.setDisabled(false);
-            validate(user);
-            
-            UserDao.getInstance().saveUser(user);
+            User user = createUser("User" + i,
+                    "user" + i,
+                    "password",
+                    "user" + i + "@yourMangoDomain.com",
+                    permissions);
             users.add(user);
         }
         return users;
+    }
+    
+    /**
+     * Create a single user
+     * @param name
+     * @param username
+     * @param password
+     * @param email
+     * @param roles
+     * @return
+     */
+    protected User createUser(String name, String username, String password, String email, String roles) {
+        User user = new User();
+        user.setId(Common.NEW_ID);
+        user.setName(name);
+        user.setUsername(username);
+        user.setPassword(Common.encrypt(password));
+        user.setEmail(email);
+        user.setPhone("");
+        user.setPermissions(roles);
+        user.setDisabled(false);
+        validate(user);
+        
+        UserDao.getInstance().saveUser(user);
+        return user;
     }
     
     /**

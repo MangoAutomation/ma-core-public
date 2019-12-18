@@ -59,6 +59,7 @@ public class AuditEventType extends EventType{
     public static final String TYPE_EVENT_DETECTOR = "EVENT_DETECTOR";
     public static final String TYPE_PUBLISHER = "EVENT_PUBLISHER";
     public static final String TYPE_MAILING_LIST = "MAILING_LIST";
+    public static final String TYPE_ROLE = "ROLE";
 
     private static final ExportNames TYPE_NAMES = new ExportNames();
     private static final ConcurrentHashMap<String, EventTypeVO> EVENT_TYPES = new ConcurrentHashMap<>();
@@ -74,6 +75,7 @@ public class AuditEventType extends EventType{
         registerEventType(TYPE_EVENT_DETECTOR, "event.audit.eventDetector");
         registerEventType(TYPE_PUBLISHER, "event.audit.publisher");
         registerEventType(TYPE_MAILING_LIST, "event.audit.mailingList");
+        registerEventType(TYPE_ROLE, "event.audit.role");
 
         for (AuditEventTypeDefinition def : ModuleRegistry.getDefinitions(AuditEventTypeDefinition.class))
             registerEventType(def.getTypeName(), def.getDescriptionKey());

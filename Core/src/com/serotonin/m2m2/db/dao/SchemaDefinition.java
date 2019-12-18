@@ -29,5 +29,6 @@ public class SchemaDefinition {
 	public static final String SYSTEM_SETTINGS_TABLE = "systemSettings";
 	public static final String FILE_STORES_TABLE = "fileStores";
 	public static final String INSTALLED_MODULES_TABLE = "installedModules";
+    public static final String ROLES_TABLE = "roles";
 	
 }

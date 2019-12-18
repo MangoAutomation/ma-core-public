@@ -10,7 +10,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
  * @author Terry Packer
  *
  */
-public class MailingListCreatePermission  extends PermissionDefinition{
+public class MailingListCreatePermission  extends PermissionDefinition {
 
     public static final String PERMISSION = "mailingLists.create";
 

@@ -63,7 +63,7 @@ JsonSerializable, Cloneable, Validatable {
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        // dont user JsonProperty annotation so we can choose whether to read/write in sub type
+        // dont use JsonProperty annotation so we can choose whether to read/write in sub type
         xid = jsonObject.getString("xid");
         name = jsonObject.getString("name");
     }

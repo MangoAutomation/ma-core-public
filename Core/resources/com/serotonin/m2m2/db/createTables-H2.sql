@@ -356,6 +356,31 @@ ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
 
 --
 --
+-- Roles
+--
+CREATE TABLE roles (
+	id int not null auto_increment,
+	xid varchar(100) not null,
+	name varchar(255) not null,
+  	primary key (id)
+);
+ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
+
+--
+--
+-- Role Mappings
+--
+CREATE TABLE roleMappings (
+	roleId int not null,
+	voId int not null,
+	voType varchar(255) not null,
+	permissionType varchar(255) not null,
+);
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
+
+--
+--
 -- Compound events detectors
 --
 -- create table compoundEventDetectors (
