@@ -22,7 +22,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 @Service
 public class PermissionService {
-
+    
+    //Permission Types
     public static final String READ = "READ";
     public static final String EDIT = "EDIT";
     public static final String DELETE = "DELETE";
@@ -33,6 +34,15 @@ public class PermissionService {
     @Autowired
     public PermissionService(RoleDao roleDao) {
         this.roleDao = roleDao;
+    }
+    
+    /**
+     * Does this user have the superadmin role?
+     * @param holder
+     * @return
+     */
+    public boolean hasAdminRole(PermissionHolder holder) {
+        return hasSingleRole(holder, roleDao.getSuperadminRole());
     }
     
     /**

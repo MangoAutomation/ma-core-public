@@ -19,6 +19,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
@@ -30,6 +31,9 @@ import com.serotonin.m2m2.vo.RoleVO;
 @Repository
 public class RoleDao extends AbstractDao<RoleVO> {
 
+    public static final String SUPERADMIN_ROLE_NAME = "superadmin";
+    public static final String USER_ROLE_NAME = "user";
+    
     private static final LazyInitSupplier<RoleDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(RoleDao.class);
         if(o == null)
@@ -37,8 +41,20 @@ public class RoleDao extends AbstractDao<RoleVO> {
         return (RoleDao)o;
     });
     
+    private final LazyInitSupplier<RoleVO> superadminRole = new LazyInitSupplier<>(() -> {
+       return queryForObject(SELECT_ALL + " WHERE xid=?", 
+               new Object[] {SUPERADMIN_ROLE_NAME}, 
+               getRowMapper()); 
+    });
+    
+    private final LazyInitSupplier<RoleVO> userRole = new LazyInitSupplier<>(() -> {
+        return queryForObject(SELECT_ALL + " WHERE xid=?", 
+                new Object[] {USER_ROLE_NAME}, 
+                getRowMapper()); 
+     });
+    
     private RoleDao() {
-        super(AuditEventType.TYPE_ROLE, "u",
+        super(AuditEventType.TYPE_ROLE, "r",
                 new String[0], false,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"));
     }
@@ -59,7 +75,8 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @return
      */
     public List<RoleVO> getRoles(AbstractVO<?> vo, String permissionType) {
-        return query("", new Object[] {vo.getId(), vo.getClass().getSimpleName(), permissionType}, getRowMapper());
+        return query(SELECT_ALL + " JOIN roleMappings rm ON  rm.roleId=r.id WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
+                new Object[] {vo.getId(), vo.getClass().getSimpleName(), permissionType}, getRowMapper());
     }
 
     /**
@@ -76,6 +93,18 @@ public class RoleDao extends AbstractDao<RoleVO> {
                         vo.getClass().getSimpleName(),
                         permissionType,
                 });
+    }
+
+    /**
+     * Get the superadmin role
+     * @return
+     */
+    public RoleVO getSuperadminRole() {
+        return superadminRole.get();
+    }
+    
+    public RoleVO getUserRole() {
+        return userRole.get();
     }
     
     /**

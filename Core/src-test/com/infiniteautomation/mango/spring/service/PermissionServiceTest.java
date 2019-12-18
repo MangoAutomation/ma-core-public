@@ -22,15 +22,12 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.publish.mock.MockPublishedPointVO;
 
 /**
  * @author Terry Packer
  *
  */
 public class PermissionServiceTest extends MangoTestBase {
-    
-    private static boolean setup = false;
     
     private User readUser;
     private User editUser;
@@ -48,11 +45,7 @@ public class PermissionServiceTest extends MangoTestBase {
 
     @Before
     public void setupPermissions() {
-        
-        if(setup) {
-            return;
-        }
-        
+
         //Add a user with no roles
         readUser = createUser("readUser", "readUser", "password", "readUser@example.com", "read-role");
         editUser = createUser("editUser", "editUser", "password", "editUser@example.com", "edit-role");
@@ -68,15 +61,14 @@ public class PermissionServiceTest extends MangoTestBase {
         
         editRole = new RoleVO();
         editRole.setXid("edit-role");
-        editRole.setName("Role to allow reading.");
+        editRole.setName("Role to allow editing.");
         roleService.insert(editRole, PermissionHolder.SYSTEM_SUPERADMIN);
         
         setRole = new RoleVO();
         setRole.setXid("set-role");
-        setRole.setName("Role to allow reading.");
+        setRole.setName("Role to allow setting.");
         roleService.insert(setRole, PermissionHolder.SYSTEM_SUPERADMIN);
-        
-        setup = true;
+
     }
     
     @Test
@@ -100,6 +92,7 @@ public class PermissionServiceTest extends MangoTestBase {
     /**
      * Test the mapping table
      */
+    @Test
     public void testHasPermission() {
         //First add a role to the edit permission of a point
         //Create data source?
@@ -119,14 +112,19 @@ public class PermissionServiceTest extends MangoTestBase {
         //Mock up the insert into the mapping table for now
         RoleService roleService = Common.getBean(RoleService.class);
         roleService.addRoleToVoPermission(readRole, dp, PermissionService.READ, PermissionHolder.SYSTEM_SUPERADMIN);
+        roleService.addRoleToVoPermission(editRole, dp, PermissionService.EDIT, PermissionHolder.SYSTEM_SUPERADMIN);
         
         PermissionService service = Common.getBean(PermissionService.class);
 
         assertTrue(service.hasPermission(readUser, dp, PermissionService.READ));
+        assertTrue(service.hasPermission(editUser, dp, PermissionService.EDIT));
 
         assertFalse(service.hasPermission(readUser, dp, PermissionService.SET));
-
+        assertFalse(service.hasPermission(setUser, dp, PermissionService.SET));
+        
     }
     
     //TODO Test delete mapping on VO deletion
+    //TODO Test not being able to modify the admin role
+    //TODO Test not being able to modify the user role
 }
