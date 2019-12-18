@@ -32,9 +32,10 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.IMangoLifecycle;
-import com.serotonin.m2m2.MockPointValueDao;
+import com.serotonin.m2m2.db.AbstractDatabaseProxy;
+import com.serotonin.m2m2.db.DatabaseProxy;
+import com.serotonin.m2m2.db.NoSQLProxy;
+import com.serotonin.m2m2.db.NoSQLProxyFactory;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
@@ -46,7 +47,6 @@ import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
 
 /**
@@ -159,25 +159,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             // logs in.
             SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
 
-            Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
-                @Override
-                public void run() {
-                    // New database. Create a default user.
-                    User user = new User();
-                    user.setId(Common.NEW_ID);
-                    user.setName("Administrator");
-                    user.setUsername("admin");
-                    user.setPassword(Common.encrypt("admin"));
-                    user.setEmail("admin@yourMangoDomain.com");
-                    user.setPhone("");
-                    user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
-                    user.setDisabled(false);
-                    UserDao.getInstance().saveUser(user);
-
-                    DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
-                    factory.saveDefaultTemplates();
-                }
-            });
+            Providers.get(IMangoLifecycle.class).addStartupTask(AbstractDatabaseProxy.NEW_DB_STARTUP_TASK);
         }
 
         // The database exists, so let's make its schema version matches the application version.

@@ -36,6 +36,7 @@ import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -43,6 +44,7 @@ import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
@@ -64,9 +66,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     private Boolean useMetrics;
     private PlatformTransactionManager transactionManager;
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#initialize(java.lang.ClassLoader)
-     */
     @Override
     public void initialize(ClassLoader classLoader) {
         initializeImpl("");
@@ -117,36 +116,17 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 else {
 
                     // Record the current version.
-                    SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                	SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                             Integer.toString(Common.getDatabaseSchemaVersion()));
 
                     // Add the settings flag that this is a new instance. This flag is removed when an administrator
                     // logs in.
-                    SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+                	SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
 
                     /**
                      * Add a startup task to run after the Audit system is ready
                      */
-                    Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
-                        @Override
-                        public void run() {
-                            // New database. Create a default user.
-                            User user = new User();
-                            user.setId(Common.NEW_ID);
-                            user.setName("Administrator");
-                            user.setUsername("admin");
-                            user.setPassword(Common.encrypt("admin"));
-                            user.setEmail("admin@mango.example.com");
-                            user.setPhone("");
-                            user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
-                            user.setDisabled(false);
-                            user.setHomeUrl("/ui/administration/home");
-                            UserDao.getInstance().saveUser(user);
-
-                            DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
-                            factory.saveDefaultTemplates();
-                        }
-                    });
+                    Providers.get(IMangoLifecycle.class).addStartupTask(NEW_DB_STARTUP_TASK);
                 }
             }
             else
@@ -204,15 +184,9 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         return coreIsNew;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getType()
-     */
     @Override
     abstract public DatabaseType getType();
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#terminate(boolean)
-     */
     @Override
     public void terminate(boolean terminateNoSql) {
         terminateImpl();
@@ -223,59 +197,32 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#terminateImpl()
-     */
     @Override
     abstract public void terminateImpl();
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDataSource()
-     */
     @Override
     abstract public DataSource getDataSource();
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#applyBounds(double)
-     */
     @Override
     abstract public double applyBounds(double value);
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDataDirectory()
-     */
     @Override
     abstract public File getDataDirectory();
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDatabaseSizeInBytes()
-     */
     @Override
     abstract public Long getDatabaseSizeInBytes();
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#executeCompress(com.serotonin.db.spring.ExtendedJdbcTemplate)
-     */
     @Override
     abstract public void executeCompress(ExtendedJdbcTemplate ejt);
 
     abstract protected void initializeImpl(String propertyPrefix);
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#tableExists(com.serotonin.db.spring.ExtendedJdbcTemplate, java.lang.String)
-     */
     @Override
     abstract public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName);
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getActiveConnections()
-     */
     @Override
     abstract public int getActiveConnections();
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getIdleConnections()
-     */
     @Override
     abstract public int getIdleConnections();
 
@@ -283,21 +230,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         // no op - override as necessary
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#runScript(java.lang.String[], java.io.OutputStream)
-     */
     @Override
     abstract public void runScript(String[] script, final OutputStream out) throws Exception;
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#runScript(java.io.InputStream, java.io.OutputStream)
-     */
     @Override
     abstract public void runScript(InputStream in, final OutputStream out);
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getTableListQuery()
-     */
     @Override
     abstract public String getTableListQuery();
 
@@ -311,9 +249,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#doInConnection(com.serotonin.db.spring.ConnectionCallbackVoid)
-     */
     @Override
     public void doInConnection(ConnectionCallbackVoid callback) {
         DataSource dataSource = getDataSource();
@@ -342,15 +277,9 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#doLimitQuery(com.serotonin.db.DaoUtils, java.lang.String, java.lang.Object[], org.springframework.jdbc.core.RowMapper, int)
-     */
     @Override
     abstract public <T> List<T> doLimitQuery(DaoUtils dao, String sql, Object[] args, RowMapper<T> rowMapper, int limit);
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#doLimitDelete(com.serotonin.db.spring.ExtendedJdbcTemplate, java.lang.String, java.lang.Object[], int, int, int)
-     */
     @Override
     public long doLimitDelete(ExtendedJdbcTemplate ejt, String sql, Object[] args, int chunkSize, int chunkWait,
             int limit) {
@@ -384,26 +313,17 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
     abstract protected String getLimitDelete(String sql, int chunkSize);
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getDatabasePassword(java.lang.String)
-     */
     @Override
     public String getDatabasePassword(String propertyPrefix) {
         String input = Common.envProps.getString(propertyPrefix + "db.password");
         return new DatabaseAccessUtils().decrypt(input);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#setNoSQLProxy(com.serotonin.m2m2.db.NoSQLProxy)
-     */
     @Override
     public void setNoSQLProxy(NoSQLProxy proxy) {
         this.noSQLProxy = proxy;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#newPointValueDao()
-     */
     @Override
     public PointValueDao newPointValueDao() {
         if (noSQLProxy == null) {
@@ -417,9 +337,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         return noSQLProxy.createPointValueDao();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.DatabaseProxy#getNoSQLProxy()
-     */
     @Override
     public NoSQLProxy getNoSQLProxy() {
         return noSQLProxy;
@@ -430,25 +347,34 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         return transactionManager;
     }
 
-    //  TODO: could potentially expose Logging DAO for use in application
-    //  	currently not implemented except for IasTsdb
-    //	/**
-    //	 * Get an instance of the Logging Dao
-    //	 *
-    //	 * @return
-    //	 */
-    //	public LoggingDao newLoggingDao() {
-    //        if (noSQLProxy == null){
-    //        	if(useMetrics)
-    //        		return new LoggingDaoMetrics(new LoggingDaoSQL());
-    //        	else
-    //        		return new LoggingDaoSQL();
-    //        }else{
-    //        	if(useMetrics)
-    //        		return new LoggingDaoMetrics(noSQLProxy.createLoggingDao());
-    //        	else
-    //        		return noSQLProxy.createLoggingDao();
-    //        }
-    //	}
+    public static Runnable NEW_DB_STARTUP_TASK = () -> {
+        // New database, add default data
 
+        //Add default user and superadmin roles
+        RoleVO superadminRole = new RoleVO();
+        superadminRole.setXid(RoleDao.SUPERADMIN_ROLE_NAME);
+        superadminRole.setName(Common.translate("roles.superadmin"));
+        RoleDao.getInstance().save(superadminRole);
+
+        RoleVO userRole = new RoleVO();
+        userRole.setXid(RoleDao.USER_ROLE_NAME);
+        userRole.setName(Common.translate("roles.user"));
+        RoleDao.getInstance().save(userRole);
+
+        //Create a default user.
+        User user = new User();
+        user.setId(Common.NEW_ID);
+        user.setName("Administrator");
+        user.setUsername("admin");
+        user.setPassword(Common.encrypt("admin"));
+        user.setEmail("admin@mango.example.com");
+        user.setPhone("");
+        user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
+        user.setDisabled(false);
+        user.setHomeUrl("/ui/administration/home");
+        UserDao.getInstance().saveUser(user);
+
+        DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
+        factory.saveDefaultTemplates();
+    };
 }
