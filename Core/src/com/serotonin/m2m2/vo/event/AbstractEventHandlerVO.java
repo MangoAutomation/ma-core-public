@@ -32,7 +32,6 @@ import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 
 public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
     public static final String XID_PREFIX = "EH_";
@@ -49,12 +48,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
      * @return
      */
     public abstract EventHandlerRT<?> createRuntime();
-    
-    /**
-     * Return a model of this
-     * @return
-     */
-    public abstract AbstractEventHandlerModel<T> asModel();
 
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(name))

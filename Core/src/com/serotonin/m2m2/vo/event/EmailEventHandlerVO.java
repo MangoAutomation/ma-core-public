@@ -42,7 +42,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.EmailEventHandlerModel;
 import com.serotonin.util.SerializationHelper;
 
 import freemarker.template.Template;
@@ -647,12 +646,4 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     public EventHandlerRT<EmailEventHandlerVO> createRuntime(){
     	return new EmailHandlerRT(this);
     }
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.AbstractEventHandlerVO#asModel()
-	 */
-	@Override
-	public EmailEventHandlerModel asModel() {
-		return new EmailEventHandlerModel(this);
-	}
 }
