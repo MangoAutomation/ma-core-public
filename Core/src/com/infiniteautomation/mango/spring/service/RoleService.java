@@ -10,10 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -41,6 +44,18 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         return permissionService.isValidPermissionHolder(user);
     }
 
+    @Override
+    public RoleVO delete(String xid, PermissionHolder user)
+            throws PermissionException, NotFoundException {
+        //Cannot delete the 'user' or 'superadmin' roles
+        if(StringUtils.equalsIgnoreCase(xid, RoleDao.SUPERADMIN_ROLE_NAME)) {
+            throw new PermissionException(new TranslatableMessage("roles.cannotAlterSuperadminRole"), user);
+        }else if(StringUtils.equalsIgnoreCase(xid, RoleDao.USER_ROLE_NAME)) {
+            throw new PermissionException(new TranslatableMessage("roles.cannotAlterUserRole"), user);
+        }
+        return super.delete(xid, user);
+    }
+    
     @Override
     public ProcessResult validate(RoleVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
