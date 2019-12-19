@@ -106,6 +106,15 @@ public class RoleDao extends AbstractDao<RoleVO> {
                 });
     }
     
+    public void addRoleToPermission(RoleVO role, String permissionType) {
+        doInsert(INSERT_VO_ROLE_MAPPING, 
+                new Object[]{
+                        role.getId(),
+                        null,
+                        null,
+                        permissionType,
+                });
+    }
     /**
      * Replace all roles for a vo's given permission type.
      *   NOTE this should be used in a transaction and the RoleVO ids are not set

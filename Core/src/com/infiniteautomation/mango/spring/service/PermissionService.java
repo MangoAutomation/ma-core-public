@@ -13,9 +13,11 @@ import org.springframework.stereotype.Service;
 
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -36,6 +38,12 @@ public class PermissionService {
     @Autowired
     public PermissionService(RoleDao roleDao) {
         this.roleDao = roleDao;
+    }
+    
+    public void ensureAdminRole(PermissionHolder holder) {
+        if(!hasAdminRole(holder)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", holder.getPermissionHolderName()), holder);
+        }
     }
     
     /**
@@ -162,7 +170,8 @@ public class PermissionService {
      */
     private boolean containsAnyRole(Set<RoleVO> heldRoles, Set<RoleVO> requiredRoles) {
 
-        if (heldRoles.contains(roleDao.getSuperadminRole())) {
+        //If I am superadmin or this has the default user role the we are good
+        if (heldRoles.contains(roleDao.getSuperadminRole()) || requiredRoles.contains(roleDao.getUserRole())) {
             return true;
         }
 
@@ -217,7 +226,7 @@ public class PermissionService {
             if (role == null) {
                 result.addContextualMessage(contextKey, "validate.role.empty");
                 return;
-            }else if(RoleDao.getInstance().getIdByXid(role.getXid()) == null) {
+            } else if(RoleDao.getInstance().getIdByXid(role.getXid()) == null) {
                 result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
             }
         }
@@ -226,7 +235,7 @@ public class PermissionService {
             return;
 
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && Collections.disjoint(holder.getPermissionsSet(), newRoles)) {
+        if(!savedByOwner && Collections.disjoint(holder.getRoles(), newRoles)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 

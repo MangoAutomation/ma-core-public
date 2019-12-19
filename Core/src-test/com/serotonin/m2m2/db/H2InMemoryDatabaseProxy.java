@@ -41,12 +41,9 @@ import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.provider.Providers;
 
 /**
@@ -440,16 +437,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         // logs in.
         SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
 
-        User user = new User();
-        user.setId(Common.NEW_ID);
-        user.setName("Administrator");
-        user.setUsername("admin");
-        user.setPassword(Common.encrypt("admin"));
-        user.setEmail("admin@yourMangoDomain.com");
-        user.setPhone("");
-        user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
-        user.setDisabled(false);
-        UserDao.getInstance().saveUser(user);
+        AbstractDatabaseProxy.NEW_DB_STARTUP_TASK.run();
 
         //Clean the noSQL database
         // Check if we are using NoSQL

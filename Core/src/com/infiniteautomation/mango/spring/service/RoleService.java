@@ -76,6 +76,11 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         return result;
     }
     
+    public void addRoleToPermission(RoleVO role, String permissionType, PermissionHolder user) {
+        permissionService.ensureAdminRole(user);
+        dao.addRoleToPermission(role, permissionType);
+    }
+    
     /**
      * Add a role to a permission
      * @param voId
