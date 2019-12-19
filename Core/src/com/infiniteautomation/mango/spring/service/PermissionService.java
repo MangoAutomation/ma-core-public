@@ -14,11 +14,9 @@ import org.springframework.stereotype.Service;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
@@ -83,8 +81,8 @@ public class PermissionService {
     public boolean hasAnyRole(PermissionHolder user, Set<RoleVO> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<String> heldPermissions = user.getPermissionsSet();
-        return containsAnyRole(heldPermissions, requiredRoles);
+        Set<RoleVO> heldRoles = user.getRoles();
+        return containsAnyRole(heldRoles, requiredRoles);
     }
     
     /**
@@ -96,8 +94,8 @@ public class PermissionService {
     public boolean hasSingleRole(PermissionHolder user, RoleVO requiredRole) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<String> heldPermissions = user.getPermissionsSet();
-        return containsSingleRole(heldPermissions, requiredRole);
+        Set<RoleVO> heldRoles = user.getRoles();
+        return containsSingleRole(heldRoles, requiredRole);
     }
     
     /**
@@ -118,8 +116,8 @@ public class PermissionService {
      * @param requiredRole
      * @return
      */
-    private boolean containsSingleRole(Set<String> heldRoles, RoleVO requiredRole) {
-        if (heldRoles.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
+    private boolean containsSingleRole(Set<RoleVO> heldRoles, RoleVO requiredRole) {
+        if (heldRoles.contains(roleDao.getSuperadminRole())) {
             return true;
         }
 
@@ -128,7 +126,7 @@ public class PermissionService {
             return false;
         }
 
-        return heldRoles.contains(requiredRole.getXid());
+        return heldRoles.contains(requiredRole);
     }
 
     /**
@@ -137,9 +135,9 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    private static boolean containsAll(Set<String> heldRoles, Set<RoleVO> requiredRoles) {
+    private boolean containsAll(Set<RoleVO> heldRoles, Set<RoleVO> requiredRoles) {
 
-        if (heldRoles.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
+        if (heldRoles.contains(roleDao.getSuperadminRole())) {
             return true;
         }
 
@@ -149,7 +147,7 @@ public class PermissionService {
         }
         
         for(RoleVO role : requiredRoles) {
-            if(!heldRoles.contains(role.getXid())) {
+            if(!heldRoles.contains(role)) {
                return false; 
             }
         }
@@ -162,9 +160,9 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    private boolean containsAnyRole(Set<String> heldRoles, Set<RoleVO> requiredRoles) {
+    private boolean containsAnyRole(Set<RoleVO> heldRoles, Set<RoleVO> requiredRoles) {
 
-        if (heldRoles.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
+        if (heldRoles.contains(roleDao.getSuperadminRole())) {
             return true;
         }
 
@@ -174,7 +172,7 @@ public class PermissionService {
         }
 
         for (RoleVO requiredRole : requiredRoles) {
-            if (heldRoles.contains(requiredRole.getXid())) {
+            if (heldRoles.contains(requiredRole)) {
                 return true;
             }
         }
