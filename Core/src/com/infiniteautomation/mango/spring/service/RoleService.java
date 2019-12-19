@@ -3,6 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,14 +23,12 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 @Service
 public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
     
+    //To check role for spaces
+    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s");
+    
     @Autowired
     public RoleService(RoleDao dao, PermissionService permissionService) {
         super(dao, permissionService);
-    }
-
-    @Override
-    public boolean hasCreatePermission(PermissionHolder user, RoleVO vo) {
-        return permissionService.hasAdminRole(user);
     }
 
     @Override
@@ -52,7 +53,11 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
             result.addContextualMessage("xid", "roles.cannotAlterUserRole");
         }
         
-        
+        //Don't allow spaces in the XID
+        Matcher matcher = SPACE_PATTERN.matcher(vo.getXid());
+        if(matcher.find()) {
+            result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
+        }
         return result;
     }
     

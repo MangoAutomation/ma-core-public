@@ -22,6 +22,8 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -80,6 +82,20 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     @Deprecated
     public String getPermissions() {
         return Permissions.implodePermissionGroups(this.getPermissionsSet());
+    }
+    
+    @Override
+    public Set<RoleVO> getRoles() {
+        //TODO Lazy init?  Or acutally use roles now?
+        HashSet<RoleVO> roles = new HashSet<>();
+        roles.add(RoleDao.getInstance().getUserRole());
+        for(String group : permissionsSet) {
+           RoleVO role = RoleDao.getInstance().getByXid(group);
+           if(role != null) {
+               roles.add(role);
+           }
+        }
+        return Collections.unmodifiableSet(roles);
     }
 
     private static final int version = 1;

@@ -13,6 +13,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -30,10 +31,16 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     
     protected final DAO dao;
     protected final PermissionService permissionService;
+    protected final PermissionDefinition createPermissionDefinition;
     
-    public AbstractVOService(DAO dao, PermissionService permissionService) {
+    public AbstractVOService(DAO dao, PermissionService permissionService, PermissionDefinition createPermissionDefinition) {
         this.dao = dao;
         this.permissionService = permissionService;
+        this.createPermissionDefinition = createPermissionDefinition;
+    }
+    
+    public AbstractVOService(DAO dao, PermissionService permissionService) {
+        this(dao, permissionService, null);
     }
     
     /**
@@ -398,7 +405,13 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @param vo to insert
      * @return
      */
-    public abstract boolean hasCreatePermission(PermissionHolder user, T vo);
+    public boolean hasCreatePermission(PermissionHolder user, T vo) {
+        if(this.createPermissionDefinition != null) {
+            return permissionService.hasPermission(user, createPermissionDefinition);
+        }else {
+            return permissionService.hasAdminRole(user);
+        }
+    }
     
     /**
      * Can this user edit this VO

@@ -40,6 +40,7 @@ import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -124,6 +125,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     //TODO More aptly named rolesSet
     private transient final LazyInitializer<Set<String>> permissionsSet = new LazyInitializer<>();
     private transient final LazyInitializer<Set<Permission>> grantedPermissions = new LazyInitializer<>();
+    private transient final LazyInitializer<Set<RoleVO>> roles = new LazyInitializer<>();
 
     private transient volatile boolean admin;
 
@@ -339,6 +341,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.permissions = permissions;
         this.authorities.reset();
         this.permissionsSet.reset();
+        this.roles.reset();
         this.admin = this.getPermissionsSet().contains(SuperadminPermissionDefinition.GROUP_NAME);
     }
 
@@ -875,6 +878,22 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.setPermissions(Permissions.implodePermissionGroups(groups));
     }
 
+    @Override
+    public Set<RoleVO> getRoles() {
+        return roles.get(() -> {
+            HashSet<String> groups = new HashSet<>(Permissions.explodePermissionGroups(this.permissions));
+            HashSet<RoleVO> roles = new HashSet<>();
+            roles.add(RoleDao.getInstance().getUserRole());
+            for(String group : groups) {
+               RoleVO role = RoleDao.getInstance().getByXid(group);
+               if(role != null) {
+                   roles.add(role);
+               }
+            }
+            return Collections.unmodifiableSet(roles);
+        });
+    }
+    
     @Override
     public String getPermissionHolderName() {
         return this.username;

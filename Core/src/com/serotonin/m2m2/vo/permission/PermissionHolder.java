@@ -6,7 +6,10 @@ package com.serotonin.m2m2.vo.permission;
 import java.util.Collections;
 import java.util.Set;
 
+import com.infiniteautomation.mango.util.LazyInitializer;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.vo.RoleVO;
 
 /**
  * Something that holds permissions, typically a user. Could however in the future be groups, data source scripts etc.
@@ -25,7 +28,8 @@ public interface PermissionHolder {
      */
     public static final PermissionHolder SYSTEM_SUPERADMIN = new PermissionHolder() {
         private final Set<String> permissions = Collections.singleton(SuperadminPermissionDefinition.GROUP_NAME);
-
+        private final LazyInitializer<Set<RoleVO>> roles = new LazyInitializer<>();
+        
         @Override
         public String getPermissionHolderName() {
             return "SYSTEM_SUPERADMIN";
@@ -40,6 +44,13 @@ public interface PermissionHolder {
         public Set<String> getPermissionsSet() {
             return permissions;
         }
+        
+        @Override
+        public Set<RoleVO> getRoles() {
+            return roles.get(() -> {
+                return Collections.singleton(RoleDao.getInstance().getSuperadminRole());
+            });
+        }
     };
 
     /**
@@ -53,6 +64,8 @@ public interface PermissionHolder {
     boolean isPermissionHolderDisabled();
 
     Set<String> getPermissionsSet();
+    
+    Set<RoleVO> getRoles();
 
     default boolean hasAdminPermission() {
         return Permissions.hasAdminPermission(this);

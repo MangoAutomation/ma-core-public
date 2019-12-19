@@ -12,7 +12,9 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
@@ -216,6 +218,45 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
             combined.addAll(Permissions.explodePermissionGroups(this.dataPointReadPermissions));
             combined.addAll(Permissions.explodePermissionGroups(this.customPermissions));
             return Collections.unmodifiableSet(combined);
+        });
+    }
+    
+    @JsonIgnore
+    @Override
+    public Set<RoleVO> getRoles() {
+        //TODO Fix this, due to serialization this is null when read back out of the database
+        if(combinedRoles == null) {
+            Set<String> combined = new HashSet<>();
+            combined.addAll(Permissions.explodePermissionGroups(this.dataSourcePermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointSetPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointReadPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.customPermissions));
+            Set<RoleVO> roles = new HashSet<>(combined.size() + 1);
+            roles.add(RoleDao.getInstance().getUserRole());
+            for(String group : combined) {
+               RoleVO role = RoleDao.getInstance().getByXid(group);
+               if(role != null) {
+                   roles.add(role);
+               }
+            }
+            return Collections.unmodifiableSet(roles);
+        }
+
+        return combinedRoles.get(() -> {
+            Set<String> combined = new HashSet<>();
+            combined.addAll(Permissions.explodePermissionGroups(this.dataSourcePermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointSetPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.dataPointReadPermissions));
+            combined.addAll(Permissions.explodePermissionGroups(this.customPermissions));
+            Set<RoleVO> roles = new HashSet<>(combined.size() + 1);
+            roles.add(RoleDao.getInstance().getUserRole());
+            for(String group : combined) {
+               RoleVO role = RoleDao.getInstance().getByXid(group);
+               if(role != null) {
+                   roles.add(role);
+               }
+            }
+            return Collections.unmodifiableSet(roles);
         });
     }
 }

@@ -3,18 +3,22 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
@@ -52,7 +56,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder, PermissionDefinition permission) {
-        List<RoleVO> roles = roleDao.getRoles(permission.getPermissionTypeName());
+        Set<RoleVO> roles = roleDao.getRoles(permission.getPermissionTypeName());
         return hasAnyRole(holder, roles);
     }
     
@@ -66,7 +70,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder, AbstractVO<?> vo, String permissionType) {
-        List<RoleVO> roles = roleDao.getRoles(vo, permissionType);
+        Set<RoleVO> roles = roleDao.getRoles(vo, permissionType);
         return hasAnyRole(holder, roles);
     }
     
@@ -76,7 +80,7 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    public boolean hasAnyRole(PermissionHolder user, List<RoleVO> requiredRoles) {
+    public boolean hasAnyRole(PermissionHolder user, Set<RoleVO> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
 
         Set<String> heldPermissions = user.getPermissionsSet();
@@ -108,8 +112,6 @@ public class PermissionService {
         return !(user == null || user.isPermissionHolderDisabled());
     }
     
-    //TODO Add permission validation method from Permissions
-    
     /**
      * Is this required role in the held roles? 
      * @param heldRoles
@@ -135,7 +137,7 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    private static boolean containsAll(Set<String> heldRoles, List<RoleVO> requiredRoles) {
+    private static boolean containsAll(Set<String> heldRoles, Set<RoleVO> requiredRoles) {
 
         if (heldRoles.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
@@ -160,7 +162,7 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    private boolean containsAnyRole(Set<String> heldRoles, List<RoleVO> requiredRoles) {
+    private boolean containsAnyRole(Set<String> heldRoles, Set<RoleVO> requiredRoles) {
 
         if (heldRoles.contains(SuperadminPermissionDefinition.GROUP_NAME)) {
             return true;
@@ -178,5 +180,83 @@ public class PermissionService {
         }
 
         return false;
+    }
+
+    /**
+     * Validate roles.  This will validate that:
+     *
+     *   1. the new permissions are non null
+     *   2. all new permissions are not empty
+     *   3. the new permissions do not contain spaces
+     *   (then for non admin/owners)
+     *   4. the saving user will at least retain one permission
+     *   5. the user cannot not remove an existing permission they do not have
+     *   6. the user has all of the new permissions being added
+     *
+     *   If the saving user is also the owner, then the new permissions need not contain
+     *   one of the user's roles
+     *
+     * @param result - the result of the validation
+     * @param contextKey - the key to apply the messages to
+     * @param holder - the saving permission holder
+     * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
+     * @param existingRoles - the currently saved permissions
+     * @param newRoles - the new permissions to validate
+     */
+    public void validateVoRoles(ProcessResult result, String contextKey, PermissionHolder holder,
+            boolean savedByOwner, Set<RoleVO> existingRoles, Set<RoleVO> newRoles) {
+        if (holder == null) {
+            result.addContextualMessage(contextKey, "validate.userRequired");
+            return;
+        }
+
+        if(newRoles == null) {
+            result.addContextualMessage(contextKey, "validate.invalidValue");
+            return;
+        }
+
+        for (RoleVO role : newRoles) {
+            if (role == null) {
+                result.addContextualMessage(contextKey, "validate.role.empty");
+                return;
+            }else if(RoleDao.getInstance().getIdByXid(role.getXid()) == null) {
+                result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+            }
+        }
+        
+        if(holder.hasAdminPermission())
+            return;
+
+        //Ensure the holder has at least one of the new permissions
+        if(!savedByOwner && Collections.disjoint(holder.getPermissionsSet(), newRoles)) {
+            result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+        }
+
+        if(existingRoles != null) {
+            //Check for permissions being added that the user does not have
+            Set<RoleVO> added = new HashSet<>(newRoles);
+            added.removeAll(existingRoles);
+            added.removeAll(holder.getRoles());
+            if(added.size() > 0) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getRoles()));
+            }
+            //Check for permissions being removed that the user does not have
+            Set<RoleVO> removed = new HashSet<>(existingRoles);
+            removed.removeAll(newRoles);
+            removed.removeAll(holder.getRoles());
+            if(removed.size() > 0) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getRoles()));
+            }
+        }
+        return;
+    }
+    
+    /**
+     * Turn a set of roles into a comma separated list for display in a message
+     * @param roles
+     * @return
+     */
+    public String implodeRoles(Set<RoleVO> roles) {
+        return String.join(",", roles.stream().map(role -> role.getXid()).collect(Collectors.toSet()));
     }
 }

@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.RoleVO;
 
 public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
 
@@ -32,9 +33,9 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     private List<EmailRecipient> entries;
     private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
     @JsonProperty
-    private Set<String> readPermissions = Collections.emptySet();
+    private Set<RoleVO> readRoles = Collections.emptySet();
     @JsonProperty
-    private Set<String> editPermissions = Collections.emptySet();
+    private Set<RoleVO> editRoles = Collections.emptySet();
 
     /**
      * Integers that are present in the inactive intervals set are times at which the mailing list schedule is not to be
@@ -83,32 +84,20 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
         this.receiveAlarmEmails = receiveAlarmEmails;
     }
 
-    /**
-     * @return the readPermissions
-     */
-    public Set<String> getReadPermissions() {
-        return readPermissions;
+    public Set<RoleVO> getReadRoles() {
+        return readRoles;
     }
 
-    /**
-     * @param readPermissions the readPermissions to set
-     */
-    public void setReadPermissions(Set<String> readPermissions) {
-        this.readPermissions = readPermissions;
+    public void setReadRoles(Set<RoleVO> readRoles) {
+        this.readRoles = readRoles;
     }
 
-    /**
-     * @return the editPermissions
-     */
-    public Set<String> getEditPermissions() {
-        return editPermissions;
+    public Set<RoleVO> getEditRoles() {
+        return editRoles;
     }
 
-    /**
-     * @param editPermissions the editPermissions to set
-     */
-    public void setEditPermissions(Set<String> editPermissions) {
-        this.editPermissions = editPermissions;
+    public void setEditRoles(Set<RoleVO> editRoles) {
+        this.editRoles = editRoles;
     }
 
     @Override
@@ -151,6 +140,9 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
         if(text != null){
             receiveAlarmEmails = AlarmLevels.fromName(text);
         }
+        //Legacy permissions support
+        this.readRoles = readLegacyPermissions("readPermissions", this.readRoles, jsonObject);
+        this.editRoles = readLegacyPermissions("editPermissions", this.editRoles, jsonObject);
     }
 
     @Override

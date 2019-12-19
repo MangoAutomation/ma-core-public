@@ -3,26 +3,28 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.serotonin.m2m2.db.dao.MailingListDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
+ * Mailing list service
  * 
+ * NOTE: This VO has a join table for the entries so if you desire 
+ *    the entries with the VO you must use the getFull and insertFull etc 
+ *    endpoints.
+ *    
  * @author Terry Packer
  *
  */
@@ -31,24 +33,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     
     @Autowired 
     public MailingListService(MailingListDao dao, PermissionService permissionService) {
-        super(dao, permissionService);
-    }
-    
-    /**
-     * Can this user create a mailing list
-     * 
-     * @param user
-     * @param item
-     * @return
-     */
-    @Override
-    public boolean hasCreatePermission(PermissionHolder user, MailingList vo) {
-        if(user.hasAdminPermission())
-            return true;
-        else if(Permissions.hasAnyPermission(user, Permissions.explodePermissionGroups(SystemSettingsDao.instance.getValue(MailingListCreatePermission.PERMISSION))))
-            return true;
-        else
-            return false;
+        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(MailingListCreatePermission.PERMISSION));
     }
     
     /**
@@ -60,12 +45,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      */
     @Override
     public boolean hasEditPermission(PermissionHolder user, MailingList item) {
-        if(user.hasAdminPermission())
-            return true;
-        else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
-            return true;
-        else
-            return false;
+        return permissionService.hasAnyRole(user, item.getEditRoles());
     }
     
     /**
@@ -77,7 +57,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      */
     @Override
     public boolean hasReadPermission(PermissionHolder user, MailingList item) {
-        return Permissions.isValidPermissionHolder(user);
+        return permissionService.hasAnyRole(user, item.getReadRoles());
     }
     
     /**
@@ -87,21 +67,20 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      * @return
      */
     public boolean hasRecipientViewPermission(PermissionHolder user, MailingList item) {
-        if(user.hasAdminPermission())
+        if(permissionService.hasAnyRole(user, item.getReadRoles())) {
             return true;
-        else if(Permissions.hasAnyPermission(user, item.getReadPermissions()))
+        }else if(permissionService.hasAnyRole(user, item.getEditRoles())) {
             return true;
-        else if(Permissions.hasAnyPermission(user, item.getEditPermissions()))
-            return true;
-        else
+        }else {
             return false;
+        }
     }
     
     @Override
     public ProcessResult validate(MailingList vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        Permissions.validatePermissions(result, "readPermissions", user, false, null, vo.getReadPermissions());
-        Permissions.validatePermissions(result, "editPermissions", user, false, null, vo.getEditPermissions());
+        permissionService.validateVoRoles(result, "readRoles", user, false, null, vo.getReadRoles());
+        permissionService.validateVoRoles(result, "editRoles", user, false, null, vo.getEditRoles());
         return result;
     }
     
@@ -110,10 +89,8 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         ProcessResult result = commonValidation(vo, user);
         
         //Additional checks for existing list
-        Set<String> existingReadPermission = existing.getReadPermissions();
-        Set<String> existingEditPermission =  existing.getEditPermissions();
-        Permissions.validatePermissions(result, "readPermissions", user, false, existingReadPermission, vo.getReadPermissions());
-        Permissions.validatePermissions(result, "editPermissions", user, false, existingEditPermission, vo.getEditPermissions());
+        permissionService.validateVoRoles(result, "readRoles", user, false, existing.getReadRoles(), vo.getReadRoles());
+        permissionService.validateVoRoles(result, "editRoles", user, false, existing.getEditRoles(), vo.getEditRoles());
         return result;
     }
     

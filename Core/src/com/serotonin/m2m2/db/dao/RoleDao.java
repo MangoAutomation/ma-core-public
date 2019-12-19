@@ -3,14 +3,22 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -19,7 +27,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
@@ -65,8 +72,10 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      * @return
      */
-    public List<RoleVO> getRoles(String permissionType) {
-        return query("", new Object[] {permissionType}, getRowMapper());
+    public Set<RoleVO> getRoles(String permissionType) {
+        return query(SELECT_ALL + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.permissionType=?", 
+                new Object[] {permissionType}, 
+                new RoleVoSetResultSetExtractor());
     }
     
     /**
@@ -74,11 +83,13 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param vo
      * @return
      */
-    public List<RoleVO> getRoles(AbstractVO<?> vo, String permissionType) {
-        return query(SELECT_ALL + " JOIN roleMappings rm ON  rm.roleId=r.id WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
-                new Object[] {vo.getId(), vo.getClass().getSimpleName(), permissionType}, getRowMapper());
+    public Set<RoleVO> getRoles(AbstractVO<?> vo, String permissionType) {
+        return query(SELECT_ALL + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
+                new Object[] {vo.getId(), vo.getClass().getSimpleName(), permissionType}, 
+                new RoleVoSetResultSetExtractor());
     }
 
+    private static final String INSERT_VO_ROLE_MAPPING = "INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)";
     /**
      * Add a role to the given vo's permission type
      * @param role
@@ -86,13 +97,47 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      */
     public void addRoleToVoPermission(RoleVO role, AbstractVO<?> vo, String permissionType) {
-        doInsert("INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)", 
+        doInsert(INSERT_VO_ROLE_MAPPING, 
                 new Object[]{
                         role.getId(),
                         vo.getId(),
                         vo.getClass().getSimpleName(),
                         permissionType,
                 });
+    }
+    
+    /**
+     * Replace all roles for a vo's given permission type.
+     *   NOTE this should be used in a transaction
+     * @param roles - non null set of roles
+     * @param vo
+     * @param permissionType
+     */
+    public void replaceRolesOnVoPermission(Set<RoleVO> roles, AbstractVO<?> vo, String permissionType) {
+        //Delete em all
+        ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?", 
+                new Object[]{
+                        vo.getId(),
+                        vo.getClass().getSimpleName(),
+                        permissionType,
+                });
+        //Push the new ones in
+        List<RoleVO> entries = new ArrayList<>(roles);
+        ejt.batchUpdate(INSERT_VO_ROLE_MAPPING, new BatchPreparedStatementSetter() {
+            @Override
+            public int getBatchSize() {
+                return entries.size();
+            }
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                RoleVO role = entries.get(i);
+                ps.setInt(1, role.getId());
+                ps.setInt(2, vo.getId());
+                ps.setString(3, vo.getClass().getSimpleName());
+                ps.setString(4, permissionType);
+            }
+        });
     }
 
     /**
@@ -169,4 +214,30 @@ public class RoleDao extends AbstractDao<RoleVO> {
             return vo;
         }
     }
+
+    /**
+     * Extract the roles into an un-modifiable set
+     * @author Terry Packer
+     *
+     */
+    private class RoleVoSetResultSetExtractor implements ResultSetExtractor<Set<RoleVO>> {
+
+        private final RoleRowMapper rowMapper;
+        
+        public RoleVoSetResultSetExtractor() {
+            this.rowMapper = new RoleRowMapper();
+        }
+        
+        @Override
+        public Set<RoleVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            Set<RoleVO> results = new HashSet<>();
+            int rowNum = 0;
+            while (rs.next()) {
+                results.add(this.rowMapper.mapRow(rs, rowNum++));
+            }
+            return Collections.unmodifiableSet(results);
+        }
+        
+    }
+
 }

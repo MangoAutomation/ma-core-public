@@ -28,10 +28,10 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
-import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
@@ -141,6 +141,10 @@ public class MailingListDao extends AbstractDao<MailingList> {
                 ps.setString(4, e.getReferenceAddress());
             }
         });
+        
+        //Replace the role mappings
+        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getReadRoles(), ml, PermissionService.READ);
+        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getEditRoles(), ml, PermissionService.EDIT);
 
     }
 
@@ -157,6 +161,10 @@ public class MailingListDao extends AbstractDao<MailingList> {
 
         // Update the user type entries with their respective user objects.
         populateEntrySubclasses(ml.getEntries());
+        
+        //Populate permissions
+        ml.setReadRoles(RoleDao.getInstance().getRoles(ml, PermissionService.READ));
+        ml.setEditRoles(RoleDao.getInstance().getRoles(ml, PermissionService.EDIT));
     }
 
     public void populateEntrySubclasses(List<EmailRecipient> entries) {
@@ -192,9 +200,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
         return new Object[] {
                 vo.getXid(),
                 vo.getName(),
-                vo.getReceiveAlarmEmails().value(),
-                vo.getReadPermissions() == null ? null : Permissions.implodePermissionGroups(vo.getReadPermissions()),
-                        vo.getEditPermissions() == null ? null : Permissions.implodePermissionGroups(vo.getEditPermissions())
+                vo.getReceiveAlarmEmails().value()
         };
     }
 
@@ -205,8 +211,6 @@ public class MailingListDao extends AbstractDao<MailingList> {
         map.put("xid", Types.VARCHAR);
         map.put("name", Types.VARCHAR);
         map.put("receiveAlarmEmails", Types.INTEGER);
-        map.put("readPermission", Types.VARCHAR);
-        map.put("editPermission", Types.VARCHAR);
         return map;
     }
 
@@ -230,8 +234,6 @@ public class MailingListDao extends AbstractDao<MailingList> {
             ml.setXid(rs.getString(++i));
             ml.setName(rs.getString(++i));
             ml.setReceiveAlarmEmails(AlarmLevels.fromValue(rs.getInt(++i)));
-            ml.setReadPermissions(Permissions.explodePermissionGroups(rs.getString(++i)));
-            ml.setEditPermissions(Permissions.explodePermissionGroups(rs.getString(++i)));
             return ml;
         }
     }
