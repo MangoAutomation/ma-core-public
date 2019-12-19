@@ -123,6 +123,7 @@ JsonSerializable, Cloneable, Validatable {
      * @return
      * @throws JsonException - if the field DNE or is not of the desired type
      */
+    @SuppressWarnings("deprecation")
     public static double getDouble(JsonObject json, String name) throws JsonException {
         JsonValue o = json.get(name);
         if(o == null)
@@ -142,6 +143,7 @@ JsonSerializable, Cloneable, Validatable {
      * @return
      * @throws JsonException - if the field DNE or is not of the desired type
      */
+    @SuppressWarnings("deprecation")
     public static int getInt(JsonObject json, String name) throws JsonException {
         JsonValue o = json.get(name);
         if(o == null)
@@ -159,8 +161,9 @@ JsonSerializable, Cloneable, Validatable {
      * @param existing
      * @param jsonObject
      * @return
+     * @throws TranslatableJsonException 
      */
-    protected Set<RoleVO> readLegacyPermissions(String permissionName, Set<RoleVO> existing, JsonObject jsonObject) {
+    protected Set<RoleVO> readLegacyPermissions(String permissionName, Set<RoleVO> existing, JsonObject jsonObject) throws TranslatableJsonException {
         //Legacy permissions support
         if(jsonObject.containsKey(permissionName)) {
             Set<RoleVO> roles;
@@ -174,6 +177,8 @@ JsonSerializable, Cloneable, Validatable {
                 RoleVO role = RoleDao.getInstance().getByXid(jv.toString());
                 if(role != null) {
                     roles.add(role);
+                } else {
+                    throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), permissionName);
                 }
             }
             return roles;

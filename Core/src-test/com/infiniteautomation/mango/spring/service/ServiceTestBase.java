@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,8 +57,10 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
     protected RoleVO setRole;
     
     protected SERVICE service;
+    protected DAO dao;
 
-    abstract void setupService();
+    abstract SERVICE getService();
+    abstract DAO getDao();
     abstract void assertVoEqual(VO expected, VO actual);
     
     abstract VO newVO();
@@ -66,55 +69,46 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
     @Before
     public void setupServiceTest() {
         setupRoles();
-        setupService();
+        service = getService();
+        dao = getDao();
     }
     
     @Test
     public void testCreate() {
-        VO vo = insertNewVO();
-        VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
-        assertVoEqual(vo, fromDb);
+        runTest(() -> {
+            VO vo = insertNewVO();
+            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            assertVoEqual(vo, fromDb);            
+        });
     }
     
     @Test
     public void testUpdate() {
-        VO vo = insertNewVO();
-        VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
-        assertVoEqual(vo, fromDb);
-        
-        VO updated = updateVO(vo);
-        service.updateFull(vo.getXid(), updated, systemSuperadmin);
-        fromDb = service.getFull(vo.getId(), systemSuperadmin);
-        assertVoEqual(updated, fromDb);
+        runTest(() -> {
+            VO vo = insertNewVO();
+            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            
+            VO updated = updateVO(vo);
+            service.updateFull(vo.getXid(), updated, systemSuperadmin);
+            fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            assertVoEqual(updated, fromDb);            
+        });
     }
     
     @Test(expected = NotFoundException.class)
     public void testDelete() {
-        VO vo = insertNewVO();
-        VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
-        assertVoEqual(vo, fromDb);
-        service.delete(vo.getXid(), systemSuperadmin);
-        service.getFull(vo.getXid(), systemSuperadmin);
-    }
-    
-    VO createValidVO() {
-        try {
-            VO vo = newVO();
-            service.ensureValid(vo, systemSuperadmin);
-            return vo;
-        } catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
-        }
-        return null;
+        runTest(() -> {
+            VO vo = insertNewVO();
+            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getXid(), systemSuperadmin);
+            service.getFull(vo.getXid(), systemSuperadmin);            
+        });
     }
     
     VO insertNewVO() {
-        VO vo = createValidVO();
+        VO vo = newVO();
         service.insertFull(vo, systemSuperadmin);
         return vo;
     }
@@ -125,7 +119,7 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
         for(RoleVO expectedRole : expected) {
             boolean found = false;
             for(RoleVO actualRole : actual) {
-                if(expectedRole.getId() == actualRole.getId()) {
+                if(StringUtils.equals(expectedRole.getXid(), actualRole.getXid())) {
                     found = true;
                     break;
                 }
@@ -177,6 +171,28 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
         deleteRole.setName("Role to allow deleting.");
         roleService.insert(deleteRole, systemSuperadmin);
 
+    }
+    
+    @FunctionalInterface
+    public static interface ServiceLayerTest {
+        void test();
+    }
+    
+    /**
+     * Run a test and provide nice validation failure messages
+     * @param test
+     */
+    public void runTest(ServiceLayerTest test) {
+        try {
+            test.test();
+        } catch(ValidationException e) {
+            String failureMessage = "";
+            for(ProcessMessage m : e.getValidationResult().getMessages()){
+                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                failureMessage += messagePart;
+            }
+            fail(failureMessage);
+        }
     }
     
 }

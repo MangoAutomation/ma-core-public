@@ -31,63 +31,76 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
 public class MailingListServiceTest extends ServiceWithPermissionsTestBase<MailingList, MailingListDao, MailingListService> {
 
     @Override
-    void setupService() {
-        this.service = Common.getBean(MailingListService.class);
+    MailingListService getService() {
+        return Common.getBean(MailingListService.class);
+    }
+    
+    @Override
+    MailingListDao getDao() {
+        return MailingListDao.getInstance();
     }
     
     @Test(expected = PermissionException.class)
     public void testInvalidPermission() {
-        MailingList vo = createValidVO();
-        Set<RoleVO> editRoles = Collections.singleton(editRole); 
-        vo.setEditRoles(editRoles);
-        service.insertFull(vo, readUser);
+        runTest(() -> {
+            MailingList vo = newVO();
+            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            vo.setEditRoles(editRoles);
+            service.insertFull(vo, readUser);            
+        });
     }
 
     @Test(expected = PermissionException.class)
     public void testAddOverprivledgedEditRole() {
-        MailingList vo = createValidVO();
-        Set<RoleVO> editRoles = Collections.singleton(editRole); 
-        vo.setEditRoles(editRoles);
-        service.insertFull(vo, systemSuperadmin);
-        MailingList fromDb = service.getFull(vo.getId(), systemSuperadmin);
-        assertVoEqual(vo, fromDb);
-        service.updateFull(vo.getXid(), vo, readUser);
+        runTest(() -> {
+            MailingList vo = newVO();
+            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            vo.setEditRoles(editRoles);
+            service.insertFull(vo, systemSuperadmin);
+            MailingList fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            service.updateFull(vo.getXid(), vo, readUser);
+        });
     }
 
     @Test(expected = PermissionException.class)
     public void testRemoveOverprivledgedEditRole() {
-        MailingList vo = createValidVO();
-        Set<RoleVO> editRoles = Collections.singleton(editRole); 
-        vo.setEditRoles(editRoles);
-        service.insertFull(vo, systemSuperadmin);
-        MailingList fromDb = service.getFull(vo.getId(), systemSuperadmin);
-        assertVoEqual(vo, fromDb);
-        vo.setEditRoles(Collections.emptySet());
-        service.updateFull(vo.getXid(), vo, readUser);
+        runTest(() -> {
+            MailingList vo = newVO();
+            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            vo.setEditRoles(editRoles);
+            service.insertFull(vo, systemSuperadmin);
+            MailingList fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            vo.setEditRoles(Collections.emptySet());
+            service.updateFull(vo.getXid(), vo, readUser);            
+        });
     }
     
     @Test(expected = ValidationException.class)
     public void testAddMissingEditRole() {
-        MailingList vo = createValidVO();
+        MailingList vo = newVO();
         RoleVO role = new RoleVO();
         role.setId(10000);
         role.setXid("new-role");
         role.setName("no name");
         Set<RoleVO> editRoles = Collections.singleton(role); 
         vo.setEditRoles(editRoles);
-        service.insertFull(vo, systemSuperadmin);
+        service.insertFull(vo, systemSuperadmin);   
     }
     
     @Test
     public void testRemoveRole() {
-        MailingList vo = createValidVO();
-        Set<RoleVO> editRoles = Collections.singleton(editRole); 
-        vo.setEditRoles(editRoles);
-        service.insertFull(vo, systemSuperadmin);
-        roleService.delete(editRole.getXid(), systemSuperadmin);
-        vo.setEditRoles(Collections.emptySet());
-        MailingList fromDb = service.getFull(vo.getId(), systemSuperadmin);
-        assertVoEqual(vo, fromDb);
+        runTest(() -> {
+            MailingList vo = newVO();
+            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            vo.setEditRoles(editRoles);
+            service.insertFull(vo, systemSuperadmin);
+            roleService.delete(editRole.getXid(), systemSuperadmin);
+            vo.setEditRoles(Collections.emptySet());
+            MailingList fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            assertVoEqual(vo, fromDb);            
+        });
     }
     
     @Override

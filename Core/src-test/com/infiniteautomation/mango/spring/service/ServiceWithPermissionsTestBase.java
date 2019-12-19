@@ -3,18 +3,13 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import static org.junit.Assert.fail;
-
 import java.util.Collections;
 import java.util.Set;
 
 import org.junit.Test;
 
-import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -31,104 +26,69 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
     
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
-        VO vo = createValidVO();
+        VO vo = newVO();
         service.insertFull(vo, editUser);
     }
 
     @Test
     public void testCreatePrivilegeSuccess() {
-        VO vo = createValidVO();
-        addRoleToCreatePermission(editRole);
-        setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-        try{
+        runTest(() -> {
+            VO vo = newVO();
+            addRoleToCreatePermission(editRole);
+            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
             service.insertFull(vo, editUser);
-        }catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
-        }
+        });
     }
     
     @Test
     public void testUserReadRole() {
-        VO vo = createValidVO();
-        setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-        try{
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
             service.insertFull(vo, systemSuperadmin);
-        } catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
-        }
-        VO fromDb = service.getFull(vo.getId(), readUser);
-        assertVoEqual(vo, fromDb);
+            VO fromDb = service.getFull(vo.getId(), readUser);
+            assertVoEqual(vo, fromDb);
+        });
     }
     
     @Test
     public void testUserEditRole() {
-        VO vo = createValidVO();
-        setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-        setEditRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-        try{
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setEditRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
             service.insertFull(vo, systemSuperadmin);
-        } catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
-        }
-        VO fromDb = service.getFull(vo.getId(), readUser);
-        assertVoEqual(vo, fromDb);
-        fromDb.setName("read user edited me");
-        service.updateFull(fromDb.getXid(), fromDb, readUser);
-        VO updated = service.getFull(fromDb.getId(), readUser);
-        assertVoEqual(fromDb, updated);
+            VO fromDb = service.getFull(vo.getId(), readUser);
+            assertVoEqual(vo, fromDb);
+            fromDb.setName("read user edited me");
+            service.updateFull(fromDb.getXid(), fromDb, readUser);
+            VO updated = service.getFull(fromDb.getId(), readUser);
+            assertVoEqual(fromDb, updated);
+        });
     }
     
     @Test(expected = PermissionException.class)
     public void testSuperadminReadRole() {
-        VO vo = createValidVO();
-        setReadRoles(Collections.singleton(RoleDao.getInstance().getSuperadminRole()), vo);
-        try{
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.singleton(RoleDao.getInstance().getSuperadminRole()), vo);
             service.insertFull(vo, systemSuperadmin);
-        } catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
-        }
-        service.getFull(vo.getId(), readUser);
+            service.getFull(vo.getId(), readUser);
+        });
     }
     
     @Test(expected = PermissionException.class)
     public void testSuperadminEditRole() {
-        VO vo = createValidVO();
-        setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-        setEditRoles(Collections.singleton(RoleDao.getInstance().getSuperadminRole()), vo);
-        try{
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setEditRoles(Collections.singleton(RoleDao.getInstance().getSuperadminRole()), vo);
             service.insertFull(vo, systemSuperadmin);
-        } catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
-            }
-            fail(failureMessage);
-        }
-        VO fromDb = service.getFull(vo.getId(), readUser);
-        assertVoEqual(vo, fromDb);
-        fromDb.setName("read user edited me");
-        service.updateFull(fromDb.getXid(), fromDb, readUser);
+            VO fromDb = service.getFull(vo.getId(), readUser);
+            assertVoEqual(vo, fromDb);
+            fromDb.setName("read user edited me");
+            service.updateFull(fromDb.getXid(), fromDb, readUser);            
+        });
     }
     
     void addRoleToCreatePermission(RoleVO vo) {
