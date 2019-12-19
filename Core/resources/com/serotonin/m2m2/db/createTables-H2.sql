@@ -372,24 +372,7 @@ CREATE TABLE roleMappings (
 	roleId int not null,
 	voId int not null,
 	voType varchar(255) not null,
-	permissionType varchar(255) not null,
+	permissionType varchar(255) not null
 );
 ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
 ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
-
---
---
--- Compound events detectors
---
--- create table compoundEventDetectors (
---   id int not null auto_increment,
---   xid varchar(50) not null,
---   name varchar(100),
---   alarmLevel int not null,
---   returnToNormal char(1) not null,
---   disabled char(1) not null,
---   conditionText varchar(256) not null,
---   primary key (id)
--- );
--- alter table compoundEventDetectors add constraint compoundEventDetectorsUn1 unique (xid);
-
