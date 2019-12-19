@@ -143,9 +143,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.passwordVersion = 1;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getXid()
-     */
     @Override
     public String getXid() {
         return "N/A";
