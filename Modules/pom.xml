@@ -24,7 +24,6 @@
         <yarnVersionPhase>generate-resources</yarnVersionPhase>
         <yarnInstallPhase>generate-resources</yarnInstallPhase>
         <webpackPhase>generate-resources</webpackPhase>
-        <jspcPhase>prepare-package</jspcPhase>
     </properties>
     <profiles>
         <profile>
@@ -49,15 +48,7 @@
                 <yarnVersionPhase>none</yarnVersionPhase>
                 <yarnInstallPhase>none</yarnInstallPhase>
                 <webpackPhase>none</webpackPhase>
-                <jspcPhase>none</jspcPhase>
                 <skipModuleInstall>true</skipModuleInstall>
-            </properties>
-        </profile>
-        <profile>
-            <id>skip-jspc</id>
-            <properties>
-                <warPluginPhase>none</warPluginPhase>
-                <jspcPhase>none</jspcPhase>
             </properties>
         </profile>
         <profile>

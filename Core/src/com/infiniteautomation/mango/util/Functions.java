@@ -1,14 +1,10 @@
 /**
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
-*/
+ */
 package com.infiniteautomation.mango.util;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Pattern;
-
-import javax.servlet.jsp.PageContext;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -18,8 +14,6 @@ import org.joda.time.format.DateTimeFormatter;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessMessage;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -33,9 +27,9 @@ import com.serotonin.m2m2.vo.User;
  *
  */
 public class Functions {
-    
+
     public static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+?");
-    
+
     public static String quotEncode(String s) {
         if (s == null)
             return null;
@@ -86,8 +80,8 @@ public class Functions {
             return null;
         return s.replaceAll("#", "%23");
     }
-    
-    
+
+
     public static String getHtmlText(DataPointVO point, PointValueTime pointValue) {
         if (point == null)
             return "-";
@@ -151,7 +145,7 @@ public class Functions {
                 text = encodeDQuot(text);
                 if (StringUtils.isBlank(colour))
                     result = "<input type='text' readonly='readonly' class='ovrflw' value=\"" + text
-                            + "\"/>";
+                    + "\"/>";
                 else
                     result = "<input type='text' readonly='readonly' class='ovrflw' style='color:"
                             + colour + ";' value=\"" + text + "\"/>";
@@ -190,52 +184,6 @@ public class Functions {
         result = Pattern.compile("</script", Pattern.CASE_INSENSITIVE).matcher(result)
                 .replaceAll("&lt;/script");
         return result;
-    }
-
-    public static String contextualMessage(String context, ProcessResult result, PageContext page) {
-        if (result != null) {
-            for (ProcessMessage msg : result.getMessages()) {
-                if (context.equals(msg.getContextKey()))
-                    return msg.getContextualMessage()
-                            .translate(Common.getTranslations());
-            }
-        }
-        return null;
-    }
-
-    public static List<String> contextualMessages(String context, ProcessResult result,
-            PageContext page) {
-        List<String> msgs = new ArrayList<String>();
-        if (result != null) {
-            for (ProcessMessage msg : result.getMessages()) {
-                if (context.equals(msg.getContextKey()))
-                    msgs.add(msg.getContextualMessage()
-                            .translate(Common.getTranslations()));
-            }
-        }
-        return msgs;
-    }
-
-    public static String genericMessage(ProcessResult result, PageContext page) {
-        if (result != null) {
-            for (ProcessMessage msg : result.getMessages()) {
-                if (msg.getContextKey() == null)
-                    return msg.getGenericMessage().translate(Common.getTranslations());
-            }
-        }
-        return null;
-    }
-
-    public static List<String> genericMessages(ProcessResult result, PageContext page) {
-        List<String> msgs = new ArrayList<String>();
-        if (result != null) {
-            for (ProcessMessage msg : result.getMessages()) {
-                if (msg.getContextKey() == null)
-                    msgs.add(msg.getGenericMessage()
-                            .translate(Common.getTranslations()));
-            }
-        }
-        return msgs;
     }
 
     public static String envString(String key, String defaultValue) {

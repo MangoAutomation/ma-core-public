@@ -13,9 +13,9 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 import javax.measure.unit.Unit;
+import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tomcat.util.buf.HexUtils;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -33,7 +33,7 @@ import com.serotonin.util.SerializationHelper;
 public class AnalogRenderer extends ConvertingRenderer {
     private static ImplDefinition definition = new ImplDefinition("textRendererAnalog", "ANALOG",
             "textRenderer.analog", new int[] { DataTypes.NUMERIC });
-    
+
     public static ImplDefinition getDefinition() {
         return definition;
     }
@@ -51,7 +51,7 @@ public class AnalogRenderer extends ConvertingRenderer {
     @JsonProperty
     protected String format;
     protected String suffix;
-    
+
     public AnalogRenderer() {
         super();
         setDefaults();
@@ -78,15 +78,15 @@ public class AnalogRenderer extends ConvertingRenderer {
         this.suffix = suffix;
         this.useUnitAsSuffix = useUnitAsSuffix;
     }
-    
+
     @Override
     protected void setDefaults() {
-    	super.setDefaults();
-    	useUnitAsSuffix = false; 
+        super.setDefaults();
+        useUnitAsSuffix = false;
         format = "0.00";
         suffix = "";
     }
-    
+
     @Override
     public String getMetaText() {
         if (useUnitAsSuffix)
@@ -108,7 +108,7 @@ public class AnalogRenderer extends ConvertingRenderer {
         String suffix = this.suffix;
         if (useUnitAsSuffix)
             suffix = " " + UnitUtil.formatLocal(renderedUnit);
-        
+
         String raw;
         if(format != null && (format.startsWith("0x") || (format.startsWith("0X")))){
             String[] parts = format.toUpperCase().split("0X");
@@ -139,12 +139,12 @@ public class AnalogRenderer extends ConvertingRenderer {
         if(StringUtils.isEmpty(s))
             return new NumericValue(0);
         else if(s.startsWith("0x") || s.startsWith("0X")) {
-            byte[] values = HexUtils.fromHexString(s.substring(2));
+            byte[] values = DatatypeConverter.parseHexBinary(s.substring(2));
             return new NumericValue(new BigInteger(1, values).longValue());
         }else
             return DataValue.stringToValue(s, dataType);
     }
-    
+
     public String getFormat() {
         return format;
     }
@@ -186,7 +186,7 @@ public class AnalogRenderer extends ConvertingRenderer {
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-        
+
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
             format = SerializationHelper.readSafeUTF(in);
@@ -204,23 +204,23 @@ public class AnalogRenderer extends ConvertingRenderer {
             unit = (Unit<?>) in.readObject();
             renderedUnit = (Unit<?>) in.readObject();
         }else if (ver == 4){
-        	format = SerializationHelper.readSafeUTF(in);
+            format = SerializationHelper.readSafeUTF(in);
             suffix = SerializationHelper.readSafeUTF(in);
         }
     }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        
+
         if (!useUnitAsSuffix)
             writer.writeEntry("suffix", suffix);
     }
-    
+
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        
+
         if (useUnitAsSuffix) {
             suffix = "";
         } else {
@@ -234,19 +234,19 @@ public class AnalogRenderer extends ConvertingRenderer {
         }
     }
 
-	@Override
-	public void validate(ProcessResult result, int sourceDataTypeId) {
-		super.validate(result, sourceDataTypeId);
-		if((format == null)||(format.equals("")))
-			result.addContextualMessage("textRenderer.format", "validate.required");
-		if(format.startsWith("0x") || format.startsWith("0X")) {
-		    String[] parts = format.toUpperCase().split("0X");
-		    if(parts.length != 2) {
-		        result.addContextualMessage("textRenderer.format", "validate.invalidValue");
-		        return;
-		    }
-		    //Count digits
-		    int digits = 0;
+    @Override
+    public void validate(ProcessResult result, int sourceDataTypeId) {
+        super.validate(result, sourceDataTypeId);
+        if((format == null)||(format.equals("")))
+            result.addContextualMessage("textRenderer.format", "validate.required");
+        if(format.startsWith("0x") || format.startsWith("0X")) {
+            String[] parts = format.toUpperCase().split("0X");
+            if(parts.length != 2) {
+                result.addContextualMessage("textRenderer.format", "validate.invalidValue");
+                return;
+            }
+            //Count digits
+            int digits = 0;
             //Count the 0s in the second part
             for(int i=0; i<parts[1].length(); i++)
                 if(parts[1].charAt(i) == '0')
@@ -255,6 +255,6 @@ public class AnalogRenderer extends ConvertingRenderer {
                     result.addContextualMessage("textRenderer.format", "validate.invalidValue");
             if(digits < 1)
                 result.addContextualMessage("textRenderer.format", "validate.invalidValue");
-		}
-	}
+        }
+    }
 }
