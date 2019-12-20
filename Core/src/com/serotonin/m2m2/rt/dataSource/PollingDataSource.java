@@ -17,9 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.infiniteautomation.mango.monitor.DoubleMonitor;
-import com.infiniteautomation.mango.monitor.LongMonitor;
-import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
+import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.LongLongPair;
 import com.serotonin.m2m2.Common;
@@ -33,8 +31,8 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extends DataSourceRT<T> implements ValueMonitorOwner {
-	
+abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extends DataSourceRT<T> {
+
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";
     private Object terminationLock;
@@ -44,7 +42,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
 
     // If polling is done with millis
     protected long pollingPeriodMillis = 300000; // Default to 5 minutes just to
-                                               // have something here
+    // have something here
     protected boolean quantize;
 
     // If polling is done with cron
@@ -58,59 +56,67 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
     private final AtomicLong successfulPolls = new AtomicLong();
     private final AtomicLong unsuccessfulPolls = new AtomicLong();
     private final AtomicLong currentSuccessfulPolls = new AtomicLong();
-    private final LongMonitor currentSuccessfulPollsMonitor;
-    private final LongMonitor lastPollDurationMonitor;
-    private final DoubleMonitor successfulPollsPercentageMonitor;
+    private final ValueMonitor<Long> currentSuccessfulPollsMonitor;
+    private final ValueMonitor<Long> lastPollDurationMonitor;
+    private final ValueMonitor<Double> successfulPollsPercentageMonitor;
     private final ConcurrentLinkedQueue<LongLongPair> latestPollTimes;
     private final ConcurrentLinkedQueue<Long> latestAbortedPollTimes;
     private long nextAbortedPollMessageTime = 0l;
     private final long abortedPollLogDelay;
-    
+
     public PollingDataSource(T vo) {
         super(vo);
         if(vo.isUseCron())
             this.cronPattern = vo.getCronPattern();
         else
             pollingPeriodMillis = Common.getMillis(vo.getUpdatePeriodType(), vo.getUpdatePeriods());
-        
+
         this.quantize = vo.isQuantize();
-        
+
         this.latestPollTimes = new ConcurrentLinkedQueue<LongLongPair>();
         this.latestAbortedPollTimes = new ConcurrentLinkedQueue<Long>();
         this.abortedPollLogDelay = Common.envProps.getLong("runtime.datasource.pollAbortedLogFrequency", 3600000);
         this.timeoutClient = new TimeoutClient(){
 
-			@Override
-			public void scheduleTimeout(long fireTime) {
-				scheduleTimeoutImpl(fireTime);
-			}
+            @Override
+            public void scheduleTimeout(long fireTime) {
+                scheduleTimeoutImpl(fireTime);
+            }
 
-			@Override
-			public String getTaskId() {
-				return prefix + vo.getXid();
-			}
-			
-			@Override
-			public String getThreadName() {
-				return "Polling Data Source: " + vo.getXid();
-			}
-			
-			@Override
-			public void rejected(RejectedTaskReason reason) {
-				incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
-				updateSuccessfulPollQuotient();
-				Common.backgroundProcessing.rejectedHighPriorityTask(reason);
-			}
-        	
+            @Override
+            public String getTaskId() {
+                return prefix + vo.getXid();
+            }
+
+            @Override
+            public String getThreadName() {
+                return "Polling Data Source: " + vo.getXid();
+            }
+
+            @Override
+            public void rejected(RejectedTaskReason reason) {
+                incrementUnsuccessfulPolls(reason.getScheduledExecutionTime());
+                updateSuccessfulPollQuotient();
+                Common.backgroundProcessing.rejectedHighPriorityTask(reason);
+            }
+
         };
 
         //Set it to -1 so that if it never aborts we can distinguish from always aborting
-        this.currentSuccessfulPollsMonitor = (LongMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
-                new LongMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_SUCCESS", new TranslatableMessage("internal.monitor.pollingDataSource.SUCCESS", vo.getName()), this, -1L));
-        this.lastPollDurationMonitor = (LongMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
-                new LongMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_DURATION", new TranslatableMessage("internal.monitor.pollingDataSource.DURATION", vo.getName()), this));
-        this.successfulPollsPercentageMonitor = (DoubleMonitor)Common.MONITORED_VALUES.addIfMissingStatMonitor(
-                new DoubleMonitor("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_PERCENTAGE", new TranslatableMessage("internal.monitor.pollingDataSource.PERCENTAGE", vo.getName()), this));
+        this.currentSuccessfulPollsMonitor = Common.MONITORED_VALUES.<Long>create("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_SUCCESS")
+                .name(new TranslatableMessage("internal.monitor.pollingDataSource.SUCCESS", vo.getName()))
+                .value(-1L)
+                .build();
+
+        this.lastPollDurationMonitor = Common.MONITORED_VALUES.<Long>create("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_DURATION")
+                .name(new TranslatableMessage("internal.monitor.pollingDataSource.DURATION", vo.getName()))
+                .value(0L)
+                .build();
+
+        this.successfulPollsPercentageMonitor = Common.MONITORED_VALUES.<Double>create("com.serotonin.m2m2.rt.dataSource.PollingDataSource_" + vo.getXid() + "_PERCENTAGE")
+                .name(new TranslatableMessage("internal.monitor.pollingDataSource.PERCENTAGE", vo.getName()))
+                .value(0D)
+                .build();
     }
 
     public long getSuccessfulPolls() {
@@ -128,28 +134,28 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
     }
 
     /**
-     * Increment the unsuccessful polls 
+     * Increment the unsuccessful polls
      * and fire event if necessary
      * @param time
      */
     public void incrementUnsuccessfulPolls(long time) {
         long consecutiveSuccesses = currentSuccessfulPolls.getAndSet(0);
         currentSuccessfulPollsMonitor.setValue(consecutiveSuccesses);
-        
+
         long unsuccessful = unsuccessfulPolls.incrementAndGet();
-        
+
         lastPollSuccessful.set(false);
         latestAbortedPollTimes.add(time);
         //Trim the Queue
         while(latestAbortedPollTimes.size() > 10)
             latestAbortedPollTimes.poll();
-        
+
         //Log A Message Every 5 Minutes
         if(LOG.isWarnEnabled() && (nextAbortedPollMessageTime <= time)){
             nextAbortedPollMessageTime = time + abortedPollLogDelay;
             LOG.warn("Data Source " + vo.getName() + " aborted " + unsuccessful + " polls since it started.");
         }
-        
+
         //Raise No RTN Event On First aborted poll
         int eventId = vo.getPollAbortedExceptionEventId();
         if((eventId >= 0) && (unsuccessful == 1))
@@ -161,7 +167,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
         long successful = successfulPolls.get();
         successfulPollsPercentageMonitor.setValue(((double)successful/(double)(successful + unsuccessful))*100);
     }
-    
+
     public synchronized void scheduleTimeoutImpl(long fireTime) {
         try {
             jobThread = Thread.currentThread();
@@ -207,7 +213,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
         messages.add(new TranslatableMessage("dsEdit.discardedPolls", unsuccessfulPolls, sum, (int) (unsuccessfulPolls
                 .doubleValue() / sum * 100)));
     }
-    
+
     @Override
     public void forcePoll() {
         //After discussion this is left as is but does not guarantee any ordering of multiple calls.
@@ -219,7 +225,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
     /**
      * Override this method if you do not want the poll to synchronize on
      * pointListChangeLock
-     * 
+     *
      * @param time
      */
     protected void doPollNoSync(long time) {
@@ -238,9 +244,9 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
         try {
             if (addedChangedPoints.size() > 0) {
 
-            	    // Remove any existing instances of the points.
+                // Remove any existing instances of the points.
                 dataPoints.removeAll(addedChangedPoints);
-                
+
                 // Add the changed points and start the interval logging
                 for(DataPointRT rt : addedChangedPoints){
                     rt.initializeIntervalLogging(fireTime, quantize);
@@ -258,7 +264,7 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
             pointListChangeLock.writeLock().unlock();
         }
     }
-    
+
     //
     //
     // Data source interface
@@ -272,9 +278,9 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
                 long now = Common.timer.currentTimeMillis();
                 delay = pollingPeriodMillis - (now % pollingPeriodMillis);
                 if(LOG.isDebugEnabled())
-                	LOG.debug("First poll should be at: " + (now + delay));
+                    LOG.debug("First poll should be at: " + (now + delay));
                 timerTask = new TimeoutTask(new FixedRateTrigger(new Date(now + delay), pollingPeriodMillis), this.timeoutClient);
-            } else 
+            } else
                 timerTask = new TimeoutTask(new FixedRateTrigger(delay, pollingPeriodMillis), this.timeoutClient);
         }
         else {
@@ -294,11 +300,11 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
     public void terminate() {
         if (timerTask != null)
             timerTask.cancel();
-        
-        Common.MONITORED_VALUES.removeStatMonitor(currentSuccessfulPollsMonitor.getId());
-        Common.MONITORED_VALUES.removeStatMonitor(lastPollDurationMonitor.getId());
-        Common.MONITORED_VALUES.removeStatMonitor(successfulPollsPercentageMonitor.getId());
-        
+
+        Common.MONITORED_VALUES.remove(currentSuccessfulPollsMonitor.getId());
+        Common.MONITORED_VALUES.remove(lastPollDurationMonitor.getId());
+        Common.MONITORED_VALUES.remove(successfulPollsPercentageMonitor.getId());
+
         super.terminate();
     }
 
@@ -330,44 +336,37 @@ abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extend
                         LOG.warn("Waiting for data source to stop: id=" + getId() + ", type=" + getClass());
                     else
                         throw new ShouldNeverHappenException("Timeout waiting for data source to stop: id=" + getId()
-                                + ", type=" + getClass() + ", stackTrace="
-                                + Arrays.toString(localThread.getStackTrace()));
+                        + ", type=" + getClass() + ", stackTrace="
+                        + Arrays.toString(localThread.getStackTrace()));
                 }
             }
         }
     }
-    
+
     /**
      * Get the latest poll times and durations.  Use sparingly as this will block the polling thread
      * @return
      */
     public List<LongLongPair> getLatestPollTimes(){
         List<LongLongPair> latestTimes = new ArrayList<LongLongPair>();
-		Iterator<LongLongPair> it = this.latestPollTimes.iterator();
-		while(it.hasNext()){
-			latestTimes.add(it.next());
-		}
-		return latestTimes;
+        Iterator<LongLongPair> it = this.latestPollTimes.iterator();
+        while(it.hasNext()){
+            latestTimes.add(it.next());
+        }
+        return latestTimes;
     }
-    
+
     /**
      * Get the latest times for Aborted polls.
      * @return
      */
     public List<Long> getLatestAbortedPollTimes(){
         List<Long> latestTimes = new ArrayList<Long>();
-		Iterator<Long> it = this.latestAbortedPollTimes.iterator();
-		while(it.hasNext()){
-			latestTimes.add(it.next());
-		}
-		return latestTimes;
+        Iterator<Long> it = this.latestAbortedPollTimes.iterator();
+        while(it.hasNext()){
+            latestTimes.add(it.next());
+        }
+        return latestTimes;
     }
-    
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(java.lang.String)
-     */
-    @Override
-    public void reset(String monitorId) {
-        //TODO Implement if required
-    }
+
 }

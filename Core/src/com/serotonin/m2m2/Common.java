@@ -6,6 +6,7 @@ package com.serotonin.m2m2;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -91,7 +92,7 @@ public class Common {
     public static final String SESSION_USER_EXCEPTION  = "MANGO_USER_LAST_EXCEPTION";
 
     // Note the start time of the application.
-    public static final long START_TIME = System.currentTimeMillis();
+    public static final long START_TIME = ManagementFactory.getRuntimeMXBean().getStartTime();
 
     /**
      * <p>Prefer {@link Common#MA_HOME_PATH}</p>

@@ -62,7 +62,6 @@ import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
-import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -86,7 +85,7 @@ import net.jazdw.rql.parser.ASTNode;
  *
  * @author Jared Wiltshire
  */
-public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao implements ValueMonitorOwner {
+public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
     public static final int DEFAULT_LIMIT = 100;
@@ -413,15 +412,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         this.tableModel = new TableModel(this.getTableName(), new ArrayList<QueryAttribute>(attributeMap.values()));
 
         //Setup Monitors
-        if(countMonitorName != null){
-            this.countMonitor = new AtomicIntegerMonitor(this.getClass().getCanonicalName() + ".COUNT", countMonitorName, this, true);
-            this.countMonitor.setValue(this.count());
-            Common.MONITORED_VALUES.addIfMissingStatMonitor(this.countMonitor);
+        if(countMonitorName != null) {
+            this.countMonitor = Common.MONITORED_VALUES.create(this.getClass().getCanonicalName() + ".COUNT")
+                    .name(countMonitorName)
+                    .value(this.count())
+                    .uploadToStore(true)
+                    .buildAtomic();
         }else{
             this.countMonitor = null;
         }
-
-
     }
 
     /**
@@ -912,15 +911,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     public AtomicIntegerMonitor getCountMonitor(){
         return this.countMonitor;
-    }
-
-    /* (non-Javadoc)
-     * @see com.infiniteautomation.mango.monitor.ValueMonitorOwner#reset(com.infiniteautomation.mango.monitor.ValueMonitor)
-     */
-    @Override
-    public void reset(String id) {
-        //We only have one monitor so:
-        this.countMonitor.setValue(this.count());
     }
 
     /**

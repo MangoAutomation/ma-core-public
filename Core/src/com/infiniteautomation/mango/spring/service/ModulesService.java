@@ -31,7 +31,6 @@ import org.apache.http.entity.StringEntity;
 import org.springframework.stereotype.Service;
 
 import com.github.zafarkhaja.semver.Version;
-import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
@@ -72,10 +71,10 @@ import com.serotonin.web.http.HttpUtils4;
 
 /**
  * Module upgrade management service
- * 
- * TODO Mango 4.0 add permissions checks they are currently done in the calling logic 
- *   as this was ported from the DWR that had annotations 
- * 
+ *
+ * TODO Mango 4.0 add permissions checks they are currently done in the calling logic
+ *   as this was ported from the DWR that had annotations
+ *
  * @author Terry Packer
  *
  */
@@ -386,17 +385,13 @@ public class ModulesService implements ModuleNotificationListener {
             json.put("publisherPointsUsage", publisherPointsCounts);
 
             for(ValueMonitor<?> m : Common.MONITORED_VALUES.getMonitors()) {
-                if(m.uploadUsageToStore()) {
-                    if(m instanceof AtomicIntegerMonitor) {
-                        json.put(m.getId(), ((AtomicIntegerMonitor)m).getValue().get());
-                    }else {
-                        if(m.getValue() != null)
-                            json.put(m.getId(), m.getValue());
+                if (m.isUploadToStore()) {
+                    if (m.getValue() != null) {
+                        json.put(m.getId(), m.getValue());
                     }
                 }
             }
         }
-
 
         StringWriter stringWriter = new StringWriter();
         new JsonWriter(Common.JSON_CONTEXT, stringWriter).writeObject(json);
@@ -745,5 +740,5 @@ public class ModulesService implements ModuleNotificationListener {
     public void newModuleAvailable(String name, String version) {
         //no-op
     }
-    
+
 }

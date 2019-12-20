@@ -26,7 +26,7 @@ public class LoadAverageInfoDefinition extends SystemInfoDefinition<Double>{
 
 	@Override
 	public Double getValue() {
-	    return (Double)Common.MONITORED_VALUES.getValueMonitor(ServerMonitoringService.LOAD_AVERAGE_MONITOR_ID).getValue();
+	    return (Double)Common.MONITORED_VALUES.getMonitor(ServerMonitoringService.LOAD_AVERAGE_MONITOR_ID).getValue();
 	}
 
 	

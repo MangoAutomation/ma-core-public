@@ -361,7 +361,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void checkAddPoint() {
         IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
         Integer limit = lifecycle.dataPointLimit();
-        if(limit != null && this.countMonitor.getValue().get() >= limit) {
+        if(limit != null && this.countMonitor.getValue() >= limit) {
             String licenseType;
             if(Common.license() != null)
                 licenseType = Common.license().getLicenseType();
@@ -390,7 +390,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         dp.getIntervalLoggingPeriodType(), dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(),
                         dp.getTolerance(), boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
-                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(), 
+                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(),
                         dp.getPointLocator().getDataTypeId(), boolToChar(dp.getPointLocator().isSettable()), SerializationHelper.writeObject(dp) }, //
                 new int[] { Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR,
@@ -445,7 +445,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                         boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
                         dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(),
-                        dp.getPointLocator().getDataTypeId(), boolToChar(dp.getPointLocator().isSettable()), 
+                        dp.getPointLocator().getDataTypeId(), boolToChar(dp.getPointLocator().isSettable()),
                         SerializationHelper.writeObject(dp), dp.getId() }, //
                 new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR, Types.INTEGER,
@@ -458,7 +458,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null, null));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
-    
+
     /**
      * Is a data point enabled, returns false if point is disabled or DNE.
      * @param id
@@ -474,7 +474,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 }else
                     return false;
             }
-            
+
         });
     }
 
@@ -967,7 +967,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
                 vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
                 vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
-                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId(), vo.getRollup(), 
+                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId(), vo.getRollup(),
                 vo.getPointLocator().getDataTypeId(), boolToChar(vo.getPointLocator().isSettable())};
     }
 
@@ -975,7 +975,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public DataPointVO getNewVo() {
         return new DataPointVO();
     }
-    
+
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();

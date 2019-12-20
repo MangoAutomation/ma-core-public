@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -23,8 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.infiniteautomation.mango.monitor.LongMonitor;
-import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
+import com.infiniteautomation.mango.monitor.MonitoredValues;
+import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.NoSQLProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -33,92 +34,112 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 
 /**
  * Monitor partition sizes and optionally file stores and ma_home directories
- * 
+ *
  * @author Terry Packer
  *
  */
 @Service
-public class DiskUsageMonitoringService implements ValueMonitorOwner {
-    
-    private static final Log LOG = LogFactory.getLog(DiskUsageMonitoringService.class);
-    
+public class DiskUsageMonitoringService {
+
+    private final Log log = LogFactory.getLog(DiskUsageMonitoringService.class);
+
     public static final String MA_HOME_PARTITION_TOTAL_SPACE = "internal.monitor.MA_HOME_PARTITION_TOTAL_SPACE";
     public static final String MA_HOME_PARTITION_USABLE_SPACE = "internal.monitor.MA_HOME_PARTITION_USABLE_SPACE";
 
     public static final String NOSQL_PARTITION_TOTAL_SPACE = "internal.monitor.NOSQL_PARTITION_TOTAL_SPACE";
     public static final String NOSQL_PARTITION_USABLE_SPACE = "internal.monitor.NOSQL_PARTITION_USABLE_SPACE";
-    
+
     public static final String SQL_PARTITION_TOTAL_SPACE = "internal.monitor.SQL_PARTITION_TOTAL_SPACE";
     public static final String SQL_PARTITION_USABLE_SPACE = "internal.monitor.SQL_PARTITION_USABLE_SPACE";
 
     public static final String FILESTORE_PARTITION_TOTAL_SPACE = "internal.monitor.FILESTORE_PARTITION_TOTAL_SPACE";
     public static final String FILESTORE_PARTITION_USABLE_SPACE = "internal.monitor.FILESTORE_PARTITION_USABLE_SPACE";
 
-    
+
     public static final String MA_HOME_SIZE = "internal.monitor.MA_HOME_SIZE";
     public static final String FILE_STORE_SIZE_PREFIX = "internal.monitor.FILE_STORE.";
 
+    private final ExecutorService executor;
     private final ScheduledExecutorService scheduledExecutor;
     private final long period;
-    private final boolean monitorDirectories;
-    
-    private final LongMonitor maHomePartitionTotalSpace  = new LongMonitor(MA_HOME_PARTITION_TOTAL_SPACE, new TranslatableMessage(MA_HOME_PARTITION_TOTAL_SPACE), this);
-    private final LongMonitor maHomePartitionUsableSpace  = new LongMonitor(MA_HOME_PARTITION_USABLE_SPACE, new TranslatableMessage(MA_HOME_PARTITION_USABLE_SPACE), this);
 
-    private final LongMonitor noSqlPartitionTotalSpace  = new LongMonitor(NOSQL_PARTITION_TOTAL_SPACE, new TranslatableMessage(NOSQL_PARTITION_TOTAL_SPACE), this);
-    private final LongMonitor noSqlPartitionUsableSpace  = new LongMonitor(NOSQL_PARTITION_USABLE_SPACE, new TranslatableMessage(NOSQL_PARTITION_USABLE_SPACE), this);
-    
-    private final LongMonitor sqlPartitionTotalSpace  = new LongMonitor(SQL_PARTITION_TOTAL_SPACE, new TranslatableMessage(SQL_PARTITION_TOTAL_SPACE), this);
-    private final LongMonitor sqlPartitionUsableSpace  = new LongMonitor(SQL_PARTITION_USABLE_SPACE, new TranslatableMessage(SQL_PARTITION_USABLE_SPACE), this);
+    private final ValueMonitor<Long> maHomePartitionTotalSpace;
+    private final ValueMonitor<Long> maHomePartitionUsableSpace;
+    private final ValueMonitor<Long> noSqlPartitionTotalSpace;
+    private final ValueMonitor<Long> noSqlPartitionUsableSpace;
+    private final ValueMonitor<Long> sqlPartitionTotalSpace;
+    private final ValueMonitor<Long> sqlPartitionUsableSpace;
+    private final ValueMonitor<Long> filestorePartitionTotalSpace;
+    private final ValueMonitor<Long> filestorePartitionUsableSpace;
+    private final ValueMonitor<Long> maHomeSize;
 
-    private final LongMonitor filestorePartitionTotalSpace  = new LongMonitor(FILESTORE_PARTITION_TOTAL_SPACE, new TranslatableMessage(FILESTORE_PARTITION_TOTAL_SPACE), this);
-    private final LongMonitor filestorePartitionUsableSpace  = new LongMonitor(FILESTORE_PARTITION_USABLE_SPACE, new TranslatableMessage(FILESTORE_PARTITION_USABLE_SPACE), this);
-    
-    private final LongMonitor maHomeSize = new LongMonitor(MA_HOME_SIZE, new TranslatableMessage(MA_HOME_SIZE), this);
-    private final Map<String, LongMonitor> fileStoreMonitors;
+    private final Map<String, ValueMonitor<Long>> fileStoreMonitors = new HashMap<>();
     private volatile ScheduledFuture<?> scheduledFuture;
 
     /**
-     * 
+     *
      * @param scheduledExecutor
      * @param period - how often to recalculate the usage
      * @param monitorDirectories - monitor file stores and ma_home specifically (will require more CPU)
      */
     @Autowired
-    private DiskUsageMonitoringService(ScheduledExecutorService scheduledExecutor, 
+    private DiskUsageMonitoringService(ExecutorService executor,
+            ScheduledExecutorService scheduledExecutor,
             @Value("${internal.monitor.diskUsage.pollPeriod:1800000}") long period,
-            @Value("${internal.monitor.diskUsage.monitorDirectories:false}") boolean monitorDirectories) {
+            @Value("${internal.monitor.diskUsage.monitorDirectories:false}") boolean monitorDirectories,
+            MonitoredValues monitoredValues) {
+
+        this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
         this.period = period;
-        this.monitorDirectories = monitorDirectories;
 
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(maHomePartitionTotalSpace);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(maHomePartitionUsableSpace);
-        
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(noSqlPartitionTotalSpace);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(noSqlPartitionUsableSpace);
-        
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(sqlPartitionTotalSpace);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(sqlPartitionUsableSpace);
-        
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(filestorePartitionTotalSpace);
-        Common.MONITORED_VALUES.addIfMissingStatMonitor(filestorePartitionUsableSpace);
-        this.fileStoreMonitors = new HashMap<>();
-        
-        if(this.monitorDirectories) {
-            Common.MONITORED_VALUES.addIfMissingStatMonitor(maHomeSize);
+        maHomePartitionTotalSpace = monitoredValues.<Long>create(MA_HOME_PARTITION_TOTAL_SPACE)
+                .name(new TranslatableMessage(MA_HOME_PARTITION_TOTAL_SPACE))
+                .build();
+        maHomePartitionUsableSpace = monitoredValues.<Long>create(MA_HOME_PARTITION_USABLE_SPACE)
+                .name(new TranslatableMessage(MA_HOME_PARTITION_USABLE_SPACE))
+                .build();
+        noSqlPartitionTotalSpace = monitoredValues.<Long>create(NOSQL_PARTITION_TOTAL_SPACE)
+                .name(new TranslatableMessage(NOSQL_PARTITION_TOTAL_SPACE))
+                .build();
+        noSqlPartitionUsableSpace = monitoredValues.<Long>create(NOSQL_PARTITION_USABLE_SPACE)
+                .name(new TranslatableMessage(NOSQL_PARTITION_USABLE_SPACE))
+                .build();
+        sqlPartitionTotalSpace = monitoredValues.<Long>create(SQL_PARTITION_TOTAL_SPACE)
+                .name(new TranslatableMessage(SQL_PARTITION_TOTAL_SPACE))
+                .build();
+        sqlPartitionUsableSpace = monitoredValues.<Long>create(SQL_PARTITION_USABLE_SPACE)
+                .name(new TranslatableMessage(SQL_PARTITION_USABLE_SPACE))
+                .build();
+        filestorePartitionTotalSpace = monitoredValues.<Long>create(FILESTORE_PARTITION_TOTAL_SPACE)
+                .name(new TranslatableMessage(FILESTORE_PARTITION_TOTAL_SPACE))
+                .build();
+        filestorePartitionUsableSpace = monitoredValues.<Long>create(FILESTORE_PARTITION_USABLE_SPACE)
+                .name(new TranslatableMessage(FILESTORE_PARTITION_USABLE_SPACE))
+                .build();
+
+        if (monitorDirectories) {
+            maHomeSize = monitoredValues.<Long>create(MA_HOME_SIZE)
+                    .name(new TranslatableMessage(MA_HOME_SIZE))
+                    .build();
+
             //Setup all filestores
             ModuleRegistry.getFileStoreDefinitions().values().stream().forEach( fs-> {
-                LongMonitor monitor = new LongMonitor(FILE_STORE_SIZE_PREFIX + fs.getStoreName(), new TranslatableMessage("internal.monitor.fileStoreSize", fs.getStoreDescription()), this);
+                ValueMonitor<Long> monitor = monitoredValues.<Long>create(FILE_STORE_SIZE_PREFIX + fs.getStoreName())
+                        .name(new TranslatableMessage("internal.monitor.fileStoreSize", fs.getStoreDescription()))
+                        .build();
                 this.fileStoreMonitors.put(fs.getStoreName(), monitor);
-                Common.MONITORED_VALUES.addIfMissingStatMonitor(monitor);
             });
+        } else {
+            maHomeSize = null;
         }
     }
 
     @PostConstruct
     private void postConstruct() {
-        this.scheduledFuture = scheduledExecutor.scheduleAtFixedRate(this::doPoll, 0, this.period, TimeUnit.MILLISECONDS);
+        this.scheduledFuture = scheduledExecutor.scheduleAtFixedRate(() -> {
+            executor.execute(this::doPoll);
+        }, 0, this.period, TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
@@ -130,22 +151,21 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
     }
 
     private void doPoll() {
-        
         //Volume information for MA Home Partition
         try {
             FileStore store = Files.getFileStore(Common.MA_HOME_PATH);
             maHomePartitionTotalSpace.setValue(store.getTotalSpace());
             maHomePartitionUsableSpace.setValue(store.getUsableSpace());
         }catch(Exception e) {
-            LOG.error("Unable to get MA_HOME partition usage", e);
+            log.error("Unable to get MA_HOME partition usage", e);
         }
-        //Volume information for NoSQL partition 
+        //Volume information for NoSQL partition
         try {
             FileStore store = Files.getFileStore(Paths.get(NoSQLProxy.getDatabasePath()).toAbsolutePath());
             noSqlPartitionTotalSpace.setValue(store.getTotalSpace());
             noSqlPartitionUsableSpace.setValue(store.getUsableSpace());
         }catch(Exception e) {
-            LOG.error("Unable to get NoSQL partition usage", e);
+            log.error("Unable to get NoSQL partition usage", e);
         }
 
         //Volume information for sql db partition (if possible)
@@ -156,10 +176,10 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
                 sqlPartitionTotalSpace.setValue(store.getTotalSpace());
                 sqlPartitionUsableSpace.setValue(store.getUsableSpace());
             }catch(Exception e) {
-                LOG.error("Unable to get Filestore partition usage", e);
+                log.error("Unable to get Filestore partition usage", e);
             }
         }
-        
+
         //Volume information for filestore partition
         String location = Common.envProps.getString(FileStoreDefinition.FILE_STORE_LOCATION_ENV_PROPERTY);
         if (location == null || location.isEmpty()) {
@@ -170,20 +190,16 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
             filestorePartitionTotalSpace.setValue(store.getTotalSpace());
             filestorePartitionUsableSpace.setValue(store.getUsableSpace());
         }catch(Exception e) {
-            LOG.error("Unable to get Filestore partition usage", e);
+            log.error("Unable to get Filestore partition usage", e);
         }
-        
-        if(this.monitorDirectories) {
-            maHomeSize.setValue(getSize(Common.MA_HOME_PATH.toFile()));
-            fileStoreMonitors.entrySet().stream().forEach(monitor -> {
-                monitor.getValue().setValue(getSize(ModuleRegistry.getFileStoreDefinition(monitor.getKey()).getRoot()));    
-            });
-        }
-    }
 
-    @Override
-    public void reset(String monitorId) {
-        // nop
+        if (this.maHomeSize != null) {
+            maHomeSize.setValue(getSize(Common.MA_HOME_PATH.toFile()));
+        }
+
+        fileStoreMonitors.entrySet().stream().forEach(monitor -> {
+            monitor.getValue().setValue(getSize(ModuleRegistry.getFileStoreDefinition(monitor.getKey()).getRoot()));
+        });
     }
 
     /**
@@ -197,9 +213,9 @@ public class DiskUsageMonitoringService implements ValueMonitorOwner {
         try {
             return FileUtils.sizeOfDirectory(directory);
         }catch(Exception e) {
-            LOG.error("Unable to compute size of " + directory.getAbsolutePath(), e);
+            log.error("Unable to compute size of " + directory.getAbsolutePath(), e);
             return 0l;
         }
     }
-    
+
 }

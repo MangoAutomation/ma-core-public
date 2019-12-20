@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
@@ -275,6 +276,11 @@ public class MangoRuntimeContextConfiguration {
     @DependsOn(DAO_OBJECT_MAPPER_NAME)
     public SystemSettingsDao systemSettingsDao() {
         return SystemSettingsDao.instance;
+    }
+
+    @Bean
+    public MonitoredValues monitoredValues() {
+        return Common.MONITORED_VALUES;
     }
 
     /**
