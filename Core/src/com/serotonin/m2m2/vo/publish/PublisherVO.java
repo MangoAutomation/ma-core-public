@@ -278,18 +278,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
     //
     //
-    // Editing customization
-    //
-    /*
-     * Allows the publisher to provide custom context data to its own editing page. Can be used for things like lists
-     * of comm ports and such.
-     */
-    public void addEditContext(Map<String, Object> model) {
-        // No op. Override as required.
-    }
-
-    //
-    //
     // Serialization
     //
     private static final long serialVersionUID = -1;
@@ -464,7 +452,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
                         publishTypeCode, PUBLISH_TYPE_CODES.getCodeList());
             publishType = publishTypeId;
         }else if(jsonObject.containsKey("changesOnly")){
-            boolean changesOnly = jsonObject.getBoolean("changesOnly");
+            boolean changesOnly = getBoolean(jsonObject, "changesOnly");
             if(changesOnly){
                 this.publishType = PublishType.CHANGES_ONLY;
             }else{

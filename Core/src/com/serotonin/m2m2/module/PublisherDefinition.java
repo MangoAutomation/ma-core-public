@@ -38,7 +38,7 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel
  *
  * @author Matthew Lohbihler
  */
-abstract public class PublisherDefinition extends ModuleElementDefinition implements DwrClassHolder {
+abstract public class PublisherDefinition extends ModuleElementDefinition {
     /**
      * Used by MA core code to create a new publisher instance as required. Should not be used by client code.
      */
@@ -71,12 +71,6 @@ abstract public class PublisherDefinition extends ModuleElementDefinition implem
      */
     abstract protected PublisherVO<? extends PublishedPointVO> createPublisherVO();
 
-    /**
-     * The path to the publisher editing page relative to the module.
-     *
-     * @return the relative path to the editing page.
-     */
-    abstract public String getEditPagePath();
 
     /**
      * If the module is uninstalled, delete any publishers of this type. If this method is overridden, be sure to call

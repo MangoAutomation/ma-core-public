@@ -4,8 +4,6 @@
  */
 package com.serotonin.m2m2.module;
 
-import com.serotonin.m2m2.i18n.Translations;
-
 /**
  * Used for creating custom audit event types.
  */
@@ -23,17 +21,4 @@ abstract public class AuditEventTypeDefinition extends ModuleElementDefinition {
      */
     abstract public String getDescriptionKey();
 
-    /**
-     * This method provides an opportunity for the client code to return HTML code that will be used verbatim in the
-     * events list snippet.
-     * 
-     * @param ref1
-     *            the first reference id of the event
-     * @param ref2
-     *            the second reference id of the event
-     * @param translations
-     *            the translations object with which to translate translatable messages
-     * @return the link, or null if none is to be displayed.
-     */
-    abstract public String getEventListLink(int ref1, int ref2, Translations translations);
 }

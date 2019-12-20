@@ -72,6 +72,10 @@ import com.serotonin.web.http.HttpUtils4;
 
 /**
  * Module upgrade management service
+ * 
+ * TODO Mango 4.0 add permissions checks they are currently done in the calling logic 
+ *   as this was ported from the DWR that had annotations 
+ * 
  * @author Terry Packer
  *
  */
@@ -664,10 +668,10 @@ public class ModulesService implements ModuleNotificationListener {
         }
     }
 
-    public static void addModuleNotificationListener(ModuleNotificationListener listener){
+    public void addModuleNotificationListener(ModuleNotificationListener listener){
         listeners.add(listener);
     }
-    public static void removeModuleNotificationListener(ModuleNotificationListener listener){
+    public void removeModuleNotificationListener(ModuleNotificationListener listener){
         listeners.remove(listener);
     }
 

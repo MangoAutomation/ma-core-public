@@ -249,18 +249,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
 
     //
     //
-    // Editing customization
-    //
-    /*
-     * Allows the data source to provide custom context data to its own editing page. Can be used for things like lists
-     * of comm ports and such. See DataSourceEditController.
-     */
-    public void addEditContext(Map<String, Object> model) {
-        // No op. Override as required.
-    }
-
-    //
-    //
     // Serialization
     //
     private static final long serialVersionUID = -1;

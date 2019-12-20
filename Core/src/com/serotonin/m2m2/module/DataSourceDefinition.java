@@ -57,7 +57,7 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
  *
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceDefinition extends ModuleElementDefinition implements DwrClassHolder {
+abstract public class DataSourceDefinition extends ModuleElementDefinition {
     /**
      * Used by MA core code to create a new data source instance as required. Should not be used by client code.
      */
@@ -98,13 +98,6 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition imple
     abstract protected DataSourceVO<?> createDataSourceVO();
 
     /**
-     * The path to the data source editing page relative to the module.
-     *
-     * @return the relative path to the editing page.
-     */
-    abstract public String getEditPagePath();
-
-    /**
      * Override this method as required. The start priority determines the order in which data sources are started by
      * MA. By default this method returns NORMAL, and should only be overridden when absolutely necessary. For
      * example, the Meta data source has a start priority of LAST because it depends up on the points from other data
@@ -124,9 +117,5 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition imple
     public void postRuntimeManagerTerminate(boolean uninstall) {
         if(uninstall)
             DataSourceDao.getInstance().deleteDataSourceType(getDataSourceTypeName());
-    }
-
-    public String getStatusPagePath() {
-        return null;
     }
 }

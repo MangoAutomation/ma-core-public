@@ -12,7 +12,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
  * This class provides a means to insert a section into the system settings page. Use this if you need to store values
  * in the system settings table that users are allowed to modify.
  *
- * @author Matthew Lohbihler
+ * @author Matthew Lohbihler, Terry Packer
  */
 abstract public class SystemSettingsDefinition extends ModuleElementDefinition {
     public static Integer getIntegerValue(Object value) {
@@ -44,13 +44,6 @@ abstract public class SystemSettingsDefinition extends ModuleElementDefinition {
      * @return the reference key
      */
     abstract public String getDescriptionKey();
-
-    /**
-     * The module relative path to the JSP file that provides the user interface for editing the system settings.
-     *
-     * @return the path
-     */
-    abstract public String getSectionJspPath();
 
     /**
      * Get the default values for the defined system settings

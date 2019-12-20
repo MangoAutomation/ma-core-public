@@ -20,10 +20,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.module.AuditEventTypeDefinition;
-import com.serotonin.m2m2.module.EventTypeDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
@@ -37,6 +33,61 @@ import com.serotonin.m2m2.vo.User;
  *
  */
 public class Functions {
+    
+    public static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+?");
+    
+    public static String quotEncode(String s) {
+        if (s == null)
+            return null;
+        return s.replaceAll("'", "\\\\'");
+    }
+
+    public static String dquotEncode(String s) {
+        if (s == null)
+            return null;
+        return s.replaceAll("\"", "\\\\\"");
+    }
+
+    public static String scriptEncode(String s) {
+        if (s == null)
+            return null;
+        return s.replaceAll("</script>", "&lt;/script>");
+    }
+
+    public static String crlfToBr(String s) {
+        return s.replaceAll("\r\n", "<br/>");
+    }
+
+    public static String lfToBr(String s) {
+        return s.replaceAll("\n", "<br/>");
+    }
+
+    public static String escapeWhitespace(String s) {
+        if (s == null)
+            return null;
+        return WHITESPACE_PATTERN.matcher(s).replaceAll("&nbsp;");
+    }
+
+    public static String escapeLessThan(String s) {
+        if (s == null)
+            return null;
+        s = s.replaceAll("&", "&amp;");
+        return s.replaceAll("<", "&lt;");
+    }
+
+    public static String escapeQuotes(String s) {
+        if (s == null)
+            return null;
+        return s.replaceAll("\\'", "\\\\'");
+    }
+
+    public static String escapeHash(String s) {
+        if (s == null)
+            return null;
+        return s.replaceAll("#", "%23");
+    }
+    
+    
     public static String getHtmlText(DataPointVO point, PointValueTime pointValue) {
         if (point == null)
             return "-";
@@ -185,28 +236,6 @@ public class Functions {
             }
         }
         return msgs;
-    }
-
-    public static String systemEventTypeLink(String subtype, int ref1, int ref2, PageContext page) {
-        SystemEventTypeDefinition def = ModuleRegistry.getSystemEventTypeDefinition(subtype);
-        if (def != null)
-            return def.getEventListLink(ref1, ref2, Common.getTranslations());
-        return null;
-    }
-
-    public static String auditEventTypeLink(String subtype, int ref1, int ref2, PageContext page) {
-        AuditEventTypeDefinition def = ModuleRegistry.getAuditEventTypeDefinition(subtype);
-        if (def != null)
-            return def.getEventListLink(ref1, ref2, Common.getTranslations());
-        return null;
-    }
-
-    public static String eventTypeLink(String type, String subtype, int ref1, int ref2,
-            PageContext page) {
-        EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(type);
-        if (def != null)
-            return def.getEventListLink(subtype, ref1, ref2, Common.getTranslations());
-        return null;
     }
 
     public static String envString(String key, String defaultValue) {

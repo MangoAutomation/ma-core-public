@@ -18,25 +18,16 @@ public class MockPublisherDefinition extends PublisherDefinition{
 
     public static final String TYPE_NAME = "MOCK";
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.PublisherDefinition#getPublisherTypeName()
-     */
     @Override
     public String getPublisherTypeName() {
         return TYPE_NAME;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.PublisherDefinition#getDescriptionKey()
-     */
     @Override
     public String getDescriptionKey() {
         return "common.default";
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.PublisherDefinition#createPublisherVO()
-     */
     @Override
     protected PublisherVO<? extends PublishedPointVO> createPublisherVO() {
         MockPublisherVO pub = new MockPublisherVO();
@@ -44,38 +35,13 @@ public class MockPublisherDefinition extends PublisherDefinition{
         return pub;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.PublisherDefinition#getEditPagePath()
-     */
-    @Override
-    public String getEditPagePath() {
-        return null;
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.PublisherDefinition#getDwrClass()
-     */
-    @Override
-    public Class<?> getDwrClass() {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.PublisherDefinition#getPublisherModelClass()
-     */
     @Override
     public Class<? extends AbstractPublisherModel<?, ?>> getPublisherModelClass() {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.PublisherDefinition#getPublishedPointModelClass()
-     */
     @Override
     public Class<? extends AbstractPublishedPointModel<?>> getPublishedPointModelClass() {
-        // TODO Auto-generated method stub
         return null;
     }
 
