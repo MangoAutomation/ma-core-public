@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.emport;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -25,7 +26,10 @@ import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 public class ImportContext {
+    
     private final UsersService usersService;
+    private final MailingListService mailingListService;
+    
     private final DataSourceDao<?> dataSourceDao = DataSourceDao.getInstance();
     private final DataPointDao dataPointDao = DataPointDao.getInstance();
     private final EventDao eventDao = EventDao.getInstance();
@@ -39,6 +43,7 @@ public class ImportContext {
 
     public ImportContext(JsonReader reader, ProcessResult result, Translations translations) {
         this.usersService = Common.getBean(UsersService.class);
+        this.mailingListService = Common.getBean(MailingListService.class);
         this.reader = reader;
         this.result = result;
         this.translations = translations;
@@ -78,12 +83,14 @@ public class ImportContext {
         return mailingListDao;
     }
 
-    public PublisherDao getPublisherDao() {
+    public MailingListService getMailingListService() {
+        return mailingListService;
+    }
+    
+    public PublisherDao<?> getPublisherDao() {
         return publisherDao;
     }
-	/**
-	 * @return
-	 */
+
 	public EventHandlerDao<AbstractEventHandlerVO<?>> getEventHandlerDao() {
 		return eventHandlerDao;
 	}
@@ -110,12 +117,6 @@ public class ImportContext {
             else
                 msg += ", " + translations.translate("emport.causedBy") + " '" + t.getMessage() + "'";
         }
-
-        // Throwable t = e;
-        // while (t.getCause() != null)
-        // t = t.getCause();
-        // String msg = msgPrefix + t.getMessage();
-
         return msg;
     }
 }
