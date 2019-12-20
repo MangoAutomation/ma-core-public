@@ -16,7 +16,6 @@
         <webDirectory>${project.build.directory}/web</webDirectory>
         <moduleTagDirectory>${webDirectory}/WEB-INF/tags/${moduleName}</moduleTagDirectory>
         <moduleWebDirectory>${webDirectory}/modules/${moduleName}/web</moduleWebDirectory>
-        <jspWorkDirectory>${project.build.directory}/work</jspWorkDirectory>
         <moduleZipAssembly>moduleZipAssembly</moduleZipAssembly>
         <skipModuleInstall>true</skipModuleInstall>
         <webpack.mode>production</webpack.mode>
@@ -166,94 +165,6 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                     </dependencies>
                 </plugin>
                 <plugin>
-                    <artifactId>maven-war-plugin</artifactId>
-                    <executions>
-                        <execution>
-                            <id>explode-tags</id>
-                            <goals>
-                                <goal>exploded</goal>
-                            </goals>
-                            <phase>${warPluginPhase}</phase>
-                            <configuration>
-                                <warSourceDirectory>web/tags</warSourceDirectory>
-                                <warSourceIncludes>**/*.tag</warSourceIncludes>
-                                <webappDirectory>${moduleTagDirectory}</webappDirectory>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>explode-tlds</id>
-                            <goals>
-                                <goal>exploded</goal>
-                            </goals>
-                            <phase>${warPluginPhase}</phase>
-                            <configuration>
-                                <warSourceDirectory>web</warSourceDirectory>
-                                <warSourceIncludes>**/*.tld</warSourceIncludes>
-                                <webappDirectory>${webDirectory}/WEB-INF/modules/${moduleName}</webappDirectory>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>explode-web</id>
-                            <goals>
-                                <goal>exploded</goal>
-                            </goals>
-                            <phase>${warPluginPhase}</phase>
-                            <configuration>
-                                <warSourceDirectory>web</warSourceDirectory>
-                                <warSourceExcludes>tags/**</warSourceExcludes>
-                                <webappDirectory>${moduleWebDirectory}</webappDirectory>
-                                <overlays>
-                                    <overlay>
-                                        <id>core</id>
-                                        <groupId>com.infiniteautomation</groupId>
-                                        <artifactId>mango</artifactId>
-                                        <classifier>web</classifier>
-                                        <targetPath>../../../</targetPath>
-                                    </overlay>
-                                </overlays>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.jetty</groupId>
-                    <artifactId>jetty-jspc-maven-plugin</artifactId>
-                    <version>${jettyVersion}</version>
-                    <executions>
-                        <execution>
-                            <id>compile-jsp</id>
-                            <phase>${jspcPhase}</phase>
-                            <goals>
-                                <goal>jspc</goal>
-                            </goals>
-                            <configuration>
-                                <webAppSourceDirectory>${webDirectory}</webAppSourceDirectory>
-                                <webXml>${webDirectory}/WEB-INF/web.xml</webXml>
-                                <webXmlFragment>${project.build.directory}/web-fragment.xml</webXmlFragment>
-                                <includes>modules/${moduleName}/web/**/*.jsp, modules/${moduleName}/web/**/*.jspf</includes>
-                                <excludes>WEB-INF/**</excludes>
-                                <mergeFragment>false</mergeFragment>
-                                <keepSources>true</keepSources>
-                                <generatedClasses>${jspWorkDirectory}</generatedClasses>
-                                <compilerTargetVM>${compilerTargetVersion}</compilerTargetVM>
-                                <compilerSourceVM>${compilerSourceVersion}</compilerSourceVM>
-                            </configuration>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.eclipse.jetty</groupId>
-                            <artifactId>apache-jsp</artifactId>
-                            <version>${jettyVersion}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>com.infiniteautomation</groupId>
-                            <artifactId>mango</artifactId>
-                            <version>${project.parent.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-                <plugin>
                     <groupId>com.github.eirslett</groupId>
                     <artifactId>frontend-maven-plugin</artifactId>
                     <version>1.8.0</version>
@@ -356,8 +267,14 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junitVersion}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${springVersion}</version>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
 </project>
