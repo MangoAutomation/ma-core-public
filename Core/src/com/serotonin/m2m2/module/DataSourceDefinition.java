@@ -11,7 +11,6 @@ import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
-import com.serotonin.m2m2.web.dwr.DataSourceEditDwr;
 
 /**
  * A data source is the means by which MA gets values into a data point, and writes set point values back to source
@@ -104,19 +103,6 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition imple
      * @return the relative path to the editing page.
      */
     abstract public String getEditPagePath();
-
-    /**
-     * The class of the DWR with which the data source editing page communicates. This class will be instantiated upon
-     * startup and registered as a DWR proxy. Typically this will be a subclass of {@link DataSourceEditDwr}.
-     *
-     * @return the class of the DWR proxy.
-     */
-    @Override
-    abstract public Class<?> getDwrClass();
-
-
-    //This can be used to force a TYPE into the Point Locator JSON
-    //abstract public List<PointLocatorDefinition> getPointLocatorDefinitions();
 
     /**
      * Override this method as required. The start priority determines the order in which data sources are started by

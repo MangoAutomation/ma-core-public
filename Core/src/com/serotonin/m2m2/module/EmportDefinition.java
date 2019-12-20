@@ -4,11 +4,11 @@
  */
 package com.serotonin.m2m2.module;
 
+import com.infiniteautomation.mango.emport.ImportContext;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.dwr.emport.ImportContext;
 
 /**
  * Import/Export functionality (aka 'emport') is a powerful feature that allows configuration to be imported or exported

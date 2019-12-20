@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.event;
 import java.util.List;
 import java.util.Map;
 
+import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
@@ -15,7 +16,6 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
-import com.serotonin.m2m2.web.taglib.Functions;
 
 public class EventInstance{
     /**

@@ -13,7 +13,7 @@ import org.springframework.web.servlet.mvc.ParameterizableViewController;
  * @author Terry Packer
  *
  */
-public class StartupController extends ParameterizableViewController{
+public class StartupController extends ParameterizableViewController {
 	public StartupController(){
 		super();
 		setViewName("/WEB-INF/jsp/starting.jsp");

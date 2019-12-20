@@ -48,16 +48,9 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.Permission;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.serotonin.m2m2.vo.publish.PublishedPointVO;
-import com.serotonin.m2m2.vo.publish.PublisherVO;
-import com.serotonin.m2m2.web.dwr.beans.DataExportDefinition;
-import com.serotonin.m2m2.web.dwr.beans.EventExportDefinition;
-import com.serotonin.m2m2.web.dwr.beans.TestingUtility;
-import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 import com.serotonin.validation.StringValidation;
 
@@ -125,14 +118,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     // for convenience.
     //
     private final transient ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<>();
-    private transient DataPointVO editPoint;
-    private transient DataSourceVO<?> editDataSource;
-    // TODO Mango 4.0 remove
-    private transient TestingUtility testingUtility;
-    private transient PublisherVO<? extends PublishedPointVO> editPublisher;
-    private transient ImportTask importTask;
-    private transient DataExportDefinition dataExportDefinition;
-    private transient EventExportDefinition eventExportDefinition;
     private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
@@ -221,35 +206,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     // Convenience method for JSPs
     public boolean isDataSourcePermission() {
         return Permissions.hasDataSourcePermission(this);
-    }
-
-    //
-    // Testing utility management
-    // TODO Mango 4.0 remove when Legacy UI goes away
-    public <T extends TestingUtility> T getTestingUtility(Class<T> requiredClass) {
-        TestingUtility tu = testingUtility;
-
-        if (tu != null) {
-            try {
-                return requiredClass.cast(tu);
-            }
-            catch (ClassCastException e) {
-                tu.cancel();
-                testingUtility = null;
-            }
-        }
-        return null;
-    }
-
-    public void setTestingUtility(TestingUtility testingUtility) {
-        TestingUtility tu = this.testingUtility;
-        if (tu != null)
-            tu.cancel();
-        this.testingUtility = testingUtility;
-    }
-
-    public void cancelTestingUtility() {
-        setTestingUtility(null);
     }
 
     // Properties
@@ -366,14 +322,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.username = username;
     }
 
-    public DataPointVO getEditPoint() {
-        return editPoint;
-    }
-
-    public void setEditPoint(DataPointVO editPoint) {
-        this.editPoint = editPoint;
-    }
-
     public boolean isDisabled() {
         return disabled;
     }
@@ -394,14 +342,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.admin = this.getPermissionsSet().contains(SuperadminPermissionDefinition.GROUP_NAME);
     }
 
-    public DataSourceVO<?> getEditDataSource() {
-        return editDataSource;
-    }
-
-    public void setEditDataSource(DataSourceVO<?> editDataSource) {
-        this.editDataSource = editDataSource;
-    }
-
     public String getHomeUrl() {
         return homeUrl;
     }
@@ -416,22 +356,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
 
     public void setLastLogin(long lastLogin) {
         this.lastLogin = lastLogin;
-    }
-
-    public PublisherVO<? extends PublishedPointVO> getEditPublisher() {
-        return editPublisher;
-    }
-
-    public void setEditPublisher(PublisherVO<? extends PublishedPointVO> editPublisher) {
-        this.editPublisher = editPublisher;
-    }
-
-    public ImportTask getImportTask() {
-        return importTask;
-    }
-
-    public void setImportTask(ImportTask importTask) {
-        this.importTask = importTask;
     }
 
     public boolean isMuted() {
@@ -456,22 +380,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
 
     public void setReceiveOwnAuditEvents(boolean receiveOwnAuditEvents) {
         this.receiveOwnAuditEvents = receiveOwnAuditEvents;
-    }
-
-    public DataExportDefinition getDataExportDefinition() {
-        return dataExportDefinition;
-    }
-
-    public void setDataExportDefinition(DataExportDefinition dataExportDefinition) {
-        this.dataExportDefinition = dataExportDefinition;
-    }
-
-    public EventExportDefinition getEventExportDefinition() {
-        return eventExportDefinition;
-    }
-
-    public void setEventExportDefinition(EventExportDefinition eventExportDefinition) {
-        this.eventExportDefinition = eventExportDefinition;
     }
 
     public String getTimezone() {

@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.monitor.IntegerMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitorOwner;
+import com.infiniteautomation.mango.spring.service.ModulesService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -16,7 +17,6 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
-import com.serotonin.m2m2.web.dwr.ModulesDwr;
 import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -53,7 +53,7 @@ public class UpgradeCheck extends TimerTask implements ValueMonitorOwner{
         try {
             //If upgrade checks are not enabled we won't contact the store at all
             if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.UPGRADE_CHECKS_ENABLED)) {
-                available = ModulesDwr.upgradesAvailable();
+                available = Common.getBean(ModulesService.class).upgradesAvailable();
             }
             
             if (available != null && available > 0) {

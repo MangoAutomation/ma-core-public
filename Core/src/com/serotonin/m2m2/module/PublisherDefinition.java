@@ -8,7 +8,6 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
-import com.serotonin.m2m2.web.dwr.PublisherEditDwr;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPointModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 
@@ -78,15 +77,6 @@ abstract public class PublisherDefinition extends ModuleElementDefinition implem
      * @return the relative path to the editing page.
      */
     abstract public String getEditPagePath();
-
-    /**
-     * The class of the DWR page with which the publisher editing page communicates. This class will be instantiated
-     * upon startup and registered as a DWR proxy.
-     *
-     * @return the class of the DWR proxy.
-     */
-    @Override
-    abstract public Class<?> getDwrClass();
 
     /**
      * If the module is uninstalled, delete any publishers of this type. If this method is overridden, be sure to call

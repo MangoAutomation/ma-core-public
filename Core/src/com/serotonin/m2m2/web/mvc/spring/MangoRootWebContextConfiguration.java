@@ -26,7 +26,7 @@ import com.serotonin.m2m2.web.servlet.LegacyServletsPackage;
  */
 @Configuration
 @Import({MangoCommonConfiguration.class, MangoSecurityConfiguration.class})
-@ComponentScan(basePackageClasses = {WebAppPackage.class, LegacyServletsPackage.class})
+@ComponentScan(basePackageClasses = {WebAppPackage.class})
 public class MangoRootWebContextConfiguration {
     public static final String CONTEXT_ID = "rootWebContext";
 

@@ -7,13 +7,13 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.io.Serializable;
 import java.util.Objects;
 
+import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.rt.dataImage.types.AlphanumericValue;
 import com.serotonin.m2m2.rt.dataImage.types.BinaryValue;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataImage.types.MultistateValue;
 import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
 import com.serotonin.m2m2.view.stats.IValueTime;
-import com.serotonin.m2m2.web.taglib.Functions;
 
 /**
  * The simple value of a point at a given time.

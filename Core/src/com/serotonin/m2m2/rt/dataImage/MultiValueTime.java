@@ -2,8 +2,8 @@ package com.serotonin.m2m2.rt.dataImage;
 
 import java.util.Arrays;
 
+import com.infiniteautomation.mango.util.DateFunctions;
 import com.serotonin.m2m2.util.LongCompare;
-import com.serotonin.web.taglib.DateFunctions;
 
 public class MultiValueTime implements Comparable<MultiValueTime> {
     private final Object[] values;

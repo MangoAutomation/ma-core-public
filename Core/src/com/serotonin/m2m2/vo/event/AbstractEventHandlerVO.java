@@ -31,7 +31,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
-import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.events.handlers.AbstractEventHandlerModel;
 
 public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {

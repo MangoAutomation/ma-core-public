@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.spring.service.EmportService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -22,7 +23,7 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.DateUtils;
-import com.serotonin.m2m2.web.dwr.EmportDwr;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
@@ -189,7 +190,7 @@ public class BackupWorkItem implements WorkItem {
 	 */
 	public String getBackup(){
         Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);
-        return EmportDwr.export(data);
+        return Common.getBean(EmportService.class).export(data, 3, PermissionHolder.SYSTEM_SUPERADMIN);
 	}
 
 	/**

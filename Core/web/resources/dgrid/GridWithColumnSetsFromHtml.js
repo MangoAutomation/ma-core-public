@@ -1,4 +1,0 @@
-//>>built
-define("dgrid/GridWithColumnSetsFromHtml",["./GridFromHtml","./ColumnSet","dojo/_base/declare"],function(p,q,r){function s(f){function t(c){d+=c;b=u[e];d>=b&&(l[e][a]=g,d-=b,e++,g=[])}var l=[],u=[],h=[],k=f.getElementsByTagName("colgroup"),m=k.length,v=f.getElementsByTagName("tr"),q=v.length,r=p.utils.getNumFromAttr,s=p.utils.getColumnFromCell,d,e,g,n,a,c,b;if(2>m)return!1;for(a=0;a<m;a++){b=r(k[a],"span")||1;u[a]=b;l[a]=[];h[a]=[];for(c=0;c<b;c++)h[a][c]=0}for(a=0;a<q;a++){d=e=0;g=[];n=v[a];k=n.getElementsByTagName("th");
-m=k.length;for(c=0;c<m;c++){for(;h[e][d];)h[e][d]--,t(1);b=s(k[c]);g.push(b);h[e][d]=b.rowSpan?b.rowSpan-1:0;t(b.colSpan||1)}g.length&&(l[e][a]=g)}n&&f.removeChild(n.parentNode);return l}return r([p,q],{configStructure:function(){var f;if(!this._checkedTrs&&(f=s(this.srcNodeRef)))this.columnSets=f,this._checkedTrs=!0;return this.inherited(arguments)}})});
-//# sourceMappingURL=GridWithColumnSetsFromHtml.js.map

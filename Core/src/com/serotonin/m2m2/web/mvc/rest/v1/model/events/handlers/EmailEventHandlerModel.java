@@ -12,7 +12,7 @@ import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
-import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.email.EmailRecipientModel;
 
 /**

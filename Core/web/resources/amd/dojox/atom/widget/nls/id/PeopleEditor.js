@@ -1,3 +1,0 @@
-//>>built
-define({add:"Tambahkan",addAuthor:"Tambahkan Penulis",addContributor:"Tambahkan Kontributor"});
-//# sourceMappingURL=PeopleEditor.js.map

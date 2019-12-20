@@ -31,9 +31,9 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 
 /**
  * @author Matthew Lohbihler

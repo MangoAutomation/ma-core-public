@@ -12,6 +12,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.emport.ImportContext;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.JsonWriter;
@@ -23,7 +24,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.web.dwr.emport.ImportContext;
 
 /**
  * @author Terry Packer

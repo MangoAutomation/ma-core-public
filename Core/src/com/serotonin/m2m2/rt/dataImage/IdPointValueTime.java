@@ -18,8 +18,8 @@
  */
 package com.serotonin.m2m2.rt.dataImage;
 
+import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.web.taglib.Functions;
 
 public class IdPointValueTime extends PointValueTime implements IdTime{
     private static final long serialVersionUID = 1L;

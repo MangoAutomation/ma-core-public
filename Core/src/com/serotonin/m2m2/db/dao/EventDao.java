@@ -8,18 +8,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
-import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -30,7 +25,6 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -46,7 +40,6 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.JsonSerializableUtility;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
-import com.serotonin.m2m2.web.dwr.EventsDwr;
 
 public class EventDao extends BaseDao {
     private static final Log LOG = LogFactory.getLog(EventDao.class);
@@ -475,147 +468,6 @@ public class EventDao extends BaseDao {
 
     public int getEventCount() {
         return ejt.queryForInt("select count(*) from events", null, 0);
-    }
-
-    public List<EventInstance> search(int eventId, String eventType, String status, AlarmLevels alarmLevel,
-            final String[] keywords, long dateFrom, long dateTo, int userId, final Translations translations,
-            final int from, final int to, final Date date) {
-        List<String> where = new ArrayList<String>();
-        List<Object> params = new ArrayList<Object>();
-
-        StringBuilder sql = new StringBuilder();
-        sql.append(EVENT_SELECT_WITH_USER_DATA);
-        sql.append("where ue.userId=?");
-        params.add(userId);
-
-        if (eventId != 0) {
-            where.add("e.id=?");
-            params.add(eventId);
-        }
-
-        if (!StringUtils.isBlank(eventType)) {
-            where.add("e.typeName=?");
-            params.add(eventType);
-        }
-
-        if (EventsDwr.STATUS_ACTIVE.equals(status)) {
-            where.add("e.rtnApplicable=? and e.rtnTs is null");
-            params.add(boolToChar(true));
-        }
-        else if (EventsDwr.STATUS_RTN.equals(status)) {
-            where.add("e.rtnApplicable=? and e.rtnTs is not null");
-            params.add(boolToChar(true));
-        }
-        else if (EventsDwr.STATUS_NORTN.equals(status)) {
-            where.add("e.rtnApplicable=?");
-            params.add(boolToChar(false));
-        }
-
-        if (alarmLevel != null) {
-            where.add("e.alarmLevel=?");
-            params.add(alarmLevel.value());
-        }
-
-        if (dateFrom != -1) {
-            where.add("activeTs>=?");
-            params.add(dateFrom);
-        }
-
-        if (dateTo != -1) {
-            where.add("activeTs<?");
-            params.add(dateTo);
-        }
-
-        if (!where.isEmpty()) {
-            for (String s : where) {
-                sql.append(" and ");
-                sql.append(s);
-            }
-        }
-        sql.append(" order by e.activeTs desc");
-
-        final List<EventInstance> results = new ArrayList<EventInstance>();
-        final UserEventInstanceRowMapper rowMapper = new UserEventInstanceRowMapper();
-
-        final int[] data = new int[2];
-
-        ejt.query(sql.toString(), params.toArray(), new ResultSetExtractor<Object>() {
-            @Override
-            public Object extractData(ResultSet rs) throws SQLException, DataAccessException {
-                int row = 0;
-                long dateTs = date == null ? -1 : date.getTime();
-                int startRow = -1;
-
-                while (rs.next()) {
-                    EventInstance e = rowMapper.mapRow(rs, 0);
-                    attachRelationalInfo(e);
-                    boolean add = true;
-
-                    if (keywords != null) {
-                        // Do the text search. If the instance has a match, put it in the result. Otherwise ignore.
-                        StringBuilder text = new StringBuilder();
-                        text.append(e.getMessage().translate(translations));
-                        if (e.isHasComments()) {
-                            for (UserCommentVO comment : e.getEventComments())
-                                text.append(' ').append(comment.getComment());
-                        }
-
-                        String[] values = text.toString().split("\\s+");
-
-                        for (String keyword : keywords) {
-                            if (keyword.startsWith("-")) {
-                                if (com.serotonin.util.StringUtils.globWhiteListMatchIgnoreCase(values,
-                                        keyword.substring(1))) {
-                                    add = false;
-                                    break;
-                                }
-                            }
-                            else {
-                                if (!com.serotonin.util.StringUtils.globWhiteListMatchIgnoreCase(values, keyword)) {
-                                    add = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    if (add) {
-                        if (date != null) {
-                            if (e.getActiveTimestamp() <= dateTs && results.size() < to - from) {
-                                if (startRow == -1)
-                                    startRow = row;
-                                results.add(e);
-                            }
-                        }
-                        else if (row >= from && row < to)
-                            results.add(e);
-
-                        row++;
-                    }
-                }
-
-                data[0] = row;
-                data[1] = startRow;
-
-                return null;
-            }
-        });
-
-        searchRowCount = data[0];
-        startRow = data[1];
-
-        return results;
-    }
-
-    private int searchRowCount;
-    private int startRow;
-
-    public int getSearchRowCount() {
-        return searchRowCount;
-    }
-
-    public int getStartRow() {
-        return startRow;
     }
 
     //

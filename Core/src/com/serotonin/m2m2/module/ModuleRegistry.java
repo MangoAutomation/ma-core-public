@@ -6,7 +6,6 @@ package com.serotonin.m2m2.module;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -19,15 +18,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.servlet.mvc.Controller;
 
-import com.serotonin.NotImplementedException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.MenuItemDefinition.Visibility;
-import com.serotonin.m2m2.module.UriMappingDefinition.Permission;
 import com.serotonin.m2m2.module.definitions.actions.ConfigurationBackupActionDefinition;
 import com.serotonin.m2m2.module.definitions.actions.PurgeAllEventsActionDefinition;
 import com.serotonin.m2m2.module.definitions.actions.PurgeAllPointValuesActionDefinition;
@@ -62,9 +56,7 @@ import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermi
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreWritePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.LegacyPointDetailsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.PublicFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
@@ -76,7 +68,6 @@ import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermiss
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.UsersViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.query.DataPointEventsByDataPointRQLQueryDefinition;
 import com.serotonin.m2m2.module.definitions.query.DataPointEventsByTagQueryDefinition;
 import com.serotonin.m2m2.module.definitions.script.DataPointQueryScriptUtilityDefinition;
@@ -104,12 +95,12 @@ import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventTypeSettingsListenerDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.BackupFailureEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.NewUserRegisteredEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.EmailSendFailureEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.FailedUserLoginEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.LicenseCheckEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.MaxAlarmLevelChangedEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.MissingModuleDependencyEventTypeDefinition;
+import com.serotonin.m2m2.rt.event.type.definition.NewUserRegisteredEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.ProcessFailureEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.RejectedWorkItemEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.SetPointHandlerFailureEventTypeDefinition;
@@ -119,21 +110,7 @@ import com.serotonin.m2m2.rt.event.type.definition.UpgradeCheckEventTypeDefiniti
 import com.serotonin.m2m2.rt.event.type.definition.UserLoginEventTypeDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
-import com.serotonin.m2m2.web.mvc.UrlHandler;
-import com.serotonin.m2m2.web.mvc.controller.DataPointDetailsController;
-import com.serotonin.m2m2.web.mvc.controller.DataPointEditController;
-import com.serotonin.m2m2.web.mvc.controller.DataSourceEditController;
-import com.serotonin.m2m2.web.mvc.controller.DataSourcePropertiesController;
-import com.serotonin.m2m2.web.mvc.controller.FileUploadController;
-import com.serotonin.m2m2.web.mvc.controller.HelpController;
-import com.serotonin.m2m2.web.mvc.controller.ModulesController;
-import com.serotonin.m2m2.web.mvc.controller.PublisherEditController;
-import com.serotonin.m2m2.web.mvc.controller.ShutdownController;
-import com.serotonin.m2m2.web.mvc.controller.StartupController;
-import com.serotonin.m2m2.web.mvc.controller.UsersController;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
 import com.serotonin.provider.Providers;
 
@@ -162,7 +139,6 @@ public class ModuleRegistry {
     private static Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO<?>>> EVENT_DETECTOR_DEFINITIONS;
     private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
 
-    private static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> MENU_ITEMS;
     private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
     private static List<SystemSettingsDefinition> SYSTEM_SETTINGS_DEFINITIONS;
     private static Map<String, SystemInfoDefinition<?>> SYSTEM_INFO_DEFINITIONS;
@@ -897,50 +873,6 @@ public class ModuleRegistry {
         return locales;
     }
 
-    /**
-     * @return a map by permissions type of all available menu items in this instance.
-     */
-    public static Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> getMenuItems() {
-        if (MENU_ITEMS == null) {
-            synchronized (LOCK) {
-                if (MENU_ITEMS == null) {
-                    Map<MenuItemDefinition.Visibility, List<MenuItemDefinition>> map = new HashMap<MenuItemDefinition.Visibility, List<MenuItemDefinition>>();
-
-                    for (MenuItemDefinition mi : getDefinitions(MenuItemDefinition.class)) {
-                        boolean add = true;
-                        // Special handling of url mapping definitions
-                        if (mi instanceof UrlMappingDefinition)
-                            add = !StringUtils.isBlank(((UrlMappingDefinition) mi).getMenuKey());
-
-                        if (add) {
-                            List<MenuItemDefinition> permList = map.get(mi.getVisibility());
-
-                            if (permList == null) {
-                                permList = new ArrayList<MenuItemDefinition>();
-                                map.put(mi.getVisibility(), permList);
-                            }
-
-                            permList.add(mi);
-                        }
-                    }
-
-                    for (List<MenuItemDefinition> list : map.values()) {
-                        Collections.sort(list, new Comparator<MenuItemDefinition>() {
-                            @Override
-                            public int compare(MenuItemDefinition m1, MenuItemDefinition m2) {
-                                return m1.getOrder() - m2.getOrder();
-                            }
-                        });
-                    }
-
-                    MENU_ITEMS = map;
-                }
-            }
-        }
-
-        return MENU_ITEMS;
-    }
-
     public static synchronized void addLicenseEnforcement(LicenseEnforcement licenseEnforcement) {
         licenseEnforcements.add(licenseEnforcement);
     }
@@ -1020,86 +952,6 @@ public class ModuleRegistry {
         preDefaults.add(new StateChangeCountEventDetectorDefinition());
         preDefaults.add(new NoUpdateEventDetectorDefinition());
         preDefaults.add(new RateOfChangeDetectorDefinition());
-
-        preDefaults.add(new LegacyPointDetailsViewPermissionDefinition());
-        preDefaults.add(createMenuItemDefinition("pointDetailsMi", Visibility.USER, "header.dataPoints", "icon_comp",
-                "/data_point_details.shtm", LegacyPointDetailsViewPermissionDefinition.PERMISSION));
-
-        preDefaults.add(new EventsViewPermissionDefinition());
-        preDefaults.add(createMenuItemDefinition("eventsMi", Visibility.USER, "header.alarms", "flag_white",
-                "/events.shtm", EventsViewPermissionDefinition.PERMISSION));
-
-        preDefaults.add(new UsersViewPermissionDefinition());
-        preDefaults.add(createMenuItemDefinition("usersMi", Visibility.USER, "header.users", "user",
-                "/users.shtm", UsersViewPermissionDefinition.PERMISSION));
-
-        preDefaults.add(createMenuItemDefinition("eventHandlersMi", Visibility.DATA_SOURCE, "header.eventHandlers",
-                "cog", "/event_handlers.shtm"));
-
-        preDefaults.add(createMenuItemDefinition("dataSourcesMi", Visibility.DATA_SOURCE, "header.dataSources",
-                "icon_ds", "/data_sources.shtm"));
-
-        preDefaults.add(createMenuItemDefinition("pointHierarchyMi", Visibility.ADMINISTRATOR, "header.pointHierarchy",
-                "folder_brick", "/point_hierarchy.shtm"));
-        preDefaults.add(createMenuItemDefinition("mailingListsMi", Visibility.ADMINISTRATOR, "header.mailingLists",
-                "book", "/mailing_lists.shtm"));
-        preDefaults.add(createMenuItemDefinition("publishersMi", Visibility.ADMINISTRATOR, "header.publishers",
-                "transmit", "/publishers.shtm"));
-        preDefaults.add(createMenuItemDefinition("systemSettingsMi", Visibility.ADMINISTRATOR, "header.systemSettings",
-                "application_form", SYSTEM_SETTINGS_URL));
-        preDefaults.add(createMenuItemDefinition("modulesMi", Visibility.ADMINISTRATOR, "header.modules", "puzzle",
-                "/modules.shtm"));
-        preDefaults.add(createMenuItemDefinition("emportMi", Visibility.ADMINISTRATOR, "header.emport", "emport",
-                "/emport.shtm"));
-
-        preDefaults.add(createUriMappingDefinition(Permission.CUSTOM, "/data_point_details.shtm",
-                new DataPointDetailsController(), "/WEB-INF/jsp/dataPointDetails.jsp", LegacyPointDetailsViewPermissionDefinition.PERMISSION));
-
-        //Mappings for Event Report and Legacy Alarms Page
-        preDefaults.add(createUriMappingDefinition(Permission.CUSTOM, "/events.shtm", null, "/WEB-INF/jsp/eventsReport.jsp", EventsViewPermissionDefinition.PERMISSION));
-        preDefaults.add(createUriMappingDefinition(Permission.USER, "/pending_alarms.shtm", null, "/WEB-INF/jsp/events.jsp"));
-
-        preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/event_handlers.shtm", null,
-                "/WEB-INF/jsp/eventHandlers.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/data_sources.shtm", null,
-                "/WEB-INF/jsp/dataSource.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/point_hierarchy.shtm", null,
-                "/WEB-INF/jsp/pointHierarchy.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/mailing_lists.shtm", null,
-                "/WEB-INF/jsp/mailingLists.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/publishers.shtm", null,
-                "/WEB-INF/jsp/publisherList.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/system_settings.shtm", null,
-                "/WEB-INF/jsp/systemSettings.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/modules.shtm", new ModulesController(),
-                "/WEB-INF/jsp/modules.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ADMINISTRATOR, "/emport.shtm", null,
-                "/WEB-INF/jsp/emport.jsp"));
-        //Error Pages
-        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/error.htm", null, "/exception/error.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/not-found.htm", null, "/exception/404.jsp"));
-        preDefaults.add(createUriMappingDefinition(Permission.ANONYMOUS, "/unauthorized.htm", null, "/exception/accessDenied.jsp"));
-
-        /* Emport Mappings */
-        preDefaults.add(createUriMappingDefinition(Permission.DATA_SOURCE, "/upload.shtm", new FileUploadController(),
-                null));
-
-        /* MOBILE MAPPINGS */
-        preDefaults.add(createUriMappingDefinition(Permission.USER, "/mobile_data_point_details.shtm",
-                new DataPointDetailsController(), "/WEB-INF/jsp/mobile/dataPointDetails.jsp"));
-
-        preDefaults.add(createMenuItemDefinition("helpMi", Visibility.ANONYMOUS, "header.help", "help", "/help.htm"));
-
-        /* Controller Mappings */
-        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_point_edit.shtm", new DataPointEditController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_properties.shtm", new DataSourcePropertiesController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_edit.shtm", new DataSourceEditController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/data_source_properties_error.shtm", new DataSourceEditController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/help.htm", new HelpController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/startup.htm", new StartupController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.ANONYMOUS, "/shutdown.htm", new ShutdownController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.USER, "/publisher_edit.shtm", new PublisherEditController()));
-        preDefaults.add(createControllerMappingDefinition(Permission.CUSTOM, "/users.shtm", new UsersController(), UsersViewPermissionDefinition.PERMISSION));
 
         /* Permissions Settings */
         preDefaults.add(new SuperadminPermissionDefinition());
@@ -1189,200 +1041,4 @@ public class ModuleRegistry {
 
     }
 
-    static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
-            final String textKey, final String png, final String href) {
-        return new MenuItemDefinition() {
-            @Override
-            public Visibility getVisibility() {
-                return visibility;
-            }
-
-            @Override
-            public String getId(HttpServletRequest request, HttpServletResponse response) {
-                return id;
-            }
-
-            @Override
-            public String getTextKey(HttpServletRequest request, HttpServletResponse response) {
-                return textKey;
-            }
-
-            @Override
-            public String getImagePath(HttpServletRequest request, HttpServletResponse response) {
-                return "/images/" + png + ".png";
-            }
-
-            @Override
-            public String getImage(HttpServletRequest request, HttpServletResponse response) {
-                throw new NotImplementedException();
-            }
-
-            @Override
-            public String getHref(HttpServletRequest request, HttpServletResponse response) {
-                return href;
-            }
-        };
-    }
-
-    /**
-     * Create with custom level permissions
-     * @param id
-     * @param visibility
-     * @param textKey
-     * @param png
-     * @param href
-     * @param permission
-     * @return
-     */
-    static MenuItemDefinition createMenuItemDefinition(final String id, final Visibility visibility,
-            final String textKey, final String png, final String href, final String permission) {
-        return new MenuItemDefinition() {
-            @Override
-            public Visibility getVisibility() {
-                return visibility;
-            }
-
-            @Override
-            public boolean isVisible(HttpServletRequest request, HttpServletResponse response) {
-                return Permissions.hasPermission(Common.getHttpUser(), SystemSettingsDao.instance.getValue(permission));
-            }
-
-            @Override
-            public String getId(HttpServletRequest request, HttpServletResponse response) {
-                return id;
-            }
-
-            @Override
-            public String getTextKey(HttpServletRequest request, HttpServletResponse response) {
-                return textKey;
-            }
-
-            @Override
-            public String getImagePath(HttpServletRequest request, HttpServletResponse response) {
-                return "/images/" + png + ".png";
-            }
-
-            @Override
-            public String getImage(HttpServletRequest request, HttpServletResponse response) {
-                throw new NotImplementedException();
-            }
-
-            @Override
-            public String getHref(HttpServletRequest request, HttpServletResponse response) {
-                return href;
-            }
-        };
-    }
-
-    static UriMappingDefinition createUriMappingDefinition(final Permission permission, final String path,
-            final UrlHandler handler, final String jspPath) {
-        return new UriMappingDefinition() {
-            @Override
-            public Permission getPermission() {
-                return permission;
-            }
-
-            @Override
-            public String getPath() {
-                return path;
-            }
-
-            @Override
-            public UrlHandler getHandler() {
-                return handler;
-            }
-
-            @Override
-            public String getJspPath() {
-                return jspPath;
-            }
-        };
-    }
-
-    /**
-     * Create with custom permission level
-     * @param level
-     * @param path
-     * @param handler
-     * @param jspPath
-     * @param permission
-     * @return
-     */
-    static UriMappingDefinition createUriMappingDefinition(final Permission level, final String path,
-            final UrlHandler handler, final String jspPath, final String permission) {
-        return new UriMappingDefinition() {
-            @Override
-            public Permission getPermission() {
-                return level;
-            }
-
-            @Override
-            public boolean hasCustomPermission(User user){
-                return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
-            }
-
-            @Override
-            public String getPath() {
-                return path;
-            }
-
-            @Override
-            public UrlHandler getHandler() {
-                return handler;
-            }
-
-            @Override
-            public String getJspPath() {
-                return jspPath;
-            }
-        };
-    }
-
-    static ControllerMappingDefinition createControllerMappingDefinition(final Permission level, final String path,
-            final Controller controller) {
-        return new ControllerMappingDefinition() {
-            @Override
-            public Permission getPermission() {
-                return level;
-            }
-
-            @Override
-            public String getPath() {
-                return path;
-            }
-
-            @Override
-            public Controller getController() {
-                return controller;
-            }
-        };
-    }
-
-    static ControllerMappingDefinition createControllerMappingDefinition(final Permission level, final String path,
-            final Controller controller, final String permission) {
-        return new ControllerMappingDefinition() {
-            @Override
-            public Permission getPermission() {
-                return level;
-            }
-
-            @Override
-            public String getPath() {
-                return path;
-            }
-
-            @Override
-            public Controller getController() {
-                return controller;
-            }
-            /* (non-Javadoc)
-             * @see com.serotonin.m2m2.module.ControllerMappingDefinition#hasCustomPermission(com.serotonin.m2m2.vo.User)
-             */
-            @Override
-            public boolean hasCustomPermission(User user)
-                    throws PermissionException {
-                return Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(permission));
-            }
-        };
-    }
 }

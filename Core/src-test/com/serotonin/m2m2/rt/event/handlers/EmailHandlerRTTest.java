@@ -28,7 +28,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
-import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 
 /**
  * @author Terry Packer

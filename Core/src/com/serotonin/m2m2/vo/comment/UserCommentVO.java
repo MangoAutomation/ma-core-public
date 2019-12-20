@@ -10,7 +10,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
-import com.serotonin.m2m2.web.taglib.Functions;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -90,14 +89,7 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
     public void setUsername(String username) {
         this.username = username;
     }
-
-    public String getPrettyTime() {
-        return Functions.getTime(ts);
-    }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()
-	 */
 	@Override
 	public String getTypeKey() {
 		return "event.audit.userComment";
@@ -115,9 +107,6 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
 
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
 	@Override
 	protected AbstractDao<UserCommentVO> getDao() {
 		return UserCommentDao.getInstance();

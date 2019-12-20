@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
+import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.spring.service.EmportService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
@@ -26,10 +28,9 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
-import com.serotonin.m2m2.web.dwr.EmportDwr;
-import com.serotonin.m2m2.web.dwr.emport.ImportTask;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -62,10 +63,12 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getFullConfiguration(int prettyIndent) {
-        if(Permissions.hasAdminPermission(permissions)) {
-            return EmportDwr.export(ConfigurationExportData.createExportDataMap(null), prettyIndent);
+        EmportService service = Common.getBean(EmportService.class);
+        try{
+            return service.export(ConfigurationExportData.createExportDataMap(null), prettyIndent, permissions);
+        }catch(PermissionException e) {
+            return "{}";
         }
-        return "{}";
     }
 
     public String getConfiguration(String type) {
@@ -73,14 +76,12 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getConfiguration(String type, int prettyIndent) {
-        Map<String, Object> data;
-        if(Permissions.hasAdminPermission(permissions)) {
-            data = ConfigurationExportData.createExportDataMap(new String[] {type});
-        }else {
-            data = new LinkedHashMap<>();
+        Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
+        try {
+            return Common.getBean(EmportService.class).export(data, prettyIndent, permissions);
+        }catch(PermissionException e) {
+            return "{}";
         }
-
-        return EmportDwr.export(data, prettyIndent);
     }
 
     public String dataPointQuery(String query) {
@@ -102,7 +103,12 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
             data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
         }
-        return EmportDwr.export(data, prettyIndent);
+        
+        try{
+            return Common.getBean(EmportService.class).export(data, prettyIndent, permissions);
+        }catch(PermissionException e) {
+            return "{}";
+        }
     }
 
     public String dataSourceQuery(String query) {
@@ -118,7 +124,11 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             List<DataSourceVO<?>> dataSources = sqlQuery.immediateQuery();
             data.put(ConfigurationExportData.DATA_SOURCES, dataSources);
         }
-        return EmportDwr.export(data, prettyIndent);
+        try{
+            return Common.getBean(EmportService.class).export(data, prettyIndent, permissions);
+        }catch(PermissionException e) {
+            return "{}";
+        }
     }
 
     public void doImport(String json) throws Exception {

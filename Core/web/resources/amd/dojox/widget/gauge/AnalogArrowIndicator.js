@@ -1,3 +1,0 @@
-//>>built
-define(["dijit","dojo","dojox","dojo/require!dojox/gauges/AnalogArrowIndicator"],function(c,a,b){a.provide("dojox.widget.gauge.AnalogArrowIndicator");a.require("dojox.gauges.AnalogArrowIndicator");b.widget.gauge.AnalogArrowIndicator=b.gauges.AnalogArrowIndicator});
-//# sourceMappingURL=AnalogArrowIndicator.js.map

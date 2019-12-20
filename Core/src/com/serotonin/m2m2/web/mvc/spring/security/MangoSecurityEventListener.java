@@ -73,8 +73,6 @@ public class MangoSecurityEventListener {
         for (Authentication authentication : event.getAuthentications()) {
             if (authentication instanceof UsernamePasswordAuthenticationToken && !event.isUserMigratedToNewSession()) {
                 User user = (User) authentication.getPrincipal();
-                user.cancelTestingUtility();
-
                 SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_USER_LOGIN, user.getId());
                 SystemEventType.returnToNormal(eventType, Common.timer.currentTimeMillis());
             }
