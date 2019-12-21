@@ -116,7 +116,7 @@ public class MonitoredValues {
             return monitor;
         }
         public AtomicIntegerMonitor buildAtomic() {
-            int value = this.value == null ? 0 : (int) this.value;
+            int value = this.value == null ? 0 : (int)(Integer) this.value;
             AtomicIntegerMonitor monitor = new AtomicIntegerMonitor(id, name, value, uploadToStore);
             MonitoredValues.this.add(monitor);
             if (addTo != null) {
