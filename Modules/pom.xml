@@ -17,18 +17,18 @@
         <moduleTagDirectory>${webDirectory}/WEB-INF/tags/${moduleName}</moduleTagDirectory>
         <moduleWebDirectory>${webDirectory}/modules/${moduleName}/web</moduleWebDirectory>
         <moduleZipAssembly>moduleZipAssembly</moduleZipAssembly>
-        <skipModuleInstall>true</skipModuleInstall>
         <webpack.mode>production</webpack.mode>
         <installNodeAndYarnPhase>generate-resources</installNodeAndYarnPhase>
         <yarnVersionPhase>generate-resources</yarnVersionPhase>
         <yarnInstallPhase>generate-resources</yarnInstallPhase>
         <webpackPhase>generate-resources</webpackPhase>
+        <copyModuleZipPhase>none</copyModuleZipPhase>
     </properties>
     <profiles>
         <profile>
             <id>install-module</id>
             <properties>
-                <skipModuleInstall>false</skipModuleInstall>
+                <copyModuleZipPhase>install</copyModuleZipPhase>
             </properties>
         </profile>
         <profile>
@@ -45,7 +45,7 @@
                 <yarnVersionPhase>none</yarnVersionPhase>
                 <yarnInstallPhase>none</yarnInstallPhase>
                 <webpackPhase>none</webpackPhase>
-                <skipModuleInstall>true</skipModuleInstall>
+                <copyModuleZipPhase>none</copyModuleZipPhase>
             </properties>
         </profile>
         <profile>
@@ -121,36 +121,27 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
                     </dependencies>
                 </plugin>
                 <plugin>
-                    <artifactId>maven-antrun-plugin</artifactId>
-                    <version>1.8</version>
+                    <artifactId>maven-dependency-plugin</artifactId>
                     <executions>
                         <execution>
                             <id>copy-module</id>
-                            <phase>install</phase>
+                            <phase>${copyModuleZipPhase}</phase>
                             <goals>
-                                <goal>run</goal>
+                                <goal>copy</goal>
                             </goals>
                             <configuration>
-                                <skip>${skipModuleInstall}</skip>
-                                <target>
-                                    <copy file="${project.build.directory}/${zipAssemblyName}.zip" todir="${MA_HOME}/web/modules/" />
-                                </target>
+                                <artifactItems>
+                                    <artifactItem>
+                                      <groupId>${project.groupId}</groupId>
+                                      <artifactId>${project.artifactId}</artifactId>
+                                      <version>${project.version}</version>
+                                      <type>zip</type>
+                                    </artifactItem>
+                                </artifactItems>
+                                <outputDirectory>${MA_HOME}/web/modules/</outputDirectory>
                             </configuration>
                         </execution>
                     </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>ant-contrib</groupId>
-                            <artifactId>ant-contrib</artifactId>
-                            <version>1.0b3</version>
-                            <exclusions>
-                                <exclusion>
-                                    <groupId>ant</groupId>
-                                    <artifactId>ant</artifactId>
-                                </exclusion>
-                            </exclusions>
-                        </dependency>
-                    </dependencies>
                 </plugin>
                 <plugin>
                     <groupId>com.github.eirslett</groupId>
