@@ -84,41 +84,22 @@
                     </executions>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.gmavenplus</groupId>
-                    <artifactId>gmavenplus-plugin</artifactId>
-                    <version>1.5</version>
+                    <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
+                    <artifactId>serviceloader-maven-plugin</artifactId>
+                    <version>1.1.0</version>
                     <executions>
                         <execution>
                             <id>find-module-definitions</id>
-                            <phase>process-classes</phase>
                             <goals>
-                                <goal>execute</goal>
+                                <goal>generate</goal>
                             </goals>
                             <configuration>
-                                <scripts>
-                                    <script><![CDATA[
-new org.reflections.Reflections("com.serotonin.m2m2.module")
-    .merge(new org.reflections.Reflections(new File(project.build.outputDirectory).toURI().toURL()))
-    .save(project.build.outputDirectory + "/META-INF/reflections/" +
-        project.properties['moduleName'] + "-reflections.xml")
-                    ]]></script>
-                                </scripts>
+                                <services>
+                                    <param>com.serotonin.m2m2.module.ModuleElementDefinition</param>
+                                </services>
                             </configuration>
                         </execution>
                     </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.reflections</groupId>
-                            <artifactId>reflections</artifactId>
-                            <version>0.9.10</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.codehaus.groovy</groupId>
-                            <artifactId>groovy-all</artifactId>
-                            <version>2.4.3</version>
-                            <scope>runtime</scope>
-                        </dependency>
-                    </dependencies>
                 </plugin>
                 <plugin>
                     <artifactId>maven-dependency-plugin</artifactId>
