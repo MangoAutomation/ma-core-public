@@ -230,10 +230,6 @@
             </dependencies>
           </plugin>
           <plugin>
-            <artifactId>maven-war-plugin</artifactId>
-            <version>2.6</version>
-          </plugin>
-          <plugin>
             <artifactId>maven-assembly-plugin</artifactId>
             <version>3.0.0</version>
             <dependencies>
@@ -274,19 +270,6 @@
                       <versionRange>[1.5,)</versionRange>
                       <goals>
                         <goal>execute</goal>
-                      </goals>
-                    </pluginExecutionFilter>
-                    <action>
-                      <ignore />
-                    </action>
-                  </pluginExecution>
-                  <pluginExecution>
-                    <pluginExecutionFilter>
-                      <groupId>org.apache.maven.plugins</groupId>
-                      <artifactId>maven-war-plugin</artifactId>
-                      <versionRange>[2.6,)</versionRange>
-                      <goals>
-                        <goal>exploded</goal>
                       </goals>
                     </pluginExecutionFilter>
                     <action>

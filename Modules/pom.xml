@@ -19,7 +19,6 @@
         <moduleZipAssembly>moduleZipAssembly</moduleZipAssembly>
         <skipModuleInstall>true</skipModuleInstall>
         <webpack.mode>production</webpack.mode>
-        <warPluginPhase>generate-resources</warPluginPhase>
         <installNodeAndYarnPhase>generate-resources</installNodeAndYarnPhase>
         <yarnVersionPhase>generate-resources</yarnVersionPhase>
         <yarnInstallPhase>generate-resources</yarnInstallPhase>
@@ -35,7 +34,6 @@
         <profile>
             <id>yarn-set-version</id>
             <properties>
-                <warPluginPhase>none</warPluginPhase>
                 <yarnInstallPhase>none</yarnInstallPhase>
                 <webpackPhase>none</webpackPhase>
             </properties>
@@ -43,7 +41,6 @@
         <profile>
             <id>compile-only</id>
             <properties>
-                <warPluginPhase>none</warPluginPhase>
                 <installNodeAndYarnPhase>none</installNodeAndYarnPhase>
                 <yarnVersionPhase>none</yarnVersionPhase>
                 <yarnInstallPhase>none</yarnInstallPhase>
@@ -238,14 +235,6 @@ new org.reflections.Reflections("com.serotonin.m2m2.module")
             <groupId>com.infiniteautomation</groupId>
             <artifactId>mango</artifactId>
             <version>${project.parent.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.infiniteautomation</groupId>
-            <artifactId>mango</artifactId>
-            <version>${project.parent.version}</version>
-            <classifier>web</classifier>
-            <type>war</type>
             <scope>provided</scope>
         </dependency>
         <dependency>

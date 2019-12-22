@@ -56,23 +56,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<artifactId>maven-war-plugin</artifactId>
-				<configuration>
-					<warSourceDirectory>web</warSourceDirectory>
-					<classifier>web</classifier>
-					<warSourceIncludes>WEB-INF/*</warSourceIncludes>
-					<packagingExcludes>WEB-INF/lib/**, WEB-INF/classes/**</packagingExcludes>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>war</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
