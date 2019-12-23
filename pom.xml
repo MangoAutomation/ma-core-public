@@ -121,6 +121,24 @@
             </pluginManagement>
         </build>
     </profile>
+    <profile>
+        <id>spot-bugs</id>
+        <build>
+            <plugins>
+                <plugin>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </build>
+    </profile>
  </profiles>
  <repositories>
     <repository>
@@ -282,6 +300,11 @@
             <artifactId>templating-maven-plugin</artifactId>
             <version>1.0.0</version>
          </plugin>
+         <plugin>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-maven-plugin</artifactId>
+            <version>3.1.12.2</version>
+        </plugin>
         </plugins>
     </pluginManagement>
     <plugins>
