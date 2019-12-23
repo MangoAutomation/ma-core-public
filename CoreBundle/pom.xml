@@ -62,12 +62,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>graphicalviews-view</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>internal-ds</artifactId>
 			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
@@ -140,30 +134,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>data-import</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>point-links</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>reports</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>scheduled-events</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>serial-ds</artifactId>
 			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
@@ -231,37 +201,13 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>galil-ds</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>http-ds</artifactId>
 			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>jmx-ds</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>json-importer</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>log4j-ds</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>logging-console</artifactId>
 			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
@@ -286,18 +232,6 @@
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>opcda-ds</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>openv-ds</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>pachube-pub-ds</artifactId>
 			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
@@ -357,12 +291,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>import-templates</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>twilio-pub</artifactId>
 			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
@@ -374,18 +302,6 @@
 			<type>zip</type>
 		</dependency>
 		<!-- ma-modules-proprietary -->
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>brewers-dashboard</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>dataPointDetails-view</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>egauge-ds</artifactId>
@@ -412,19 +328,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>measurlogicDTSCell-ds</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
 			<artifactId>mqttClientDataSource</artifactId>
-			<version>3.8.0-SNAPSHOT</version>
-			<type>zip</type>
-		</dependency>
-		<dependency>
-			<groupId>com.infiniteautomation.mango</groupId>
-			<artifactId>pakbus-ds</artifactId>
 			<version>3.8.0-SNAPSHOT</version>
 			<type>zip</type>
 		</dependency>
