@@ -6,9 +6,12 @@ package com.serotonin.m2m2.vo.permission;
 import java.util.Collections;
 import java.util.Set;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.LazyInitializer;
+import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.RoleVO;
 
 /**
@@ -27,7 +30,6 @@ public interface PermissionHolder {
      * @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder
      */
     public static final PermissionHolder SYSTEM_SUPERADMIN = new PermissionHolder() {
-        private final Set<String> permissions = Collections.singleton(SuperadminPermissionDefinition.GROUP_NAME);
         private final LazyInitializer<Set<RoleVO>> roles = new LazyInitializer<>();
         
         @Override
@@ -39,11 +41,6 @@ public interface PermissionHolder {
         public boolean isPermissionHolderDisabled() {
             return false;
         }
-
-        @Override
-        public Set<String> getPermissionsSet() {
-            return permissions;
-        }
         
         @Override
         public Set<RoleVO> getRoles() {
@@ -53,6 +50,10 @@ public interface PermissionHolder {
         }
     };
 
+    static final LazyInitSupplier<PermissionService> service = new LazyInitSupplier<>(() -> {
+        return Common.getBean(PermissionService.class);
+    });
+    
     /**
      * @return a name for the permission holder, typically the username
      */
@@ -62,17 +63,19 @@ public interface PermissionHolder {
      * @return true if permission holder is disabled (i.e. all permission checks should fail)
      */
     boolean isPermissionHolderDisabled();
-
-    Set<String> getPermissionsSet();
     
+    /**
+     * The roles for this permission holder 
+     * @return
+     */
     Set<RoleVO> getRoles();
 
-    default boolean hasAdminPermission() {
-        return Permissions.hasAdminPermission(this);
+    default boolean hasAdminRole() {
+        return service.get().hasAdminRole(this);
     }
-
-    default boolean hasSinglePermission(String requiredPermission) {
-        return Permissions.hasSinglePermission(this, requiredPermission);
+    
+    default boolean hasSingleRole(RoleVO requiredRole) {
+        return service.get().hasSingleRole(this, requiredRole);
     }
 
     default boolean hasAnyPermission(Set<String> requiredPermissions) {
@@ -84,13 +87,13 @@ public interface PermissionHolder {
     }
 
     default void ensureHasAdminPermission() {
-        Permissions.ensureHasAdminPermission(this);
+        service.get().ensureAdminRole(this);
     }
-
-    default void ensureHasSinglePermission(String requiredPermission) {
-        Permissions.ensureHasSinglePermission(this, requiredPermission);
+    
+    default void ensureHasSingleRole(RoleVO requiredRole) {
+        service.get().ensureSingleRole(this, requiredRole);
     }
-
+    
     default void ensureHasAnyPermission(Set<String> requiredPermissions) {
         Permissions.ensureHasAnyPermission(this, requiredPermissions);
     }

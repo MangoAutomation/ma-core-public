@@ -17,6 +17,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
@@ -25,11 +27,13 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
@@ -38,46 +42,47 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 public class PermissionsTest extends MangoTestBase {
 
     private static final String SUPERADMIN = SuperadminPermissionDefinition.GROUP_NAME;
-
+    
+    PermissionService permissionService;
+    RoleService roleService;
+    
     DataSourceVO<?> dataSource;
     DataPointVO dataPoint;
 
     public PermissionsTest() {
-        super(true, 8000);
+        super(false, 8000);
     }
     
     User createTestUser() {
-        User user = new User();
-        user.setId(Common.NEW_ID);
-        user.setName("permissions_test_user");
-        user.setUsername("permissions_test_user");
-        user.setPassword(Common.encrypt("permissions_test_user"));
-        user.setEmail("permissions_test_user@test.com");
-        user.setPhone("");
-        user.setPermissions(this.randomPermission());
-        user.setDisabled(false);
-        user.ensureValid();
-        return user;
+        return createUser("permissions_test_user",
+                "permissions_test_user",
+                "permissions_test_user",
+                "permissions_test_user@test.com",
+                this.randomPermission()
+                );
     }
 
-    String randomPermission() {
-        return UUID.randomUUID().toString();
+    RoleVO randomPermission() {
+        RoleVO vo = new RoleVO();
+        vo.setXid(UUID.randomUUID().toString());
+        vo.setName("Random permission");
+        return roleService.insert(vo, PermissionHolder.SYSTEM_SUPERADMIN);
     }
 
-    DataSourceVO<?> createDataSource(String editPermission) {
+    DataSourceVO<?> createDataSource(RoleVO editRole) {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
-        dsVo.setEditPermission(editPermission);
+        dsVo.setEditRole(editRole);
         DataSourceDao.getInstance().save(dsVo);
         return dsVo;
     }
 
-    DataPointVO createDataPoint(DataSourceVO<?> dsVo, String readPermission, String setPermission) {
+    DataPointVO createDataPoint(DataSourceVO<?> dsVo, RoleVO readRole, RoleVO setRole) {
         DataPointVO point = new DataPointVO();
         point.setDataSourceId(dsVo.getId());
         point.setName("permissions_test_datasource");
-        point.setReadPermission(readPermission);
-        point.setSetPermission(setPermission);
+        point.setReadRoles(Collections.singleton(readRole));
+        point.setSetRoles(Collections.singleton(setRole));
         point.setPointLocator(new MockPointLocatorVO());
         DataPointDao.getInstance().save(point);
         return point;
@@ -85,6 +90,8 @@ public class PermissionsTest extends MangoTestBase {
 
     @Before
     public void setup() {
+        this.permissionService = Common.getBean(PermissionService.class);
+        this.roleService = Common.getBean(RoleService.class);
         this.dataSource = this.createDataSource(this.randomPermission());
         this.dataPoint = this.createDataPoint(this.dataSource, this.randomPermission(), this.randomPermission());
     }

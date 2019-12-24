@@ -47,6 +47,7 @@ public class Upgrade29 extends DBUpgrade {
         try {
             createRolesTables(out);
             Map<String, RoleVO> roles = new HashMap<>();
+            convertUsers(roles, out);
             convertMailingLists(roles, out);
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
@@ -76,6 +77,56 @@ public class Upgrade29 extends DBUpgrade {
         userRole.setId(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {userRole.getXid(), userRole.getName()}));
     }
     
+    private void convertUsers(Map<String, RoleVO> roles, OutputStream out) throws Exception {
+        //Move current permissions to roles
+        ejt.query("SELECT id, permissions FROM users", new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int userId = rs.getInt(1);
+                //Get user's current permissions
+                Set<String> permissions = explodePermissionGroups(rs.getString(2));
+                Set<String> userRoles = new HashSet<>();
+                for(String permission : permissions) {
+                    //ensure all roles are lower case and don't have spaces on the ends
+                    permission = permission.trim();
+                    String role = permission.toLowerCase();
+                    roles.compute(role, (k,r) -> {
+                        if(r == null) {
+                            if(StringUtils.equalsIgnoreCase(role, RoleDao.SUPERADMIN_ROLE_NAME)) {
+                                r = superadminRole;
+                            }else if(StringUtils.equalsIgnoreCase(role, RoleDao.USER_ROLE_NAME)) {
+                                r = userRole;
+                            }else {
+                                r = new RoleVO();
+                                r.setXid(role);
+                                r.setName(role);
+                                r.setId(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}));
+                            }
+                        }
+                        if(!userRoles.contains(role)) {
+                            //Add a mapping
+                            ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?,)", 
+                                    new Object[] {
+                                            r.getId(),
+                                            userId
+                                    });
+                            userRoles.add(role);
+                        }
+                        return r;
+                    });
+                }
+            }
+        });
+        
+        //Drop the permissions column
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), userSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), userSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), userSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), userSQL);
+        runScript(scripts, out);
+    }
+    
     private void convertMailingLists(Map<String, RoleVO> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
 
@@ -95,7 +146,7 @@ public class Upgrade29 extends DBUpgrade {
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mailingListSQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), mailingListSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mailingListMSSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mailingListSQL);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mailingListSQL);
         runScript(scripts, out);
     }
@@ -142,13 +193,13 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);"
     };
     
+    //Users
+    private String[] userSQL = new String[] {
+            "ALTER TABLE users DROP COLUMN permissions;",
+    };
+    
     //Mailing lists
     private String[] mailingListSQL = new String[] {
-            "ALTER TABLE mailingLists DROP COLUMN readPermission;",
-            "ALTER TABLE mailingLists DROP COLUMN editPermission;"
-    };
-
-    private String[] mailingListMSSQL = new String[]{
             "ALTER TABLE mailingLists DROP COLUMN readPermission;",
             "ALTER TABLE mailingLists DROP COLUMN editPermission;"
     };
@@ -194,8 +245,6 @@ public class Upgrade29 extends DBUpgrade {
                 }
                 return r;
             });
-
-
         }
     }
     

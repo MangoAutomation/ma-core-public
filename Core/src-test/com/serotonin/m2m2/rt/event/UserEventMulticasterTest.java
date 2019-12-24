@@ -8,27 +8,50 @@ import static org.junit.Assert.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Before;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.service.RoleService;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Test the logic of the multicaster
  * @author Terry Packer
  */
-public class UserEventMulticasterTest {
+public class UserEventMulticasterTest extends MangoTestBase {
 
+    protected RoleService roleService;
+    
+    protected PermissionHolder systemSuperadmin;
+    protected RoleVO mockRole;
+    
+    @Before
+    public void setupRoles() {
+        roleService = Common.getBean(RoleService.class);
+        
+        systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
+
+        //Add some roles
+        mockRole = new RoleVO();
+        mockRole.setXid("MOCK");
+        mockRole.setName("Mock test role.");
+        roleService.insert(mockRole, systemSuperadmin);
+        
+    }
+    
     @Test
     public void testAddRemoveListeners() {
         int userCount = 3;
-        AtomicInteger idCounter = new AtomicInteger(1);
-        
-        List<User> users = createUsers(userCount, 0, idCounter);
+        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
         List<MockUserEventListener> listenerSet1 = new ArrayList<>();
         UserEventListener multicaster = null;
         
@@ -67,9 +90,8 @@ public class UserEventMulticasterTest {
         int dataPointId = 1;
         int eventCount = 13;
         int userCount = 13;
-        AtomicInteger idCounter = new AtomicInteger(1);
         
-        List<User> users = createUsers(userCount, 0, idCounter);
+        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
         for(User u : users) {
@@ -115,9 +137,8 @@ public class UserEventMulticasterTest {
         int dataPointId = 1;
         int eventCount = 10000;
         int userCount = 100;
-        AtomicInteger idCounter = new AtomicInteger(1);
         
-        List<User> users = createUsers(userCount, 0, idCounter);
+        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
         for(User u : users) {
@@ -163,15 +184,14 @@ public class UserEventMulticasterTest {
         int dataPointId = 1;
         int eventCount = 10000;
         int userCount = 5*6;
-        AtomicInteger idCounter = new AtomicInteger(1);
         
         //Add them out of order so the tree is jumbled with permissions hither and yon
-        List<User> users = createUsers(userCount/6, 0, idCounter);
-        users.addAll(createUsers(userCount/6, 1, idCounter));
-        users.addAll(createUsers(userCount/6, 2, idCounter));
-        users.addAll(createUsers(userCount/6, 0, idCounter));
-        users.addAll(createUsers(userCount/6, 1, idCounter));
-        users.addAll(createUsers(userCount/6, 2, idCounter));
+        List<User> users = createUsers(userCount/6, RoleDao.getInstance().getSuperadminRole());
+        users.addAll(createUsers(userCount/6, mockRole));
+        users.addAll(createUsers(userCount/6));
+        users.addAll(createUsers(userCount/6, RoleDao.getInstance().getSuperadminRole()));
+        users.addAll(createUsers(userCount/6, mockRole));
+        users.addAll(createUsers(userCount/6));
         List<Integer> idsToNotify = new ArrayList<>();
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
@@ -205,26 +225,29 @@ public class UserEventMulticasterTest {
         
         //Confirm those with permissions saw all 10000 raised
         for(MockUserEventListener l : listeners) {
-            if(!"".equals(l.getUser().getPermissions()))
-                assertEquals(eventCount, l.getRaised().size());
-            else
+            if(l.getUser().getRoles().isEmpty()) {
                 assertEquals(0, l.getRaised().size());
+            }else {
+                assertEquals(eventCount, l.getRaised().size());
+            }
         }
         
         //Confirm those with permissions saw all 10000 acked
         for(MockUserEventListener l : listeners) {
-            if(!"".equals(l.getUser().getPermissions()))
+            if(l.getUser().getRoles().isEmpty()) {
+                assertEquals(0, l.getAcknowledged().size());
+            }else {
                 assertEquals(eventCount, l.getAcknowledged().size());
-            else
-                assertEquals(0, l.getRaised().size());
+            }
         }
         
         //Confirm those with permissions saw all 10000 rtned
         for(MockUserEventListener l : listeners) {
-            if(!"".equals(l.getUser().getPermissions()))
+            if(l.getUser().getRoles().isEmpty()) {
+                assertEquals(0, l.getReturned().size());
+            }else {
                 assertEquals(eventCount, l.getReturned().size());
-            else
-                assertEquals(0, l.getRaised().size());
+            }
         }
     }
     
@@ -233,27 +256,4 @@ public class UserEventMulticasterTest {
         return new EventInstance(type, time, true, AlarmLevels.URGENT, 
                 new TranslatableMessage("common.default", "Mock Event " + id), null);
     }
-    
-    public List<User> createUsers(int size, int permType, AtomicInteger idCounter) {
-        List<User> users = new ArrayList<>();
-        for(int i=0; i<size; i++) {
-            User user = new User();
-            user.setId(idCounter.getAndIncrement());
-            user.setName("User" + i);
-            user.setUsername("user" + i);
-            user.setPassword("password");
-            user.setEmail("user" + i + "@yourMangoDomain.com");
-            user.setPhone("");
-            if(permType == 0)
-                user.setPermissions("superadmin");
-            else if(permType == 1)
-                user.setPermissions("MOCK");
-            else
-                user.setPermissions("");
-            user.setDisabled(false);
-            users.add(user);
-        }
-        return users;
-    }
-    
 }

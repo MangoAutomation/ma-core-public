@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 
 import javax.mail.internet.AddressException;
 
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Objects;
+import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -27,13 +29,18 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionDetails;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.validation.StringValidation;
 
 import freemarker.template.TemplateException;
 
@@ -52,13 +59,17 @@ import freemarker.template.TemplateException;
  */
 @Service
 public class UsersService extends AbstractVOService<User, UserDao> {
-
+ 
     private final SystemSettingsDao systemSettings;
+    private final PasswordService passwordService;
+    private final PermissionDefinition editSelfPermission;
     
     @Autowired
-    public UsersService(UserDao dao, PermissionService permissionService, SystemSettingsDao systemSettings) {
-        super(dao, permissionService);
+    public UsersService(UserDao dao, PermissionService permissionService, SystemSettingsDao systemSettings, PasswordService passwordService) {
+        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(UserCreatePermission.PERMISSION));
         this.systemSettings = systemSettings;
+        this.passwordService = passwordService;
+        this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
     }
 
     /*
@@ -118,19 +129,21 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     }
 
     @Override
-    protected User update(User existing, User vo, PermissionHolder user, boolean full)
+    protected User update(User existing, User vo, PermissionHolder holder, boolean full)
             throws PermissionException, ValidationException {
-        ensureEditPermission(user, existing);
+        ensureEditPermission(holder, existing);
         vo.setId(existing.getId());
+
+        
+        //Set the date created, it will be validated later
+        if(vo.getCreated() == null) {
+            vo.setCreated(existing.getCreated());
+        }
 
         String newPassword = vo.getPassword();
         if (StringUtils.isBlank(newPassword)) {
             // just use the old password
             vo.setPassword(existing.getPassword());
-        }
-
-        if(vo.getCreated() == null) {
-            vo.setCreated(existing.getCreated());
         }
         
         // set the email verified date to null if the email was changed but the date was not
@@ -144,14 +157,14 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             }
         }
         
-        ensureValid(existing, vo, user);
+        ensureValid(existing, vo, holder);
         dao.saveUser(vo);
         return vo;
     }
-
+    
     @Override
-    public User delete(String xid, PermissionHolder user) throws PermissionException, NotFoundException {
-        User vo = get(xid, user);
+    protected User delete(User vo, PermissionHolder user)
+            throws PermissionException, NotFoundException {
 
         //You cannot delete yourself
         if (user instanceof User && ((User) user).getId() == vo.getId())
@@ -163,6 +176,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         dao.deleteUser(vo.getId());
         return vo;
     }
+    
 
     /**
      * Lock a user's password
@@ -198,48 +212,62 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     }
 
     /**
-     * Get All User Groups that a user can 'see', exclude any groups listed
+     * Get all roles a user can see
      * @param exclude
      * @param user
      * @return
      */
-    public Set<String> getUserGroups(Collection<String> exclude, PermissionHolder user) {
-        Set<String> groups = new TreeSet<>();
-        groups.addAll(user.getPermissionsSet());
+    public Set<RoleVO> getViewableUserRoles(Collection<RoleVO> exclude, PermissionHolder user){
+        Set<RoleVO> roles = new TreeSet<>();
+        roles.addAll(user.getRoles());
 
-        if (user.hasAdminPermission()) {
+        if (user.hasAdminRole()) {
             for (User u : this.dao.getActiveUsers())
-                groups.addAll(u.getPermissionsSet());
+                roles.addAll(u.getRoles());
         }
 
         if (exclude != null) {
-            for (String part : exclude)
-                groups.remove(part);
+            for (RoleVO part : exclude)
+                roles.remove(part);
         }
 
-        return groups;
+        return roles;
     }
 
     @Override
-    public ProcessResult validate(User vo, PermissionHolder user) {
-        ProcessResult result = new ProcessResult();
-        if(vo.getEmailVerified() != null && !user.hasAdminPermission()) {
-            result.addContextualMessage("emailVerified", "validate.invalidValue");
+    public ProcessResult validate(User vo, PermissionHolder holder) {
+        ProcessResult result = commonValidation(vo, holder);
+        //Must not have a date created set if we are non admin
+        if(vo.getCreated() != null && !holder.hasAdminRole()) {
+            result.addContextualMessage("created", "validate.invalidValue");
         }
-        //Can't set the date created 
-        if(vo.getCreated() != null && !user.hasAdminPermission()) {
-            result.addContextualMessage("created", "validate.required");
-        }
-        vo.validate(result);
+        
+        //Validate roles
+        permissionService.validateVoRoles(result, "roles", holder, false, null, vo.getRoles());
         return result;
     }
 
     @Override
-    public ProcessResult validate(User existing, User vo, PermissionHolder user) {
-        ProcessResult result = new ProcessResult();
+    public ProcessResult validate(User existing, User vo, PermissionHolder holder) {
+        ProcessResult result = commonValidation(vo, holder);
+
+        //Must not have a different date created set if we are non admin
+        if(vo.getCreated() != null && !holder.hasAdminRole()) {
+            if(vo.getCreated().getTime() != existing.getCreated().getTime()) {
+                result.addContextualMessage("created", "validate.invalidValue");
+            }
+        }
+        
+        //TODO Mango 4.0 review the role validation
+        //Validate roles
+        boolean savingSelf = false;
+        if(holder instanceof User) {
+            savingSelf = ((User)holder).getId() == existing.getId();
+        }
+        permissionService.validateVoRoles(result, "roles", holder, savingSelf, existing.getRoles(), vo.getRoles());
 
         //Things we cannot do to ourselves
-        if (user instanceof User && ((User) user).getId() == existing.getId()) {
+        if (holder instanceof User && ((User) holder).getId() == existing.getId()) {
 
             //Cannot disable
             if(vo.isDisabled()) {
@@ -248,53 +276,163 @@ public class UsersService extends AbstractVOService<User, UserDao> {
                 //If we are disabled this check will throw an exception, we are invalid anyway so 
                 // don't check
                 //Cannot remove admin permission
-                if(existing.hasAdminPermission())
-                    if(!vo.hasAdminPermission())
-                        result.addContextualMessage("permissions", "users.validate.adminInvalid");
+                if(existing.hasAdminRole())
+                    if(!vo.hasAdminRole())
+                        result.addContextualMessage("roles", "users.validate.adminInvalid");
             }
         }
 
         //Things we cannot do as non-admin
-        if (!user.hasAdminPermission()) {
-            if (!vo.getPermissionsSet().equals(existing.getPermissionsSet())) {
-                result.addContextualMessage("permissions", "users.validate.cannotChangePermissions");
+        if (!holder.hasAdminRole()) {
+            if (!vo.getRoles().equals(existing.getRoles())) {
+                result.addContextualMessage("roles", "users.validate.cannotChangePermissions");
             }
         }
-//For now this is done in the VO.validate() method as it already validates the existing VO
-//        //Cannot Rename a User to an existing Username
-//        if(!StringUtils.equals(vo.getUsername(), existing.getUsername())){
-//            User existingUser = this.dao.getUser(vo.getUsername());
-//            if(existingUser != null){
-//                result.addContextualMessage("username", "users.validate.usernameInUse");
-//            }
-//        }
         
-        if(!Objects.equal(vo.getEmailVerified(), existing.getEmailVerified()) && !user.hasAdminPermission()) {
+        //Cannot change username
+        if(!StringUtils.equals(vo.getUsername(), existing.getUsername())){
+            result.addContextualMessage("username", "users.validate.cannotChangeUsername");
+        }
+        
+        if(!Objects.equal(vo.getEmailVerified(), existing.getEmailVerified()) && !holder.hasAdminRole()) {
             result.addContextualMessage("emailVerified", "validate.invalidValue");
         }
         
-        if(!Objects.equal(vo.getCreated(), existing.getCreated()) && !user.hasAdminPermission()) {
+        if(!Objects.equal(vo.getCreated(), existing.getCreated()) && !holder.hasAdminRole()) {
             result.addContextualMessage("created", "validate.invalidValue");
         }
         
-        vo.validate(result);
+        if(existing.isSessionExpirationOverride() != vo.isSessionExpirationOverride() && !holder.hasAdminRole()) {
+            result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
+        }
+
+        if(existing.getSessionExpirationPeriods() != vo.getSessionExpirationPeriods() && !holder.hasAdminRole()) {
+            result.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
+        }
+
+        if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), vo.getSessionExpirationPeriodType()) && !holder.hasAdminRole()) {
+            result.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
+        }
+        
+        if (!StringUtils.isBlank(vo.getPassword())) {
+            Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(vo.getPassword());
+            if (m.matches()) {
+                String hashOrPassword = m.group(2);
+                //Can't use same one 2x
+                if(Common.checkPassword(hashOrPassword, existing.getPassword(), false)) {
+                    result.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
+                }
+            }
+        }
         return result;
     }
 
-    @Override
-    public boolean hasCreatePermission(PermissionHolder user, User vo) {
-        if(user.hasAdminPermission()) {
-            return true;
-        }else {
-            return false;
+    protected ProcessResult commonValidation(User vo, PermissionHolder holder) {
+        ProcessResult response = new ProcessResult();
+        if (StringUtils.isBlank(vo.getUsername()))
+            response.addMessage("username", new TranslatableMessage("validate.required"));
+        else if(!UserDao.getInstance().isUsernameUnique(vo.getUsername(), vo.getId()))
+            response.addMessage("username", new TranslatableMessage("users.validate.usernameInUse"));
+
+        if (StringUtils.isBlank(vo.getEmail()))
+            response.addMessage("email", new TranslatableMessage("validate.required"));
+        else if(!UserDao.getInstance().isEmailUnique(vo.getEmail(), vo.getId()))
+            response.addMessage("email", new TranslatableMessage("users.validate.emailUnique"));
+
+        if (StringUtils.isBlank(vo.getPassword())) {
+            response.addMessage("password", new TranslatableMessage("validate.required"));
+        } else {
+            Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(vo.getPassword());
+            if (!m.matches()) {
+                response.addMessage("password", new TranslatableMessage("validate.illegalValue"));
+            } else {
+                String algorithm = m.group(1);
+                String hashOrPassword = m.group(2);
+
+                if ((User.PLAIN_TEXT_ALGORITHM.equals(algorithm) || User.NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
+                    response.addMessage("password", new TranslatableMessage("validate.required"));
+                }
+
+                //Validate against our rules
+                if (User.PLAIN_TEXT_ALGORITHM.equals(algorithm) || User.NONE_ALGORITHM.equals(algorithm)){
+                    try {
+                        passwordService.validatePassword(hashOrPassword);
+                    }catch (PasswordInvalidException e) {
+                        for(TranslatableMessage message : e.getMessages()) {
+                            response.addMessage("password", message);
+                        }
+                    }
+                }
+            }
         }
+
+        if (StringUtils.isBlank(vo.getName())) {
+            response.addMessage("name", new TranslatableMessage("validate.required"));
+        }else if (StringValidation.isLengthGreaterThan(vo.getName(), 255)) {
+            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
+        }
+
+        // Check field lengths
+        if (StringValidation.isLengthGreaterThan(vo.getUsername(), 40))
+            response.addMessage("username", new TranslatableMessage("validate.notLongerThan", 40));
+        if (StringValidation.isLengthGreaterThan(vo.getEmail(), 255))
+            response.addMessage("email", new TranslatableMessage("validate.notLongerThan", 255));
+        if (StringValidation.isLengthGreaterThan(vo.getPhone(), 40))
+            response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
+        
+
+        if(vo.getReceiveAlarmEmails() == null) {
+            response.addMessage("receiveAlarmEmails", new TranslatableMessage("validate.required"));
+        }
+
+        if(vo.getLocale() == null) {
+            response.addMessage("locale", new TranslatableMessage("validate.required"));
+        }else if (StringValidation.isLengthGreaterThan(vo.getLocale(), 50)) {
+            response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
+        }
+
+        if (StringValidation.isLengthGreaterThan(vo.getTimezone(), 50)) {
+            response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
+        }
+        
+        //Can't set email verified
+        if(vo.getEmailVerified() != null && !holder.hasAdminRole()) {
+            response.addContextualMessage("emailVerified", "validate.invalidValue");
+        }
+        
+        if(vo.isSessionExpirationOverride()) {
+            if(!holder.hasAdminRole()) {
+                response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
+            }else {
+                if (-1 == Common.TIME_PERIOD_CODES.getId(vo.getSessionExpirationPeriodType(), Common.TimePeriods.MILLISECONDS)) {
+                    response.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
+                }
+                if(vo.getSessionExpirationPeriods() <= 0) {
+                    response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
+                }
+            }
+        }
+
+        if(StringUtils.isNotEmpty(vo.getOrganization())) {
+            if (StringValidation.isLengthGreaterThan(vo.getOrganization(), 80)) {
+                response.addMessage("organization", new TranslatableMessage("validate.notLongerThan", 80));
+            }
+        }
+
+        if(StringUtils.isNotEmpty(vo.getOrganizationalRole())) {
+            if (StringValidation.isLengthGreaterThan(vo.getOrganizationalRole(), 80)) {
+                response.addMessage("organizationalRole", new TranslatableMessage("validate.notLongerThan", 80));
+            }
+        }
+        
+        return response;
     }
 
     @Override
-    public boolean hasEditPermission(PermissionHolder user, User vo) {
-        if(user.hasAdminPermission())
+    public boolean hasEditPermission(PermissionHolder holder, User vo) {
+        if(holder.hasAdminRole()) {
             return true;
-        else if (user instanceof User && ((User) user).getId()  == vo.getId() && Permissions.hasAnyPermission(user, Permissions.explodePermissionGroups(SystemSettingsDao.instance.getValue(UserEditSelfPermission.PERMISSION))))
+        }else if (holder instanceof User && ((User) holder).getId()  == vo.getId() && permissionService.hasPermission(holder, editSelfPermission))
             return true;
         else
             return false;
@@ -302,7 +440,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, User vo) {
-        if(user.hasAdminPermission())
+        if(user.hasAdminRole())
             return true;
         else if (user instanceof User && ((User) user).getId()  == vo.getId())
             return true;

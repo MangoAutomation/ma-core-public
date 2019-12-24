@@ -267,21 +267,4 @@ public class MailingListDao extends AbstractDao<MailingList> {
             return rs.getInt(1);
         }
     }
-
-    /*
-     *
-     * BELOW HERE TO BE REMOVED
-     *
-     *
-    public Set<String> generateRecipientAddresses(List<EmailRecipient> entries, DateTime sendTime) {
-
-        populateEntrySubclasses(entries);
-        Set<String> addresses = new HashSet<String>();
-        for (EmailRecipient entry : entries)
-            entry.appendAddresses(addresses, sendTime);
-        return addresses;
-    }
-     */
-
-
 }

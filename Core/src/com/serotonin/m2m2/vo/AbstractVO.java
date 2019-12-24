@@ -181,7 +181,7 @@ JsonSerializable, Cloneable, Validatable {
                     throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), permissionName);
                 }
             }
-            return roles;
+            return Collections.unmodifiableSet(roles);
         }
         return Collections.emptySet();
     }
@@ -311,7 +311,7 @@ JsonSerializable, Cloneable, Validatable {
      */
     @Override
     public String toString() {
-        return "id: " + this.id + " name: " + this.name;
+        return "id: " + this.id + " name: " + this.name + " xid: " + xid;
     }
 
     @Override

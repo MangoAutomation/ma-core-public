@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -27,6 +30,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -38,8 +42,10 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
@@ -226,14 +232,14 @@ public class MangoTestBase {
      * @param permissions
      * @return
      */
-    protected List<User> createUsers(int count, String permissions){
+    protected List<User> createUsers(int count, RoleVO... roles){
         List<User> users = new ArrayList<>();
         for(int i=0; i<count; i++) {
             User user = createUser("User" + i,
                     "user" + i,
                     "password",
                     "user" + i + "@yourMangoDomain.com",
-                    permissions);
+                    roles);
             users.add(user);
         }
         return users;
@@ -248,20 +254,33 @@ public class MangoTestBase {
      * @param roles
      * @return
      */
-    protected User createUser(String name, String username, String password, String email, String roles) {
+    protected User createUser(String name, String username, String password, String email, RoleVO... roles) {
+        return createUser(Common.NEW_ID, name, username, password, email, roles);
+    }
+    
+    /**
+     * Create a user with pre-assigned ID
+     * @param id
+     * @param name
+     * @param username
+     * @param password
+     * @param email
+     * @param roles
+     * @return
+     */
+    protected User createUser(int id, String name, String username, String password, String email, RoleVO... roles) {
         User user = new User();
-        user.setId(Common.NEW_ID);
+        user.setId(id);
         user.setName(name);
         user.setUsername(username);
         user.setPassword(Common.encrypt(password));
         user.setEmail(email);
         user.setPhone("");
-        user.setPermissions(roles);
+        user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(roles))));
         user.setDisabled(false);
-        validate(user);
-        
-        UserDao.getInstance().saveUser(user);
-        return user;
+        UsersService service = Common.getBean(UsersService.class);
+        service.insertFull(user, PermissionHolder.SYSTEM_SUPERADMIN);
+        return service.getFull(user.getId(), PermissionHolder.SYSTEM_SUPERADMIN);
     }
     
     /**

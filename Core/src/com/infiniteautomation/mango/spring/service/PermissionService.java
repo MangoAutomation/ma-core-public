@@ -40,12 +40,6 @@ public class PermissionService {
         this.roleDao = roleDao;
     }
     
-    public void ensureAdminRole(PermissionHolder holder) {
-        if(!hasAdminRole(holder)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", holder.getPermissionHolderName()), holder);
-        }
-    }
-    
     /**
      * Does this user have the superadmin role?
      * @param holder
@@ -53,6 +47,16 @@ public class PermissionService {
      */
     public boolean hasAdminRole(PermissionHolder holder) {
         return hasSingleRole(holder, roleDao.getSuperadminRole());
+    }
+    
+    /**
+     * Ensure this holder has the superadmin role
+     * @param holder
+     */
+    public void ensureAdminRole(PermissionHolder holder) throws PermissionException {
+        if(!hasAdminRole(holder)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", holder.getPermissionHolderName()), holder);
+        }
     }
     
     /**
@@ -104,6 +108,16 @@ public class PermissionService {
 
         Set<RoleVO> heldRoles = user.getRoles();
         return containsSingleRole(heldRoles, requiredRole);
+    }
+    
+    /**
+     * Ensure this holder has the required role role
+     * @param holder
+     */
+    public void ensureSingleRole(PermissionHolder holder, RoleVO requiredRole) throws PermissionException {
+        if(!hasSingleRole(holder, requiredRole)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", holder.getPermissionHolderName()), holder);
+        }
     }
     
     /**
@@ -226,16 +240,16 @@ public class PermissionService {
             if (role == null) {
                 result.addContextualMessage(contextKey, "validate.role.empty");
                 return;
-            } else if(RoleDao.getInstance().getIdByXid(role.getXid()) == null) {
+            } else if(roleDao.getIdByXid(role.getXid()) == null) {
                 result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
             }
         }
         
-        if(holder.hasAdminPermission())
+        if(holder.hasAdminRole())
             return;
 
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && Collections.disjoint(holder.getRoles(), newRoles)) {
+        if(!savedByOwner && !newRoles.contains(roleDao.getUserRole()) && Collections.disjoint(holder.getRoles(), newRoles)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 

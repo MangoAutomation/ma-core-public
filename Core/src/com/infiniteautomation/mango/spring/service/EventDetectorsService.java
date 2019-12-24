@@ -91,21 +91,21 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
-        if(user.hasAdminPermission())
+        if(user.hasAdminRole())
             return true;
         return vo.getDefinition().hasCreatePermission(user, vo);
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, T vo) {
-        if(user.hasAdminPermission())
+        if(user.hasAdminRole())
             return true;
         return vo.getDefinition().hasEditPermission(user, vo);
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, T vo) {
-        if(user.hasAdminPermission())
+        if(user.hasAdminRole())
             return true;
         return vo.getDefinition().hasReadPermission(user, vo);
     }

@@ -537,7 +537,7 @@ public class MangoJavaScriptService {
      */
     public ScriptEngine newEngine(PermissionHolder holder) {
         NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
-        if(holder != null && holder.hasAdminPermission())
+        if(holder != null && holder.hasAdminRole())
             return factory.getScriptEngine();
         else
             return factory.getScriptEngine(new NoJavaFilter());

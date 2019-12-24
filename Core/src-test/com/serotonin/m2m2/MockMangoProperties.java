@@ -7,6 +7,7 @@ package com.serotonin.m2m2;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.util.properties.AbstractProperties;
 
 /**
@@ -21,7 +22,7 @@ public class MockMangoProperties extends AbstractProperties{
     public MockMangoProperties() {
         //Fill in all default values for properties
         properties.put("db.update.log.dir", Common.MA_HOME + "/logs/");
-        properties.put("security.hashAlgorithm", "NONE");
+        properties.put("security.hashAlgorithm", User.NONE_ALGORITHM);
         
         //Test injection property types
         properties.put("test.injectedStringArray", "ONE,TWO,THREE");

@@ -15,10 +15,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * Class for plug-in User Access for Authentication Data
@@ -42,23 +42,24 @@ public class MangoUserDetailsService implements UserDetailsService {
 	}
 
 	/**
-	 * Create a set of Granted Authorities by parsing a permissions string
-	 * @param permissionsString
+	 * Create a set of Granted Authorities by parsing a set of roles
+	 * 
+	 * @param roles
 	 * @return
 	 */
-	public static Set<GrantedAuthority> getGrantedAuthorities(String permissionsString) {
-	    if (permissionsString == null) {
+	public static Set<GrantedAuthority> getGrantedAuthorities(Set<RoleVO> roles) {
+	    if (roles == null) {
 	        return Collections.emptySet();
 	    }
-	    
-	    Set<String> permissions = Permissions.explodePermissionGroups(permissionsString);
-        Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(permissions.size());
+
+        Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(roles.size());
         
-        for (String permission : permissions) {
-        	if(SuperadminPermissionDefinition.GROUP_NAME.equals(permission))
+        for (RoleVO role : roles) {
+        	if(role.equals(RoleDao.getInstance().getSuperadminRole())) {
         		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        	else
-            	grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + permission.toUpperCase(Locale.ROOT)));
+        	}else {
+            	grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role.getXid().toUpperCase(Locale.ROOT)));
+        	}
         }
         
         return grantedAuthorities;

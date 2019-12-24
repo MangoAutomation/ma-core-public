@@ -5,13 +5,16 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.sql.Clob;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -22,9 +25,11 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
@@ -45,6 +50,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
@@ -64,6 +70,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         AUTH_TOKEN, PASSWORD, PERMISSIONS, LAST_LOGIN, HOME_URL, MUTED
     }
 
+    private final RoleDao roleDao;
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
     /**
@@ -72,10 +79,12 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      * @param extraProperties
      * @param extraSQL
      */
-    private UserDao() {
+    @Autowired
+    private UserDao(RoleDao roleDao) {
         super(AuditEventType.TYPE_USER, "u",
                 new String[0], false,
                 new TranslatableMessage("internal.monitor.USER_COUNT"));
+        this.roleDao = roleDao;
     }
 
     /**
@@ -118,7 +127,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      * @return
      */
     public User getUser(int id) {
-        return this.get(id);
+        return this.getFull(id);
     }
 
     /**
@@ -130,9 +139,16 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if (username == null) return null;
 
         return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
-            return queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
+            User user = queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
                     new UserRowMapper(), null);
+            loadRelationalData(user);
+            return user;
         });
+    }
+    
+    @Override
+    public void loadRelationalData(User vo) {
+        vo.setRoles(Collections.unmodifiableSet(new HashSet<>(query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRowMapper()))));
     }
 
     /**
@@ -160,7 +176,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             user.setPassword(rs.getString(++i));
             user.setEmail(rs.getString(++i));
             user.setPhone(rs.getString(++i));
-            //user.setAdmin(charToBool(rs.getString(++i)));
             user.setDisabled(charToBool(rs.getString(++i)));
             user.setHomeUrl(rs.getString(++i));
             user.setLastLogin(rs.getLong(++i));
@@ -168,7 +183,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             user.setReceiveOwnAuditEvents(charToBool(rs.getString(++i)));
             user.setTimezone(rs.getString(++i));
             user.setMuted(charToBool(rs.getString(++i)));
-            user.setPermissions(rs.getString(++i));
             user.setName(rs.getString(++i));
             user.setLocale(rs.getString(++i));
             user.setTokenVersion(rs.getInt(++i));
@@ -220,35 +234,58 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
-            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, permissions, " //
+            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, " //
             + "name, locale, tokenVersion, passwordVersion, passwordChangeTimestamp, " //
             + "sessionExpirationOverride, sessionExpirationPeriods, sessionExpirationPeriodType, "
             + "organization, organizationalRole, createdTs, emailVerifiedTs, data) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
+    private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";
+    private static final String USER_ROLE_INSERT = "INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)";
+    private static final String USER_ROLES_SELECT = "SELECT r.id, r.xid, r.name FROM userRoleMappings AS ur JOIN roles r ON ur.roleId=r.id JOIN users u ON ur.userId=u.id WHERE ur.userId=?";
+    
     void insertUser(User user) {
 
         int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 user.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
-                return ejt.doInsert(
+                int id = ejt.doInsert(
                         USER_INSERT,
                         new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                                 boolToChar(user.isDisabled()), user.getHomeUrl(),
                                 user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
-                                boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(), user.getTokenVersion(),
+                                boolToChar(user.isMuted()), user.getName(), user.getLocale(), user.getTokenVersion(),
                                 user.getPasswordVersion(), user.getPasswordChangeTimestamp(), boolToChar(user.isSessionExpirationOverride()),
                                 user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
-                                user.getOrganization(), user.getOrganizationalRole(), Common.timer.currentTimeMillis(), user.getEmailVerifiedTs(), convertData(user.getData())},
+                                user.getOrganization(), user.getOrganizationalRole(), 
+                                user.getCreatedTs() == null ? Common.timer.currentTimeMillis() : user.getCreatedTs(), user.getEmailVerifiedTs(), convertData(user.getData())},
                         new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR,
                                 Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                 Types.INTEGER, Types.BIGINT, Types.CHAR,
                                 Types.INTEGER, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB}
                         );
+                //delete role mappings
+                ejt.update(USER_ROLES_DELETE, new Object[] {id});
+                //insert role mappings
+                List<RoleVO> entries = new ArrayList<>(user.getRoles());
+                ejt.batchUpdate(USER_ROLE_INSERT, new BatchPreparedStatementSetter() {
+                    @Override
+                    public int getBatchSize() {
+                        return entries.size();
+                    }
+
+                    @Override
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        RoleVO role = entries.get(i);
+                        ps.setInt(1, role.getId());
+                        ps.setInt(2, id);
+                    }
+                });
+                return id;
             }
         });
 
@@ -261,7 +298,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
 
     private static final String USER_UPDATE = "UPDATE users SET " //
             + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
-            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, permissions=?, name=?, locale=?, passwordVersion=?, passwordChangeTimestamp=?," //
+            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, name=?, locale=?, passwordVersion=?, passwordChangeTimestamp=?," //
             + " sessionExpirationOverride=?, sessionExpirationPeriods=?, sessionExpirationPeriodType=?,"
             + " organization=?, organizationalRole=?, createdTs=?, emailVerifiedTs=?, data=?"
             + " WHERE id=?";
@@ -304,17 +341,33 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                             new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
                                     boolToChar(user.isDisabled()), user.getHomeUrl(),
                                     user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()),
-                                    user.getTimezone(), boolToChar(user.isMuted()), user.getPermissions(), user.getName(), user.getLocale(),
+                                    user.getTimezone(), boolToChar(user.isMuted()), user.getName(), user.getLocale(),
                                     user.getPasswordVersion(), user.getPasswordChangeTimestamp(),
                                     boolToChar(user.isSessionExpirationOverride()), user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
                                     user.getOrganization(), user.getOrganizationalRole(), user.getCreatedTs(), user.getEmailVerifiedTs(), convertData(user.getData()),
                                     user.getId() },
                             new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                                     Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                    Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT,
+                                    Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT,
                                     Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB, Types.INTEGER}
                             );
+                    //delete role mappings
+                    ejt.update(USER_ROLES_DELETE, new Object[] {user.getId()});
+                    //insert new mappings
+                    List<RoleVO> entries = new ArrayList<>(user.getRoles());
+                    ejt.batchUpdate(USER_ROLE_INSERT, new BatchPreparedStatementSetter() {
+                        @Override
+                        public int getBatchSize() {
+                            return entries.size();
+                        }
 
+                        @Override
+                        public void setValues(PreparedStatement ps, int i) throws SQLException {
+                            RoleVO role = entries.get(i);
+                            ps.setInt(1, role.getId());
+                            ps.setInt(2, user.getId());
+                        }
+                    });
                     return old;
                 }
             });
@@ -328,7 +381,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             //Set the last login time so it is available on the saved user
             user.setLastLogin(old.getLastLogin());
 
-            boolean permissionsChanged = !old.getPermissions().equals(user.getPermissions());
+            boolean permissionsChanged = !old.getRoles().equals(user.getRoles());
             boolean passwordChanged = user.getPasswordVersion() > originalPwVersion;
 
             EnumSet<UpdatedFields> fields = EnumSet.noneOf(UpdatedFields.class);
@@ -501,7 +554,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 vo.isReceiveOwnAuditEvents(),
                 vo.getTimezone(),
                 vo.isMuted(),
-                vo.getPermissions(),
                 vo.getName(),
                 vo.getLocale(),
                 vo.getTokenVersion(),
@@ -538,7 +590,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         map.put("receiveOwnAuditEvents", Types.CHAR);
         map.put("timezone", Types.VARCHAR);
         map.put("muted", Types.CHAR);
-        map.put("permissions", Types.VARCHAR);
         map.put("name", Types.VARCHAR);
         map.put("locale", Types.VARCHAR);
         map.put("tokenVersion", Types.INTEGER);

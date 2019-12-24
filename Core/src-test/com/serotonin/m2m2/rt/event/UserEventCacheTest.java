@@ -23,8 +23,8 @@ import org.junit.Test;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.EventDao;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.User;
@@ -49,7 +49,7 @@ public class UserEventCacheTest extends MangoTestBase {
 
     @Test
     public void testMultipleEventsAtSameTime() {
-        List<User> users = createUsers(1, SuperadminPermissionDefinition.GROUP_NAME);
+        List<User> users = createUsers(1, RoleDao.getInstance().getSuperadminRole());
         Set<Integer> userIds = new HashSet<>();
         for(User user : users)
             userIds.add(user.getId());
@@ -138,7 +138,7 @@ public class UserEventCacheTest extends MangoTestBase {
 
     @Test
     public void testRemoveEvents() throws InterruptedException {
-        List<User> users = createUsers(1, SuperadminPermissionDefinition.GROUP_NAME);
+        List<User> users = createUsers(1, RoleDao.getInstance().getSuperadminRole());
         int timeToLive = 1000000000;
         int cleanerPeriod = 100000000;
         int eventCount = 100;
@@ -169,7 +169,7 @@ public class UserEventCacheTest extends MangoTestBase {
 
     @Test
     public void testRemoveEventsForSingleUser() throws InterruptedException {
-        List<User> users = createUsers(1, SuperadminPermissionDefinition.GROUP_NAME);
+        List<User> users = createUsers(1, RoleDao.getInstance().getSuperadminRole());
         int cleanerPeriod = 10000;
         int timeToLive = cleanerPeriod * 4;
         int eventCount = 100;
@@ -204,7 +204,7 @@ public class UserEventCacheTest extends MangoTestBase {
 
     @Test
     public void testRemoveEventsForUsers() throws InterruptedException {
-        List<User> users = createUsers(2, SuperadminPermissionDefinition.GROUP_NAME);
+        List<User> users = createUsers(1, RoleDao.getInstance().getSuperadminRole());
         int cleanerPeriod = 10000;
         int timeToLive = cleanerPeriod * 4;
         int eventCount = 100;
@@ -250,7 +250,7 @@ public class UserEventCacheTest extends MangoTestBase {
     @Test
     public void testPurgeAccuracy() throws InterruptedException {
         int userCount = 10;
-        List<User> users = createUsers(userCount, SuperadminPermissionDefinition.GROUP_NAME);
+        List<User> users = createUsers(1, RoleDao.getInstance().getSuperadminRole());
         int eventCount = 10000;
         int timeToLive = eventCount + 1;
         int cleanerPeriod = eventCount * userCount + 100;
@@ -313,7 +313,7 @@ public class UserEventCacheTest extends MangoTestBase {
     @Test
     public void testInsertAccuracy() throws InterruptedException {
         int userCount = 10;
-        List<User> users = createUsers(userCount, SuperadminPermissionDefinition.GROUP_NAME);
+        List<User> users = createUsers(1, RoleDao.getInstance().getSuperadminRole());
         int eventCount = 10000;
         int timeToLive = eventCount + 1;
         int cleanerPeriod = eventCount * userCount + 100;

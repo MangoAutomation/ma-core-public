@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.MissingResourceException;
 
@@ -43,7 +46,6 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
@@ -369,7 +371,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         user.setPassword(Common.encrypt("admin"));
         user.setEmail("admin@mango.example.com");
         user.setPhone("");
-        user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
+        user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(RoleDao.getInstance().getSuperadminRole()))));
         user.setDisabled(false);
         user.setHomeUrl("/ui/administration/home");
         UserDao.getInstance().saveUser(user);

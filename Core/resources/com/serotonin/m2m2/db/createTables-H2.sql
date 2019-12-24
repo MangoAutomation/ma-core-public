@@ -41,7 +41,6 @@ CREATE TABLE users (
   receiveOwnAuditEvents char(1) NOT NULL,
   timezone varchar(50),
   muted char(1),
-  permissions varchar(255),
   name varchar(255),
   locale varchar(50),
   tokenVersion int NOT NULL,

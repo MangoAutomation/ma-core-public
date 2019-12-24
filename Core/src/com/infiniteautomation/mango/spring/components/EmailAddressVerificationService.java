@@ -297,7 +297,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         this.verifyNoClaim(token, USERNAME_CLAIM);
 
         //Totally new user
-        newUser.setPermissionsSet(Collections.emptySet());
+        newUser.setRoles(Collections.emptySet());
         newUser.setEmail(verifiedEmail);
         newUser.setDisabled(true); //Ensure we are disabled
         newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));

@@ -90,7 +90,7 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
             assertVoEqual(vo, fromDb);
             
             VO updated = updateVO(vo);
-            service.updateFull(vo.getXid(), updated, systemSuperadmin);
+            service.updateFull(vo.getId(), updated, systemSuperadmin);
             fromDb = service.getFull(vo.getId(), systemSuperadmin);
             assertVoEqual(updated, fromDb);            
         });
@@ -102,8 +102,8 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
             VO vo = insertNewVO();
             VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);
-            service.delete(vo.getXid(), systemSuperadmin);
-            service.getFull(vo.getXid(), systemSuperadmin);            
+            service.delete(vo.getId(), systemSuperadmin);
+            service.getFull(vo.getId(), systemSuperadmin);            
         });
     }
     
@@ -141,16 +141,8 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
         roleService = Common.getBean(RoleService.class);
         
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
-        
-        //Add a user with no roles
-        readUser = createUser("readUser", "readUser", "password", "readUser@example.com", "read-role");
-        editUser = createUser("editUser", "editUser", "password", "editUser@example.com", "edit-role");
-        setUser = createUser("setUser", "setUser", "password", "setUser@example.com", "set-role");
-        deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", "delete-role");
-        allUser = createUser("allUser", "allUser", "password", "allUser@example.com", "read-role,edit-role,set-role,delete-roll");
-        
+
         //Add some roles
-        
         readRole = new RoleVO();
         readRole.setXid("read-role");
         readRole.setName("Role to allow reading.");
@@ -171,6 +163,11 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
         deleteRole.setName("Role to allow deleting.");
         roleService.insert(deleteRole, systemSuperadmin);
 
+        readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
+        editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
+        setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
+        deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
+        allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);   
     }
     
     @FunctionalInterface

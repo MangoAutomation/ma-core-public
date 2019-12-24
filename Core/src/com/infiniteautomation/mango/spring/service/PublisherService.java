@@ -32,17 +32,17 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, PublisherVO<T> vo) {
-        return user.hasAdminPermission();
+        return user.hasAdminRole();
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, PublisherVO<T> vo) {
-        return user.hasAdminPermission();
+        return user.hasAdminRole();
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, PublisherVO<T> vo) {
-        return user.hasAdminPermission();
+        return user.hasAdminRole();
     }
 
     @Override

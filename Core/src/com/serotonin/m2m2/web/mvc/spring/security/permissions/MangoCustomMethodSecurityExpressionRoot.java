@@ -43,7 +43,7 @@ implements MethodSecurityExpressionOperations {
 
         if (principal instanceof User) {
             User user = (User) this.getPrincipal();
-            return user.hasAdminPermission();
+            return user.hasAdminRole();
         }
 
         // principal is probably a string "anonymousUser"
@@ -76,7 +76,7 @@ implements MethodSecurityExpressionOperations {
      */
     public boolean hasDataSourceXidPermission(String xid){
         User user =  (User) this.getPrincipal();
-        if(user.hasAdminPermission())
+        if(user.hasAdminRole())
             return true;
         DataSourceVO<?> dsvo = DataSourceDao.getInstance().getByXid(xid);
         if((dsvo == null)||(!Permissions.hasDataSourcePermission(user, dsvo)))

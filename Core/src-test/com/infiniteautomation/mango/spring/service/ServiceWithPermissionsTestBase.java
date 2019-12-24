@@ -20,6 +20,10 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
  */
 public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, DAO extends AbstractDao<VO>, SERVICE extends AbstractVOService<VO,DAO>> extends ServiceTestBase<VO, DAO, SERVICE> {
 
+    /**
+     * The type name for the create permission of the VO
+     * @return
+     */
     abstract String getCreatePermissionType();
     abstract void setReadRoles(Set<RoleVO> roles, VO vo);
     abstract void setEditRoles(Set<RoleVO> roles, VO vo);
@@ -51,6 +55,17 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
         });
     }
     
+    @Test(expected = PermissionException.class)
+    public void testUserReadRoleFails() {
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.emptySet(), vo);
+            service.insertFull(vo, systemSuperadmin);
+            VO fromDb = service.getFull(vo.getId(), readUser);
+            assertVoEqual(vo, fromDb);
+        });
+    }
+    
     @Test
     public void testUserEditRole() {
         runTest(() -> {
@@ -64,6 +79,43 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
             service.updateFull(fromDb.getXid(), fromDb, readUser);
             VO updated = service.getFull(fromDb.getId(), readUser);
             assertVoEqual(fromDb, updated);
+        });
+    }
+    
+    @Test(expected = PermissionException.class)
+    public void testUserEditRoleFails() {
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setEditRoles(Collections.emptySet(), vo);
+            service.insertFull(vo, systemSuperadmin);
+            VO fromDb = service.getFull(vo.getId(), readUser);
+            assertVoEqual(vo, fromDb);
+            fromDb.setName("read user edited me");
+            service.updateFull(fromDb.getXid(), fromDb, readUser);
+            VO updated = service.getFull(fromDb.getId(), readUser);
+            assertVoEqual(fromDb, updated);
+        });
+    }
+    
+    @Test
+    public void testUserDelete() {
+        runTest(() -> {
+            VO vo = newVO();
+            addRoleToCreatePermission(editRole);
+            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setEditRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            vo = service.insertFull(vo, editUser);
+            service.delete(vo.getId(), editUser);
+        });
+    }
+    
+    @Test(expected = PermissionException.class)
+    public void testUserDeleteFails() {
+        runTest(() -> {
+            VO vo = newVO();
+            service.insertFull(vo, systemSuperadmin);
+            service.delete(vo.getId(), editUser);
         });
     }
     

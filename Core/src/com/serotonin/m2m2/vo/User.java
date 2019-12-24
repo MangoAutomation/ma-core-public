@@ -11,7 +11,6 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Set;
@@ -27,8 +26,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.infiniteautomation.mango.spring.service.PasswordService;
-import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
@@ -43,17 +40,14 @@ import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.permission.Permission;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
-import com.serotonin.validation.StringValidation;
 
 public class User extends AbstractVO<User> implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
 
@@ -89,8 +83,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private String timezone;
     @JsonProperty
     private boolean muted = true;
-    //TODO More aptly named roles
-    private String permissions = "user"; //Default group
     @JsonProperty
     private String locale;
 
@@ -113,6 +105,8 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private Date emailVerified;
     @JsonProperty
     private JsonNode data;
+    @JsonProperty
+    private Set<RoleVO> roles = Collections.unmodifiableSet(Collections.emptySet());
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -122,10 +116,9 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
-    //TODO More aptly named rolesSet
-    private transient final LazyInitializer<Set<String>> permissionsSet = new LazyInitializer<>();
+    
+    //System permissions that we have one or more roles in
     private transient final LazyInitializer<Set<Permission>> grantedPermissions = new LazyInitializer<>();
-    private transient final LazyInitializer<Set<RoleVO>> roles = new LazyInitializer<>();
 
     private transient volatile boolean admin;
 
@@ -329,19 +322,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.disabled = disabled;
     }
 
-    @Deprecated
-    public String getPermissions() {
-        return permissions;
-    }
-
-    public void setPermissions(String permissions) {
-        this.permissions = permissions;
-        this.authorities.reset();
-        this.permissionsSet.reset();
-        this.roles.reset();
-        this.admin = this.getPermissionsSet().contains(SuperadminPermissionDefinition.GROUP_NAME);
-    }
-
     public String getHomeUrl() {
         return homeUrl;
     }
@@ -482,7 +462,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities.get(() -> {
-            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(permissions));
+            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(roles));
         });
     }
 
@@ -553,146 +533,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     }
 
     @Override
-    public void validate(ProcessResult response) {
-        //TODO Mango 4.0 Move this logic to Service Layer
-        PermissionHolder savingUser = Common.getHttpUser();
-        if(savingUser == null)
-            savingUser = Common.getBackgroundContextUser();
-
-        //get the existing user if there is one (don't use username as it can change)
-        User existing;
-        if(id != Common.NEW_ID) {
-            existing = UserDao.getInstance().get(id);
-        }else {
-            existing = null;
-        }
-
-        if (StringUtils.isBlank(username))
-            response.addMessage("username", new TranslatableMessage("validate.required"));
-        else if(!UserDao.getInstance().isUsernameUnique(username, id))
-            response.addMessage("username", new TranslatableMessage("users.validate.usernameInUse"));
-
-        if (StringUtils.isBlank(email))
-            response.addMessage("email", new TranslatableMessage("validate.required"));
-        else if(!UserDao.getInstance().isEmailUnique(email, id))
-            response.addMessage("email", new TranslatableMessage("users.validate.emailUnique"));
-
-        if (StringUtils.isBlank(password)) {
-            response.addMessage("password", new TranslatableMessage("validate.required"));
-        } else {
-            Matcher m = Common.EXTRACT_ALGORITHM_HASH.matcher(password);
-            if (!m.matches()) {
-                response.addMessage("password", new TranslatableMessage("validate.illegalValue"));
-            } else {
-                String algorithm = m.group(1);
-                String hashOrPassword = m.group(2);
-
-                if ((PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)) && StringUtils.isBlank(hashOrPassword)) {
-                    response.addMessage("password", new TranslatableMessage("validate.required"));
-                }
-
-                //Validate against our rules
-                if (PLAIN_TEXT_ALGORITHM.equals(algorithm) || NONE_ALGORITHM.equals(algorithm)){
-
-                    //Can't use same one 2x
-                    if(existing != null && Common.checkPassword(hashOrPassword, existing.getPassword(), false))
-                        response.addMessage("password", new TranslatableMessage("users.validate.cannotUseSamePasswordTwice"));
-
-                    PasswordService service = Common.getBean(PasswordService.class);
-                    try {
-                        service.validatePassword(hashOrPassword);
-                    }catch (PasswordInvalidException e) {
-                        for(TranslatableMessage message : e.getMessages()) {
-                            response.addMessage("password", message);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (StringUtils.isBlank(name))
-            response.addMessage("name", new TranslatableMessage("validate.required"));
-
-        // Check field lengths
-        if (StringValidation.isLengthGreaterThan(username, 40))
-            response.addMessage("username", new TranslatableMessage("validate.notLongerThan", 40));
-        if (StringValidation.isLengthGreaterThan(email, 255))
-            response.addMessage("email", new TranslatableMessage("validate.notLongerThan", 255));
-        if (StringValidation.isLengthGreaterThan(phone, 40))
-            response.addMessage("phone", new TranslatableMessage("validate.notLongerThan", 40));
-        if (StringValidation.isLengthGreaterThan(name, 255))
-            response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
-
-        if(receiveAlarmEmails == null) {
-            response.addMessage("receiveAlarmEmails", new TranslatableMessage("validate.required"));
-        }
-
-        if(locale == null) {
-            response.addMessage("locale", new TranslatableMessage("validate.required"));
-        }else if (StringValidation.isLengthGreaterThan(locale, 50)) {
-            response.addMessage("locale", new TranslatableMessage("validate.notLongerThan", 50));
-        }
-
-        if (StringValidation.isLengthGreaterThan(timezone, 50)) {
-            response.addMessage("timezone", new TranslatableMessage("validate.notLongerThan", 50));
-        }
-
-        //Validate Permissions (Can't be blank)
-        if (!StringUtils.isEmpty(this.permissions)) {
-            for (String s : this.permissions.split(",")) {
-                if(StringUtils.isBlank(s)){
-                    response.addMessage("permissions", new TranslatableMessage("validate.cannotContainEmptyString"));
-                    break;
-                }
-            }
-        }
-
-        if(existing != null) {
-            if(existing.isSessionExpirationOverride() != sessionExpirationOverride && (savingUser == null || !savingUser.hasAdminPermission())) {
-                response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
-            }
-
-            if(existing.getSessionExpirationPeriods() != sessionExpirationPeriods && (savingUser == null || !savingUser.hasAdminPermission())) {
-                response.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
-            }
-
-            if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), sessionExpirationPeriodType) && (savingUser == null || !savingUser.hasAdminPermission())) {
-                response.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
-            }
-        }else {
-            if(sessionExpirationOverride) {
-                if(savingUser == null || !savingUser.hasAdminPermission()) {
-                    response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
-                }
-            }
-        }
-        
-        if(sessionExpirationOverride) {
-            if (-1 == Common.TIME_PERIOD_CODES.getId(sessionExpirationPeriodType, Common.TimePeriods.MILLISECONDS))
-                response.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
-            if(sessionExpirationPeriods <= 0)
-                response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
-        }
-
-        if(StringUtils.isNotEmpty(organization)) {
-            if (StringValidation.isLengthGreaterThan(organization, 80)) {
-                response.addMessage("organization", new TranslatableMessage("validate.notLongerThan", 80));
-            }
-        }
-
-        if(StringUtils.isNotEmpty(organizationalRole)) {
-            if (StringValidation.isLengthGreaterThan(organizationalRole, 80)) {
-                response.addMessage("organizationalRole", new TranslatableMessage("validate.notLongerThan", 80));
-            }
-        }
-    }
-
-    @Override
     public String toString() {
         return "User [id=" + id + ", username=" + username + ", password=<redacted>" + ", email=" + email + ", phone="
                 + phone + ", disabled=" + disabled + ", homeUrl=" + homeUrl + ", lastLogin="
                 + lastLogin + ", receiveAlarmEmails=" + receiveAlarmEmails + ", receiveOwnAuditEvents="
-                + receiveOwnAuditEvents + ", timezone=" + timezone + ", name=" + name + ", locale=" + locale + ", permissions=" + permissions + "]";
+                + receiveOwnAuditEvents + ", timezone=" + timezone + ", name=" + name + ", locale=" + locale + ", roles=" + roles + "]";
     }
 
     @Override
@@ -725,7 +570,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public void jsonWrite(ObjectWriter writer) throws IOException,
     JsonException {
         writer.writeEntry("name", name);
-        writer.writeEntry("permissions", permissions);
     }
 
     @Override
@@ -733,9 +577,8 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         name = jsonObject.getString("name");
         if(name == null)
             name = username;
-        String text = jsonObject.getString("permissions");
-        if(text != null)
-            setPermissions(text);
+        this.roles = readLegacyPermissions("permissions", this.roles, jsonObject);
+
     }
 
     @Override
@@ -833,10 +676,10 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             return false;
         if (passwordVersion != other.passwordVersion)
             return false;
-        if (permissions == null) {
-            if (other.permissions != null)
+        if (roles == null) {
+            if (other.roles != null)
                 return false;
-        } else if (!permissions.equals(other.permissions))
+        } else if (!roles.equals(other.roles))
             return false;
         if (phone == null) {
             if (other.phone != null)
@@ -861,34 +704,14 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     }
 
     @Override
-    public Set<String> getPermissionsSet() {
-        return permissionsSet.get(() -> {
-            HashSet<String> groups = new HashSet<>(Permissions.explodePermissionGroups(this.permissions));
-            groups.add(Permissions.USER_DEFAULT);
-            return Collections.unmodifiableSet(groups);
-        });
-    }
-
-    public void setPermissionsSet(Set<String> permissionsSet) {
-        HashSet<String> groups = new HashSet<>(permissionsSet);
-        groups.remove(Permissions.USER_DEFAULT);
-        this.setPermissions(Permissions.implodePermissionGroups(groups));
-    }
-
-    @Override
     public Set<RoleVO> getRoles() {
-        return roles.get(() -> {
-            HashSet<String> groups = new HashSet<>(Permissions.explodePermissionGroups(this.permissions));
-            HashSet<RoleVO> roles = new HashSet<>();
-            roles.add(RoleDao.getInstance().getUserRole());
-            for(String group : groups) {
-               RoleVO role = RoleDao.getInstance().getByXid(group);
-               if(role != null) {
-                   roles.add(role);
-               }
-            }
-            return Collections.unmodifiableSet(roles);
-        });
+        return roles;
+    }
+    
+    public void setRoles(Set<RoleVO> roles) {
+        this.roles = roles;
+        this.authorities.reset();
+        this.admin = roles.contains(RoleDao.getInstance().getSuperadminRole());
     }
     
     @Override

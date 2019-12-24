@@ -36,9 +36,10 @@ public class PermissionServiceTest extends MangoTestBase {
     protected RoleVO readRole;
     protected RoleVO editRole;
     protected RoleVO setRole;
+    protected RoleVO deleteRole;
     
     public PermissionServiceTest() {
-        super(true, 9001);
+        super(false, 9001);
     }
 
     @Before
@@ -46,13 +47,7 @@ public class PermissionServiceTest extends MangoTestBase {
         roleService = Common.getBean(RoleService.class);
         
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
-        
-        //Add a user with no roles
-        readUser = createUser("readUser", "readUser", "password", "readUser@example.com", "read-role");
-        editUser = createUser("editUser", "editUser", "password", "editUser@example.com", "edit-role");
-        setUser = createUser("setUser", "setUser", "password", "setUser@example.com", "set-role");
-        allUser = createUser("allUser", "allUser", "password", "allUser@example.com", "read-role,edit-role,set-role,delete-roll");
-        
+
         //Add some roles
         readRole = new RoleVO();
         readRole.setXid("read-role");
@@ -68,7 +63,16 @@ public class PermissionServiceTest extends MangoTestBase {
         setRole.setXid("set-role");
         setRole.setName("Role to allow setting.");
         roleService.insert(setRole, systemSuperadmin);
-
+        
+        deleteRole = new RoleVO();
+        deleteRole.setXid("delete-role");
+        deleteRole.setName("Role to allow deleting.");
+        roleService.insert(deleteRole, systemSuperadmin);
+        
+        readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
+        editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
+        setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
+        allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);
     }
     
     @Test

@@ -26,17 +26,17 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
-        return user.hasAdminPermission();
+        return user.hasAdminRole();
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, T vo) {
-        return user.hasAdminPermission();
+        return user.hasAdminRole();
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, T vo) {
-        return user.hasAdminPermission();
+        return user.hasAdminRole();
     }
 
 }

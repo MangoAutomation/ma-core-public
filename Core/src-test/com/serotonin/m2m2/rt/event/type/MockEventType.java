@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.rt.event.type;
 
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
@@ -17,13 +18,15 @@ public class MockEventType extends EventType {
     private String eventSubtype;
     private int ref1;
     private int ref2;
+    private RoleVO required;
 
     /**
      * Create a mock event type with duplicate handling of ALLOW
-     * and event sub type of null
+     * and event sub type of null with required role
      */
-    public MockEventType() {
+    public MockEventType(RoleVO required) {
         this(DuplicateHandling.ALLOW);
+        this.required = required;
     }
 
     /**
@@ -45,17 +48,11 @@ public class MockEventType extends EventType {
         this.ref2 = ref2;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getEventType()
-     */
     @Override
     public String getEventType() {
         return TYPE_NAME;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getEventSubtype()
-     */
     @Override
     public String getEventSubtype() {
         return eventSubtype;
@@ -66,25 +63,16 @@ public class MockEventType extends EventType {
         return duplicateHandling;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getReferenceId1()
-     */
     @Override
     public int getReferenceId1() {
         return ref1;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getReferenceId2()
-     */
     @Override
     public int getReferenceId2() {
         return ref2;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-     */
     @Override
     public EventTypeModel asModel() {
         return null;
@@ -92,12 +80,9 @@ public class MockEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user) {
-        return user.hasAdminPermission() || user.hasSinglePermission("MOCK");
+        return user.hasAdminRole() || user.hasSingleRole(this.required);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getDataPointId()
-     */
     @Override
     public int getDataPointId() {
         return ref2;
@@ -136,6 +121,4 @@ public class MockEventType extends EventType {
             return false;
         return true;
     }
-
-
 }

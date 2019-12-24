@@ -31,7 +31,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.log.LogLevel;
@@ -407,11 +406,6 @@ public class ScriptingTest extends MangoTestBase {
         @Override
         public boolean isPermissionHolderDisabled() {
             return false;
-        }
-
-        @Override
-        public Set<String> getPermissionsSet() {
-            return Collections.unmodifiableSet(Collections.singleton(SuperadminPermissionDefinition.GROUP_NAME));
         }
 
         @Override
