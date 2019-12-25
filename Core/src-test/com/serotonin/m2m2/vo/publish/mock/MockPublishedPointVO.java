@@ -11,11 +11,18 @@ import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPoint
  *
  * @author Terry Packer
  */
-public class MockPublishedPointVO extends PublishedPointVO{
+public class MockPublishedPointVO extends PublishedPointVO {
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.publish.PublishedPointVO#asModel()
-     */
+    private String mockSetting;
+    
+    public String getMockSetting() {
+        return mockSetting;
+    }
+
+    public void setMockSetting(String mockSetting) {
+        this.mockSetting = mockSetting;
+    }
+
     @Override
     public AbstractPublishedPointModel<?> asModel() {
         return null;

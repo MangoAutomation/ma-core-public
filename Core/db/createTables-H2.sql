@@ -315,6 +315,24 @@ CREATE TABLE publishers (
 );
 ALTER TABLE publishers ADD CONSTRAINT publishersUn1 UNIQUE (xid);
 
+CREATE TABLE publishedPoints (
+  id int NOT NULL auto_increment,
+  xid varchar(100) NOT NULL,
+  name varchar(255),
+  enabled char(1),
+  publisherId int NOT NULL,
+  dataPointId int NOT NULL,
+  data longtext NOT NULL,
+  PRIMARY KEY (id)
+);
+ALTER TABLE publishedPoints ADD CONSTRAINT publisherPointsUn1 UNIQUE (xid);
+ALTER TABLE publishedPoints ADD CONSTRAINT publisherPointsFk1 FOREIGN KEY (publisherId) REFERENCES publishers(id);
+ALTER TABLE publishedPoints ADD CONSTRAINT publisherPointsFk2 FOREIGN KEY (dataPointId) REFERENCES dataPoints(id);
+
+CREATE INDEX publishedPointNameIndex on publishedPoints (name ASC);
+CREATE INDEX publishedPointEnabledIndex on publishedPoints (enabled ASC);
+CREATE INDEX publishedPointXidNameIndex on publishedPoints (xid ASC, name ASC);
+
 --
 --
 -- JsonData
