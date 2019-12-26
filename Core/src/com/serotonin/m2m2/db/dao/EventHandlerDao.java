@@ -74,33 +74,16 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         return springInstance.get();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-     */
     @Override
     protected String getXidPrefix() {
         return AbstractEventHandlerVO.XID_PREFIX;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-     */
-    @Override
-    public T getNewVo() {
-        throw new ShouldNeverHappenException("Not Supported");
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
-     */
     @Override
     protected String getTableName() {
         return SchemaDefinition.EVENT_HANDLER_TABLE;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractBasicVO)
-     */
     @Override
     protected Object[] voToObjectArray(T vo) {
         return new Object[]{
@@ -111,9 +94,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         };
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-     */
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
@@ -125,9 +105,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-     */
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
@@ -146,9 +123,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         return joins;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-     */
     @Override
     public RowMapper<T> getRowMapper() {
         return new EventHandlerRowMapper();
@@ -238,12 +212,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         }
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#saveRelationalData(com.serotonin.m2m2.vo.
-     * AbstractBasicVO, boolean)
-     */
     @Override
     public void saveRelationalData(T vo, boolean insert) {
         if (insert) {
@@ -274,9 +242,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#delete(com.serotonin.m2m2.vo.AbstractBasicVO)
-     */
     @Override
     public void delete(T vo, String initiatorId) {
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {

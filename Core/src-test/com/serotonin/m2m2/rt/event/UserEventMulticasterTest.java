@@ -41,9 +41,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
 
         //Add some roles
-        mockRole = new RoleVO();
-        mockRole.setXid("MOCK");
-        mockRole.setName("Mock test role.");
+        mockRole = new RoleVO("MOCK", "Mock test role.");
         roleService.insert(mockRole, systemSuperadmin);
         
     }

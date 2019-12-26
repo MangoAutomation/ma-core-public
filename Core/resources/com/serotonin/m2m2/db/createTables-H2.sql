@@ -139,8 +139,6 @@ CREATE TABLE dataPoints (
   discardExtremeValues char(1),
   engineeringUnits int,
   data longblob NOT NULL,
-  readPermission varchar(255),
-  setPermission varchar(255),
   templateId int,
   rollup int,
   dataTypeId int not null,
@@ -156,7 +154,6 @@ CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
 CREATE INDEX enabledIndex on dataPoints (enabled ASC);
 CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
-CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);
 
 -- Data point tags
 CREATE TABLE dataPointTags (

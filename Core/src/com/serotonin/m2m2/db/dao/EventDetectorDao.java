@@ -173,14 +173,6 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     protected String getXidPrefix() {
         return AbstractEventDetectorVO.XID_PREFIX; 
     }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-     */
-    @Override
-    public T getNewVo() {
-        throw new ShouldNeverHappenException("Unable to create generic event detector, must supply a type");
-    }
     
     @Override
     public void delete(T vo, String initiatorId) {

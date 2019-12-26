@@ -84,9 +84,20 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @return
      */
     public Set<RoleVO> getRoles(AbstractVO<?> vo, String permissionType) {
+        return getRoles(vo.getId(), vo.getClass().getSimpleName(), permissionType);
+    }
+    
+    /**
+     * Get the roles for a given vo based on the provided information
+     * @param voId
+     * @param voClassSimpleName
+     * @param permissionType
+     * @return
+     */
+    public Set<RoleVO> getRoles(int voId, String voClassSimpleName, String permissionType) {
         return query(SELECT_ALL + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
-                new Object[] {vo.getId(), vo.getClass().getSimpleName(), permissionType}, 
-                new RoleVoSetResultSetExtractor());
+                new Object[] {voId, voClassSimpleName, permissionType}, 
+                new RoleVoSetResultSetExtractor()); 
     }
 
     private static final String INSERT_VO_ROLE_MAPPING = "INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)";
@@ -115,6 +126,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
                         permissionType,
                 });
     }
+    
     /**
      * Replace all roles for a vo's given permission type.
      *   NOTE this should be used in a transaction and the RoleVO ids are not set
@@ -123,11 +135,23 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      */
     public void replaceRolesOnVoPermission(Set<RoleVO> roles, AbstractVO<?> vo, String permissionType) {
+        replaceRolesOnVoPermission(roles, vo.getId(), vo.getClass().getSimpleName(), permissionType);
+    }
+    
+    /**
+     * Replace all roles for a vo's given permission type.
+     *   NOTE this should be used in a transaction and the RoleVO ids are not set
+     * @param roles
+     * @param voId
+     * @param classSimpleName
+     * @param permissionType
+     */
+    public void replaceRolesOnVoPermission(Set<RoleVO> roles, int voId, String classSimpleName, String permissionType) {
         //Delete em all
         ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?", 
                 new Object[]{
-                        vo.getId(),
-                        vo.getClass().getSimpleName(),
+                        voId,
+                        classSimpleName,
                         permissionType,
                 });
         //Push the new ones in
@@ -142,12 +166,13 @@ public class RoleDao extends AbstractDao<RoleVO> {
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 RoleVO role = entries.get(i);
                 ps.setInt(1, role.getId());
-                ps.setInt(2, vo.getId());
-                ps.setString(3, vo.getClass().getSimpleName());
+                ps.setInt(2, voId);
+                ps.setString(3, classSimpleName);
                 ps.setString(4, permissionType);
             }
         });
     }
+
 
     /**
      * Get the superadmin role
@@ -157,6 +182,10 @@ public class RoleDao extends AbstractDao<RoleVO> {
         return superadminRole.get();
     }
     
+    /**
+     * Get the default user role
+     * @return
+     */
     public RoleVO getUserRole() {
         return userRole.get();
     }
@@ -172,11 +201,6 @@ public class RoleDao extends AbstractDao<RoleVO> {
     @Override
     protected String getXidPrefix() {
         return RoleVO.XID_PREFIX;
-    }
-
-    @Override
-    public RoleVO getNewVo() {
-        return new RoleVO();
     }
 
     @Override
@@ -215,11 +239,8 @@ public class RoleDao extends AbstractDao<RoleVO> {
     class RoleRowMapper implements RowMapper<RoleVO> {
         @Override
         public RoleVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            RoleVO vo = new RoleVO();
-            int i = 0;
-            vo.setId(rs.getInt(++i));
-            vo.setXid(rs.getString(++i));
-            vo.setName(rs.getString(++i));
+            RoleVO vo = new RoleVO(rs.getString(2), rs.getString(3));
+            vo.setId(rs.getInt(1));
             return vo;
         }
     }

@@ -330,7 +330,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
                 copy.setId(Common.NEW_ID);
                 copy.setXid(newXid);
                 copy.setName(newName);
-                save(copy);
+                insert(copy);
 
                 // Copy permissions.
                 return copy.getId();
@@ -339,13 +339,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 
         return getTransactionTemplate().execute(callback);
     }
-
-    /**
-     * Return a new VO
-     *
-     * @return
-     */
-    public abstract T getNewVo();
 
     /**
      * Method callback for when a row is returned from the DB

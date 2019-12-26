@@ -91,31 +91,12 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 		};
 
 	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-	 */
-	@Override
-	public BaseTemplateVO<?> getNewVo() {
-		throw new ShouldNeverHappenException("Unable to create generic template, a type is required");
-	}
-
-
-   
-   
-   
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-	 */
 	@Override
 	protected Map<String, IntStringPair> getPropertiesMap() {
 		return new HashMap<>();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-	 */
 	@Override
 	public RowMapper<BaseTemplateVO<?>> getRowMapper() {
 		return new TemplateRowMapper();
@@ -123,9 +104,6 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 
 	class TemplateRowMapper implements RowMapper<BaseTemplateVO<?>>{
 
-		/* (non-Javadoc)
-		 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
-		 */
 		@Override
 		public BaseTemplateVO<?> mapRow(ResultSet rs, int rowNum)
 				throws SQLException {
@@ -221,9 +199,6 @@ public class TemplateDao extends AbstractDao<BaseTemplateVO<?>> {
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-	 */
 	@Override
 	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
 		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();

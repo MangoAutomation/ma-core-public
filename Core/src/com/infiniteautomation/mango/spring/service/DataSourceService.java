@@ -11,11 +11,13 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -32,22 +34,22 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
 
     @Autowired
     public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService) {
-        super(dao, permissionService);
+        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(SystemSettingsDao.PERMISSION_DATASOURCE));
     }
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
-        return Permissions.hasDataSourcePermission(user);
+        return permissionService.hasDataSourcePermission(user);
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, T vo) {
-        return Permissions.hasDataSourcePermission(user, vo);
+        return permissionService.hasDataSourcePermission(user, vo);
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, T vo) {
-        return Permissions.hasDataSourcePermission(user, vo);
+        return permissionService.hasDataSourcePermission(user, vo);
     }
 
     @Override
@@ -68,7 +70,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             vo.setXid(dao.generateUniqueXid());
         
         ensureValid(vo, user);
-        Common.runtimeManager.saveDataSource(vo);
+        Common.runtimeManager.insertDataSource(vo);
         
         return vo;
     }
@@ -88,14 +90,14 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
-        Common.runtimeManager.saveDataSource(vo);
+        Common.runtimeManager.updateDataSource(existing, vo);
         return vo;
     }
     
     @Override
     public T delete(String xid, PermissionHolder user)
             throws PermissionException, NotFoundException {
-        T vo = get(xid, user);
+        T vo = getFull(xid, user);
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
         return vo;
@@ -124,13 +126,14 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      */
     public void restart(String xid, boolean enabled, boolean restart, PermissionHolder user) {
         T vo = getFull(xid, user);
+        T existing = vo.copy();
         ensureEditPermission(user, vo);
         if (enabled && restart) {
             vo.setEnabled(true);
-            Common.runtimeManager.saveDataSource(vo); //saving will restart it
+            Common.runtimeManager.updateDataSource(existing, vo); //saving will restart it
         } else if(vo.isEnabled() != enabled) {
             vo.setEnabled(enabled);
-            Common.runtimeManager.saveDataSource(vo);
+            Common.runtimeManager.updateDataSource(existing, vo);
         }
     }
 
@@ -187,12 +190,45 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         copy.ensureValid();
         
         //Save it
-        Common.runtimeManager.saveDataSource(copy);
+        Common.runtimeManager.insertDataSource(copy);
         
         if(copyPoints) {
             DataSourceDao.getInstance().copyDataSourcePoints(existing.getId(), copy.getId(), newDeviceName);
         }
         return get(newXid, user);
+    }
+    
+    @Override
+    public ProcessResult validate(T vo, PermissionHolder user) {
+        ProcessResult response = commonValidation(vo, user);
+        boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
+        permissionService.validateVoRoles(response, "editRoles", user, owner, null, vo.getEditRoles());
+        return response;
+    }
+    
+    @Override
+    public ProcessResult validate(T existing, T vo, PermissionHolder user) {
+        ProcessResult response = commonValidation(vo, user);
+        //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
+        boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
+        permissionService.validateVoRoles(response, "editRoles", user, owner, existing.getEditRoles(), vo.getEditRoles());
+        return response;
+    }
+    
+    protected ProcessResult commonValidation(T vo, PermissionHolder user) {
+        ProcessResult response = super.validate(vo, user);
+        if (vo.isPurgeOverride()) {
+            if (vo.getPurgeType() != PurgeTypes.DAYS && vo.getPurgeType() != PurgeTypes.MONTHS && vo.getPurgeType() != PurgeTypes.WEEKS
+                    && vo.getPurgeType() != PurgeTypes.YEARS)
+                response.addContextualMessage("purgeType", "validate.invalidValue");
+            if (vo.getPurgePeriod() <= 0)
+                response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
+        }
+        
+        //TODO Mango 4.0 add a validation definition or something?
+        vo.validate(response);
+        
+        return response;
     }
     
 }

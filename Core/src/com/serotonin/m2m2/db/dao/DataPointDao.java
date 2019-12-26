@@ -63,6 +63,7 @@ import com.infiniteautomation.mango.db.query.SQLStatement;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
@@ -315,8 +316,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
-            dp.setReadPermission(rs.getString(++i));
-            dp.setSetPermission(rs.getString(++i));
             //Because we read 0 for null
             dp.setTemplateId(rs.getInt(++i));
             if(rs.wasNull())
@@ -383,19 +382,19 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 "insert into dataPoints (xid, dataSourceId, name, deviceName, enabled, pointFolderId, loggingType, " //
                 + "intervalLoggingPeriodType, intervalLoggingPeriod, intervalLoggingType, tolerance, " //
                 + "purgeOverride, purgeType, purgePeriod, defaultCacheSize, discardExtremeValues, " //
-                + "engineeringUnits, readPermission, setPermission, templateId, rollup, dataTypeId, settable, data) " //
+                + "engineeringUnits, templateId, rollup, dataTypeId, settable, data) " //
                 + "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", //
                 new Object[] { dp.getXid(), dp.getDataSourceId(), dp.getName(), dp.getDeviceName(),
                         boolToChar(dp.isEnabled()), dp.getPointFolderId(), dp.getLoggingType(),
                         dp.getIntervalLoggingPeriodType(), dp.getIntervalLoggingPeriod(), dp.getIntervalLoggingType(),
                         dp.getTolerance(), boolToChar(dp.isPurgeOverride()), dp.getPurgeType(), dp.getPurgePeriod(),
                         dp.getDefaultCacheSize(), boolToChar(dp.isDiscardExtremeValues()), dp.getEngineeringUnits(),
-                        dp.getReadPermission(), dp.getSetPermission(), dp.getTemplateId(), dp.getRollup(),
+                        dp.getTemplateId(), dp.getRollup(),
                         dp.getPointLocator().getDataTypeId(), boolToChar(dp.getPointLocator().isSettable()), SerializationHelper.writeObject(dp) }, //
                 new int[] { Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.CHAR, Types.INTEGER,
                         Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.DOUBLE, Types.CHAR,
-                        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER, Types.VARCHAR,
-                        Types.VARCHAR, Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.BINARY }));
+                        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.INTEGER,
+                        Types.INTEGER, Types.INTEGER, Types.INTEGER, Types.CHAR, Types.BINARY }));
 
         // Save the relational information.
         saveRelationalData(dp, true);
@@ -515,7 +514,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     public void deleteDataPoint(final int dataPointId) {
-        DataPointVO dp = getDataPoint(dataPointId);
+        DataPointVO dp = getFull(dataPointId);
         if (dp != null) {
             for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
                 def.beforeDelete(dataPointId);
@@ -585,14 +584,15 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         // Insert or update each detector in the point.
         for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
+            ped.setSourceId(dp.getId());
             if (ped.getId() > 0){
                 //Remove from list
-                removeFromList(existingDetectors, ped.getId());
+                AbstractPointEventDetectorVO<?> existing = removeFromList(existingDetectors, ped.getId());
+                EventDetectorDao.getInstance().update(existing, ped, true);
             } else {
                 ped.setId(Common.NEW_ID);
+                EventDetectorDao.getInstance().insert(ped, true);
             }
-            ped.setSourceId(dp.getId());
-            EventDetectorDao.getInstance().saveFull(ped);
         }
 
         // Delete detectors for any remaining ids in the list of existing
@@ -967,13 +967,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
                 vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
                 vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
-                vo.getReadPermission(), vo.getSetPermission(), vo.getTemplateId(), vo.getRollup(),
+                vo.getTemplateId(), vo.getRollup(),
                 vo.getPointLocator().getDataTypeId(), boolToChar(vo.getPointLocator().isSettable())};
-    }
-
-    @Override
-    public DataPointVO getNewVo() {
-        return new DataPointVO();
     }
 
     @Override
@@ -998,8 +993,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("defaultCacheSize", Types.INTEGER); //Default Cache Size
         map.put("discardExtremeValues", Types.CHAR); //Discard Extremem Values
         map.put("engineeringUnits", Types.INTEGER); //get Engineering Units
-        map.put("readPermission", Types.VARCHAR); // Read permission
-        map.put("setPermission", Types.VARCHAR); // Set permission
         map.put("templateId", Types.INTEGER); //Template ID FK
         map.put("rollup", Types.INTEGER); //Common.Rollups type
         map.put("dataTypeId", Types.INTEGER);
@@ -1167,8 +1160,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
-            dp.setReadPermission(rs.getString(++i));
-            dp.setSetPermission(rs.getString(++i));
             //Because we read 0 for null
             dp.setTemplateId(rs.getInt(++i));
             if(rs.wasNull())
@@ -1223,6 +1214,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         this.loadPartialRelationalData(vo);
         this.loadDataSource(vo);
         this.setTemplateName(vo);
+        //Populate permissions
+        vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
+        vo.setSetRoles(RoleDao.getInstance().getRoles(vo, PermissionService.SET));
     }
 
     @Override
@@ -1242,6 +1236,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         }
 
         DataPointTagsDao.getInstance().insertTagsForDataPoint(vo, tags);
+        //Replace the role mappings
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getSetRoles(), vo, PermissionService.SET);
     }
 
     @Override
@@ -1318,12 +1315,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     protected void insert(DataPointVO vo, String initiatorId) {
         super.insert(vo, initiatorId);
         this.countMonitor.increment();
-    }
-
-    @Override
-    public void saveFull(DataPointVO vo) {
-        //TODO Eventually Fix this up by using the new AbstractDao for the query
-        this.saveDataPoint(vo); //This method throws a RuntimeException for licenses
     }
 
     /**

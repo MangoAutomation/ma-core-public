@@ -78,7 +78,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public List<DataSourceVO<?>> getDataSources() {
         if(useDatabase)
-            return DataSourceDao.getInstance().getAll();
+            return DataSourceDao.getInstance().getAllFull();
         else 
             return null;
     }
@@ -86,7 +86,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
         if(useDatabase)
-            return DataSourceDao.getInstance().get(dataSourceId);
+            return DataSourceDao.getInstance().getFull(dataSourceId);
         else 
             return null;
     }
@@ -98,9 +98,17 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void saveDataSource(DataSourceVO<?> vo) {
-        if(useDatabase)
-            DataSourceDao.getInstance().save(vo);
+    public void insertDataSource(DataSourceVO<?> vo) {
+        if(useDatabase) {
+            DataSourceDao.getInstance().insert(vo, true);
+        }
+    }
+
+    @Override
+    public void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo) {
+        if(useDatabase) {
+            DataSourceDao.getInstance().update(existing, vo, true);
+        }
     }
 
     @Override
@@ -114,10 +122,18 @@ public class MockRuntimeManager implements RuntimeManager {
 
     }
     
+    @Override 
+    public void insertDataPoint(DataPointVO vo) {
+        if(useDatabase) {
+            DataPointDao.getInstance().insert(vo, true);
+        }
+    }
+    
     @Override
-    public void saveDataPoint(DataPointVO point) {
-        if(useDatabase)
-            DataPointDao.getInstance().save(point);
+    public void updateDataPoint(DataPointVO existing, DataPointVO vo) {
+        if(useDatabase) {
+            DataPointDao.getInstance().update(existing, vo, true);
+        }
     }
 
     @Override

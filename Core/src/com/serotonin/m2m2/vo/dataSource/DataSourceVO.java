@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,10 +37,8 @@ import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
     public static final String XID_PREFIX = "DS_";
@@ -75,7 +74,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     @JsonProperty
     private int purgePeriod = 1;
     @JsonProperty
-    private String editPermission;
+    private Set<RoleVO> editRoles = Collections.emptySet();
 
     public final DataSourceDefinition getDefinition() {
         return definition;
@@ -147,12 +146,12 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         this.purgePeriod = purgePeriod;
     }
 
-    public String getEditPermission() {
-        return editPermission;
+    public Set<RoleVO> getEditRoles() {
+        return editRoles;
     }
 
-    public void setEditPermission(String editPermission) {
-        this.editPermission = editPermission;
+    public void setEditRoles(Set<RoleVO> editRoles) {
+        this.editRoles = editRoles;
     }
 
     /**
@@ -206,36 +205,6 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
 
     public void setTypeDescriptionString(String m) {
         //no op
-    }
-
-    @Override
-    public void validate(ProcessResult response) {
-        super.validate(response);
-        if (purgeOverride) {
-            if (purgeType != PurgeTypes.DAYS && purgeType != PurgeTypes.MONTHS && purgeType != PurgeTypes.WEEKS
-                    && purgeType != PurgeTypes.YEARS)
-                response.addContextualMessage("purgeType", "validate.invalidValue");
-            if (purgePeriod <= 0)
-                response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
-        }
-        //Validate permissions
-        Set<String> existingPermissions;
-        if(this.id != Common.NEW_ID) {
-            existingPermissions = Permissions.explodePermissionGroups(DataSourceDao.getInstance().getEditPermission(this.id));
-        }else {
-            existingPermissions = null;
-        }
-        
-        User savingUser = Common.getUser();
-        PermissionHolder savingPermissionHolder = savingUser;
-        if(savingUser == null) {
-            savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
-        }
-        
-        //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
-        boolean owner = savingPermissionHolder != null ? Permissions.hasDataSourcePermission(savingPermissionHolder) : false;
-        
-        Permissions.validatePermissions(response, "editPermission", savingPermissionHolder, owner, existingPermissions, Permissions.explodePermissionGroups(this.editPermission));
     }
 
     protected String getMessage(Translations translations, String key, Object... args) {

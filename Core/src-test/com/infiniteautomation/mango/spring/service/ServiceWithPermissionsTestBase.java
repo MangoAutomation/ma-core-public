@@ -8,8 +8,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -18,8 +18,16 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
  * @author Terry Packer
  *
  */
-public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, DAO extends AbstractDao<VO>, SERVICE extends AbstractVOService<VO,DAO>> extends ServiceTestBase<VO, DAO, SERVICE> {
+public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<VO>, DAO extends AbstractDao<VO>, SERVICE extends AbstractVOService<VO,DAO>> extends ServiceTestBase<VO, DAO, SERVICE> {
 
+    public ServiceWithPermissionsTestBase() {
+        
+    }
+    
+    public ServiceWithPermissionsTestBase(boolean enableWebDb, int webDbPort) {
+        super(enableWebDb, webDbPort);
+    }
+    
     /**
      * The type name for the create permission of the VO
      * @return
@@ -39,7 +47,8 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
         runTest(() -> {
             VO vo = newVO();
             addRoleToCreatePermission(editRole);
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
             service.insertFull(vo, editUser);
         });
     }
@@ -48,7 +57,7 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
     public void testUserReadRole() {
         runTest(() -> {
             VO vo = newVO();
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             service.insertFull(vo, systemSuperadmin);
             VO fromDb = service.getFull(vo.getId(), readUser);
             assertVoEqual(vo, fromDb);
@@ -66,12 +75,45 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
         });
     }
     
+    @Test(expected = ValidationException.class)
+    public void testReadRolesCannotBeNull() {
+        VO vo = newVO();
+        setReadRoles(null, vo);
+        service.insertFull(vo, systemSuperadmin);
+    }
+    
+    @Test(expected = ValidationException.class)
+    public void testCannotRemoveReadAccess() {
+        VO vo = newVO();
+        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+        service.insertFull(vo, systemSuperadmin);
+        VO fromDb = service.getFull(vo.getId(), readUser);
+        assertVoEqual(vo, fromDb);
+        fromDb.setName("read user edited me");
+        setReadRoles(Collections.emptySet(), fromDb);
+        service.updateFull(fromDb.getXid(), fromDb, readUser);
+    }
+    
+    @Test(expected = ValidationException.class)
+    public void testAddReadRoleUserDoesNotHave() {
+        VO vo = newVO();
+        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+        service.insertFull(vo, systemSuperadmin);
+        VO fromDb = service.getFull(vo.getId(), readUser);
+        assertVoEqual(vo, fromDb);
+        fromDb.setName("read user edited me");
+        setReadRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
+        service.updateFull(fromDb.getXid(), fromDb, readUser);
+    }
+    
     @Test
     public void testUserEditRole() {
         runTest(() -> {
             VO vo = newVO();
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-            setEditRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
             service.insertFull(vo, systemSuperadmin);
             VO fromDb = service.getFull(vo.getId(), readUser);
             assertVoEqual(vo, fromDb);
@@ -86,7 +128,7 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
     public void testUserEditRoleFails() {
         runTest(() -> {
             VO vo = newVO();
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.emptySet(), vo);
             service.insertFull(vo, systemSuperadmin);
             VO fromDb = service.getFull(vo.getId(), readUser);
@@ -98,13 +140,46 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
         });
     }
     
+    @Test(expected = ValidationException.class)
+    public void testEditRolesCannotBeNull() {
+        VO vo = newVO();
+        setEditRoles(null, vo);
+        service.insertFull(vo, systemSuperadmin);
+    }
+    
+    @Test(expected = ValidationException.class)
+    public void testCannotRemoveEditAccess() {
+        VO vo = newVO();
+        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+        service.insertFull(vo, systemSuperadmin);
+        VO fromDb = service.getFull(vo.getId(), readUser);
+        assertVoEqual(vo, fromDb);
+        fromDb.setName("read user edited me");
+        setEditRoles(Collections.emptySet(), fromDb);
+        service.updateFull(fromDb.getXid(), fromDb, readUser);
+    }
+    
+    @Test(expected = ValidationException.class)
+    public void testAddEditRoleUserDoesNotHave() {
+        VO vo = newVO();
+        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+        service.insertFull(vo, systemSuperadmin);
+        VO fromDb = service.getFull(vo.getId(), readUser);
+        assertVoEqual(vo, fromDb);
+        fromDb.setName("read user edited me");
+        setEditRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
+        service.updateFull(fromDb.getXid(), fromDb, readUser);
+    }
+    
     @Test
-    public void testUserDelete() {
+    public void testUserCanDelete() {
         runTest(() -> {
             VO vo = newVO();
             addRoleToCreatePermission(editRole);
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-            setEditRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
             vo = service.insertFull(vo, editUser);
             service.delete(vo.getId(), editUser);
         });
@@ -123,7 +198,7 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
     public void testSuperadminReadRole() {
         runTest(() -> {
             VO vo = newVO();
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getSuperadminRole()), vo);
+            setReadRoles(Collections.singleton(roleService.getSuperadminRole()), vo);
             service.insertFull(vo, systemSuperadmin);
             service.getFull(vo.getId(), readUser);
         });
@@ -133,8 +208,8 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
     public void testSuperadminEditRole() {
         runTest(() -> {
             VO vo = newVO();
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
-            setEditRoles(Collections.singleton(RoleDao.getInstance().getSuperadminRole()), vo);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getSuperadminRole()), vo);
             service.insertFull(vo, systemSuperadmin);
             VO fromDb = service.getFull(vo.getId(), readUser);
             assertVoEqual(vo, fromDb);
@@ -142,6 +217,8 @@ public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<?>, D
             service.updateFull(fromDb.getXid(), fromDb, readUser);            
         });
     }
+    
+    
     
     void addRoleToCreatePermission(RoleVO vo) {
         String permissionType = getCreatePermissionType();

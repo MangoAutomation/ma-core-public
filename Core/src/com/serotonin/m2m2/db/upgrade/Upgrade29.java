@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 
@@ -48,6 +49,7 @@ public class Upgrade29 extends DBUpgrade {
             createRolesTables(out);
             Map<String, RoleVO> roles = new HashMap<>();
             convertUsers(roles, out);
+            convertDataPoints(roles, out);
             convertMailingLists(roles, out);
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
@@ -66,14 +68,10 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
         
         //Add default user and superadmin roles
-        superadminRole = new RoleVO();
-        superadminRole.setXid(RoleDao.SUPERADMIN_ROLE_NAME);
-        superadminRole.setName(Common.translate("roles.superadmin"));
+        superadminRole = new RoleVO(RoleDao.SUPERADMIN_ROLE_NAME, Common.translate("roles.superadmin"));
         superadminRole.setId(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {superadminRole.getXid(), superadminRole.getName()}));
         
-        userRole = new RoleVO();
-        userRole.setXid(RoleDao.USER_ROLE_NAME);
-        userRole.setName(Common.translate("roles.user"));
+        userRole = new RoleVO(RoleDao.USER_ROLE_NAME, Common.translate("roles.user"));
         userRole.setId(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {userRole.getXid(), userRole.getName()}));
     }
     
@@ -97,9 +95,7 @@ public class Upgrade29 extends DBUpgrade {
                             }else if(StringUtils.equalsIgnoreCase(role, RoleDao.USER_ROLE_NAME)) {
                                 r = userRole;
                             }else {
-                                r = new RoleVO();
-                                r.setXid(role);
-                                r.setName(role);
+                                r = new RoleVO(role, role);
                                 r.setId(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}));
                             }
                         }
@@ -127,18 +123,40 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
     }
     
+    private void convertDataPoints(Map<String, RoleVO> roles, OutputStream out) throws Exception {
+        //Move current permissions to roles
+        ejt.query("SELECT id, readPermission, setPermission FROM dataPoints", new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int voId = rs.getInt(1);
+                //Add role/mapping
+                Set<String> readPermissions = explodePermissionGroups(rs.getString(2));
+                insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.READ, readPermissions, roles);
+                Set<String> setPermissions = explodePermissionGroups(rs.getString(3));
+                insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.SET, setPermissions, roles);
+            }
+        });
+        
+        
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointsSQL);
+        runScript(scripts, out);
+    }
+    
     private void convertMailingLists(Map<String, RoleVO> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
-
         ejt.query("SELECT id, readPermission, editPermission FROM mailingLists", new RowCallbackHandler() {
             @Override
             public void processRow(ResultSet rs) throws SQLException {
                 int voId = rs.getInt(1);
                 //Add role/mapping
-                String readPermission = rs.getString(2);
-                insertMapping(voId, MailingList.class.getSimpleName(), PermissionService.READ, readPermission, roles);
-                String editPermission = rs.getString(3);
-                insertMapping(voId, MailingList.class.getSimpleName(), PermissionService.EDIT, editPermission, roles);
+                Set<String> readPermissions = explodePermissionGroups(rs.getString(2));
+                insertMapping(voId, MailingList.class.getSimpleName(), PermissionService.READ, readPermissions, roles);
+                Set<String> editPermissions = explodePermissionGroups(rs.getString(3));
+                insertMapping(voId, MailingList.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
             }
         });
         
@@ -199,6 +217,12 @@ public class Upgrade29 extends DBUpgrade {
     };
     
     //Mailing lists
+    private String[] dataPointsSQL = new String[] {
+            "ALTER TABLE dataPoints DROP COLUMN readPermission;",
+            "ALTER TABLE dataPoints DROP COLUMN setPermission;"
+    };
+    
+    //Mailing lists
     private String[] mailingListSQL = new String[] {
             "ALTER TABLE mailingLists DROP COLUMN readPermission;",
             "ALTER TABLE mailingLists DROP COLUMN editPermission;"
@@ -212,10 +236,10 @@ public class Upgrade29 extends DBUpgrade {
      * @param existingPermission
      * @param roles
      */
-    private void insertMapping(int voId, String voType, String permissionType, String existingPermission, Map<String, RoleVO> roles) {
+    private void insertMapping(int voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, RoleVO> roles) {
         //Ensure each role is only used 1x for this permission
         Set<String> voRoles = new HashSet<>();
-        for(String permission : explodePermissionGroups(existingPermission)) {
+        for(String permission : existingPermissions) {
             //ensure all roles are lower case and don't have spaces on the ends
             permission = permission.trim();
             String role = permission.toLowerCase();
@@ -226,9 +250,7 @@ public class Upgrade29 extends DBUpgrade {
                     }else if(StringUtils.equalsIgnoreCase(role, RoleDao.USER_ROLE_NAME)) {
                         r = userRole;
                     }else {
-                        r = new RoleVO();
-                        r.setXid(role);
-                        r.setName(role);
+                        r = new RoleVO(role, role);
                         r.setId(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}));
                     }
                 }

@@ -186,11 +186,6 @@ public class MailingListDao extends AbstractDao<MailingList> {
     }
 
     @Override
-    public MailingList getNewVo() {
-        return new MailingList();
-    }
-
-    @Override
     protected String getTableName() {
         return SchemaDefinition.MAILING_LISTS_TABLE;
     }

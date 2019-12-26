@@ -64,7 +64,7 @@ public class DefaultDataPointPropertiesTemplateFactory {
 		ProcessResult response = new ProcessResult();
 		template.validate(response);
 		if(!response.getHasMessages()){
-			TemplateDao.getInstance().save(template);
+			TemplateDao.getInstance().insert(template, true);
 		}else{
 			String output = new String();
 			List<ProcessMessage> messages = response.getMessages();

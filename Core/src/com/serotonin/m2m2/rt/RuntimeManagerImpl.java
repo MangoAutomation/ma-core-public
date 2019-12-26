@@ -51,7 +51,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
-public class RuntimeManagerImpl implements RuntimeManager{
+public class RuntimeManagerImpl implements RuntimeManager {
     private static final Log LOG = LogFactory.getLog(RuntimeManagerImpl.class);
 
     private final ConcurrentMap<Integer, DataSourceRT<? extends DataSourceVO<?>>> runningDataSources = new ConcurrentHashMap<>();
@@ -315,12 +315,10 @@ public class RuntimeManagerImpl implements RuntimeManager{
     }
 
     @Override
-    public void saveDataSource(DataSourceVO<?> vo) {
-        // If the data source is running, stop it.
-        stopDataSource(vo.getId());
+    public void insertDataSource(DataSourceVO<?> vo) {
 
-        // In case this is a new data source, we need to save to the database first so that it has a proper id.
-        DataSourceDao.getInstance().saveDataSource(vo);
+        // In this case it is new data source, we need to save to the database first so that it has a proper id.
+        DataSourceDao.getInstance().insert(vo, true);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -328,6 +326,22 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 startDataSourcePolling(vo);
         }
     }
+    
+    @Override
+    public void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo) {
+        // If the data source is running, stop it.
+        stopDataSource(vo.getId());
+
+        // In this case it is new data source, we need to save to the database first so that it has a proper id.
+        DataSourceDao.getInstance().insert(vo, true);
+
+        // If the data source is enabled, start it.
+        if (vo.isEnabled()) {
+            if (initializeDataSource(vo))
+                startDataSourcePolling(vo);
+        }
+    }
+    
 
     private boolean initializeDataSource(DataSourceVO<?> vo) {
         synchronized (runningDataSources) {
@@ -454,27 +468,47 @@ public class RuntimeManagerImpl implements RuntimeManager{
     //
     // Data points
     //
+    @Override
+    public void insertDataPoint(DataPointVO vo) {
+
+        //TODO Mango 4.0 ensure this can't happen elsewhere
+        // Event detectors
+        int dataType = vo.getPointLocator().getDataTypeId();
+        Iterator<AbstractPointEventDetectorVO<?>> peds = vo.getEventDetectors().iterator();
+        while (peds.hasNext()) {
+            AbstractPointEventDetectorVO<?> ped = peds.next();
+            if (!ped.supports(dataType))
+                // Remove the detector.
+                peds.remove();
+        }
+
+        DataPointDao.getInstance().insert(vo, true);
+
+        if (vo.isEnabled())
+            startDataPoint(vo, null);
+    }
     
     @Override
-    public void saveDataPoint(DataPointVO point) {    	
-        stopDataPoint(point);
+    public void updateDataPoint(DataPointVO existing, DataPointVO vo) {    	
+        stopDataPoint(existing);
 
+        //TODO Mango 4.0 shouldn't the validation catch all this?
         // Since the point's data type may have changed, we must ensure that the other attrtibutes are still ok with
         // it.
-        int dataType = point.getPointLocator().getDataTypeId();
+        int dataType = vo.getPointLocator().getDataTypeId();
 
         // Chart renderer
-        if (point.getChartRenderer() != null && !point.getChartRenderer().getDef().supports(dataType))
+        if (vo.getChartRenderer() != null && !vo.getChartRenderer().getDef().supports(dataType))
             // Return to a default renderer
-            point.setChartRenderer(null);
+            vo.setChartRenderer(null);
 
         // Text renderer
-        if (point.getTextRenderer() != null && !point.getTextRenderer().getDef().supports(dataType))
+        if (vo.getTextRenderer() != null && !vo.getTextRenderer().getDef().supports(dataType))
             // Return to a default renderer
-            point.defaultTextRenderer();
+            vo.defaultTextRenderer();
 
         // Event detectors
-        Iterator<AbstractPointEventDetectorVO<?>> peds = point.getEventDetectors().iterator();
+        Iterator<AbstractPointEventDetectorVO<?>> peds = vo.getEventDetectors().iterator();
         while (peds.hasNext()) {
         	AbstractPointEventDetectorVO<?> ped = peds.next();
             if (!ped.supports(dataType))
@@ -482,10 +516,10 @@ public class RuntimeManagerImpl implements RuntimeManager{
                 peds.remove();
         }
 
-        DataPointDao.getInstance().saveDataPoint(point);
+        DataPointDao.getInstance().update(existing, vo, true);
 
-        if (point.isEnabled())
-            startDataPoint(point, null);
+        if (vo.isEnabled())
+            startDataPoint(vo, null);
     }
 
     @Override
@@ -595,8 +629,9 @@ public class RuntimeManagerImpl implements RuntimeManager{
             			+ " disabling point."
             			, e);
             	//TODO Fire Alarm to warn user.
+            	DataPointVO copy = dataPoint.getVO().copy();
             	dataPoint.getVO().setEnabled(false);
-            	saveDataPoint(dataPoint.getVO()); //Stop it
+            	updateDataPoint(copy, dataPoint.getVO()); //Stop it
             }
         }
     }

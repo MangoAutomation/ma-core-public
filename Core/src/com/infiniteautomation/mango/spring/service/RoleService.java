@@ -95,4 +95,19 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         this.dao.addRoleToVoPermission(role, vo, permissionType);
     }    
     
+    /**
+     * Get the superadmin role
+     * @return
+     */
+    public RoleVO getSuperadminRole() {
+        return dao.getSuperadminRole();
+    }
+    
+    /**
+     * Get the default user role
+     * @return
+     */
+    public RoleVO getUserRole() {
+        return dao.getUserRole();
+    }
 }

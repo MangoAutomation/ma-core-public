@@ -7,6 +7,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collections;
+
 import org.junit.Test;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -38,14 +40,14 @@ public class RoleServiceTest extends ServiceTestBase<RoleVO, RoleDao, RoleServic
             MockDataSourceVO ds = new MockDataSourceVO();
             ds.setXid("DS_TEST1");
             ds.setName("TEST");
-            DataSourceDao.getInstance().save(ds);
+            DataSourceDao.getInstance().insert(ds, true);
             
             DataPointVO dp = new DataPointVO();
             dp.setXid("DP_PERM_TEST");
             dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
             dp.setDataSourceId(ds.getId());
-            dp.setReadPermission("read-role");
-            DataPointDao.getInstance().save(dp);
+            dp.setReadRoles(Collections.singleton(readRole));
+            DataPointDao.getInstance().insert(dp, true);
             
             //TODO Wire into data point service?
             //Mock up the insert into the mapping table for now
@@ -112,9 +114,7 @@ public class RoleServiceTest extends ServiceTestBase<RoleVO, RoleDao, RoleServic
 
     @Override
     RoleVO newVO() {
-        RoleVO vo = new RoleVO();
-        vo.setXid(dao.generateUniqueXid());
-        vo.setName("default test role");
+        RoleVO vo = new RoleVO(dao.generateUniqueXid(), "default test role");
         return vo;
     }
 

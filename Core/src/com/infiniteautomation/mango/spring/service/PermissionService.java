@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,13 +13,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.permission.Permissions.DataPointAccessTypes;
 
 /**
  * @author Terry Packer
@@ -34,10 +42,12 @@ public class PermissionService {
     public static final String SET = "SET";
     
     private final RoleDao roleDao;
+    private final DataSourcePermissionDefinition dataSourcePermission;
     
     @Autowired
     public PermissionService(RoleDao roleDao) {
         this.roleDao = roleDao;
+        this.dataSourcePermission = (DataSourcePermissionDefinition) ModuleRegistry.getPermissionDefinition(SystemSettingsDao.PERMISSION_DATASOURCE);
     }
     
     /**
@@ -85,6 +95,211 @@ public class PermissionService {
     }
     
     /**
+     * Ensure this user have the global data source permission
+     * @param user
+     * @throws PermissionException
+     */
+    public void ensureDataSourcePermission(PermissionHolder user) throws PermissionException {
+        if (!hasDataSourcePermission(user))
+            throw new PermissionException(new TranslatableMessage("permission.exception.editAnyDataSource", user.getPermissionHolderName()), user);
+    }
+
+    /**
+     * Does this user have the global data source permission?
+     * @param user
+     * @return
+     * @throws PermissionException
+     */
+    public boolean hasDataSourcePermission(PermissionHolder user) throws PermissionException {
+        if (!isValidPermissionHolder(user)) return false;
+        
+        if(user.hasAdminRole()) return true;
+        
+        return hasPermission(user, dataSourcePermission);
+    }
+    
+    /**
+     * Ensure the user can edit this data source.
+     *  This method is more performant if you only have the data source ID as it 
+     *  won't need to lookup the entire data source to get the permission.
+     * @param user
+     * @param dataSourceId
+     * @throws PermissionException
+     */
+    public void ensureDataSourcePermission(PermissionHolder user, int dataSourceId) throws PermissionException {
+        if (!hasDataSourcePermission(user, dataSourceId)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
+        }
+    }
+
+    /**
+     * Ensure the user can edit this data source
+     * @param user
+     * @param ds
+     * @throws PermissionException
+     */
+    public void ensureDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
+        if (!hasDataSourcePermission(user, ds))
+            throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
+    }
+
+    /**
+     * Does this permission holder have any of the edit roles on the data source?
+     * @param user
+     * @param ds
+     * @return
+     * @throws PermissionException
+     */
+    public boolean hasDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
+        return hasAnyRole(user, ds.getEditRoles());
+    }
+    
+    /**
+     * Does this permission holder have any of the edit roles on the data source?
+     *  This method is more performant if you only have the data source ID as it 
+     *  won't need to lookup the entire data source to get the permission.
+     * @param user
+     * @param dsId
+     * @return
+     * @throws PermissionException
+     */
+    public boolean hasDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
+        Set<RoleVO> editRoles = roleDao.getRoles(dsId, DataSourceVO.class.getSimpleName(), EDIT);
+        return hasAnyRole(user, editRoles);
+    }
+    
+    //
+    //
+    // Data point access
+    //
+    /**
+     * Ensure the PermissionHolder can read the data point
+     * @param user
+     * @param point
+     * @throws PermissionException
+     */
+    public void ensureDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
+        if (!hasDataPointReadPermission(user, point)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getPermissionHolderName()), user);
+        }
+    }
+
+    /**
+     * Can this PermissionHolder read the data point?
+     * @param user
+     * @param point
+     * @return
+     * @throws PermissionException
+     */
+    public boolean hasDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
+        if (hasAnyRole(user, point.getReadRoles())) {
+            return true;
+        }
+        return hasDataPointSetPermission(user, point);
+    }
+
+    /**
+     * Can this PermissionHolder read this data point?  
+     *  This method is more performant if you only have the data point ID as it 
+     *  won't need to lookup the entire point to get the permission.
+     * @param user
+     * @param dataPointId
+     * @throws PermissionException
+     */
+    public void ensureDataPointReadPermission(PermissionHolder user, int dataPointId) throws PermissionException {
+        if (!hasDataPointReadPermission(user, dataPointId)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.readDataPoint", user.getPermissionHolderName()), user);
+        }
+    }
+    
+    /**
+     * Can this PermissionHolder read this data point?  
+     *  This method is more performant if you only have the data point ID as it 
+     *  won't need to lookup the entire point to get the permission.
+     * @param user
+     * @param dataPointId
+     * @return
+     * @throws PermissionException
+     */
+    public boolean hasDataPointReadPermission(PermissionHolder user, int dataPointId) throws PermissionException {
+        Set<RoleVO> editRoles = roleDao.getRoles(dataPointId, DataPointVO.class.getSimpleName(), READ);
+        return hasAnyRole(user, editRoles);
+    }
+    
+    /**
+     * Ensure this PermissionHolder set values on this data point.
+     * @param user
+     * @param point
+     * @throws PermissionException
+     */
+    public void ensureDataPointSetPermission(PermissionHolder user, DataPointVO point) throws PermissionException {
+        if (!hasDataPointSetPermission(user, point))
+            throw new PermissionException(new TranslatableMessage("permission.exception.setDataPoint", user.getPermissionHolderName()), user);
+    }
+
+    /**
+     * Can this PermissionHolder set values on this data point?
+     * @param user
+     * @param point
+     * @return
+     * @throws PermissionException
+     */
+    public boolean hasDataPointSetPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
+        if (hasAnyRole(user, point.getSetRoles())) {
+            return true;
+        }
+        return hasDataSourcePermission(user, point.getDataSourceId());
+    }
+
+    /**
+     * Can this PermissionHolder read this data point?  
+     *  This method is more performant if you only have the data point ID as it 
+     *  won't need to lookup the entire point to get the permission.
+     * @param user
+     * @param dataPointId
+     * @throws PermissionException
+     */
+    public void ensureDataPointSetPermission(PermissionHolder user, int dataPointId) throws PermissionException {
+        if (!hasDataPointSetPermission(user, dataPointId)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.setDataPoint", user.getPermissionHolderName()), user);
+        }
+    }
+    
+    /**
+     * Can this PermissionHolder read this data point?  
+     *  This method is more performant if you only have the data point ID as it 
+     *  won't need to lookup the entire point to get the permission.
+     * @param user
+     * @param dataPointId
+     * @return
+     * @throws PermissionException
+     */
+    public boolean hasDataPointSetPermission(PermissionHolder user, int dataPointId) throws PermissionException {
+        Set<RoleVO> editRoles = roleDao.getRoles(dataPointId, DataPointVO.class.getSimpleName(), SET);
+        return hasAnyRole(user, editRoles);
+    }
+    
+    /**
+     * What type of point access does this permission holder have for this point
+     * @param user
+     * @param point
+     * @return
+     */
+    public int getDataPointAccessType(PermissionHolder user, IDataPoint point) {
+        if (!isValidPermissionHolder(user))
+            return DataPointAccessTypes.NONE;
+        if (hasAdminRole(user))
+            return DataPointAccessTypes.ADMIN;
+        if (hasDataSourcePermission(user, point.getDataSourceId()))
+            return DataPointAccessTypes.DATA_SOURCE;
+        if (hasDataPointSetPermission(user, point))
+            return DataPointAccessTypes.SET;
+        if (hasDataPointReadPermission(user, point))
+            return DataPointAccessTypes.READ;
+        return DataPointAccessTypes.NONE;
+    }
+    
+    /**
      * Does this permission holder have at least one of the required roles
      * @param user
      * @param requiredRoles
@@ -95,6 +310,18 @@ public class PermissionService {
 
         Set<RoleVO> heldRoles = user.getRoles();
         return containsAnyRole(heldRoles, requiredRoles);
+    }
+    
+    /**
+     * Ensure this user has at least one of the roles
+     * @param user
+     * @param requiredPermissions
+     */
+    public void ensureHasAnyRole(PermissionHolder user, Set<RoleVO> requiredRoles) {
+        if (!hasAnyRole(user, requiredRoles)) {
+            ensureValidPermissionHolder(user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
     }
     
     /**
@@ -121,7 +348,43 @@ public class PermissionService {
     }
     
     /**
-     * Is this permission holder valid
+     * Does this permission holder have all the required roles?
+     * @param user
+     * @param requiredRoles
+     * @return
+     */
+    public boolean hasAllRoles(PermissionHolder user, Set<RoleVO> requiredRoles) {
+        if (!isValidPermissionHolder(user)) return false;
+
+        Set<RoleVO> heldRoles = user.getRoles();
+        return containsAll(heldRoles, requiredRoles);
+    }
+    
+    /**
+     * Ensure this holder has all the required roles
+     * @param user
+     * @param requiredRoles
+     */
+    public void ensureHasAllRoles(PermissionHolder user, Set<RoleVO> requiredRoles) {
+        if (!hasAllRoles(user, requiredRoles)) {
+            ensureValidPermissionHolder(user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
+    }
+    
+    /**
+     * Ensure this permission holder is valid
+     * @param user
+     */
+    public void ensureValidPermissionHolder(PermissionHolder user)  throws PermissionException {
+        if (user == null)
+            throw new PermissionException(new TranslatableMessage("permission.exception.notAuthenticated"), null);
+        if (user.isPermissionHolderDisabled())
+            throw new PermissionException(new TranslatableMessage("permission.exception.userIsDisabled"), user);
+    }
+    
+    /**
+     * Is this permission holder valid, to be valid they:
      * - must be non null
      * - must not disabled
      * 
@@ -158,7 +421,8 @@ public class PermissionService {
      * @return
      */
     private boolean containsAll(Set<RoleVO> heldRoles, Set<RoleVO> requiredRoles) {
-
+        checkRoleSet(requiredRoles);
+        
         if (heldRoles.contains(roleDao.getSuperadminRole())) {
             return true;
         }
@@ -183,7 +447,7 @@ public class PermissionService {
      * @return
      */
     private boolean containsAnyRole(Set<RoleVO> heldRoles, Set<RoleVO> requiredRoles) {
-
+        checkRoleSet(requiredRoles);
         //If I am superadmin or this has the default user role the we are good
         if (heldRoles.contains(roleDao.getSuperadminRole()) || requiredRoles.contains(roleDao.getUserRole())) {
             return true;
@@ -273,11 +537,29 @@ public class PermissionService {
     }
     
     /**
+     * Check a role set so that
+     *  - set cannot be null
+     *  - role in set cannot be null
+     *  - xid of role cannot be null
+     * @param requiredPermissions
+     */
+    private static void checkRoleSet(Set<RoleVO> requiredRoles) {
+        Objects.requireNonNull(requiredRoles, "Role set cannot be null");
+
+        for (RoleVO requiredRole : requiredRoles) {
+            if (requiredRole == null || requiredRole.getXid().isEmpty()) {
+                throw new IllegalArgumentException("Role in set cannot be null or have empty role");
+            }
+        }
+    }
+    
+    /**
      * Turn a set of roles into a comma separated list for display in a message
      * @param roles
      * @return
      */
     public String implodeRoles(Set<RoleVO> roles) {
+        checkRoleSet(roles);
         return String.join(",", roles.stream().map(role -> role.getXid()).collect(Collectors.toSet()));
     }
 }

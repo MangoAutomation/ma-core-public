@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.measure.converter.UnitConverter;
@@ -21,7 +20,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -31,25 +29,20 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
-import com.serotonin.m2m2.i18n.ProcessMessage;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
-import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.chart.ChartRenderer;
@@ -64,11 +57,8 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.SerializationHelper;
-import com.serotonin.validation.StringValidation;
 
 public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataPoint {
     private static final long serialVersionUID = -1;
@@ -208,14 +198,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private int engineeringUnits = com.serotonin.m2m2.util.EngineeringUnits.noUnits;
     // Replaces Engineering Units
     Unit<?> unit = defaultUnit();
-    private String unitString = UnitUtil.formatLocal(unit); //For input on page
     // replaces integralEngUnits
     Unit<?> integralUnit = defaultIntegralUnit();
-    private String integralUnitString = UnitUtil.formatLocal(integralUnit); //For input on page
-
     // unit used for rendering if the renderer supports it
     Unit<?> renderedUnit = defaultUnit();
-    private String renderedUnitString = UnitUtil.formatLocal(renderedUnit); //For input on page
 
     boolean useIntegralUnit = false;
     boolean useRenderedUnit = false;
@@ -238,9 +224,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @JsonProperty
     private int intervalLoggingSampleWindowSize;
     @JsonProperty
-    private String readPermission;
+    private Set<RoleVO> readRoles = Collections.emptySet();
     @JsonProperty
-    private String setPermission;
+    private Set<RoleVO> setRoles = Collections.emptySet();
 
     //Template for properties
     private Integer templateId;
@@ -759,21 +745,21 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     }
 
     @Override
-    public String getReadPermission() {
-        return readPermission;
+    public Set<RoleVO> getReadRoles() {
+        return readRoles;
     }
 
-    public void setReadPermission(String readPermission) {
-        this.readPermission = readPermission;
+    public void setReadRoles(Set<RoleVO> readRoles) {
+        this.readRoles = readRoles;
     }
 
     @Override
-    public String getSetPermission() {
-        return setPermission;
+    public Set<RoleVO> getSetRoles() {
+        return setRoles;
     }
 
-    public void setSetPermission(String setPermission) {
-        this.setPermission = setPermission;
+    public void setSetRoles(Set<RoleVO> setRoles) {
+        this.setRoles = setRoles;
     }
 
     public Integer getTemplateId(){
@@ -782,31 +768,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
     public void setTemplateId(Integer id){
         this.templateId = id;
-    }
-
-    /* Helpers for Use on JSP Page */
-    public String getUnitString() {
-        return this.unitString;
-    }
-
-    public void setUnitString(String unit) {
-        this.unitString = unit;
-    }
-
-    public String getRenderedUnitString() {
-        return this.renderedUnitString;
-    }
-
-    public void setRenderedUnitString(String unit) {
-        this.renderedUnitString = unit;
-    }
-
-    public String getIntegralUnitString() {
-        return this.integralUnitString;
-    }
-
-    public void setIntegralUnitString(String unit) {
-        this.integralUnitString = unit;
     }
 
     public String getDataTypeString() {
@@ -910,8 +871,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setXid(xid);
             copy.setOverrideIntervalLoggingSamples(overrideIntervalLoggingSamples);
             copy.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
-            copy.setReadPermission(readPermission);
-            copy.setSetPermission(setPermission);
+            copy.setReadRoles(readRoles);
+            copy.setSetRoles(setRoles);
             copy.setTemplateId(templateId);
             copy.setPreventSetExtremeValues(preventSetExtremeValues);
             copy.setSetExtremeHighLimit(setExtremeHighLimit);
@@ -924,242 +885,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             throw new ShouldNeverHappenException(e);
         }
     }
-
-    @Override
-    public void validate(ProcessResult response) {
-        super.validate(response);
-        //xid,name in superclass
-        if (StringValidation.isLengthGreaterThan(deviceName, 255))
-            response.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
-
-        if(pointLocator != null){
-            if (pointLocator.getDataTypeId() == DataTypes.NUMERIC && (loggingType == DataPointVO.LoggingTypes.ON_CHANGE ||
-                    loggingType == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)) {
-                if (tolerance < 0)
-                    response.addContextualMessage("tolerance", "validate.cannotBeNegative");
-            }
-        }else{
-            response.addContextualMessage("pointLocator", "validate.required");
-            return;
-        }
-
-        if (!LOGGING_TYPE_CODES.isValidId(loggingType))
-            response.addContextualMessage("loggingType", "validate.invalidValue");
-        if (!Common.TIME_PERIOD_CODES.isValidId(intervalLoggingPeriodType))
-            response.addContextualMessage("intervalLoggingPeriodType", "validate.invalidValue");
-        if (intervalLoggingPeriod <= 0)
-            response.addContextualMessage("intervalLoggingPeriod", "validate.greaterThanZero");
-        if (!INTERVAL_LOGGING_TYPE_CODES.isValidId(intervalLoggingType))
-            response.addContextualMessage("intervalLoggingType", "validate.invalidValue");
-
-        if(pointLocator.getDataTypeId() == DataTypes.IMAGE || pointLocator.getDataTypeId() == DataTypes.ALPHANUMERIC ) {
-            if(loggingType == LoggingTypes.INTERVAL && intervalLoggingType != IntervalLoggingTypes.INSTANT)
-                response.addContextualMessage("intervalLoggingType", "validate.intervalType.incompatible",
-                        INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType), DataTypes.CODES.getCode(pointLocator.getDataTypeId()));
-        }   
-        
-        if(purgeOverride) {
-            if (!Common.TIME_PERIOD_CODES.isValidId(purgeType, TimePeriods.MILLISECONDS, TimePeriods.SECONDS, TimePeriods.MINUTES, TimePeriods.HOURS))
-                response.addContextualMessage("purgeType", "validate.invalidValue");
-
-            if (purgePeriod <= 0)
-                response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
-        }
-
-        if (textRenderer == null)
-            response.addContextualMessage("textRenderer", "validate.required");
-
-        if (defaultCacheSize < 0)
-            response.addContextualMessage("defaultCacheSize", "validate.cannotBeNegative");
-
-        if (discardExtremeValues && discardHighLimit <= discardLowLimit)
-            response.addContextualMessage("discardHighLimit", "validate.greaterThanDiscardLow");
-
-        if(pointLocator.getDataTypeId() != DataTypes.NUMERIC && pointLocator.getDataTypeId() != DataTypes.MULTISTATE)
-            preventSetExtremeValues = false;
-
-        if(preventSetExtremeValues && setExtremeHighLimit <= setExtremeLowLimit)
-            response.addContextualMessage("setExtremeHighLimit", "validate.greaterThanSetExtremeLow");
-
-        if (!StringUtils.isBlank(chartColour)) {
-            try {
-                ColorUtils.toColor(chartColour);
-            }
-            catch (InvalidArgumentException e) {
-                response.addContextualMessage("chartColour", "validate.invalidValue");
-            }
-        }else if(chartColour == null){
-            response.addContextualMessage("chartColour", "validate.invalidValue");
-        }
-
-        if(!Common.ROLLUP_CODES.isValidId(rollup))
-            response.addContextualMessage("rollup", "validate.invalidValue");
-        else if(!validateRollup())
-            response.addContextualMessage("rollup", "validate.rollup.incompatible", rollup);
-
-        DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(dataSourceId);
-        if(dsvo == null) {
-            response.addContextualMessage("dataSourceId", "validate.invalidValue");
-            return;
-        }
-        pointLocator.validate(response, this, dsvo);
-
-        // Check text renderer type
-        if (textRenderer != null) {
-            ProcessResult contextResult = new ProcessResult();
-            textRenderer.validate(contextResult, pointLocator.getDataTypeId());
-            for (ProcessMessage msg : contextResult.getMessages()) {
-                String contextKey = msg.getContextKey();
-                if (contextKey != null) {
-                    msg.setContextKey("textRenderer." + contextKey);
-                }
-                response.addMessage(msg);
-            }
-        }
-
-        // Check chart renderer type
-        if (chartRenderer != null) {
-            if(!chartRenderer.getDef().supports(pointLocator.getDataTypeId()))
-                response.addGenericMessage("validate.chart.incompatible");
-            chartRenderer.validate(response);
-        }
-            
-
-        // Check the plot type
-        if (!PLOT_TYPE_CODES.isValidId(plotType))
-            response.addContextualMessage("plotType", "validate.invalidValue");
-        if (plotType != PlotTypes.STEP && pointLocator.getDataTypeId() != DataTypes.NUMERIC)
-            response.addContextualMessage("plotType", "validate.invalidValue");
-
-        if(!SIMPLIFY_TYPE_CODES.isValidId(simplifyType))
-            response.addContextualMessage("simplifyType", "validate.invalidValue");
-        else if(simplifyType == SimplifyTypes.TARGET && simplifyTarget < 10)
-            response.addContextualMessage("simplifyTarget", "validate.greaterThan", 10);
-        else if(simplifyType != DataPointVO.SimplifyTypes.NONE && (pointLocator.getDataTypeId() == DataTypes.ALPHANUMERIC ||
-                pointLocator.getDataTypeId() == DataTypes.IMAGE))
-            response.addContextualMessage("simplifyType", "validate.cannotSimplifyType", DataTypes.getDataTypeMessage(pointLocator.getDataTypeId()));
-
-        //Validate the unit
-        try {
-            if(unit == null){
-                //We know the unit is invalid and will try the unitString as a likely invalid source (From DWR only)
-                unit = defaultUnit();  //So the other units validate ok
-                UnitUtil.parseLocal(this.unitString);
-                throw new Exception("No Unit"); //Guarantee we fail
-            }
-        }
-        catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                response.addContextualMessage("unit", "validate.unitInvalid", ((IllegalArgumentException) e)
-                        .getCause().getMessage());
-            }
-            else {
-                response.addContextualMessage("unit", "validate.unitInvalid", e.getMessage());
-            }
-        }
-
-        try {
-            if (!useIntegralUnit) {
-                integralUnit = defaultIntegralUnit();
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
-            }else {
-                // integral unit should have same dimensions as the default integrated unit
-                if (integralUnit == null) {
-                    integralUnit = defaultIntegralUnit();
-                    UnitUtil.parseLocal(this.integralUnitString);
-                    throw new Exception("No Unit"); //Guarantee we fail
-                }
-
-                if(!integralUnit.isCompatible(defaultIntegralUnit()))
-                    response.addContextualMessage("integralUnit", "validate.unitNotCompatible");
-            }
-        }
-        catch (Exception e) {
-            if (e instanceof IllegalArgumentException) {
-                response.addContextualMessage("integralUnit", "validate.unitInvalid", ((IllegalArgumentException) e)
-                        .getCause().getMessage());
-            }
-            else {
-                response.addContextualMessage("integralUnit", "validate.unitInvalid", e.getMessage());
-            }
-        }
-
-        try {
-            if (!useRenderedUnit) {
-                renderedUnit = defaultIntegralUnit();
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
-            }else {
-                // integral unit should have same dimensions as the default integrated unit
-                if (renderedUnit == null) {
-                    renderedUnit = defaultUnit();
-                    UnitUtil.parseLocal(this.renderedUnitString);
-                    throw new Exception("No Unit"); //Guarantee we fail
-                }
-
-                if(!renderedUnit.isCompatible(unit))
-                    response.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
-            }
-        }
-        catch (Exception e) {
-            response.addContextualMessage("renderedUnit", "validate.unitInvalid", e.getMessage());
-        }
-
-        if (overrideIntervalLoggingSamples) {
-            if (intervalLoggingSampleWindowSize <= 0) {
-                response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
-            }
-        }
-
-        //Validate permissions
-        Set<String> existingReadPermission;
-        Set<String> existingSetPermission;
-        if(this.id != Common.NEW_ID) {
-            DataPointVO vo = DataPointDao.getInstance().get(id);
-            if(vo != null) {
-                existingReadPermission = Permissions.explodePermissionGroups(vo.getReadPermission());
-                existingSetPermission = Permissions.explodePermissionGroups(vo.getSetPermission());
-            }else {
-                existingReadPermission = null;
-                existingSetPermission = null;
-            }
-        }else {
-            existingReadPermission = null;
-            existingSetPermission = null;
-        }
-        
-        User savingUser = Common.getUser();
-        PermissionHolder savingPermissionHolder = savingUser;
-        if(savingUser == null) {
-            savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
-        }
-        Permissions.validatePermissions(response, "readPermission", savingPermissionHolder, false, existingReadPermission, Permissions.explodePermissionGroups(this.readPermission));
-        Permissions.validatePermissions(response, "setPermission", savingPermissionHolder, false, existingSetPermission, Permissions.explodePermissionGroups(this.setPermission));
-        
-        if((templateId!=null) &&(templateId > 0)){
-            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
-            if(template == null){
-                response.addContextualMessage("template", "pointEdit.template.validate.templateNotFound", templateId);
-            }else if(template.getDataTypeId() != this.pointLocator.getDataTypeId()){
-                response.addContextualMessage("template", "pointEdit.template.validate.templateDataTypeNotCompatible");
-            }
-        }
-
-        Map<String, String> tags = this.tags;
-        if (tags != null) {
-            for (Entry<String, String> entry : tags.entrySet()) {
-                String tagKey = entry.getKey();
-                if (tagKey == null || entry.getValue() == null) {
-                    response.addContextualMessage("tags", "validate.tagCantBeNull");
-                    break;
-                }
-                if (DataPointTagsDao.NAME_TAG_KEY.equals(tagKey) || DataPointTagsDao.DEVICE_TAG_KEY.equals(tagKey)) {
-                    response.addContextualMessage("tags", "validate.invalidTagKey");
-                    break;
-                }
-            }
-        }
-    }
-
     /**
      * Validate the Integral Unit
      * Setting a default if its not enabled
@@ -1169,7 +894,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public boolean validateIntegralUnit() {
         if (!useIntegralUnit) {
             integralUnit = defaultIntegralUnit();
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
             return true;
         }
 
@@ -1183,7 +907,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public boolean validateRenderedUnit() {
         if (!useRenderedUnit) {
             renderedUnit = unit;
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             return true;
         }
 
@@ -1192,28 +915,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             return false;
 
         return renderedUnit.isCompatible(unit);
-    }
-
-    private boolean validateRollup() {
-        boolean numeric = pointLocator.getDataTypeId() == DataTypes.NUMERIC;
-        switch(rollup) {
-            case Rollups.FIRST :
-            case Rollups.LAST :
-            case Rollups.START :
-            case Rollups.COUNT :
-            case Rollups.NONE :
-                return true;
-            case Rollups.AVERAGE :
-            case Rollups.DELTA :
-            case Rollups.MINIMUM :
-            case Rollups.MAXIMUM :
-            case Rollups.ACCUMULATOR :
-            case Rollups.SUM :
-            case Rollups.INTEGRAL :
-                return numeric;
-            default :
-                return false;
-        }
     }
 
     // default unit is ONE ie no units
@@ -1247,8 +948,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 + ", plotType=" + plotType + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName
                 + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue
                 + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
-                + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readPermission="
-                + readPermission + ", setPermission=" + setPermission + ", templateId=" + templateId
+                + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readRoles="
+                + readRoles + ", setRoles=" + setRoles + ", templateId=" + templateId
                 + ", preventSetExtremeValues=" + preventSetExtremeValues + ", setExtremeLowLimit=" + setExtremeLowLimit
                 + ", setExtremeHighLimit=" + setExtremeHighLimit + "]";
     }
@@ -1312,11 +1013,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             chartColour = "";
             plotType = PlotTypes.STEP;
             unit = defaultUnit();
-            unitString = UnitUtil.formatLocal(unit);
             integralUnit = defaultUnit();
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
             renderedUnit = defaultIntegralUnit();
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             useIntegralUnit = false;
             useRenderedUnit = false;
             overrideIntervalLoggingSamples = false;
@@ -1351,11 +1049,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = PlotTypes.STEP;
             unit = defaultUnit();
-            unitString = UnitUtil.formatLocal(unit);
             integralUnit = defaultUnit();
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
             renderedUnit = defaultIntegralUnit();
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             useIntegralUnit = false;
             useRenderedUnit = false;
             overrideIntervalLoggingSamples = false;
@@ -1390,11 +1085,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = PlotTypes.STEP;
             unit = defaultUnit();
-            unitString = UnitUtil.formatLocal(unit);
             integralUnit = defaultUnit();
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
             renderedUnit = defaultIntegralUnit();
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             useIntegralUnit = false;
             useRenderedUnit = false;
             overrideIntervalLoggingSamples = false;
@@ -1448,11 +1140,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
             unit = defaultUnit();
-            unitString = UnitUtil.formatLocal(unit);
             integralUnit = defaultUnit();
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
             renderedUnit = defaultIntegralUnit();
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             useIntegralUnit = false;
             useRenderedUnit = false;
             overrideIntervalLoggingSamples = false;
@@ -1473,11 +1162,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             chartColour = SerializationHelper.readSafeUTF(in);
             plotType = in.readInt();
             unit = (Unit<?>) in.readObject();
-            unitString = UnitUtil.formatLocal(unit);
             integralUnit = (Unit<?>) in.readObject();
-            integralUnitString = UnitUtil.formatLocal(integralUnit);
             renderedUnit = (Unit<?>) in.readObject();
-            renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
             overrideIntervalLoggingSamples = false;
@@ -1543,25 +1229,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             try{
                 unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
                 unit = defaultUnit();
-                unitString = UnitUtil.formatLocal(unit);
             }
             try{
                 integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
                 integralUnit = defaultUnit();
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
                 renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
                 renderedUnit = defaultUnit();
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
 
             useIntegralUnit = in.readBoolean();
@@ -1586,25 +1266,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             try{
                 unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
                 unit = defaultUnit();
-                unitString = UnitUtil.formatLocal(unit);
             }
             try{
                 integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
                 integralUnit = defaultUnit();
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
                 renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
                 renderedUnit = defaultUnit();
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
@@ -1628,25 +1302,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             try{
                 unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
                 unit = defaultUnit();
-                unitString = UnitUtil.formatLocal(unit);
             }
             try{
                 integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
                 integralUnit = defaultUnit();
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
                 renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
                 renderedUnit = defaultUnit();
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
@@ -1670,25 +1338,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             try{
                 unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
                 unit = defaultUnit();
-                unitString = UnitUtil.formatLocal(unit);
             }
             try{
                 integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
                 integralUnit = defaultUnit();
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
                 renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
                 renderedUnit = defaultUnit();
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
@@ -1712,25 +1374,19 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
             try{
                 unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                unitString = UnitUtil.formatLocal(unit);
             }catch(Exception e){
                 unit = defaultUnit();
-                unitString = UnitUtil.formatLocal(unit);
             }
             try{
                 integralUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }catch(Exception e){
                 integralUnit = defaultUnit();
-                integralUnitString = UnitUtil.formatLocal(integralUnit);
             }
 
             try{
                 renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }catch(Exception e){
                 renderedUnit = defaultUnit();
-                renderedUnitString = UnitUtil.formatLocal(renderedUnit);
             }
             useIntegralUnit = in.readBoolean();
             useRenderedUnit = in.readBoolean();
@@ -1917,21 +1573,18 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         text = jsonObject.getString("unit");
         if (text != null) {
             unit = parseUnitString(text, "unit");
-            unitString = UnitUtil.formatUcum(unit);
         }
 
         text = jsonObject.getString("integralUnit");
         if (text != null) {
             useIntegralUnit = true;
             integralUnit = parseUnitString(text, "integralUnit");
-            integralUnitString = UnitUtil.formatUcum(integralUnit);
         }
 
         text = jsonObject.getString("renderedUnit");
         if (text != null) {
             useRenderedUnit = true;
             renderedUnit = parseUnitString(text, "renderedUnit");
-            renderedUnitString = UnitUtil.formatUcum(renderedUnit);
         }
 
         text = jsonObject.getString("plotType");
@@ -1967,6 +1620,10 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         double simplifyTolerance = jsonObject.getDouble("simplifyTolerance", Double.NaN);
         if (simplifyTolerance != Double.NaN)
             this.simplifyTolerance = simplifyTolerance;
+        
+        //Legacy permissions support
+        this.readRoles = readLegacyPermissions("readPermissions", this.readRoles, jsonObject);
+        this.setRoles = readLegacyPermissions("setPermissions", this.setRoles, jsonObject);
     }
 
     private Unit<?> parseUnitString(String string, String item) throws TranslatableJsonException {
@@ -1978,9 +1635,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-     */
     @Override
     protected AbstractDao<DataPointVO> getDao() {
         return DataPointDao.getInstance();

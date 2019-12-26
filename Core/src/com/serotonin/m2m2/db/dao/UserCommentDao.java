@@ -113,27 +113,16 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
         }
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getTableName()
-	 */
 	@Override
 	protected String getTableName() {
 		return SchemaDefinition.USER_COMMENTS_TABLE;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-	 */
 	@Override
 	protected String getXidPrefix() {
 		return "UC_";
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#voToObjectArray(com.serotonin.m2m2.vo.AbstractVO)
-	 */
 	@Override
 	protected Object[] voToObjectArray(UserCommentVO vo) {
 		return new Object[]{
@@ -145,19 +134,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 				vo.getReferenceId()
 		};
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-	 */
-	@Override
-	public UserCommentVO getNewVo() {
-		return new UserCommentVO();
-	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-	 */
 	@Override
 	protected Map<String, IntStringPair> getPropertiesMap() {
 		Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
@@ -167,18 +144,11 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 		return map;
 	}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-	 */
 	@Override
 	public RowMapper<UserCommentVO> getRowMapper() {
 		return new UserCommentVORowMapper();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getJoins()
-	 */
 	@Override
 	protected List<JoinClause> getJoins() {
     	List<JoinClause> joins = new ArrayList<JoinClause>();
@@ -186,17 +156,11 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
     	return joins;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPkColumnName()
-	 */
 	@Override
 	public String getPkColumnName() {
 		return "id";
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-	 */
 	@Override
 	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
 		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();

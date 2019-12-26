@@ -26,7 +26,7 @@ import com.serotonin.util.ILifecycle;
  *
  * @author Terry Packer
  */
-public interface RuntimeManager extends ILifecycle{
+public interface RuntimeManager extends ILifecycle {
 
     /**
      * Check the state of the RuntimeManager
@@ -57,7 +57,18 @@ public interface RuntimeManager extends ILifecycle{
 
     void deleteDataSource(int dataSourceId);
 
-    void saveDataSource(DataSourceVO<?> vo);
+    /**
+     * Insert a new data source
+     * @param vo
+     */
+    void insertDataSource(DataSourceVO<?> vo);
+    
+    /**
+     * Update a data source
+     * @param existing
+     * @param vo
+     */
+    void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo);
     
     /**
      * Initialize a data source (only to be used at system startup)
@@ -76,7 +87,18 @@ public interface RuntimeManager extends ILifecycle{
     //
     // Data points
     //
-    void saveDataPoint(DataPointVO point);
+    /**
+     * Insert a new data point
+     * @param vo
+     */
+    void insertDataPoint(DataPointVO vo);
+    
+    /**
+     * Update an existing data point
+     * @param existing
+     * @param vo
+     */
+    void updateDataPoint(DataPointVO existing, DataPointVO vo);
     
     /**
      * Enable a data point, event detectors will be loaded 

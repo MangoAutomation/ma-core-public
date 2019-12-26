@@ -62,14 +62,14 @@ public class PublisherAuditTest extends MangoTestBase {
         MockDataSourceVO ds = new MockDataSourceVO();
         ds.setXid("DS_TEST1");
         ds.setName("TEST");
-        DataSourceDao.getInstance().save(ds);
+        DataSourceDao.getInstance().insert(ds, true);
         
         for(int i=1; i<pointCount + 1; i++) {
             DataPointVO dp = new DataPointVO();
             dp.setXid("DP_" + i);
             dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
             dp.setDataSourceId(ds.getId());
-            DataPointDao.getInstance().save(dp);
+            DataPointDao.getInstance().insert(dp, true);
             MockPublishedPointVO vo = new MockPublishedPointVO();
             vo.setDataPointId(i);
             points.add(vo);

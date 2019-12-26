@@ -151,6 +151,29 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         vo.setRoles(Collections.unmodifiableSet(new HashSet<>(query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRowMapper()))));
     }
 
+    @Override
+    public void saveRelationalData(User vo, boolean insert) {
+        if(!insert) {
+            //delete role mappings
+            ejt.update(USER_ROLES_DELETE, new Object[] {vo.getId()});
+        }
+        //insert role mappings
+        List<RoleVO> entries = new ArrayList<>(vo.getRoles());
+        ejt.batchUpdate(USER_ROLE_INSERT, new BatchPreparedStatementSetter() {
+            @Override
+            public int getBatchSize() {
+                return entries.size();
+            }
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                RoleVO role = entries.get(i);
+                ps.setInt(1, role.getId());
+                ps.setInt(2, vo.getId());
+            }
+        });
+    }
+    
     /**
      * Get a user by their email address
      * @param emailAddress
@@ -246,7 +269,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     
     void insertUser(User user) {
 
-        int id = getTransactionTemplate().execute(new TransactionCallback<Integer>() {
+        getTransactionTemplate().execute(new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
                 user.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
@@ -268,28 +291,11 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                 Types.INTEGER, Types.VARCHAR,
                                 Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB}
                         );
-                //delete role mappings
-                ejt.update(USER_ROLES_DELETE, new Object[] {id});
-                //insert role mappings
-                List<RoleVO> entries = new ArrayList<>(user.getRoles());
-                ejt.batchUpdate(USER_ROLE_INSERT, new BatchPreparedStatementSetter() {
-                    @Override
-                    public int getBatchSize() {
-                        return entries.size();
-                    }
-
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        RoleVO role = entries.get(i);
-                        ps.setInt(1, role.getId());
-                        ps.setInt(2, id);
-                    }
-                });
+                user.setId(id);
+                saveRelationalData(user, true);
                 return id;
             }
         });
-
-        user.setId(id);
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
 
@@ -351,23 +357,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                                     Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT,
                                     Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB, Types.INTEGER}
                             );
-                    //delete role mappings
-                    ejt.update(USER_ROLES_DELETE, new Object[] {user.getId()});
-                    //insert new mappings
-                    List<RoleVO> entries = new ArrayList<>(user.getRoles());
-                    ejt.batchUpdate(USER_ROLE_INSERT, new BatchPreparedStatementSetter() {
-                        @Override
-                        public int getBatchSize() {
-                            return entries.size();
-                        }
-
-                        @Override
-                        public void setValues(PreparedStatement ps, int i) throws SQLException {
-                            RoleVO role = entries.get(i);
-                            ps.setInt(1, role.getId());
-                            ps.setInt(2, user.getId());
-                        }
-                    });
+                    saveRelationalData(user, false);
                     return old;
                 }
             });
@@ -531,11 +521,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     @Override
-    public void save(User user, String initiatorId) {
-        throw new UnsupportedOperationException("Use saveUser()");
-    }
-
-    @Override
     public void delete(User user, String initiatorId) {
         throw new UnsupportedOperationException("Use deleteUser()");
     }
@@ -619,11 +604,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     @Override
     protected String getXidPrefix() {
         return "";
-    }
-
-    @Override
-    public User getNewVo() {
-        return new User();
     }
 
     @Override

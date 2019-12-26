@@ -57,33 +57,16 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
         return springInstance.get();
     }
     
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-	 */
 	@Override
 	protected String getXidPrefix() {
 		return JsonDataVO.XID_PREFIX;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractDao#getNewVo()
-	 */
-	@Override
-	public JsonDataVO getNewVo() {
-		return new JsonDataVO();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
-	 */
 	@Override
 	protected String getTableName() {
 		return SchemaDefinition.JSON_DATA_TABLE;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#voToObjectArray(java.lang.Object)
-	 */
 	@Override
 	protected Object[] voToObjectArray(JsonDataVO vo) {
 		String jsonData = null;
@@ -103,9 +86,6 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 		};
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-	 */
 	@Override
 	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
 		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
@@ -119,17 +99,11 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 		return map;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-	 */
 	@Override
 	protected Map<String, IntStringPair> getPropertiesMap() {
 		return new HashMap<String, IntStringPair>();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-	 */
 	@Override
 	public RowMapper<JsonDataVO> getRowMapper() {
 		return new JsonDataRowMapper();
@@ -137,9 +111,6 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 
 	class JsonDataRowMapper implements RowMapper<JsonDataVO>{
 
-		/* (non-Javadoc)
-		 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
-		 */
 		@Override
 		public JsonDataVO mapRow(ResultSet rs, int rowNum)
 				throws SQLException {

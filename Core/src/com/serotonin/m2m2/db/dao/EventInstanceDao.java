@@ -96,12 +96,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 
         };
     }
-
-    @Override
-    public EventInstanceVO getNewVo() {
-        return new EventInstanceVO();
-    }
-
+    
     @Override
     protected LinkedHashMap<String,Integer> getPropertyTypeMap(){
         LinkedHashMap<String,Integer> map = new LinkedHashMap<String,Integer>();

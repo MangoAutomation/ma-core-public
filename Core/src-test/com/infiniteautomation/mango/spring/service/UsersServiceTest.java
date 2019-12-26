@@ -172,7 +172,7 @@ public class UsersServiceTest extends ServiceWithPermissionsTestBase<User, UserD
     
     @Test
     @Override
-    public void testUserDelete() {
+    public void testUserCanDelete() {
         //Nothing as you cannot delete another user unless you are superadmin
     }
     

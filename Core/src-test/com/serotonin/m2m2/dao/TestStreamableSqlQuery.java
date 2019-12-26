@@ -219,9 +219,6 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 			this.testData = testData;
 		}
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-		 */
 		@Override
 		protected AbstractDao<StreamTestData> getDao() {
 			return null;
@@ -241,11 +238,6 @@ public class TestStreamableSqlQuery extends MangoTestBase {
 		@Override
 		protected String getXidPrefix() {
 			return "StreamTest_";
-		}
-
-		@Override
-		public StreamTestData getNewVo() {
-			return new StreamTestData();
 		}
 
 		@Override

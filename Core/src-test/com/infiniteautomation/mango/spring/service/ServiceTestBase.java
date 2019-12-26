@@ -63,7 +63,16 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
     abstract DAO getDao();
     abstract void assertVoEqual(VO expected, VO actual);
     
+    /**
+     * Create a new VO with all fields populated except any roles
+     * @return
+     */
     abstract VO newVO();
+    /**
+     * Update every field with a new value
+     * @param existing
+     * @return
+     */
     abstract VO updateVO(VO existing);
     
     @Before
@@ -143,24 +152,16 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
 
         //Add some roles
-        readRole = new RoleVO();
-        readRole.setXid("read-role");
-        readRole.setName("Role to allow reading.");
+        readRole = new RoleVO("read-role", "Role to allow reading.");
         roleService.insert(readRole, systemSuperadmin);
         
-        editRole = new RoleVO();
-        editRole.setXid("edit-role");
-        editRole.setName("Role to allow editing.");
+        editRole = new RoleVO("edit-role", "Role to allow editing.");
         roleService.insert(editRole, systemSuperadmin);
         
-        setRole = new RoleVO();
-        setRole.setXid("set-role");
-        setRole.setName("Role to allow setting.");
+        setRole = new RoleVO("set-role", "Role to allow setting.");
         roleService.insert(setRole, systemSuperadmin);
         
-        deleteRole = new RoleVO();
-        deleteRole.setXid("delete-role");
-        deleteRole.setName("Role to allow deleting.");
+        deleteRole = new RoleVO("delete-role", "Role to allow deleting.");
         roleService.insert(deleteRole, systemSuperadmin);
 
         readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);

@@ -80,10 +80,8 @@ public class MailingListServiceTest extends ServiceWithPermissionsTestBase<Maili
     @Test(expected = ValidationException.class)
     public void testAddMissingEditRole() {
         MailingList vo = newVO();
-        RoleVO role = new RoleVO();
+        RoleVO role = new RoleVO("new-role", "no name");
         role.setId(10000);
-        role.setXid("new-role");
-        role.setName("no name");
         Set<RoleVO> editRoles = Collections.singleton(role); 
         vo.setEditRoles(editRoles);
         service.insertFull(vo, systemSuperadmin);   
@@ -160,8 +158,6 @@ public class MailingListServiceTest extends ServiceWithPermissionsTestBase<Maili
         vo.setXid(MailingListDao.getInstance().generateUniqueXid());
         vo.setName("MailingList");
         vo.setReceiveAlarmEmails(AlarmLevels.NONE);
-        
-        vo.setEditRoles(Collections.singleton(editRole));
         
         List<EmailRecipient> entries = new ArrayList<>();
         AddressEntry entry = new AddressEntry();

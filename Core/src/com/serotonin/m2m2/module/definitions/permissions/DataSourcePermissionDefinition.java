@@ -15,7 +15,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
  */
 public class DataSourcePermissionDefinition extends PermissionDefinition {
 	
- 	@Override
+    @Override
 	public String getPermissionKey() {
 		return "systemSettings.permissions.datasourceManagement";
 	}

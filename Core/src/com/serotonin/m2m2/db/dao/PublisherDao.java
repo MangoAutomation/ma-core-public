@@ -264,11 +264,6 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
 	}
 
 	@Override
-	public PublisherVO<T> getNewVo() {
-        throw new ShouldNeverHappenException("Unable to create generic publisher, must supply a type");
-	}
-
-	@Override
 	protected String getTableName() {
 		return SchemaDefinition.PUBLISHERS_TABLE;
 	}
