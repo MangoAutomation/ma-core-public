@@ -4,12 +4,9 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 
 import javax.mail.internet.AddressException;
@@ -34,12 +31,9 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionDetails;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.validation.StringValidation;
 
 import freemarker.template.TemplateException;
@@ -171,7 +165,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             throw new PermissionException(new TranslatableMessage("users.validate.badDelete"), user);
 
         //Only admin can delete
-        user.ensureHasAdminPermission();
+        user.ensureHasAdminRole();
 
         dao.deleteUser(vo.getId());
         return vo;
@@ -187,51 +181,11 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      */
     public void lockPassword(String username, PermissionHolder user)
             throws PermissionException, NotFoundException {
-        user.ensureHasAdminPermission();
+        permissionService.ensureAdminRole(user);
         User toLock = get(username, user);
         if (user instanceof User && ((User) user).getId() == toLock.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), user);
         dao.lockPassword(toLock);
-    }
-
-
-    /**
-     * Get User Permissions Information for all users, exclude provided groups in query
-     * @param query
-     * @param user
-     * @return
-     */
-    public Set<PermissionDetails> getPermissionDetails(String query, PermissionHolder user) {
-        Set<PermissionDetails> details = new TreeSet<>();
-        for (User u : dao.getActiveUsers()){
-            PermissionDetails deets = Permissions.getPermissionDetails(user, query, u);
-            if(deets != null)
-                details.add(deets);
-        }
-        return details;
-    }
-
-    /**
-     * Get all roles a user can see
-     * @param exclude
-     * @param user
-     * @return
-     */
-    public Set<RoleVO> getViewableUserRoles(Collection<RoleVO> exclude, PermissionHolder user){
-        Set<RoleVO> roles = new TreeSet<>();
-        roles.addAll(user.getRoles());
-
-        if (user.hasAdminRole()) {
-            for (User u : this.dao.getActiveUsers())
-                roles.addAll(u.getRoles());
-        }
-
-        if (exclude != null) {
-            for (RoleVO part : exclude)
-                roles.remove(part);
-        }
-
-        return roles;
     }
 
     @Override

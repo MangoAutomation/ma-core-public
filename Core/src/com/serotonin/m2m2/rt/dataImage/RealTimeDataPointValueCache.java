@@ -17,6 +17,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.db.query.SortOption;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.Translations;
@@ -28,7 +29,6 @@ import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyEventDispatcher;
 import com.serotonin.m2m2.vo.hierarchy.PointHierarchyListener;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  *
@@ -49,7 +49,7 @@ public class RealTimeDataPointValueCache {
     private final List<RealTimeDataPointValue> realTimeData =
             new CopyOnWriteArrayList<RealTimeDataPointValue>();
     private boolean cleared;
-
+    private final PermissionService permissionService;
     // Singleton Instance
     public static final RealTimeDataPointValueCache instance = new RealTimeDataPointValueCache();
 
@@ -92,6 +92,7 @@ public class RealTimeDataPointValueCache {
 
             }
         });
+        this.permissionService = Common.getBean(PermissionService.class);
     }
 
     /**
@@ -112,7 +113,7 @@ public class RealTimeDataPointValueCache {
         
         //Filter on permissions
         for (RealTimeDataPointValue rtdpv : this.realTimeData) {
-            if(Permissions.hasDataPointReadPermission(user, rtdpv.vo))
+            if(permissionService.hasDataPointReadPermission(user, rtdpv.vo))
                 results.add(rtdpv);
         }
 

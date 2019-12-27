@@ -26,7 +26,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
@@ -50,7 +49,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, EventInstanceVO vo) {
-        return Permissions.hasEventTypePermission(user, vo.getEventType());
+        return permissionService.hasEventTypePermission(user, vo.getEventType());
     }
 
     @Override
@@ -58,7 +57,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         if(user.hasAdminRole()) {
             return true;
         }else {
-            return Permissions.hasEventTypePermission(user, vo.getEventType());
+            return permissionService.hasEventTypePermission(user, vo.getEventType());
         }
     }
     

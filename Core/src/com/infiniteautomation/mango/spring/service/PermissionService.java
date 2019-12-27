@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -19,14 +21,15 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
+import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions.DataPointAccessTypes;
 
 /**
  * @author Terry Packer
@@ -78,6 +81,32 @@ public class PermissionService {
     public boolean hasPermission(PermissionHolder holder, PermissionDefinition permission) {
         Set<RoleVO> roles = roleDao.getRoles(permission.getPermissionTypeName());
         return hasAnyRole(holder, roles);
+    }
+    
+    /**
+     * Return all the granted permissions a user has.  This is any Permission Definition that the user
+     *  has permission for.
+     *  
+     *  TODO all VO types too?
+     *  
+     * @param holder
+     * @return
+     */
+    public Set<MangoPermission> getGrantedPermissions(PermissionHolder holder){
+        Set<MangoPermission> grantedPermissions = new HashSet<>();
+
+        for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
+            PermissionDefinition definition = def.getValue();
+            Set<RoleVO> roles = roleDao.getRoles(definition.getPermissionTypeName());
+            if(hasAnyRole(holder, roles)) {
+                grantedPermissions.add(new MangoPermission(
+                        definition.getPermissionTypeName(),
+                        null,
+                        null,
+                        roles));
+            }
+        }
+        return grantedPermissions;
     }
     
     /**
@@ -280,23 +309,34 @@ public class PermissionService {
     }
     
     /**
-     * What type of point access does this permission holder have for this point
+     * Does this holder have access to view this event type?
      * @param user
-     * @param point
+     * @param eventType
      * @return
      */
-    public int getDataPointAccessType(PermissionHolder user, IDataPoint point) {
-        if (!isValidPermissionHolder(user))
-            return DataPointAccessTypes.NONE;
-        if (hasAdminRole(user))
-            return DataPointAccessTypes.ADMIN;
-        if (hasDataSourcePermission(user, point.getDataSourceId()))
-            return DataPointAccessTypes.DATA_SOURCE;
-        if (hasDataPointSetPermission(user, point))
-            return DataPointAccessTypes.SET;
-        if (hasDataPointReadPermission(user, point))
-            return DataPointAccessTypes.READ;
-        return DataPointAccessTypes.NONE;
+    public boolean hasEventTypePermission(PermissionHolder user, EventType eventType) {
+        return hasAdminRole(user) || eventType.hasPermission(user);
+    }
+
+    /**
+     * Ensure this holder has access to view this event type
+     * @param user
+     * @param eventType
+     * @throws PermissionException
+     */
+    public void ensureEventTypePermission(PermissionHolder user, EventType eventType) throws PermissionException {
+        if (!hasEventTypePermission(user, eventType))
+            throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getPermissionHolderName()), user);
+    }
+
+    /**
+     * Ensure this holder has access to view this event type VO
+     * @param user
+     * @param eventType
+     * @throws PermissionException
+     */
+    public void ensureEventTypePermission(PermissionHolder user, EventTypeVO eventType) throws PermissionException {
+        ensureEventTypePermission(user, eventType.getEventType());
     }
     
     /**
@@ -561,5 +601,25 @@ public class PermissionService {
     public String implodeRoles(Set<RoleVO> roles) {
         checkRoleSet(roles);
         return String.join(",", roles.stream().map(role -> role.getXid()).collect(Collectors.toSet()));
+    }
+    
+    /**
+     * Explode a comma separated group of permissions (roles) from the legacy format
+     * @param groups
+     * @return
+     */
+    public Set<String> explodeLegacyPermissionGroups(String groups) {
+        if (groups == null || groups.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        Set<String> set = new HashSet<>();
+        for (String s : groups.split(",")) {
+            s = s.trim();
+            if (!s.isEmpty()) {
+                set.add(s);
+            }
+        }
+        return Collections.unmodifiableSet(set);
     }
 }

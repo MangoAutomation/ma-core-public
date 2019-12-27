@@ -27,6 +27,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleBindings;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -79,7 +80,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
@@ -108,8 +108,11 @@ public class MangoJavaScriptService {
     
     private static final Object globalFunctionsLock = new Object();
 
-    public MangoJavaScriptService() {
-
+    private final PermissionService permissionService;
+    
+    @Autowired
+    public MangoJavaScriptService(PermissionService permissionService) {
+        this.permissionService = permissionService;
     }
     
     /**
@@ -122,7 +125,7 @@ public class MangoJavaScriptService {
         ProcessResult result = new ProcessResult();
         
         //Ensure the user has ALL of the permissions as we will likely test/run this script
-        if(!Permissions.hasAllPermissions(user, vo.getPermissions().getPermissionsSet()))
+        if(!permissionService.hasAllRoles(user, vo.getPermissions().getRoles()))
             result.addContextualMessage("permissions", "permission.exception.doesNotHaveRequiredPermission");
         
         validateContext(vo.getContext(), user, result);
@@ -154,7 +157,7 @@ public class MangoJavaScriptService {
             if(dp == null)
                 result.addContextualMessage("context", "javascript.validate.missingContextPoint", varName);
             else {
-                if(!Permissions.hasDataPointReadPermission(user, dp))
+                if(!permissionService.hasDataPointReadPermission(user, dp))
                     result.addContextualMessage("context", "javascript.validate.noReadPermissionOnContextPoint", varName);
             }
             if (StringUtils.isBlank(varName)) {
@@ -184,7 +187,7 @@ public class MangoJavaScriptService {
      * @throws ValidationException
      */
     public void ensureValid(MangoJavaScript vo, PermissionHolder user) throws ValidationException {
-        Permissions.ensureDataSourcePermission(user);
+        permissionService.ensureDataSourcePermission(user);
         ProcessResult result = validate(vo, user);
         if(!result.isValid())
             throw new ValidationException(result);
@@ -511,7 +514,7 @@ public class MangoJavaScriptService {
                     return;
                 }
 
-                if(!Permissions.hasDataPointSetPermission(permissions, dprt.getVO())) {
+                if(!permissionService.hasDataPointSetPermission(permissions, dprt.getVO())) {
                     result.addAction(new MangoJavaScriptAction(new TranslatableMessage("javascript.validate.pointPermissionsFailure", dprt.getVO().getXid()), Level.warning));
                     return;
                 }

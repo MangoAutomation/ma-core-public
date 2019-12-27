@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.ConfigurationExportData;
@@ -27,13 +28,20 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 @Service
 public class EmportService {
 
+    private final PermissionService permissionService;
+    
+    @Autowired
+    public EmportService(PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
+    
     public String createExportData(int prettyIndent, String[] exportElements, PermissionHolder user) throws PermissionException {
         Map<String, Object> data = ConfigurationExportData.createExportDataMap(exportElements);
         return export(data, prettyIndent, user);
     }
 
     public String export(Map<String, Object> data, int prettyIndent, PermissionHolder user) throws PermissionException {
-        user.ensureHasAdminPermission();
+        permissionService.ensureAdminRole(user);
         JsonTypeWriter typeWriter = new JsonTypeWriter(Common.JSON_CONTEXT);
         StringWriter stringWriter = new StringWriter();
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);

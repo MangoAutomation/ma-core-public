@@ -16,12 +16,11 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -110,7 +109,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @return
      */
     public DataSourceDefinition getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
-        Permissions.ensureDataSourcePermission(user);
+        permissionService.ensureDataSourcePermission(user);
         DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
             throw new NotFoundException();

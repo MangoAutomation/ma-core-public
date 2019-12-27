@@ -10,23 +10,25 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * Script Permissions Container, to replace com.serotonin.m2m2.rt.script.ScriptPermissions
@@ -35,29 +37,28 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  */
 public class ScriptPermissions implements JsonSerializable, Serializable, PermissionHolder {
 
-    private Set<String> permissionsSet;
-    private String permissionHolderName; //Name for exception messages
+    @JsonProperty
+    private final Set<RoleVO> roles;
+    private final String permissionHolderName; //Name for exception messages
 
     public ScriptPermissions() {
         this(Collections.emptySet());
     }
 
-    public ScriptPermissions(Set<String> permissionsSet) {
+    public ScriptPermissions(Set<RoleVO> permissionsSet) {
         this(permissionsSet, "script");
     }
 
     public ScriptPermissions(User user) {
-        this(user.getPermissionsSet(), user.getPermissionHolderName());
+        this(user.getRoles(), user.getPermissionHolderName());
     }
 
-    public ScriptPermissions(Set<String> permissionsSet, String permissionHolderName) {
-        if (permissionsSet != null) {
-            Set<String> permissions = permissionsSet.stream().map(p -> p.trim()).collect(Collectors.toSet());
-            this.permissionsSet = Collections.unmodifiableSet(permissions);
+    public ScriptPermissions(Set<RoleVO> roles, String permissionHolderName) {
+        if (roles != null) {
+            this.roles = roles;
         } else {
-            this.permissionsSet = Collections.unmodifiableSet(Collections.emptySet());
+            this.roles = Collections.unmodifiableSet(Collections.emptySet());
         }
-
         this.permissionHolderName = permissionHolderName;
     }
 
@@ -73,44 +74,34 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     public boolean isPermissionHolderDisabled() {
         return false;
     }
-
-    @Override
-    public Set<String> getPermissionsSet() {
-        return permissionsSet;
-    }
-
-    @Deprecated
-    public String getPermissions() {
-        return Permissions.implodePermissionGroups(this.getPermissionsSet());
-    }
     
     @Override
     public Set<RoleVO> getRoles() {
-        //TODO Lazy init?  Or acutally use roles now?
-        HashSet<RoleVO> roles = new HashSet<>();
-        roles.add(RoleDao.getInstance().getUserRole());
-        for(String group : permissionsSet) {
-           RoleVO role = RoleDao.getInstance().getByXid(group);
-           if(role != null) {
-               roles.add(role);
-           }
-        }
-        return Collections.unmodifiableSet(roles);
+        return roles;
     }
 
-    private static final int version = 1;
+    private static final int version = 2;
     private static final long serialVersionUID = 1L;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
-        out.writeObject(permissionsSet);
     }
 
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-        if(ver == 1)
-            permissionsSet = (Set<String>) in.readObject();
+        if(ver == 1) {
+            Set<String> permissionsSet = (Set<String>) in.readObject();
+            roles.clear();
+            for(String permission : permissionsSet) {
+                RoleVO role = RoleDao.getInstance().getByXid(permission);
+                if(role != null) {
+                    roles.add(role);
+                }
+            }
+        }else if(ver == 2) {
+            //Nada
+        }
     }
 
     @Override
@@ -124,44 +115,50 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     }
 
     /**
-     * Write the script permissions as a Set<String>
-     * @param writer
-     * @param scriptPermissions
-     * @throws IOException
-     * @throws JsonException
-     */
-    public static void writeJsonSafely(ObjectWriter writer, ScriptPermissions scriptPermissions) throws IOException, JsonException {
-        writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissionsSet());
-    }
-
-    /**
-     * Safely read legacy and new ScriptPermissions
+     * Safely read legacy and super-legacy ScriptPermissions current permissions are JSON exportable
      * @param jsonObject
      * @return
+     * @throws TranslatableJsonException 
      */
-    public static ScriptPermissions readJsonSafely(JsonObject jsonObject) {
+    public static ScriptPermissions readJsonSafely(JsonObject jsonObject) throws TranslatableJsonException {
         if(jsonObject.containsKey("scriptPermissions")) {
-            Set<String> permissions = null;
             try{
+                PermissionService service = Common.getBean(PermissionService.class);
                 JsonObject o = jsonObject.getJsonObject("scriptPermissions");
-                permissions = new HashSet<>();
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataSourcePermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointSetPermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointReadPermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("customPermissions")));
-                return new ScriptPermissions(permissions);
+                Set<RoleVO> roles = new HashSet<>();
+                Set<String> permissions = new HashSet<>();
+                permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("dataSourcePermissions")));
+                permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("dataPointSetPermissions")));
+                permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("dataPointReadPermissions")));
+                permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("customPermissions")));
+                
+                for(String permission : permissions) {
+                    RoleVO role = RoleDao.getInstance().getByXid(permission);
+                    if(role != null) {
+                        roles.add(role);
+                    } else {
+                        throw new TranslatableJsonException("emport.error.missingRole", permission, "scriptPermissions");
+                    }
+                }
+                
+                return new ScriptPermissions(roles);
             }catch(ClassCastException e) {
                 //Munchy munch, not a legacy script permissions object
             }
-            if(permissions == null) {
-                Set<String> roles = new HashSet<>();
-                JsonArray array = jsonObject.getJsonArray("scriptPermissions");
-                for(JsonValue o : array)
-                    roles.add(o.toString());
-                return new ScriptPermissions(roles);
-            }else
-                return new ScriptPermissions();
-        }else
+
+            Set<RoleVO> roles = new HashSet<>();
+            JsonArray permissions = jsonObject.getJsonArray("scriptPermissions");
+            for(JsonValue jv : permissions) {
+                RoleVO role = RoleDao.getInstance().getByXid(jv.toString());
+                if(role != null) {
+                    roles.add(role);
+                } else {
+                    throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), "scriptPermissions");
+                }
+            }
+            return new ScriptPermissions(roles);
+        }else {
             return new ScriptPermissions();
+        }
     }
 }

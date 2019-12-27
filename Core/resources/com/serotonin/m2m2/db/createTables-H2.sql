@@ -110,12 +110,10 @@ CREATE TABLE dataSources (
   dataSourceType varchar(40) NOT NULL,
   data longblob NOT NULL,
   rtdata longblob,
-  editPermission varchar(255),
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
 CREATE INDEX nameIndex ON dataSources (name ASC);
-CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);
 
 --
 -- Data Points

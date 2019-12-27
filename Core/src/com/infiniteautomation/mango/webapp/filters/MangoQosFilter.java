@@ -18,8 +18,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.ConditionalOnProperty;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * https://www.eclipse.org/jetty/documentation/current/qos-filter.html
@@ -43,6 +43,12 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 public class MangoQosFilter extends QoSFilter {
     public static final String NAME = "mangoQosFilter";
 
+    private final PermissionService permissionService;
+    
+    public MangoQosFilter(PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
+    
     /**
      * Computes the request priority.
      * <p>
@@ -71,7 +77,7 @@ public class MangoQosFilter extends QoSFilter {
                     Object principle = auth.getPrincipal();
                     if (principle instanceof PermissionHolder) {
                         PermissionHolder user = (PermissionHolder) principle;
-                        return Permissions.hasAdminPermission(user) ? 3 : 2;
+                        return permissionService.hasAdminRole(user) ? 3 : 2;
                     }
                 }
             }

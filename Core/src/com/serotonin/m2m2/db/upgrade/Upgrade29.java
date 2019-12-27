@@ -23,6 +23,7 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 
 /**
@@ -50,6 +51,7 @@ public class Upgrade29 extends DBUpgrade {
             Map<String, RoleVO> roles = new HashMap<>();
             convertUsers(roles, out);
             convertDataPoints(roles, out);
+            convertDataSources(roles, out);
             convertMailingLists(roles, out);
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
@@ -134,6 +136,27 @@ public class Upgrade29 extends DBUpgrade {
                 insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.READ, readPermissions, roles);
                 Set<String> setPermissions = explodePermissionGroups(rs.getString(3));
                 insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.SET, setPermissions, roles);
+            }
+        });
+        
+        
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointsSQL);
+        runScript(scripts, out);
+    }
+    
+    private void convertDataSources(Map<String, RoleVO> roles, OutputStream out) throws Exception {
+        //Move current permissions to roles
+        ejt.query("SELECT id, editPermission FROM dataSources", new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int voId = rs.getInt(1);
+                //Add role/mapping
+                Set<String> editPermissions = explodePermissionGroups(rs.getString(2));
+                insertMapping(voId, DataSourceVO.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
             }
         });
         

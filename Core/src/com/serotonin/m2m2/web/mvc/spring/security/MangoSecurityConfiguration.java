@@ -67,6 +67,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -86,8 +87,8 @@ public class MangoSecurityConfiguration {
     public static final String IS_PROXY_REQUEST_ATTRIBUTE = "MANGO_IS_PROXY_REQUEST";
 
     @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-        MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler();
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(PermissionService permissionService) {
+        MangoMethodSecurityExpressionHandler expressionHandler = new MangoMethodSecurityExpressionHandler(permissionService);
         expressionHandler.setPermissionEvaluator(new MangoPermissionEvaluator());
         return expressionHandler;
     }

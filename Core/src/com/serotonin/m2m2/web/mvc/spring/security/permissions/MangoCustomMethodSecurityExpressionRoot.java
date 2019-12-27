@@ -4,23 +4,22 @@
  */
 package com.serotonin.m2m2.web.mvc.spring.security.permissions;
 
-import java.util.Collections;
-import java.util.HashSet;
-
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * Class to define Custom Spring EL Expressions for use in @PreAuthorize and @PostAuthorize annotations
@@ -31,8 +30,11 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionRoot
 implements MethodSecurityExpressionOperations {
 
-    public MangoCustomMethodSecurityExpressionRoot(Authentication authentication) {
+    private final PermissionService permissionService;
+    
+    public MangoCustomMethodSecurityExpressionRoot(Authentication authentication, PermissionService permissionService) {
         super(authentication);
+        this.permissionService = permissionService;
     }
 
     /**
@@ -43,7 +45,7 @@ implements MethodSecurityExpressionOperations {
 
         if (principal instanceof User) {
             User user = (User) this.getPrincipal();
-            return user.hasAdminRole();
+            return permissionService.hasAdminRole(user);
         }
 
         // principal is probably a string "anonymousUser"
@@ -66,7 +68,7 @@ implements MethodSecurityExpressionOperations {
      */
     public boolean hasDataSourcePermission(){
         User user =  (User) this.getPrincipal();
-        return user.isDataSourcePermission();
+        return permissionService.hasDataSourcePermission(user);
     }
 
     /**
@@ -79,31 +81,9 @@ implements MethodSecurityExpressionOperations {
         if(user.hasAdminRole())
             return true;
         DataSourceVO<?> dsvo = DataSourceDao.getInstance().getByXid(xid);
-        if((dsvo == null)||(!Permissions.hasDataSourcePermission(user, dsvo)))
+        if((dsvo == null)||(!permissionService.hasDataSourcePermission(user, dsvo)))
             return false;
         return true;
-    }
-
-    /**
-     * Does the user have every one of the supplied permissions
-     * @param permissions
-     * @return
-     */
-    public boolean hasAllPermissions(String...permissions){
-        User user =  (User) this.getPrincipal();
-        HashSet<String> set = new HashSet<>(permissions.length);
-        Collections.addAll(set, permissions);
-        return Permissions.hasAllPermissions(user, set);
-    }
-
-    /**
-     * Checks if a user is granted a permission
-     * @param permissionName System setting key for the granted permission
-     * @return
-     */
-    @Deprecated
-    public boolean hasPermissionType(String permissionName) {
-        return this.isGrantedPermission(permissionName);
     }
 
     /**
@@ -112,7 +92,12 @@ implements MethodSecurityExpressionOperations {
      * @return
      */
     public boolean isGrantedPermission(String permissionName) {
-        return Permissions.hasGrantedPermission((User) this.getPrincipal(), permissionName);
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(permissionName);
+        if(def == null) {
+            return false;
+        }else {
+            return permissionService.hasPermission((User) this.getPrincipal(), def);
+        }
     }
 
     /**
@@ -124,7 +109,7 @@ implements MethodSecurityExpressionOperations {
         User user =  (User) this.getPrincipal();
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 
-        return (vo != null) && Permissions.hasDataPointReadPermission(user, vo);
+        return (vo != null) && permissionService.hasDataPointReadPermission(user, vo);
     }
 
     /**
@@ -136,7 +121,7 @@ implements MethodSecurityExpressionOperations {
         User user =  (User) this.getPrincipal();
         for(String xid : xids){
             DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-            if((vo == null)||(!Permissions.hasDataPointReadPermission(user, vo)))
+            if((vo == null)||(!permissionService.hasDataPointReadPermission(user, vo)))
                 return false;
 
         }
@@ -152,7 +137,7 @@ implements MethodSecurityExpressionOperations {
         User user =  (User) this.getPrincipal();
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 
-        return (vo != null) && Permissions.hasDataPointSetPermission(user, vo);
+        return (vo != null) && permissionService.hasDataPointSetPermission(user, vo);
     }
 
     /**
@@ -165,24 +150,11 @@ implements MethodSecurityExpressionOperations {
         User user =  (User) this.getPrincipal();
         for(String xid : xids){
             DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-            if((vo == null)||(!Permissions.hasDataPointSetPermission(user, vo)))
+            if((vo == null)||(!permissionService.hasDataPointSetPermission(user, vo)))
                 return false;
 
         }
         return true;
-    }
-
-    /**
-     * Does the user have at least 1 of the supplied permissions
-     * @param permissions
-     * @return
-     */
-    public boolean hasAnyPermission(String...permissions) {
-        User user =  (User) this.getPrincipal();
-
-        HashSet<String> set = new HashSet<>(permissions.length);
-        Collections.addAll(set, permissions);
-        return Permissions.hasAnyPermission(user, set);
     }
 
     public boolean isPasswordAuthenticated() {
@@ -194,45 +166,31 @@ implements MethodSecurityExpressionOperations {
     }
 
     private Object filterObject;
-    /* (non-Javadoc)
-     * @see org.springframework.security.access.expression.method.MethodSecurityExpressionOperations#setFilterObject(java.lang.Object)
-     */
+
     @Override
     public void setFilterObject(Object filterObject) {
         this.filterObject = filterObject;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.access.expression.method.MethodSecurityExpressionOperations#getFilterObject()
-     */
     @Override
     public Object getFilterObject() {
         return filterObject;
     }
 
     private Object returnObject;
-    /* (non-Javadoc)
-     * @see org.springframework.security.access.expression.method.MethodSecurityExpressionOperations#setReturnObject(java.lang.Object)
-     */
+
     @Override
     public void setReturnObject(Object returnObject) {
         this.returnObject = returnObject;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.access.expression.method.MethodSecurityExpressionOperations#getReturnObject()
-     */
     @Override
     public Object getReturnObject() {
         return returnObject;
     }
 
-    /* (non-Javadoc)
-     * @see org.springframework.security.access.expression.method.MethodSecurityExpressionOperations#getThis()
-     */
     @Override
     public Object getThis() {
         return this;
     }
-
 }

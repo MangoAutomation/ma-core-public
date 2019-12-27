@@ -26,7 +26,6 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionListener;
 
 /**
@@ -59,13 +58,6 @@ public class MangoInitializer implements WebApplicationInitializer {
         ctx.setAttribute("constants.DataTypes.NUMERIC", DataTypes.NUMERIC);
         ctx.setAttribute("constants.DataTypes.ALPHANUMERIC", DataTypes.ALPHANUMERIC);
         ctx.setAttribute("constants.DataTypes.IMAGE", DataTypes.IMAGE);
-
-        ctx.setAttribute("constants.Permissions.DataPointAccessTypes.NONE", Permissions.DataPointAccessTypes.NONE);
-        ctx.setAttribute("constants.Permissions.DataPointAccessTypes.READ", Permissions.DataPointAccessTypes.READ);
-        ctx.setAttribute("constants.Permissions.DataPointAccessTypes.SET", Permissions.DataPointAccessTypes.SET);
-        ctx.setAttribute("constants.Permissions.DataPointAccessTypes.DATA_SOURCE",
-                Permissions.DataPointAccessTypes.DATA_SOURCE);
-        ctx.setAttribute("constants.Permissions.DataPointAccessTypes.ADMIN", Permissions.DataPointAccessTypes.ADMIN);
 
         ctx.setAttribute("constants.EventType.EventTypeNames.DATA_POINT", EventType.EventTypeNames.DATA_POINT);
         ctx.setAttribute("constants.EventType.EventTypeNames.DATA_SOURCE", EventType.EventTypeNames.DATA_SOURCE);

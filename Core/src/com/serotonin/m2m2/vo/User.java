@@ -26,6 +26,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
@@ -44,9 +46,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.vo.permission.Permission;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
 public class User extends AbstractVO<User> implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
@@ -118,9 +118,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
     
     //System permissions that we have one or more roles in
-    private transient final LazyInitializer<Set<Permission>> grantedPermissions = new LazyInitializer<>();
-
-    private transient volatile boolean admin;
+    private transient final LazyInitializer<Set<MangoPermission>> grantedPermissions = new LazyInitializer<>();
 
     //
     //Spring Security
@@ -195,25 +193,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         return requiredClass.cast(attributes.get(key));
     }
 
-    // Convenience method for JSPs
-    public boolean isDataSourcePermission() {
-        return Permissions.hasDataSourcePermission(this);
-    }
-
+    //
+    //
     // Properties
-
-    /**
-     * This method should not be used for permission checks, use hasAdminPermission().
-     *
-     * Why? This method does not check if the user is disabled.
-     *
-     * @return
-     */
-    @Deprecated
-    public boolean isAdmin() {
-        return admin;
-    }
-
+    //
+    
     public String getEmail() {
         return email;
     }
@@ -522,9 +506,10 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.sessionExpirationPeriodType = sessionExpirationPeriodType;
     }
 
-    public Set<Permission> getGrantedPermissions() {
+    public Set<MangoPermission> getGrantedPermissions() {
         return grantedPermissions.get(() -> {
-            return Collections.unmodifiableSet(Permissions.getGrantedPermissions(this));
+            PermissionService service = Common.getBean(PermissionService.class);
+            return Collections.unmodifiableSet(service.getGrantedPermissions(this));
         });
     }
 
@@ -711,7 +696,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     public void setRoles(Set<RoleVO> roles) {
         this.roles = roles;
         this.authorities.reset();
-        this.admin = roles.contains(RoleDao.getInstance().getSuperadminRole());
     }
     
     @Override

@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt.dataImage;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -17,9 +18,11 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
+import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.RoleVO;
 
 /**
  * 
@@ -87,7 +90,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 	}
 	
 	public String getUnit(){
-        return vo.getUnitString();
+        return UnitUtil.formatLocal(vo.getUnit());
 	}
 	
 	public long getTimestamp(){
@@ -127,11 +130,12 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 			return this.rt.getPointValue();
 	}
 
-	public String getReadPermission(){
-		return vo.getReadPermission();
+	public Set<RoleVO> getReadRoles(){
+		return vo.getReadRoles();
 	}
-	public String getSetPermission(){
-		return vo.getSetPermission();
+	
+	public Set<RoleVO> getSetRoles(){
+		return vo.getSetRoles();
 	}
 	
 	/**
@@ -177,8 +181,8 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 		writer.writeEntry("status", this.getStatus());
 		writer.writeEntry("path", this.getPath());
 		writer.writeEntry("xid", this.getXid());
-		writer.writeEntry("readPermission", getReadPermission());
-		writer.writeEntry("setPermission", getSetPermission());
+		writer.writeEntry("readRoles", getReadRoles());
+		writer.writeEntry("setRoles", getSetRoles());
 		writer.writeEntry("tags", getTags());
 	}
 

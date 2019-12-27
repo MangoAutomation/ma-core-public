@@ -9,7 +9,6 @@ import java.util.Set;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.LazyInitializer;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.RoleVO;
@@ -50,7 +49,7 @@ public interface PermissionHolder {
         }
     };
 
-    static final LazyInitSupplier<PermissionService> service = new LazyInitSupplier<>(() -> {
+    static final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
         return Common.getBean(PermissionService.class);
     });
     
@@ -71,34 +70,34 @@ public interface PermissionHolder {
     Set<RoleVO> getRoles();
 
     default boolean hasAdminRole() {
-        return service.get().hasAdminRole(this);
+        return permissionService.get().hasAdminRole(this);
     }
     
     default boolean hasSingleRole(RoleVO requiredRole) {
-        return service.get().hasSingleRole(this, requiredRole);
+        return permissionService.get().hasSingleRole(this, requiredRole);
     }
 
-    default boolean hasAnyPermission(Set<String> requiredPermissions) {
-        return Permissions.hasAnyPermission(this, requiredPermissions);
+    default boolean hasAnyRole(Set<RoleVO> requiredRoles) {
+        return permissionService.get().hasAnyRole(this, requiredRoles);
     }
 
-    default boolean hasAllPermissions(Set<String> requiredPermissions) {
-        return Permissions.hasAllPermissions(this, requiredPermissions);
+    default boolean hasAllRoles(Set<RoleVO> requiredRoles) {
+        return permissionService.get().hasAllRoles(this, requiredRoles);
     }
 
-    default void ensureHasAdminPermission() {
-        service.get().ensureAdminRole(this);
+    default void ensureHasAdminRole() {
+        permissionService.get().ensureAdminRole(this);
     }
     
     default void ensureHasSingleRole(RoleVO requiredRole) {
-        service.get().ensureSingleRole(this, requiredRole);
+        permissionService.get().ensureSingleRole(this, requiredRole);
     }
     
-    default void ensureHasAnyPermission(Set<String> requiredPermissions) {
-        Permissions.ensureHasAnyPermission(this, requiredPermissions);
+    default void ensureHasAnyRole(Set<RoleVO> requiredRoles) {
+        permissionService.get().ensureHasAnyRole(this, requiredRoles);
     }
 
-    default void ensureHasAllPermissions(Set<String> requiredPermissions) {
-        Permissions.ensureHasAllPermissions(this, requiredPermissions);
+    default void ensureHasAllRoles(Set<RoleVO> requiredRoles) {
+        permissionService.get().ensureHasAllRoles(this, requiredRoles);
     }
 }

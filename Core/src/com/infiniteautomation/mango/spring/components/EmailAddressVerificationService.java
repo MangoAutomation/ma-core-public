@@ -21,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.FeatureDisabledException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -37,7 +38,6 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
@@ -69,6 +69,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     private final UsersService usersService;
     private final PublicUrlService publicUrlService;
     private final SystemSettingsDao systemSettings;
+    private final PermissionService permissionService;
 
     @Autowired
     public EmailAddressVerificationService(
@@ -76,11 +77,13 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             PermissionHolder systemSuperadmin,
             UsersService usersService,
             PublicUrlService publicUrlService,
-            SystemSettingsDao systemSettings) {
+            SystemSettingsDao systemSettings,
+            PermissionService permissionService) {
         this.systemSuperadmin = systemSuperadmin;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.systemSettings = systemSettings;
+        this.permissionService = permissionService;
     }
 
     @Override
@@ -137,7 +140,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             this.doSendVerificationEmail(token, userToUpdate);
             return token;
         } catch (EmailAddressInUseException e) {
-            if (Permissions.hasAdminPermission(permissionHolder)) {
+            if (permissionService.hasAdminRole(permissionHolder)) {
                 // rethrow the exception and notify the administrator
                 throw e;
             } else {

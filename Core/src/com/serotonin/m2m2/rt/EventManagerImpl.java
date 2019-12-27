@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
@@ -44,7 +45,6 @@ import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.timer.RejectedTaskReason;
 
 /**
@@ -78,6 +78,12 @@ public class EventManagerImpl implements EventManager {
      */
     private int state = PRE_INITIALIZE;
 
+    private final PermissionService permissionService;
+    
+    public EventManagerImpl() {
+        permissionService = Common.getBean(PermissionService.class);
+    }
+    
     /**
      * Check the state of the EventManager
      *  useful if you are a task that may run before/after the RUNNING state
@@ -175,7 +181,7 @@ public class EventManagerImpl implements EventManager {
             if (type.excludeUser(user))
                 continue;
 
-            if (Permissions.hasEventTypePermission(user, type)) {
+            if (permissionService.hasEventTypePermission(user, type)) {
                 eventUserIds.add(user.getId());
                 // add email addresses for users which have been configured to receive events over a certain level
                 if (user.getReceiveAlarmEmails().value() > AlarmLevels.IGNORE.value() && alarmLevel.value() >= user.getReceiveAlarmEmails().value() && !StringUtils.isEmpty(user.getEmail()))
@@ -336,7 +342,7 @@ public class EventManagerImpl implements EventManager {
                     continue;
 
                 if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG){
-                    if (Permissions.hasEventTypePermission(user, type)) {
+                    if (permissionService.hasEventTypePermission(user, type)) {
                         userIdsToNotify.add(user.getId());
                         userIdsForCache.add(user.getId());
                     }
@@ -392,7 +398,7 @@ public class EventManagerImpl implements EventManager {
                 if (evt.getEventType().excludeUser(user))
                     continue;
 
-                if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+                if (permissionService.hasEventTypePermission(user, evt.getEventType())) {
                     userIdsToNotify.add(user.getId());
                     userIdsForCache.add(user.getId());
                 }
@@ -450,7 +456,7 @@ public class EventManagerImpl implements EventManager {
                 continue;
 
 
-            if (Permissions.hasEventTypePermission(user, evt.getEventType())) {
+            if (permissionService.hasEventTypePermission(user, evt.getEventType())) {
                 //Notify All User Event Listeners of the new event
                 userIdsToNotify.add(user.getId());
             }

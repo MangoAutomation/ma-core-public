@@ -333,7 +333,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         stopDataSource(vo.getId());
 
         // In this case it is new data source, we need to save to the database first so that it has a proper id.
-        DataSourceDao.getInstance().insert(vo, true);
+        DataSourceDao.getInstance().update(existing, vo, true);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
