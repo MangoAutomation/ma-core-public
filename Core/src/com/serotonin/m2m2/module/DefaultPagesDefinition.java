@@ -5,10 +5,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * Used for overriding the default MA pages.
@@ -60,8 +60,9 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
         if (user == null)
             info.uri = getLoginUri(request, response);
         else {
+            PermissionService service = Common.getBean(PermissionService.class);
             // If this is the first login to the instance by an admin...
-            if (Permissions.hasAdminPermission(user) && SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.NEW_INSTANCE)) {
+            if (service.hasAdminRole(user) && SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.NEW_INSTANCE)) {
                 // Remove the flag
                 SystemSettingsDao.instance.removeValue(SystemSettingsDao.NEW_INSTANCE);
 
@@ -69,7 +70,7 @@ abstract public class DefaultPagesDefinition extends ModuleElementDefinition {
                 info.uri = DefaultPagesDefinition.getFirstLoginUri(request, response);
                 info.required = true;
                 
-            }else if(Permissions.hasAdminPermission(user) && (SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LICENSE_AGREEMENT_VERSION) != Common.getLicenseAgreementVersion())) {
+            }else if(service.hasAdminRole(user) && (SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LICENSE_AGREEMENT_VERSION) != Common.getLicenseAgreementVersion())) {
                 //When a new license version has been released but it is NOT the first login.
                 info.uri = DefaultPagesDefinition.getAdminLicenseUpgradeLoginUri(request, response);
                 info.required = true;

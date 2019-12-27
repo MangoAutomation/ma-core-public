@@ -13,7 +13,10 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.db.MappedRowCallback;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -30,8 +33,13 @@ import net.jazdw.rql.parser.ASTNode;
  *
  * @author Terry Packer
  */
+@Deprecated
 public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
 
+    private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
+        return Common.getBean(PermissionService.class);
+    });
+    
     public static final String QUERY_TYPE_NAME = "DATA_POINT_EVENTS_BY_TAG";
 
     /* (non-Javadoc)
@@ -98,7 +106,7 @@ public class DataPointEventsByTagQueryDefinition extends ModuleQueryDefinition {
         DataPointDao.getInstance().dataPointsForTags(tags, user, new MappedRowCallback<DataPointVO>() {
             @Override
             public void row(DataPointVO dp, int index) {
-                if(Permissions.hasDataPointReadPermission(user, dp)){
+                if(permissionService.get().hasDataPointReadPermission(user, dp)){
                     args.add(Integer.toString(dp.getId()));
                 }
             }

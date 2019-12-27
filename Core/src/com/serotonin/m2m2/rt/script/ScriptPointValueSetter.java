@@ -4,10 +4,12 @@
  */
 package com.serotonin.m2m2.rt.script;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * 
@@ -15,6 +17,11 @@ import com.serotonin.m2m2.vo.permission.Permissions;
  *
  */
 public abstract class ScriptPointValueSetter {
+    
+    private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
+        return Common.getBean(PermissionService.class);
+    });
+    
     protected PermissionHolder permissions;
 
     public ScriptPointValueSetter(PermissionHolder permissions) {
@@ -27,7 +34,7 @@ public abstract class ScriptPointValueSetter {
         if(!point.getVO().getPointLocator().isSettable())
             return;
 
-        if(permissions != null && !Permissions.hasDataPointSetPermission(permissions, point.getVO()))
+        if(permissions != null && !permissionService.get().hasDataPointSetPermission(permissions, point.getVO()))
             throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", point.getVO().getXid()));
 
         setImpl(point, value, timestamp, annotation);

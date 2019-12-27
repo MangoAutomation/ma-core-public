@@ -6,14 +6,15 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 
 public class JsonEmportScriptTestUtility extends JsonEmportScriptUtility {
 
     @Autowired
-    public JsonEmportScriptTestUtility(MangoJavaScriptService service) {
-        super(service);
+    public JsonEmportScriptTestUtility(MangoJavaScriptService service, PermissionService permissionService) {
+        super(service, permissionService);
     }
     
 	@Override

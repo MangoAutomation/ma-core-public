@@ -7,13 +7,12 @@ package com.serotonin.m2m2.module;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * This class proaction that can be actived via the REST system-action endpoint.
@@ -24,6 +23,10 @@ import com.serotonin.m2m2.vo.permission.Permissions;
 @Deprecated 
 abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
+    private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
+        return Common.getBean(PermissionService.class);
+    });
+    
     /**
      * The reference key to the action. Should be unique across all Modules and Mango Core
      * 
@@ -51,12 +54,10 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
      * @throws AccessDeniedException
      */
     protected void hasTaskPermission(User user) throws AccessDeniedException {
-        PermissionDefinition def = getPermissionDefinition();
-        if (!Permissions.hasPermission(user,
-                SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
-            throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied",
-                    user.getUsername(), new TranslatableMessage(def.getPermissionKey()))
-                            .translate(Common.getTranslations()));
+        PermissionDefinition permission = getPermissionDefinition();
+        if(permission == null)
+            return;
+        permissionService.get().ensurePermission(user, permission);
     }
 
     /**

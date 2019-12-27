@@ -2,20 +2,21 @@ package com.serotonin.m2m2.rt.script;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
-public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility {
+public class RuntimeManagerScriptTestUtility<DS extends DataSourceVO<DS>> extends RuntimeManagerScriptUtility<DS> {
 	
     @Autowired
-    public RuntimeManagerScriptTestUtility(MangoJavaScriptService service) {
-        super(service);
+    public RuntimeManagerScriptTestUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService<DS> dataSourceService) {
+        super(service, permissionService, dataSourceService);
     }
     
 	/**
@@ -38,7 +39,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 				return OPERATION_NO_CHANGE;
 			
 			DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
+			if(dsRt == null || !permissionService.hasDataSourcePermission(permissions, dsRt.getVo()))
 				return OPERATION_NO_CHANGE;
 			
 			//forcePointRead
@@ -68,7 +69,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
                 return OPERATION_NO_CHANGE;
             
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasDataSourcePermission(permissions, dsRt.getVo()))
                 return OPERATION_NO_CHANGE;
             
             //Common.runtimeManager.forceDataSourcePoll(vo.getId());
@@ -87,7 +88,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int enableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
+		if(vo == null || !permissionService.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
 			return OPERATION_SUCCESSFUL;
@@ -103,7 +104,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int disableDataSource(String xid){
 		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
+		if(vo == null || !permissionService.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())
 			return OPERATION_SUCCESSFUL;
@@ -119,7 +120,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int enableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-		if(vo == null || Permissions.hasDataPointSetPermission(permissions, vo))
+		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
 			return OPERATION_SUCCESSFUL;
@@ -135,7 +136,7 @@ public class RuntimeManagerScriptTestUtility extends RuntimeManagerScriptUtility
 	@Override
 	public int disableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-		if(vo == null || Permissions.hasDataPointSetPermission(permissions, vo))
+		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())
 			return OPERATION_SUCCESSFUL;

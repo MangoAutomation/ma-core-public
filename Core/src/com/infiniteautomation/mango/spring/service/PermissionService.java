@@ -83,6 +83,17 @@ public class PermissionService {
     }
     
     /**
+     * Ensure the user has a role defined in this permission
+     * @param user
+     * @param permission
+     */
+    public void ensurePermission(PermissionHolder user, PermissionDefinition permission) {
+        if (!hasPermission(user, permission)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user != null ? user.getPermissionHolderName() : ""), user);
+        }
+    }
+    
+    /**
      * Return all the granted permissions a user has.  This is any Permission Definition that the user
      *  has permission for.
      *  

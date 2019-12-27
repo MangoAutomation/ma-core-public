@@ -12,11 +12,9 @@ import javax.script.ScriptEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import net.jazdw.rql.parser.ASTNode;
-import net.jazdw.rql.parser.RQLParser;
-
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -24,7 +22,9 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.Permissions;
+
+import net.jazdw.rql.parser.ASTNode;
+import net.jazdw.rql.parser.RQLParser;
 
 /**
  * 
@@ -42,8 +42,8 @@ public class DataSourceQuery extends ScriptUtility {
 	private RQLParser parser = new RQLParser();
 	
     @Autowired
-    public DataSourceQuery(MangoJavaScriptService service) {
-        super(service);
+    public DataSourceQuery(MangoJavaScriptService service, PermissionService permissionService) {
+        super(service, permissionService);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class DataSourceQuery extends ScriptUtility {
 
 		//Filter on permissions
 		for(DataSourceVO<?> ds : dataSources){
-			if(Permissions.hasDataSourcePermission(permissions, ds)){
+			if(permissionService.hasDataSourcePermission(permissions, ds)){
 				List<DataPointWrapper> points = getPointsForSource(ds);
 				results.add(new DataSourceWrapper(ds, points));
 			}
@@ -80,7 +80,7 @@ public class DataSourceQuery extends ScriptUtility {
 	    if(ds == null)
 	        return null;
 	    
-	    if(Permissions.hasDataSourcePermission(permissions, ds)) {
+	    if(permissionService.hasDataSourcePermission(permissions, ds)) {
 	        List<DataPointWrapper> points = getPointsForSource(ds);
             return new DataSourceWrapper(ds, points);
 	    } else

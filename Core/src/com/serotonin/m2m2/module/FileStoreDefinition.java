@@ -6,17 +6,21 @@ package com.serotonin.m2m2.module;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.Permissions;
+import com.serotonin.timer.OneTimeTrigger;
+import com.serotonin.timer.TimerTask;
+import com.serotonin.timer.TimerTrigger;
 
 /**
  * Define a file storage area within the filestore directory of the core
@@ -29,6 +33,10 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     //Root directory within core
     public static final String ROOT = "filestore";
     public static final String FILE_STORE_LOCATION_ENV_PROPERTY = "filestore.location";
+
+    private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
+        return Common.getBean(PermissionService.class);
+    });
 
     /**
      * The translation for the name of the store
@@ -55,7 +63,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * Return null to use getReadPermissionTypeName instead
      * @return
      */
-    protected String getReadPermissions() {
+    protected Set<RoleVO> getReadRoles() {
         return null;
     }
 
@@ -70,7 +78,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * Return null to use getWritePermissionTypeName instead
      * @return
      */
-    protected String getWritePermissions() {
+    protected Set<RoleVO> getWriteRoles() {
         return null;
     }
 
@@ -79,13 +87,13 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @throws PermissionException
      */
     public void ensureStoreReadPermission(User user) {
-        String roles = getReadPermissions();
-        String permissionName = getReadPermissionTypeName();
+        Set<RoleVO> roles = getReadRoles();
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
 
         if (roles != null) {
-            Permissions.ensureHasAnyPermission(user, Permissions.explodePermissionGroups(roles));
-        } else if (permissionName != null) {
-            Permissions.ensureGrantedPermission(user, permissionName);
+            permissionService.get().ensureHasAnyRole(user, roles);
+        } else if (permission != null) {
+            permissionService.get().ensurePermission(user, permission);
         }
     }
 
@@ -94,13 +102,13 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @throws PermissionException
      */
     public void ensureStoreWritePermission(User user) {
-        String roles = getWritePermissions();
-        String permissionName = getWritePermissionTypeName();
+        Set<RoleVO> roles = getWriteRoles();
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
 
         if (roles != null) {
-            Permissions.ensureHasAnyPermission(user, Permissions.explodePermissionGroups(roles));
-        } else if (permissionName != null) {
-            Permissions.ensureGrantedPermission(user, permissionName);
+            permissionService.get().ensureHasAnyRole(user, roles);
+        } else if (permission != null) {
+            permissionService.get().ensurePermission(user, permission);
         }
     }
 

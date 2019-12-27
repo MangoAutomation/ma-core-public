@@ -14,13 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -41,8 +41,8 @@ public class DataPointQuery extends ScriptUtility {
 	private RQLParser parser = new RQLParser();
 	
 	@Autowired
-	public DataPointQuery(MangoJavaScriptService service) {
-	    super(service);
+	public DataPointQuery(MangoJavaScriptService service, PermissionService permissionService) {
+	    super(service, permissionService);
 	}
 	
     @Override
@@ -82,7 +82,7 @@ public class DataPointQuery extends ScriptUtility {
 		for(DataPointVO dp : dataPoints){
 			
 			//Can we read or write to this point?
-			if(Permissions.hasDataPointSetPermission(permissions, dp) || Permissions.hasDataPointReadPermission(permissions, dp)){
+			if(permissionService.hasDataPointSetPermission(permissions, dp) || permissionService.hasDataPointReadPermission(permissions, dp)){
 				rt = Common.runtimeManager.getDataPoint(dp.getId());
 				if(rt != null)
 					wrapper = service.wrapPoint(engine, rt, setter);
@@ -99,7 +99,7 @@ public class DataPointQuery extends ScriptUtility {
 	    if(dp == null)
 	        return null;
 	    
-	    if(Permissions.hasDataPointSetPermission(permissions, dp) || Permissions.hasDataPointReadPermission(permissions, dp)) {
+	    if(permissionService.hasDataPointSetPermission(permissions, dp) || permissionService.hasDataPointReadPermission(permissions, dp)) {
 	        DataPointRT rt = null;
 	        AbstractPointWrapper wrapper = null;
 	        rt = Common.runtimeManager.getDataPoint(dp.getId());

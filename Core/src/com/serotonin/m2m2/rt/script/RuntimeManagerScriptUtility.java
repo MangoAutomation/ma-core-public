@@ -8,7 +8,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -17,14 +19,13 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
  * @author Terry Packer
  *
  */
-public class RuntimeManagerScriptUtility extends ScriptUtility {
+public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends ScriptUtility {
 	
 	public static final String CONTEXT_KEY = "RuntimeManager";
 	
@@ -34,9 +35,12 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 	protected static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
 	protected static final int OPERATION_SUCCESSFUL = 1; //Operation worked
 	
+	private final DataSourceService<DS> dataSourceService;
+	
     @Autowired
-    public RuntimeManagerScriptUtility(MangoJavaScriptService service) {
-        super(service);
+    public RuntimeManagerScriptUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService<DS> dataSourceService) {
+        super(service, permissionService);
+        this.dataSourceService = dataSourceService;
     }
 
     @Override
@@ -63,7 +67,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 				return OPERATION_NO_CHANGE;
 			
 			DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-			if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
+			if(dsRt == null || !permissionService.hasDataSourcePermission(permissions, dsRt.getVo()))
 				return OPERATION_NO_CHANGE;
 			
 			Common.runtimeManager.forcePointRead(vo.getId());
@@ -93,7 +97,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
                 return OPERATION_NO_CHANGE;
             
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !Permissions.hasDataSourcePermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasDataSourcePermission(permissions, dsRt.getVo()))
                 return OPERATION_NO_CHANGE;
             
             Common.runtimeManager.forceDataSourcePoll(vo.getId());
@@ -117,7 +121,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 			return false;
 		else{
 			//This will throw an exception if there is no permission
-			if(Permissions.hasDataSourcePermission(permissions, vo))
+			if(permissionService.hasDataSourcePermission(permissions, vo))
 				return vo.isEnabled();
 			else
 				return false;
@@ -130,21 +134,23 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 	 * @param xid
 	 * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
 	 */
-	public int enableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
-			return DOES_NOT_EXIST;
-		else if(!vo.isEnabled()){
-			vo.setEnabled(true);
-			try{
-				Common.runtimeManager.saveDataSource(vo);
-			}catch(Exception e){
-				LOG.error(e.getMessage(), e);
-				throw e;
-			}
-			return OPERATION_SUCCESSFUL;
-		}else
-			return OPERATION_NO_CHANGE;
+	public int enableDataSource(String xid) {
+	    try {
+	        DS vo = dataSourceService.getFull(xid, permissions);
+	        if(!vo.isEnabled()) {
+	            vo.setEnabled(true);
+	            try{
+	                dataSourceService.update(xid, vo, permissions);
+	            }catch(Exception e){
+	                LOG.error(e.getMessage(), e);
+	                throw e;
+	            }
+	            return OPERATION_SUCCESSFUL;
+	        } else
+	            return OPERATION_NO_CHANGE;
+	    }catch(Exception e) {
+	        return DOES_NOT_EXIST;   
+	    }
 	}
 
 	/**
@@ -153,20 +159,22 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 	 * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
 	 */
 	public int disableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
-		if(vo == null || !Permissions.hasDataSourcePermission(permissions, vo))
-			return DOES_NOT_EXIST;
-		else if(vo.isEnabled()){
-			vo.setEnabled(false);
-			try{
-				Common.runtimeManager.saveDataSource(vo);
-			}catch(Exception e){
-				LOG.error(e.getMessage(), e);
-				throw e;
-			}
-			return OPERATION_SUCCESSFUL;
-		}else
-			return OPERATION_NO_CHANGE;
+        try {
+            DS vo = dataSourceService.getFull(xid, permissions);
+            if(vo.isEnabled()) {
+                vo.setEnabled(false);
+                try{
+                    dataSourceService.update(xid, vo, permissions);
+                }catch(Exception e){
+                    LOG.error(e.getMessage(), e);
+                    throw e;
+                }
+                return OPERATION_SUCCESSFUL;
+            } else
+                return OPERATION_NO_CHANGE;
+        }catch(Exception e) {
+            return DOES_NOT_EXIST;   
+        }
 	}
 	
 	/**
@@ -182,7 +190,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 		if(vo == null)
 			return false;
 		else{
-			if(Permissions.hasDataPointSetPermission(permissions, vo) || Permissions.hasDataPointReadPermission(permissions, vo)){
+			if(permissionService.hasDataPointSetPermission(permissions, vo) || permissionService.hasDataPointReadPermission(permissions, vo)){
 				DataSourceVO<?> ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
 				if(ds == null)
 					return false;
@@ -199,7 +207,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 	 */
 	public int enableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-		if(vo == null || !Permissions.hasDataPointSetPermission(permissions, vo))
+		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
 			try{
@@ -220,7 +228,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
 	 */
 	public int disableDataPoint(String xid){
 		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-		if(vo == null || !Permissions.hasDataPointSetPermission(permissions, vo))
+		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
 			try{
@@ -246,7 +254,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
             return false;
         else{
             //This will throw an exception if there is no permission
-            if(Permissions.hasAdminPermission(permissions))
+            if(permissionService.hasAdminRole(permissions))
                 return vo.isEnabled();
             else
                 return false;
@@ -261,7 +269,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      */
     public int enablePublisher(String xid){
         PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
-        if(vo == null || !Permissions.hasAdminPermission(permissions))
+        if(vo == null || !permissionService.hasAdminRole(permissions))
             return DOES_NOT_EXIST;
         else if(!vo.isEnabled()){
             vo.setEnabled(true);
@@ -283,7 +291,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      */
     public int disablePublisher(String xid){
         PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
-        if(vo == null || !Permissions.hasAdminPermission(permissions))
+        if(vo == null || !permissionService.hasAdminRole(permissions))
             return DOES_NOT_EXIST;
         else if(vo.isEnabled()){
             vo.setEnabled(false);

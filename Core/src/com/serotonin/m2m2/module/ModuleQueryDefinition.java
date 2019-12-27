@@ -14,14 +14,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -31,6 +31,10 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
 
+    private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
+        return Common.getBean(PermissionService.class);
+    });
+    
     /**
      * An internal identifier for this type of module query. Must be unique within an MA instance, and is recommended
      * to be unique inasmuch as possible across all modules.
@@ -93,8 +97,8 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
         PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getPermissionTypeName());
         if(def == null)
             return;
-        if(!Permissions.hasPermission(user, SystemSettingsDao.instance.getValue(def.getPermissionTypeName())))
-            throw new AccessDeniedException(new TranslatableMessage("permissions.accessDenied", user.getUsername(), new TranslatableMessage(def.getPermissionKey())).translate(Common.getTranslations()));
+        else
+            permissionService.get().ensurePermission(user, def);
     }
 
     /**
