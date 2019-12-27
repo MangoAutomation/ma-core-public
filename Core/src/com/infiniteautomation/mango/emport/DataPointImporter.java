@@ -5,6 +5,10 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.spring.service.DataSourceService;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
@@ -21,17 +25,22 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 
-public class DataPointImporter extends Importer {
+public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
+    
     final List<DataPointSummaryPathPair> hierarchyList;
     final String PATH = "path";
     
-    public DataPointImporter(JsonObject json, PermissionHolder user) {
-        super(json, user);
-        this.hierarchyList = null;
-    }
+    private final DataPointService dataPointService;
+    private final DataSourceService<DS> dataSourceService;
     
-    public DataPointImporter(JsonObject json, PermissionHolder user, List<DataPointSummaryPathPair> hierarchyList) {
+    public DataPointImporter(JsonObject json, 
+            DataPointService dataPointService,
+            DataSourceService<DS> dataSourceService,
+            PermissionHolder user, 
+            List<DataPointSummaryPathPair> hierarchyList) {
         super(json, user);
+        this.dataPointService = dataPointService;
+        this.dataSourceService = dataSourceService;
         this.hierarchyList = hierarchyList;
     }
 
@@ -41,26 +50,32 @@ public class DataPointImporter extends Importer {
         DataPointVO vo = null;
         DataSourceVO<?> dsvo = null;
 
-        if (StringUtils.isBlank(xid))
-            xid = ctx.getDataPointDao().generateUniqueXid();
-        else
-        	vo = ctx.getDataPointDao().getDataPoint(xid);
+        if (StringUtils.isBlank(xid)) {
+            xid = dataPointService.getDao().generateUniqueXid();
+        }else {
+            try {
+                vo = dataPointService.getFull(xid, user);
+            }catch(NotFoundException e) {
+                
+            }
+        }
         
         if (vo == null) {
             // Locate the data source for the point.
             String dsxid = json.getString("dataSourceXid");
-            dsvo = ctx.getDataSourceDao().getDataSource(dsxid);
-            if (dsvo == null)
+            try {
+                dsvo = dataSourceService.get(dsxid, user);
+            }catch(NotFoundException e) {
                 addFailureMessage("emport.dataPoint.badReference", xid);
-            else {
-                vo = new DataPointVO();
-                vo.setXid(xid);
-                vo.setDataSourceId(dsvo.getId());
-                vo.setDataSourceXid(dsxid);
-                vo.setPointLocator(dsvo.createPointLocator());
-                vo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
-                //Not needed as it will be set via the template or JSON or it exists in the DB already: vo.setTextRenderer(new PlainRenderer());
+                return;
             }
+            vo = new DataPointVO();
+            vo.setXid(xid);
+            vo.setDataSourceId(dsvo.getId());
+            vo.setDataSourceXid(dsxid);
+            vo.setPointLocator(dsvo.createPointLocator());
+            vo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
+            //Not needed as it will be set via the template or JSON or it exists in the DB already: vo.setTextRenderer(new PlainRenderer());
         }
         
         if (vo != null) {
@@ -97,26 +112,31 @@ public class DataPointImporter extends Importer {
                 else {
 
                 	//We will always override the DS Info with the one from the XID Lookup
-                    dsvo = ctx.getDataSourceDao().getDataSource(vo.getDataSourceXid());
-                    if (dsvo == null)
-	                      	addFailureMessage("emport.dataPoint.badReference", xid);
-	                else {
-	                    //Compare this point to the existing point in DB to ensure
-	                    // that we aren't moving a point to a different type of Data Source
-	                
-	                    DataPointVO oldPoint = ctx.getDataPointDao().getDataPoint(vo.getId(), false);
-	                    
-	                    //Does the old point have a different data source?
-	                    if(oldPoint != null&&(oldPoint.getDataSourceId() != dsvo.getId())){
-	                        vo.setDataSourceId(dsvo.getId());
-	                        vo.setDataSourceName(dsvo.getName());
-	                    }
+                    try{
+                        dsvo = dataSourceService.getFull(vo.getDataSourceXid(), user);
+                        //Compare this point to the existing point in DB to ensure
+                        // that we aren't moving a point to a different type of Data Source
+                        // note that we don't need the join data
+                        DataPointVO oldPoint = dataPointService.get(vo.getId(), user);
+                        
+                        //Does the old point have a different data source?
+                        if(oldPoint != null&&(oldPoint.getDataSourceId() != dsvo.getId())){
+                            vo.setDataSourceId(dsvo.getId());
+                            vo.setDataSourceName(dsvo.getName());
+                        }
+                    }catch(NotFoundException e) {
+                        addFailureMessage("emport.dataPoint.badReference", xid);
+                        return;
                     }
 
                     boolean isNew = vo.isNew();
                     try {
-                    	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
-                    		Common.runtimeManager.saveDataPoint(vo);
+                    	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+                    	    if(isNew) {
+                    	        dataPointService.insertFull(vo, user);
+                    	    }else {
+                    	        dataPointService.updateFull(vo.getId(), vo, user);
+                    	    }
                     		if(hierarchyList != null && json.containsKey(PATH)) {
                     		    String path = json.getString(PATH);
                     		    if(StringUtils.isNotEmpty(path))
@@ -124,17 +144,17 @@ public class DataPointImporter extends Importer {
                     		}
                     		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     	}else{
-                    		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));
+                    		addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
                     	}
                     } catch(LicenseViolatedException e) {
                     	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
                     }
                 }
-            }
-            catch (TranslatableJsonException e) {
+            }catch(ValidationException e) {
+                setValidationMessages(e.getValidationResult(), "emport.dataPoint.prefix", xid);
+            }catch (TranslatableJsonException e) {
                 addFailureMessage("emport.dataPoint.prefix", xid, e.getMsg());
-            }
-            catch (JsonException e) {
+            }catch (JsonException e) {
                 addFailureMessage("emport.dataPoint.prefix", xid, getJsonExceptionMessage(e));
             }
         }

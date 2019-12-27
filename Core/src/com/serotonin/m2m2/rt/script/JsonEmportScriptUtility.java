@@ -13,8 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EmportService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
 import com.serotonin.db.MappedRowCallback;
@@ -30,7 +33,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -43,8 +45,8 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     protected boolean importDuringValidation = false;
 
     @Autowired
-    public JsonEmportScriptUtility(MangoJavaScriptService service) {
-        super(service);
+    public JsonEmportScriptUtility(MangoJavaScriptService service, PermissionService permissionService) {
+        super(service, permissionService);
     }
 
     @Override
@@ -90,7 +92,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String dataPointQuery(String query, int prettyIndent) {
         Map<String, Object> data = new LinkedHashMap<>();
-        if(Permissions.hasAdminPermission(permissions)) {
+        if(permissionService.hasAdminRole(permissions)) {
             ASTNode root = parser.parse(query);
             List<DataPointVO> dataPoints = new ArrayList<>();
             ConditionSortLimitWithTagKeys conditions = DataPointDao.getInstance().rqlToCondition(root);
@@ -117,7 +119,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String dataSourceQuery(String query, int prettyIndent) {
         Map<String, Object> data = new LinkedHashMap<>();
-        if(Permissions.hasAdminPermission(permissions)) {
+        if(permissionService.hasAdminRole(permissions)) {
             ASTNode root = parser.parse(query);
             BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.getInstance().createQuery(root, true);
 
@@ -132,7 +134,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public void doImport(String json) throws Exception {
-        if(Permissions.hasAdminPermission(permissions)) {
+        if(permissionService.hasAdminRole(permissions)) {
             JsonTypeReader reader = new JsonTypeReader(json);
             JsonValue value = reader.read();
             JsonObject jo = value.toJsonObject();
@@ -144,7 +146,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public List<ProcessMessage> doImportGetStatus(String json) throws Exception {
-        if(Permissions.hasAdminPermission(permissions)) {
+        if(permissionService.hasAdminRole(permissions)) {
             JsonTypeReader reader = new JsonTypeReader(json);
             JsonValue value = reader.read();
             JsonObject jo = value.toJsonObject();
@@ -181,7 +183,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     class ScriptImportTask extends ImportTask {
 
         public ScriptImportTask(JsonObject jo, PermissionHolder holder) {
-            super(jo, Common.getTranslations(), holder, false);
+            super(jo, Common.getTranslations(), holder, Common.getBean(DataSourceService.class), Common.getBean(DataPointService.class), null, false);
         }
 
         public List<ProcessMessage> getMessages() {

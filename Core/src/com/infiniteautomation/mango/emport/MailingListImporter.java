@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.emport;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
@@ -16,20 +17,31 @@ import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public class MailingListImporter extends Importer {
-    public MailingListImporter(JsonObject json, PermissionHolder user) {
+    
+    private final MailingListService service;
+    
+    public MailingListImporter(JsonObject json,
+            MailingListService service, PermissionHolder user) {
         super(json, user);
+        this.service = service;
     }
 
     @Override
     protected void importImpl() {
         String xid = json.getString("xid");
-        if (StringUtils.isBlank(xid)) {
-            xid = ctx.getMailingListService().getDao().generateUniqueXid();
-        }
         MailingList vo = null;
-        try {
-            vo = ctx.getMailingListService().getFull(xid, user);
-        }catch(NotFoundException e) {
+        
+        if (StringUtils.isBlank(xid)) {
+            xid = service.getDao().generateUniqueXid();
+        }else {
+            try {
+                vo = service.getFull(xid, user);
+            }catch(NotFoundException e) {
+
+            }
+        }
+        
+        if(vo == null) {
             vo = new MailingList();
             vo.setXid(xid);
         }
@@ -38,9 +50,9 @@ public class MailingListImporter extends Importer {
             ctx.getReader().readInto(vo, json);
             boolean isnew = vo.getId() == Common.NEW_ID;
             if(isnew) {
-                ctx.getMailingListService().insert(vo, user);
+                service.insert(vo, user);
             }else {
-                ctx.getMailingListService().update(vo.getXid(), vo, user);
+                service.update(vo.getId(), vo, user);
             }
             addSuccessMessage(isnew, "emport.mailingList.prefix", xid);
         }catch(ValidationException e) {

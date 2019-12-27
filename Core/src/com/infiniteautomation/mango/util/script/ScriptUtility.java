@@ -12,6 +12,7 @@ import javax.script.ScriptEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.rt.script.JsonImportExclusion;
 import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
@@ -27,13 +28,15 @@ public abstract class ScriptUtility {
     protected final static String NEWLINE = "\n";
     protected PermissionHolder permissions;
     protected final MangoJavaScriptService service;
+    protected final PermissionService permissionService;
     protected ScriptLog log;
     //Used to track any actions performed (usually during testing when mocking a set/modify call)
     protected MangoJavaScriptResult result;
     
     @Autowired
-    public ScriptUtility(MangoJavaScriptService service) {
+    public ScriptUtility(MangoJavaScriptService service, PermissionService permissionService) {
         this.service = service;
+        this.permissionService = permissionService;
     }
     
     /**

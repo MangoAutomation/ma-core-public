@@ -15,6 +15,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.spring.service.DataSourceService;
+import com.infiniteautomation.mango.spring.service.EventHandlerService;
+import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.PublisherService;
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -31,15 +37,18 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.util.ProgressiveTaskListener;
 
 /**
  * @author Matthew Lohbihler
  */
-public class ImportTask extends ProgressiveTask {
+public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointVO, EH extends AbstractEventHandlerVO<EH>> extends ProgressiveTask {
 	
 	private static Log LOG = LogFactory.getLog(ImportTask.class);
 	
@@ -53,7 +62,8 @@ public class ImportTask extends ProgressiveTask {
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
     protected final List<DataPointSummaryPathPair> dpPathPairs = new ArrayList<DataPointSummaryPathPair>();
     protected final Map<String, DataPointVO> eventDetectorPoints = new HashMap<String, DataPointVO>();
-
+    
+    protected final DataPointService dataPointService;
     /**
      * Create an Import task with a listener to be scheduled now
      * @param root
@@ -61,47 +71,18 @@ public class ImportTask extends ProgressiveTask {
      * @param user
      * @param listener
      */
-    public ImportTask(JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener) {
-        this(root, translations, user, listener, true);
-    }
-    
-    /**
-     * Create an Import task to run now without a listener
-     * @param root
-     * @param translations
-     * @param user
-     */
-    public ImportTask(JsonObject root, Translations translations, PermissionHolder user, boolean schedule) {
-        this(root, translations, user, null, schedule);
-    }
-
-    /**
-     * Create an ordered task that can be queue to run one after another
-     * 
-     * @param root
-     * @param translations
-     * @param user
-     * @param listener
-     * @param schedule
-     */
-    public ImportTask(JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener, boolean schedule) {
-        this("JSON import task", "JsonImport", 10, root, translations, user, listener, schedule);
-    }
-
-    /**
-     * 
-     * @param name
-     * @param taskId
-     * @param queueSize
-     * @param root
-     * @param translations
-     * @param user
-     * @param listener
-     * @param schedule
-     */
-    public ImportTask(String name, String taskId, int queueSize, JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener, boolean schedule) {
-    	    super(name, taskId, queueSize, listener);
-    	
+    public ImportTask(JsonObject root, 
+            Translations translations, 
+            PermissionHolder user,
+            UsersService usersService,
+            MailingListService mailingListService,
+            DataSourceService<DS> dataSourceService,
+            DataPointService dataPointService,
+            PublisherService<PUB> publisherService,
+            EventHandlerService<EH> eventHandlerService,
+            ProgressiveTaskListener listener, boolean schedule) {
+    	super("JSON import task", "JsonImport", 10, listener);
+    	this.dataPointService = dataPointService;
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
         
@@ -109,13 +90,13 @@ public class ImportTask extends ProgressiveTask {
         this.user = user;
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
-            addImporter(new UserImporter(jv.toJsonObject(), user));
+            addImporter(new UserImporter(jv.toJsonObject(), usersService, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
-            addImporter(new DataSourceImporter(jv.toJsonObject(), user));
+            addImporter(new DataSourceImporter<DS>(jv.toJsonObject(), dataSourceService, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
-            addImporter(new DataPointImporter(jv.toJsonObject(), user, dpPathPairs));
+            addImporter(new DataPointImporter<DS>(jv.toJsonObject(), dataPointService, dataSourceService, user, dpPathPairs));
         
         JsonArray phJson = root.getJsonArray(ConfigurationExportData.POINT_HIERARCHY);
         if(phJson != null) {
@@ -125,13 +106,13 @@ public class ImportTask extends ProgressiveTask {
             hierarchyImporter = null;
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
-            addImporter(new MailingListImporter(jv.toJsonObject(), user));
+            addImporter(new MailingListImporter(jv.toJsonObject(), mailingListService, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
-            addImporter(new PublisherImporter(jv.toJsonObject(), user));
+            addImporter(new PublisherImporter<PUB>(jv.toJsonObject(), publisherService, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
-            addImporter(new EventHandlerImporter(jv.toJsonObject(), user));
+            addImporter(new EventHandlerImporter<EH>(jv.toJsonObject(), eventHandlerService, user));
         
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
@@ -371,7 +352,7 @@ public class ImportTask extends ProgressiveTask {
             }
             
             //Save the data point
-            Common.runtimeManager.saveDataPoint(saved);
+            dataPointService.update(saved.getId(), saved, user);
             for(AbstractPointEventDetectorVO<?> modified : dpvo.getEventDetectors())
                 importContext.addSuccessMessage(isNew, "emport.eventDetector.prefix", modified.getXid());
         }

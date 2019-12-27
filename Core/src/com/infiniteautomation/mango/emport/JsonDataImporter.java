@@ -53,7 +53,11 @@ public class JsonDataImporter extends Importer {
                     setValidationMessages(voResponse, "emport.jsondata.prefix", xid);
                 else {
                     // Sweet. Save it.
-                    JsonDataDao.getInstance().save(vo);
+                    if(isNew) {
+                        JsonDataDao.getInstance().insert(vo, false);
+                    }else {
+                        JsonDataDao.getInstance().update(vo);
+                    }
                     addSuccessMessage(isNew, "emport.jsondata.prefix", xid);
                 }
             }

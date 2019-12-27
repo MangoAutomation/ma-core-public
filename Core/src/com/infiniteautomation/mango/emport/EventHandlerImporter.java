@@ -7,13 +7,14 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.EventHandlerService;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -21,21 +22,33 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-public class EventHandlerImporter extends Importer {
-    public EventHandlerImporter(JsonObject json, PermissionHolder user) {
+public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends Importer {
+    
+    private final EventHandlerService<EH> service;
+    
+    public EventHandlerImporter(JsonObject json, EventHandlerService<EH> service, PermissionHolder user) {
         super(json, user);
+        this.service = service;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected void importImpl() {
+        EH handler = null;
         String xid = json.getString("xid");
-        if (StringUtils.isBlank(xid))
-            xid = ctx.getEventHandlerDao().generateUniqueXid();
+        if (StringUtils.isBlank(xid)) {
+            xid = service.getDao().generateUniqueXid();
+        }else {
+            try {
+                handler = service.get(xid, user);
+            }catch(NotFoundException e) {
+                //Nothing, done below
+            }          
+        }
 
-        AbstractEventHandlerVO<?> handler = ctx.getEventHandlerDao().getEventHandler(xid);
         if (handler == null) {
-        	String typeStr = json.getString("handlerType");
-        	if (StringUtils.isBlank(typeStr))
+            String typeStr = json.getString("handlerType");
+            if (StringUtils.isBlank(typeStr))
                 addFailureMessage("emport.eventHandler.missingType", xid, ModuleRegistry.getEventHandlerDefinitionTypes());
             else {
                 EventHandlerDefinition<?> def = ModuleRegistry.getEventHandlerDefinition(typeStr);
@@ -43,13 +56,13 @@ public class EventHandlerImporter extends Importer {
                     addFailureMessage("emport.eventHandler.invalidType", xid, typeStr,
                             ModuleRegistry.getEventHandlerDefinitionTypes());
                 else {
-                    handler = def.baseCreateEventHandlerVO();
+                    handler = (EH)def.baseCreateEventHandlerVO();
                     handler.setXid(xid);
                 }
             }
         }else {
             //We want to only add event types via import so load existing in first
-            handler.setEventTypes(EventHandlerDao.getInstance().getEventTypesForHandler(handler.getId()));
+            handler.setEventTypes(service.getDao().getEventTypesForHandler(handler.getId()));
         }
 
         JsonObject et = json.getJsonObject("eventType");
@@ -77,24 +90,15 @@ public class EventHandlerImporter extends Importer {
                 if(eventTypes.size() > 0)
                     handler.setEventTypes(new ArrayList<>(eventTypes));
     
-                // Now validate it. Use a new response object so we can distinguish errors in this vo from other errors.
-                ProcessResult voResponse = new ProcessResult();
-                handler.validate(voResponse);
-                if (voResponse.getHasMessages())
-                    setValidationMessages(voResponse, "emport.eventHandler.prefix", xid);
-                else {
-                    // Sweet.
-                    boolean isnew = handler.getId() == Common.NEW_ID;
-                    if(isnew) {
-                        ctx.getEventHandlerDao().insert(handler, true);
-                    }else {
-                        AbstractEventHandlerVO<?> existing = ctx.getEventHandlerDao().getEventHandler(xid);
-                        ctx.getEventHandlerDao().update(existing, handler, true);
-                    }
-                    // Save it.
-                    
-                    addSuccessMessage(isnew, "emport.eventHandler.prefix", xid);
+                boolean isnew = handler.getId() == Common.NEW_ID;
+                if(isnew) {
+                    service.insertFull(handler, user);
+                }else {
+                    service.updateFull(handler.getId(), handler, user);
                 }
+
+            }catch(ValidationException e) {
+                setValidationMessages(e.getValidationResult(), "emport.eventHandler.prefix", xid);
             }
             catch (TranslatableJsonException e) {
                 addFailureMessage("emport.eventHandler.prefix", xid, e.getMsg());

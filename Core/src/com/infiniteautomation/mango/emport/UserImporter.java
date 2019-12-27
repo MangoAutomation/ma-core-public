@@ -2,6 +2,7 @@ package com.infiniteautomation.mango.emport;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
@@ -20,8 +21,11 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 public class UserImporter extends Importer {
 
-    public UserImporter(JsonObject json, PermissionHolder user) {
+    private final UsersService usersService;
+    
+    public UserImporter(JsonObject json, UsersService usersService, PermissionHolder user) {
         super(json, user);
+        this.usersService = usersService;
     }
 
     @Override
@@ -34,7 +38,7 @@ public class UserImporter extends Importer {
         }else {
             User existing = null;
             try {
-                existing = ctx.getUsersService().get(username, user);
+                existing = usersService.getFull(username, user);
             }catch(NotFoundException e) {
                 existing = null;
             }
@@ -60,10 +64,10 @@ public class UserImporter extends Importer {
 
                 try {
                     if(existing == null) {
-                        ctx.getUsersService().insert(imported, user);
+                        usersService.insertFull(imported, user);
                         addSuccessMessage(true, "emport.user.prefix", username);
                     }else {
-                        ctx.getUsersService().update(existing, imported, user);
+                        usersService.updateFull(existing, imported, user);
                         addSuccessMessage(false, "emport.user.prefix", username);
                     }
                 }catch(ValidationException e) {
