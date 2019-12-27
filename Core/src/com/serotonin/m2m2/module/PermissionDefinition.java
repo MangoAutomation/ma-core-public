@@ -5,11 +5,11 @@ Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
 package com.serotonin.m2m2.module;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.vo.permission.Permission;
-import com.serotonin.m2m2.vo.permission.Permissions;
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.vo.RoleVO;
 
 /**
  * A permission definition allows a module to define a single permission string. The enforcement of this permission is
@@ -41,20 +41,24 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     abstract public String getPermissionTypeName();
 
     /**
-     * Offers the implementer the option to add default groups to the permission when the module is upgraded
-     * or installed.
-     * @return - List of groups to assign to permission
+     * Offers the implementer the option to add default roles to the permission when the module is upgraded
+     * or installed.  The roles must already exist in the roles table
+     * @return - Set of roles to assign to permission
      */
-    public List<String> getDefaultGroups(){
-        return Collections.emptyList();
+    public Set<RoleVO> getDefaultRoles(){
+        return Collections.emptySet();
     }
 
     /**
      * Get the permission with current roles filled in
      * @return
      */
-    public Permission getPermission() {
-        String permission = SystemSettingsDao.instance.getValue(getPermissionTypeName());
-        return new Permission(getPermissionTypeName(), Permissions.explodePermissionGroups(permission));
+    public MangoPermission getPermission() {
+        Set<RoleVO> roles = RoleDao.getInstance().getRoles(getPermissionTypeName());
+        if(roles.isEmpty()) {
+            return new MangoPermission(getPermissionTypeName(), getDefaultRoles());
+        }else {
+            return new MangoPermission(getPermissionTypeName(), roles);
+        }
     }
 }

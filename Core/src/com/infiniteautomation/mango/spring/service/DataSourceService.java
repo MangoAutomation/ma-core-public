@@ -11,11 +11,11 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -33,7 +33,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
 
     @Autowired
     public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService) {
-        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(SystemSettingsDao.PERMISSION_DATASOURCE));
+        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(DataSourcePermissionDefinition.PERMISSION));
     }
 
     @Override

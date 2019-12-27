@@ -159,7 +159,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends ServiceWith
 
     @Override
     void setEditRoles(Set<RoleVO> roles, DataPointVO vo) {
-        T ds = dataSourceService.get(vo.getDataSourceId(), systemSuperadmin);
+        T ds = dataSourceService.getFull(vo.getDataSourceId(), systemSuperadmin);
         ds.setEditRoles(roles);
         dataSourceService.updateFull(ds.getXid(), ds, systemSuperadmin);
     }

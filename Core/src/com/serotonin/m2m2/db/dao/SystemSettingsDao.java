@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -63,7 +62,6 @@ import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.DataPurge;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
 
 /**
@@ -179,9 +177,6 @@ public class SystemSettingsDao extends BaseDao {
     public static final String DATABASE_BACKUP_ENABLED = "databaseBackupEnabled";
 
     public static final String RESTART_DELAY = "restart.delay";
-
-    // Permissions
-    public static final String PERMISSION_DATASOURCE = "permissionDatasource";
 
     //Background Processing
     public static final String HIGH_PRI_CORE_POOL_SIZE = "highPriorityThreadCorePoolSize";
@@ -754,17 +749,6 @@ public class SystemSettingsDao extends BaseDao {
             modDefaults = null;
         }
 
-        for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-            String defaultValue = "";
-            for(String s : def.getValue().getDefaultGroups()) {
-                if(defaultValue.isEmpty())
-                    defaultValue += s;
-                else
-                    defaultValue += ","+s;
-            }
-            DEFAULT_VALUES.put(def.getKey(), defaultValue);
-        }
-
         DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
         DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
 
@@ -1122,21 +1106,6 @@ public class SystemSettingsDao extends BaseDao {
                     response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
             } catch(ClassCastException e) {
                 response.addContextualMessage(SuperadminPermissionDefinition.PERMISSION, "validate.readOnly");
-            }
-        }
-
-        setting = settings.get(PERMISSION_DATASOURCE);
-        if(setting != null) {
-            Set<String> existing = Permissions.explodePermissionGroups(getValue(PERMISSION_DATASOURCE));
-            Permissions.validatePermissions(response, PERMISSION_DATASOURCE, user, false, existing, Permissions.explodePermissionGroups((String)setting));
-        }
-
-        //Check all permissions
-        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
-            setting = settings.get(def.getPermissionTypeName());
-            if(setting != null) {
-                Set<String> existing = Permissions.explodePermissionGroups(getValue(def.getPermissionTypeName()));
-                Permissions.validatePermissions(response, def.getPermissionTypeName(), user, false, existing, Permissions.explodePermissionGroups((String)setting));
             }
         }
 

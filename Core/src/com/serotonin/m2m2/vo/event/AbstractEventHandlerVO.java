@@ -8,9 +8,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -113,20 +111,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
      */
     public void setEventTypes(List<EventType> eventTypes) {
         this.eventTypes = eventTypes;
-    }
-	
-    public void validate(ProcessResult response) {
-        super.validate(response);
-    	//TODO is this true? 
-        //eventTypes are not validated because it assumed they 
-        // must be valid to be created and make it into this list
-        
-        //Ensure that no 2 are the same
-        if(eventTypes != null) {
-            Set<EventType> types = new HashSet<>(eventTypes);
-            if(this.eventTypes.size() != types.size())
-                response.addContextualMessage("eventTypes", "");
-        }
     }
 
     @SuppressWarnings("unchecked")

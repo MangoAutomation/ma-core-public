@@ -7,8 +7,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
-
 import org.junit.Test;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -44,9 +42,9 @@ public class RoleServiceTest extends ServiceTestBase<RoleVO, RoleDao, RoleServic
             
             DataPointVO dp = new DataPointVO();
             dp.setXid("DP_PERM_TEST");
+            dp.setName("test name");
             dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
             dp.setDataSourceId(ds.getId());
-            dp.setReadRoles(Collections.singleton(readRole));
             DataPointDao.getInstance().insert(dp, true);
             
             //TODO Wire into data point service?
@@ -67,32 +65,28 @@ public class RoleServiceTest extends ServiceTestBase<RoleVO, RoleDao, RoleServic
 
     @Test(expected = ValidationException.class)
     public void cannotInsertNewUserRole() {
-        RoleVO vo = newVO();
-        vo.setXid(RoleDao.USER_ROLE_NAME);
-        vo.setName("User default");
+        RoleVO vo = new RoleVO(RoleDao.USER_ROLE_NAME, "user default");
         service.insertFull(vo, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotInsertSuperadminRole() {
-        RoleVO vo = newVO();
-        vo.setXid(RoleDao.SUPERADMIN_ROLE_NAME);
-        vo.setName("Superadmin default");
+        RoleVO vo = new RoleVO(RoleDao.SUPERADMIN_ROLE_NAME, "Superadmin default");
         service.insertFull(vo, systemSuperadmin);
     }
     
     @Test(expected = ValidationException.class)
     public void cannotModifyUserRole() {
         RoleVO vo = service.getFull(RoleDao.USER_ROLE_NAME, systemSuperadmin);
-        vo.setName("User default changed");
-        service.updateFull(vo.getXid(), vo, systemSuperadmin);
+        RoleVO updated = new RoleVO(vo.getXid(), vo.getName());
+        service.updateFull(vo.getXid(), updated, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotModifySuperadminRole() {
         RoleVO vo = service.getFull(RoleDao.SUPERADMIN_ROLE_NAME, systemSuperadmin);
-        vo.setName("Superadmin default changed");
-        service.updateFull(vo.getXid(), vo, systemSuperadmin);
+        RoleVO updated = new RoleVO(vo.getXid(), "Superadmin default changed");
+        service.updateFull(vo.getXid(), updated, systemSuperadmin);
     }
     
     @Override
@@ -120,9 +114,6 @@ public class RoleServiceTest extends ServiceTestBase<RoleVO, RoleDao, RoleServic
 
     @Override
     RoleVO updateVO(RoleVO existing) {
-        RoleVO copy = existing.copy();
-        copy.setName("updated");
-        copy.setXid("NEW_XID");
-        return copy;
+        return new RoleVO(existing.getXid(), "updated name");
     }
 }

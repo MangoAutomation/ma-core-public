@@ -30,6 +30,12 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.spring.service.DataSourceService;
+import com.infiniteautomation.mango.spring.service.EventHandlerService;
+import com.infiniteautomation.mango.spring.service.JsonDataService;
+import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -211,7 +217,19 @@ public class MangoTestBase {
         JsonObject jo = jr.read(JsonObject.class);
         
         User admin = UserDao.getInstance().getUser("admin");
-        ImportTask task = new ImportTask(jo, Common.getTranslations(), admin, false);
+        
+        @SuppressWarnings("unchecked")
+        ImportTask<?,?,?> task = new ImportTask<>(jo, 
+                Common.getTranslations(), 
+                admin, 
+                Common.getBean(UsersService.class),
+                Common.getBean(MailingListService.class),
+                Common.getBean(DataSourceService.class),
+                Common.getBean(DataPointService.class),
+                Common.getBean(PublisherService.class),
+                Common.getBean(EventHandlerService.class),
+                Common.getBean(JsonDataService.class),
+                null, false);
         task.run(Common.timer.currentTimeMillis());
         if(task.getResponse().getHasMessages()){
             for(ProcessMessage message : task.getResponse().getMessages()){

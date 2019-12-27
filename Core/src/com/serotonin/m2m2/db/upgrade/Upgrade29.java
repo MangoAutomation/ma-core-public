@@ -21,9 +21,12 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 
 /**
@@ -50,8 +53,10 @@ public class Upgrade29 extends DBUpgrade {
             createRolesTables(out);
             Map<String, RoleVO> roles = new HashMap<>();
             convertUsers(roles, out);
+            convertSystemSettingsPermissions(roles, out);
             convertDataPoints(roles, out);
             convertDataSources(roles, out);
+            convertJsonData(roles, out);
             convertMailingLists(roles, out);
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
@@ -125,6 +130,22 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
     }
     
+    private void convertSystemSettingsPermissions(Map<String, RoleVO> roles, OutputStream out) throws Exception {
+        //Check all permissions
+        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
+            //Move to roles and map them
+            ejt.query("SELECT settingValue FROM systemSettings WHERE settingName=?", new Object[] {def.getPermissionTypeName()}, new RowCallbackHandler() {
+                @Override
+                public void processRow(ResultSet rs) throws SQLException {
+                    //Add role/mapping
+                    insertMapping(null, def.getPermissionTypeName(), null, explodePermissionGroups(rs.getString(1)), roles);
+                }
+            });
+            //Delete the setting
+            ejt.update("DELETE FROM systemSettings WHERE settingName=?", new Object[] {def.getPermissionTypeName()});
+        }
+    }
+    
     private void convertDataPoints(Map<String, RoleVO> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
         ejt.query("SELECT id, readPermission, setPermission FROM dataPoints", new RowCallbackHandler() {
@@ -162,10 +183,33 @@ public class Upgrade29 extends DBUpgrade {
         
         
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcesSQL);
+        runScript(scripts, out);
+    }
+    
+    private void convertJsonData(Map<String, RoleVO> roles, OutputStream out) throws Exception {
+        //Move current permissions to roles
+        ejt.query("SELECT id, readPermission, editPermission FROM jsonData", new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int voId = rs.getInt(1);
+                //Add role/mapping
+                Set<String> readPermissions = explodePermissionGroups(rs.getString(2));
+                insertMapping(voId, JsonDataVO.class.getSimpleName(), PermissionService.READ, readPermissions, roles);
+                Set<String> editPermissions = explodePermissionGroups(rs.getString(3));
+                insertMapping(voId, JsonDataVO.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
+            }
+        });
+        
+        
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataSQL);
         runScript(scripts, out);
     }
     
@@ -239,16 +283,24 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE users DROP COLUMN permissions;",
     };
     
-    //Mailing lists
     private String[] dataPointsSQL = new String[] {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;"
+    };
+    
+    private String[] dataSourcesSQL = new String[] {
+            "ALTER TABLE dataSources DROP COLUMN editPermission;",
     };
     
     //Mailing lists
     private String[] mailingListSQL = new String[] {
             "ALTER TABLE mailingLists DROP COLUMN readPermission;",
             "ALTER TABLE mailingLists DROP COLUMN editPermission;"
+    };
+    
+    private String[] jsonDataSQL = new String[] {
+            "ALTER TABLE jsonData DROP COLUMN readPermission;",
+            "ALTER TABLE jsonData DROP COLUMN editPermission;"
     };
 
     /**
@@ -259,7 +311,7 @@ public class Upgrade29 extends DBUpgrade {
      * @param existingPermission
      * @param roles
      */
-    private void insertMapping(int voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, RoleVO> roles) {
+    private void insertMapping(Integer voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, RoleVO> roles) {
         //Ensure each role is only used 1x for this permission
         Set<String> voRoles = new HashSet<>();
         for(String permission : existingPermissions) {

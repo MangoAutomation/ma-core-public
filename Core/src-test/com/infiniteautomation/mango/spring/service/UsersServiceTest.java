@@ -61,10 +61,26 @@ public class UsersServiceTest extends ServiceWithPermissionsTestBase<User, UserD
         });
     }
     
+    /** 
+     * Test edit self permission
+     */
+    @Test
+    public void testUserEditRoleDefaultUser() {
+        runTest(() -> {
+            User vo = newVO();
+            vo = service.insertFull(vo, systemSuperadmin);
+            vo.setName("I edited myself");
+            service.updateFull(vo.getUsername(), vo, vo);
+            User updated = service.getFull(vo.getId(), vo);
+            assertVoEqual(vo, updated);
+        });
+    }
+    
     @Override
     @Test(expected = PermissionException.class)
     public void testUserEditRoleFails() {
         runTest(() -> {
+            addRoleToEditSelfPermission(editRole);
             User toUpdate = service.getFull(readUser.getId(), readUser);
             toUpdate.setName("I edited myself");
             toUpdate.setPassword("");
@@ -74,6 +90,52 @@ public class UsersServiceTest extends ServiceWithPermissionsTestBase<User, UserD
         });
     }
 
+    @Test
+    public void testCannotRemoveEditAccess() {
+        //skipped as not possible
+    }
+    
+    @Test
+    public void testAddReadRoleUserDoesNotHave() {
+        //cannot edit another user as non-admin so skipped
+    }
+    
+    @Test
+    public void testReadRolesCannotBeNull() {
+        //skipped as no read roles on a user
+    }
+    
+    @Test
+    public void testCannotRemoveReadAccess() {
+      //skipped as no read roles on a user
+    }
+    
+    @Test
+    public void testEditRolesCannotBeNull() {
+        //skipped as no edit roles
+    }
+    
+    @Test(expected = ValidationException.class)
+    @Override
+    public void testAddEditRoleUserDoesNotHave() {
+        User vo = newVO();
+        vo.setRoles(Collections.singleton(readRole));
+        service.insertFull(vo, systemSuperadmin);
+        vo = service.getFull(vo.getId(), systemSuperadmin);
+        vo.setRoles(Collections.singleton(editRole));
+        service.updateFull(vo.getUsername(), vo, vo);
+    }
+    
+    @Test(expected = ValidationException.class)
+    public void testRemoveRolesFails() {
+        User vo = newVO();
+        vo.setRoles(Collections.singleton(readRole));
+        service.insertFull(vo, systemSuperadmin);
+        vo = service.getFull(vo.getId(), systemSuperadmin);
+        vo.setRoles(Collections.emptySet());
+        service.updateFull(vo.getUsername(), vo, vo);
+    }
+    
     @Test(expected = ValidationException.class)
     public void testChangeUsername() {
         User vo = newVO();

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -50,7 +49,7 @@ public class PermissionService {
     @Autowired
     public PermissionService(RoleDao roleDao) {
         this.roleDao = roleDao;
-        this.dataSourcePermission = (DataSourcePermissionDefinition) ModuleRegistry.getPermissionDefinition(SystemSettingsDao.PERMISSION_DATASOURCE);
+        this.dataSourcePermission = (DataSourcePermissionDefinition) ModuleRegistry.getPermissionDefinition(DataSourcePermissionDefinition.PERMISSION);
     }
     
     /**
@@ -79,7 +78,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder, PermissionDefinition permission) {
-        Set<RoleVO> roles = roleDao.getRoles(permission.getPermissionTypeName());
+        Set<RoleVO> roles = permission.getPermission().getRoles();
         return hasAnyRole(holder, roles);
     }
     
@@ -96,14 +95,10 @@ public class PermissionService {
         Set<MangoPermission> grantedPermissions = new HashSet<>();
 
         for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-            PermissionDefinition definition = def.getValue();
-            Set<RoleVO> roles = roleDao.getRoles(definition.getPermissionTypeName());
+            MangoPermission permission = def.getValue().getPermission();
+            Set<RoleVO> roles = permission.getRoles();
             if(hasAnyRole(holder, roles)) {
-                grantedPermissions.add(new MangoPermission(
-                        definition.getPermissionTypeName(),
-                        null,
-                        null,
-                        roles));
+                grantedPermissions.add(permission);
             }
         }
         return grantedPermissions;

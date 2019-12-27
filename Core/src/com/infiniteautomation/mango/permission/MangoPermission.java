@@ -23,7 +23,19 @@ public class MangoPermission {
     private final Integer voId;
     private final Set<RoleVO> roles;
     
-    
+    /**
+     * 
+     * @param permissionType
+     * @param roles
+     */
+    public MangoPermission(String permissionType, Set<RoleVO> roles) {
+        super();
+        this.permissionType = permissionType;
+        this.voType = null;
+        this.voId = null;
+        this.roles = roles;
+    }
+
     /**
      * @param permissionType
      * @param voType

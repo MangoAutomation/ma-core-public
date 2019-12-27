@@ -3,6 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.HashSet;
+import java.util.ListIterator;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,8 +14,10 @@ import org.springframework.stereotype.Service;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -112,6 +118,48 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
             vo.setEnabled(enabled);
             Common.runtimeManager.savePublisher(vo);
         }        
+    }
+    
+    @Override
+    public ProcessResult validate(PublisherVO<T> vo, PermissionHolder user) {
+        ProcessResult response = super.validate(vo, user);
+        if (vo.isSendSnapshot()) {
+            if (vo.getSnapshotSendPeriods() <= 0)
+                response.addContextualMessage("snapshotSendPeriods", "validate.greaterThanZero");
+            if(!Common.TIME_PERIOD_CODES.isValidId(vo.getSnapshotSendPeriodType(), Common.TimePeriods.MILLISECONDS, Common.TimePeriods.DAYS,
+                    Common.TimePeriods.WEEKS, Common.TimePeriods.MONTHS, Common.TimePeriods.YEARS))
+                response.addContextualMessage("snapshotSendPeriodType", "validate.invalidValue");
+        }
+
+        if (vo.getCacheWarningSize() < 1)
+            response.addContextualMessage("cacheWarningSize", "validate.greaterThanZero");
+
+        if (vo.getCacheDiscardSize() <= vo.getCacheWarningSize())
+            response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
+
+        Set<Integer> set = new HashSet<>();
+        ListIterator<T> it = vo.getPoints().listIterator();
+
+        while(it.hasNext()) {
+            T point = it.next();
+            int pointId = point.getDataPointId();
+            //Does this point even exist?
+
+            if (set.contains(pointId)) {
+                DataPointVO dp = DataPointDao.getInstance().getDataPoint(pointId, false);
+                response.addContextualMessage("points", "validate.publisher.duplicatePoint", dp.getExtendedName(), dp.getXid());
+            }
+            else{
+                String dpXid = DataPointDao.getInstance().getXidById(pointId);
+                if(dpXid == null) {
+                    response.addContextualMessage("points", "validate.publisher.missingPoint", pointId);
+                }else {
+                    set.add(pointId);
+                }
+            }
+        }
+        vo.validate(response);
+        return response;
     }
 
 }

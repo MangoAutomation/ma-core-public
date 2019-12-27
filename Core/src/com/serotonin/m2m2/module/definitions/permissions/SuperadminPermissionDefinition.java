@@ -5,10 +5,13 @@
 package com.serotonin.m2m2.module.definitions.permissions;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.permission.Permission;
+import com.serotonin.m2m2.vo.RoleVO;
 
 /**
  * @author Terry Packer
@@ -18,7 +21,12 @@ public class SuperadminPermissionDefinition extends PermissionDefinition {
     public static final String GROUP_NAME = "superadmin";
     public static final String PERMISSION = "permissions.superadmin";
 
+    private final LazyInitSupplier<MangoPermission> permission = new LazyInitSupplier<>(() -> {
+        return new MangoPermission(PERMISSION, Collections.singleton(RoleDao.getInstance().getSuperadminRole()));
+    });
+    
     public SuperadminPermissionDefinition() {
+    
     }
 
     @Override
@@ -32,12 +40,12 @@ public class SuperadminPermissionDefinition extends PermissionDefinition {
     }
 
     @Override
-    public List<String> getDefaultGroups() {
-        return Collections.singletonList(GROUP_NAME);
+    public Set<RoleVO> getDefaultRoles() {
+        return Collections.singleton(RoleDao.getInstance().getSuperadminRole());
     }
 
     @Override
-    public Permission getPermission() {
-        return new Permission(PERMISSION, Collections.singleton(GROUP_NAME));
+    public MangoPermission getPermission() {
+        return permission.get();
     }
 }

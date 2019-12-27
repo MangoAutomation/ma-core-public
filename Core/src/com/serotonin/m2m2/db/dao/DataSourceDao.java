@@ -520,7 +520,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     
     @Override
     public void saveRelationalData(T vo, boolean insert) {
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
     }
 
 }

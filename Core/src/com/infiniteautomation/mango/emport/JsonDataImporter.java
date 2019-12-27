@@ -6,6 +6,9 @@ package com.infiniteautomation.mango.emport;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.JsonDataService;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -19,21 +22,28 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 public class JsonDataImporter extends Importer {
-    public JsonDataImporter(JsonObject json, PermissionHolder user) {
+    private final JsonDataService service;
+    
+    public JsonDataImporter(JsonObject json, JsonDataService service, PermissionHolder user) {
         super(json, user);
+        this.service = service;
     }
 
     @Override
     protected void importImpl() {
         String xid = json.getString("xid");
-
+        JsonDataVO vo = null;
         boolean isNew = false;
-        if (StringUtils.isBlank(xid)){
-            xid = JsonDataDao.getInstance().generateUniqueXid();
-            isNew = true;
+        if(StringUtils.isBlank(xid)) {
+            xid = service.getDao().generateUniqueXid();
+        }else {
+            try {
+                vo = service.getFull(xid, user);
+            }catch(NotFoundException e) {
+
+            }
         }
-            
-        JsonDataVO vo = JsonDataDao.getInstance().getByXid(xid);
+
         if (vo == null) {
         	isNew = true;
         	vo = new JsonDataVO();
@@ -44,27 +54,17 @@ public class JsonDataImporter extends Importer {
             try {
                 // The VO was found or successfully created. Finish reading it in.
                 ctx.getReader().readInto(vo, json);
-
-                // Now validate it. Use a new response object so we can distinguish errors in this vo from
-                // other errors.
-                ProcessResult voResponse = new ProcessResult();
-                vo.validate(voResponse);
-                if (voResponse.getHasMessages())
-                    setValidationMessages(voResponse, "emport.jsondata.prefix", xid);
-                else {
-                    // Sweet. Save it.
-                    if(isNew) {
-                        JsonDataDao.getInstance().insert(vo, false);
-                    }else {
-                        JsonDataDao.getInstance().update(vo);
-                    }
-                    addSuccessMessage(isNew, "emport.jsondata.prefix", xid);
+                if(isNew) {
+                    service.insert(vo, user);
+                }else {
+                    service.update(vo.getId(), vo, user);
                 }
-            }
-            catch (TranslatableJsonException e) {
+                addSuccessMessage(isNew, "emport.jsondata.prefix", xid);
+            }catch(ValidationException e) {
+                setValidationMessages(e.getValidationResult(), "emport.jsondata.prefix", xid);
+            }catch (TranslatableJsonException e) {
                 addFailureMessage("emport.jsondata.prefix", xid, e.getMsg());
-            }
-            catch (JsonException e) {
+            }catch (JsonException e) {
                 addFailureMessage("emport.jsondata.prefix", xid, getJsonExceptionMessage(e));
             }
         }

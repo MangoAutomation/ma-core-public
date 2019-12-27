@@ -100,6 +100,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
                 new RoleVoSetResultSetExtractor()); 
     }
 
+    
     private static final String INSERT_VO_ROLE_MAPPING = "INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)";
     /**
      * Add a role to the given vo's permission type
@@ -130,12 +131,13 @@ public class RoleDao extends AbstractDao<RoleVO> {
     /**
      * Replace all roles for a vo's given permission type.
      *   NOTE this should be used in a transaction and the RoleVO ids are not set
-     * @param roles - non null set of roles
+     * @param roles
      * @param vo
      * @param permissionType
+     * @param newVO - is this a new VO
      */
-    public void replaceRolesOnVoPermission(Set<RoleVO> roles, AbstractVO<?> vo, String permissionType) {
-        replaceRolesOnVoPermission(roles, vo.getId(), vo.getClass().getSimpleName(), permissionType);
+    public void replaceRolesOnVoPermission(Set<RoleVO> roles, AbstractVO<?> vo, String permissionType, boolean newVO) {
+        replaceRolesOnVoPermission(roles, vo.getId(), vo.getClass().getSimpleName(), permissionType, newVO);
     }
     
     /**
@@ -145,15 +147,18 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param voId
      * @param classSimpleName
      * @param permissionType
+     * @param newVO - is this a new VO
      */
-    public void replaceRolesOnVoPermission(Set<RoleVO> roles, int voId, String classSimpleName, String permissionType) {
+    public void replaceRolesOnVoPermission(Set<RoleVO> roles, int voId, String classSimpleName, String permissionType, boolean newVO) {
         //Delete em all
-        ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?", 
-                new Object[]{
-                        voId,
-                        classSimpleName,
-                        permissionType,
-                });
+        if(!newVO) {
+            ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?", 
+                    new Object[]{
+                            voId,
+                            classSimpleName,
+                            permissionType,
+                    });
+        }
         //Push the new ones in
         List<RoleVO> entries = new ArrayList<>(roles);
         ejt.batchUpdate(INSERT_VO_ROLE_MAPPING, new BatchPreparedStatementSetter() {
@@ -269,5 +274,4 @@ public class RoleDao extends AbstractDao<RoleVO> {
         }
         
     }
-
 }

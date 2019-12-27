@@ -12,7 +12,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
+import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
@@ -25,7 +25,7 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends ServiceWit
 
     @Override
     String getCreatePermissionType() {
-        return SystemSettingsDao.PERMISSION_DATASOURCE;
+        return DataSourcePermissionDefinition.PERMISSION;
     }
 
     @Override

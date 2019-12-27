@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -79,8 +80,6 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 		return new Object[]{
 			vo.getXid(),
 			vo.getName(),
-			vo.getReadPermission(),
-			vo.getEditPermission(),
 			boolToChar(vo.isPublicData()),
 			jsonData
 		};
@@ -92,8 +91,6 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 		map.put("id", Types.INTEGER);
 		map.put("xid", Types.VARCHAR);
 		map.put("name", Types.VARCHAR);
-		map.put("readPermission", Types.VARCHAR);
-		map.put("editPermission", Types.VARCHAR);
 		map.put("publicData", Types.CHAR);
 		map.put("data", Types.CLOB);
 		return map;
@@ -119,8 +116,6 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 			vo.setId(rs.getInt(++i));
 			vo.setXid(rs.getString(++i));
 			vo.setName(rs.getString(++i));
-			vo.setReadPermission(rs.getString(++i));
-			vo.setEditPermission(rs.getString(++i));
 			vo.setPublicData(charToBool(rs.getString(++i)));
 			
 			//Read the data
@@ -132,6 +127,21 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 			
 			return vo;
 		}
+	}
+	
+	@Override
+	public void loadRelationalData(JsonDataVO vo) {
+        //Populate permissions
+        vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
+        vo.setEditRoles(RoleDao.getInstance().getRoles(vo, PermissionService.EDIT));
+
+	}
+	
+	@Override
+	public void saveRelationalData(JsonDataVO vo, boolean insert) {
+        //Replace the role mappings
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo, PermissionService.EDIT, insert);
 	}
 	
 	/**

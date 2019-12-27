@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -15,6 +14,8 @@ import com.serotonin.m2m2.module.PermissionDefinition;
  */
 public class DataSourcePermissionDefinition extends PermissionDefinition {
 	
+    public static String PERMISSION = "permissionDatasource";
+    
     @Override
 	public String getPermissionKey() {
 		return "systemSettings.permissions.datasourceManagement";
@@ -22,7 +23,7 @@ public class DataSourcePermissionDefinition extends PermissionDefinition {
 
 	@Override
 	public String getPermissionTypeName() {
-		return SystemSettingsDao.PERMISSION_DATASOURCE;
+		return PERMISSION;
 	}
 	
 }

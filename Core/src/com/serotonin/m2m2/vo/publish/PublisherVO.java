@@ -11,14 +11,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
@@ -30,7 +25,6 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
@@ -41,11 +35,9 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 import com.serotonin.util.SerializationHelper;
-import com.serotonin.validation.StringValidation;
 
 /**
  * @author Matthew Lohbihler
@@ -224,56 +216,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     }
     public void setPublishAttributeChanges(boolean publish) {
         this.publishAttributeChanges = publish;
-    }
-
-    @Override
-    public void validate(ProcessResult response) {
-        if (StringUtils.isBlank(name))
-            response.addContextualMessage("name", "validate.required");
-        if (StringValidation.isLengthGreaterThan(name, 40))
-            response.addContextualMessage("name", "validate.nameTooLong");
-
-        if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
-        else if (!PublisherDao.getInstance().isXidUnique(xid, id))
-            response.addContextualMessage("xid", "validate.xidUsed");
-        else if (StringValidation.isLengthGreaterThan(xid, 50))
-            response.addContextualMessage("xid", "validate.notLongerThan", 50);
-
-        if (sendSnapshot) {
-            if (snapshotSendPeriods <= 0)
-                response.addContextualMessage("snapshotSendPeriods", "validate.greaterThanZero");
-            if(!Common.TIME_PERIOD_CODES.isValidId(snapshotSendPeriodType, Common.TimePeriods.MILLISECONDS, Common.TimePeriods.DAYS,
-                    Common.TimePeriods.WEEKS, Common.TimePeriods.MONTHS, Common.TimePeriods.YEARS))
-                response.addContextualMessage("snapshotSendPeriodType", "validate.invalidValue");
-        }
-
-        if (cacheWarningSize < 1)
-            response.addContextualMessage("cacheWarningSize", "validate.greaterThanZero");
-
-        if (cacheDiscardSize <= cacheWarningSize)
-            response.addContextualMessage("cacheDiscardSize", "validate.publisher.cacheDiscardSize");
-
-        Set<Integer> set = new HashSet<>();
-        ListIterator<T> it = points.listIterator();
-
-        while(it.hasNext()) {
-            T point = it.next();
-            int pointId = point.getDataPointId();
-            //Does this point even exist?
-
-            if (set.contains(pointId)) {
-                DataPointVO vo = DataPointDao.getInstance().getDataPoint(pointId, false);
-                response.addGenericMessage("validate.publisher.duplicatePoint", vo.getExtendedName(), vo.getXid());
-            }
-            else{
-                String dpXid = DataPointDao.getInstance().getXidById(pointId);
-                if(dpXid == null)
-                    it.remove();
-                else
-                    set.add(pointId);
-            }
-        }
     }
 
     //

@@ -143,8 +143,8 @@ public class MailingListDao extends AbstractDao<MailingList> {
         });
         
         //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getReadRoles(), ml, PermissionService.READ);
-        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getEditRoles(), ml, PermissionService.EDIT);
+        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getReadRoles(), ml, PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(ml.getEditRoles(), ml, PermissionService.EDIT, insert);
 
     }
 

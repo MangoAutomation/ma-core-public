@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -76,8 +78,21 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         return result;
     }
     
+    /**
+     * Add a role to a permission type
+     * @param role
+     * @param permissionType
+     * @param user
+     */
     public void addRoleToPermission(RoleVO role, String permissionType, PermissionHolder user) {
         permissionService.ensureAdminRole(user);
+        Set<RoleVO> permissionRoles = this.dao.getRoles(permissionType);
+        if(permissionRoles.contains(role)) {
+            ProcessResult result = new ProcessResult();
+            result.addGenericMessage("roleAlreadyAssignedToPermission", role.getXid(), permissionType);
+            throw new ValidationException(result);
+        }
+        
         dao.addRoleToPermission(role, permissionType);
     }
     
@@ -88,10 +103,18 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
      * @param permissionType
      * @param user
      */
-    public void addRoleToVoPermission(RoleVO role, AbstractVO<?> vo, String permissionType, PermissionHolder user) {
+    public void addRoleToVoPermission(RoleVO role, AbstractVO<?> vo, String permissionType, PermissionHolder user) throws ValidationException {
+        permissionService.ensureAdminRole(user);
         //TODO PermissionHolder check?
         // Superadmin ok
         // holder must contain the role already?
+        //Cannot add an existing mapping
+        Set<RoleVO> roles = this.dao.getRoles(vo.getId(), vo.getClass().getSimpleName(), permissionType);
+        if(roles.contains(role)) {
+            ProcessResult result = new ProcessResult();
+            result.addGenericMessage("role.alreadyAssignedToPermission", role.getXid(), permissionType,  vo.getClass().getSimpleName());
+            throw new ValidationException(result);
+        }
         this.dao.addRoleToVoPermission(role, vo, permissionType);
     }    
     

@@ -6,6 +6,8 @@ package com.serotonin.m2m2.module.definitions.event.detectors;
 
 import java.util.Objects;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
@@ -14,7 +16,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 
 /**
  * @author Terry Packer
@@ -24,17 +25,15 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
 
 	public static final String SOURCE_ID_COLUMN_NAME = "dataPointId";
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getSourceIdColumnName()
-	 */
+	private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
+	       return Common.getBean(PermissionService.class); 
+	    });
+	
 	@Override
 	public String getSourceIdColumnName() {
 		return SOURCE_ID_COLUMN_NAME;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.EventDetectorDefinition#getSourceTypeName()
-	 */
 	@Override
 	public String getSourceTypeName() {
 		return EventType.EventTypeNames.DATA_POINT;
@@ -65,21 +64,21 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
     public boolean hasEditPermission(PermissionHolder user, T vo) {
         if(vo.getDataPoint() == null)
             return false;
-        return Permissions.hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
+        return permissionService.get().hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
     }
     
     @Override
     public boolean hasReadPermission(PermissionHolder user, T vo) {
         if(vo.getDataPoint() == null)
             return false;
-        return Permissions.hasDataPointReadPermission(user, vo.getDataPoint());
+        return permissionService.get().hasDataPointReadPermission(user, vo.getDataPoint());
     }
     
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
         if(vo.getDataPoint() == null)
             return false;
-        return Permissions.hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
+        return permissionService.get().hasDataSourcePermission(user, vo.getDataPoint().getDataSourceId());
     }
     
     @Override

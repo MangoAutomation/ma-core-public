@@ -6,6 +6,8 @@ package com.serotonin.m2m2.vo.json;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.Set;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -14,10 +16,9 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.RoleVO;
 
 /**
  * @author Terry Packer
@@ -34,10 +35,10 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 
 	private Object jsonData;
 
-	@JsonProperty
-	private String readPermission;
-	@JsonProperty
-	private String editPermission;
+    @JsonProperty
+    private Set<RoleVO> readRoles = Collections.emptySet();
+    @JsonProperty
+    private Set<RoleVO> editRoles = Collections.emptySet();
 	@JsonProperty
 	private boolean publicData;
 	
@@ -48,36 +49,23 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 		this.jsonData = data;
 	}
 
-	public String getReadPermission() {
-		return readPermission;
-	}
-	public void setReadPermission(String readPermission) {
-		this.readPermission = readPermission;
-	}
-
-	public String getEditPermission() {
-		return editPermission;
-	}
-	public void setEditPermission(String editPermission) {
-		this.editPermission = editPermission;
-	}
-
-	public boolean isPublicData() {
+	public Set<RoleVO> getReadRoles() {
+        return readRoles;
+    }
+    public void setReadRoles(Set<RoleVO> readRoles) {
+        this.readRoles = readRoles;
+    }
+    public Set<RoleVO> getEditRoles() {
+        return editRoles;
+    }
+    public void setEditRoles(Set<RoleVO> editRoles) {
+        this.editRoles = editRoles;
+    }
+    public boolean isPublicData() {
 		return publicData;
 	}
 	public void setPublicData(boolean publicData){
 		this.publicData = publicData;
-	}
-	
-	@Override
-    public void validate(ProcessResult response){
-		super.validate(response);
-		
-		try{
-			JsonDataDao.getInstance().writeValueAsString(this.jsonData);
-		}catch(Exception e){
-			response.addMessage("jsonData", new TranslatableMessage("common.default", e.getMessage()));
-		}
 	}
 
     @Override
@@ -96,16 +84,11 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
     	}
     }
 	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()
-	 */
 	@Override
 	public String getTypeKey() {
 		return "event.audit.jsonData";
 	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
+
 	@Override
 	protected JsonDataDao getDao() {
 		return JsonDataDao.getInstance();

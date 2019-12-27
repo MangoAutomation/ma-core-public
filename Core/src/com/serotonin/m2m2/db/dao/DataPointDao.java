@@ -134,7 +134,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     private DataPointDao() {
         super(EventType.EventTypeNames.DATA_POINT, "dp",
-                new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "ds.editPermission", "template.name", "template.xid" }, //Extra Properties not in table
+                new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
                 false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
 
@@ -1175,11 +1175,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
-            String dsEditRoles = rs.getString(++i);
-            if(StringUtils.isNotEmpty(dsEditRoles))
-                dp.setDataSourceEditRoles(Permissions.explodePermissionGroups(dsEditRoles));
-            else
-                dp.setDataSourceEditRoles(Collections.emptySet());
             dp.setTemplateName(rs.getString(++i));
             dp.setTemplateXid(rs.getString(++i));
 
@@ -1237,8 +1232,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         DataPointTagsDao.getInstance().insertTagsForDataPoint(vo, tags);
         //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getSetRoles(), vo, PermissionService.SET);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getSetRoles(), vo, PermissionService.SET, insert);
     }
 
     @Override

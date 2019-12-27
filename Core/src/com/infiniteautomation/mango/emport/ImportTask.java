@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
+import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.UsersService;
@@ -80,6 +81,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             DataPointService dataPointService,
             PublisherService<PUB> publisherService,
             EventHandlerService<EH> eventHandlerService,
+            JsonDataService jsonDataService,
             ProgressiveTaskListener listener, boolean schedule) {
     	super("JSON import task", "JsonImport", 10, listener);
     	this.dataPointService = dataPointService;
@@ -125,7 +127,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject(), user));
         
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
-        	addImporter(new JsonDataImporter(jv.toJsonObject(), user));
+        	addImporter(new JsonDataImporter(jv.toJsonObject(), jsonDataService, user));
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
