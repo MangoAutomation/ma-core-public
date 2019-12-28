@@ -299,7 +299,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
         this.countMonitor.increment();
 
-        this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.CREATE, user, null, null));
+        this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.CREATE, user, null));
     }
 
     private static final String USER_UPDATE = "UPDATE users SET " //
