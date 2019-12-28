@@ -12,9 +12,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -42,17 +43,14 @@ import com.serotonin.m2m2.vo.mailingList.MailingList;
 public class Upgrade29 extends DBUpgrade {
 
     private final Log LOG = LogFactory.getLog(Upgrade29.class);
-
-    private RoleVO superadminRole;
-    private RoleVO userRole;
     
     @Override
     protected void upgrade() throws Exception {
         OutputStream out = createUpdateLogOutputStream();
 
         try {
-            createRolesTables(out);
             Map<String, RoleVO> roles = new HashMap<>();
+            createRolesTables(roles, out);
             convertUsers(roles, out);
             convertSystemSettingsPermissions(roles, out);
             convertDataPoints(roles, out);
@@ -68,7 +66,7 @@ public class Upgrade29 extends DBUpgrade {
         }
     }
 
-    private void createRolesTables(OutputStream out) throws Exception {
+    private void createRolesTables(Map<String, RoleVO> roles, OutputStream out) throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), createRolesMySQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), createRolesSQL);
@@ -77,11 +75,12 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
         
         //Add default user and superadmin roles
-        superadminRole = new RoleVO(RoleDao.SUPERADMIN_ROLE_NAME, Common.translate("roles.superadmin"));
+        RoleVO superadminRole = new RoleVO(RoleDao.SUPERADMIN_ROLE_NAME, Common.translate("roles.superadmin"));
         superadminRole.setId(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {superadminRole.getXid(), superadminRole.getName()}));
-        
-        userRole = new RoleVO(RoleDao.USER_ROLE_NAME, Common.translate("roles.user"));
+        roles.put(superadminRole.getXid(), superadminRole);
+        RoleVO userRole = new RoleVO(RoleDao.USER_ROLE_NAME, Common.translate("roles.user"));
         userRole.setId(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {userRole.getXid(), userRole.getName()}));
+        roles.put(userRole.getXid(), userRole);
     }
     
     private void convertUsers(Map<String, RoleVO> roles, OutputStream out) throws Exception {
@@ -99,14 +98,9 @@ public class Upgrade29 extends DBUpgrade {
                     String role = permission.toLowerCase();
                     roles.compute(role, (k,r) -> {
                         if(r == null) {
-                            if(StringUtils.equalsIgnoreCase(role, RoleDao.SUPERADMIN_ROLE_NAME)) {
-                                r = superadminRole;
-                            }else if(StringUtils.equalsIgnoreCase(role, RoleDao.USER_ROLE_NAME)) {
-                                r = userRole;
-                            }else {
-                                r = new RoleVO(role, role);
-                                r.setId(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}));
-                            }
+                            r = new RoleVO(role, role);
+                            r.setId(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}));
+                            
                         }
                         if(!userRoles.contains(role)) {
                             //Add a mapping
@@ -334,16 +328,36 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE fileStores DROP COLUMN writePermission;"
     };
 
+    /**
+     * Get all existing roles so we can ensure we don't create duplicate roles only new mappings
+     * @return
+     */
+    protected Map<String, RoleVO> getExistingRoles() {
+        return ejt.query("SELECT xid,name FROM roles", new ResultSetExtractor<Map<String, RoleVO>>() {
+
+            @Override
+            public Map<String, RoleVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+                Map<String, RoleVO> mappings = new HashMap<>();
+                while(rs.next()) {
+                    String xid = rs.getString(1);
+                    String name = rs.getString(2);
+                    mappings.put(xid, new RoleVO(xid, name));
+                }
+                return mappings;
+            }
+        });
+    }
     
     /**
      * Ensure role exists and insert mappings for this permission
+     *  this is protected for use in modules for this upgrade
      * @param voId
      * @param voType
      * @param permissionType
      * @param existingPermission
      * @param roles
      */
-    private void insertMapping(Integer voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, RoleVO> roles) {
+    protected void insertMapping(Integer voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, RoleVO> roles) {
         //Ensure each role is only used 1x for this permission
         Set<String> voRoles = new HashSet<>();
         for(String permission : existingPermissions) {
@@ -352,14 +366,8 @@ public class Upgrade29 extends DBUpgrade {
             String role = permission.toLowerCase();
             roles.compute(role, (k,r) -> {
                 if(r == null) {
-                    if(StringUtils.equalsIgnoreCase(role, RoleDao.SUPERADMIN_ROLE_NAME)) {
-                        r = superadminRole;
-                    }else if(StringUtils.equalsIgnoreCase(role, RoleDao.USER_ROLE_NAME)) {
-                        r = userRole;
-                    }else {
-                        r = new RoleVO(role, role);
-                        r.setId(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}));
-                    }
+                    r = new RoleVO(role, role);
+                    r.setId(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}));
                 }
                 if(!voRoles.contains(role)) {
                     //Add a mapping
@@ -377,7 +385,13 @@ public class Upgrade29 extends DBUpgrade {
         }
     }
     
-    private Set<String> explodePermissionGroups(String groups) {
+    
+    /**
+     * For use by modules in this upgrade
+     * @param groups
+     * @return
+     */
+    protected Set<String> explodePermissionGroups(String groups) {
         if (groups == null || groups.isEmpty()) {
             return Collections.emptySet();
         }
