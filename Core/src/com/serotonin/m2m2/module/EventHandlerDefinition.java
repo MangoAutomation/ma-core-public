@@ -36,7 +36,23 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
      * @return a new instance of the event handler.
      */
     abstract protected T createEventHandlerVO();
+    
+    /**
+     * Save any relational data to other tables
+     * @param vo
+     * @param insert (new VO or updating)
+     */
+    public void saveRelationalData(AbstractEventHandlerVO<?> vo, boolean insert) {
+        
+    }
 
+    /**
+     * Load the relational data
+     * @param vo
+     */
+    public void loadRelationalData(AbstractEventHandlerVO<?> vo) {
+        
+    }
     
     /**
      * Used by MA core code to create a new event handler instances as required. Should not be used by client code.

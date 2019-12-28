@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -30,6 +31,7 @@ import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
     public static final String XID_PREFIX = "EH_";
@@ -46,7 +48,11 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
      * @return
      */
     public abstract EventHandlerRT<?> createRuntime();
+    
+    public abstract void validate(ProcessResult result, PermissionService service, PermissionHolder savingUser);
+    public abstract void validate(ProcessResult result, T existing, PermissionService service, PermissionHolder savingUser);
 
+    
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(name))
             return new TranslatableMessage("common.default", name);

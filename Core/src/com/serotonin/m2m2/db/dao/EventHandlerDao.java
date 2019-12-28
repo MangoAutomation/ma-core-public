@@ -225,21 +225,28 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                                     Types.INTEGER});
                 }
             }
+            vo.getDefinition().saveRelationalData(vo, insert);
         } else {
             // Replace all mappings
             deleteEventHandlerMappings(vo.getId());
-                if(vo.getEventTypes() != null) {
-                    for (EventType type : vo.getEventTypes()) {
-                        ejt.doInsert(
-                                "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                                new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                        type.getReferenceId1(), type.getReferenceId2()},
-                                new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                        Types.INTEGER});
-        
-                    }
+            if(vo.getEventTypes() != null) {
+                for (EventType type : vo.getEventTypes()) {
+                    ejt.doInsert(
+                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                            new Object[] {vo.getId(), type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                    type.getReferenceId1(), type.getReferenceId2()},
+                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                    Types.INTEGER});
+    
+                }
             }
+            vo.getDefinition().saveRelationalData(vo, insert);
         }
+    }
+    
+    @Override
+    public void loadRelationalData(T vo) {
+        vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override

@@ -8,14 +8,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -27,7 +26,6 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -36,9 +34,8 @@ import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -71,8 +68,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     private int inactivePointId;
     private String activeScript;
     private String inactiveScript;
-    private ScriptPermissions scriptPermissions;
-    private List<IntStringPair> additionalContext;
+    private ScriptPermissions scriptRoles;
+    private List<IntStringPair> additionalContext = new ArrayList<>();
     
     public int getTargetPointId() {
         return targetPointId;
@@ -146,12 +143,12 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     	this.inactiveScript = inactiveScript;
     }
     
-    public ScriptPermissions getScriptPermissions() {
-    	return scriptPermissions;
+    public ScriptPermissions getScriptRoles() {
+    	return scriptRoles;
     }
     
-    public void setScriptPermissions(ScriptPermissions scriptPermissions) {
-    	this.scriptPermissions = scriptPermissions;
+    public void setScriptRoles(ScriptPermissions scriptRoles) {
+    	this.scriptRoles = scriptRoles;
     }
     
     public List<IntStringPair> getAdditionalContext() {
@@ -162,8 +159,28 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     	this.additionalContext = additionalContext;
     }
     
-    public void validate(ProcessResult response) {
-    	super.validate(response);
+    @Override
+    public void validate(ProcessResult result, PermissionService service, PermissionHolder savingUser) {
+        commonValidation(result, service, savingUser);
+        if(scriptRoles != null) {
+            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, scriptRoles.getRoles());
+        }       
+    }
+    
+    @Override
+    public void validate(ProcessResult result, SetPointEventHandlerVO existing,
+            PermissionService service, PermissionHolder savingUser) {
+        commonValidation(result, service, savingUser);
+        if (scriptRoles != null) {
+            result.addContextualMessage("scriptRoles", "validate.permission.null");
+        }else {
+            Set<RoleVO> existingRoles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
+            service.validateVoRoles(result, "scriptRoles", savingUser, false,
+                    existingRoles, scriptRoles.getRoles());
+        }
+    }
+    
+    private void commonValidation(ProcessResult response, PermissionService service, PermissionHolder savingUser) {
         DataPointVO dp = DataPointDao.getInstance().getDataPoint(targetPointId, false);
 
         int dataType = DataTypes.UNKNOWN;
@@ -179,7 +196,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             response.addContextualMessage("activeAction", "eventHandlers.noSetPointAction");
             response.addContextualMessage("inactiveAction", "eventHandlers.noSetPointAction");
         }
-        MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
+        MangoJavaScriptService javaScriptService = Common.getBean(MangoJavaScriptService.class);
         // Active
         if (activeAction == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
             try {
@@ -209,7 +226,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             if(StringUtils.isEmpty(activeScript))
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
             try {
-                service.compile(activeScript, true, scriptPermissions);
+                javaScriptService.compile(activeScript, true, scriptRoles);
             } catch(ScriptError e) {
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
             }
@@ -244,7 +261,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             if(StringUtils.isEmpty(inactiveScript))
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
             try {
-                service.compile(inactiveScript, true, scriptPermissions);
+                javaScriptService.compile(inactiveScript, true, scriptRoles);
             } catch(ScriptError e) {
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScriptError", e.getTranslatableMessage());
             }
@@ -254,29 +271,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             validateScriptContext(additionalContext, response);
         else
             setAdditionalContext(new ArrayList<>());
-        
-        if(scriptPermissions != null) {
-            User savingUser = Common.getUser();
-            PermissionHolder savingPermissionHolder = savingUser;
-            if(savingUser == null) {
-                savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
-            }
-            
-            boolean owner = false;
-            Set<String> existingPermissions;
-            if(this.id != Common.NEW_ID) {
-                AbstractEventHandlerVO<?> existing = EventHandlerDao.getInstance().get(id);
-                if(existing instanceof SetPointEventHandlerVO) {
-                    existingPermissions = ((SetPointEventHandlerVO)existing).scriptPermissions != null ? ((SetPointEventHandlerVO)existing).scriptPermissions.getPermissionsSet() : Collections.emptySet();
-                    //If it already exists we don't want to check to make sure we have access as we may not already
-                    owner = true;
-                }else
-                    existingPermissions = null;
-            }else {
-                existingPermissions = null;
-            }
-            Permissions.validatePermissions(response, "scriptPermissions", savingPermissionHolder, owner, existingPermissions, scriptPermissions.getPermissionsSet());
-        }
     }
     
     //
@@ -298,7 +292,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         SerializationHelper.writeSafeUTF(out, activeScript);
         SerializationHelper.writeSafeUTF(out, inactiveScript);
         out.writeObject(additionalContext);
-        out.writeObject(scriptPermissions);
+        out.writeObject(scriptRoles);
     }
     
     @SuppressWarnings({"unchecked", "deprecation"})
@@ -316,7 +310,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             inactivePointId = in.readInt();
             activeScript = inactiveScript = null;
             additionalContext = new ArrayList<IntStringPair>();
-            scriptPermissions = new ScriptPermissions();
+            scriptRoles = new ScriptPermissions();
         } else if (ver == 2) {
             targetPointId = in.readInt();
             activeAction = in.readInt();
@@ -328,7 +322,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             activeScript = SerializationHelper.readSafeUTF(in);
             inactiveScript = SerializationHelper.readSafeUTF(in);
             additionalContext = new ArrayList<IntStringPair>();
-            scriptPermissions = new ScriptPermissions();
+            scriptRoles = new ScriptPermissions();
         } else if (ver == 3) {
             targetPointId = in.readInt();
             activeAction = in.readInt();
@@ -342,9 +336,9 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null)
-                scriptPermissions = new ScriptPermissions(oldPermissions.getPermissionsSet());
+                scriptRoles = new ScriptPermissions(oldPermissions.getRoles());
             else
-                scriptPermissions = new ScriptPermissions();
+                scriptRoles = new ScriptPermissions();
         } else if (ver == 4) {
             targetPointId = in.readInt();
             activeAction = in.readInt();
@@ -356,7 +350,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             activeScript = SerializationHelper.readSafeUTF(in);
             inactiveScript = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
-            scriptPermissions = (ScriptPermissions) in.readObject();
+            scriptRoles = (ScriptPermissions) in.readObject();
         }
     }
     
@@ -400,7 +394,9 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         	}
         }
         writer.writeEntry("additionalContext", context);
-        writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissions());
+        if(scriptRoles != null) {
+            writer.writeEntry(ScriptPermissions.JSON_KEY, scriptRoles.getRoles());
+        }
     }
     
     @Override
@@ -496,35 +492,17 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         		additionalContext.add(new IntStringPair(id, contextKey));
         	}
         	this.additionalContext = additionalContext;
-        } else
+        } else {
         	this.additionalContext = new ArrayList<>();
-        
-        if(jsonObject.containsKey("scriptPermissions")) {
-            Set<String> permissions = null;
-            try{
-                JsonObject o = jsonObject.getJsonObject("scriptPermissions");
-                permissions = new HashSet<>();
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataSourcePermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointSetPermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointReadPermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("customPermissions")));
-                this.scriptPermissions = new ScriptPermissions(permissions);
-            }catch(ClassCastException e) {
-               //Munchy munch, not a legacy script permissions object 
-            }
-            if(permissions == null) {
-                this.scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(jsonObject.getString("scriptPermissions")));
-            }
         }
+        this.scriptRoles = ScriptPermissions.readJsonSafely(reader, jsonObject);
     }
-    
     
     @Override
     public EventHandlerRT<SetPointEventHandlerVO> createRuntime(){
     	return new SetPointHandlerRT(this);
     }
 
-    
     public static TranslatableMessage getSetActionMessage(int action) {
         switch (action) {
         case SET_ACTION_NONE:

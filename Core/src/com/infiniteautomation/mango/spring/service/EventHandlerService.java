@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -26,12 +28,7 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
 
     @Autowired
     public EventHandlerService(EventHandlerDao<T> dao, PermissionService permissionService) {
-        super(dao, permissionService);
-    }
-
-    @Override
-    public boolean hasCreatePermission(PermissionHolder user, T vo) {
-        return user.hasAdminRole();
+        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(EventHandlerCreatePermission.PERMISSION));
     }
 
     @Override

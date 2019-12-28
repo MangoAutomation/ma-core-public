@@ -218,8 +218,6 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         });
     }
     
-    
-    
     void addRoleToCreatePermission(RoleVO vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {

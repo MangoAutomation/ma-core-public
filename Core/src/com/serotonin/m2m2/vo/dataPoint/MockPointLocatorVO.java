@@ -39,49 +39,28 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 		this.settable = settable;
 	}
 	
-	
-	/**
-	 * 
-	 */
-	public MockPointLocatorVO() {
-	}
+	public MockPointLocatorVO() {}
 
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#getDataTypeId()
-	 */
 	@Override
 	public int getDataTypeId() {
 		return this.dataTypeId;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#getConfigurationDescription()
-	 */
 	@Override
 	public TranslatableMessage getConfigurationDescription() {
 		return new TranslatableMessage("common.default", "Mock Point Locator");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#isSettable()
-	 */
 	@Override
 	public boolean isSettable() {
 		return this.settable;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.dataSource.PointLocatorVO#createRuntime()
-	 */
 	@Override
 	public MockPointLocatorRT createRuntime() {
 		return new MockPointLocatorRT(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
-	 */
 	@Override
 	public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
 	    Integer value = readDataType(jsonObject, DataTypes.IMAGE);
@@ -90,17 +69,11 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 		
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
-	 */
 	@Override
 	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
 	    writeDataType(writer);
 	}
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO#validateImpl(com.serotonin.m2m2.i18n.ProcessResult, com.serotonin.m2m2.vo.DataPointVO, com.serotonin.m2m2.vo.dataSource.DataSourceVO)
-     */
     @Override
     public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO<?> dsvo) {
         if(!(dsvo instanceof MockDataSourceVO))
@@ -115,6 +88,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
         out.writeInt(dataTypeId);
         out.writeBoolean(settable);
     }
+    
     private void readObject(ObjectInputStream in) throws IOException {
         int version = in.readInt();
         if(version == 1) {
@@ -124,6 +98,4 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
             settable = in.readBoolean();
         }
     }
-    
-
 }

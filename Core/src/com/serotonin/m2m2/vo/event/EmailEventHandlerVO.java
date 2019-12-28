@@ -9,14 +9,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -30,7 +29,6 @@ import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
@@ -38,10 +36,9 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.util.SerializationHelper;
 
 import freemarker.template.Template;
@@ -86,7 +83,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private boolean includeLogfile;
     private String customTemplate;
     private List<IntStringPair> additionalContext = new ArrayList<IntStringPair>();
-    private ScriptPermissions scriptPermissions;
+    private ScriptPermissions scriptRoles;
     private String script;
     private int subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
     
@@ -201,12 +198,12 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 		this.additionalContext = additionalContext;
 	}
 	
-	public ScriptPermissions getScriptPermissions() {
-	    return scriptPermissions;
+	public ScriptPermissions getScriptRoles() {
+	    return scriptRoles;
 	}
 	
-	public void setScriptPermissions(ScriptPermissions scriptPermissions) {
-	    this.scriptPermissions = scriptPermissions;
+	public void setScriptRoles(ScriptPermissions scriptRoles) {
+	    this.scriptRoles = scriptRoles;
 	}
 	
 	public String getScript() {
@@ -226,25 +223,45 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     }
 
 	@Override
-	public void validate(ProcessResult response) {
-		super.validate(response);
+	public void validate(ProcessResult result, PermissionService service, PermissionHolder savingUser) {
+	    commonValidation(result, service, savingUser);
+        if(scriptRoles != null) {
+            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, scriptRoles.getRoles());
+        }
+        
+	}
+    
+    @Override
+    public void validate(ProcessResult result, EmailEventHandlerVO existing,
+            PermissionService service, PermissionHolder savingUser) {
+        commonValidation(result, service, savingUser);
+        if (scriptRoles != null) {
+            result.addContextualMessage("scriptRoles", "validate.permission.null");
+        }else {
+            Set<RoleVO> existingRoles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
+            service.validateVoRoles(result, "scriptRoles", savingUser, false,
+                    existingRoles, scriptRoles.getRoles());
+        }
+    }
+	
+    private void commonValidation(ProcessResult result, PermissionService service, PermissionHolder savingUser) {
         if(activeRecipients != null) {
             int pos = 0;
             for(RecipientListEntryBean b : activeRecipients) {
-                validateRecipient("activeRecipients[" + pos + "]", b, response);
+                validateRecipient("activeRecipients[" + pos + "]", b, result);
                 pos++;
             }
         }
         
         if (sendEscalation) {
             if (escalationDelay <= 0)
-                response.addContextualMessage("escalationDelay", "eventHandlers.escalDelayError");
+                result.addContextualMessage("escalationDelay", "eventHandlers.escalDelayError");
             if(!Common.TIME_PERIOD_CODES.isValidId(escalationDelayType))
-                response.addContextualMessage("escalationDelayType", "validate.invalidValue");
+                result.addContextualMessage("escalationDelayType", "validate.invalidValue");
             if(escalationRecipients != null) {
                 int pos = 0;
                 for(RecipientListEntryBean b : escalationRecipients) {
-                    validateRecipient("escalationRecipients[" + pos + "]", b, response);
+                    validateRecipient("escalationRecipients[" + pos + "]", b, result);
                     pos++;
                 }
             }
@@ -254,48 +271,25 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         try {
             new Template("customTemplate", new StringReader(customTemplate), Common.freemarkerConfiguration);
         }catch(Exception e) {
-            response.addContextualMessage("customTemplate", "common.default", e.getMessage());
+            result.addContextualMessage("customTemplate", "common.default", e.getMessage());
         }
         
         if(additionalContext != null)
-            validateScriptContext(additionalContext, response);
+            validateScriptContext(additionalContext, result);
         else
             setAdditionalContext(new ArrayList<>());
 
         if(!StringUtils.isEmpty(script)) {
             try {
-                Common.getBean(MangoJavaScriptService.class).compile(script, true, scriptPermissions);
+                Common.getBean(MangoJavaScriptService.class).compile(script, true, scriptRoles);
             } catch(ScriptError e) {
-                response.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+                result.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
             }
         }
-        
-        if(scriptPermissions != null) {
-            User savingUser = Common.getUser();
-            PermissionHolder savingPermissionHolder = savingUser;
-            if(savingUser == null) {
-                savingPermissionHolder = Common.getBackgroundContextPermissionHolder();
-            }
-            
-            Set<String> existingPermissions;
-            boolean owner = false;
-            if(this.id != Common.NEW_ID) {
-                AbstractEventHandlerVO<?> existing = EventHandlerDao.getInstance().get(id);
-                if(existing instanceof EmailEventHandlerVO) {
-                    existingPermissions = ((EmailEventHandlerVO)existing).scriptPermissions != null ? ((EmailEventHandlerVO)existing).scriptPermissions.getPermissionsSet() : Collections.emptySet();
-                    //If it already exists we don't want to check to make sure we have access as we may not already
-                    owner = true;
-                }else
-                    existingPermissions = null;
-            }else {
-                existingPermissions = null;
-            }
-            Permissions.validatePermissions(response, "scriptPermissions", savingPermissionHolder, owner, existingPermissions, scriptPermissions.getPermissionsSet());
-        }
-        
         if(!SUBJECT_INCLUDE_CODES.isValidId(subject))
-            response.addContextualMessage("subject", "validate.invalidValue");
-	}
+            result.addContextualMessage("subject", "validate.invalidValue");
+
+    }
     
 	//
     //
@@ -320,7 +314,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         out.writeBoolean(includeLogfile);
         SerializationHelper.writeSafeUTF(out, customTemplate);
         out.writeObject(additionalContext);
-        out.writeObject(scriptPermissions);
+        out.writeObject(scriptRoles);
         SerializationHelper.writeSafeUTF(out, script);
         out.writeInt(subject);
     }
@@ -347,7 +341,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = null;
             additionalContext = new ArrayList<IntStringPair>();
-            scriptPermissions = new ScriptPermissions();
+            scriptRoles = new ScriptPermissions();
             script = null;
         }
         else if (ver == 2) {
@@ -368,7 +362,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = new ArrayList<IntStringPair>();
-            scriptPermissions = new ScriptPermissions();
+            scriptRoles = new ScriptPermissions();
             script = null;
         }
         else if (ver == 3) {
@@ -389,7 +383,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
-            scriptPermissions = new ScriptPermissions();
+            scriptRoles = new ScriptPermissions();
             script = null;
         }
         else if (ver == 4) {
@@ -412,9 +406,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null)
-                scriptPermissions = new ScriptPermissions(oldPermissions.getPermissionsSet());
+                scriptRoles = new ScriptPermissions(oldPermissions.getRoles());
             else
-                scriptPermissions = new ScriptPermissions();
+                scriptRoles = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
         }
         else if (ver == 5) {
@@ -437,9 +431,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null)
-                scriptPermissions = new ScriptPermissions(oldPermissions.getPermissionsSet());
+                scriptRoles = new ScriptPermissions(oldPermissions.getRoles());
             else
-                scriptPermissions = new ScriptPermissions();
+                scriptRoles = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
         }else if (ver == 6) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -459,7 +453,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
-            scriptPermissions = (ScriptPermissions)in.readObject();
+            scriptRoles = (ScriptPermissions)in.readObject();
             script = SerializationHelper.readSafeUTF(in);
         }else if(ver == 7) {
             activeRecipients = (List<RecipientListEntryBean>) in.readObject();
@@ -479,7 +473,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             includeLogfile = in.readBoolean();
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
-            scriptPermissions = (ScriptPermissions)in.readObject();
+            scriptRoles = (ScriptPermissions)in.readObject();
             script = SerializationHelper.readSafeUTF(in);
             subject = in.readInt();
         }
@@ -519,7 +513,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         }
         writer.writeEntry("additionalContext", context);
         writer.writeEntry("script", script);
-        writer.writeEntry("scriptPermissions", scriptPermissions == null ? null : scriptPermissions.getPermissions());
+        if(scriptRoles != null) {
+            writer.writeEntry(ScriptPermissions.JSON_KEY, scriptRoles.getRoles());
+        }
         writer.writeEntry("subject", SUBJECT_INCLUDE_CODES.getCode(subject));
     }
     
@@ -613,23 +609,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         	this.additionalContext = new ArrayList<>();
         
         script = jsonObject.getString("script");
-        if(jsonObject.containsKey("scriptPermissions")) {
-            Set<String> permissions = null;
-            try{
-                JsonObject o = jsonObject.getJsonObject("scriptPermissions");
-                permissions = new HashSet<>();
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataSourcePermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointSetPermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("dataPointReadPermissions")));
-                permissions.addAll(Permissions.explodePermissionGroups(o.getString("customPermissions")));
-                this.scriptPermissions = new ScriptPermissions(permissions);
-            }catch(ClassCastException e) {
-               //Munchy munch, not a legacy script permissions object 
-            }
-            if(permissions == null) {
-                this.scriptPermissions = new ScriptPermissions(Permissions.explodePermissionGroups(jsonObject.getString("scriptPermissions")));
-            }
-        }
+        
+        this.scriptRoles = ScriptPermissions.readJsonSafely(reader, jsonObject);
+        
         text = jsonObject.getString("subject");
         if (text != null) {
             subject = SUBJECT_INCLUDE_CODES.getId(text);

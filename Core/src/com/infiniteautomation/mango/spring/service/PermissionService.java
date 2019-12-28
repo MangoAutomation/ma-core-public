@@ -43,6 +43,7 @@ public class PermissionService {
     public static final String DELETE = "DELETE";
     public static final String SET = "SET";
     public static final String WRITE = "WRITE";
+    public static final String SCRIPT = "SCRIPT";
     
     private final RoleDao roleDao;
     private final DataSourcePermissionDefinition dataSourcePermission;

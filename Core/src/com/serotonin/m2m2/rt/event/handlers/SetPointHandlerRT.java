@@ -120,14 +120,14 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
         		}
 
                 CompiledMangoJavaScript activeScript = new CompiledMangoJavaScript(
-                        new SetCallback(vo.getScriptPermissions()),
+                        new SetCallback(vo.getScriptRoles()),
                         scriptLog,
                         additionalContext,
                         null,
                         importExclusions,
                         false,
                         service,
-                        vo.getScriptPermissions());
+                        vo.getScriptRoles());
                 activeScript.compile(vo.getActiveScript(), true);
                 activeScript.initialize(context);
                 
@@ -220,14 +220,14 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                 }
         	    
                 CompiledMangoJavaScript inactiveScript = new CompiledMangoJavaScript(
-                        new SetCallback(vo.getScriptPermissions()),
+                        new SetCallback(vo.getScriptRoles()),
                         scriptLog,
                         additionalContext,
                         null,
                         importExclusions,
                         false,
                         service,
-                        vo.getScriptPermissions());
+                        vo.getScriptRoles());
                 inactiveScript.compile(vo.getInactiveScript(), true);
                 inactiveScript.initialize(context);
                 

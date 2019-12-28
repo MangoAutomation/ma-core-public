@@ -18,7 +18,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
-import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -37,7 +36,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 public class ScriptPermissions implements JsonSerializable, Serializable, PermissionHolder {
 
-    @JsonProperty
+    public static final String JSON_KEY = "scriptRoles";
+    
     private final Set<RoleVO> roles;
     private final String permissionHolderName; //Name for exception messages
 
@@ -120,7 +120,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
      * @return
      * @throws TranslatableJsonException 
      */
-    public static ScriptPermissions readJsonSafely(JsonObject jsonObject) throws TranslatableJsonException {
+    public static ScriptPermissions readJsonSafely(JsonReader reader, JsonObject jsonObject) throws TranslatableJsonException {
         if(jsonObject.containsKey("scriptPermissions")) {
             try{
                 PermissionService service = Common.getBean(PermissionService.class);
@@ -157,7 +157,17 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                 }
             }
             return new ScriptPermissions(roles);
+        }else if(jsonObject.containsKey(JSON_KEY)){
+            Set<RoleVO> roles = new HashSet<>();
+            JsonArray jsonRoles = jsonObject.getJsonArray(JSON_KEY);
+            try {
+                reader.readInto(roles, jsonRoles);
+            } catch (Exception e) {
+                throw new TranslatableJsonException("emport.error.parseError", JSON_KEY);
+            }
+            return new ScriptPermissions(roles);
         }else {
+            
             return new ScriptPermissions();
         }
     }

@@ -207,7 +207,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     private void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses) {
         sendEmail(evt, notificationType, addresses, vo.getSubject() == EmailEventHandlerVO.SUBJECT_INCLUDE_NAME ? vo.getName() : null, vo.isIncludeSystemInfo(), vo.getIncludePointValueCount(),
                 vo.isIncludeLogfile(), vo.getXid(), vo.getCustomTemplate(), vo.getAdditionalContext(), vo.getScript(),
-                new SetCallback(vo.getScriptPermissions()), vo.getScriptPermissions());
+                new SetCallback(vo.getScriptRoles()), vo.getScriptRoles());
     }
 
     private static void sendEmail(EventInstance evt, NotificationType notificationType, Set<String> addresses,
