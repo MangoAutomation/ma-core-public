@@ -18,13 +18,13 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
  * @author Terry Packer
  *
  */
-public abstract class ServiceWithPermissionsTestBase<VO extends AbstractVO<VO>, DAO extends AbstractDao<VO>, SERVICE extends AbstractVOService<VO,DAO>> extends ServiceTestBase<VO, DAO, SERVICE> {
+public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO<VO>, DAO extends AbstractDao<VO>, SERVICE extends AbstractVOService<VO,DAO>> extends AbstractVOServiceTest<VO, DAO, SERVICE> {
 
-    public ServiceWithPermissionsTestBase() {
+    public AbstractVOServiceWithPermissionsTest() {
         
     }
     
-    public ServiceWithPermissionsTestBase(boolean enableWebDb, int webDbPort) {
+    public AbstractVOServiceWithPermissionsTest(boolean enableWebDb, int webDbPort) {
         super(enableWebDb, webDbPort);
     }
     

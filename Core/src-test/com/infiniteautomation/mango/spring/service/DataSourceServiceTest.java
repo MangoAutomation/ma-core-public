@@ -21,7 +21,7 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
  * @author Terry Packer
  *
  */
-public class DataSourceServiceTest<T extends DataSourceVO<T>> extends ServiceWithPermissionsTestBase<T, DataSourceDao<T>, DataSourceService<T>> {
+public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<T, DataSourceDao<T>, DataSourceService<T>> {
 
     @Override
     String getCreatePermissionType() {

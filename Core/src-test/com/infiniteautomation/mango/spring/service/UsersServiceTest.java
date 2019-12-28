@@ -28,7 +28,7 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
  * @author Terry Packer
  *
  */
-public class UsersServiceTest extends ServiceWithPermissionsTestBase<User, UserDao, UsersService> {
+public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UserDao, UsersService> {
     
     /**
      * Test that we can read ourself

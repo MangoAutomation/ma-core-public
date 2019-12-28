@@ -28,7 +28,7 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
  * @author Terry Packer
  *
  */
-public class MailingListServiceTest extends ServiceWithPermissionsTestBase<MailingList, MailingListDao, MailingListService> {
+public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest<MailingList, MailingListDao, MailingListService> {
 
     @Override
     MailingListService getService() {

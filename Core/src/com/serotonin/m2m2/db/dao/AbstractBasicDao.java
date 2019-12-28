@@ -492,26 +492,37 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return new ArrayList<Index>();
     }
 
+    /**
+     * Delete a VO based on its id 
+     * @param id
+     */
     public void delete(int id) {
-        delete(id, null);
+        delete(get(id));
     }
 
+    //TODO Mango 4.0 remove this?
+    @Deprecated
     public void delete(int id, String initiatorId) {
         T vo = get(id);
         delete(vo, initiatorId);
     }
 
+    /**
+     * Delete a VO (uses id to find it)
+     * @param vo
+     */
     public void delete(T vo) {
-        delete(vo, null);
-    }
-
-    public void delete(T vo, String initiatorId) {
         if (vo != null) {
             ejt.update(DELETE, vo.getId());
             if(this.countMonitor != null)
                 this.countMonitor.decrement();
         }
-
+    }
+    
+    //TODO Mango 4.0 remove this?
+    @Deprecated
+    public void delete(T vo, String initiatorId) {
+        delete(vo);
         this.publishEvent(new DaoEvent<T>(this, DaoEventType.DELETE, vo, initiatorId, null));
     }
 
@@ -529,26 +540,55 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      *            to insert
      */
     protected void insert(T vo) {
-        insert(vo, null);
-    }
-
-    /**
-     *
-     * @param vo
-     * @param initiatorId - For Websocket Notifications
-     */
-    protected void insert(T vo, String initiatorId) {
         int id = -1;
         if (insertStatementPropertyTypes == null)
             id = ejt.doInsert(INSERT, voToObjectArray(vo));
         else
             id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
         vo.setId(id);
-
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, initiatorId, null));
-
         if(this.countMonitor != null)
             this.countMonitor.increment();
+    }
+
+    /**
+     * Insert a vo with optionally saving its relational data in a transaction.
+     * @param vo
+     * @param full
+     */
+    public void insert(T vo, boolean full) {
+        if (full) {
+            getTransactionTemplate().execute(status -> {
+                int id = -1;
+                if (insertStatementPropertyTypes == null)
+                    id = ejt.doInsert(INSERT, voToObjectArray(vo));
+                else
+                    id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
+                vo.setId(id);
+                saveRelationalData(vo, true);
+                return null;
+            });
+        } else {
+            int id = -1;
+            if (insertStatementPropertyTypes == null)
+                id = ejt.doInsert(INSERT, voToObjectArray(vo));
+            else
+                id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
+            vo.setId(id);
+        }
+
+        if (this.countMonitor != null)
+            this.countMonitor.increment();
+    }
+    
+    /**
+     * TODO Mango 4.0 remove this?
+     * @param vo
+     * @param initiatorId - For Websocket Notifications
+     */
+    @Deprecated
+    protected void insert(T vo, String initiatorId) {
+        insert(vo);
+        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, initiatorId, null));
     }
 
     /**
@@ -560,22 +600,56 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected void update(T vo) {
         update(vo, null, null);
     }
+    
+    /**
+     * Update a vo with optionally saving its relational data in a transaction.
+     * @param existing
+     * @param vo
+     * @param full
+     */
+    public void update(T existing, T vo, boolean full) {
+        if(full) {
+            getTransactionTemplate().execute(status -> {
+                List<Object> list = new ArrayList<>();
+                list.addAll(Arrays.asList(voToObjectArray(vo)));
+                list.add(vo.getId());
+        
+                if (updateStatementPropertyTypes == null)
+                    ejt.update(UPDATE, list.toArray());
+                else
+                    ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+                saveRelationalData(vo, false);
+                return null;
+            });
+        }else {
+            List<Object> list = new ArrayList<>();
+            list.addAll(Arrays.asList(voToObjectArray(vo)));
+            list.add(vo.getId());
+    
+            if (updateStatementPropertyTypes == null)
+                ejt.update(UPDATE, list.toArray());
+            else
+                ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+        }
+    }
 
     /**
-     *
+     * TODO Mango 4.0 remove this?
      * @param vo
      * @param initiatorId
      */
+    @Deprecated
     protected void update(T vo, String initiatorId) {
         update(vo, initiatorId, null);
     }
 
     /**
-     *
+     * TODO Mango 4.0 remove this?
      * @param vo
      * @param initiatorId
      * @param originalXid XID of object prior to update
      */
+    @Deprecated
     protected void update(T vo, String initiatorId, String originalXid) {
         List<Object> list = new ArrayList<>();
         list.addAll(Arrays.asList(voToObjectArray(vo)));

@@ -42,6 +42,7 @@ public class PermissionService {
     public static final String EDIT = "EDIT";
     public static final String DELETE = "DELETE";
     public static final String SET = "SET";
+    public static final String WRITE = "WRITE";
     
     private final RoleDao roleDao;
     private final DataSourcePermissionDefinition dataSourcePermission;
@@ -542,7 +543,7 @@ public class PermissionService {
         }
 
         if(newRoles == null) {
-            result.addContextualMessage(contextKey, "validate.invalidValue");
+            result.addContextualMessage(contextKey, "validate.permission.null");
             return;
         }
 

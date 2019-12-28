@@ -20,7 +20,7 @@ import com.serotonin.m2m2.vo.json.JsonDataVO;
  * @author Terry Packer
  *
  */
-public class JsonDataServiceTest extends ServiceWithPermissionsTestBase<JsonDataVO, JsonDataDao, JsonDataService>{
+public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<JsonDataVO, JsonDataDao, JsonDataService>{
 
     @Override
     String getCreatePermissionType() {

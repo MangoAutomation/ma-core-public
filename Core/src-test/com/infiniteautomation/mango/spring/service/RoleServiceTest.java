@@ -25,7 +25,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  *
  */
-public class RoleServiceTest extends ServiceTestBase<RoleVO, RoleDao, RoleService> {
+public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, RoleService> {
 
     /**
      * Test the mapping table

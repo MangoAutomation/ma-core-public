@@ -228,31 +228,11 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param vo
      * @param full
      */
+    @Override
     public void insert(T vo, boolean full) {
-        if (full) {
-            getTransactionTemplate().execute(status -> {
-                int id = -1;
-                if (insertStatementPropertyTypes == null)
-                    id = ejt.doInsert(INSERT, voToObjectArray(vo));
-                else
-                    id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
-                vo.setId(id);
-                saveRelationalData(vo, true);
-                return null;
-            });
-        } else {
-            int id = -1;
-            if (insertStatementPropertyTypes == null)
-                id = ejt.doInsert(INSERT, voToObjectArray(vo));
-            else
-                id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
-            vo.setId(id);
-        }
-        
+        super.insert(vo, full);
         this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, null, null));
         AuditEventType.raiseAddedEvent(this.typeName, vo);
-        if (this.countMonitor != null)
-            this.countMonitor.increment();
     }
 
     
@@ -273,30 +253,9 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param vo
      * @param full
      */
+    @Override
     public void update(T existing, T vo, boolean full) {
-        if(full) {
-            getTransactionTemplate().execute(status -> {
-                List<Object> list = new ArrayList<>();
-                list.addAll(Arrays.asList(voToObjectArray(vo)));
-                list.add(vo.getId());
-        
-                if (updateStatementPropertyTypes == null)
-                    ejt.update(UPDATE, list.toArray());
-                else
-                    ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-                saveRelationalData(vo, false);
-                return null;
-            });
-        }else {
-            List<Object> list = new ArrayList<>();
-            list.addAll(Arrays.asList(voToObjectArray(vo)));
-            list.add(vo.getId());
-    
-            if (updateStatementPropertyTypes == null)
-                ejt.update(UPDATE, list.toArray());
-            else
-                ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-        }
+        super.update(existing, vo, full);
         this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, null, vo.getXid()));
         AuditEventType.raiseChangedEvent(this.typeName, existing, vo);
     }

@@ -28,7 +28,7 @@ import com.serotonin.m2m2.vo.permission.PermissionException;
  * @author Terry Packer
  *
  */
-public class DataPointServiceTest<T extends DataSourceVO<T>> extends ServiceWithPermissionsTestBase<DataPointVO, DataPointDao, DataPointService> {
+public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<DataPointVO, DataPointDao, DataPointService> {
 
     private DataSourceService<T> dataSourceService;
     

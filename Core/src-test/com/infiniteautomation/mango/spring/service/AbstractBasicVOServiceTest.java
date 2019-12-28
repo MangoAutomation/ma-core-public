@@ -17,28 +17,25 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
-import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
- * Base class to test the service layer implementations
- * 
  * @author Terry Packer
  *
  */
-public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends AbstractDao<VO>, SERVICE extends AbstractVOService<VO,DAO>> extends MangoTestBase {
+public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO extends AbstractBasicDao<VO>, SERVICE extends AbstractBasicVOService<VO,DAO>> extends MangoTestBase {
 
-    public ServiceTestBase() {
-        
-    }
-    
-    public ServiceTestBase(boolean enableWebDb, int webDbPort) {
-        super(enableWebDb, webDbPort);
-    }
+    protected SERVICE service;
+    protected DAO dao;
+
+    abstract SERVICE getService();
+    abstract DAO getDao();
+    abstract void assertVoEqual(VO expected, VO actual);
     
     protected RoleService roleService;
     
@@ -55,13 +52,6 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
     protected RoleVO editRole;
     protected RoleVO deleteRole;
     protected RoleVO setRole;
-    
-    protected SERVICE service;
-    protected DAO dao;
-
-    abstract SERVICE getService();
-    abstract DAO getDao();
-    abstract void assertVoEqual(VO expected, VO actual);
     
     /**
      * Create a new VO with all fields populated except any roles
@@ -80,6 +70,18 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
         setupRoles();
         service = getService();
         dao = getDao();
+    }
+    
+    public AbstractBasicVOServiceTest() {
+        
+    }
+    
+    public AbstractBasicVOServiceTest(boolean enableWebDb, int webDbPort) {
+        super(enableWebDb, webDbPort);
+    }
+    
+    public User getEditUser() {
+        return editUser;
     }
     
     @Test
@@ -118,8 +120,7 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
     
     VO insertNewVO() {
         VO vo = newVO();
-        service.insertFull(vo, systemSuperadmin);
-        return vo;
+        return service.insertFull(vo, systemSuperadmin);
     }
     
     void assertRoles(Set<RoleVO> expected, Set<RoleVO> actual) {
@@ -191,6 +192,12 @@ public abstract class ServiceTestBase<VO extends AbstractVO<?>, DAO extends Abst
             }
             fail(failureMessage);
         }
+    }
+    public RoleVO getEditRole() {
+        return editRole;
+    }
+    public RoleService getRoleService() {
+        return roleService;
     }
     
 }

@@ -338,8 +338,6 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 CREATE TABLE fileStores (
 	id int not null auto_increment, 
 	storeName varchar(100) not null, 
-	readPermission varchar(255), 
-	writePermission varchar(255),
 	PRIMARY KEY (id)
 );
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);

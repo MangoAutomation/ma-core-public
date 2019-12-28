@@ -8,14 +8,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.FileStore;
@@ -25,8 +29,7 @@ import com.serotonin.m2m2.vo.FileStore;
  * @author Phillip Dunlap
  */
 @Repository
-public class FileStoreDao extends BaseDao {
-    private static final String SELECT_FILE_STORE_DEFINITIONS = "SELECT storeName, readPermission, writePermission FROM fileStores ";
+public class FileStoreDao extends AbstractBasicDao<FileStore> {
 
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> {
         FileStoreDao dao = Common.getRuntimeContext().getBean(FileStoreDao.class);
@@ -35,26 +38,16 @@ public class FileStoreDao extends BaseDao {
         return dao;
     });
 
-    private FileStoreDao() { }
+    private FileStoreDao() {
+        super("fs", new String[] {}, false,  new TranslatableMessage("internal.monitor.filestoreCount"));
+    }
 
     public static FileStoreDao getInstance() {
         return springInstance.get();
     }
 
-    public List<FileStore> getUserFileStores() {
-        return ejt.query(SELECT_FILE_STORE_DEFINITIONS, new FileStoreRowMapper());
-    }
-
-    public FileStore getUserFileStore(String storeName) {
-        return ejt.queryForObject(SELECT_FILE_STORE_DEFINITIONS + " where storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
-    }
-
-    public FileStore getUserFileStoreById(int storeId) {
-        return ejt.queryForObject(SELECT_FILE_STORE_DEFINITIONS + " where id=?", new Object[] {storeId}, new int[] {Types.INTEGER}, new FileStoreRowMapper(), null);
-    }
-
     public Map<String, FileStoreDefinition> getFileStoreMap() {
-        List<FileStore> fileStores = getUserFileStores();
+        List<FileStore> fileStores = getAll();
         Map<String, FileStoreDefinition> definitionsMap = new HashMap<String, FileStoreDefinition>();
         for(FileStore fs : fileStores)
             definitionsMap.put(fs.getStoreName(), fs.toDefinition());
@@ -65,7 +58,7 @@ public class FileStoreDao extends BaseDao {
     public FileStoreDefinition getFileStoreDefinition(String storeName) {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(storeName);
         if(fsd == null) {
-            FileStore fs = ejt.queryForObject(SELECT_FILE_STORE_DEFINITIONS + " where storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
+            FileStore fs = ejt.queryForObject(SELECT_ALL + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
             if(fs == null)
                 return null;
             return fs.toDefinition();
@@ -75,48 +68,61 @@ public class FileStoreDao extends BaseDao {
 
     private class FileStoreRowMapper implements RowMapper<FileStore> {
 
-        /* (non-Javadoc)
-         * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
-         */
         @Override
         public FileStore mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
             FileStore result = new FileStore();
+            result.setId(rs.getInt(++i));
             result.setStoreName(rs.getString(++i));
-            result.setReadPermission(rs.getString(++i));
-            result.setWritePermission(rs.getString(++i));
             return result;
         }
 
     }
 
-    private static final String INSERT_FILE_STORE = "INSERT INTO fileStores (storeName, readPermission, writePermission) values (?, ?, ?)";
-    private static final String UPDATE_FILE_STORE = "UPDATE fileStores SET storeName=?, readPermission=?, writePermission=? where id=?";
-    private static final String DELETE_FILE_STORE = "DELETE FROM fileStores WHERE ";
-
-    public int saveFileStore(FileStore fs) {
-        if(fs.getId() == Common.NEW_ID)
-            insert(fs);
-        else
-            update(fs);
-        return fs.getId();
+    @Override
+    protected String getTableName() {
+        return SchemaDefinition.FILE_STORES_TABLE;
     }
 
-    private void insert(FileStore fs) {
-        fs.setId(ejt.doInsert(INSERT_FILE_STORE, new Object[] {fs.getStoreName(), fs.getReadPermission(), fs.getWritePermission()},
-                new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR}));
+    @Override
+    protected Object[] voToObjectArray(FileStore vo) {
+        return new Object[] {
+                vo.getStoreName(),
+        };
     }
 
-    private void update(FileStore fs) {
-        ejt.update(UPDATE_FILE_STORE, new Object[] {fs.getStoreName(), fs.getReadPermission(), fs.getWritePermission(), fs.getId()},
-                new int[] {Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER});
+    @Override
+    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+        map.put("id", Types.INTEGER);
+        map.put("storeName", Types.VARCHAR);
+        return map;
     }
 
-    public int deleteFileStore(String storeName) {
-        return ejt.update(DELETE_FILE_STORE + "storeName='" + storeName + "'");
+    @Override
+    protected Map<String, IntStringPair> getPropertiesMap() {
+        return new HashMap<String, IntStringPair>();
     }
 
-    public int deleteFileStore(int storeId) {
-        return ejt.update(DELETE_FILE_STORE + "id='" + storeId + "'");
+    @Override
+    public RowMapper<FileStore> getRowMapper() {
+        return new FileStoreRowMapper();
     }
+    
+    @Override
+    public void saveRelationalData(FileStore vo, boolean insert) {
+        //Replace the role mappings
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getWriteRoles(), vo, PermissionService.WRITE, insert);
+ 
+    }
+    
+    @Override
+    public void loadRelationalData(FileStore vo) {
+        //Populate permissions
+        vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
+        vo.setWriteRoles(RoleDao.getInstance().getRoles(vo, PermissionService.WRITE));
+
+    }
+
 }

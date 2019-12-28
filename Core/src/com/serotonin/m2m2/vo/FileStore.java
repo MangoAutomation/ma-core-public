@@ -4,6 +4,9 @@
  */
 package com.serotonin.m2m2.vo;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 
@@ -11,37 +14,30 @@ import com.serotonin.m2m2.module.FileStoreDefinition;
  *
  * @author Phillip Dunlap
  */
-public class FileStore {
-    private int id;
+public class FileStore extends AbstractBasicVO {
     private String storeName;
-    private String readPermission;
-    private String writePermission;
-    
-    public int getId() {
-        return id;
-    }
-    public void setId(int id) {
-        this.id = id;
-    }
+    private Set<RoleVO> readRoles = Collections.emptySet();
+    private Set<RoleVO> writeRoles = Collections.emptySet();
+
     public String getStoreName() {
         return storeName;
     }
     public void setStoreName(String storeName) {
         this.storeName = storeName;
     }
-    public String getReadPermission() {
-        return readPermission;
-    }
-    public void setReadPermission(String readPermission) {
-        this.readPermission = readPermission;
-    }
-    public String getWritePermission() {
-        return writePermission;
-    }
-    public void setWritePermission(String writePermission) {
-        this.writePermission = writePermission;
-    }
     
+    public Set<RoleVO> getReadRoles() {
+        return readRoles;
+    }
+    public void setReadRoles(Set<RoleVO> readRoles) {
+        this.readRoles = readRoles;
+    }
+    public Set<RoleVO> getWriteRoles() {
+        return writeRoles;
+    }
+    public void setWriteRoles(Set<RoleVO> writeRoles) {
+        this.writeRoles = writeRoles;
+    }
     public FileStoreDefinition toDefinition() {
         return new UserFileStoreDefinition(this);
     }
@@ -64,16 +60,16 @@ public class FileStore {
             return null;
         }
         @Override
-        protected String getReadPermissions() {
-            return fs.getReadPermission();
+        protected Set<RoleVO> getReadRoles() {
+            return fs.getReadRoles();
         }
         @Override
         protected String getWritePermissionTypeName() {
             return null;
         }
         @Override
-        protected String getWritePermissions() {
-            return fs.getWritePermission();
+        protected Set<RoleVO> getWriteRoles() {
+            return fs.getWriteRoles();
         }
     }
 }

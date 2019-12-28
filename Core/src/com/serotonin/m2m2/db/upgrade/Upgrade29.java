@@ -24,6 +24,7 @@ import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
@@ -58,6 +59,7 @@ public class Upgrade29 extends DBUpgrade {
             convertDataSources(roles, out);
             convertJsonData(roles, out);
             convertMailingLists(roles, out);
+            convertFileStores(roles, out);
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
         } finally {
@@ -236,6 +238,29 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
     }
     
+    private void convertFileStores(Map<String, RoleVO> roles, OutputStream out) throws Exception {
+        //Move current permissions to roles
+        ejt.query("SELECT id, readPermission, writePermission FROM fileStores", new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int voId = rs.getInt(1);
+                //Add role/mapping
+                Set<String> readPermissions = explodePermissionGroups(rs.getString(2));
+                insertMapping(voId, FileStore.class.getSimpleName(), PermissionService.READ, readPermissions, roles);
+                Set<String> writePermissions = explodePermissionGroups(rs.getString(3));
+                insertMapping(voId, FileStore.class.getSimpleName(), PermissionService.WRITE, writePermissions, roles);
+            }
+        });
+        
+        
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), fileStoreSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), fileStoreSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), fileStoreSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoreSQL);
+        runScript(scripts, out);
+    }
+    
     //Roles
     private String[] createRolesSQL = new String[] {
             "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));", 
@@ -303,6 +328,12 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE jsonData DROP COLUMN editPermission;"
     };
 
+    private String[] fileStoreSQL = new String[] {
+            "ALTER TABLE fileStores DROP COLUMN readPermission;",
+            "ALTER TABLE fileStores DROP COLUMN writePermission;"
+    };
+
+    
     /**
      * Ensure role exists and insert mappings for this permission
      * @param voId

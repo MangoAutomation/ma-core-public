@@ -28,7 +28,7 @@ import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.RoleVO;
 
 /**
@@ -83,7 +83,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param vo
      * @return
      */
-    public Set<RoleVO> getRoles(AbstractVO<?> vo, String permissionType) {
+    public Set<RoleVO> getRoles(AbstractBasicVO vo, String permissionType) {
         return getRoles(vo.getId(), vo.getClass().getSimpleName(), permissionType);
     }
     
@@ -108,7 +108,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param vo
      * @param permissionType
      */
-    public void addRoleToVoPermission(RoleVO role, AbstractVO<?> vo, String permissionType) {
+    public void addRoleToVoPermission(RoleVO role, AbstractBasicVO vo, String permissionType) {
         doInsert(INSERT_VO_ROLE_MAPPING, 
                 new Object[]{
                         role.getId(),
@@ -136,7 +136,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      * @param newVO - is this a new VO
      */
-    public void replaceRolesOnVoPermission(Set<RoleVO> roles, AbstractVO<?> vo, String permissionType, boolean newVO) {
+    public void replaceRolesOnVoPermission(Set<RoleVO> roles, AbstractBasicVO vo, String permissionType, boolean newVO) {
         replaceRolesOnVoPermission(roles, vo.getId(), vo.getClass().getSimpleName(), permissionType, newVO);
     }
     
