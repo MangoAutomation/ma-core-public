@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.rt.event.type;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
@@ -79,7 +80,7 @@ public class MockEventType extends EventType {
     }
 
     @Override
-    public boolean hasPermission(PermissionHolder user) {
+    public boolean hasPermission(PermissionHolder user, PermissionService service) {
         return user.hasAdminRole() || user.hasSingleRole(this.required);
     }
 

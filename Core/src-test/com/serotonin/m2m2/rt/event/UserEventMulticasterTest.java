@@ -12,6 +12,7 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
@@ -179,6 +180,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
     @Test
     public void testMulticastEventsForUsersWithPermissions() {
         
+        PermissionService service = Common.getBean(PermissionService.class);
         int dataPointId = 1;
         int eventCount = 10000;
         int userCount = 5*6;
@@ -196,7 +198,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
         MockEventType mockEventType =  new MockEventType(DuplicateHandling.ALLOW, null, 0, dataPointId);
         for(User u : users) {
             MockUserEventListener l = new MockUserEventListener(u);
-            if(mockEventType.hasPermission(u)) //This work is normally done by the event manager handling the raiseEvent calls
+            if(mockEventType.hasPermission(u, service)) //This work is normally done by the event manager handling the raiseEvent calls
                 idsToNotify.add(u.getId());    // through an EventNotifyWorkItem
             listeners.add(l);
             multicaster = UserEventMulticaster.add(multicaster, l);
