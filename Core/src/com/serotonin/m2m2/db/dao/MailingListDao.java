@@ -179,6 +179,11 @@ public class MailingListDao extends AbstractDao<MailingList> {
             }
         }
     }
+    
+    @Override
+    public void deleteRelationalData(MailingList vo) {
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.EDIT);
+    }
 
     @Override
     protected String getXidPrefix() {
