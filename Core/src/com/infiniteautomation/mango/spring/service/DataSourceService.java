@@ -10,15 +10,19 @@ import org.springframework.stereotype.Service;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.validation.StringValidation;
@@ -31,9 +35,12 @@ import com.serotonin.validation.StringValidation;
 @Service
 public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOService<T, DataSourceDao<T>> {
 
+    private final DataPointService dataPointService;
+    
     @Autowired
-    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService) {
+    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService, DataPointService dataPointService) {
         super(dao, permissionService, ModuleRegistry.getPermissionDefinition(DataSourcePermissionDefinition.PERMISSION));
+        this.dataPointService = dataPointService;
     }
 
     @Override
@@ -52,7 +59,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     }
 
     @Override
-    protected T insert(T vo, PermissionHolder user, boolean full)
+    public T insert(T vo, boolean full, PermissionHolder user)
             throws PermissionException, ValidationException {
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
@@ -76,8 +83,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     
     
     @Override
-    protected T update(T existing, T vo,
-            PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    public T update(T existing, T vo,
+            boolean full, PermissionHolder user) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         
         //Ensure matching data source types
@@ -96,7 +103,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     @Override
     public T delete(String xid, PermissionHolder user)
             throws PermissionException, NotFoundException {
-        T vo = getFull(xid, user);
+        T vo = get(xid, true, user);
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
         return vo;
@@ -124,7 +131,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param user
      */
     public void restart(String xid, boolean enabled, boolean restart, PermissionHolder user) {
-        T vo = getFull(xid, user);
+        T vo = get(xid, true, user);
         T existing = vo.copy();
         ensureEditPermission(user, vo);
         if (enabled && restart) {
@@ -150,7 +157,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @throws NotFoundException
      */
     public T copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints, PermissionHolder user) throws PermissionException, NotFoundException {
-        T existing = get(xid, user);
+        T existing = get(xid, true, user);
         ensureCreatePermission(user, existing);
         //Determine the new name
         String newName;
@@ -192,11 +199,42 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         Common.runtimeManager.insertDataSource(copy);
         
         if(copyPoints) {
-            DataSourceDao.getInstance().copyDataSourcePoints(existing.getId(), copy.getId(), newDeviceName);
+            copyDataSourcePoints(existing.getId(), copy, newDeviceName, user);
         }
-        return get(newXid, user);
+        return get(newXid, true, user);
     }
-    
+   
+    /**
+     * 
+     * @param dataSourceId - original id to get points from
+     * @param dataSourceCopy
+     * @param newDeviceName - if null will use data source copy's name
+     * @param user
+     */
+    private void copyDataSourcePoints(int dataSourceId, DataSourceVO<?> dataSourceCopy, String newDeviceName,
+            PermissionHolder user) {
+        // Copy the points by getting each point without any relational data and loading it as we need it
+        for (DataPointVO dataPoint : dataPointService.getDataPoints(dataSourceId, true, user)) {
+            DataPointVO dataPointCopy = dataPoint.copy();
+            dataPointCopy.setId(Common.NEW_ID);
+            dataPointCopy.setXid(dataPointService.getDao().generateUniqueXid());
+            dataPointCopy.setName(dataPoint.getName());
+            dataPointCopy.setDeviceName(newDeviceName != null ? newDeviceName : dataSourceCopy.getName());
+            dataPointCopy.setDataSourceId(dataSourceCopy.getId());
+            dataPointCopy.setEnabled(dataPoint.isEnabled());
+            
+            //Copy Tags
+            dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
+            //Copy event detectors and simulate them being new
+            dataPointCopy.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dataPoint.getId(), dataPointCopy));
+            for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
+                ped.setId(Common.NEW_ID);
+                ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
+            }
+            dataPointService.insert(dataPointCopy, true, user);
+        }
+    }
+
     @Override
     public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);

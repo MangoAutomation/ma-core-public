@@ -48,12 +48,12 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
             DataPointVO vo = newVO();
-            T ds = dataSourceService.getFull(vo.getDataSourceId(), systemSuperadmin);
+            T ds = dataSourceService.get(vo.getDataSourceId(), true, systemSuperadmin);
             ds.setEditRoles(Collections.singleton(editRole));
-            dataSourceService.updateFull(ds.getXid(), ds, systemSuperadmin);
+            dataSourceService.update(ds.getXid(), ds, true, systemSuperadmin);
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-            service.insertFull(vo, editUser);
+            service.insert(vo, true, editUser);
         });
     }
     
@@ -66,7 +66,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
             vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-            vo = service.insertFull(vo, editUser);
+            vo = service.insert(vo, true, editUser);
             service.delete(vo.getId(), editUser);
         });
     }
@@ -79,12 +79,12 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
             vo.setSetRoles(Collections.singleton(RoleDao.getInstance().getUserRole()));
-            service.insertFull(vo, systemSuperadmin);
-            DataPointVO fromDb = service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            DataPointVO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
             fromDb.setName("read user edited me");
-            service.updateFull(fromDb.getXid(), fromDb, readUser);
-            DataPointVO updated = service.getFull(fromDb.getId(), readUser);
+            service.update(fromDb.getXid(), fromDb, true, readUser);
+            DataPointVO updated = service.get(fromDb.getId(), true, readUser);
             assertVoEqual(fromDb, updated);
         });
     }
@@ -97,12 +97,12 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
             setEditRoles(Collections.emptySet(), vo);
             vo.setSetRoles(Collections.singleton(RoleDao.getInstance().getUserRole()));
-            service.insertFull(vo, systemSuperadmin);
-            DataPointVO fromDb = service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            DataPointVO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
             fromDb.setName("read user edited me");
-            service.updateFull(fromDb.getXid(), fromDb, readUser);
-            DataPointVO updated = service.getFull(fromDb.getId(), readUser);
+            service.update(fromDb.getXid(), fromDb, true, readUser);
+            DataPointVO updated = service.get(fromDb.getId(), true, readUser);
             assertVoEqual(fromDb, updated);
         });
     }
@@ -125,12 +125,12 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
         vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-        service.insertFull(vo, systemSuperadmin);
-        DataPointVO fromDb = service.getFull(vo.getId(), readUser);
+        service.insert(vo, true, systemSuperadmin);
+        DataPointVO fromDb = service.get(vo.getId(), true, readUser);
         assertVoEqual(vo, fromDb);
         fromDb.setName("read user edited me");
         fromDb.setSetRoles(Collections.emptySet());
-        service.updateFull(fromDb.getXid(), fromDb, readUser);
+        service.update(fromDb.getXid(), fromDb, true, readUser);
     }
     
     @Test(expected = ValidationException.class)
@@ -139,12 +139,12 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
         vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-        service.insertFull(vo, systemSuperadmin);
-        DataPointVO fromDb = service.getFull(vo.getId(), readUser);
+        service.insert(vo, true, systemSuperadmin);
+        DataPointVO fromDb = service.get(vo.getId(), true, readUser);
         assertVoEqual(vo, fromDb);
         fromDb.setName("read user edited me");
         fromDb.setSetRoles(Collections.singleton(roleService.getSuperadminRole()));
-        service.updateFull(fromDb.getXid(), fromDb, readUser);
+        service.update(fromDb.getXid(), fromDb, true, readUser);
     }
     
     @Override
@@ -159,9 +159,9 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
 
     @Override
     void setEditRoles(Set<RoleVO> roles, DataPointVO vo) {
-        T ds = dataSourceService.getFull(vo.getDataSourceId(), systemSuperadmin);
+        T ds = dataSourceService.get(vo.getDataSourceId(), true, systemSuperadmin);
         ds.setEditRoles(roles);
-        dataSourceService.updateFull(ds.getXid(), ds, systemSuperadmin);
+        dataSourceService.update(ds.getXid(), ds, true, systemSuperadmin);
     }
 
     @Override
@@ -190,7 +190,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     DataPointVO newVO() {
         //Create a source for this point
-        T mock = dataSourceService.insertFull(createDataSource(), systemSuperadmin);
+        T mock = dataSourceService.insert(createDataSource(), true, systemSuperadmin);
         
         //Create the point
         DataPointVO vo = new DataPointVO();

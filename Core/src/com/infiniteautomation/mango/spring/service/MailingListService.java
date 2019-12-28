@@ -125,7 +125,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                     case EmailRecipient.TYPE_USER:
                         //Ensure the user exists
                         UserEntry ue = (UserEntry)recipient;
-                        if(UserDao.getInstance().get(ue.getUserId()) == null)
+                        if(UserDao.getInstance().get(ue.getUserId(), true) == null)
                             result.addContextualMessage("recipients[" + index + "]", "validate.invalidValue");
                         break;
                 }

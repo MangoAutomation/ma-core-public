@@ -181,7 +181,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     }
     
     private void commonValidation(ProcessResult response, PermissionService service, PermissionHolder savingUser) {
-        DataPointVO dp = DataPointDao.getInstance().getDataPoint(targetPointId, false);
+        DataPointVO dp = DataPointDao.getInstance().get(targetPointId, false);
 
         int dataType = DataTypes.UNKNOWN;
         if (dp == null)
@@ -215,7 +215,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             }
         }
         else if (activeAction == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
-            DataPointVO dpActive = DataPointDao.getInstance().getDataPoint(activePointId, false);
+            DataPointVO dpActive = DataPointDao.getInstance().get(activePointId, false);
 
             if (dpActive == null)
                 response.addContextualMessage("activePointId", "eventHandlers.invalidActiveSource");
@@ -250,7 +250,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             }
         }
         else if (inactiveAction == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
-            DataPointVO dpInactive = DataPointDao.getInstance().getDataPoint(inactivePointId, false);
+            DataPointVO dpInactive = DataPointDao.getInstance().get(inactivePointId, false);
 
             if (dpInactive == null)
                 response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSource");
@@ -385,7 +385,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         
         JsonArray context = new JsonArray();
         for(IntStringPair pnt : additionalContext) {
-        	DataPointVO dpvo = DataPointDao.getInstance().getDataPoint(pnt.getKey(), false);
+        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey(), false);
         	if(dpvo != null) {
         		JsonObject point = new JsonObject();
         		point.put("dataPointXid", dpvo.getXid());

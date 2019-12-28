@@ -23,27 +23,24 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
 
     private final DaoEventType type;
     private final T vo;
-    private final String initiatorId;
     private final String originalXid;
     private final Set<?> updatedFields;
 
     /**
      * @param source
      */
-    public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String initiatorId, String originalXid) {
+    public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String originalXid) {
         super(source);
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);
-        this.initiatorId = initiatorId;
         this.originalXid = originalXid;
         this.updatedFields = Collections.emptySet();
     }
 
-    public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String initiatorId, String originalXid, Set<?> updatedFields) {
+    public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String originalXid, Set<?> updatedFields) {
         super(source);
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);
-        this.initiatorId = initiatorId;
         this.originalXid = originalXid;
         this.updatedFields = Objects.requireNonNull(updatedFields);
     }
@@ -54,10 +51,6 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
 
     public T getVo() {
         return vo;
-    }
-
-    public String getInitiatorId() {
-        return initiatorId;
     }
 
     public String getOriginalXid() {

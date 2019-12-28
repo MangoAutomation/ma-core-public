@@ -11,8 +11,6 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.JsonDataDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -38,7 +36,7 @@ public class JsonDataImporter extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                vo = service.getFull(xid, user);
+                vo = service.get(xid, true, user);
             }catch(NotFoundException e) {
 
             }
@@ -55,9 +53,9 @@ public class JsonDataImporter extends Importer {
                 // The VO was found or successfully created. Finish reading it in.
                 ctx.getReader().readInto(vo, json);
                 if(isNew) {
-                    service.insert(vo, user);
+                    service.insert(vo, true, user);
                 }else {
-                    service.update(vo.getId(), vo, user);
+                    service.update(vo.getId(), vo, true, user);
                 }
                 addSuccessMessage(isNew, "emport.jsondata.prefix", xid);
             }catch(ValidationException e) {

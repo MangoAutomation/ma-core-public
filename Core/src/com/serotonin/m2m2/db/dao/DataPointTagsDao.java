@@ -176,7 +176,7 @@ public class DataPointTagsDao extends BaseDao {
 
     public Set<String> getTagKeys(User user) {
         Table<Record> fromTable = DATA_POINT_TAGS;
-        if (!user.hasAdminPermission()) {
+        if (!user.hasAdminRole()) {
             fromTable = joinPointPermissions(fromTable, DATA_POINT_ID, user);
         }
 
@@ -190,7 +190,7 @@ public class DataPointTagsDao extends BaseDao {
 
     public Set<String> getTagValuesForKey(String tagKey, User user) {
         Table<Record> fromTable = DATA_POINT_TAGS;
-        if (!user.hasAdminPermission()) {
+        if (!user.hasAdminRole()) {
             fromTable = joinPointPermissions(fromTable, DATA_POINT_ID, user);
         }
 
@@ -220,7 +220,7 @@ public class DataPointTagsDao extends BaseDao {
         }).collect(Collectors.toCollection(ArrayList::new));
 
         Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-        if (!user.hasAdminPermission()) {
+        if (!user.hasAdminRole()) {
             from = joinPointPermissions(from, PIVOT_ALIAS_DATA_POINT_ID, user);
         }
 
@@ -247,7 +247,7 @@ public class DataPointTagsDao extends BaseDao {
         Map<String, Name> tagKeyToColumn = conditions.getTagKeyToColumn();
 
         Table<Record> from = createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-        if (!user.hasAdminPermission()) {
+        if (!user.hasAdminRole()) {
             from = joinPointPermissions(from, PIVOT_ALIAS_DATA_POINT_ID, user);
         }
 

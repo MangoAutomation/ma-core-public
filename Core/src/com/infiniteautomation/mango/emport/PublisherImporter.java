@@ -34,7 +34,7 @@ public class PublisherImporter<PUB extends PublishedPointVO> extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try{
-                vo = service.getFull(xid, user);
+                vo = service.get(xid, true, user);
             }catch(NotFoundException e) {
                 
             }

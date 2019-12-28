@@ -7,11 +7,9 @@ package com.serotonin.m2m2.vo.event;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.web.util.HtmlUtils;
-
+import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
@@ -121,14 +119,6 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
         this.activeTimestamp = activeTimestamp;
     }
 
-    public String getActiveTimestampString(){
-        return DeltamationCommon.formatDate(this.activeTimestamp);
-    }
-
-    public void setActiveTimestampString(){
-        //NoOp
-    }
-
     public boolean isRtnApplicable() {
         return rtnApplicable;
     }
@@ -147,14 +137,6 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     public void setRtnTimestamp(long rtnTimestamp) {
         this.rtnTimestamp = rtnTimestamp;
     }
-
-    public String getRtnTimestampString(){
-        return DeltamationCommon.formatDate(this.rtnTimestamp);
-    }
-    public void setRtnTimestampString(String s){
-        //NoOp
-    }
-
 
     public ReturnCause getRtnCause() {
         return rtnCause;
@@ -231,7 +213,7 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
     }
 
     public String getAcknowledgedTimestampString(){
-        return DeltamationCommon.formatDate(this.acknowledgedTimestamp);
+        return Functions.getFullSecondTime(this.acknowledgedTimestamp);
     }
     public void setAcknowledgedTimestamp(String s){
         //NoOp
@@ -359,16 +341,6 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
         return acknowledgedTimestamp > 0;
     }
 
-    public void setTotalTimeString(String tt){
-        //NoOp
-    }
-    public String getTotalTimeString(){
-        if(this.isRtnApplicable())
-            return DeltamationCommon.formatDuration(this.totalTime);
-        else
-            return "N/A";
-    }
-
     public void setTotalTime(Long totalTime){
         this.totalTime = totalTime;
     }
@@ -376,65 +348,11 @@ public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
         return totalTime;
     }
 
-    public void setAckMessageString(String s){
-        //NoOp
-    }
-    /**
-     * Get a formatted message
-     * time - username for the acknowledgement
-     * @return
-     */
-    public String getAckMessageString() {
-        if (isAcknowledged()) {
-            String msg = this.getAcknowledgedTimestampString() + " ";
-            if (acknowledgedByUserId != 0)
-                msg += new TranslatableMessage("events.ackedByUser", acknowledgedByUsername).translate(Common.getTranslations());
-            if (alternateAckSource != null)
-                msg += alternateAckSource.translate(Common.getTranslations());
-            return msg;
-        }
-        return "";
-    }
-
-    /**
-     * Construct the comments html
-     * @return
-     */
-    public String getCommentsHTML(){
-        StringBuilder builder = new StringBuilder("");
-        if(eventComments != null){
-            builder.append("</br>");
-            for(UserCommentVO comment : this.eventComments){
-                builder.append("<span class='copyTitle'>");
-                builder.append("<img style='padding-right: 5px' src='/images/comment.png' title='").append(Common.translate("notes.note")).append("'/>");
-                builder.append(DeltamationCommon.formatDate(comment.getTs())).append(" ");
-                builder.append(Common.translate("notes.by")).append(" ");
-                if(comment.getUsername() == null)
-                    builder.append(Common.translate("common.deleted"));
-                else
-                    builder.append(HtmlUtils.htmlEscape(comment.getUsername()));
-                builder.append("</span></br>");
-                builder.append(HtmlUtils.htmlEscape(comment.getComment())).append("</br>");
-            }
-        }
-        return builder.toString();
-    }
-    public void setCommentsHTML(String s){
-        //NoOp
-    }
-    /* (non-Javadoc)
-     *
-     * @see com.serotonin.m2m2.util.ChangeComparable#getTypeKey()
-     */
     @Override
     public String getTypeKey() {
         return null; //TODO Currently No Audit Events for this
     }
 
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-     */
     @Override
     protected AbstractDao<EventInstanceVO> getDao() {
         throw new ShouldNeverHappenException("Un-implemented");

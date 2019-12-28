@@ -36,7 +36,7 @@ public class EventDetectorImporter extends Importer {
 		//Everyone is in the same thread so no synchronization on dataPointMap required.
 		if(dataPointMap.containsKey(dataPointXid))
 		    dpvo = dataPointMap.get(dataPointXid);
-		else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.getInstance().getByXid(dataPointXid)) == null) {
+		else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.getInstance().getByXid(dataPointXid, false)) == null) {
 			addFailureMessage("emport.error.missingPoint", dataPointXid);
 			return;
 		} else {
@@ -61,7 +61,7 @@ public class EventDetectorImporter extends Importer {
         JsonArray handlerXids = json.getJsonArray("handlers");
         if(handlerXids != null)
             for(int k = 0; k < handlerXids.size(); k+=1) {
-                AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
+                AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k), true);
                 if(eh == null) {
                     addFailureMessage("emport.eventHandler.missing", handlerXids.getString(k));
                     return;

@@ -32,17 +32,17 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
     
     /**
      * Save a detector an optionally reload its source
+     * 
      * @param vo
-     * @param user
-     * @param full
      * @param restartSource
+     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insertFull(T vo, PermissionHolder user, boolean restartSource)
+    public T insertAndReload(T vo, boolean restartSource, PermissionHolder user)
             throws PermissionException, ValidationException {
-        vo = super.insert(vo, user, true);
+        vo = super.insert(vo, true, user);
         
         if(restartSource)
             vo.getDefinition().restartSource(vo);
@@ -53,33 +53,21 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
     /**
      * Update and optionally restart the source
      * 
+     * 
      * @param existing
      * @param vo
-     * @param user
      * @param restartSource
-     * @return
-     */
-    public T updateFull(String existing, T vo, PermissionHolder user, boolean restartSource) {
-        return updateFull(get(existing, user), vo, user, restartSource);
-    }
-    
-    /**
-     * Update and optionally restart the source
-     * @param existing
-     * @param vo
-     * @param user
      * @param full
-     * @param restartSource
+     * @param user
      * @return
-     * @throws PermissionException
-     * @throws ValidationException
      */
-    public T updateFull(T existing, T vo, PermissionHolder user, boolean restartSource) throws PermissionException, ValidationException {
-        vo = super.updateFull(existing, vo, user);
+    public T updateAndReload(String existing, T vo, boolean restartSource, boolean full, PermissionHolder user) {
+        T updated = update(get(existing, full, user), vo, full, user);
         if(restartSource)
-            vo.getDefinition().restartSource(vo);
-        return vo;
+            updated.getDefinition().restartSource(updated);
+        return updated;
     }
+
     
     @Override
     public T delete(String xid, PermissionHolder user)

@@ -102,44 +102,15 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     
     /**
      * 
-     * @param xid
-     * @param user
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
-     */
-    public T get(int id, PermissionHolder user) throws NotFoundException, PermissionException {
-        return get(id, user, false);
-    }
-    
-    /**
-     * 
      * @param id
      * @param user
+     * @param full - include relational data
      * @return
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public T getFull(int id, PermissionHolder user) throws NotFoundException, PermissionException {
-        return get(id, user, true);
-    }
-    
-    /**
-     * 
-     * @param id
-     * @param user
-     * @param full
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
-     */
-    protected T get(int id, PermissionHolder user, boolean full) throws NotFoundException, PermissionException {
-        T vo;
-        if(full)
-            vo = dao.getFull(id);
-        else
-            vo = dao.get(id);
-           
+    public T get(int id, boolean full, PermissionHolder user) throws NotFoundException, PermissionException {
+        T vo = dao.get(id, full);
         if(vo == null)
             throw new NotFoundException();
         ensureReadPermission(user, vo);
@@ -147,39 +118,15 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     }
     
     /**
-     * Insert a vo with its relational data
-     * @param vo
-     * @param user
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     */
-    public T insertFull(T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return insert(vo, user, true);
-    }
-    
-    /**
-     * Insert a vo without its relational data
-     * @param vo
-     * @param user
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     */
-    public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return insert(vo, user, false);
-    }
-    
-    /**
      * 
      * @param vo
      * @param user
-     * @param full
+     * @param full - include relational data
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    public T insert(T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
         
@@ -196,69 +143,31 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     }
     
     /**
-     * Update using an Id
-     * @param existingId
-     * @param vo
-     * @param user
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     */
-    public T update(int existingId, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return update(get(existingId, user), vo , user);
-    }
-
-
-    /**
-     * Update a vo without its relational data
-     * @param existing
-     * @param vo
-     * @param user
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     */
-    public T update(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-       return update(existing, vo, user, false);
-    }
-    
-    /**
      * 
      * @param existingId
      * @param vo
-     * @param user
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     */
-    public T updateFull(int existingId, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return updateFull(getFull(existingId, user), vo, user);
-    }
-
-    /**
-     * Update a vo and its relational data
-     * @param existing
-     * @param vo
-     * @param user
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     */
-    public T updateFull(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return update(existing, vo, user, true);
-    }
-    
-    /**
-     * 
-     * @param existing
-     * @param vo
-     * @param user
      * @param full
+     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    protected T update(T existing, T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    public T update(int existingId, T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
+        return update(get(existingId, full, user), vo, full, user);
+    }
+    
+    /**
+     * 
+     * @param existing
+     * @param vo
+     * @param full - include relational data
+     * @param user
+     * 
+     * @return
+     * @throws PermissionException
+     * @throws ValidationException
+     */
+    public T update(T existing, T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
@@ -275,7 +184,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @throws NotFoundException
      */
     public T delete(int id, PermissionHolder user) throws PermissionException, NotFoundException {
-        T vo = get(id, user, true);
+        T vo = get(id, true, user);
         return delete(vo, user);
     }
     

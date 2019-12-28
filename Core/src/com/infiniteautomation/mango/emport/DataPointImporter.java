@@ -49,7 +49,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             xid = dataPointService.getDao().generateUniqueXid();
         }else {
             try {
-                vo = dataPointService.getFull(xid, user);
+                vo = dataPointService.get(xid, true, user);
             }catch(NotFoundException e) {
                 
             }
@@ -59,7 +59,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             // Locate the data source for the point.
             String dsxid = json.getString("dataSourceXid");
             try {
-                dsvo = dataSourceService.get(dsxid, user);
+                dsvo = dataSourceService.get(dsxid, false, user);
             }catch(NotFoundException e) {
                 addFailureMessage("emport.dataPoint.badReference", xid);
                 return;
@@ -79,7 +79,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             	if(json.containsKey("templateXid")){
                 	String templateXid = json.getString("templateXid");
                 	if(!StringUtils.isEmpty(templateXid))
-                		template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().getByXid(templateXid);
+                		template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().getByXid(templateXid, false);
                 	
                 }
             	//Read into the VO to get all properties
@@ -108,11 +108,11 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
 
                 	//We will always override the DS Info with the one from the XID Lookup
                     try{
-                        dsvo = dataSourceService.getFull(vo.getDataSourceXid(), user);
+                        dsvo = dataSourceService.get(vo.getDataSourceXid(), true, user);
                         //Compare this point to the existing point in DB to ensure
                         // that we aren't moving a point to a different type of Data Source
                         // note that we don't need the join data
-                        DataPointVO oldPoint = dataPointService.get(vo.getId(), user);
+                        DataPointVO oldPoint = dataPointService.get(vo.getId(), false, user);
                         
                         //Does the old point have a different data source?
                         if(oldPoint != null&&(oldPoint.getDataSourceId() != dsvo.getId())){
@@ -128,9 +128,9 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
                     try {
                     	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
                     	    if(isNew) {
-                    	        dataPointService.insertFull(vo, user);
+                    	        dataPointService.insert(vo, true, user);
                     	    }else {
-                    	        dataPointService.updateFull(vo.getId(), vo, user);
+                    	        dataPointService.update(vo.getId(), vo, true, user);
                     	    }
                     		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     	}else{

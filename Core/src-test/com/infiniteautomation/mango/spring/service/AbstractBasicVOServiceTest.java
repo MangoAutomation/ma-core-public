@@ -88,7 +88,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     public void testCreate() {
         runTest(() -> {
             VO vo = insertNewVO();
-            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);            
         });
     }
@@ -97,12 +97,12 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     public void testUpdate() {
         runTest(() -> {
             VO vo = insertNewVO();
-            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
             
             VO updated = updateVO(vo);
-            service.updateFull(vo.getId(), updated, systemSuperadmin);
-            fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            service.update(vo.getId(), updated, true, systemSuperadmin);
+            fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(updated, fromDb);            
         });
     }
@@ -111,16 +111,16 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     public void testDelete() {
         runTest(() -> {
             VO vo = insertNewVO();
-            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
             service.delete(vo.getId(), systemSuperadmin);
-            service.getFull(vo.getId(), systemSuperadmin);            
+            service.get(vo.getId(), true, systemSuperadmin);            
         });
     }
     
     VO insertNewVO() {
         VO vo = newVO();
-        return service.insertFull(vo, systemSuperadmin);
+        return service.insert(vo, true, systemSuperadmin);
     }
     
     void assertRoles(Set<RoleVO> expected, Set<RoleVO> actual) {
@@ -154,16 +154,16 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
 
         //Add some roles
         readRole = new RoleVO("read-role", "Role to allow reading.");
-        roleService.insert(readRole, systemSuperadmin);
+        roleService.insert(readRole, true, systemSuperadmin);
         
         editRole = new RoleVO("edit-role", "Role to allow editing.");
-        roleService.insert(editRole, systemSuperadmin);
+        roleService.insert(editRole, true, systemSuperadmin);
         
         setRole = new RoleVO("set-role", "Role to allow setting.");
-        roleService.insert(setRole, systemSuperadmin);
+        roleService.insert(setRole, true, systemSuperadmin);
         
         deleteRole = new RoleVO("delete-role", "Role to allow deleting.");
-        roleService.insert(deleteRole, systemSuperadmin);
+        roleService.insert(deleteRole, true, systemSuperadmin);
 
         readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
         editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);

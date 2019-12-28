@@ -56,7 +56,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditRoles(editRoles);
-        return dataSourceService.insertFull(dsVo, systemSuperadmin);
+        return dataSourceService.insert(dsVo, true, systemSuperadmin);
     }
     
     DataPointVO createDataPoint(DataSourceVO<?> dsVo, Set<RoleVO> readRoles, Set<RoleVO> setRoles) {
@@ -66,7 +66,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         point.setReadRoles(readRoles);
         point.setSetRoles(setRoles);
         point.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
-        dataPointService.insertFull(point, systemSuperadmin);
+        dataPointService.insert(point, true, systemSuperadmin);
         return point;
     }
     
@@ -83,7 +83,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         SetPointEventHandlerVO vo = newVO();
-        service.insertFull(vo, editUser);
+        service.insert(vo, true, editUser);
     }
 
     @Test
@@ -91,7 +91,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         runTest(() -> {
             SetPointEventHandlerVO vo = newVO();
             addRoleToCreatePermission(editRole);
-            service.insertFull(vo, editUser);
+            service.insert(vo, true, editUser);
         });
     }
     

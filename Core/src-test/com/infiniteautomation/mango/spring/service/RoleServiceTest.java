@@ -66,27 +66,27 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
     @Test(expected = ValidationException.class)
     public void cannotInsertNewUserRole() {
         RoleVO vo = new RoleVO(RoleDao.USER_ROLE_NAME, "user default");
-        service.insertFull(vo, systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotInsertSuperadminRole() {
         RoleVO vo = new RoleVO(RoleDao.SUPERADMIN_ROLE_NAME, "Superadmin default");
-        service.insertFull(vo, systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
     }
     
     @Test(expected = ValidationException.class)
     public void cannotModifyUserRole() {
-        RoleVO vo = service.getFull(RoleDao.USER_ROLE_NAME, systemSuperadmin);
+        RoleVO vo = service.get(RoleDao.USER_ROLE_NAME, true, systemSuperadmin);
         RoleVO updated = new RoleVO(vo.getXid(), vo.getName());
-        service.updateFull(vo.getXid(), updated, systemSuperadmin);
+        service.update(vo.getXid(), updated, true, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotModifySuperadminRole() {
-        RoleVO vo = service.getFull(RoleDao.SUPERADMIN_ROLE_NAME, systemSuperadmin);
+        RoleVO vo = service.get(RoleDao.SUPERADMIN_ROLE_NAME, true, systemSuperadmin);
         RoleVO updated = new RoleVO(vo.getXid(), "Superadmin default changed");
-        service.updateFull(vo.getXid(), updated, systemSuperadmin);
+        service.update(vo.getXid(), updated, true, systemSuperadmin);
     }
     
     @Override

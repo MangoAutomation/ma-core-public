@@ -8,7 +8,6 @@ public class DataPointSummary implements IDataPoint {
     private String name;
     private int dataSourceId;
     private String deviceName;
-    private int pointFolderId;
     private Set<RoleVO> readRoles;
     private Set<RoleVO> setRoles;
 
@@ -22,7 +21,6 @@ public class DataPointSummary implements IDataPoint {
         name = vo.getName();
         dataSourceId = vo.getDataSourceId();
         deviceName = vo.getDeviceName();
-        pointFolderId = vo.getPointFolderId();
         readRoles = vo.getReadRoles();
         setRoles = vo.getSetRoles();
     }
@@ -70,15 +68,6 @@ public class DataPointSummary implements IDataPoint {
 
     public void setDeviceName(String deviceName) {
         this.deviceName = deviceName;
-    }
-
-    @Override
-    public int getPointFolderId() {
-        return pointFolderId;
-    }
-
-    public void setPointFolderId(int pointFolderId) {
-        this.pointFolderId = pointFolderId;
     }
 
     @Override

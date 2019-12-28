@@ -361,7 +361,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
     public void validate(ProcessResult response) {
         if (handlerType == TYPE_SET_POINT) {
-            DataPointVO dp = DataPointDao.getInstance().getDataPoint(targetPointId, false);
+            DataPointVO dp = DataPointDao.getInstance().get(targetPointId, false);
 
             if (dp == null)
                 response.addGenericMessage("eventHandlers.noTargetPoint");
@@ -391,7 +391,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (activeAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpActive = DataPointDao.getInstance().getDataPoint(activePointId, false);
+                    DataPointVO dpActive = DataPointDao.getInstance().get(activePointId, false);
 
                     if (dpActive == null)
                         response.addGenericMessage("eventHandlers.invalidActiveSource");
@@ -419,7 +419,7 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
                 }
 
                 if (inactiveAction == SET_ACTION_POINT_VALUE) {
-                    DataPointVO dpInactive = DataPointDao.getInstance().getDataPoint(inactivePointId, false);
+                    DataPointVO dpInactive = DataPointDao.getInstance().get(inactivePointId, false);
 
                     if (dpInactive == null)
                         response.addGenericMessage("eventHandlers.invalidInactiveSource");

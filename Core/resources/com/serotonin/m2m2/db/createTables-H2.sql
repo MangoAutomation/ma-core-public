@@ -124,7 +124,6 @@ CREATE TABLE dataPoints (
   name varchar(255),
   deviceName varchar(255),
   enabled char(1),
-  pointFolderId int,
   loggingType int,
   intervalLoggingPeriodType int,
   intervalLoggingPeriod int,

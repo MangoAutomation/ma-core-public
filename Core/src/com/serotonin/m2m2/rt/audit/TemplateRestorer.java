@@ -30,7 +30,7 @@ public class TemplateRestorer extends Restorer<BaseTemplateVO<?>>{
 
 	@Override
 	protected BaseTemplateVO<?> getExisting(int id){
-		return TemplateDao.getInstance().get(id);
+		return TemplateDao.getInstance().get(id, false);
 	}
 	
 	@Override

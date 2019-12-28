@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.rt.console;
 
-import com.serotonin.m2m2.DeltamationCommon;
+import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.view.stats.ITime;
 
 /**
@@ -77,9 +77,7 @@ public class LogEvent implements ITime{
 	public void setLocationInfo(String locationInfo) {
 		this.locationInfo = locationInfo;
 	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.view.stats.ITime#getTime()
-	 */
+
 	@Override
 	public long getTime() {
 		return this.time;
@@ -90,8 +88,9 @@ public class LogEvent implements ITime{
 	}
 
 	public String getPrettyTime(){
-		return DeltamationCommon.formatDate(this.time);
+		return Functions.getFullSecondTime(this.time);
 	}
+	
 	public void setPrettyTime(String s){
 		//no-op
 	}

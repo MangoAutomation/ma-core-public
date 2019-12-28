@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -463,7 +464,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      *
      * @return map of properties
      */
-    protected abstract Map<String, IntStringPair> getPropertiesMap();
+    protected Map<String, IntStringPair> getPropertiesMap() {
+        return null;
+    }
 
     /**
      * Gets the row mapper for converting the retrieved database values into a
@@ -494,64 +497,43 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     /**
      * Delete a VO based on its id 
+     *  this will always get the FKs to ensure they will be deleted if 
+     *  there is no ON CASCADE for the FK
      * @param id
      */
-    public void delete(int id) {
-        delete(get(id));
-    }
-
-    //TODO Mango 4.0 remove this?
-    @Deprecated
-    public void delete(int id, String initiatorId) {
-        T vo = get(id);
-        delete(vo, initiatorId);
+    public boolean delete(int id) {
+        return delete(get(id, true));
     }
 
     /**
      * Delete a VO (uses id to find it)
      * @param vo
      */
-    public void delete(T vo) {
+    public boolean delete(T vo) {
         if (vo != null) {
-            ejt.update(DELETE, vo.getId());
+            Integer deleted = (Integer) getTransactionTemplate().execute(status -> {
+                deleteRelationalData(vo);
+                return ejt.update(DELETE, vo.getId());
+            });
+            
             if(this.countMonitor != null)
-                this.countMonitor.decrement();
+                this.countMonitor.addValue(-deleted);
+            if(deleted > 0) {
+                this.publishEvent(createDaoEvent(DaoEventType.DELETE, vo, vo));
+            }
+            return deleted > 0;
         }
+        return false;
     }
     
-    //TODO Mango 4.0 remove this?
-    @Deprecated
-    public void delete(T vo, String initiatorId) {
-        delete(vo);
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.DELETE, vo, initiatorId, null));
-    }
-
     /**
-     * Save relational data for a vo to a different table
+     * Optionally delete any relational data
      * @param vo
      */
-    public void saveRelationalData(T vo, boolean insert) {
-    }
-
+    public void deleteRelationalData(T vo) { }
+    
     /**
-     * Insert a new vo and assign the ID
-     *
-     * @param vo
-     *            to insert
-     */
-    protected void insert(T vo) {
-        int id = -1;
-        if (insertStatementPropertyTypes == null)
-            id = ejt.doInsert(INSERT, voToObjectArray(vo));
-        else
-            id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
-        vo.setId(id);
-        if(this.countMonitor != null)
-            this.countMonitor.increment();
-    }
-
-    /**
-     * Insert a vo with optionally saving its relational data in a transaction.
+     * Insert a vo with optionally saving relational data in a transaction
      * @param vo
      * @param full
      */
@@ -575,34 +557,32 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
             vo.setId(id);
         }
+        this.publishEvent(createDaoEvent(DaoEventType.CREATE, vo, null));
 
         if (this.countMonitor != null)
             this.countMonitor.increment();
     }
     
     /**
-     * TODO Mango 4.0 remove this?
+     * Save relational data for a vo to a different table
      * @param vo
-     * @param initiatorId - For Websocket Notifications
      */
-    @Deprecated
-    protected void insert(T vo, String initiatorId) {
-        insert(vo);
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, initiatorId, null));
-    }
-
+    public void saveRelationalData(T vo, boolean insert) { }
+    
+    
     /**
-     * Update a vo
-     *
+     * Update a vo with optionally saving its relational data in a transaction.
+     * Fire Dao event upon completion
      * @param vo
-     *            to update
+     * @param full
      */
-    protected void update(T vo) {
-        update(vo, null, null);
+    public void update(T vo, boolean full) {
+        update(get(vo.getId(), full), vo, full);
     }
     
     /**
      * Update a vo with optionally saving its relational data in a transaction.
+     * Fire Dao event upon completion
      * @param existing
      * @param vo
      * @param full
@@ -631,87 +611,57 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             else
                 ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
         }
-    }
-
-    /**
-     * TODO Mango 4.0 remove this?
-     * @param vo
-     * @param initiatorId
-     */
-    @Deprecated
-    protected void update(T vo, String initiatorId) {
-        update(vo, initiatorId, null);
-    }
-
-    /**
-     * TODO Mango 4.0 remove this?
-     * @param vo
-     * @param initiatorId
-     * @param originalXid XID of object prior to update
-     */
-    @Deprecated
-    protected void update(T vo, String initiatorId, String originalXid) {
-        List<Object> list = new ArrayList<>();
-        list.addAll(Arrays.asList(voToObjectArray(vo)));
-        list.add(vo.getId());
-
-        if (updateStatementPropertyTypes == null)
-            ejt.update(UPDATE, list.toArray());
-        else
-            ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, initiatorId, originalXid));
-    }
-
-    /**
-     * Return a VO and load its relational data
-     *
-     * @param id
-     * @return
-     */
-    public T getFull(int id) {
-        T item = get(id);
-        if (item != null) {
-            loadRelationalData(item);
-        }
-        return item;
+        this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, existing));
     }
 
     /**
      * Load relational data from another table
      * @param vo
      */
-    public void loadRelationalData(T vo) {
-    }
+    public void loadRelationalData(T vo) { }
 
+    
     /**
-     * Get By ID
+     * Return a VO and load its relational data
      *
      * @param id
      * @return
      */
-    public T get(int id) {
-        return queryForObject(SELECT_BY_ID, new Object[] { id }, getRowMapper(), null);
+    public T get(int id, boolean full) {
+        T item = queryForObject(SELECT_BY_ID, new Object[] { id }, getRowMapper(), null);
+        if (item != null && full) {
+            loadRelationalData(item);
+        }
+        return item;
     }
 
     /**
-     * Get All from table
+     * Callback for all VOs with FKs Populated optionally
      *
      * @return
      */
-    public List<T> getAll() {
-        return query(SELECT_ALL_FIXED_SORT, getRowMapper());
+    public void getAll(MappedRowCallback<T> callback, boolean full) {
+        query(SELECT_ALL_FIXED_SORT, new Object[] {}, getCallbackResultSetExtractor((item, index)->{
+            if(full) {
+                loadRelationalData(item);
+            }
+            callback.row(item, index);
+        }));
     }
 
     /**
-     * Get All from table
+     * Return all VOs with FKs Populated optionally
      *
      * @return
      */
-    public void getAll(MappedRowCallback<T> callback) {
-        query(SELECT_ALL_FIXED_SORT, new Object[] {}, getRowMapper(), callback);
+    public List<T> getAll(boolean full) {
+        List<T> items = new ArrayList<>();
+        getAll((item, index) -> {
+            items.add(item);
+        }, full);
+        return items;
     }
-
+    
     /**
      * Count all from table
      *
@@ -719,20 +669,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      */
     public int count() {
         return ejt.queryForInt(COUNT, new Object[0], 0);
-    }
-
-    /**
-     * Return all VOs with FKs Populated
-     *
-     * @return
-     */
-    public List<T> getAllFull() {
-        List<T> items = new ArrayList<>();
-        getAll((item, index) -> {
-            loadRelationalData(item);
-            items.add(item);
-        });
-        return items;
     }
 
     /**
@@ -751,18 +687,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return this.queryForObject(SELECT_XID_BY_ID, new Object[] { id }, String.class, null);
     }
 
-    /**
-     * Return all VOs with FKs Populated
-     *
-     * @return
-     */
-    public void getAllFull(MappedRowCallback<T> callback) {
-        getAll((item, index) -> {
-            loadRelationalData(item);
-            callback.row(item, index);
-        });
-    }
-
     protected String applyRange(String sql, List<Object> args, Integer offset, Integer limit) {
         if (offset == null || limit == null) {
             return sql;
@@ -774,7 +698,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 args.add(limit);
                 args.add(offset);
                 return sql + " LIMIT ? OFFSET ?";
-            case DERBY:
             case MSSQL:
             case H2:
                 args.add(offset);
@@ -794,7 +717,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         switch (Common.databaseProxy.getType()) {
             case MYSQL:
             case POSTGRES:
-            case DERBY:
             case MSSQL:
             case H2:
                 args.add(limit);
@@ -1053,29 +975,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             stopWatch = new LogStopWatch();
         }
 
-        //this.query(sql, argumentsArray, this.getRowMapper(), callback );
-        this.query(sql, argumentsArray, new ResultSetExtractor<Void>() {
+        this.query(sql, argumentsArray, getCallbackResultSetExtractor(callback));
 
-            @Override
-            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
-                RowMapper<T> rowMapper = getRowMapper();
-                int rowNum = 0;
-                while (rs.next()) {
-                    try {
-                        callback.row(rowMapper.mapRow(rs, rowNum), rowNum);
-                    }catch (Exception e) {
-                        if(e.getCause() instanceof ModuleNotLoadedException)
-                            LOG.error(e.getCause().getMessage(), e.getCause());
-                        else
-                            LOG.error(e.getMessage(), e);
-                    }finally {
-                        rowNum++;
-                    }
-                }
-                return null;
-            }
-
-        });
         if (stopWatch != null) {
             stopWatch.stop("customizedQuery(): " + this.create.renderInlined(offsetStep), metricsThreshold);
         }
@@ -1121,6 +1022,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return this.customizedCount(result);
     }
 
+    protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
+        return new DaoEvent<T>(this, type, vo, null);
+    }
+    
     protected void publishEvent(DaoEvent<T> event) {
         if (this.eventPublisher != null) {
             this.eventPublisher.publishEvent(event);
@@ -1142,4 +1047,87 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public ObjectReader getObjectReader(Class<?> type) {
         return mapper.readerFor(type);
     }
+    
+    /**
+     * Available to overload the result set extractor for list queries
+     * @param callback
+     * @return
+     */
+    protected ResultSetExtractor<List<T>> getListResultSetExtractor() {
+        return getListResultSetExtractor((e,rs) -> {
+            if(e.getCause() instanceof ModuleNotLoadedException)
+                LOG.error(e.getCause().getMessage(), e.getCause());
+            else
+                LOG.error(e.getMessage(), e);
+        });
+    }
+    
+    /**
+     * 
+     * @param error
+     * @return
+     */
+    protected ResultSetExtractor<List<T>> getListResultSetExtractor(BiConsumer<Exception, ResultSet> error) {
+        return new ResultSetExtractor<List<T>>() {
+
+            @Override
+            public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
+                RowMapper<T> rowMapper = getRowMapper();
+                List<T> results = new ArrayList<>();
+                int rowNum = 0;
+                while (rs.next()) {
+                    try {
+                        results.add(rowMapper.mapRow(rs, rowNum));
+                    }catch (Exception e) {
+                        error.accept(e, rs);
+                    }finally {
+                        rowNum++;
+                    }
+                }
+                return results;
+            }
+        };
+    }
+
+    /**
+     * Available to overload the result set extractor for callback queries 
+     *  to customize error handling
+     * @param callback
+     * @return
+     */
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(MappedRowCallback<T> callback) {
+       return getCallbackResultSetExtractor(callback, (e, rs) -> {
+           if(e.getCause() instanceof ModuleNotLoadedException)
+               LOG.error(e.getCause().getMessage(), e.getCause());
+           else
+               LOG.error(e.getMessage(), e);
+       }); 
+    }
+    
+    /**
+     * 
+     * @param callback
+     * @param error
+     * @return
+     */
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(MappedRowCallback<T> callback, BiConsumer<Exception, ResultSet> error) {
+        return new ResultSetExtractor<Void>() {
+
+             @Override
+             public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
+                 RowMapper<T> rowMapper = getRowMapper();
+                 int rowNum = 0;
+                 while (rs.next()) {
+                     try {
+                         callback.row(rowMapper.mapRow(rs, rowNum), rowNum);
+                     }catch (Exception e) {
+                         error.accept(e, rs);
+                     }finally {
+                         rowNum++;
+                     }
+                 }
+                 return null;
+             }
+         };
+     }
 }

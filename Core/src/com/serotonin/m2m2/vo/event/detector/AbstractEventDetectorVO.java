@@ -27,7 +27,6 @@ import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -62,14 +61,6 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	 * Our defintion
 	 */
 	protected EventDetectorDefinition<T> definition;
-	
-	/**
-     * Return the Model Representation of the Event Detector Source
-     * @return
-     */
-    public AbstractEventDetectorModel<T> asModel(){
-    	return this.definition.createModel(this);
-    }
 	
 	/**
 	 * What event type do we generate

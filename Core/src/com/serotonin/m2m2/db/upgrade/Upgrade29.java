@@ -310,7 +310,8 @@ public class Upgrade29 extends DBUpgrade {
     
     private String[] dataPointsSQL = new String[] {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
-            "ALTER TABLE dataPoints DROP COLUMN setPermission;"
+            "ALTER TABLE dataPoints DROP COLUMN setPermission;",
+            "ALTER TABLE dataPoints DROP COLUMN pointFolderId;"
     };
     
     private String[] dataSourcesSQL = new String[] {

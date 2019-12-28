@@ -38,8 +38,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUserReadRole() {
         runTest(() -> {
             User vo = newVO();
-            vo = service.insertFull(vo, systemSuperadmin);
-            User fromDb = service.getFull(vo.getId(), vo);
+            vo = service.insert(vo, true, systemSuperadmin);
+            User fromDb = service.get(vo.getId(), true, vo);
             assertVoEqual(vo, fromDb);
         });
     }
@@ -53,10 +53,10 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         runTest(() -> {
             addRoleToEditSelfPermission(readRole);
             User vo = newVO();
-            vo = service.insertFull(vo, systemSuperadmin);
+            vo = service.insert(vo, true, systemSuperadmin);
             vo.setName("I edited myself");
-            service.updateFull(vo.getUsername(), vo, vo);
-            User updated = service.getFull(vo.getId(), vo);
+            service.update(vo.getUsername(), vo, true, vo);
+            User updated = service.get(vo.getId(), true, vo);
             assertVoEqual(vo, updated);
         });
     }
@@ -68,10 +68,10 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUserEditRoleDefaultUser() {
         runTest(() -> {
             User vo = newVO();
-            vo = service.insertFull(vo, systemSuperadmin);
+            vo = service.insert(vo, true, systemSuperadmin);
             vo.setName("I edited myself");
-            service.updateFull(vo.getUsername(), vo, vo);
-            User updated = service.getFull(vo.getId(), vo);
+            service.update(vo.getUsername(), vo, true, vo);
+            User updated = service.get(vo.getId(), true, vo);
             assertVoEqual(vo, updated);
         });
     }
@@ -81,11 +81,11 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUserEditRoleFails() {
         runTest(() -> {
             addRoleToEditSelfPermission(editRole);
-            User toUpdate = service.getFull(readUser.getId(), readUser);
+            User toUpdate = service.get(readUser.getId(), true, readUser);
             toUpdate.setName("I edited myself");
             toUpdate.setPassword("");
-            service.updateFull(toUpdate.getUsername(), toUpdate, readUser);
-            User updated = service.getFull(readUser.getId(), readUser);
+            service.update(toUpdate.getUsername(), toUpdate, true, readUser);
+            User updated = service.get(readUser.getId(), true, readUser);
             assertVoEqual(toUpdate, updated);
         });
     }
@@ -120,29 +120,29 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testAddEditRoleUserDoesNotHave() {
         User vo = newVO();
         vo.setRoles(Collections.singleton(readRole));
-        service.insertFull(vo, systemSuperadmin);
-        vo = service.getFull(vo.getId(), systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
+        vo = service.get(vo.getId(), true, systemSuperadmin);
         vo.setRoles(Collections.singleton(editRole));
-        service.updateFull(vo.getUsername(), vo, vo);
+        service.update(vo.getUsername(), vo, true, vo);
     }
     
     @Test(expected = ValidationException.class)
     public void testRemoveRolesFails() {
         User vo = newVO();
         vo.setRoles(Collections.singleton(readRole));
-        service.insertFull(vo, systemSuperadmin);
-        vo = service.getFull(vo.getId(), systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
+        vo = service.get(vo.getId(), true, systemSuperadmin);
         vo.setRoles(Collections.emptySet());
-        service.updateFull(vo.getUsername(), vo, vo);
+        service.update(vo.getUsername(), vo, true, vo);
     }
     
     @Test(expected = ValidationException.class)
     public void testChangeUsername() {
         User vo = newVO();
-        service.insertFull(vo, systemSuperadmin);
-        vo = service.getFull(vo.getId(), systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
+        vo = service.get(vo.getId(), true, systemSuperadmin);
         vo.setUsername(UUID.randomUUID().toString());
-        service.insertFull(vo, systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
     }
     
     void addRoleToEditSelfPermission(RoleVO vo) {

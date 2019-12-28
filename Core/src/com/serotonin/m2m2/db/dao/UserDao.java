@@ -127,7 +127,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      * @return
      */
     public User getUser(int id) {
-        return this.getFull(id);
+        return this.get(id, true);
     }
 
     /**
@@ -387,7 +387,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             }
 
             userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
-            eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, old.getUsername(), fields));
+            eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old.getUsername(), fields));
 
         } catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
@@ -409,7 +409,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         User user = getTransactionTemplate().execute(new TransactionCallback<User>() {
             @Override
             public User doInTransaction(TransactionStatus status) {
-                User user = get(userId);
+                User user = get(userId, true);
 
                 Object[] args = new Object[] { userId };
                 ejt.update("UPDATE userComments SET userId=null WHERE userId=?", args);
@@ -447,7 +447,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         user.setTokenVersion(newTokenVersion);
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, username, EnumSet.of(UpdatedFields.AUTH_TOKEN)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.AUTH_TOKEN)));
     }
 
     public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
@@ -463,7 +463,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      */
     public void updatePassword(User user, String newPassword) throws ValidationException {
         // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
-        User copy = this.get(user.getId());
+        User copy = this.get(user.getId(), false);
         copy.setPlainTextPassword(newPassword);
         copy.ensureValid();
         copy.hashPlainText();
@@ -491,7 +491,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         // expire the user's sessions
         exireSessionsForUser(user);
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, username, EnumSet.of(UpdatedFields.PASSWORD)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.PASSWORD)));
     }
 
     public void recordLogin(User user) {
@@ -499,7 +499,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         user.setLastLogin(loginTime);
         ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
@@ -508,7 +508,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -517,12 +517,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         User user = getUser(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, null, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
-    }
-
-    @Override
-    public void delete(User user, String initiatorId) {
-        throw new UnsupportedOperationException("Use deleteUser()");
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
     }
 
     @Override
@@ -641,5 +636,20 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             LOG.error(e.getMessage(), e);
         }
         return null;
+    }
+    
+    //Override default get methods
+    @Override
+    public boolean delete(User user) {
+        throw new UnsupportedOperationException("Use deleteUser()");
+    }
+    @Override
+    public void insert(User vo, boolean full) {
+        throw new UnsupportedOperationException("Use saveUser()");
+    }
+    
+    @Override
+    public void update(User existing, User vo, boolean full) {
+        throw new UnsupportedOperationException("Use saveUser()");
     }
 }

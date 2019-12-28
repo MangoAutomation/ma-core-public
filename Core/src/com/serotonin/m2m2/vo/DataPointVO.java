@@ -35,7 +35,6 @@ import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -56,7 +55,6 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -158,7 +156,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @JsonProperty
     private String deviceName;
 
-    private int pointFolderId;
     private int loggingType = LoggingTypes.ON_CHANGE;
     private int intervalLoggingPeriodType = Common.TimePeriods.MINUTES;
     @JsonProperty
@@ -370,15 +367,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
     public void setDeviceName(String deviceName) {
         this.deviceName = deviceName;
-    }
-
-    @Override
-    public int getPointFolderId() {
-        return pointFolderId;
-    }
-
-    public void setPointFolderId(int pointFolderId) {
-        this.pointFolderId = pointFolderId;
     }
 
     @Override
@@ -770,34 +758,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.templateId = id;
     }
 
-    public String getDataTypeString() {
-        return pointLocator.getDataTypeMessage().translate(Common.getTranslations());
-    }
-
-    public void setDataTypeString(String type) {
-        // No Op
-    }
-
-    public String getLoggingTypeString() {
-        return Common.translate(LOGGING_TYPE_CODES.getKey(loggingType));
-    }
-
-    public void setLoggingTypeString(String type) {
-        // No Op
-    }
-
-    public String getLoggingIntervalString() {
-        if (this.loggingType == LoggingTypes.INTERVAL)
-            return Common.getPeriodDescription(intervalLoggingPeriodType, intervalLoggingPeriod).translate(
-                    Common.getTranslations())
-                    + " " + Common.translate(INTERVAL_LOGGING_TYPE_CODES.getKey(intervalLoggingType));
-        return "N/A";
-    }
-
-    public void setLoggingIntervalString(String type) {
-        // No Op
-    }
-
     public String getTemplateName(){
         return this.templateName;
     }
@@ -857,7 +817,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setSimplifyType(simplifyType);
             copy.setSimplifyTolerance(simplifyTolerance);
             copy.setSimplifyTarget(simplifyTarget);
-            copy.setPointFolderId(pointFolderId);
             copy.setTextRenderer(textRenderer);
             copy.setPointLocator(pointLocator);
             copy.setPurgeOverride(purgeOverride);
@@ -935,7 +894,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @Override
     public String toString() {
         return "DataPointVO [id=" + id + ", xid=" + xid + ", name=" + name + ", dataSourceId=" + dataSourceId
-                + ", deviceName=" + deviceName + ", enabled=" + enabled + ", pointFolderId=" + pointFolderId
+                + ", deviceName=" + deviceName + ", enabled=" + enabled
                 + ", loggingType=" + loggingType + ", intervalLoggingPeriodType=" + intervalLoggingPeriodType
                 + ", intervalLoggingPeriod=" + intervalLoggingPeriod + ", intervalLoggingType=" + intervalLoggingType
                 + ", tolerance=" + tolerance + ", purgeOverride=" + purgeOverride + ", purgeType=" + purgeType
@@ -1452,15 +1411,13 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         writer.writeEntry("plotType", PLOT_TYPE_CODES.getCode(plotType));
         writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
-        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EXPORT_HIERARCHY_PATH))
-            writer.writeEntry("path", PointHierarchy.getFlatPath(id, DataPointDao.getInstance().getPointHierarchy(true).getRoot()));
 
         if (useIntegralUnit)
             writer.writeEntry("integralUnit", UnitUtil.formatUcum(integralUnit));
         if (useRenderedUnit)
             writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
         if(templateId != null){
-            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId);
+            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId, false);
             if(template != null)
                 writer.writeEntry("templateXid", template.getXid());
         }
@@ -1558,7 +1515,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 JsonArray handlerXids = pedObject.getJsonArray("handlers");
                 if(handlerXids != null)
                     for(int k = 0; k < handlerXids.size(); k+=1) {
-                        AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
+                        AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k), true);
                         if(eh == null) {
                             throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
                         }else {

@@ -18,8 +18,6 @@ public interface IDataPoint {
 
     String getDeviceName();
 
-    int getPointFolderId();
-
     String getExtendedName();
 
     /**

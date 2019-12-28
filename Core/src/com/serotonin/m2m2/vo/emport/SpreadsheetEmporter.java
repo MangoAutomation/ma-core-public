@@ -26,7 +26,7 @@ import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import com.serotonin.m2m2.DeltamationCommon;
+import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.emport.AbstractSheetEmporter.CellType;
 
@@ -283,7 +283,7 @@ public class SpreadsheetEmporter {
         dateStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd/mm/yy hh:mm:ss"));
         
         CellStyle percentStyle = wb.createCellStyle();
-        percentStyle.setDataFormat(createHelper.createDataFormat().getFormat(DeltamationCommon.decimalFormat));
+        percentStyle.setDataFormat(createHelper.createDataFormat().getFormat(Functions.decimalFormat));
         
         // headers
         CellStyle headerStyle = wb.createCellStyle();
@@ -373,7 +373,7 @@ public class SpreadsheetEmporter {
         sheetEmporter.setDateStyle(dateStyle);
         
         CellStyle percentStyle = wb.createCellStyle();
-        percentStyle.setDataFormat(createHelper.createDataFormat().getFormat(DeltamationCommon.decimalFormat));
+        percentStyle.setDataFormat(createHelper.createDataFormat().getFormat(Functions.decimalFormat));
         sheetEmporter.setPercentStyle(percentStyle);
         
         rowNum = 0;

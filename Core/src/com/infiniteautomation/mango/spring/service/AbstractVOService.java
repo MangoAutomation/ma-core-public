@@ -26,11 +26,21 @@ import com.serotonin.validation.StringValidation;
 public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractDao<T>> extends AbstractBasicVOService<T,DAO> {
     
 
-    
+    /**
+     * Construct a service that knows about its create permission
+     * @param dao
+     * @param permissionService
+     * @param createPermissionDefinition
+     */
     public AbstractVOService(DAO dao, PermissionService permissionService, PermissionDefinition createPermissionDefinition) {
         super(dao, permissionService, createPermissionDefinition);
     }
     
+    /**
+     * Construct a service that has no create permission
+     * @param dao
+     * @param permissionService
+     */
     public AbstractVOService(DAO dao, PermissionService permissionService) {
         this(dao, permissionService, null);
     }
@@ -62,44 +72,18 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
         return dao.isXidUnique(xid,id);
     }
 
-    
     /**
      * 
-     * @param xid
-     * @param user
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
-     */
-    public T get(String xid, PermissionHolder user) throws NotFoundException, PermissionException {
-        return get(xid, user, false);
-    }
-    
-    /**
-     * Get relational data too
-     * @param xid
-     * @param user
-     * @return
-     * @throws NotFoundException
-     * @throws PermissionException
-     */
-    public T getFull(String xid, PermissionHolder user) throws NotFoundException, PermissionException {
-        return get(xid, user, true);
-    }
-    
-    /**
      * 
      * @param xid
-     * @param user
      * @param full
+     * @param user
      * @return
+     * @throws NotFoundException
+     * @throws PermissionException
      */
-    protected T get(String xid, PermissionHolder user, boolean full) throws NotFoundException, PermissionException {
-        T vo;
-        if(full)
-            vo = dao.getFullByXid(xid);
-        else
-            vo = dao.getByXid(xid);
+    public T get(String xid, boolean full, PermissionHolder user) throws NotFoundException, PermissionException {
+        T vo = dao.getByXid(xid, full);
            
         if(vo == null)
             throw new NotFoundException();
@@ -110,14 +94,14 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     /**
      * 
      * @param vo
-     * @param user
      * @param full
+     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
     @Override
-    protected T insert(T vo, PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    public T insert(T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
         
@@ -138,40 +122,31 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     }
 
     /**
-     * Update a vo without its relational data
+     * Update a vo without and optionally its relational data
      * @param existingXid
      * @param vo
+     * @param full
      * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
+     * @throws NotFoundException
      */
-    public T update(String existingXid, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return update(get(existingXid, user), vo, user);
+    public T update(String existingXid, T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException, NotFoundException {
+        return update(get(existingXid, full, user), vo, full, user);
     }
+   
     
     /**
-     * Update a vo and its relational data
-     * @param existingXid
-     * @param vo
-     * @param user
-     * @return
-     * @throws PermissionException
-     * @throws ValidationException
-     */
-    public T updateFull(String existingXid, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return updateFull(getFull(existingXid, user), vo, user);
-    }
-    
-    /**
-     * 
+     * Delete a VO and its relational data
      * @param xid
      * @param user
      * @return
      * @throws PermissionException
+     * @throws NotFoundException
      */
     public T delete(String xid, PermissionHolder user) throws PermissionException, NotFoundException {
-        T vo = get(xid, user, true);
+        T vo = get(xid, true, user);
         return delete(vo, user);
     }
     

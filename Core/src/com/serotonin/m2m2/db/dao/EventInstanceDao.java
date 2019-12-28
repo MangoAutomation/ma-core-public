@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -18,7 +17,6 @@ import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.impl.DSL;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -29,7 +27,6 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DeltamationCommon;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -140,9 +137,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             case MSSQL:
                 map.put("totalTimeString", new IntStringPair(Types.BIGINT, "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))"));
                 break;
-
             case H2:
-            case DERBY:
                 map.put("totalTimeString", new IntStringPair(Types.BIGINT, "CASE WHEN evt.rtnTs IS NULL THEN "
                         + "CASE WHEN evt.rtnApplicable='Y' THEN (? - evt.activeTs) ELSE -1 END "
                         + "ELSE CASE WHEN evt.rtnApplicable='Y' THEN (evt.rtnTs - evt.activeTs) ELSE -1 END END"));
@@ -159,19 +154,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     }
 
     @Override
-    protected Map<String, PropertyArguments> getPropertyArgumentsMap(){
-        Map<String,PropertyArguments> map = new HashMap<String,PropertyArguments>();
-        map.put("totalTimeString", new PropertyArguments(){
-            @Override
-            public Object[] getArguments(){
-                return new Object[]{new Date().getTime()};
-            }
-        });
-
-        return map;
-    }
-
-    @Override
     protected List<JoinClause> getJoins() {
         List<JoinClause> joins = new ArrayList<JoinClause>();
         joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.USERS_TABLE, "u", "evt.ackUserId = u.id"));
@@ -179,100 +161,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         return joins;
     }
 
-    @Override
-    protected Map<String, Comparator<EventInstanceVO>> getComparatorMap() {
-        HashMap<String,Comparator<EventInstanceVO>> comparatorMap = new HashMap<String,Comparator<EventInstanceVO>>();
-        return comparatorMap;
-    }
-
-    @Override
-    protected Map<String, IFilter<EventInstanceVO>> getFilterMap(){
-        HashMap<String, IFilter<EventInstanceVO>> filterMap = new HashMap<String,IFilter<EventInstanceVO>>();
-
-        filterMap.put("messageString", new IFilter<EventInstanceVO>(){
-
-            private String regex;
-            @Override
-            public boolean filter(EventInstanceVO vo) {
-                return !vo.getMessageString().matches(regex);
-            }
-
-            @Override
-            public void setFilter(Object matches) {
-                this.regex = "(?i)"+(String)matches;
-
-            }
-
-        });
-
-        filterMap.put("rtnTimestampString", new IFilter<EventInstanceVO>(){
-
-            private String regex;
-            @Override
-            public boolean filter(EventInstanceVO vo) {
-                String rtnTimestampString;
-                if(vo.isActive())
-                    rtnTimestampString = Common.translate("common.active");
-                else if(!vo.isRtnApplicable())
-                    rtnTimestampString = Common.translate("common.nortn");
-                else
-                    rtnTimestampString = vo.getRtnTimestampString() + " - " + vo.getRtnMessageString();
-
-                return !rtnTimestampString.matches(regex);
-            }
-
-            @Override
-            public void setFilter(Object matches) {
-                this.regex = "(?i)"+(String)matches;
-            }
-
-        });
-
-
-        filterMap.put("totalTimeString", new IFilter<EventInstanceVO>(){
-
-            private Long duration;
-            private int operator;
-
-            @Override
-            public boolean filter(EventInstanceVO vo) {
-                //Remember filter means to remove from list if true
-                if(operator == 1){
-                    return vo.getTotalTime() < duration;
-                }else if (operator == 2){
-                    return vo.getTotalTime() > duration;
-                }else{
-                    return !vo.getTotalTime().equals(duration);
-                }
-            }
-
-            @Override
-            public void setFilter(Object matches) {
-                String condition = (String)matches;
-                //Parse the value as Duration:operatorvalue - Duration:>1:00:00
-                String durationString = condition.substring(10,condition.length());
-                String compare = condition.substring(9, 10);
-                this.duration = DeltamationCommon.unformatDuration(durationString);
-
-                if(compare.equals(">")){
-                    operator = 1;
-                }else if(compare.equals("<")){
-                    operator = 2;
-                }else if(compare.equals("=")){
-                    operator = 3;
-                }
-            }
-
-        });
-        return filterMap;
-    }
-
-
-
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-     */
     @Override
     public RowMapper<EventInstanceVO> getRowMapper() {
         return new UserEventInstanceVORowMapper();

@@ -6,7 +6,6 @@ package com.serotonin.m2m2.module;
 
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.events.detectors.AbstractEventDetectorModel;
 
 /**
  * Provides modules with the ability to register additional event detectors
@@ -60,20 +59,6 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<
      * @param vo
      */
     abstract public void restartSource(T vo);
-    
-    /**
-     * Create a model from the VO
-     * @param vo
-     * @return
-     */
-    abstract public AbstractEventDetectorModel<T> createModel(AbstractEventDetectorVO<T> vo);
-    
-	/**
-	 * Get the class of the model
-	 * 
-	 * @return
-	 */
-	abstract public Class<?> getModelClass();
 
     /**
      * Can this user create this detector?

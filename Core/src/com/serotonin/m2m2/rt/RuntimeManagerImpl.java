@@ -131,13 +131,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
         
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
-        List<DataSourceVO<?>> configs = DataSourceDao.getInstance().getDataSources();
+        List<DataSourceVO<?>> configs = DataSourceDao.getInstance().getAll(true);
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
         for (DataSourceVO<?> config : configs) {
             if (config.isEnabled()) {
                 if (safe) {
                     config.setEnabled(false);
-                    DataSourceDao.getInstance().saveDataSource(config);
+                    DataSourceDao.getInstance().update(config, true);
                 }
                 else if (config.getDefinition() != null) {
                     List<DataSourceVO<?>> priorityList = priorityMap.get(config.getDefinition().getStartPriority());
@@ -299,18 +299,18 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public List<DataSourceVO<?>> getDataSources() {
-        return DataSourceDao.getInstance().getDataSources();
+        return DataSourceDao.getInstance().getAll(true);
     }
 
     @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
-        return DataSourceDao.getInstance().getDataSource(dataSourceId);
+        return DataSourceDao.getInstance().get(dataSourceId, true);
     }
 
     @Override
     public void deleteDataSource(int dataSourceId) {
         stopDataSource(dataSourceId);
-        DataSourceDao.getInstance().deleteDataSource(dataSourceId);
+        DataSourceDao.getInstance().delete(dataSourceId);
         Common.eventManager.cancelEventsForDataSource(dataSourceId);
     }
 
@@ -531,7 +531,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             stopDataPoint(dp);
         } else if (!running && enabled) {
             // Ensure the event detectors are loaded
-            DataPointDao.getInstance().setEventDetectors(dp);
+            DataPointDao.getInstance().loadEventDetectors(dp);
             startDataPoint(dp, null);
         }
         
@@ -544,7 +544,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public void deleteDataPoint(DataPointVO point) {
         if (point.isEnabled())
             stopDataPoint(point);
-        DataPointDao.getInstance().deleteDataPoint(point.getId());
+        DataPointDao.getInstance().delete(point.getId());
         Common.eventManager.cancelEventsForDataPoint(point.getId());
     }
 
@@ -724,14 +724,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
                             LOG.warn("Listener exception: " + e2.getMessage(), e2);
                     }
                 p.terminate();
-                DataPointDao.getInstance().setEventDetectors(vo);
+                DataPointDao.getInstance().loadEventDetectors(vo);
                 this.startDataPoint(vo, null);
                 restarted = true;
             }
         }
         if(!restarted) {
             //The data point wasn't really running. Ensure the event detectors and enable
-            DataPointDao.getInstance().setEventDetectors(vo);
+            DataPointDao.getInstance().loadEventDetectors(vo);
             vo.setEnabled(true);
             startDataPoint(vo, null);
             DataPointDao.getInstance().saveEnabledColumn(vo);

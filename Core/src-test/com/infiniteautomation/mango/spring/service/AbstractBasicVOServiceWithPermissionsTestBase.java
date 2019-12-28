@@ -39,7 +39,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         VO vo = newVO();
-        service.insertFull(vo, editUser);
+        service.insert(vo, true, editUser);
     }
 
     @Test
@@ -49,7 +49,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             addRoleToCreatePermission(editRole);
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-            service.insertFull(vo, editUser);
+            service.insert(vo, true, editUser);
         });
     }
     
@@ -58,8 +58,8 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         runTest(() -> {
             VO vo = newVO();
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
-            service.insertFull(vo, systemSuperadmin);
-            VO fromDb = service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
         });
     }
@@ -69,8 +69,8 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         runTest(() -> {
             VO vo = newVO();
             setReadRoles(Collections.emptySet(), vo);
-            service.insertFull(vo, systemSuperadmin);
-            VO fromDb = service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
         });
     }
@@ -79,7 +79,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     public void testReadRolesCannotBeNull() {
         VO vo = newVO();
         setReadRoles(null, vo);
-        service.insertFull(vo, systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
     }
     
     @Test(expected = ValidationException.class)
@@ -87,11 +87,11 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         VO vo = newVO();
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        service.insertFull(vo, systemSuperadmin);
-        VO fromDb = service.getFull(vo.getId(), readUser);
+        service.insert(vo, true, systemSuperadmin);
+        VO fromDb = service.get(vo.getId(), true, readUser);
         assertVoEqual(vo, fromDb);
         setReadRoles(Collections.emptySet(), fromDb);
-        service.updateFull(fromDb.getId(), fromDb, readUser);
+        service.update(fromDb.getId(), fromDb, true, readUser);
     }
     
     @Test(expected = ValidationException.class)
@@ -99,11 +99,11 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         VO vo = newVO();
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        service.insertFull(vo, systemSuperadmin);
-        VO fromDb = service.getFull(vo.getId(), readUser);
+        service.insert(vo, true, systemSuperadmin);
+        VO fromDb = service.get(vo.getId(), true, readUser);
         assertVoEqual(vo, fromDb);
         setReadRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
-        service.updateFull(fromDb.getId(), fromDb, readUser);
+        service.update(fromDb.getId(), fromDb, true, readUser);
     }
     
     @Test
@@ -112,11 +112,11 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             VO vo = newVO();
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-            service.insertFull(vo, systemSuperadmin);
-            VO fromDb = service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
-            service.updateFull(fromDb.getId(), fromDb, readUser);
-            VO updated = service.getFull(fromDb.getId(), readUser);
+            service.update(fromDb.getId(), fromDb, true, readUser);
+            VO updated = service.get(fromDb.getId(), true, readUser);
             assertVoEqual(fromDb, updated);
         });
     }
@@ -127,11 +127,11 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             VO vo = newVO();
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.emptySet(), vo);
-            service.insertFull(vo, systemSuperadmin);
-            VO fromDb = service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
-            service.updateFull(fromDb.getId(), fromDb, readUser);
-            VO updated = service.getFull(fromDb.getId(), readUser);
+            service.update(fromDb.getId(), fromDb, true, readUser);
+            VO updated = service.get(fromDb.getId(), true, readUser);
             assertVoEqual(fromDb, updated);
         });
     }
@@ -140,7 +140,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     public void testEditRolesCannotBeNull() {
         VO vo = newVO();
         setEditRoles(null, vo);
-        service.insertFull(vo, systemSuperadmin);
+        service.insert(vo, true, systemSuperadmin);
     }
     
     @Test(expected = ValidationException.class)
@@ -148,11 +148,11 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         VO vo = newVO();
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        service.insertFull(vo, systemSuperadmin);
-        VO fromDb = service.getFull(vo.getId(), readUser);
+        service.insert(vo, true, systemSuperadmin);
+        VO fromDb = service.get(vo.getId(), true, readUser);
         assertVoEqual(vo, fromDb);
         setEditRoles(Collections.emptySet(), fromDb);
-        service.updateFull(fromDb.getId(), fromDb, readUser);
+        service.update(fromDb.getId(), fromDb, true, readUser);
     }
     
     @Test(expected = ValidationException.class)
@@ -160,11 +160,11 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         VO vo = newVO();
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        service.insertFull(vo, systemSuperadmin);
-        VO fromDb = service.getFull(vo.getId(), readUser);
+        service.insert(vo, true, systemSuperadmin);
+        VO fromDb = service.get(vo.getId(), true, readUser);
         assertVoEqual(vo, fromDb);
         setEditRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
-        service.updateFull(fromDb.getId(), fromDb, readUser);
+        service.update(fromDb.getId(), fromDb, true, readUser);
     }
     
     @Test
@@ -174,7 +174,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             addRoleToCreatePermission(editRole);
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-            vo = service.insertFull(vo, editUser);
+            vo = service.insert(vo, true, editUser);
             service.delete(vo.getId(), editUser);
         });
     }
@@ -183,7 +183,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     public void testUserDeleteFails() {
         runTest(() -> {
             VO vo = newVO();
-            service.insertFull(vo, systemSuperadmin);
+            service.insert(vo, true, systemSuperadmin);
             service.delete(vo.getId(), editUser);
         });
     }
@@ -193,8 +193,8 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         runTest(() -> {
             VO vo = newVO();
             setReadRoles(Collections.singleton(roleService.getSuperadminRole()), vo);
-            service.insertFull(vo, systemSuperadmin);
-            service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            service.get(vo.getId(), true, readUser);
         });
     }
     
@@ -204,10 +204,10 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             VO vo = newVO();
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getSuperadminRole()), vo);
-            service.insertFull(vo, systemSuperadmin);
-            VO fromDb = service.getFull(vo.getId(), readUser);
+            service.insert(vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
-            service.updateFull(fromDb.getId(), fromDb, readUser);            
+            service.update(fromDb.getId(), fromDb, true, readUser);            
         });
     }
     

@@ -20,8 +20,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -77,17 +75,12 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     public static EventDetectorDao<AbstractEventDetectorVO<?>> getInstance() {
         return springInstance.get();
     }
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
-     */
+
     @Override
     protected String getTableName() {
         return SchemaDefinition.EVENT_DETECTOR_TABLE;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#voToObjectArray(java.lang.Object)
-     */
     @Override
     protected Object[] voToObjectArray(T vo) {
         String jsonData = null;
@@ -109,9 +102,6 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
         return o;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-     */
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
@@ -132,9 +122,6 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-     */
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
@@ -144,9 +131,6 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-     */
     @Override
     public RowMapper<T> getRowMapper() {
         return new EventDetectorRowMapper<T>();
@@ -166,32 +150,11 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
 
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractDao#getXidPrefix()
-     */
     @Override
     protected String getXidPrefix() {
         return AbstractEventDetectorVO.XID_PREFIX; 
     }
     
-    @Override
-    public void delete(T vo, String initiatorId) {
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                if (vo != null) {
-                    EventDetectorDao.super.delete(vo, initiatorId);
-                    //Also update the Event Handlers
-                    ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
-                            new Object[] { vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId() });
-                }
-            }
-        });
-    }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#saveRelationalData(com.serotonin.m2m2.vo.AbstractBasicVO, boolean)
-     */
     @Override
     public void saveRelationalData(T vo, boolean insert) {
         EventTypeVO et = vo.getEventType();
@@ -211,6 +174,13 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     @Override
     public void loadRelationalData(T vo) {
         vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
+    }
+    
+    @Override
+    public void deleteRelationalData(T vo) {
+        //Also update the Event Handlers
+        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
+                new Object[] { vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId() });
     }
     
     /**

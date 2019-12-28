@@ -29,12 +29,12 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO<?>, DAO extend
     public void testUpdateViaXid() {
         runTest(() -> {
             VO vo = insertNewVO();
-            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
             
             VO updated = updateVO(vo);
-            service.updateFull(vo.getXid(), updated, systemSuperadmin);
-            fromDb = service.getFull(vo.getXid(), systemSuperadmin);
+            service.update(vo.getXid(), updated, true, systemSuperadmin);
+            fromDb = service.get(vo.getXid(), true, systemSuperadmin);
             assertVoEqual(updated, fromDb);            
         });
     }
@@ -43,10 +43,10 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO<?>, DAO extend
     public void testDeleteViaXid() {
         runTest(() -> {
             VO vo = insertNewVO();
-            VO fromDb = service.getFull(vo.getId(), systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
             service.delete(vo.getXid(), systemSuperadmin);
-            service.getFull(vo.getXid(), systemSuperadmin);            
+            service.get(vo.getXid(), true, systemSuperadmin);            
         });
     }
     

@@ -76,7 +76,7 @@ public class DataSourceQuery extends ScriptUtility {
 	}
 	
 	public DataSourceWrapper byXid(String xid) {
-	    DataSourceVO<?> ds = DataSourceDao.getInstance().getByXid(xid);
+	    DataSourceVO<?> ds = DataSourceDao.getInstance().getByXid(xid, true);
 	    if(ds == null)
 	        return null;
 	    
@@ -95,7 +95,7 @@ public class DataSourceQuery extends ScriptUtility {
 	private List<DataPointWrapper> getPointsForSource(DataSourceVO<?> ds) {
 		List<DataPointWrapper> points = new ArrayList<DataPointWrapper>();
 		
-		List<DataPointVO> dataPoints = DataPointDao.getInstance().getDataPoints(ds.getId(), null, false);
+		List<DataPointVO> dataPoints = DataPointDao.getInstance().getDataPoints(ds.getId(), true);
 		
 		for(DataPointVO vo : dataPoints){
 			DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getId());

@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -67,7 +68,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
     
     @Override
-    protected DataPointVO insert(DataPointVO vo, PermissionHolder user, boolean full)
+    public DataPointVO insert(DataPointVO vo, boolean full, PermissionHolder user)
             throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
@@ -89,8 +90,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
     
     @Override
-    protected DataPointVO update(DataPointVO existing, DataPointVO vo,
-            PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    public DataPointVO update(DataPointVO existing, DataPointVO vo,
+            boolean full, PermissionHolder user) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         
         vo.setId(existing.getId());
@@ -118,7 +119,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * @throws PermissionException
      */
     public void enableDisable(String xid, boolean enabled, boolean restart, PermissionHolder user) throws NotFoundException, PermissionException {
-        DataPointVO vo = get(xid, user);
+        DataPointVO vo = get(xid, true, user);
         if (enabled && restart) {
             Common.runtimeManager.restartDataPoint(vo);
         } else {
@@ -224,7 +225,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         else if(!validateRollup(vo))
             response.addContextualMessage("rollup", "validate.rollup.incompatible", vo.getRollup());
 
-        DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
+        DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId(), false);
         if(dsvo == null) {
             response.addContextualMessage("dataSourceId", "validate.invalidValue");
             return response;
@@ -305,7 +306,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         }
         
         if((vo.getTemplateId() != null) &&(vo.getTemplateId() > 0)){
-            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(vo.getTemplateId());
+            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(vo.getTemplateId(), false);
             if(template == null){
                 response.addContextualMessage("template", "pointEdit.template.validate.templateNotFound", vo.getTemplateId());
             }else if(template.getDataTypeId() != vo.getPointLocator().getDataTypeId()){
@@ -356,6 +357,21 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             default :
                 return false;
         }
+    }
+
+    /**
+     * 
+     * @param dataSourceId
+     * @param full
+     * @param holder
+     * @return
+     */
+    public List<DataPointVO> getDataPoints(int dataSourceId, boolean full, PermissionHolder holder) {
+        List<DataPointVO> points = dao.getDataPoints(dataSourceId, full);
+        for(DataPointVO point : points) {
+            ensureReadPermission(holder, point);
+        }
+        return points;
     }
     
 }

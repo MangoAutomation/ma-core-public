@@ -90,11 +90,9 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
 	@Override
 	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
-		return new DataPointWrapper(DataPointDao.getInstance().get(vo.getId()), rtWrapper);
+		return new DataPointWrapper(DataPointDao.getInstance().get(vo.getId(), true), rtWrapper);
 	}
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.dataImage.IDataPointValueSource#getVO()
-	 */
+
 	@Override
 	public DataPointVO getVO() {
 	    return vo;

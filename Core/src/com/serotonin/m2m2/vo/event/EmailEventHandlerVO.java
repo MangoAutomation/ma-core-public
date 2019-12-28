@@ -503,7 +503,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         
         JsonArray context = new JsonArray();
         for(IntStringPair pnt : additionalContext) {
-        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey());
+        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey(), true);
         	if(dpvo != null) {
         		JsonObject point = new JsonObject();
         		point.put("dataPointXid", dpvo.getXid());
@@ -594,15 +594,15 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         		if(dataPointXid == null)
         			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
         		
-        		DataPointVO dpvo = DataPointDao.getInstance().getByXid(dataPointXid);
-        		if(dpvo == null)
+        		Integer dpId = DataPointDao.getInstance().getIdByXid(dataPointXid);
+        		if(dpId == null)
         			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
         		
         		String contextKey = jo.getString("contextKey");
         		if(contextKey == null)
         			throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
         		
-        		additionalContext.add(new IntStringPair(dpvo.getId(), contextKey));
+        		additionalContext.add(new IntStringPair(dpId, contextKey));
         	}
         	this.additionalContext = additionalContext;
         } else

@@ -9,15 +9,9 @@ import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Field;
@@ -30,28 +24,19 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
-import com.infiniteautomation.mango.spring.events.DaoEvent;
-import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.util.SerializationHelper;
 
 @Repository()
@@ -86,59 +71,73 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return springInstance.get();
     }
 
-    public List<T> getDataSources() {
-        List<T> dss = query(DATA_SOURCE_SELECT, new DataSourceExtractor());
-        Collections.sort(dss, new DataSourceNameComparator());
-        return dss;
-    }
-
+    /**
+     * Get all data sources for a given type
+     * @param type
+     * @return
+     */
     public List<T> getDataSourcesForType(String type) {
-        return query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, new DataSourceExtractor());
+        return query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, getListResultSetExtractor());
     }
-
-    static class DataSourceNameComparator implements Comparator<DataSourceVO<?>> {
-        @Override
-        public int compare(DataSourceVO<?> ds1, DataSourceVO<?> ds2) {
-            if (StringUtils.isBlank(ds1.getName()))
-                return -1;
-            return ds1.getName().compareToIgnoreCase(ds2.getName());
+    
+    /**
+     * Delete all data source for a given type
+     *  used during module uninstall
+     * @param dataSourceType
+     */
+    public void deleteDataSourceType(final String dataSourceType) {
+        List<T> dss = getDataSourcesForType(dataSourceType);
+        for(T ds : dss) {
+            delete(ds);
         }
     }
+    
+    /**
+     * Get runtime data
+     * @param id
+     * @return
+     */
+    public Object getPersistentData(int id) {
+        return query("select rtdata from dataSources where id=?", new Object[] { id },
+                new ResultSetExtractor<Serializable>() {
+            @Override
+            public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
+                if (!rs.next())
+                    return null;
 
-    public T getDataSource(int id) {
-        return queryForObject(DATA_SOURCE_SELECT + " WHERE id=?", new Object[] { id }, new DataSourceRowMapper(), null);
-    }
+                InputStream in = rs.getBinaryStream(1);
+                if (in == null)
+                    return null;
 
-    public T getDataSource(String xid) {
-        return queryForObject(DATA_SOURCE_SELECT + " WHERE xid=?", new Object[] { xid }, new DataSourceRowMapper(),
-                null);
-    }
-
-    class DataSourceExtractor implements ResultSetExtractor<List<T>> {
-        @Override
-        public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            DataSourceRowMapper rowMapper = new DataSourceRowMapper();
-            List<T> results = new ArrayList<>();
-            int rowNum = 0;
-            while (rs.next()) {
-                try {
-                    results.add(rowMapper.mapRow(rs, rowNum++));
-                }
-                catch (ShouldNeverHappenException e) {
-                    // If the module was removed but there are still records in the database, this exception will be
-                    // thrown. Check the inner exception to confirm.
-                    if (e.getCause() instanceof ModuleNotLoadedException) {
-                        // Yep. Log the occurrence and continue.
-                        LOG.error(
-                                "Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
-                                        + rs.getString("xid") + "' could not be loaded. Is its module missing?", e.getCause());
-                    }else {
-                        LOG.error(e.getMessage(), e);
-                    }
-                }
+                return (Serializable) SerializationHelper.readObjectInContext(in);
             }
-            return results;
-        }
+        });
+    }
+    
+    /**
+     * Save runtime data
+     * @param id
+     * @param data
+     */
+    public void savePersistentData(int id, Object data) {
+        ejt.update("UPDATE dataSources SET rtdata=? WHERE id=?", new Object[] { SerializationHelper.writeObject(data),
+                id }, new int[] { Types.BINARY, Types.INTEGER });
+    }
+    
+    /**
+     * Get the count of data sources per type
+     * @return
+     */
+    public List<DataSourceUsageStatistics> getUsage() {
+        return ejt.query("SELECT dataSourceType, COUNT(dataSourceType) FROM dataSources GROUP BY dataSourceType", new RowMapper<DataSourceUsageStatistics>() {
+            @Override
+            public DataSourceUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
+                DataSourceUsageStatistics usage = new DataSourceUsageStatistics();
+                usage.setDataSourceType(rs.getString(1));
+                usage.setCount(rs.getInt(2));
+                return usage;
+            }
+        });
     }
 
     class DataSourceRowMapper implements RowMapper<T> {
@@ -155,222 +154,40 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     }
 
     @Override
-    public String generateUniqueXid() {
-        return generateUniqueXid(DataSourceVO.XID_PREFIX, tableName);
-    }
-
-    public void saveDataSource(final T vo) {
-        // Decide whether to insert or update.
-        if (vo.getId() == Common.NEW_ID)
-            insertDataSource(vo);
-        else
-            updateDataSource(vo);
-    }
-
-    private void insertDataSource(final T vo) {
-        vo.setId(ejt.doInsert(
-                "INSERT INTO dataSources (xid, name, dataSourceType, data) values (?,?,?,?,?)",
-                new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
-                        SerializationHelper.writeObject(vo), }, new int[] { Types.VARCHAR,
-                                Types.VARCHAR, Types.VARCHAR, Types.BINARY }));
-
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.CREATE, vo, null, null));
-
-        AuditEventType.raiseAddedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
-        this.countMonitor.increment();
-    }
-
-    /**
-     * Update a data source by calling Super.save(vo)
-     * @param vo
-     */
-    private void updateDataSource(final T vo) {
-        super.save(vo);
-    }
-
-    public void _updateDataSource(T vo) {
-        ejt.update("UPDATE dataSources SET xid=?, name=?, dataSourceType=?, data=? WHERE id=?",
-                new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
-                        SerializationHelper.writeObject(vo), vo.getId() }, new int[] {
-                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.VARCHAR, Types.INTEGER });
-
-        this.publishEvent(new DaoEvent<T>(this, DaoEventType.UPDATE, vo, null, null));
-    }
-
-    public void deleteDataSource(final int dataSourceId) {
-        T vo = getDataSource(dataSourceId);
-        final ExtendedJdbcTemplate ejt2 = ejt;
-
-        DataPointDao.getInstance().deleteDataPoints(dataSourceId);
-
-        if (vo != null) {
-            getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-                @Override
-                protected void doInTransactionWithoutResult(TransactionStatus status) {
-                    ejt2.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
-                            EventType.EventTypeNames.DATA_SOURCE, dataSourceId });
-                    ejt2.update("DELETE FROM dataSources WHERE id=?", new Object[] { dataSourceId });
+    protected ResultSetExtractor<List<T>> getListResultSetExtractor() {
+        return getListResultSetExtractor((e, rs) -> {
+            if (e.getCause() instanceof ModuleNotLoadedException) {
+                try {
+                    LOG.error( "Data source with type '" +
+                        rs.getString("dataSourceType") +
+                        "' and xid '" + rs.getString("xid") +
+                        "' could not be loaded. Is its module missing?", e.getCause());
+                }catch(SQLException e1) {
+                    LOG.error(e.getMessage(), e);
                 }
-            });
-
-            this.publishEvent(new DaoEvent<T>(this, DaoEventType.DELETE, vo, null, null));
-
-            AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_SOURCE, vo);
-            this.countMonitor.decrement();
-        }
+            }else {
+                LOG.error(e.getMessage(), e);
+            }
+        }); 
     }
-
-    public void deleteDataSourceType(final String dataSourceType) {
-        List<Integer> dsids = queryForList("SELECT id FROM dataSources WHERE dataSourceType=?",
-                new Object[] { dataSourceType }, Integer.class);
-        for (Integer dsid : dsids)
-            deleteDataSource(dsid);
-    }
-
+    
     @Override
-    public int copy(int existingId, String newXid, String newName) {
-        return this.copyDataSource(existingId, newName, newXid, newName + "Device");
-    }
-
-    /**
-     * Copy a data source points
-     *
-     * @param dataSourceId
-     * @param newDataSourceId
-     * @return
-     */
-    public int copyDataSourcePoints(final int dataSourceId, final int newDataSourceId, String deviceName) {
-        return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
-            @Override
-            public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = DataPointDao.getInstance();
-
-                // Copy the data source.
-                DataSourceVO<?> dataSourceCopy = getDataSource(newDataSourceId);
-
-                // Copy the points by getting each point without any relational data and loading it as we need it
-                for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null, false)) {
-                    DataPointVO dataPointCopy = dataPoint.copy();
-                    dataPointCopy.setId(Common.NEW_ID);
-                    dataPointCopy.setXid(dataPointDao.generateUniqueXid());
-                    dataPointCopy.setName(dataPoint.getName());
-                    dataPointCopy.setDeviceName(deviceName != null ? deviceName : dataSourceCopy.getName());
-                    dataPointCopy.setDataSourceId(dataSourceCopy.getId());
-                    dataPointCopy.setEnabled(dataPoint.isEnabled());
-                    
-                    //Copy Tags
-                    dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
-                    //Copy event detectors and simulate them being new
-                    dataPointCopy.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dataPoint.getId(), dataPointCopy));
-                    for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
-                        ped.setId(Common.NEW_ID);
-                        ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
-                    }
-                    
-                    //dataPointDao.saveDataPoint(dataPointCopy);
-                    Common.runtimeManager.saveDataPoint(dataPointCopy);
+    protected ResultSetExtractor<Void> getCallbackResultSetExtractor(
+            MappedRowCallback<T> callback) {
+        return getCallbackResultSetExtractor(callback, (e, rs) -> {
+            if (e.getCause() instanceof ModuleNotLoadedException) {
+                try {
+                    LOG.error( "Data source with type '" +
+                        rs.getString("dataSourceType") +
+                        "' and xid '" + rs.getString("xid") +
+                        "' could not be loaded. Is its module missing?", e.getCause());
+                }catch(SQLException e1) {
+                    LOG.error(e.getMessage(), e);
                 }
-
-                return dataSourceCopy.getId();
+            }else {
+                LOG.error(e.getMessage(), e);
             }
-        });
-    }
-
-    /**
-     * Copy Data Source Points and Source itself
-     *
-     * @param dataSourceId
-     * @param name
-     * @param xid
-     * @param deviceName
-     * @return
-     */
-    public int copyDataSource(final int dataSourceId, final String name, final String xid, final String deviceName) {
-        return getTransactionTemplate().execute(new TransactionCallback<Integer>() {
-            @Override
-            public Integer doInTransaction(TransactionStatus status) {
-                DataPointDao dataPointDao = DataPointDao.getInstance();
-
-                DataSourceVO<?> dataSource = getDataSource(dataSourceId);
-                // Copy the data source.
-                DataSourceVO<?> dataSourceCopy = dataSource.copy();
-                dataSourceCopy.setId(Common.NEW_ID);
-                dataSourceCopy.setXid(xid);
-                dataSourceCopy.setEnabled(false);
-                dataSourceCopy.setName(name);
-                Common.runtimeManager.insertDataSource(dataSourceCopy);
-
-                // Copy the points.
-                for (DataPointVO dataPoint : dataPointDao.getDataPoints(dataSourceId, null)) {
-                    DataPointVO dataPointCopy = dataPoint.copy();
-                    dataPointCopy.setId(Common.NEW_ID);
-                    dataPointCopy.setXid(dataPointDao.generateUniqueXid());
-                    dataPointCopy.setName(dataPoint.getName());
-                    dataPointCopy.setDeviceName(deviceName);
-                    dataPointCopy.setDataSourceId(dataSourceCopy.getId());
-                    dataPointCopy.setEnabled(dataPoint.isEnabled());
-                    dataPointCopy.getComments().clear();
-
-                    // Copy the event detectors
-                    for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
-                        ped.setId(Common.NEW_ID);
-                    }
-
-                    Common.runtimeManager.saveDataPoint(dataPointCopy);
-                }
-
-                return dataSourceCopy.getId();
-            }
-        });
-    }
-
-    public Object getPersistentData(int id) {
-        return query("select rtdata from dataSources where id=?", new Object[] { id },
-                new ResultSetExtractor<Serializable>() {
-            @Override
-            public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
-                if (!rs.next())
-                    return null;
-
-                InputStream in = rs.getBinaryStream(1);
-                if (in == null)
-                    return null;
-
-                return (Serializable) SerializationHelper.readObjectInContext(in);
-
-                //                        Blob blob = rs.getBlob(1);
-                //                        if (blob == null)
-                //                            return null;
-                //
-                //                        return (Serializable) SerializationHelper.readObjectInContext(blob.getBinaryStream());
-            }
-        });
-    }
-
-    public void savePersistentData(int id, Object data) {
-        ejt.update("UPDATE dataSources SET rtdata=? WHERE id=?", new Object[] { SerializationHelper.writeObject(data),
-                id }, new int[] { Types.BINARY, Types.INTEGER });
-    }
-
-    public String getEditPermission(int id) {
-        return ejt.queryForObject("SELECT editPermission FROM dataSources WHERE id=?", new Object[] { id },
-                String.class, null);
-    }
-
-    /**
-     * Get the count of data sources per type
-     * @return
-     */
-    public List<DataSourceUsageStatistics> getUsage() {
-        return ejt.query("SELECT dataSourceType, COUNT(dataSourceType) FROM dataSources GROUP BY dataSourceType", new RowMapper<DataSourceUsageStatistics>() {
-            @Override
-            public DataSourceUsageStatistics mapRow(ResultSet rs, int rowNum) throws SQLException {
-                DataSourceUsageStatistics usage = new DataSourceUsageStatistics();
-                usage.setDataSourceType(rs.getString(1));
-                usage.setCount(rs.getInt(2));
-                return usage;
-            }
-        });
+        }); 
     }
     
     @Override
@@ -385,7 +202,10 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     @Override
     protected Object[] voToObjectArray(T vo) {
-        return new Object[] { vo.getXid(), vo.getName(), vo.getDefinition().getDataSourceTypeName(),
+        return new Object[] { 
+                vo.getXid(), 
+                vo.getName(), 
+                vo.getDefinition().getDataSourceTypeName(),
                 SerializationHelper.writeObject(vo)};
     }
 
@@ -401,116 +221,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     }
 
     @Override
-    protected Map<String, Comparator<T>> getComparatorMap() {
-        HashMap<String, Comparator<T>> comparatorMap = new HashMap<>();
-
-        comparatorMap.put("typeDescriptionString", new Comparator<T>() {
-            @Override
-            public int compare(T lhs, T rhs) {
-                return lhs.getTypeDescriptionString().compareTo(rhs.getTypeDescriptionString());
-            }
-        });
-
-        comparatorMap.put("connectionDescriptionString", new Comparator<T>() {
-            @Override
-            public int compare(T lhs, T rhs) {
-                return lhs.getConnectionDescriptionString().compareTo(rhs.getConnectionDescriptionString());
-            }
-        });
-
-        return comparatorMap;
-    }
-
-    @Override
-    protected Map<String, IFilter<T>> getFilterMap() {
-        HashMap<String, IFilter<T>> filterMap = new HashMap<>();
-
-        filterMap.put("typeDescriptionString", new IFilter<T>() {
-
-            private String regex;
-
-            @Override
-            public boolean filter(T vo) {
-                return !vo.getTypeDescriptionString().matches(regex);
-            }
-
-            @Override
-            public void setFilter(Object matches) {
-                this.regex = "(?i)" + (String) matches;
-
-            }
-
-        });
-
-        filterMap.put("connectionDescriptionString", new IFilter<T>() {
-            private String regex;
-
-            @Override
-            public boolean filter(T vo) {
-                return !vo.getConnectionDescriptionString().matches(regex);
-            }
-
-            @Override
-            public void setFilter(Object matches) {
-                this.regex = "(?i)" + (String) matches; //Make case insensitive like DB
-
-            }
-
-        });
-
-        return filterMap;
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        return new HashMap<>();
-    }
-
-    @Override
     public RowMapper<T> getRowMapper() {
         return new DataSourceRowMapper();
-    }
-
-    /**
-     *
-     * Overridable method to extract the data
-     *
-     * @return
-     */
-    @Override
-    public ResultSetExtractor<List<T>> getResultSetExtractor(final RowMapper<T> rowMapper,
-            final FilterListCallback<T> filters) {
-
-        return new ResultSetExtractor<List<T>>() {
-            List<T> results = new ArrayList<>();
-            int rowNum = 0;
-
-            @Override
-            public List<T> extractData(ResultSet rs) throws SQLException, DataAccessException {
-                while (rs.next()) {
-                    try {
-                        T row = rowMapper.mapRow(rs, rowNum);
-                        //Should we filter the row?
-                        if (!filters.filterRow(row, rowNum++))
-                            results.add(row);
-                    }
-                    catch (ShouldNeverHappenException e) {
-                        // If the module was removed but there are still records in the database, this exception will be
-                        // thrown. Check the inner exception to confirm.
-                        if (e.getCause() instanceof ModuleNotLoadedException) {
-                            // Yep. Log the occurrence and continue.
-                            String desc = "Data source with type '" + rs.getString("dataSourceType") + "' and xid '"
-                                    + rs.getString("xid") + "' could not be loaded. Is its module missing?";
-                            LOG.error(desc, e.getCause());
-                        }else {
-                            LOG.error(e.getMessage(), e);
-                        }
-                    }
-                }
-                return results;
-
-            }
-        };
     }
     
     @Override
@@ -523,4 +235,11 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
     }
 
+    @Override
+    public void deleteRelationalData(T vo) {
+        ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
+                EventType.EventTypeNames.DATA_SOURCE, vo.getId()});
+
+    }
+    
 }

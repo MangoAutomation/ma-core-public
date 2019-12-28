@@ -54,7 +54,7 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
     public void restartSource(T vo) {
         if(Common.runtimeManager.isDataPointRunning(vo.getSourceId())) {
             //Get full to ensure the event detectors are loaded
-            DataPointVO dp = DataPointDao.getInstance().get(vo.getSourceId());
+            DataPointVO dp = DataPointDao.getInstance().get(vo.getSourceId(), true);
             Objects.requireNonNull(dp, "No data point source set");
             Common.runtimeManager.restartDataPoint(dp);
         }
@@ -83,7 +83,7 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
     
     @Override
     protected T createEventDetectorVO(int sourceId) {
-        return createEventDetectorVO(DataPointDao.getInstance().get(sourceId));
+        return createEventDetectorVO(DataPointDao.getInstance().get(sourceId, true));
     }
     
     /**

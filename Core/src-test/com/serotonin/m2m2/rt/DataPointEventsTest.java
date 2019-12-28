@@ -41,7 +41,7 @@ public class DataPointEventsTest extends MangoTestBase {
         loadConfiguration(jsonFile);
 
         int inserted = 1000;
-        DataPointVO point = DataPointDao.getInstance().getByXid("DP_TEST");
+        DataPointVO point = DataPointDao.getInstance().getByXid("DP_TEST", true);
         ExecutorService executor = Executors.newFixedThreadPool(3);
         SynchronousQueue<TestDataPointListener> queue = new SynchronousQueue<>();
 

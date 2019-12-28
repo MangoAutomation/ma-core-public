@@ -32,7 +32,7 @@ public class VarNames {
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (IntStringPair ivp : context) {
-            DataPointVO dp = dataPointDao.getDataPoint(ivp.getKey(), false);
+            DataPointVO dp = dataPointDao.get(ivp.getKey(), false);
             if (first)
                 first = false;
             else

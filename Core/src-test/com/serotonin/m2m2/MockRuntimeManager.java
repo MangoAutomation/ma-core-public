@@ -78,7 +78,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public List<DataSourceVO<?>> getDataSources() {
         if(useDatabase)
-            return DataSourceDao.getInstance().getAllFull();
+            return DataSourceDao.getInstance().getAll(true);
         else 
             return null;
     }
@@ -86,7 +86,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
         if(useDatabase)
-            return DataSourceDao.getInstance().getFull(dataSourceId);
+            return DataSourceDao.getInstance().get(dataSourceId, true);
         else 
             return null;
     }
@@ -275,7 +275,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
         if(useDatabase)
-            return PublisherDao.getInstance().get(publisherId);
+            return PublisherDao.getInstance().get(publisherId, true);
         else
             return null;
     }

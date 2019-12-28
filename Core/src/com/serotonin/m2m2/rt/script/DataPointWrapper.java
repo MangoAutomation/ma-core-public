@@ -8,10 +8,8 @@ import java.util.Map;
 
 import javax.measure.unit.Unit;
 
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.hierarchy.PointHierarchy;
 
 /**
  * @author Terry Packer
@@ -53,10 +51,6 @@ public class DataPointWrapper {
     
     public String getName() {
         return vo.getName();
-    }
-    
-    public String getPath() {
-        return PointHierarchy.getFlatPath(vo.getId(), DataPointDao.getInstance().getPointHierarchy(true).getRoot());
     }
     
     public Unit<?> getUnit(){
@@ -104,7 +98,6 @@ public class DataPointWrapper {
 		builder.append("id: ").append(getId()).append(",\n");
 		builder.append("xid: ").append(getXid()).append(",\n");
 		builder.append("name: ").append(getName()).append(",\n");
-		builder.append("path: ").append(getPath()).append(",\n");
 		builder.append("unit: ").append(getUnit().toString()).append(",\n");
 		builder.append("dataSourceName: ").append(getDataSourceName()).append(",\n");
 		builder.append("dataSourceXid: ").append(getDataSourceXid()).append(",\n");

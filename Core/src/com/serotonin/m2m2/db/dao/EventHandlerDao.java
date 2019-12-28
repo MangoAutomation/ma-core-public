@@ -248,18 +248,11 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     public void loadRelationalData(T vo) {
         vo.getDefinition().loadRelationalData(vo);
     }
-
+    
     @Override
-    public void delete(T vo, String initiatorId) {
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                deleteEventHandlerMappings(vo.getId());
-                EventHandlerDao.super.delete(vo, initiatorId);
-            }
-        });
+    public void deleteRelationalData(T vo) {
+        deleteEventHandlerMappings(vo.getId());
     }
-
     
     public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {
         if(H2_SYNTAX) {

@@ -95,7 +95,7 @@ public class DataPointQuery extends ScriptUtility {
 	}
 	
 	public DataPointWrapper byXid(String xid) {
-	    DataPointVO dp = DataPointDao.getInstance().getByXid(xid);
+	    DataPointVO dp = DataPointDao.getInstance().getByXid(xid, true);
 	    if(dp == null)
 	        return null;
 	    

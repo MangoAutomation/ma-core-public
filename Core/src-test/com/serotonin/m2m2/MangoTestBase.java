@@ -297,8 +297,8 @@ public class MangoTestBase {
         user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(roles))));
         user.setDisabled(false);
         UsersService service = Common.getBean(UsersService.class);
-        service.insertFull(user, PermissionHolder.SYSTEM_SUPERADMIN);
-        return service.getFull(user.getId(), PermissionHolder.SYSTEM_SUPERADMIN);
+        service.insert(user, true, PermissionHolder.SYSTEM_SUPERADMIN);
+        return service.get(user.getId(), true, PermissionHolder.SYSTEM_SUPERADMIN);
     }
     
     /**

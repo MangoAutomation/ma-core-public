@@ -20,7 +20,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -196,10 +195,6 @@ public class SystemSettingsDao extends BaseDao {
     // Last install/upgrade of Mango Core or modules
     public static final String LAST_UPGRADE = "lastUpgrade";
     public static final String CORE_VERSION_LAST_START = "coreVersionLastStart";
-
-    // The path delimiter for flat paths
-    public static final String EXPORT_HIERARCHY_PATH = "exportHierarchyPath";
-    public static final String HIERARCHY_PATH_SEPARATOR = "hierarchyPathSeparator";
 
     // Timeouts for http sessions
     public static final String HTTP_SESSION_TIMEOUT_PERIOD_TYPE = "httpSessionTimeoutPeriodType";
@@ -749,9 +744,6 @@ public class SystemSettingsDao extends BaseDao {
             modDefaults = null;
         }
 
-        DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
-        DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
-
         DEFAULT_VALUES.put(PASSWORD_UPPER_CASE_COUNT, 0);
         DEFAULT_VALUES.put(PASSWORD_LOWER_CASE_COUNT, 0);
         DEFAULT_VALUES.put(PASSWORD_DIGIT_COUNT, 0);
@@ -1085,13 +1077,6 @@ public class SystemSettingsDao extends BaseDao {
                     response.addContextualMessage(UPGRADE_VERSION_STATE, "emport.error.invalid", UPGRADE_VERSION_STATE, setting,
                             Common.VERSION_STATE_CODES.getCodeList());
             }
-        }
-
-        //Validate point hierarchy settings
-        setting = settings.get(HIERARCHY_PATH_SEPARATOR);
-        if(setting != null) {
-            if(StringUtils.isEmpty((String)setting))
-                response.addContextualMessage(HIERARCHY_PATH_SEPARATOR, "validate.cannotContainEmptyString");
         }
 
         // Validate the Module Settings

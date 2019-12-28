@@ -76,19 +76,19 @@ public class DataPurge {
             for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
                 purgeFilters.add(pfd.getPurgeFilter());
 
-            // Get the data point information.
-            List<DataPointVO> dataPoints = dataPointDao.getDataPoints(null, false);
-            for (DataPointVO dataPoint : dataPoints)
-                purgePoint(dataPoint, countPointValues, purgeFilters);
+	        // Get the data point information.
+	        List<DataPointVO> dataPoints = dataPointDao.getAll(false);
+	        for (DataPointVO dataPoint : dataPoints)
+	            purgePoint(dataPoint, countPointValues, purgeFilters);
+	        
+	        if(countPointValues)
+	        	deletedSamples += pointValueDao.deleteOrphanedPointValues();
+	        else
+	        	pointValueDao.deleteOrphanedPointValuesWithoutCount();
 
-            if(countPointValues)
-                deletedSamples += pointValueDao.deleteOrphanedPointValues();
-            else
-                pointValueDao.deleteOrphanedPointValuesWithoutCount();
+	        pointValueDao.deleteOrphanedPointValueAnnotations();
 
-            pointValueDao.deleteOrphanedPointValueAnnotations();
-
-            log.info("Data purge ended, " + deletedSamples + " point samples deleted");
+	        log.info("Data purge ended, " + deletedSamples + " point samples deleted");
         }else{
             log.info("Purge for data points not enabled, skipping.");
         }
@@ -131,7 +131,7 @@ public class DataPurge {
             }
             else {
                 // Check the data source level.
-                DataSourceVO<?> ds = DataSourceDao.getInstance().getDataSource(dataPoint.getDataSourceId());
+                DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataPoint.getDataSourceId(), false);
                 if (ds.isPurgeOverride()) {
                     purgeType = ds.getPurgeType();
                     purgePeriod = ds.getPurgePeriod();

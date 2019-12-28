@@ -70,7 +70,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      * Nice little hack since Users don't have an XID.
      */
     @Override
-    protected User get(String username, PermissionHolder user, boolean full)
+    public User get(String username, boolean full, PermissionHolder user)
             throws NotFoundException, PermissionException {
         User vo = dao.getUser(username);
         if(vo == null)
@@ -95,7 +95,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     }
     
     @Override
-    protected User insert(User vo, PermissionHolder user, boolean full)
+    public User insert(User vo, boolean full, PermissionHolder user)
             throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
@@ -123,7 +123,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     }
 
     @Override
-    protected User update(User existing, User vo, PermissionHolder holder, boolean full)
+    public User update(User existing, User vo, boolean full, PermissionHolder holder)
             throws PermissionException, ValidationException {
         ensureEditPermission(holder, existing);
         vo.setId(existing.getId());
@@ -182,7 +182,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     public void lockPassword(String username, PermissionHolder user)
             throws PermissionException, NotFoundException {
         permissionService.ensureAdminRole(user);
-        User toLock = get(username, user);
+        User toLock = get(username, false, user);
         if (user instanceof User && ((User) user).getId() == toLock.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), user);
         dao.lockPassword(toLock);
@@ -412,10 +412,10 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      * @throws AddressException 
      */
     public User approveUser(String username, boolean sendEmail, PermissionHolder user) throws PermissionException, NotFoundException, TemplateException, IOException, AddressException {
-        User existing = get(username, user);
+        User existing = get(username, true, user);
         User approved = existing.copy();
         approved.setDisabled(false);
-        update(existing, approved, user);
+        update(existing, approved, true, user);
         
         Translations translations = existing.getTranslations();
         Map<String, Object> model = new HashMap<>();

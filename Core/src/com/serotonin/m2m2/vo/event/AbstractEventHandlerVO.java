@@ -167,7 +167,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
         
         int pos = 0;
         for(IntStringPair cxt : additionalContext) {
-            if(DataPointDao.getInstance().get(cxt.getKey()) == null)
+            if(DataPointDao.getInstance().getXidById(cxt.getKey()) == null)
                 response.addContextualMessage("scriptContext[" + pos + "].id", "event.script.contextPointMissing", cxt.getValue(), cxt.getKey());
             
             String varName = cxt.getValue();

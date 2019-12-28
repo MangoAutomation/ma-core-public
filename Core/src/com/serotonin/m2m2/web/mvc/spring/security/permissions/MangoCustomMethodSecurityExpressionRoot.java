@@ -80,7 +80,7 @@ implements MethodSecurityExpressionOperations {
         User user =  (User) this.getPrincipal();
         if(user.hasAdminRole())
             return true;
-        DataSourceVO<?> dsvo = DataSourceDao.getInstance().getByXid(xid);
+        DataSourceVO<?> dsvo = DataSourceDao.getInstance().getByXid(xid, true);
         if((dsvo == null)||(!permissionService.hasDataSourcePermission(user, dsvo)))
             return false;
         return true;
@@ -107,7 +107,7 @@ implements MethodSecurityExpressionOperations {
      */
     public boolean hasDataPointXidReadPermission(String xid){
         User user =  (User) this.getPrincipal();
-        DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
+        DataPointVO vo = DataPointDao.getInstance().getByXid(xid, true);
 
         return (vo != null) && permissionService.hasDataPointReadPermission(user, vo);
     }
@@ -120,7 +120,7 @@ implements MethodSecurityExpressionOperations {
     public boolean hasDataPointXidsReadPermission(String[] xids){
         User user =  (User) this.getPrincipal();
         for(String xid : xids){
-            DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
+            DataPointVO vo = DataPointDao.getInstance().getByXid(xid, true);
             if((vo == null)||(!permissionService.hasDataPointReadPermission(user, vo)))
                 return false;
 
@@ -135,7 +135,7 @@ implements MethodSecurityExpressionOperations {
      */
     public boolean hasDataPointXidSetPermission(String xid){
         User user =  (User) this.getPrincipal();
-        DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
+        DataPointVO vo = DataPointDao.getInstance().getByXid(xid, true);
 
         return (vo != null) && permissionService.hasDataPointSetPermission(user, vo);
     }
@@ -149,7 +149,7 @@ implements MethodSecurityExpressionOperations {
     public boolean hasDataPointXidsSetPermission(String[] xids){
         User user =  (User) this.getPrincipal();
         for(String xid : xids){
-            DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
+            DataPointVO vo = DataPointDao.getInstance().getByXid(xid, true);
             if((vo == null)||(!permissionService.hasDataPointSetPermission(user, vo)))
                 return false;
 

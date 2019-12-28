@@ -94,7 +94,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             Set<String> permissionsSet = (Set<String>) in.readObject();
             roles.clear();
             for(String permission : permissionsSet) {
-                RoleVO role = RoleDao.getInstance().getByXid(permission);
+                RoleVO role = RoleDao.getInstance().getByXid(permission, false);
                 if(role != null) {
                     roles.add(role);
                 }
@@ -133,7 +133,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                 permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("customPermissions")));
                 
                 for(String permission : permissions) {
-                    RoleVO role = RoleDao.getInstance().getByXid(permission);
+                    RoleVO role = RoleDao.getInstance().getByXid(permission, false);
                     if(role != null) {
                         roles.add(role);
                     } else {
@@ -149,7 +149,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             Set<RoleVO> roles = new HashSet<>();
             JsonArray permissions = jsonObject.getJsonArray("scriptPermissions");
             for(JsonValue jv : permissions) {
-                RoleVO role = RoleDao.getInstance().getByXid(jv.toString());
+                RoleVO role = RoleDao.getInstance().getByXid(jv.toString(), false);
                 if(role != null) {
                     roles.add(role);
                 } else {

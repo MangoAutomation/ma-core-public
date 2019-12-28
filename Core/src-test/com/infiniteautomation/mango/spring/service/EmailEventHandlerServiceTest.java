@@ -43,7 +43,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         EmailEventHandlerVO vo = newVO();
-        service.insertFull(vo, editUser);
+        service.insert(vo, true, editUser);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
         runTest(() -> {
             EmailEventHandlerVO vo = newVO();
             addRoleToCreatePermission(editRole);
-            service.insertFull(vo, editUser);
+            service.insert(vo, true, editUser);
         });
     }
     

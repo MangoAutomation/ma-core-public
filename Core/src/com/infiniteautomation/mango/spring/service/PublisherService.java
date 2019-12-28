@@ -52,7 +52,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     }
 
     @Override
-    protected PublisherVO<T> insert(PublisherVO<T> vo, PermissionHolder user, boolean full)
+    public PublisherVO<T> insert(PublisherVO<T> vo, boolean full, PermissionHolder user)
             throws PermissionException, ValidationException {
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
@@ -76,8 +76,8 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     
     
     @Override
-    protected PublisherVO<T> update(PublisherVO<T> existing, PublisherVO<T> vo,
-            PermissionHolder user, boolean full) throws PermissionException, ValidationException {
+    public PublisherVO<T> update(PublisherVO<T> existing, PublisherVO<T> vo,
+            boolean full, PermissionHolder user) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         
         //Ensure matching data source types
@@ -96,7 +96,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     @Override
     public PublisherVO<T> delete(String xid, PermissionHolder user)
             throws PermissionException, NotFoundException {
-        PublisherVO<T> vo = get(xid, user);
+        PublisherVO<T> vo = get(xid, true, user);
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deletePublisher(vo.getId());
         return vo;
@@ -109,7 +109,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
      * @param user
      */
     public void restart(String xid, boolean enabled, boolean restart, User user) {
-        PublisherVO<T>  vo = getFull(xid, user);
+        PublisherVO<T>  vo = get(xid, true, user);
         ensureEditPermission(user, vo);
         if (enabled && restart) {
             vo.setEnabled(true);
@@ -146,7 +146,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
             //Does this point even exist?
 
             if (set.contains(pointId)) {
-                DataPointVO dp = DataPointDao.getInstance().getDataPoint(pointId, false);
+                DataPointVO dp = DataPointDao.getInstance().get(pointId, false);
                 response.addContextualMessage("points", "validate.publisher.duplicatePoint", dp.getExtendedName(), dp.getXid());
             }
             else{

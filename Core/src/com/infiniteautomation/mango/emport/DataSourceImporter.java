@@ -32,7 +32,7 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                vo = service.getFull(xid, user);
+                vo = service.get(xid, true, user);
             }catch(NotFoundException e) {
                 
             }
@@ -60,9 +60,9 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
                 boolean isnew = vo.isNew();
                 if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
                     if(isnew) {
-                        service.insertFull(vo, user);
+                        service.insert(vo, true, user);
                     }else {
-                        service.updateFull(vo.getId(), vo, user);
+                        service.update(vo.getId(), vo, true, user);
                     }
                     addSuccessMessage(isnew, "emport.dataSource.prefix", xid);
                 }else{

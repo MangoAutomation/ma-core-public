@@ -43,7 +43,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
 
         //Add some roles
         mockRole = new RoleVO("MOCK", "Mock test role.");
-        roleService.insert(mockRole, systemSuperadmin);
+        roleService.insert(mockRole, false, systemSuperadmin);
         
     }
     
