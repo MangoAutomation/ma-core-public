@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -30,7 +29,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EmportDefinition;
@@ -41,7 +39,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.hierarchy.PointFolder;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.util.ProgressiveTaskListener;
@@ -54,14 +51,12 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
 	private static Log LOG = LogFactory.getLog(ImportTask.class);
 	
     protected final ImportContext importContext;
-    protected final PointHierarchyImporter hierarchyImporter;
     protected final PermissionHolder user;
     protected float progress = 0f;
     protected float progressChunk;
     
     protected final List<Importer> importers = new ArrayList<Importer>();
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
-    protected final List<DataPointSummaryPathPair> dpPathPairs = new ArrayList<DataPointSummaryPathPair>();
     protected final Map<String, DataPointVO> eventDetectorPoints = new HashMap<String, DataPointVO>();
     
     protected final DataPointService dataPointService;
@@ -98,14 +93,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             addImporter(new DataSourceImporter<DS>(jv.toJsonObject(), dataSourceService, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
-            addImporter(new DataPointImporter<DS>(jv.toJsonObject(), dataPointService, dataSourceService, user, dpPathPairs));
-        
-        JsonArray phJson = root.getJsonArray(ConfigurationExportData.POINT_HIERARCHY);
-        if(phJson != null) {
-            hierarchyImporter = new PointHierarchyImporter(phJson, user);
-        	    addImporter(hierarchyImporter);
-        } else
-            hierarchyImporter = null;
+            addImporter(new DataPointImporter<DS>(jv.toJsonObject(), dataPointService, dataSourceService, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
             addImporter(new MailingListImporter(jv.toJsonObject(), mailingListService, user));
@@ -119,9 +107,6 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
             addImporter(new SystemSettingsImporter(obj, user));
-        
-        for (JsonValue jv : nonNullList(root, ConfigurationExportData.TEMPLATES))
-            addImporter(new TemplateImporter(jv.toJsonObject(), user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject(), user));
@@ -227,7 +212,6 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
                         for (Importer importer : importers)
                             importer.copyMessages();
                         importers.clear();
-                        processDataPointPaths(hierarchyImporter, dpPathPairs);
                         completed = true;
                         return;
                     }
@@ -266,7 +250,6 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
                         return;
                     }
                 }
-                processDataPointPaths(hierarchyImporter, dpPathPairs);
                 processUpdatedDetectors(eventDetectorPoints);
                 completed = true;
             }
@@ -288,47 +271,6 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             if(progress < 100f)
                 declareProgress(this.progress);
         }
-    }
-    
-    public void processDataPointPaths(PointHierarchyImporter hierarchyImporter, List<DataPointSummaryPathPair> dpPathPairs) {
-
-        PointFolder root;
-        if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null) 
-            root = hierarchyImporter.getHierarchy().getRoot();
-        else if(dpPathPairs.size() > 0)
-            root = DataPointDao.getInstance().getPointHierarchy(false).getRoot();
-        else
-            return;
-        
-        String pathSeparator = SystemSettingsDao.instance.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
-        for(DataPointSummaryPathPair dpp : dpPathPairs) {
-            root.removePointRecursively(dpp.getDataPointSummary().getId());
-            PointFolder starting = root;
-            PointFolder previous = root;
-            String[] pathParts = dpp.getPath().split(pathSeparator);
-            
-            if(pathParts.length == 1 && StringUtils.isBlank(pathParts[0])) { //Check if it's in the root
-                root.getPoints().add(dpp.getDataPointSummary());
-                continue;
-            }
-            
-            for(String s : pathParts) {
-                if(StringUtils.isBlank(s))
-                    continue;
-                previous = starting;
-                starting = starting.getSubfolder(s);
-                if(starting == null) {
-                    PointFolder newFolder = new PointFolder();
-                    newFolder.setName(s);
-                    previous.addSubfolder(newFolder);
-                    starting = newFolder;
-                }
-            }
-
-            starting.addDataPoint(dpp.getDataPointSummary());
-        }
-        DataPointDao.getInstance().savePointHierarchy(root);
-        importContext.addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
     }
     
     private void processUpdatedDetectors(Map<String, DataPointVO> eventDetectorMap) {

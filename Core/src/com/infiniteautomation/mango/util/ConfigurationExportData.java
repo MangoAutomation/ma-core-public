@@ -21,7 +21,6 @@ import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -40,10 +39,8 @@ public class ConfigurationExportData {
     public static final String EVENT_DETECTORS = SchemaDefinition.EVENT_DETECTOR_TABLE;
     public static final String JSON_DATA = SchemaDefinition.JSON_DATA_TABLE;
     public static final String MAILING_LISTS = SchemaDefinition.MAILING_LISTS_TABLE;
-    public static final String POINT_HIERARCHY = "pointHierarchy";
     public static final String PUBLISHERS = SchemaDefinition.PUBLISHERS_TABLE;
     public static final String SYSTEM_SETTINGS = SchemaDefinition.SYSTEM_SETTINGS_TABLE;
-    public static final String TEMPLATES = SchemaDefinition.TEMPLATES_TABLE;
     public static final String USERS = SchemaDefinition.USERS_TABLE;
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
 
@@ -61,9 +58,7 @@ public class ConfigurationExportData {
         names.add(JSON_DATA);
         names.add(MAILING_LISTS);
         names.add(PUBLISHERS);
-        names.add(POINT_HIERARCHY);
         names.add(SYSTEM_SETTINGS);
-        names.add(TEMPLATES);
         names.add(USERS);
         names.add(VIRTUAL_SERIAL_PORTS);
         
@@ -88,9 +83,7 @@ public class ConfigurationExportData {
         elements.add(new StringStringPair("header.jsonData", JSON_DATA));
         elements.add(new StringStringPair("header.mailingLists", MAILING_LISTS));
         elements.add(new StringStringPair("header.publishers", PUBLISHERS));
-        elements.add(new StringStringPair("header.pointHierarchy", POINT_HIERARCHY));
         elements.add(new StringStringPair("header.systemSettings", SYSTEM_SETTINGS));
-        elements.add(new StringStringPair("header.pointPropertyTemplates", TEMPLATES));
         elements.add(new StringStringPair("header.users", USERS));
         elements.add(new StringStringPair("header.virtualSerialPorts", VIRTUAL_SERIAL_PORTS));
 
@@ -127,12 +120,8 @@ public class ConfigurationExportData {
             data.put(PUBLISHERS, PublisherDao.getInstance().getPublishers());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
             data.put(EVENT_HANDLERS, EventHandlerDao.getInstance().getEventHandlers());
-        if (ArrayUtils.contains(exportElements, POINT_HIERARCHY))
-            data.put(POINT_HIERARCHY, DataPointDao.getInstance().getPointHierarchy(true).getRoot().getSubfolders());
         if (ArrayUtils.contains(exportElements, SYSTEM_SETTINGS))
             data.put(SYSTEM_SETTINGS, SystemSettingsDao.instance.getAllSystemSettingsAsCodes());
-        if (ArrayUtils.contains(exportElements, TEMPLATES))
-            data.put(TEMPLATES, TemplateDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))
             data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, JSON_DATA))

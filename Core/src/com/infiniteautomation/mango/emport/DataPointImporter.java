@@ -1,7 +1,6 @@
 package com.infiniteautomation.mango.emport;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,7 +17,6 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.RuntimeManager;
-import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -27,7 +25,6 @@ import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 
 public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
     
-    final List<DataPointSummaryPathPair> hierarchyList;
     final String PATH = "path";
     
     private final DataPointService dataPointService;
@@ -36,12 +33,10 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
     public DataPointImporter(JsonObject json, 
             DataPointService dataPointService,
             DataSourceService<DS> dataSourceService,
-            PermissionHolder user, 
-            List<DataPointSummaryPathPair> hierarchyList) {
+            PermissionHolder user) {
         super(json, user);
         this.dataPointService = dataPointService;
         this.dataSourceService = dataSourceService;
-        this.hierarchyList = hierarchyList;
     }
 
     @Override
@@ -137,11 +132,6 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
                     	    }else {
                     	        dataPointService.updateFull(vo.getId(), vo, user);
                     	    }
-                    		if(hierarchyList != null && json.containsKey(PATH)) {
-                    		    String path = json.getString(PATH);
-                    		    if(StringUtils.isNotEmpty(path))
-                    		        hierarchyList.add(new DataPointSummaryPathPair(new DataPointSummary(vo), path));
-                    		}
                     		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                     	}else{
                     		addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
