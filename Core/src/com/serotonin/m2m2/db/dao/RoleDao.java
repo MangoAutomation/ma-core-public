@@ -178,6 +178,29 @@ public class RoleDao extends AbstractDao<RoleVO> {
         });
     }
 
+    /**
+     * Delete roles for a vo permission
+     * @param vo
+     * @param permissionType
+     */
+    public void deleteRolesForVoPermission(AbstractBasicVO vo, String permissionType) {
+        deleteRolesForVoPermission(vo.getId(), vo.getClass().getSimpleName(), permissionType);
+    }
+    
+    /**
+     * Delete roles for a vo permission
+     * @param voId
+     * @param classSimpleName
+     * @param permissionType
+     */
+    public void deleteRolesForVoPermission(int voId, String classSimpleName, String permissionType) {
+        ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?", 
+                new Object[]{
+                        voId,
+                        classSimpleName,
+                        permissionType,
+                });
+    }
 
     /**
      * Get the superadmin role
