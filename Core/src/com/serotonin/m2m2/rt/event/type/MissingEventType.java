@@ -4,13 +4,13 @@
  */
 package com.serotonin.m2m2.rt.event.type;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.MissingEventTypeModel;
 
 /**
- *
+ * Placeholder for events types that were module defined and the module was deleted
  * @author Terry Packer
  */
 public class MissingEventType extends EventType{
@@ -29,45 +29,27 @@ public class MissingEventType extends EventType{
         this.ref2 = ref2;
     }
 
-    /**
-     * @return the missingTypeName
-     */
     public String getMissingTypeName() {
         return missingTypeName;
     }
 
-    /**
-     * @param missingTypeName the missingTypeName to set
-     */
     public void setMissingTypeName(String missingTypeName) {
         this.missingTypeName = missingTypeName;
     }
 
-    /**
-     * @return the missingSubTypeName
-     */
     public String getMissingSubTypeName() {
         return missingSubTypeName;
     }
 
-    /**
-     * @param missingSubTypeName the missingSubTypeName to set
-     */
     public void setMissingSubTypeName(String missingSubTypeName) {
         this.missingSubTypeName = missingSubTypeName;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getEventType()
-     */
     @Override
     public String getEventType() {
         return EventType.EventTypeNames.MISSING;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getEventSubtype()
-     */
     @Override
     public String getEventSubtype() {
         return null;
@@ -77,31 +59,22 @@ public class MissingEventType extends EventType{
     public DuplicateHandling getDuplicateHandling() {
         return DuplicateHandling.IGNORE;
     }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getReferenceId1()
-     */
+    
     @Override
     public int getReferenceId1() {
         return ref1;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#getReferenceId2()
-     */
     @Override
     public int getReferenceId2() {
         return ref2;
     }
 
     @Override
-    public boolean hasPermission(PermissionHolder user) {
-        return Permissions.hasAdminPermission(user);
+    public boolean hasPermission(PermissionHolder user, PermissionService service) {
+        return service.hasAdminRole(user);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-     */
     @Override
     public EventTypeModel asModel() {
         return new MissingEventTypeModel(missingTypeName, missingSubTypeName, ref1, ref2);

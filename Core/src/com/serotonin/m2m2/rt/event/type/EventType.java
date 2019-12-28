@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -174,7 +175,7 @@ abstract public class EventType implements JsonSerializable {
      * @param user
      * @return
      */
-    abstract public boolean hasPermission(PermissionHolder user);
+    abstract public boolean hasPermission(PermissionHolder user, PermissionService service);
 
     /**
      * Determines if the notification of this event to the given user should be suppressed. Useful if the action of the

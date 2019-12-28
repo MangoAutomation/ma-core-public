@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -14,7 +15,6 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.DataSourceEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
@@ -127,19 +127,16 @@ public class DataSourceEventType extends EventType {
         writer.writeEntry("dataSourceEventType", ds.getEventCodes().getCode(dataSourceEventTypeId));
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-     */
     @Override
     public EventTypeModel asModel() {
         return new DataSourceEventTypeModel(this);
     }
 
     @Override
-    public boolean hasPermission(PermissionHolder user) {
+    public boolean hasPermission(PermissionHolder user, PermissionService service) {
         DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataSourceId);
         if(ds == null)
             return false;
-        return Permissions.hasDataSourcePermission(user, ds);
+        return service.hasDataSourcePermission(user, ds);
     }
 }

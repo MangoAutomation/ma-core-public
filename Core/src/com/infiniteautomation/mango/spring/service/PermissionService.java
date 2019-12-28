@@ -322,7 +322,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasEventTypePermission(PermissionHolder user, EventType eventType) {
-        return hasAdminRole(user) || eventType.hasPermission(user);
+        return hasAdminRole(user) || eventType.hasPermission(user, this);
     }
 
     /**

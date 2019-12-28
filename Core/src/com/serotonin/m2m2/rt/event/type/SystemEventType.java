@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -26,7 +27,6 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportNames;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.SystemEventTypeModel;
 
@@ -210,16 +210,13 @@ public class SystemEventType extends EventType {
         writer.writeEntry("systemType", systemEventType);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.type.EventType#asModel()
-     */
     @Override
     public EventTypeModel asModel() {
         return new SystemEventTypeModel(this);
     }
 
     @Override
-    public boolean hasPermission(PermissionHolder user) {
-        return Permissions.hasAdminPermission(user);
+    public boolean hasPermission(PermissionHolder user, PermissionService service) {
+        return service.hasAdminRole(user);
     }
 }

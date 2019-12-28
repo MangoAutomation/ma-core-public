@@ -6,6 +6,7 @@ package com.serotonin.m2m2.rt.event.type;
 
 import java.io.IOException;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -14,7 +15,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.permission.Permissions;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.DataPointEventTypeModel;
 import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
@@ -142,10 +142,10 @@ public class DataPointEventType extends EventType {
     }
 
     @Override
-    public boolean hasPermission(PermissionHolder user) {
+    public boolean hasPermission(PermissionHolder user, PermissionService service) {
         DataPointVO point = DataPointDao.getInstance().get(dataPointId);
         if(point == null)
             return false;
-        return Permissions.hasDataPointReadPermission(user, point);
+        return service.hasDataPointReadPermission(user, point);
     }
 }
