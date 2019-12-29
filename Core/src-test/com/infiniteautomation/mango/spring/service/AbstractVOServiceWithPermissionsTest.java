@@ -3,16 +3,19 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collections;
 import java.util.Set;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -215,6 +218,44 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             assertVoEqual(vo, fromDb);
             fromDb.setName("read user edited me");
             service.update(fromDb.getXid(), fromDb, true, readUser);            
+        });
+    }
+    
+    @Test
+    public void testDeleteRoleUpdateVO() {
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.singleton(readRole), vo);
+            setEditRoles(Collections.singleton(editRole), vo);
+            service.insert(vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            roleService.delete(editRole, systemSuperadmin);
+            roleService.delete(readRole, systemSuperadmin);
+            VO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
+            setReadRoles(Collections.emptySet(), fromDb);
+            setEditRoles(Collections.emptySet(), fromDb);
+            assertVoEqual(fromDb, updated);
+        });
+    }
+    
+    @Test(expected = NotFoundException.class)
+    @Override
+    public void testDelete() {
+        runTest(() -> {
+            VO vo = insertNewVO();
+            setReadRoles(Collections.singleton(readRole), vo);
+            setEditRoles(Collections.singleton(editRole), vo);
+            service.update(vo.getXid(), vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getId(), systemSuperadmin);
+            
+            //Ensure the mappings are gone
+            assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.READ).size());
+            assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.EDIT).size());
+            
+            service.get(vo.getId(), true, systemSuperadmin);
         });
     }
     

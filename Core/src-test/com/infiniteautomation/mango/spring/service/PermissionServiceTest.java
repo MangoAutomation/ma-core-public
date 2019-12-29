@@ -24,13 +24,13 @@ import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -335,7 +335,7 @@ public class PermissionServiceTest extends MangoTestBase {
         String expectedString = "";
         Iterator<RoleVO> roleIt = permSet.iterator();
         expectedString = roleIt.next().getXid() + "," + roleIt.next().getXid();
-        assertTrue(expectedString.equals(joinedPerms));
+        assertTrue(expectedString + " not = to " + joinedPerms, expectedString.equals(joinedPerms));
     }
 
     @Test
@@ -344,8 +344,8 @@ public class PermissionServiceTest extends MangoTestBase {
         permissionService.ensureSingleRole(testUser, testUser.getRoles().iterator().next());
     }
 
-    @Test
-    public void ensureHasSingleRoleOKSuperadminNullRole() {
+    @Test(expected = PermissionException.class)
+    public void ensureSuperadminHasSingleRoleFailNullRole() {
         User testUser = this.createTestUser(roleService.getSuperadminRole());
         permissionService.ensureSingleRole(testUser, null);
     }

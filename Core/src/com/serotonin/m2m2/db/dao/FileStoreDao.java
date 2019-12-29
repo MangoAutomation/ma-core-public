@@ -122,7 +122,12 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
         //Populate permissions
         vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
         vo.setWriteRoles(RoleDao.getInstance().getRoles(vo, PermissionService.WRITE));
-
+    }
+    
+    @Override
+    public void deleteRelationalData(FileStore vo) {
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.EDIT);
     }
 
 }

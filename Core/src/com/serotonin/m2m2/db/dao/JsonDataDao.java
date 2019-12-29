@@ -144,6 +144,12 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo, PermissionService.EDIT, insert);
 	}
 	
+	@Override
+	public void deleteRelationalData(JsonDataVO vo) {
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.EDIT);
+    }
+	
 	/**
 	 * 
 	 * @param json

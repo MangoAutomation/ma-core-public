@@ -18,11 +18,11 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer

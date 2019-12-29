@@ -44,7 +44,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
     public FileStoreService(FileStoreDao dao, PermissionService permissionService) {
         super(dao, permissionService, ModuleRegistry.getPermissionDefinition(UserFileStoreCreatePermissionDefinition.TYPE_NAME));
     }
-
+    
     @Override
     public ProcessResult validate(FileStore vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);

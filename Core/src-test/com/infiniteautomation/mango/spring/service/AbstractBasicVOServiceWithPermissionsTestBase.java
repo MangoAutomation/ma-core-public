@@ -3,16 +3,19 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collections;
 import java.util.Set;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -211,7 +214,43 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         });
     }
     
-    
+    @Test
+    public void testDeleteRoleUpdateVO() {
+        runTest(() -> {
+            VO vo = newVO();
+            setReadRoles(Collections.singleton(readRole), vo);
+            setEditRoles(Collections.singleton(editRole), vo);
+            service.insert(vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            roleService.delete(editRole, systemSuperadmin);
+            roleService.delete(readRole, systemSuperadmin);
+            VO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
+            setReadRoles(Collections.emptySet(), fromDb);
+            setEditRoles(Collections.emptySet(), fromDb);
+            assertVoEqual(fromDb, updated);
+        });
+    }
+
+    @Test(expected = NotFoundException.class)
+    @Override
+    public void testDelete() {
+        runTest(() -> {
+            VO vo = insertNewVO();
+            setReadRoles(Collections.singleton(readRole), vo);
+            setEditRoles(Collections.singleton(editRole), vo);
+            service.update(vo.getId(), vo, true, systemSuperadmin);
+            VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getId(), systemSuperadmin);
+            
+            //Ensure the mappings are gone
+            assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.READ).size());
+            assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.EDIT).size());
+            
+            service.get(vo.getId(), true, systemSuperadmin);
+        });
+    }
     
     void addRoleToCreatePermission(RoleVO vo) {
         String permissionType = getCreatePermissionType();

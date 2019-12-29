@@ -5,7 +5,7 @@ package com.infiniteautomation.mango.permission;
 
 import java.util.Set;
 
-import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * Container for a set of roles that apply to a permission such as 'permissionDatasource' or  'permissions.user.editSelf'

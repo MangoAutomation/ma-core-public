@@ -239,7 +239,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public void deleteRelationalData(T vo) {
         ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
                 EventType.EventTypeNames.DATA_SOURCE, vo.getId()});
-
+        RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
     }
     
 }

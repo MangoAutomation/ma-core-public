@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
 /**
@@ -55,6 +56,23 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
     }
     
     /**
+     * Delete any relational data that is no ON DELETE CASCADE
+     * @param vo
+     */
+    public void deleteRelationalData(AbstractEventHandlerVO<?> vo) {
+        
+    }
+    
+    /**
+     * Handle a role mapping being deleted 
+     * @param vo
+     * @param event
+     */
+    public void handleRoleDeletedEvent(AbstractEventHandlerVO<?> vo, RoleDeletedDaoEvent event) {
+        
+    }
+    
+    /**
      * Used by MA core code to create a new event handler instances as required. Should not be used by client code.
      */
     public final T baseCreateEventHandlerVO() {
@@ -62,5 +80,7 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
         handler.setDefinition(this);
         return handler;
     }
+
+
     
 }

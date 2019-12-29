@@ -10,16 +10,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -50,11 +49,16 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
+/**
+ * TODO Mango 4.0 Move userCache into service?
+ * @author Terry Packer
+ *
+ */
 @Repository
 public class UserDao extends AbstractDao<User> implements SystemSettingsListener {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
@@ -145,10 +149,19 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             return user;
         });
     }
+
+    /**
+     * Get the roles for a user from the database mapping table
+     * @param vo
+     * @return
+     */
+    public Set<RoleVO> getUserRoles(User vo) {
+        return query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRoleVoSetResultSetExtractor());
+    }
     
     @Override
     public void loadRelationalData(User vo) {
-        vo.setRoles(Collections.unmodifiableSet(new HashSet<>(query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRowMapper()))));
+        vo.setRoles(getUserRoles(vo));
     }
 
     @Override
@@ -266,7 +279,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";
     private static final String USER_ROLE_INSERT = "INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)";
     private static final String USER_ROLES_SELECT = "SELECT r.id, r.xid, r.name FROM userRoleMappings AS ur JOIN roles r ON ur.roleId=r.id JOIN users u ON ur.userId=u.id WHERE ur.userId=?";
-    
+
     void insertUser(User user) {
 
         getTransactionTemplate().execute(new TransactionCallback<Integer>() {
@@ -310,17 +323,18 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             + " WHERE id=?";
 
     void updateUser(User user) {
-        // Potential fix for "An attempt was made to get a data value of type 'VARCHAR' from a data value of type 'null'"
-        if (user.getPhone() == null)
-            user.setPhone("");
-        if (user.getHomeUrl() == null)
-            user.setHomeUrl("");
-        if (user.getTimezone() == null)
-            user.setTimezone("");
-        if (user.getName() == null)
-            user.setName("");
-        if (user.getLocale() == null)
-            user.setLocale("");
+        //TODO Mango 4.0 do we really need this?  It's not done on insert?
+//        // Potential fix for "An attempt was made to get a data value of type 'VARCHAR' from a data value of type 'null'"
+//        if (user.getPhone() == null)
+//            user.setPhone("");
+//        if (user.getHomeUrl() == null)
+//            user.setHomeUrl("");
+//        if (user.getTimezone() == null)
+//            user.setTimezone("");
+//        if (user.getName() == null)
+//            user.setName("");
+//        if (user.getLocale() == null)
+//            user.setLocale("");
 
         int originalPwVersion = user.getPasswordVersion();
 
@@ -430,7 +444,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         exireSessionsForUser(user);
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.DELETE, user, null, null));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.DELETE, user, null));
     }
 
     public void revokeTokens(User user) {
@@ -624,7 +638,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         }
         return keys;
     }
-
+    
     private String convertData(JsonNode data) {
         try {
             if(data == null) {

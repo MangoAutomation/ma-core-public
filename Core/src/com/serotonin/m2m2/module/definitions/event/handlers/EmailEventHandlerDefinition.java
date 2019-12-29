@@ -52,5 +52,9 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
         eh.setScriptRoles(new ScriptPermissions(
                 RoleDao.getInstance().getRoles(eh, PermissionService.SCRIPT)));
     }
-
+    
+    @Override
+    public void deleteRelationalData(AbstractEventHandlerVO<?> vo) {
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SCRIPT);
+    }
 }

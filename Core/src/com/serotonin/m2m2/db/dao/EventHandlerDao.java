@@ -252,6 +252,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     @Override
     public void deleteRelationalData(T vo) {
         deleteEventHandlerMappings(vo.getId());
+        vo.getDefinition().deleteRelationalData(vo);
     }
     
     public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {

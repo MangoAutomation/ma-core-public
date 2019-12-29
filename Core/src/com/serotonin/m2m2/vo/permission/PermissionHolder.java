@@ -11,7 +11,7 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * Something that holds permissions, typically a user. Could however in the future be groups, data source scripts etc.
@@ -73,6 +73,14 @@ public interface PermissionHolder {
         return permissionService.get().hasAdminRole(this);
     }
     
+    /**
+     * Is the exact required role in the permission holder's roles? 
+     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
+     *  specially
+     * 
+     * @param requiredRole
+     * @return
+     */
     default boolean hasSingleRole(RoleVO requiredRole) {
         return permissionService.get().hasSingleRole(this, requiredRole);
     }
@@ -89,6 +97,13 @@ public interface PermissionHolder {
         permissionService.get().ensureAdminRole(this);
     }
     
+    /**
+     *  Ensure the exact required role is in the permission holder's roles
+     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
+     *  specially
+     *  
+     * @param requiredRole
+     */
     default void ensureHasSingleRole(RoleVO requiredRole) {
         permissionService.get().ensureSingleRole(this, requiredRole);
     }

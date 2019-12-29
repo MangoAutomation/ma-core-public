@@ -20,9 +20,9 @@ import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -114,7 +114,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
             service.delete(vo.getId(), systemSuperadmin);
-            service.get(vo.getId(), true, systemSuperadmin);            
+            service.get(vo.getId(), true, systemSuperadmin);
         });
     }
     

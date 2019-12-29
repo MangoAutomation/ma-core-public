@@ -13,8 +13,8 @@ import java.util.UUID;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer

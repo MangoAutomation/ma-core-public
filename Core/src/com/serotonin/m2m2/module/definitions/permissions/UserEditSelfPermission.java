@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * This permission determines who can edit themselves

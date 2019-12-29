@@ -34,7 +34,7 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO<?>, DAO extend
             
             VO updated = updateVO(vo);
             service.update(vo.getXid(), updated, true, systemSuperadmin);
-            fromDb = service.get(vo.getXid(), true, systemSuperadmin);
+            fromDb = service.get(updated.getXid(), true, systemSuperadmin);
             assertVoEqual(updated, fromDb);            
         });
     }

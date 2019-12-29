@@ -11,7 +11,7 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer

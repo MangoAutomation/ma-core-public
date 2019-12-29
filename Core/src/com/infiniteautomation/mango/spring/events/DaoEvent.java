@@ -27,7 +27,11 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
     private final Set<?> updatedFields;
 
     /**
+     * Create an event without any updated field information
      * @param source
+     * @param type
+     * @param vo
+     * @param originalXid
      */
     public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String originalXid) {
         super(source);
@@ -37,6 +41,14 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         this.updatedFields = Collections.emptySet();
     }
 
+    /**
+     * Create an event and include the set of updated fields
+     * @param source
+     * @param type
+     * @param vo
+     * @param originalXid
+     * @param updatedFields
+     */
     public DaoEvent(AbstractBasicDao<T> source, DaoEventType type, T vo, String originalXid, Set<?> updatedFields) {
         super(source);
         this.type = Objects.requireNonNull(type);

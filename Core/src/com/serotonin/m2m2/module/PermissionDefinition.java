@@ -9,7 +9,7 @@ import java.util.Set;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * A permission definition allows a module to define a single permission string. The enforcement of this permission is

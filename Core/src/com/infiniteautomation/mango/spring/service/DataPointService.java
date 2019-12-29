@@ -3,15 +3,19 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -24,10 +28,12 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.DataPointVO.IntervalLoggingTypes;
@@ -37,6 +43,7 @@ import com.serotonin.m2m2.vo.DataPointVO.SimplifyTypes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.validation.StringValidation;
 
@@ -65,6 +72,30 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     @Override
     public boolean hasReadPermission(PermissionHolder user, DataPointVO vo) {
         return permissionService.hasDataPointReadPermission(user, vo);
+    }
+
+    @Override
+    @EventListener
+    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        event.getMappings().stream().forEach((mapping) -> {
+            if(mapping.isForVoType(DataPointVO.class)) {
+                //So we don't have to restart it
+                DataPointRT rt = Common.runtimeManager.getDataPoint(mapping.getVoId());
+                if(rt != null) {
+                    if(StringUtils.equals(mapping.getPermissionType(), PermissionService.READ)) {
+                        Set<RoleVO> newReadRoles = new HashSet<>(rt.getVO().getReadRoles());
+                        newReadRoles.remove(event.getRole());
+                        rt.getVO().setReadRoles(Collections.unmodifiableSet(newReadRoles));
+                    }
+                    
+                    if(StringUtils.equals(mapping.getPermissionType(), PermissionService.SET)) {
+                        Set<RoleVO> newSetRoles = new HashSet<>(rt.getVO().getSetRoles());
+                        newSetRoles.remove(event.getRole());
+                        rt.getVO().setSetRoles(Collections.unmodifiableSet(newSetRoles));
+                    }
+                }
+            }
+        });
     }
     
     @Override
@@ -101,7 +132,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
     
     @Override
-    protected DataPointVO delete(DataPointVO vo, PermissionHolder user)
+    public DataPointVO delete(DataPointVO vo, PermissionHolder user)
             throws PermissionException, NotFoundException {
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataPoint(vo);

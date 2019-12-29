@@ -4,7 +4,6 @@
 package com.infiniteautomation.mango.spring.eventMulticaster;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -34,9 +33,9 @@ public class PropagatingEventMulticaster extends SimpleApplicationEventMulticast
     private final ApplicationContext context;
     private final EventMulticasterRegistry registry;
 
-    public PropagatingEventMulticaster(ApplicationContext context, EventMulticasterRegistry registry) {
+    public PropagatingEventMulticaster(ApplicationContext context, EventMulticasterRegistry registry, Executor executor) {
         super();
-        this.setTaskExecutor(ForkJoinPool.commonPool());
+        this.setTaskExecutor(executor);
         this.registry = registry;
         this.context = context;
     }

@@ -24,25 +24,24 @@ import com.serotonin.validation.StringValidation;
  *
  */
 public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractDao<T>> extends AbstractBasicVOService<T,DAO> {
-    
+        
+    /**
+     * 
+     * @param dao
+     * @param permissionService
+     */
+    public AbstractVOService(DAO dao, PermissionService permissionService) {
+        super(dao, permissionService);
+    }
 
     /**
-     * Construct a service that knows about its create permission
+     * Service with a create permission
      * @param dao
      * @param permissionService
      * @param createPermissionDefinition
      */
     public AbstractVOService(DAO dao, PermissionService permissionService, PermissionDefinition createPermissionDefinition) {
         super(dao, permissionService, createPermissionDefinition);
-    }
-    
-    /**
-     * Construct a service that has no create permission
-     * @param dao
-     * @param permissionService
-     */
-    public AbstractVOService(DAO dao, PermissionService permissionService) {
-        this(dao, permissionService, null);
     }
     
     /**

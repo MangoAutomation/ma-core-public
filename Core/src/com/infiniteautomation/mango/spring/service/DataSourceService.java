@@ -3,8 +3,13 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -13,18 +18,21 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
-import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
+import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -43,6 +51,22 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         this.dataPointService = dataPointService;
     }
 
+    @Override
+    @EventListener
+    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        event.getMappings().stream().forEach((mapping) -> {
+            if(mapping.isForVoType(DataSourceVO.class)) {
+                //So we don't have to restart it
+                DataSourceRT<?> rt = Common.runtimeManager.getRunningDataSource(mapping.getVoId());
+                if(rt != null) {
+                    Set<RoleVO> newEditRoles = new HashSet<>(rt.getVo().getEditRoles());
+                    newEditRoles.remove(event.getRole());
+                    rt.getVo().setEditRoles(Collections.unmodifiableSet(newEditRoles));
+                }
+            }
+        });
+    }
+    
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
         return permissionService.hasDataSourcePermission(user);

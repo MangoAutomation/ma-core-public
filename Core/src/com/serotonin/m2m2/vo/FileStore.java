@@ -9,6 +9,7 @@ import java.util.Set;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  *

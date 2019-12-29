@@ -302,7 +302,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     public void saveEnabledColumn(DataPointVO dp) {
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
-        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null, null));
+        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
 
@@ -345,6 +345,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         ejt.update("delete from userComments where commentType=2 and typeKey = " + vo.getId());
         ejt.update("delete from eventDetectors where dataPointId = " + vo.getId());
         ejt.update("delete from dataPoints where id = " + vo.getId());
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SET);
     }
 
     /**

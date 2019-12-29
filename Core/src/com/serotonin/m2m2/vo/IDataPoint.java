@@ -2,6 +2,8 @@ package com.serotonin.m2m2.vo;
 
 import java.util.Set;
 
+import com.serotonin.m2m2.vo.role.RoleVO;
+
 /**
  * Interface that represents both full data point VOs and summary objects.
  * 

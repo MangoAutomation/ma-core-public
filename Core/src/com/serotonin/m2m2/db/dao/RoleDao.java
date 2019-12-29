@@ -16,12 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.context.ApplicationEvent;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -29,7 +31,9 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.role.RoleToVoMapping;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -100,8 +104,46 @@ public class RoleDao extends AbstractDao<RoleVO> {
                 new RoleVoSetResultSetExtractor()); 
     }
 
+    @Override
+    public boolean delete(RoleVO vo) {
+        //First get all mappings so we can publish them in the event
+        List<RoleToVoMapping> mappings = getAllMappings(vo);
+        List<RoleToVoMapping> userMappings = getUserRoleMappings(vo);
+        mappings.addAll(userMappings);
+        if(super.delete(vo)) {
+            this.eventPublisher.publishEvent(new RoleDeletedDaoEvent(this, vo, mappings));
+            return true;
+        }else {
+            return false;
+        }
+    }
     
+    private static final String SELECT_VO_ROLE_MAPPINGS = "SELECT roleId, voId, voType, permissionType FROM roleMappings";
     private static final String INSERT_VO_ROLE_MAPPING = "INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)";
+    private static final String SELECT_USER_ROLE_MAPPINGS = "SELECT roleId, userId FROM userRoleMappings";
+
+    /**
+     * Get all mappings for a role
+     * @param vo
+     * @return
+     */
+    public List<RoleToVoMapping> getAllMappings(RoleVO role) {
+        return query(SELECT_VO_ROLE_MAPPINGS + " WHERE roleId=?", new Object[] {role.getId()}, (rs, index) -> {
+            return new RoleToVoMapping(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getString(4));
+        });
+    }
+    
+    /**
+     * Get all user role mappings for this role
+     * @param role
+     * @return
+     */
+    public List<RoleToVoMapping> getUserRoleMappings(RoleVO role) {
+        return query(SELECT_USER_ROLE_MAPPINGS + " WHERE roleId=?", new Object[] {role.getId()}, (rs, index) -> {
+            return new RoleToVoMapping(rs.getInt(1), rs.getInt(2), User.class.getSimpleName(), null);
+        });
+    }
+    
     /**
      * Add a role to the given vo's permission type
      * @param role
@@ -179,7 +221,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
     }
 
     /**
-     * Delete roles for a vo permission
+     * Delete role mappings for a vo permission
      * @param vo
      * @param permissionType
      */
@@ -188,7 +230,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
     }
     
     /**
-     * Delete roles for a vo permission
+     * Delete role mappings for a vo permission
      * @param voId
      * @param classSimpleName
      * @param permissionType
@@ -263,7 +305,15 @@ public class RoleDao extends AbstractDao<RoleVO> {
     public RowMapper<RoleVO> getRowMapper() {
         return new RoleRowMapper();
     }
-
+    
+    /**
+     * Get a result set extractor for an unmodifiable set of roles
+     * @return
+     */
+    public RoleVoSetResultSetExtractor getRoleVoSetResultSetExtractor() {
+        return new RoleVoSetResultSetExtractor();
+    }
+    
     class RoleRowMapper implements RowMapper<RoleVO> {
         @Override
         public RoleVO mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -294,6 +344,38 @@ public class RoleDao extends AbstractDao<RoleVO> {
                 results.add(this.rowMapper.mapRow(rs, rowNum++));
             }
             return Collections.unmodifiableSet(results);
+        }     
+    }
+    
+    /**
+     * Event to inform what mappings existed when a role was deleted
+     * @author Terry Packer
+     *
+     */
+    public static class RoleDeletedDaoEvent extends ApplicationEvent implements PropagatingEvent  {
+        private static final long serialVersionUID = 1L;
+        
+        private final RoleVO role;
+        private final List<RoleToVoMapping> mappings;
+        
+        /**
+         * 
+         * @param dao
+         * @param role - the role that was deleted
+         * @param mappings - the mappings at the time of deletion
+         */
+        public RoleDeletedDaoEvent(RoleDao dao, RoleVO role,  List<RoleToVoMapping> mappings) {
+            super(dao);
+            this.role = role;
+            this.mappings = mappings;
+        }
+        
+        public RoleVO getRole() {
+            return role;
+        }
+
+        public List<RoleToVoMapping> getMappings() {
+            return mappings;
         }
         
     }

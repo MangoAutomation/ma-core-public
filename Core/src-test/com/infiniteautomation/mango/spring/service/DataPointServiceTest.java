@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -18,11 +19,11 @@ import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -117,6 +118,27 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     public void testAddEditRoleUserDoesNotHave() {
         //No-op will be tested in the data source service test
+    }
+    
+    @Test(expected = NotFoundException.class)
+    @Override
+    public void testDelete() {
+        runTest(() -> {
+            DataPointVO vo = insertNewVO();
+            setReadRoles(Collections.singleton(readRole), vo);
+            setEditRoles(Collections.singleton(editRole), vo);
+            vo.setSetRoles(Collections.singleton(readRole));
+            service.update(vo.getXid(), vo, true, systemSuperadmin);
+            DataPointVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getId(), systemSuperadmin);
+            
+            //Ensure the mappings are gone
+            assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.READ).size());
+            assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SET).size());
+            
+            service.get(vo.getId(), true, systemSuperadmin);
+        });
     }
     
     @Test(expected = ValidationException.class)

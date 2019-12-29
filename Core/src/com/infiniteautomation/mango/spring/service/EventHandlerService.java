@@ -4,12 +4,15 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
@@ -41,6 +44,15 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
         return user.hasAdminRole();
     }
 
+    @Override
+    @EventListener
+    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        List<T> all = dao.getAll(true);
+        all.stream().forEach((eh) -> {
+            eh.getDefinition().handleRoleDeletedEvent(eh, event);
+        });
+    }
+    
     @Override
     public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);

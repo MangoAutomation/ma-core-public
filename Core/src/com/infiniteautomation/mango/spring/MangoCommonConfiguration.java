@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ForkJoinPool;
 
 import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.ListableBeanFactory;
@@ -47,7 +48,7 @@ public class MangoCommonConfiguration {
 
     @Bean(AbstractApplicationContext.APPLICATION_EVENT_MULTICASTER_BEAN_NAME)
     public ApplicationEventMulticaster eventMulticaster(ApplicationContext context, EventMulticasterRegistry eventMulticasterRegistry) {
-        return new PropagatingEventMulticaster(context, eventMulticasterRegistry);
+        return new PropagatingEventMulticaster(context, eventMulticasterRegistry, ForkJoinPool.commonPool());
     }
 
     /**

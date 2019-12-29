@@ -17,9 +17,9 @@ import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -77,6 +77,16 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         }
         return result;
     }
+    
+    @Override
+    public ProcessResult validate(RoleVO existing, RoleVO vo, PermissionHolder user) {
+        ProcessResult result = this.validate(vo, user);
+        if(!StringUtils.equals(existing.getXid(), vo.getXid())) {
+            result.addContextualMessage("xid", "validate.role.cannotChangeXid");
+        }
+        return result;
+    }
+    
     
     /**
      * Add a role to a permission type

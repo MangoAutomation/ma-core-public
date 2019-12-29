@@ -6,7 +6,7 @@ package com.serotonin.m2m2.rt.script;
 import java.util.Set;
 
 import com.infiniteautomation.mango.util.LazyInitializer;
-import com.serotonin.m2m2.vo.RoleVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * Work around for combinedPermissions being null after deserialization.

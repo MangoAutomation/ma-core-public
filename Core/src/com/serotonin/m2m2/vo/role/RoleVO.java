@@ -1,11 +1,12 @@
 /**
  * Copyright (C) 2019  Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.vo;
+package com.serotonin.m2m2.vo.role;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
  * Container for a role. The xid field holds the 

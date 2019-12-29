@@ -36,10 +36,6 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
         this.timer = timer;
     }
 
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#addWorkItem(com.serotonin.m2m2.rt.maint.work.WorkItem)
-     */
     @Override
     public void addWorkItem(final WorkItem item) {
         try{
@@ -57,9 +53,6 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
         }
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackgroundProcessing#initialize(boolean)
-     */
     @Override
     public void initialize(boolean safe) {
         if(this.timer == null)
@@ -103,9 +96,6 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
         this.state = RUNNING;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackgroundProcessing#terminate()
-     */
     @Override
     public void terminate() {
         this.timer.cancel();
@@ -114,9 +104,6 @@ public class MockBackgroundProcessing extends BackgroundProcessingImpl {
         this.lowPriorityService.shutdownNow();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackgroundProcessing#joinTermination()
-     */
     @Override
     public void joinTermination() {
         

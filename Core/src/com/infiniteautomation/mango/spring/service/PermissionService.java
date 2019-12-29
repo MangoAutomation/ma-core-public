@@ -24,11 +24,11 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -373,7 +373,9 @@ public class PermissionService {
     }
     
     /**
-     * Does this permission holder have this exact role
+     * Is the exact required role in the permission holder's roles? 
+     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
+     *  specially
      * @param user
      * @param requiredRole
      * @return
@@ -386,8 +388,13 @@ public class PermissionService {
     }
     
     /**
-     * Ensure this holder has the required role role
+     *  Ensure the exact required role is in the permission holder's roles
+     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
+     *  specially
+     *  
      * @param holder
+     * @param requiredRole
+     * @throws PermissionException
      */
     public void ensureSingleRole(PermissionHolder holder, RoleVO requiredRole) throws PermissionException {
         if(!hasSingleRole(holder, requiredRole)) {
@@ -444,16 +451,14 @@ public class PermissionService {
     }
     
     /**
-     * Is this required role in the held roles? 
+     * Is the exact required role in the held roles? 
+     *  NOTE: superadmin will have to have this role for this to be true for them. i.e. they are not treated
+     *  specially
      * @param heldRoles
      * @param requiredRole
      * @return
      */
-    private boolean containsSingleRole(Set<RoleVO> heldRoles, RoleVO requiredRole) {
-        if (heldRoles.contains(roleDao.getSuperadminRole())) {
-            return true;
-        }
-
+    public boolean containsSingleRole(Set<RoleVO> heldRoles, RoleVO requiredRole) {
         // empty permissions string indicates that only superadmins are allowed access
         if (requiredRole == null) {
             return false;

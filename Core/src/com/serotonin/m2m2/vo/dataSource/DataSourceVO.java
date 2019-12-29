@@ -37,8 +37,8 @@ import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
     public static final String XID_PREFIX = "DS_";

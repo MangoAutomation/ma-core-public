@@ -182,6 +182,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
     
     @Override
     public void deleteRelationalData(MailingList vo) {
+        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.EDIT);
     }
 

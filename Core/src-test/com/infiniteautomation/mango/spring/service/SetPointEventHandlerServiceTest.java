@@ -12,6 +12,8 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -23,13 +25,13 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.RoleVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -92,6 +94,43 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             SetPointEventHandlerVO vo = newVO();
             addRoleToCreatePermission(editRole);
             service.insert(vo, true, editUser);
+        });
+    }
+    
+    @Test
+    public void testDeleteRoleUpdateVO() {
+        runTest(() -> {
+            SetPointEventHandlerVO vo = newVO();
+            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+            vo.setScriptRoles(permissions);
+
+            service.insert(vo, true, systemSuperadmin);
+            SetPointEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            roleService.delete(editRole, systemSuperadmin);
+            roleService.delete(readRole, systemSuperadmin);
+            SetPointEventHandlerVO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
+            fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
+            assertVoEqual(fromDb, updated);
+        });
+    }
+    
+    @Test(expected = NotFoundException.class)
+    @Override
+    public void testDelete() {
+        runTest(() -> {
+            SetPointEventHandlerVO vo = newVO();
+            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+            vo.setScriptRoles(permissions);
+            service.update(vo.getXid(), vo, true, systemSuperadmin);
+            SetPointEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            assertVoEqual(vo, fromDb);
+            service.delete(vo.getId(), systemSuperadmin);
+            
+            //Ensure the mappings are gone
+            assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
+            
+            service.get(vo.getId(), true, systemSuperadmin);
         });
     }
     

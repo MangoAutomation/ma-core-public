@@ -6,13 +6,16 @@ package com.infiniteautomation.mango.spring.service;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import javax.mail.internet.AddressException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Objects;
@@ -20,6 +23,7 @@ import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInval
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
@@ -34,6 +38,7 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.validation.StringValidation;
 
 import freemarker.template.TemplateException;
@@ -65,7 +70,23 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         this.passwordService = passwordService;
         this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
     }
-
+    
+    @Override
+    @EventListener
+    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        event.getMappings().stream().forEach((mapping) -> {
+            if(mapping.isForVoType(User.class)) {
+                User user = dao.getUser(mapping.getVoId());
+                if(user != null) {
+                    Set<RoleVO> updated = new HashSet<>(user.getRoles());
+                    updated.remove(event.getRole());
+                    user.setRoles(updated);
+                    dao.saveUser(user);    
+                }
+            }
+        });
+    }
+    
     /*
      * Nice little hack since Users don't have an XID.
      */
@@ -157,7 +178,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     }
     
     @Override
-    protected User delete(User vo, PermissionHolder user)
+    public User delete(User vo, PermissionHolder user)
             throws PermissionException, NotFoundException {
 
         //You cannot delete yourself

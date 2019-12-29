@@ -4,17 +4,21 @@
 package com.infiniteautomation.mango.spring.service;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.spring.events.DaoEvent;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -28,11 +32,27 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     protected final PermissionService permissionService;
     protected final PermissionDefinition createPermissionDefinition;
     
+    /**
+     * Service without a create permission
+     * @param dao
+     * @param permissionService
+     */
+    public AbstractBasicVOService(DAO dao, PermissionService permissionService) {
+        this(dao, permissionService, null);
+    }
+
+    /**
+     * Service with a create permission
+     * @param dao
+     * @param permissionService
+     * @param createPermissionDefinition
+     */
     public AbstractBasicVOService(DAO dao, PermissionService permissionService, PermissionDefinition createPermissionDefinition) {
         this.dao = dao;
         this.permissionService = permissionService;
         this.createPermissionDefinition = createPermissionDefinition;
     }
+
     
     /**
      * Validate a new VO
@@ -49,7 +69,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @param vo
      * @return
      */
-    public abstract boolean hasEditPermission(PermissionHolder user, T vo);
+    abstract public  boolean hasEditPermission(PermissionHolder user, T vo);
     
     /**
      * Can this user read this VO
@@ -58,8 +78,65 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @param vo
      * @return
      */
-    public abstract boolean hasReadPermission(PermissionHolder user, T vo);
+    abstract public boolean hasReadPermission(PermissionHolder user, T vo);
 
+    /**
+     * Handle when a role was deleted with the existing mappings at the time of deletion
+     * You must annotate the overridden method with @EventListener in order for this to work.
+     * @param event
+     */
+    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        
+    }
+    
+    /**
+     * Be notified when a Role is changed, useful to update any VOs in the runtime that have this role.
+     * You must annotate the overridden method with @EventListener in order for this to work.
+     * @param event
+     */
+    protected void handleRoleDaoEvent(DaoEvent<RoleVO> event) {
+        processChangedRole(event.getVo(), event.getType());
+    }
+    
+    protected void processChangedRole(RoleVO role, DaoEventType type) {
+        switch(type) {
+            case CREATE:
+                roleCreated(role);
+            case DELETE:
+                roleDeleted(role);
+            case UPDATE:
+                roleUpdated(role);
+                break;
+        }
+    }
+    
+    /**
+     * A new role was created.
+     *  Override as required
+     * @param role
+     */
+    protected void roleCreated(RoleVO role) {
+        
+    }
+    
+    /**
+     * A role was deleted, update any runtime members that have this role.
+     *   The database will delete on cascade from the mapping table so this 
+     *   only concerns runtime data.
+     * @param role
+     */
+    protected void roleDeleted(RoleVO role) {
+        
+    }
+    
+    /**
+     * A role was updated, only the name can be updated.
+     *  Override as required
+     * @param role
+     */
+    protected void roleUpdated(RoleVO role) {
+        
+    }
     
     /**
      * Ensure this vo is valid compared to the previous one. 
@@ -196,7 +273,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @throws PermissionException
      * @throws NotFoundException
      */
-    protected T delete(T vo, PermissionHolder user) throws PermissionException, NotFoundException {
+    public T delete(T vo, PermissionHolder user) throws PermissionException, NotFoundException {
         ensureDeletePermission(user, vo);
         dao.delete(vo.getId());
         return vo;
