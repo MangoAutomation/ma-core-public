@@ -5,12 +5,12 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.RoleDao;
@@ -27,9 +27,6 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 @Service
 public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
-    
-    //To check role for spaces
-    private static final Pattern SPACE_PATTERN = Pattern.compile("\\s");
     
     @Autowired
     public RoleService(RoleDao dao, PermissionService permissionService) {
@@ -71,7 +68,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         }
         
         //Don't allow spaces in the XID
-        Matcher matcher = SPACE_PATTERN.matcher(vo.getXid());
+        Matcher matcher = Functions.WHITESPACE_PATTERN.matcher(vo.getXid());
         if(matcher.find()) {
             result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
         }

@@ -19,6 +19,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.dao.RoleDao;
@@ -398,7 +399,7 @@ public class Upgrade29 extends DBUpgrade {
 
         Set<String> set = new HashSet<>();
         for (String s : groups.split(",")) {
-            s = s.trim();
+            s = s.replaceAll(Functions.WHITESPACE_REGEX, "");
             if (!s.isEmpty()) {
                 set.add(s);
             }

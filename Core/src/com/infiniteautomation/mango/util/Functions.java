@@ -29,7 +29,8 @@ import com.serotonin.m2m2.vo.User;
 public class Functions {
 
     public static final String decimalFormat = "0.00%";
-    public static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+?");
+    public static final String WHITESPACE_REGEX = "\\s+?";
+    public static final Pattern WHITESPACE_PATTERN = Pattern.compile(WHITESPACE_REGEX);
 
     public static String quotEncode(String s) {
         if (s == null)
