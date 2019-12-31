@@ -3,7 +3,6 @@
  */
 package com.serotonin.m2m2.vo.role;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -20,6 +19,12 @@ public class RoleVO extends AbstractVO<RoleVO> {
     private static final long serialVersionUID = 1L;
     public static final String XID_PREFIX = "ROLE_";
     
+    public RoleVO(int id, String xid, String name) {
+        this.id = id;
+        this.xid = xid;
+        this.name = name;
+    }
+    
     public RoleVO(String xid, String name) {
         this.xid = xid;
         this.name = name;
@@ -28,13 +33,13 @@ public class RoleVO extends AbstractVO<RoleVO> {
     @Override
     @Deprecated
     public void setXid(String xid) {
-        throw new ShouldNeverHappenException("Cannot change role xid");
+        throw new UnsupportedOperationException("Cannot change role xid");
     }
     
     @Override
     @Deprecated
     public void setName(String name) {
-        throw new ShouldNeverHappenException("Cannot change role name");
+        throw new UnsupportedOperationException("Cannot change role name");
     }
     
     @Override
