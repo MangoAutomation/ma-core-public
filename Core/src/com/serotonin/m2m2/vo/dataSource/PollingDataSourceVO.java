@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -22,6 +23,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.util.SerializationHelper;
 
@@ -31,7 +33,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> extends DataSourceVO<T>{
+public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> extends DataSourceVO<T> {
     
     protected final static String POLL_ABORTED = "POLL_ABORTED";
     
@@ -44,8 +46,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     protected String cronPattern;
     
     @Override
-    public void validate(ProcessResult response) {
-        super.validate(response);
+    public void validate(ProcessResult response, PermissionService service, PermissionHolder holder) {
         if(useCron) {
             if (StringUtils.isBlank(cronPattern))
                 response.addContextualMessage("cronPattern", "validate.required");

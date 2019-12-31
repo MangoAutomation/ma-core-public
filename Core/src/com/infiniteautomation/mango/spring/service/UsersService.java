@@ -192,6 +192,22 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         return vo;
     }
     
+    /**
+     * Update the password for a user
+     * 
+     * @param user
+     * @param newPassword plain text password
+     * @throws ValidationException if password is not valid
+     */
+    public void updatePassword(User user, String newPassword, User permissionHolder) throws ValidationException {
+        // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
+        User copy = this.get(user.getId(), false, permissionHolder);
+        copy.setPlainTextPassword(newPassword);
+        ensureValid(user, permissionHolder);
+        copy.hashPlainText();
+
+        this.dao.updatePasswordHash(user, copy.getPassword());
+    }
 
     /**
      * Lock a user's password

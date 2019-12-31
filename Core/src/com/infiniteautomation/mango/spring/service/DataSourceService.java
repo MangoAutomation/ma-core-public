@@ -217,7 +217,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         copy.setName(newName);
         copy.setXid(newXid);
         copy.setEnabled(enabled);
-        copy.ensureValid();
+        ensureValid(copy, user);
         
         //Save it
         Common.runtimeManager.insertDataSource(copy);
@@ -264,6 +264,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         ProcessResult response = commonValidation(vo, user);
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
         permissionService.validateVoRoles(response, "editRoles", user, owner, null, vo.getEditRoles());
+      //Allow module to define validation logic
+        vo.validate(response, permissionService, user);
         return response;
     }
     
@@ -273,6 +275,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
         permissionService.validateVoRoles(response, "editRoles", user, owner, existing.getEditRoles(), vo.getEditRoles());
+        //Allow module to define validation logic
+        vo.validate(response, existing, permissionService, user);
         return response;
     }
     
@@ -285,9 +289,6 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             if (vo.getPurgePeriod() <= 0)
                 response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
         }
-        
-        //TODO Mango 4.0 add a validation definition or something?
-        vo.validate(response);
         
         return response;
     }

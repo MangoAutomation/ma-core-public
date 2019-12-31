@@ -74,7 +74,6 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
         return vo;
     }
     
-    
     @Override
     public PublisherVO<T> update(PublisherVO<T> existing, PublisherVO<T> vo,
             boolean full, PermissionHolder user) throws PermissionException, ValidationException {
@@ -122,6 +121,20 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     
     @Override
     public ProcessResult validate(PublisherVO<T> vo, PermissionHolder user) {
+        ProcessResult response = commonValidation(vo, user);
+        vo.validate(response, permissionService, user);
+        return response;
+    }
+    
+    @Override
+    public ProcessResult validate(PublisherVO<T> existing, PublisherVO<T> vo,
+            PermissionHolder user) {
+        ProcessResult response = commonValidation(vo, user);
+        vo.validate(response, existing, permissionService, user);
+        return response;
+    }
+    
+    private ProcessResult commonValidation(PublisherVO<T> vo, PermissionHolder user) {
         ProcessResult response = super.validate(vo, user);
         if (vo.isSendSnapshot()) {
             if (vo.getSnapshotSendPeriods() <= 0)
@@ -158,7 +171,6 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
                 }
             }
         }
-        vo.validate(response);
         return response;
     }
 

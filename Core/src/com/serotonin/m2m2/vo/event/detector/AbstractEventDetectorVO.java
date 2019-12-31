@@ -15,25 +15,21 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.EventDetectorDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.ChangeValidatable;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.validation.StringValidation;
 
 /**
  * @author Terry Packer
  *
  */
-public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<T>> extends AbstractVO<T>{
+public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<T>> extends AbstractVO<T> implements ChangeValidatable<T> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -177,44 +173,6 @@ public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<
 	@SuppressWarnings("unchecked")
 	public void setDefinition(EventDetectorDefinition<?> definition) {
 		this.definition = (EventDetectorDefinition<T>) definition;
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	protected AbstractDao<T> getDao(){
-		return (AbstractDao<T>) EventDetectorDao.getInstance();
-	}
-
-	/*
-	 * Override so we can allow for blank names
-	 */
-	@Override
-	public void validate(ProcessResult response) {
-	    if (StringUtils.isBlank(xid))
-            response.addContextualMessage("xid", "validate.required");
-        else if (StringValidation.isLengthGreaterThan(xid, 100))
-            response.addMessage("xid", new TranslatableMessage("validate.notLongerThan", 100));
-        else if (!isXidUnique(xid, id))
-            response.addContextualMessage("xid", "validate.xidUsed");
-
-	    // allow blank names
-        if (!StringUtils.isBlank(name)) {
-            if (StringValidation.isLengthGreaterThan(name, 255))
-                response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
-        }
-        
-        //Verify that they each exist as we will create a mapping when we save
-        if(addedEventHandlers != null)
-            for(AbstractEventHandlerVO<?> eh : addedEventHandlers) {
-                if(EventHandlerDao.getInstance().getXidById(eh.getId()) == null)
-                    response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", eh.getXid()));
-            }
-        if(eventHandlerXids != null) {
-            for(String ehXid : eventHandlerXids) {
-                if(EventHandlerDao.getInstance().getIdByXid(ehXid) == null)
-                    response.addMessage("eventHandlerXids", new TranslatableMessage("emport.eventHandler.missing", ehXid));
-            }
-        }
 	}
 
 	@Override

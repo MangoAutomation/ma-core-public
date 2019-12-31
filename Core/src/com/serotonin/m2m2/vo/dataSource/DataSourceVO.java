@@ -24,7 +24,6 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -36,11 +35,12 @@ import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
+import com.serotonin.m2m2.vo.ChangeValidatable;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
-abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
+abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> implements ChangeValidatable<T> {
     public static final String XID_PREFIX = "DS_";
 
     abstract public TranslatableMessage getConnectionDescription();
@@ -371,11 +371,5 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
                 throw new TranslatableJsonException("emport.error.missing", field, Common.TIME_PERIOD_CODES.getCodeList());
             }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected DataSourceDao<T> getDao() {
-        return (DataSourceDao<T>) DataSourceDao.getInstance();
     }
 }

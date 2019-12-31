@@ -11,7 +11,6 @@ import java.io.ObjectOutputStream;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.module.TemplateDefinition;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -66,11 +65,6 @@ public abstract class BaseTemplateVO<T extends BaseTemplateVO<?>> extends Abstra
 
 	public void setSetPermission(String setPermission) {
 		this.setPermission = setPermission;
-	}
-
-	@Override
-	protected TemplateDao getDao() {
-		return TemplateDao.getInstance();
 	}
         
     @Override

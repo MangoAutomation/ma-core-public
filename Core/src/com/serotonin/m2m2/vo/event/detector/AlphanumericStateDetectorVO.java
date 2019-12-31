@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -12,6 +13,7 @@ import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.AlphanumericStateDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -36,17 +38,11 @@ public class AlphanumericStateDetectorVO extends TimeoutDetectorVO<AlphanumericS
 		this.state = state;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()
-	 */
 	@Override
 	public AbstractEventDetectorRT<AlphanumericStateDetectorVO> createRuntime() {
 		return new AlphanumericStateDetectorRT(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#getConfigurationDescription()
-	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
         TranslatableMessage durationDesc = getDurationDescription();
@@ -57,13 +53,10 @@ public class AlphanumericStateDetectorVO extends TimeoutDetectorVO<AlphanumericS
         return new TranslatableMessage("event.detectorVo.statePeriod", dataPoint.getTextRenderer().getText(
                     state, TextRenderer.HINT_SPECIFIC), durationDesc);
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
-	 */
+
 	@Override
-	public void validate(ProcessResult response) {
-		super.validate(response);
+	public void validate(ProcessResult response, PermissionService service, PermissionHolder user) {
+		super.validate(response, service, user);
 		
 		if(state == null)
 			response.addContextualMessage("state", "emport.error.missingValue", "state");

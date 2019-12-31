@@ -25,7 +25,6 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -35,13 +34,14 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
+import com.serotonin.m2m2.vo.ChangeValidatable;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.util.SerializationHelper;
 
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<T>> implements Serializable, JsonSerializable {
+abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<T>> implements Serializable, JsonSerializable, ChangeValidatable<PublisherVO<T>> {
     public static final String XID_PREFIX = "PUB_";
 
     public interface PublishType{
@@ -439,12 +439,6 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
                 }
             }
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    protected PublisherDao<T> getDao() {
-        return (PublisherDao<T>) PublisherDao.getInstance();
     }
 
     @Override

@@ -14,7 +14,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -97,48 +96,21 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
                 // If the chart colour is null provide default of '' to handle legacy code that sets colour to null
                 if(vo.getChartColour() == null)
                 	vo.setChartColour("");
-                
-                // Now validate it. Use a new response object so we can distinguish errors in this vo from
-                // other errors.
-                ProcessResult voResponse = new ProcessResult();
-                vo.validate(voResponse);
-                if (voResponse.getHasMessages())
-                    setValidationMessages(voResponse, "emport.dataPoint.prefix", xid);
-                else {
 
-                	//We will always override the DS Info with the one from the XID Lookup
-                    try{
-                        dsvo = dataSourceService.get(vo.getDataSourceXid(), true, user);
-                        //Compare this point to the existing point in DB to ensure
-                        // that we aren't moving a point to a different type of Data Source
-                        // note that we don't need the join data
-                        DataPointVO oldPoint = dataPointService.get(vo.getId(), false, user);
-                        
-                        //Does the old point have a different data source?
-                        if(oldPoint != null&&(oldPoint.getDataSourceId() != dsvo.getId())){
-                            vo.setDataSourceId(dsvo.getId());
-                            vo.setDataSourceName(dsvo.getName());
-                        }
-                    }catch(NotFoundException e) {
-                        addFailureMessage("emport.dataPoint.badReference", xid);
-                        return;
-                    }
-
-                    boolean isNew = vo.isNew();
-                    try {
-                    	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
-                    	    if(isNew) {
-                    	        dataPointService.insert(vo, true, user);
-                    	    }else {
-                    	        dataPointService.update(vo.getId(), vo, true, user);
-                    	    }
-                    		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
-                    	}else{
-                    		addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
-                    	}
-                    } catch(LicenseViolatedException e) {
-                    	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
-                    }
+                boolean isNew = vo.isNew();
+                try {
+                	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+                	    if(isNew) {
+                	        dataPointService.insert(vo, true, user);
+                	    }else {
+                	        dataPointService.update(vo.getId(), vo, true, user);
+                	    }
+                		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
+                	}else{
+                		addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
+                	}
+                } catch(LicenseViolatedException e) {
+                	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
                 }
             }catch(ValidationException e) {
                 setValidationMessages(e.getValidationResult(), "emport.dataPoint.prefix", xid);

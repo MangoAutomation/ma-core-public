@@ -81,7 +81,7 @@ public abstract class Restorer<T extends AbstractVO<?>> {
 			}
 			
 	        ProcessResult voResponse = new ProcessResult();
-	        vo.validate(voResponse);
+	        //TODO need to be able to validate T vo.validate(voResponse);
 	        if (voResponse.getHasMessages())
 	            copyValidationMessages(voResponse, "restore.prefix", vo.getXid());
 	        else {

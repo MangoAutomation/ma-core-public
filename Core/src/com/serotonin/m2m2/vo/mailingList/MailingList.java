@@ -146,11 +146,6 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     }
 
     @Override
-    protected AbstractDao<MailingList> getDao() {
-        return MailingListDao.getInstance();
-    }
-
-    @Override
     public String getTypeKey() {
         return "event.audit.mailingList";
     }

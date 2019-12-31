@@ -149,6 +149,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      */
     public void enableDisable(String xid, boolean enabled, boolean restart, PermissionHolder user) throws NotFoundException, PermissionException {
         DataPointVO vo = get(xid, true, user);
+        permissionService.ensureDataSourcePermission(user, vo.getDataSourceId());
         if (enabled && restart) {
             Common.runtimeManager.restartDataPoint(vo);
         } else {
@@ -167,6 +168,12 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     @Override
     public ProcessResult validate(DataPointVO existing, DataPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
+        
+        //Don't allow moving to new data source
+        if(existing.getDataSourceId() != vo.getDataSourceId()) {
+            result.addContextualMessage("dataSourceId", "validate.dataPoint.pointChangeDataSource");
+        }
+        
         //Validate permissions
         permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadRoles(), vo.getReadRoles());
         permissionService.validateVoRoles(result, "setPermission", user, false, existing.getSetRoles(), vo.getSetRoles());
@@ -281,7 +288,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 response.addGenericMessage("validate.chart.incompatible");
             vo.getChartRenderer().validate(response);
         }
-            
 
         // Check the plot type
         if (!DataPointVO.PLOT_TYPE_CODES.isValidId(vo.getPlotType()))

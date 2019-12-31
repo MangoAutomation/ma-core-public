@@ -12,14 +12,12 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -29,11 +27,11 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.AbstractVO;
+import com.serotonin.m2m2.vo.ChangeValidatable;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
-public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
+public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> implements ChangeValidatable<T> {
     public static final String XID_PREFIX = "EH_";
     
     @JsonProperty
@@ -48,10 +46,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
      * @return
      */
     public abstract EventHandlerRT<?> createRuntime();
-    
-    public abstract void validate(ProcessResult result, PermissionService service, PermissionHolder savingUser);
-    public abstract void validate(ProcessResult result, T existing, PermissionService service, PermissionHolder savingUser);
-
     
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(name))
@@ -119,11 +113,6 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
         this.eventTypes = eventTypes;
     }
 
-    @SuppressWarnings("unchecked")
-	@Override
-    protected AbstractDao<T> getDao(){
-    	return (AbstractDao<T>)EventHandlerDao.getInstance();
-    }
     //
     //
     // Serialization

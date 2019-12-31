@@ -44,10 +44,8 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
-import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -168,21 +166,6 @@ public class MangoTestBase {
         }
         if (f.exists() && !f.delete())
             throw new FileNotFoundException("Failed to delete file: " + f);
-    }
-    
-    /**
-     * Validate a vo, fail if invalid
-     * @param vo
-     */
-    public void validate(AbstractVO<?> vo) {
-        ProcessResult result = new ProcessResult();
-        vo.validate(result);
-        if(result.getHasMessages()) {
-            String messages = new String();
-            for(ProcessMessage message : result.getMessages())
-                messages += message.toString(Common.getTranslations()) + " ";
-            fail("Validation of " + vo.getClass().getName() + " failed because " + messages);
-        }
     }
 	
     /**

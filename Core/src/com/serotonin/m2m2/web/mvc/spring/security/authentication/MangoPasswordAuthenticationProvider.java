@@ -22,9 +22,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.web.mvc.spring.security.RateLimiter;
@@ -47,13 +47,13 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
      * Limits the rate at which authentication attempts can occur against a username
      */
     private final RateLimiter<String> usernameRateLimiter;
-    private final UserDao userDao;
+    private final UsersService usersService;
 
     @Autowired
-    public MangoPasswordAuthenticationProvider(UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker, UserDao userDao) {
+    public MangoPasswordAuthenticationProvider(UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker, UsersService usersService) {
         this.userDetailsService = userDetailsService;
         this.userDetailsChecker = userDetailsChecker;
-        this.userDao = userDao;
+        this.usersService = usersService;
 
         if (Common.envProps.getBoolean("rateLimit.authentication.ip.enabled", true)) {
             this.ipRateLimiter = new RateLimiter<>(
@@ -136,7 +136,7 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
                 }
 
                 try {
-                    userDao.updatePassword(user, newPassword);
+                    usersService.updatePassword(user, newPassword, user);
                 } catch (ValidationException e) {
                     throw new PasswordChangeException(new TranslatableMessage("rest.exception.complexityRequirementsFailed"));
                 }

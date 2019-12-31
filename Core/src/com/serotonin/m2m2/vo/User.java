@@ -38,8 +38,6 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -565,11 +563,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
             name = username;
         this.roles = readLegacyPermissions("permissions", this.roles, jsonObject);
 
-    }
-
-    @Override
-    protected AbstractDao<User> getDao() {
-        return UserDao.getInstance();
     }
 
     @Override

@@ -6,11 +6,13 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -48,9 +50,7 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
     public int[] getSupportedDataTypes(){
         return supportedDataTypes;
     }
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#isRtnApplicable()
-     */
+
     @Override
     public boolean isRtnApplicable() {
         return true;
@@ -62,13 +62,8 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
                 alarmLevel);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#validate(com.serotonin.m2m2.i18n.ProcessResult)
-     */
     @Override
-    public void validate(ProcessResult response) {
-        super.validate(response);
-
+    public void validate(ProcessResult response, PermissionService service, PermissionHolder user) {
 
         //We currently don't check to see if the point exists
         // because of SQL constraints

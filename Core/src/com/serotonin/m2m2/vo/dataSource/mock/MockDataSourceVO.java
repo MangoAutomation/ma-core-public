@@ -5,7 +5,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.MockDataSourceRT;
 import com.serotonin.m2m2.util.ExportCodes;
@@ -52,14 +51,6 @@ public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
     protected void addEventTypes(List<EventTypeVO> eventTypes) {
         super.addEventTypes(eventTypes);
     }
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-	 */
-	@Override
-	protected DataSourceDao<MockDataSourceVO> getDao() {
-		return null;
-	}
     
     private static final long serialVersionUID = -1;
     private static final int version = 1;

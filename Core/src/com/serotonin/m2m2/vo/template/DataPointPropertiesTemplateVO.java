@@ -33,7 +33,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPropertiesTemplateVO>{
+public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPropertiesTemplateVO> {
 
 	
     
@@ -321,9 +321,7 @@ public class DataPointPropertiesTemplateVO extends BaseTemplateVO<DataPointPrope
 		this.chartRenderer = chartRenderer;
 	}
     
-    @Override
     public void validate(ProcessResult response) {
-        super.validate(response);
         //template type, xid,name in superclass
         if(defaultTemplate){
             //TODO Could check to see if there is already a default template for this data type?

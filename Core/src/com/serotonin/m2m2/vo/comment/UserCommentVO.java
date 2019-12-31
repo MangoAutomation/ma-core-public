@@ -4,12 +4,13 @@
  */
 package com.serotonin.m2m2.vo.comment;
 
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.UserCommentDao;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
+import com.serotonin.m2m2.vo.ChangeValidatable;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -17,7 +18,7 @@ import com.serotonin.validation.StringValidation;
  * @author Terry Packer
  *
  */
-public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
+public class UserCommentVO extends AbstractActionVO<UserCommentVO> implements ChangeValidatable<UserCommentVO> {
 	
 	public static final ExportCodes COMMENT_TYPE_CODES = new ExportCodes();
     public static final int TYPE_EVENT = 1;
@@ -96,7 +97,7 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
 	}
 	
     @Override
-    public void validate(ProcessResult response) {
+    public void validate(ProcessResult response, PermissionService service, PermissionHolder savingUser) {
         //Don't do super validate as we don't even have those properties!
         //xid,name in superclass
         if (StringValidation.isLengthGreaterThan(comment, 1024))
@@ -106,10 +107,4 @@ public class UserCommentVO extends AbstractActionVO<UserCommentVO>{
             response.addContextualMessage("commentType", "validate.invalidValueWithAcceptable", COMMENT_TYPE_CODES.getCodeList());
 
     }
-
-	@Override
-	protected AbstractDao<UserCommentVO> getDao() {
-		return UserCommentDao.getInstance();
-	}
-
 }

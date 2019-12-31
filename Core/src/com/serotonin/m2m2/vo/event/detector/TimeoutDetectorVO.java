@@ -6,6 +6,7 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -15,12 +16,13 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
  *
  */
-public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T>> extends AbstractPointEventDetectorVO<T>{
+public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T>> extends AbstractPointEventDetectorVO<T> {
 
 	/**
 	 * @param supportedDataTypes
@@ -54,8 +56,8 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
     }
 	
 	@Override
-	public void validate(ProcessResult response) {
-		super.validate(response);
+	public void validate(ProcessResult response, PermissionService service, PermissionHolder user) {
+		super.validate(response, service, user);
 		
         if (!Common.TIME_PERIOD_CODES.isValidId(durationType))
             response.addContextualMessage("durationType", "validate.invalidValue");

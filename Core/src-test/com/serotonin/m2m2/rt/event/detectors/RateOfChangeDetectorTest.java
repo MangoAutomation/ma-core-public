@@ -16,6 +16,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.spring.service.DataSourceService;
+import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
@@ -49,6 +52,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.CalculationMode;
 import com.serotonin.m2m2.vo.event.detector.RateOfChangeDetectorVO.ComparisonMode;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -742,6 +746,20 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         Common.runtimeManager.removeDataPointListener(rt.getId(), l);
         if(retries == 0)
             fail("did not recieved changed event");
+    }
+    
+    @SuppressWarnings("unchecked")
+    private void validate(MockDataSourceVO ds) {
+        Common.getBean(DataSourceService.class).validate(ds, PermissionHolder.SYSTEM_SUPERADMIN);
+    }
+    
+    private void validate(DataPointVO dp) {
+        Common.getBean(DataPointService.class).validate(dp, PermissionHolder.SYSTEM_SUPERADMIN);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private void validate(RateOfChangeDetectorVO vo) {
+        Common.getBean(EventDetectorsService.class).validate(vo, PermissionHolder.SYSTEM_SUPERADMIN);
     }
     
     @Override

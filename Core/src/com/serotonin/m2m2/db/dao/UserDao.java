@@ -40,7 +40,6 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
@@ -471,21 +470,11 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     /**
+     * Update the hash for a user and remove from cache
      * @param user
-     * @param newPassword plain text password
-     * @throws ValidationException if password is not valid
+     * @param newPasswordHash
      */
-    public void updatePassword(User user, String newPassword) throws ValidationException {
-        // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
-        User copy = this.get(user.getId(), false);
-        copy.setPlainTextPassword(newPassword);
-        copy.ensureValid();
-        copy.hashPlainText();
-
-        this.updatePasswordHash(user, copy.getPassword());
-    }
-
-    private void updatePasswordHash(User user, String newPasswordHash) {
+    public void updatePasswordHash(User user, String newPasswordHash) {
         int userId = user.getId();
         int currentPasswordVersion = user.getPasswordVersion();
         int newPasswordVersion = currentPasswordVersion + 1;

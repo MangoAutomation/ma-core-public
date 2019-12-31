@@ -19,7 +19,6 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -638,13 +637,5 @@ public class PointEventDetectorVO extends SimpleEventDetectorVO<PointEventDetect
     @Override
     public String getEventDetectorKey() {
         return SimpleEventDetectorVO.POINT_EVENT_DETECTOR_PREFIX + id;
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.vo.AbstractVO#getDao()
-     */
-    @Override
-    protected AbstractDao<PointEventDetectorVO> getDao() {
-        return null;
     }
 }

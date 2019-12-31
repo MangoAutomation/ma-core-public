@@ -3,8 +3,6 @@
  */
 package com.serotonin.m2m2.vo.role;
 
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -40,11 +38,6 @@ public class RoleVO extends AbstractVO<RoleVO> {
     @Deprecated
     public void setName(String name) {
         throw new UnsupportedOperationException("Cannot change role name");
-    }
-    
-    @Override
-    protected AbstractDao<RoleVO> getDao() {
-        return RoleDao.getInstance();
     }
 
     @Override

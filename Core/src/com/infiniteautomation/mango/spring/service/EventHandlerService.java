@@ -55,6 +55,19 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
     
     @Override
     public ProcessResult validate(T vo, PermissionHolder user) {
+        ProcessResult result = commonValidation(vo, user);
+        vo.validate(result, permissionService, user);
+        return result;
+    }
+    
+    @Override
+    public ProcessResult validate(T existing, T vo, PermissionHolder user) {
+        ProcessResult result = commonValidation(vo, user);
+        vo.validate(result, existing, permissionService, user);
+        return result;
+    }
+    
+    private ProcessResult commonValidation(T vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         //TODO is this true? 
         //eventTypes are not validated because it assumed they 
@@ -72,8 +85,6 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
                 }
             }
         }
-        vo.validate(result);
         return result;
     }
-    
 }

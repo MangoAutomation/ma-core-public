@@ -31,8 +31,6 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.TemplateDao;
@@ -1591,11 +1589,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         catch (Exception e) {
             throw new TranslatableJsonException("emport.error.parseError", item);
         }
-    }
-
-    @Override
-    protected AbstractDao<DataPointVO> getDao() {
-        return DataPointDao.getInstance();
     }
 
     /**

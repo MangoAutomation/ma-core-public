@@ -89,9 +89,4 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 		return "event.audit.jsonData";
 	}
 
-	@Override
-	protected JsonDataDao getDao() {
-		return JsonDataDao.getInstance();
-	}
-
 }
