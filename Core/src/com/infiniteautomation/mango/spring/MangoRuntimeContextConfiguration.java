@@ -47,8 +47,6 @@ import com.serotonin.m2m2.module.JacksonModuleDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
-import com.serotonin.m2m2.web.mvc.rest.v1.mapping.JScienceModule;
-import com.serotonin.m2m2.web.mvc.rest.v1.mapping.MangoCoreModule;
 import com.serotonin.m2m2.web.mvc.spring.MangoRootWebContextConfiguration;
 import com.serotonin.provider.Providers;
 
@@ -155,14 +153,6 @@ public class MangoRuntimeContextConfiguration {
         ObjectMapper objectMapper = new ObjectMapper();
         if(Common.envProps.getBoolean("rest.indentJSON", false))
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        // JScience
-        JScienceModule jScienceModule = new JScienceModule();
-        objectMapper.registerModule(jScienceModule);
-
-        // Mango Core JSON Modules
-        MangoCoreModule mangoCore = new MangoCoreModule();
-        objectMapper.registerModule(mangoCore);
 
         //Setup Module Defined JSON Modules
         List<JacksonModuleDefinition> defs = ModuleRegistry.getDefinitions(JacksonModuleDefinition.class);

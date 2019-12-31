@@ -12,11 +12,11 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
+
 import org.junit.Test;
 
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
 
 /**
  * Test that the truncation works according to the design.
@@ -48,8 +48,8 @@ public class TruncateTimePeriodAdjusterTest {
                             " for " + j + " at time " + time.get(ChronoField.MILLI_OF_SECOND) +
                             " got millisecond field " + milli);
             }, (time) -> {
-                time = incrementDateTime(time, TimePeriodType.MILLISECONDS, 999);
-                return incrementDateTime(time, TimePeriodType.DAYS, 1);
+                time = incrementDateTime(time, TimePeriods.MILLISECONDS, 999);
+                return incrementDateTime(time, TimePeriods.DAYS, 1);
             });
         }
     }
@@ -67,8 +67,8 @@ public class TruncateTimePeriodAdjusterTest {
                             " for " + j + " at time " + time.get(ChronoField.SECOND_OF_MINUTE) +
                             " got second field " + second);
             }, (time) -> {
-                time = incrementDateTime(time, TimePeriodType.SECONDS, 59);
-                return incrementDateTime(time, TimePeriodType.DAYS, 1);
+                time = incrementDateTime(time, TimePeriods.SECONDS, 59);
+                return incrementDateTime(time, TimePeriods.DAYS, 1);
             });
         }
     }
@@ -86,8 +86,8 @@ public class TruncateTimePeriodAdjusterTest {
                             " for " + j + " at time " + time.get(ChronoField.MINUTE_OF_HOUR) +
                             " got minute field " + minute);
             }, (time) -> {
-                time = incrementDateTime(time, TimePeriodType.MINUTES, 59);
-                return incrementDateTime(time, TimePeriodType.DAYS, 1);
+                time = incrementDateTime(time, TimePeriods.MINUTES, 59);
+                return incrementDateTime(time, TimePeriods.DAYS, 1);
             });
         }
     }
@@ -106,7 +106,7 @@ public class TruncateTimePeriodAdjusterTest {
                             " for " + j + " at time " + time.get(ChronoField.HOUR_OF_DAY) +
                             " got hour field " + hour + " for date " + time.toString());
             }, (time) -> {
-                return incrementDateTime(time, TimePeriodType.HOURS, 23);
+                return incrementDateTime(time, TimePeriods.HOURS, 23);
             });
         }
     }
@@ -124,7 +124,7 @@ public class TruncateTimePeriodAdjusterTest {
                             " for " + j + " at time " + time.get(ChronoField.DAY_OF_YEAR) +
                             " got day of year field " + doy);
             }, (time) -> {
-                return incrementDateTime(time, TimePeriodType.DAYS, 1);
+                return incrementDateTime(time, TimePeriods.DAYS, 1);
             });
         }
     }
@@ -145,7 +145,7 @@ public class TruncateTimePeriodAdjusterTest {
                 if((doy-1) % 7 != 0)
                     fail("Starting with the wrong aligned day of the week.");
             }, (time) -> {
-                return incrementDateTime(time, TimePeriodType.DAYS, 8);
+                return incrementDateTime(time, TimePeriods.DAYS, 8);
             });
         }
     }
@@ -163,7 +163,7 @@ public class TruncateTimePeriodAdjusterTest {
                             " for " + j + " at time " + time.get(ChronoField.MONTH_OF_YEAR) +
                             " got month field " + month);
             }, (time) -> {
-                return incrementDateTime(time, TimePeriodType.DAYS, 8);
+                return incrementDateTime(time, TimePeriods.DAYS, 8);
             });
         }
     }
@@ -181,7 +181,7 @@ public class TruncateTimePeriodAdjusterTest {
                             " for " + j + " at time " + time.get(ChronoField.YEAR) +
                             " got year field " + year);
             }, (time) -> {
-                return incrementDateTime(time, TimePeriodType.DAYS, 166);
+                return incrementDateTime(time, TimePeriods.DAYS, 166);
             });
         }
     }
@@ -205,23 +205,23 @@ public class TruncateTimePeriodAdjusterTest {
         }
     }
     
-    protected ZonedDateTime incrementDateTime(ZonedDateTime start, TimePeriodType type, int periods) {
+    protected ZonedDateTime incrementDateTime(ZonedDateTime start, int type, int periods) {
         switch(type) {
-            case DAYS:
+            case TimePeriods.DAYS:
                 return start.plus(periods, ChronoUnit.DAYS);
-            case HOURS:
+            case TimePeriods.HOURS:
                 return start.plus(periods, ChronoUnit.HOURS);
-            case MILLISECONDS:
+            case TimePeriods.MILLISECONDS:
                 return start.plus(periods, ChronoUnit.MILLIS);
-            case MINUTES:
+            case TimePeriods.MINUTES:
                 return start.plus(periods, ChronoUnit.MINUTES);
-            case MONTHS:
+            case TimePeriods.MONTHS:
                 return start.plus(periods, ChronoUnit.MONTHS);
-            case SECONDS:
+            case TimePeriods.SECONDS:
                 return start.plus(periods, ChronoUnit.SECONDS);
-            case WEEKS:
+            case TimePeriods.WEEKS:
                 return start.plus(periods, ChronoUnit.WEEKS);
-            case YEARS:
+            case TimePeriods.YEARS:
                 return start = start.plus(periods, ChronoUnit.YEARS);
             default:
                 throw new ShouldNeverHappenException("Invalid period type");

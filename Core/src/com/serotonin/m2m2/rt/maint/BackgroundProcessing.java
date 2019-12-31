@@ -8,11 +8,11 @@ import java.lang.management.ThreadInfo;
 import java.util.List;
 import java.util.Map;
 
+import com.infiniteautomation.mango.util.WorkItemInfo;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.timer.OrderedTaskInfo;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
@@ -23,7 +23,7 @@ import com.serotonin.util.ILifecycle;
  *
  * @author Terry Packer
  */
-public interface BackgroundProcessing extends ILifecycle{
+public interface BackgroundProcessing extends ILifecycle {
 
     //Lower Limits on Pool Sizes for Mango To Run
     int HIGH_PRI_MAX_POOL_SIZE_MIN = 5;
@@ -110,9 +110,9 @@ public interface BackgroundProcessing extends ILifecycle{
 
     List<OrderedTaskInfo> getMediumPriorityOrderedQueueStats();
 
-    List<WorkItemModel> getHighPriorityServiceItems();
+    List<WorkItemInfo> getHighPriorityServiceItems();
 
-    List<WorkItemModel> getMediumPriorityServiceQueueItems();
+    List<WorkItemInfo> getMediumPriorityServiceQueueItems();
 
     /**
      * Set the Core Pool Size, in the medium priority queue this 
@@ -149,7 +149,7 @@ public interface BackgroundProcessing extends ILifecycle{
 
     int getLowPriorityServiceQueueSize();
 
-    List<WorkItemModel> getLowPriorityServiceQueueItems();
+    List<WorkItemInfo> getLowPriorityServiceQueueItems();
 
     //Lifecycle Interface 
     void initialize(boolean safe);

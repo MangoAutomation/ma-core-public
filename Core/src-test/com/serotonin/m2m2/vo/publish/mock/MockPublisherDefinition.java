@@ -7,8 +7,6 @@ package com.serotonin.m2m2.vo.publish.mock;
 import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPointModel;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 
 /**
  *
@@ -33,16 +31,6 @@ public class MockPublisherDefinition extends PublisherDefinition{
         MockPublisherVO pub = new MockPublisherVO();
         pub.setDefinition(this);
         return pub;
-    }
-
-    @Override
-    public Class<? extends AbstractPublisherModel<?, ?>> getPublisherModelClass() {
-        return null;
-    }
-
-    @Override
-    public Class<? extends AbstractPublishedPointModel<?>> getPublishedPointModelClass() {
-        return null;
     }
 
 }

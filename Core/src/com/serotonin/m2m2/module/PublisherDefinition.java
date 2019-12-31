@@ -8,8 +8,6 @@ import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublishedPointModel;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 
 /**
  * A publisher allows point values to be written (or published) to targets outside of the MA instance. Typically any
@@ -81,18 +79,5 @@ abstract public class PublisherDefinition extends ModuleElementDefinition {
         if(uninstall)
             PublisherDao.getInstance().deletePublisherType(getPublisherTypeName());
     }
-
-    /**
-     * Return the model class for the Publisher
-     * @return
-     */
-    public abstract Class<? extends AbstractPublisherModel<?,?>> getPublisherModelClass();
-
-    /**
-     * Return the model class for the Published points
-     * @return
-     */
-    public abstract Class<? extends AbstractPublishedPointModel<?>> getPublishedPointModelClass();
-
 
 }

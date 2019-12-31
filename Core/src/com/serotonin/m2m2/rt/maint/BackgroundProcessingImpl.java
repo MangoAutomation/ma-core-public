@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.infiniteautomation.mango.util.WorkItemInfo;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -28,7 +29,6 @@ import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.util.timeout.TaskRejectionHandler;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.provider.ProviderNotFoundException;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -59,41 +59,26 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     
     protected int state = PRE_INITIALIZE;
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#execute(com.serotonin.m2m2.util.timeout.HighPriorityTask)
-     */
     @Override
     public void execute(HighPriorityTask task){
         this.timer.execute(task);
     }
     
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#schedule(com.serotonin.m2m2.util.timeout.TimeoutTask)
-     */
 	@Override
     public void schedule(TimeoutTask task) {
 		this.timer.schedule(task);
 	}
-    
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#schedule(com.serotonin.timer.TimerTask)
-     */
+
 	@Override
     public void schedule(TimerTask task) {
 		this.timer.schedule(task);
 	}
-	
-	/* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#executeMediumPriorityTask(com.serotonin.timer.TimerTask)
-     */
+
 	@Override
     public void executeMediumPriorityTask(TimerTask task){
 		this.mediumPriorityService.execute(new TaskWrapper(task, this.timer.currentTimeMillis()));
 	}
-    		
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#addWorkItem(com.serotonin.m2m2.rt.maint.work.WorkItem)
-     */
+
     @Override
     public void addWorkItem(final WorkItem item) {
         try{
@@ -111,91 +96,58 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         }
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#rejectedHighPriorityTask(com.serotonin.timer.RejectedTaskReason)
-     */
     @Override
     public void rejectedHighPriorityTask(RejectedTaskReason reason){
     	    highPriorityRejectionHandler.rejectedTask(reason);
     }
     
-    
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceScheduledTaskCount()
-     */
     @Override
     public int getHighPriorityServiceScheduledTaskCount(){
         return this.timer.size();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceQueueSize()
-     */
     @Override
     public int getHighPriorityServiceQueueSize(){
     	    return highPriorityService.getQueue().size();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceActiveCount()
-     */
     @Override
     public int getHighPriorityServiceActiveCount(){
     	    return highPriorityService.getActiveCount();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceCorePoolSize()
-     */
     @Override
     public int getHighPriorityServiceCorePoolSize(){
     	    return highPriorityService.getCorePoolSize();
     }
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceLargestPoolSize()
-     */
+
     @Override
     public int getHighPriorityServiceLargestPoolSize(){
         return this.highPriorityService.getLargestPoolSize();
     }    
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityOrderedQueueStats()
-     */
     @Override
     public List<OrderedTaskInfo> getHighPriorityOrderedQueueStats(){
       	return this.highPriorityService.getOrderedQueueInfo();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#setHighPriorityServiceCorePoolSize(int)
-     */
     @Override
     public void setHighPriorityServiceCorePoolSize(int size){
     	if(size > HIGH_PRI_MAX_POOL_SIZE_MIN)
     		highPriorityService.setCorePoolSize(size);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#setHighPriorityServiceMaximumPoolSize(int)
-     */
     @Override
     public void setHighPriorityServiceMaximumPoolSize(int size){
 		if(highPriorityService.getCorePoolSize() < size)
 			highPriorityService.setMaximumPoolSize(size);
     }
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceMaximumPoolSize()
-     */
+
     @Override
     public int getHighPriorityServiceMaximumPoolSize(){
     	    return highPriorityService.getMaximumPoolSize();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceQueueClassCounts()
-     */
     @Override
     public Map<String, Integer> getHighPriorityServiceQueueClassCounts() {
         Iterator<TimerTask> iter = timer.getTasks().iterator();
@@ -211,64 +163,42 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         return classCounts;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityServiceQueueSize()
-     */
     @Override
     public int getMediumPriorityServiceQueueSize() {
         return mediumPriorityService.getQueue().size();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityServiceQueueClassCounts()
-     */
     @Override
     public Map<String, Integer> getMediumPriorityServiceQueueClassCounts() {
         return getClassCounts(mediumPriorityService);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getLowPriorityServiceQueueClassCounts()
-     */
     @Override
     public Map<String, Integer> getLowPriorityServiceQueueClassCounts() {
         return getClassCounts(lowPriorityService);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityOrderedQueueStats()
-     */
     @Override
     public List<OrderedTaskInfo> getMediumPriorityOrderedQueueStats(){
       	return this.mediumPriorityService.getOrderedQueueInfo();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityServiceItems()
-     */
     @Override
-    public List<WorkItemModel> getHighPriorityServiceItems(){
-        List<WorkItemModel> list = new ArrayList<WorkItemModel>();
+    public List<WorkItemInfo> getHighPriorityServiceItems(){
+        List<WorkItemInfo> list = new ArrayList<WorkItemInfo>();
         Iterator<TimerTask> iter = timer.getTasks().iterator();
         while (iter.hasNext()) {
             TimerTask task = iter.next();
-            list.add(new WorkItemModel(task.getClass().getCanonicalName(), task.getName(), "HIGH"));
+            list.add(new WorkItemInfo(task.getClass().getCanonicalName(), task.getName(), "HIGH"));
         }
         return list;
     }
 
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityServiceQueueItems()
-     */
     @Override
-    public List<WorkItemModel> getMediumPriorityServiceQueueItems(){
+    public List<WorkItemInfo> getMediumPriorityServiceQueueItems(){
     	    return getQueueItems(mediumPriorityService, "MEDIUM");
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#setMediumPriorityServiceCorePoolSize(int)
-     */
+
     @Override
     public void setMediumPriorityServiceCorePoolSize(int corePoolSize){
         if (corePoolSize > MED_PRI_MAX_POOL_SIZE_MIN) {
@@ -286,41 +216,26 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         }
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityServiceCorePoolSize()
-     */
     @Override
     public int getMediumPriorityServiceCorePoolSize(){
         return this.mediumPriorityService.getCorePoolSize();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityServiceMaximumPoolSize()
-     */
     @Override
     public int getMediumPriorityServiceMaximumPoolSize(){
         return this.mediumPriorityService.getMaximumPoolSize();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityServiceActiveCount()
-     */
     @Override
     public int getMediumPriorityServiceActiveCount(){
         return this.mediumPriorityService.getActiveCount();
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityServiceLargestPoolSize()
-     */
+
     @Override
     public int getMediumPriorityServiceLargestPoolSize(){
         return this.mediumPriorityService.getLargestPoolSize();
     }    
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#setLowPriorityServiceCorePoolSize(int)
-     */
     @Override
     public void setLowPriorityServiceCorePoolSize(int corePoolSize){
         if (corePoolSize > LOW_PRI_MAX_POOL_SIZE_MIN) {
@@ -338,51 +253,33 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         }
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getLowPriorityServiceCorePoolSize()
-     */
     @Override
     public int getLowPriorityServiceCorePoolSize(){
     	return this.lowPriorityService.getCorePoolSize();
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getLowPriorityServiceMaximumPoolSize()
-     */
+
     @Override
     public int getLowPriorityServiceMaximumPoolSize(){
     	return this.lowPriorityService.getMaximumPoolSize();
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getLowPriorityServiceActiveCount()
-     */
+
     @Override
     public int getLowPriorityServiceActiveCount(){
     	return this.lowPriorityService.getActiveCount();
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getLowPriorityServiceLargestPoolSize()
-     */
+
     @Override
     public int getLowPriorityServiceLargestPoolSize(){
     	return this.lowPriorityService.getLargestPoolSize();
     }  
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getLowPriorityServiceQueueSize()
-     */
+
     @Override
     public int getLowPriorityServiceQueueSize() {
         return lowPriorityService.getQueue().size();
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getLowPriorityServiceQueueItems()
-     */
     @Override
-    public List<WorkItemModel> getLowPriorityServiceQueueItems(){
+    public List<WorkItemInfo> getLowPriorityServiceQueueItems(){
     	return getQueueItems(lowPriorityService, "LOW");
     }
     
@@ -401,20 +298,17 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         return classCounts;
     }
     
-    private List<WorkItemModel> getQueueItems(ThreadPoolExecutor e, String priority){
-    	List<WorkItemModel> list = new ArrayList<WorkItemModel>();
+    private List<WorkItemInfo> getQueueItems(ThreadPoolExecutor e, String priority){
+    	List<WorkItemInfo> list = new ArrayList<WorkItemInfo>();
     	Iterator<Runnable> iter = e.getQueue().iterator();
     	while (iter.hasNext()) {
             Runnable r = iter.next();
             WorkItemRunnable wir = (WorkItemRunnable)r;
-            list.add(new WorkItemModel(wir.getWorkItem().getClass().getCanonicalName(), wir.getWorkItem().getDescription(), priority));
+            list.add(new WorkItemInfo(wir.getWorkItem().getClass().getCanonicalName(), wir.getWorkItem().getDescription(), priority));
         }
     	return list;
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#initialize(boolean)
-     */
     @Override
     public void initialize(boolean safe) {
         if (state != PRE_INITIALIZE)
@@ -469,9 +363,6 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         this.state = RUNNING;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#terminate()
-     */
     @Override
     public void terminate() {
         if (state != RUNNING)
@@ -494,9 +385,6 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     		lowPriorityService.shutdown();
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#joinTermination()
-     */
     @Override
     public void joinTermination() {
     	if(state != TERMINATE)
@@ -567,26 +455,17 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         }
         state = TERMINATED;
     }
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getHighPriorityRejectionHandler()
-     */
+
     @Override
     public TaskRejectionHandler getHighPriorityRejectionHandler(){
     	return this.highPriorityRejectionHandler;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getMediumPriorityRejectionHandler()
-     */
     @Override
     public TaskRejectionHandler getMediumPriorityRejectionHandler(){
     	return this.mediumPriorityRejectionHandler;
     }
     
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.BackroundProcessing#getThreadsList(int)
-     */
     @Override
     public List<ThreadInfo> getThreadsList(int stackDepth){
     	
@@ -685,10 +564,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 		public WorkItem getWorkItem(){
 			return this.item;
 		}
-		
-		/* (non-Javadoc)
-		 * @see java.lang.Object#toString()
-		 */
+
 		@Override
 		public String toString() {
 			return item.getDescription();

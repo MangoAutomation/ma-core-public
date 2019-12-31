@@ -29,6 +29,7 @@ import org.joda.time.DateTime;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.Functions;
+import com.infiniteautomation.mango.util.WorkItemInfo;
 import com.infiniteautomation.mango.util.script.CompiledMangoJavaScript;
 import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -70,7 +71,6 @@ import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.workitem.WorkItemModel;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailAttachment;
 import com.serotonin.web.mail.EmailContent;
@@ -276,11 +276,11 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             model.put("instanceDescription", SystemSettingsDao.instance.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
             if(includeSystemInfo){
                 //Get the Work Items
-                List<WorkItemModel> highPriorityWorkItems = Common.backgroundProcessing.getHighPriorityServiceItems();
+                List<WorkItemInfo> highPriorityWorkItems = Common.backgroundProcessing.getHighPriorityServiceItems();
                 model.put("highPriorityWorkItems", highPriorityWorkItems);
-                List<WorkItemModel> mediumPriorityWorkItems = Common.backgroundProcessing.getMediumPriorityServiceQueueItems();
+                List<WorkItemInfo> mediumPriorityWorkItems = Common.backgroundProcessing.getMediumPriorityServiceQueueItems();
                 model.put("mediumPriorityWorkItems", mediumPriorityWorkItems);
-                List<WorkItemModel> lowPriorityWorkItems = Common.backgroundProcessing.getLowPriorityServiceQueueItems();
+                List<WorkItemInfo> lowPriorityWorkItems = Common.backgroundProcessing.getLowPriorityServiceQueueItems();
                 model.put("lowPriorityWorkItems", lowPriorityWorkItems);
                 model.put("threadList", getThreadsList());
             }

@@ -15,10 +15,8 @@ import java.time.temporal.ChronoUnit;
 
 import org.junit.Test;
 
-import com.infiniteautomation.mango.util.datetime.ExpandTimePeriodAdjuster;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.time.TimePeriodType;
 
 /**
  *
@@ -121,23 +119,23 @@ public class ExpandTimePeriodAdjusterTest {
         }
     }
     
-    protected ZonedDateTime incrementDateTime(ZonedDateTime start, TimePeriodType type, int periods) {
+    protected ZonedDateTime incrementDateTime(ZonedDateTime start, int type, int periods) {
         switch(type) {
-            case DAYS:
+            case TimePeriods.DAYS:
                 return start.plus(periods, ChronoUnit.DAYS);
-            case HOURS:
+            case TimePeriods.HOURS:
                 return start.plus(periods, ChronoUnit.HOURS);
-            case MILLISECONDS:
+            case TimePeriods.MILLISECONDS:
                 return start.plus(periods, ChronoUnit.MILLIS);
-            case MINUTES:
+            case TimePeriods.MINUTES:
                 return start.plus(periods, ChronoUnit.MINUTES);
-            case MONTHS:
+            case TimePeriods.MONTHS:
                 return start.plus(periods, ChronoUnit.MONTHS);
-            case SECONDS:
+            case TimePeriods.SECONDS:
                 return start.plus(periods, ChronoUnit.SECONDS);
-            case WEEKS:
+            case TimePeriods.WEEKS:
                 return start.plus(periods, ChronoUnit.WEEKS);
-            case YEARS:
+            case TimePeriods.YEARS:
                 return start = start.plus(periods, ChronoUnit.YEARS);
             default:
                 throw new ShouldNeverHappenException("Invalid period type");

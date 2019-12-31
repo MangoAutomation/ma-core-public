@@ -36,7 +36,6 @@ import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.publisher.AbstractPublisherModel;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -61,11 +60,9 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     }
 
     /**
-     * Return the Model Representation of the Publisher
+     * Get the description for this publisher configuration
      * @return
      */
-    abstract public AbstractPublisherModel<?,?> asModel();
-
     abstract public TranslatableMessage getConfigDescription();
 
     abstract protected T createPublishedPointInstance();
