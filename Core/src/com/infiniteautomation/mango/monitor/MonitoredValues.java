@@ -107,8 +107,8 @@ public class MonitoredValues {
             }
             return monitor;
         }
-        public ValueMonitor<T> buildPollable() {
-            ValueMonitor<T> monitor = new PollableMonitorImpl<T>(id, name, function, uploadToStore);
+        public PollableMonitor<T> buildPollable() {
+            PollableMonitor<T> monitor = new PollableMonitorImpl<T>(id, name, function, uploadToStore);
             MonitoredValues.this.add(monitor);
             if (addTo != null) {
                 addTo.add(monitor);

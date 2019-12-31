@@ -178,8 +178,13 @@ public class ServerMonitoringService {
         userSessions = mv.<Integer>create(USER_SESSION_MONITOR_ID).name(new TranslatableMessage("internal.monitor.USER_SESSION_COUNT")).build();
 
         mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).supplier(osBean::getSystemLoadAverage).addTo(monitors).buildPollable();
-        mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this::getProcessCpuLoad).addTo(monitors).buildPollable();
-        mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this::getSystemCpuLoad).addTo(monitors).buildPollable();
+
+        PollableMonitor<Double> processCpuLoad = mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this::getProcessCpuLoad).addTo(monitors).buildPollable();
+        PollableMonitor<Double> systemCpuLoad = mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this::getSystemCpuLoad).addTo(monitors).buildPollable();
+        mv.<Double>create(OS_CPU_LOAD_TOTAL_ID).function(ts -> {
+            return processCpuLoad.poll(ts) + systemCpuLoad.poll(ts);
+        }).addTo(monitors).buildPollable();
+
         mv.<Long>create(RUNTIME_UPTIME_ID).supplier(() -> {
             return runtimeBean.getUptime() / 1000;
         }).addTo(monitors).buildPollable();
