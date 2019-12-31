@@ -1,2 +1,5 @@
 /target
 /maven-target
+.settings
+.classpath
+.project

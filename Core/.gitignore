@@ -26,3 +26,6 @@
 /release.properties
 /junit/
 /data/
+.settings
+.classpath
+.project
