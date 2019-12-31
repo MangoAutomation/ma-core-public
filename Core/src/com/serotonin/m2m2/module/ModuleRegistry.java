@@ -115,7 +115,6 @@ import com.serotonin.m2m2.rt.event.type.definition.UpgradeCheckEventTypeDefiniti
 import com.serotonin.m2m2.rt.event.type.definition.UserLoginEventTypeDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
-import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
 import com.serotonin.provider.Providers;
 
 /**
@@ -138,7 +137,6 @@ public class ModuleRegistry {
     private static Map<String, EventTypeDefinition> EVENT_TYPE_DEFINITIONS;
     private static Map<String, SystemEventTypeDefinition> SYSTEM_EVENT_TYPE_DEFINITIONS;
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
-    private static Map<String, TemplateDefinition> TEMPLATE_DEFINITIONS;
     private static Map<String, EventHandlerDefinition<?>> EVENT_HANDLER_DEFINITIONS;
     private static Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO<?>>> EVENT_DETECTOR_DEFINITIONS;
     private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
@@ -361,41 +359,6 @@ public class ModuleRegistry {
                             map.put(def.getTypeName(), def);
                     }
                     AUDIT_EVENT_TYPE_DEFINITIONS = map;
-                }
-            }
-        }
-    }
-
-    //
-    //
-    // Template special handling
-    //
-    public static TemplateDefinition getTemplateDefinition(String type) {
-        ensureTemplateDefinitions();
-        return TEMPLATE_DEFINITIONS.get(type);
-    }
-
-    public static Set<String> getTemplateDefinitionTypes() {
-        ensureTemplateDefinitions();
-        return TEMPLATE_DEFINITIONS.keySet();
-    }
-
-    private static void ensureTemplateDefinitions() {
-        if (TEMPLATE_DEFINITIONS == null) {
-            synchronized (LOCK) {
-                if (TEMPLATE_DEFINITIONS == null) {
-                    Map<String, TemplateDefinition> map = new HashMap<String, TemplateDefinition>();
-                    for(TemplateDefinition def : Module.getDefinitions(preDefaults, TemplateDefinition.class)){
-                        map.put(def.getTemplateTypeName(), def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (TemplateDefinition def : module.getDefinitions(TemplateDefinition.class))
-                            map.put(def.getTemplateTypeName(), def);
-                    }
-                    for(TemplateDefinition def : Module.getDefinitions(postDefaults, TemplateDefinition.class)){
-                        map.put(def.getTemplateTypeName(), def);
-                    }
-                    TEMPLATE_DEFINITIONS = map;
                 }
             }
         }
@@ -888,9 +851,6 @@ public class ModuleRegistry {
                 return "/not-found.htm";
             }
         });
-
-        //Add in the Core Templates
-        preDefaults.add(new DataPointPropertiesTemplateDefinition());
 
         //Add in Core Event Handlers
         preDefaults.add(new EmailEventHandlerDefinition());

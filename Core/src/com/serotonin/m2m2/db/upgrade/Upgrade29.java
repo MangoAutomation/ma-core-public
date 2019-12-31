@@ -51,6 +51,7 @@ public class Upgrade29 extends DBUpgrade {
 
         try {
             Map<String, RoleVO> roles = new HashMap<>();
+            dropTemplates(out);
             createRolesTables(roles, out);
             convertUsers(roles, out);
             convertSystemSettingsPermissions(roles, out);
@@ -67,6 +68,15 @@ public class Upgrade29 extends DBUpgrade {
         }
     }
 
+    private void dropTemplates(OutputStream out) throws Exception {
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropTemplatesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropTemplatesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropTemplatesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropTemplatesSQL);
+        runScript(scripts, out);
+    }
+    
     private void createRolesTables(Map<String, RoleVO> roles, OutputStream out) throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), createRolesMySQL);
@@ -255,6 +265,12 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoreSQL);
         runScript(scripts, out);
     }
+    
+    //Roles
+    private String[] dropTemplatesSQL = new String[] {
+            "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
+            "DROP TABLE templates;", 
+    };
     
     //Roles
     private String[] createRolesSQL = new String[] {

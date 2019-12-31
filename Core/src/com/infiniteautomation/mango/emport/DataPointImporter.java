@@ -12,7 +12,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.LicenseViolatedException;
-import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.RuntimeManager;
@@ -20,7 +19,6 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 
 public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
     
@@ -74,21 +72,9 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
         
         if (vo != null) {
         	try {
-            	DataPointPropertiesTemplateVO template = null;            	
-            	if(json.containsKey("templateXid")){
-                	String templateXid = json.getString("templateXid");
-                	if(!StringUtils.isEmpty(templateXid))
-                		template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().getByXid(templateXid, false);
-                	
-                }
             	//Read into the VO to get all properties
             	ctx.getReader().readInto(vo, json);
             	
-            	//Override the settings if we need to
-                if(template != null){
-                	template.updateDataPointVO(vo);
-                }
-
                 // If the name is not provided, default to the XID
                 if (StringUtils.isBlank(vo.getName()))
                     vo.setName(xid);

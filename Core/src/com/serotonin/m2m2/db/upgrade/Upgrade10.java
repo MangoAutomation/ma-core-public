@@ -7,10 +7,7 @@ package com.serotonin.m2m2.db.upgrade;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
-import com.serotonin.provider.Providers;
 /**
  * Upgrade to add template system
  * 
@@ -28,17 +25,6 @@ public class Upgrade10 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Script);
         runScript(scripts);
-        /**
-         * Add a startup task to run after the Audit system is ready 
-         */
-        Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
-            @Override
-            public void run() {
-                DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
-                factory.saveDefaultTemplates();
-           }
-        });
-
     }
 
     @Override

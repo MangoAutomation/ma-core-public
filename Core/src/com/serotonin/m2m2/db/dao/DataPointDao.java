@@ -72,7 +72,6 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.template.BaseTemplateVO;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
 
@@ -111,7 +110,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     private DataPointDao() {
         super(EventType.EventTypeNames.DATA_POINT, "dp",
-                new String[] { "ds.name", "ds.xid", "ds.dataSourceType", "template.name", "template.xid" }, //Extra Properties not in table
+                new String[] { "ds.name", "ds.xid", "ds.dataSourceType" }, //Extra Properties not in table
                 false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
     }
 
@@ -160,10 +159,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         private static final int EVENT_DETECTOR_FIRST_COLUMN = 28;
         private final EventDetectorRowMapper<?> eventRowMapper = new EventDetectorRowMapper<>(EVENT_DETECTOR_FIRST_COLUMN, 5);
         static final String DATA_POINT_SELECT_STARTUP = //
-                "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
+                "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, " //
                 + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
                 + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
-                + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, ds.name, " //
+                + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.rollup, ds.name, " //
                 + "  ds.xid, ds.dataSourceType, ds.editPermission, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
                 + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
                 + "  left outer join eventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
@@ -215,7 +214,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setName(rs.getString(++i));
             dp.setDeviceName(rs.getString(++i));
             dp.setEnabled(charToBool(rs.getString(++i)));
-            dp.setPointFolderId(rs.getInt(++i));
             dp.setLoggingType(rs.getInt(++i));
             dp.setIntervalLoggingPeriodType(rs.getInt(++i));
             dp.setIntervalLoggingPeriod(rs.getInt(++i));
@@ -227,10 +225,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
-            //Because we read 0 for null
-            dp.setTemplateId(rs.getInt(++i));
-            if(rs.wasNull())
-                dp.setTemplateId(null);
             dp.setRollup(rs.getInt(++i));
 
             // Data source information.
@@ -238,10 +232,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
             String dsEditRoles = rs.getString(++i);
-            if(StringUtils.isNotEmpty(dsEditRoles))
-                dp.setDataSourceEditRoles(Permissions.explodePermissionGroups(dsEditRoles));
-            else
-                dp.setDataSourceEditRoles(Collections.emptySet());
+            //TODO JOIN on roles table and set dsEditRoles
 
             dp.ensureUnitsCorrect();
 
@@ -540,7 +531,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
                 vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
                 vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
-                vo.getTemplateId(), vo.getRollup(),
+                vo.getRollup(),
                 vo.getPointLocator().getDataTypeId(), boolToChar(vo.getPointLocator().isSettable())};
     }
 
@@ -565,7 +556,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("defaultCacheSize", Types.INTEGER); //Default Cache Size
         map.put("discardExtremeValues", Types.CHAR); //Discard Extremem Values
         map.put("engineeringUnits", Types.INTEGER); //get Engineering Units
-        map.put("templateId", Types.INTEGER); //Template ID FK
         map.put("rollup", Types.INTEGER); //Common.Rollups type
         map.put("dataTypeId", Types.INTEGER);
         map.put("settable", Types.CHAR);
@@ -576,7 +566,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     protected List<JoinClause> getJoins() {
         List<JoinClause> joins = new ArrayList<JoinClause>();
         joins.add(new JoinClause(JOIN, SchemaDefinition.DATASOURCES_TABLE, "ds", "ds.id = dp.dataSourceId"));
-        joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.TEMPLATES_TABLE, "template", "template.id = dp.templateId"));
         return joins;
     }
 
@@ -614,9 +603,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("dataSourceName", new IntStringPair(Types.VARCHAR, "ds.name"));
         map.put("dataSourceTypeName", new IntStringPair(Types.VARCHAR, "ds.dataSourceType"));
         map.put("dataSourceXid", new IntStringPair(Types.VARCHAR, "ds.xid"));
-        map.put("dataSourceEditPermission", new IntStringPair(Types.VARCHAR, "ds.editPermission"));
-        map.put("templateName", new IntStringPair(Types.VARCHAR, "template.name"));
-        map.put("templateXid", new IntStringPair(Types.VARCHAR, "template.xid"));
         return map;
     }
 
@@ -650,11 +636,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
-            //Because we read 0 for null
-            dp.setTemplateId(rs.getInt(++i));
-            if(rs.wasNull())
-                dp.setTemplateId(null);
-            dp.setRollup(rs.getInt(++i));
 
             // read and discard dataTypeId
             rs.getInt(++i);
@@ -665,8 +646,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
-            dp.setTemplateName(rs.getString(++i));
-            dp.setTemplateXid(rs.getString(++i));
 
             dp.ensureUnitsCorrect();
             return dp;
@@ -698,7 +677,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public void loadRelationalData(DataPointVO vo) {
         this.loadPartialRelationalData(vo);
         this.loadDataSource(vo);
-        this.setTemplateName(vo);
         //Populate permissions
         vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
         vo.setSetRoles(RoleDao.getInstance().getRoles(vo, PermissionService.SET));
@@ -741,22 +719,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
         vo.setDataSourceXid(dsVo.getXid());
 
-    }
-
-    /**
-     * This method would be more accurately named loadTemplateName().
-     * Loads the template from the database and sets templateName on the data point.
-     *
-     * @param vo
-     */
-    public void setTemplateName(DataPointVO vo){
-        if(vo.getTemplateId() != null){
-            BaseTemplateVO<?> template = TemplateDao.getInstance().get(vo.getTemplateId(), false);
-            if(template != null) {
-                vo.setTemplateName(template.getName());
-                vo.setTemplateXid(template.getXid());
-            }
-        }
     }
 
     /**

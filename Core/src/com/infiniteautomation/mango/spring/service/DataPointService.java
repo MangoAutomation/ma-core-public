@@ -29,7 +29,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
-import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -44,7 +43,6 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -337,15 +335,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         if (vo.isOverrideIntervalLoggingSamples()) {
             if (vo.getIntervalLoggingSampleWindowSize() <= 0) {
                 response.addContextualMessage("intervalLoggingSampleWindowSize", "validate.greaterThanZero");
-            }
-        }
-        
-        if((vo.getTemplateId() != null) &&(vo.getTemplateId() > 0)){
-            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(vo.getTemplateId(), false);
-            if(template == null){
-                response.addContextualMessage("template", "pointEdit.template.validate.templateNotFound", vo.getTemplateId());
-            }else if(template.getDataTypeId() != vo.getPointLocator().getDataTypeId()){
-                response.addContextualMessage("template", "pointEdit.template.validate.templateDataTypeNotCompatible");
             }
         }
 

@@ -33,7 +33,6 @@ import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.db.dao.TemplateDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -54,7 +53,6 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateVO;
 import com.serotonin.util.SerializationHelper;
 
 public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataPoint {
@@ -224,17 +222,12 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @JsonProperty
     private Set<RoleVO> setRoles = Collections.emptySet();
 
-    //Template for properties
-    private Integer templateId;
-
     //
     //
     // Convenience data from data source
     //
     private String dataSourceTypeName;
     private String dataSourceName;
-    private String templateName;
-    private String templateXid;
     private Set<RoleVO> dataSourceEditRoles;
 
     //
@@ -266,12 +259,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     }
 
     public DataPointVO(DataSourceVO<?> dataSource) {
-        this(dataSource, null);
-    }
-
-    public DataPointVO(DataSourceVO<?> dataSource, DataPointPropertiesTemplateVO template) {
         this.withDataSource(dataSource);
-        this.withTemplate(template);
 
         // new data point will have empty relational data
         // eventDetectors is already initialized
@@ -291,12 +279,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
 
         if (this.deviceName == null) {
             this.deviceName = dataSource.getName();
-        }
-    }
-
-    public void withTemplate(DataPointPropertiesTemplateVO template) {
-        if (template != null) {
-            template.updateDataPointVO(this);
         }
     }
 
@@ -749,26 +731,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.setRoles = setRoles;
     }
 
-    public Integer getTemplateId(){
-        return templateId;
-    }
-
-    public void setTemplateId(Integer id){
-        this.templateId = id;
-    }
-
-    public String getTemplateName(){
-        return this.templateName;
-    }
-    public void setTemplateName(String name){
-        this.templateName = name;
-    }
-    public String getTemplateXid(){
-        return this.templateXid;
-    }
-    public void setTemplateXid(String templateXid){
-        this.templateXid = templateXid;
-    }
     /**
      * Roles joined from database (not saved into point)
      * @return the dataSourceEditRoles
@@ -831,7 +793,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             copy.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
             copy.setReadRoles(readRoles);
             copy.setSetRoles(setRoles);
-            copy.setTemplateId(templateId);
             copy.setPreventSetExtremeValues(preventSetExtremeValues);
             copy.setSetExtremeHighLimit(setExtremeHighLimit);
             copy.setSetExtremeLowLimit(setExtremeLowLimit);
@@ -907,7 +868,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue
                 + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
                 + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readRoles="
-                + readRoles + ", setRoles=" + setRoles + ", templateId=" + templateId
+                + readRoles + ", setRoles=" + setRoles
                 + ", preventSetExtremeValues=" + preventSetExtremeValues + ", setExtremeLowLimit=" + setExtremeLowLimit
                 + ", setExtremeHighLimit=" + setExtremeHighLimit + "]";
     }
@@ -1415,11 +1376,6 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
             writer.writeEntry("integralUnit", UnitUtil.formatUcum(integralUnit));
         if (useRenderedUnit)
             writer.writeEntry("renderedUnit", UnitUtil.formatUcum(renderedUnit));
-        if(templateId != null){
-            DataPointPropertiesTemplateVO template = (DataPointPropertiesTemplateVO) TemplateDao.getInstance().get(templateId, false);
-            if(template != null)
-                writer.writeEntry("templateXid", template.getXid());
-        }
 
         writer.writeEntry("simplifyType", SIMPLIFY_TYPE_CODES.getCode(simplifyType));
         if(simplifyType == SimplifyTypes.TARGET)
