@@ -48,7 +48,6 @@ import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.RoleVO;
-import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
@@ -369,7 +368,5 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         user.setHomeUrl("/ui/administration/home");
         UserDao.getInstance().saveUser(user);
 
-        DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
-        factory.saveDefaultTemplates();
     };
 }

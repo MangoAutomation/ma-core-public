@@ -13,20 +13,6 @@ CREATE TABLE systemSettings (
 );
 
 --
--- Templates
-CREATE TABLE templates (
-  id int NOT NULL auto_increment,
-  xid varchar(100) NOT NULL,
-  name varchar(255),
-  templateType varchar(50),
-  readPermission varchar(255),
-  setPermission varchar(255),
-  data longblob NOT NULL,
-  PRIMARY KEY (id)
-);
-ALTER TABLE templates ADD CONSTRAINT templatesUn1 UNIQUE (xid);
-
---
 -- Users
 CREATE TABLE users (
   id int NOT NULL auto_increment,
@@ -144,7 +130,6 @@ CREATE TABLE dataPoints (
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
