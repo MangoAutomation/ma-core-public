@@ -86,9 +86,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                         Set<RoleVO> newReadRoles = new HashSet<>(rt.getVO().getReadRoles());
                         newReadRoles.remove(event.getRole());
                         rt.getVO().setReadRoles(Collections.unmodifiableSet(newReadRoles));
-                    }
-                    
-                    if(StringUtils.equals(mapping.getPermissionType(), PermissionService.SET)) {
+                    }else if(StringUtils.equals(mapping.getPermissionType(), PermissionService.SET)) {
                         Set<RoleVO> newSetRoles = new HashSet<>(rt.getVO().getSetRoles());
                         newSetRoles.remove(event.getRole());
                         rt.getVO().setSetRoles(Collections.unmodifiableSet(newSetRoles));

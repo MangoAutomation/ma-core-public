@@ -6,8 +6,6 @@ package com.serotonin.m2m2.rt.event.type;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.MissingEventTypeModel;
 
 /**
  * Placeholder for events types that were module defined and the module was deleted
@@ -73,11 +71,6 @@ public class MissingEventType extends EventType{
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
         return service.hasAdminRole(user);
-    }
-
-    @Override
-    public EventTypeModel asModel() {
-        return new MissingEventTypeModel(missingTypeName, missingSubTypeName, ref1, ref2);
     }
 
 }

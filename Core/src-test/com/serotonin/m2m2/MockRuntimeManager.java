@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -11,6 +13,8 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.RuntimeManagerDefinition;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.dataImage.DataPointListener;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -50,12 +54,35 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public void initialize(boolean safe) {
+        //Get the RTM defs from modules and sort by priority
+        List<RuntimeManagerDefinition> defs = ModuleRegistry.getDefinitions(RuntimeManagerDefinition.class);
+        Collections.sort(defs, new Comparator<RuntimeManagerDefinition>() {
+            @Override
+            public int compare(RuntimeManagerDefinition def1, RuntimeManagerDefinition def2) {
+                return def1.getInitializationPriority() - def2.getInitializationPriority();
+            }
+        });
         
+        //Initialize them
+        defs.stream().forEach((def) -> {
+            def.initialize(safe);
+        });
     }
 
     @Override
     public void terminate() {
-        
+        // Get the RTM defs and sort by reverse init priority.
+        List<RuntimeManagerDefinition> defs = ModuleRegistry.getDefinitions(RuntimeManagerDefinition.class);
+        Collections.sort(defs, new Comparator<RuntimeManagerDefinition>() {
+            @Override
+            public int compare(RuntimeManagerDefinition def1, RuntimeManagerDefinition def2) {
+                return def2.getInitializationPriority() - def1.getInitializationPriority();
+            }
+        });
+        //Initialize them
+        defs.stream().forEach((def) -> {
+            def.terminate();
+        });
     }
 
     @Override

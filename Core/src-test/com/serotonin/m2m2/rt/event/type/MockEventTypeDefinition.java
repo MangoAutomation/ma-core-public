@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EventTypeDefinition;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
  *
@@ -34,11 +33,6 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     public EventType createEventType(String subtype, int ref1, int ref2) {
         return new MockEventType(DuplicateHandling.ALLOW, subtype, ref1, ref2);
     }
-    @Override
-    public boolean getHandlersRequireAdmin() {
-        // TODO Auto-generated method stub
-        return false;
-    }
     
     @Override
     public boolean hasCreatePermission(PermissionHolder user) {
@@ -47,15 +41,9 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     }
 
     @Override
-    public List<EventTypeVO> getEventTypeVOs(PermissionHolder user) {
+    public List<EventTypeVO> getEventTypeVOs(PermissionHolder user, PermissionService service) {
         //TODO implement when necessary
         return new ArrayList<EventTypeVO>();
-    }
-
-    @Override
-    public String getIconPath() {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
@@ -65,20 +53,8 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     }
 
     @Override
-    public String getEventListLink(String subtype, int ref1, int ref2, Translations translations) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public TranslatableMessage getSourceDisabledMessage() {
         // TODO Auto-generated method stub
-        return null;
-    }
-
-
-    @Override
-    public Class<? extends EventTypeModel> getModelClass() {
         return null;
     }
 

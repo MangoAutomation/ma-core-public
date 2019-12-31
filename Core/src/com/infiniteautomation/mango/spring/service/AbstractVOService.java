@@ -8,7 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.db.dao.AbstractVOAccess;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -23,7 +23,7 @@ import com.serotonin.validation.StringValidation;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractDao<T>> extends AbstractBasicVOService<T,DAO> {
+public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractVOAccess<T>> extends AbstractBasicVOService<T,DAO> {
         
     /**
      * 

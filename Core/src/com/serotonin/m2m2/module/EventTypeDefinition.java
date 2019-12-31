@@ -6,12 +6,11 @@ package com.serotonin.m2m2.module;
 
 import java.util.List;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 
 /**
  * Used for creating custom event types.
@@ -43,15 +42,6 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      */
     abstract public EventType createEventType(String subtype, int ref1, int ref2);
 
-    /**
-     * Whether admin permission is required to create and edit event handlers for this even type.
-     * 
-     * Will be removed when legacy UI is gone
-     * 
-     * @return true if admin permission is required.
-     */
-    @Deprecated
-    abstract public boolean getHandlersRequireAdmin();
 
     /**
      * Whether user has permission to create and edit event handlers for this even type.
@@ -63,16 +53,11 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     /**
      * Returns a list of EventTypeVOs representing the list of events to which handlers can be added/edited.
      * 
+     * @param user
+     * @param service
      * @return the list of event type VO objects.
      */
-    abstract public List<EventTypeVO> getEventTypeVOs(PermissionHolder user);
-
-    /**
-     * Optional. The module relative path to an icon that represents the event type.
-     * 
-     * @return the path to the icon, or null if none.
-     */
-    abstract public String getIconPath();
+    abstract public List<EventTypeVO> getEventTypeVOs(PermissionHolder user, PermissionService service);
 
     /**
      * The reference key to the description of the event type.
@@ -82,34 +67,12 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     abstract public String getDescriptionKey();
 
     /**
-     * Optional. For use on the event list page, this provides a link from an event instance back to the object that
-     * raised it.
-     * 
-     * @param subtype
-     *            the event subtype
-     * @param ref1
-     *            the first reference id
-     * @param ref2
-     *            the second reference id
-     * @param translations
-     *            the translations object for the current user
-     * @return the link to display, or null if none
-     */
-    abstract public String getEventListLink(String subtype, int ref1, int ref2, Translations translations);
-
-    /**
      * Optional. The message to display if the object that raised an event instance is disabled, causing the event to be
      * deactivated.
      * 
      * @return the translatable message instance, or null.
      */
     abstract public TranslatableMessage getSourceDisabledMessage();
-    
-    /**
-     * Get the model class
-     * @return
-     */
-    abstract public Class<? extends EventTypeModel> getModelClass();
 
     /**
      * Get all possible sub types for this even type
@@ -138,10 +101,12 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
     /**
      * If this event type supports sub types, return a list of all possible event types using 
      *   the sub types
+     * 
      * @param user
+     * @param service
      * @return
      */
-    public List<EventTypeVO> generatePossibleEventTypesWithSubtype(PermissionHolder user) {
+    public List<EventTypeVO> generatePossibleEventTypesWithSubtype(PermissionHolder user, PermissionService service) {
         throw new UnsupportedOperationException();
     }
     
@@ -151,9 +116,10 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * 
      * @param user
      * @param subtype
+     * @param service
      * @return
      */
-    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user, String subtype) { 
+    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user, String subtype, PermissionService service) { 
         throw new UnsupportedOperationException();
      }
 
@@ -164,9 +130,10 @@ abstract public class EventTypeDefinition extends ModuleElementDefinition {
      * @param user
      * @param subtype
      * @param ref1
+     * @param service
      * @return
      */
-    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId2(PermissionHolder user, String subtype, int ref1) { 
+    public List<EventTypeVO> generatePossibleEventTypesWithReferenceId2(PermissionHolder user, String subtype, int ref1, PermissionService service) { 
         throw new UnsupportedOperationException();
     }
 

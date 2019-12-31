@@ -355,7 +355,7 @@ public class PermissionService {
      */
     public boolean hasAnyRole(PermissionHolder user, Set<RoleVO> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
-
+        
         Set<RoleVO> heldRoles = user.getRoles();
         return containsAnyRole(heldRoles, requiredRoles);
     }

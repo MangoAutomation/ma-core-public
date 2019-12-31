@@ -27,8 +27,6 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.util.ExportNames;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.SystemEventTypeModel;
 
 @JsonEntity
 public class SystemEventType extends EventType {
@@ -208,11 +206,6 @@ public class SystemEventType extends EventType {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("systemType", systemEventType);
-    }
-
-    @Override
-    public EventTypeModel asModel() {
-        return new SystemEventTypeModel(this);
     }
 
     @Override

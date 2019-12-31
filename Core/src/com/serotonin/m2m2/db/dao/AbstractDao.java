@@ -26,7 +26,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  *
  * @author Jared Wiltshire
  */
-public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasicDao<T> {
+public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasicDao<T> implements AbstractVOAccess<T> {
 
     protected final String xidPrefix;
     protected final String typeName; //Type name for Audit Events
@@ -75,11 +75,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      */
     protected abstract String getXidPrefix();
 
-    /**
-     * Generates a unique XID
-     *
-     * @return A new unique XID, null if XIDs are not supported
-     */
+    @Override
     public String generateUniqueXid() {
         if (xidPrefix == null) {
             return null;
@@ -87,25 +83,12 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         return generateUniqueXid(xidPrefix, tableName);
     }
 
-    /**
-     * Checks if a XID is unique
-     *
-     * @param XID
-     *            to check
-     * @param excludeId
-     * @return True if XID is unique
-     */
+    @Override
     public boolean isXidUnique(String xid, int excludeId) {
         return isXidUnique(xid, excludeId, tableName);
     }
 
-    /**
-     * Find a VO by its XID
-     *
-     * @param xid
-     *            XID to search for
-     * @return vo if found, otherwise null
-     */
+    @Override
     public T getByXid(String xid, boolean full) {
         if (xid == null || !this.propertyTypeMap.keySet().contains("xid")) {
             return null;
@@ -118,13 +101,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         return vo;
     }
 
-    /**
-     * Find VOs by name
-     *
-     * @param name
-     *            name to search for
-     * @return List of VO with matching name
-     */
+    @Override
     public List<T> getByName(String name, boolean full) {
         if (name == null || !this.propertyTypeMap.keySet().contains("name")) {
             return null;
@@ -139,6 +116,16 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         return items;
     }
 
+    @Override
+    public Integer getIdByXid(String xid) {
+        return this.queryForObject(SELECT_ID_BY_XID, new Object[] { xid }, Integer.class, null);
+    }
+
+    @Override
+    public String getXidById(int id) {
+        return this.queryForObject(SELECT_XID_BY_ID, new Object[] { id }, String.class, null);
+    }
+    
     /**
      * Get all vo in the system
      *

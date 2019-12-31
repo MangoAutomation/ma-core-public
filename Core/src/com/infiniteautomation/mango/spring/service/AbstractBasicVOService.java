@@ -10,7 +10,7 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.AbstractBasicDao;
+import com.serotonin.m2m2.db.dao.AbstractBasicVOAccess;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -26,7 +26,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO extends AbstractBasicDao<T>> {
+public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO extends AbstractBasicVOAccess<T>> {
 
     protected final DAO dao;
     protected final PermissionService permissionService;
@@ -280,45 +280,37 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     }
     
     /**
-     * Query for VOs without returning the relational info
+     * Query for VOs and optionally load the relational info
      * @param conditions
+     * @param full
      * @param callback
      */
-    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
-        dao.customizedQuery(conditions, callback);
+    public void customizedQuery(ConditionSortLimit conditions, boolean full, MappedRowCallback<T> callback) {
+        if(full) {
+            dao.customizedQuery(conditions, (item, index) ->{
+                dao.loadRelationalData(item);
+                callback.row(item, index);
+            });
+        }else {
+            dao.customizedQuery(conditions, callback);
+        }
     }
     
     /**
-     * Query for VOs and load the relational info
+     * Query for VOs and optionally load the relational info
      * @param conditions
+     * @param full - load relational data
      * @param callback
      */
-    public void customizedQuery(ASTNode conditions, MappedRowCallback<T> callback) {
-        dao.customizedQuery(dao.rqlToCondition(conditions), callback);
-    }
-    
-    /**
-     * Query for VOs and load the relational info
-     * @param conditions
-     * @param callback
-     */
-    public void customizedQueryFull(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
-        dao.customizedQuery(conditions, (item, index) ->{
-            dao.loadRelationalData(item);
-            callback.row(item, index);
-        });
-    }
-    
-    /**
-     * Query for VOs and collect the relational info
-     * @param conditions
-     * @param callback
-     */
-    public void customizedQueryFull(ASTNode conditions, MappedRowCallback<T> callback) {
-        dao.customizedQuery(dao.rqlToCondition(conditions), (item, index) ->{
-            dao.loadRelationalData(item);
-            callback.row(item, index);
-        });
+    public void customizedQuery(ASTNode conditions, boolean full, MappedRowCallback<T> callback) {
+        if(full) {
+            dao.customizedQuery(dao.rqlToCondition(conditions), (item, index) ->{
+                dao.loadRelationalData(item);
+                callback.row(item, index);
+            });
+        }else {
+            dao.customizedQuery(dao.rqlToCondition(conditions), callback);
+        }
     }
     
     /**

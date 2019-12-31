@@ -86,7 +86,7 @@ import net.jazdw.rql.parser.ASTNode;
  *
  * @author Jared Wiltshire
  */
-public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao {
+public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDao implements AbstractBasicVOAccess<T> {
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
     public static final int DEFAULT_LIMIT = 100;
@@ -495,20 +495,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return new ArrayList<Index>();
     }
 
-    /**
-     * Delete a VO based on its id 
-     *  this will always get the FKs to ensure they will be deleted if 
-     *  there is no ON CASCADE for the FK
-     * @param id
-     */
+    @Override
     public boolean delete(int id) {
         return delete(get(id, true));
     }
 
-    /**
-     * Delete a VO (uses id to find it)
-     * @param vo
-     */
+    @Override
     public boolean delete(T vo) {
         if (vo != null) {
             Integer deleted = (Integer) getTransactionTemplate().execute(status -> {
@@ -525,18 +517,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         }
         return false;
     }
-    
-    /**
-     * Optionally delete any relational data
-     * @param vo
-     */
+
+    @Override
     public void deleteRelationalData(T vo) { }
     
-    /**
-     * Insert a vo with optionally saving relational data in a transaction
-     * @param vo
-     * @param full
-     */
+    @Override
     public void insert(T vo, boolean full) {
         if (full) {
             getTransactionTemplate().execute(status -> {
@@ -562,31 +547,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (this.countMonitor != null)
             this.countMonitor.increment();
     }
-    
-    /**
-     * Save relational data for a vo to a different table
-     * @param vo
-     */
+
+    @Override
     public void saveRelationalData(T vo, boolean insert) { }
-    
-    
-    /**
-     * Update a vo with optionally saving its relational data in a transaction.
-     * Fire Dao event upon completion
-     * @param vo
-     * @param full
-     */
+
+    @Override
     public void update(T vo, boolean full) {
         update(get(vo.getId(), full), vo, full);
     }
     
-    /**
-     * Update a vo with optionally saving its relational data in a transaction.
-     * Fire Dao event upon completion
-     * @param existing
-     * @param vo
-     * @param full
-     */
+    @Override
     public void update(T existing, T vo, boolean full) {
         if(full) {
             getTransactionTemplate().execute(status -> {
@@ -614,19 +584,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, existing));
     }
 
-    /**
-     * Load relational data from another table
-     * @param vo
-     */
-    public void loadRelationalData(T vo) { }
-
-    
-    /**
-     * Return a VO and load its relational data
-     *
-     * @param id
-     * @return
-     */
+    @Override
     public T get(int id, boolean full) {
         T item = queryForObject(SELECT_BY_ID, new Object[] { id }, getRowMapper(), null);
         if (item != null && full) {
@@ -634,12 +592,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         }
         return item;
     }
-
-    /**
-     * Callback for all VOs with FKs Populated optionally
-     *
-     * @return
-     */
+    
+    @Override
     public void getAll(MappedRowCallback<T> callback, boolean full) {
         query(SELECT_ALL_FIXED_SORT, new Object[] {}, getCallbackResultSetExtractor((item, index)->{
             if(full) {
@@ -648,12 +602,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             callback.row(item, index);
         }));
     }
-
-    /**
-     * Return all VOs with FKs Populated optionally
-     *
-     * @return
-     */
+    
+    @Override
     public List<T> getAll(boolean full) {
         List<T> items = new ArrayList<>();
         getAll((item, index) -> {
@@ -661,30 +611,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         }, full);
         return items;
     }
+
+    @Override
+    public void loadRelationalData(T vo) { }
     
-    /**
-     * Count all from table
-     *
-     * @return
-     */
+    @Override
     public int count() {
         return ejt.queryForInt(COUNT, new Object[0], 0);
-    }
-
-    /**
-     * Get the ID for an XID
-     * @return Integer
-     */
-    public Integer getIdByXid(String xid) {
-        return this.queryForObject(SELECT_ID_BY_XID, new Object[] { xid }, Integer.class, null);
-    }
-
-    /**
-     * Get the ID for an XID
-     * @return String
-     */
-    public String getXidById(int id) {
-        return this.queryForObject(SELECT_XID_BY_ID, new Object[] { id }, String.class, null);
     }
 
     protected String applyRange(String sql, List<Object> args, Integer offset, Integer limit) {
@@ -728,7 +661,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     /**
-     *
+     * TODO Mango 4.0 Remove me
      * @param root
      * @param selectCallback
      * @param countCallback
@@ -737,6 +670,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @param applyLimitToSelectSql
      * @return
      */
+    @Deprecated 
     public StreamableSqlQuery<T> createQuery(ASTNode root, StreamableRowCallback<T> selectCallback,
             StreamableRowCallback<Long> countCallback, Map<String, String> modelMap,
             Map<String, SQLColumnQueryAppender> modifiers, boolean applyLimitToSelectSql) {
@@ -904,6 +838,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return select;
     }
 
+    @Override
     public int customizedCount(ConditionSortLimit conditions) {
         Condition condition = conditions.getCondition();
         SelectSelectStep<Record1<Integer>> count;
@@ -947,6 +882,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return count;
     }
 
+    @Override
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
         select = joinTables(select, conditions);
@@ -1008,6 +944,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return new RQLToCondition(this.propertyToField, this.valueConverterMap);
     }
 
+    @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql) {
         return this.rqlToCondition.visit(rql);
     }

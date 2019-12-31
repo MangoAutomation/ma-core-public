@@ -116,7 +116,6 @@ import com.serotonin.m2m2.rt.event.type.definition.UserLoginEventTypeDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.template.DataPointPropertiesTemplateDefinition;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.RestErrorModelDefinition;
 import com.serotonin.provider.Providers;
 
 /**
@@ -140,7 +139,6 @@ public class ModuleRegistry {
     private static Map<String, SystemEventTypeDefinition> SYSTEM_EVENT_TYPE_DEFINITIONS;
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
     private static Map<String, TemplateDefinition> TEMPLATE_DEFINITIONS;
-    private static Map<String, ModelDefinition> MODEL_DEFINITIONS;
     private static Map<String, EventHandlerDefinition<?>> EVENT_HANDLER_DEFINITIONS;
     private static Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO<?>>> EVENT_DETECTOR_DEFINITIONS;
     private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
@@ -398,46 +396,6 @@ public class ModuleRegistry {
                         map.put(def.getTemplateTypeName(), def);
                     }
                     TEMPLATE_DEFINITIONS = map;
-                }
-            }
-        }
-    }
-
-    //
-    //
-    // Model special handling
-    //
-    public static ModelDefinition getModelDefinition(String type) {
-        ensureModelDefinitions();
-        return MODEL_DEFINITIONS.get(type);
-    }
-
-    public static List<ModelDefinition> getModelDefinitions(){
-        ensureModelDefinitions();
-        return new ArrayList<ModelDefinition>(MODEL_DEFINITIONS.values());
-    }
-
-    public static Set<String> getModelDefinitionTypes() {
-        ensureModelDefinitions();
-        return MODEL_DEFINITIONS.keySet();
-    }
-
-    private static void ensureModelDefinitions() {
-        if (MODEL_DEFINITIONS == null) {
-            synchronized (LOCK) {
-                if (MODEL_DEFINITIONS == null) {
-                    Map<String, ModelDefinition> map = new HashMap<String, ModelDefinition>();
-                    for(ModelDefinition def : Module.getDefinitions(preDefaults, ModelDefinition.class)){
-                        map.put(def.getModelTypeName(), def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (ModelDefinition def : module.getDefinitions(ModelDefinition.class))
-                            map.put(def.getModelTypeName(), def);
-                    }
-                    for(ModelDefinition def : Module.getDefinitions(postDefaults, ModelDefinition.class)){
-                        map.put(def.getModelTypeName(), def);
-                    }
-                    MODEL_DEFINITIONS = map;
                 }
             }
         }
@@ -930,12 +888,6 @@ public class ModuleRegistry {
                 return "/not-found.htm";
             }
         });
-
-        //Add in core Models
-        preDefaults.add(new RestErrorModelDefinition());
-
-        //TODO Add env property to load the Demo Swagger Endpoint then re-enable the demo controller
-        //preDefaults.add(new DemoModelDefinition());
 
         //Add in the Core Templates
         preDefaults.add(new DataPointPropertiesTemplateDefinition());

@@ -127,8 +127,9 @@ public class MangoTestBase {
             } catch (InterruptedException | ExecutionException e) {
                 fail(e.getMessage());
             }
+	    }else {
+	        Common.runtimeManager.initialize(false);
 	    }
-	    
 	    SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
 	    this.timer = provider.getSimulationTimer();
 	}

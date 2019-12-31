@@ -35,8 +35,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.AuditEventTypeModel;
-import com.serotonin.m2m2.web.mvc.rest.v1.model.eventType.EventTypeModel;
 import com.serotonin.timer.RejectedTaskReason;
 
 public class AuditEventType extends EventType {
@@ -363,11 +361,6 @@ public class AuditEventType extends EventType {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("auditType", auditEventType);
-    }
-
-    @Override
-    public EventTypeModel asModel() {
-        return new AuditEventTypeModel(this);
     }
 
     @Override
