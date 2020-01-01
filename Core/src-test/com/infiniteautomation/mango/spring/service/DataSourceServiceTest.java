@@ -15,7 +15,7 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -29,12 +29,12 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
     }
 
     @Override
-    void setReadRoles(Set<RoleVO> roles, T vo) {
+    void setReadRoles(Set<Role> roles, T vo) {
         vo.setEditRoles(roles);
     }
 
     @Override
-    void setEditRoles(Set<RoleVO> roles, T vo) {
+    void setEditRoles(Set<Role> roles, T vo) {
         vo.setEditRoles(roles);
     }
 

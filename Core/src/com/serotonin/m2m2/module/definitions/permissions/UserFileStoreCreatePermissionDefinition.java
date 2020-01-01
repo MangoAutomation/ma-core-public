@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -15,8 +16,8 @@ public class UserFileStoreCreatePermissionDefinition extends PermissionDefinitio
     public static final String TYPE_NAME = "filestore.user.create";
 
     @Override
-    public String getPermissionKey() {
-        return "filestore.user.permission.create";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("filestore.user.permission.create");
     }
 
     @Override

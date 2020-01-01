@@ -5,7 +5,7 @@ package com.serotonin.m2m2.rt.event.type;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  *
@@ -18,13 +18,13 @@ public class MockEventType extends EventType {
     private String eventSubtype;
     private int ref1;
     private int ref2;
-    private RoleVO required;
+    private Role required;
 
     /**
      * Create a mock event type with duplicate handling of ALLOW
      * and event sub type of null with required role
      */
-    public MockEventType(RoleVO required) {
+    public MockEventType(Role required) {
         this(DuplicateHandling.ALLOW);
         this.required = required;
     }

@@ -32,7 +32,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -44,27 +44,31 @@ import com.serotonin.validation.StringValidation;
 public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOService<T, DataSourceDao<T>> {
 
     private final DataPointService dataPointService;
+    private final DataSourcePermissionDefinition createPermission;
     
     @Autowired
-    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService, DataPointService dataPointService) {
-        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(DataSourcePermissionDefinition.PERMISSION));
+    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService, DataPointService dataPointService, DataSourcePermissionDefinition createPermission) {
+        super(dao, permissionService);
         this.dataPointService = dataPointService;
+        this.createPermission = createPermission;
     }
 
     @Override
+    public Set<Role> getCreatePermissionRoles() {
+        return createPermission.getRoles();
+    }
+    
+    @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        event.getMappings().stream().forEach((mapping) -> {
-            if(mapping.isForVoType(DataSourceVO.class)) {
-                //So we don't have to restart it
-                DataSourceRT<?> rt = Common.runtimeManager.getRunningDataSource(mapping.getVoId());
-                if(rt != null) {
-                    Set<RoleVO> newEditRoles = new HashSet<>(rt.getVo().getEditRoles());
-                    newEditRoles.remove(event.getRole());
-                    rt.getVo().setEditRoles(Collections.unmodifiableSet(newEditRoles));
-                }
+        //So we don't have to restart it
+        for(DataSourceRT<?> rt : Common.runtimeManager.getRunningDataSources()) {
+            if(rt.getVo().getEditRoles().contains(event.getRole().getRole())) {
+                Set<Role> newEditRoles = new HashSet<>(rt.getVo().getEditRoles());
+                newEditRoles.remove(event.getRole().getRole());
+                rt.getVo().setEditRoles(Collections.unmodifiableSet(newEditRoles));
             }
-        });
+        }
     }
     
     @Override
@@ -139,9 +143,9 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param user
      * @return
      */
-    public DataSourceDefinition getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
+    public DataSourceDefinition<T> getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
         permissionService.ensureDataSourcePermission(user);
-        DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
+        DataSourceDefinition<T> def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
             throw new NotFoundException();
         return def;
@@ -264,8 +268,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         ProcessResult response = commonValidation(vo, user);
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
         permissionService.validateVoRoles(response, "editRoles", user, owner, null, vo.getEditRoles());
-      //Allow module to define validation logic
-        vo.validate(response, permissionService, user);
+        //Allow module to define validation logic
+        vo.getDefinition().validate(response, vo, user);
         return response;
     }
     
@@ -276,7 +280,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
         permissionService.validateVoRoles(response, "editRoles", user, owner, existing.getEditRoles(), vo.getEditRoles());
         //Allow module to define validation logic
-        vo.validate(response, existing, permissionService, user);
+        vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
     

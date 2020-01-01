@@ -17,11 +17,9 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.AbstractDao;
-import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
 
@@ -33,9 +31,9 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
     private List<EmailRecipient> entries;
     private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
     @JsonProperty
-    private Set<RoleVO> readRoles = Collections.emptySet();
+    private Set<Role> readRoles = Collections.emptySet();
     @JsonProperty
-    private Set<RoleVO> editRoles = Collections.emptySet();
+    private Set<Role> editRoles = Collections.emptySet();
 
     /**
      * Integers that are present in the inactive intervals set are times at which the mailing list schedule is not to be
@@ -84,19 +82,19 @@ public class MailingList extends AbstractVO<MailingList> implements EmailRecipie
         this.receiveAlarmEmails = receiveAlarmEmails;
     }
 
-    public Set<RoleVO> getReadRoles() {
+    public Set<Role> getReadRoles() {
         return readRoles;
     }
 
-    public void setReadRoles(Set<RoleVO> readRoles) {
+    public void setReadRoles(Set<Role> readRoles) {
         this.readRoles = readRoles;
     }
 
-    public Set<RoleVO> getEditRoles() {
+    public Set<Role> getEditRoles() {
         return editRoles;
     }
 
-    public void setEditRoles(Set<RoleVO> editRoles) {
+    public void setEditRoles(Set<Role> editRoles) {
         this.editRoles = editRoles;
     }
 

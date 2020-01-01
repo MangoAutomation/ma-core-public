@@ -42,7 +42,7 @@ import com.serotonin.m2m2.vo.DataPointVO.SimplifyTypes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -75,23 +75,18 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        event.getMappings().stream().forEach((mapping) -> {
-            if(mapping.isForVoType(DataPointVO.class)) {
-                //So we don't have to restart it
-                DataPointRT rt = Common.runtimeManager.getDataPoint(mapping.getVoId());
-                if(rt != null) {
-                    if(StringUtils.equals(mapping.getPermissionType(), PermissionService.READ)) {
-                        Set<RoleVO> newReadRoles = new HashSet<>(rt.getVO().getReadRoles());
-                        newReadRoles.remove(event.getRole());
-                        rt.getVO().setReadRoles(Collections.unmodifiableSet(newReadRoles));
-                    }else if(StringUtils.equals(mapping.getPermissionType(), PermissionService.SET)) {
-                        Set<RoleVO> newSetRoles = new HashSet<>(rt.getVO().getSetRoles());
-                        newSetRoles.remove(event.getRole());
-                        rt.getVO().setSetRoles(Collections.unmodifiableSet(newSetRoles));
-                    }
-                }
+        for(DataPointRT rt : Common.runtimeManager.getRunningDataPoints()) {
+            if(rt.getVO().getReadRoles().contains(event.getRole().getRole())) {
+                Set<Role> newReadRoles = new HashSet<>(rt.getVO().getReadRoles());
+                newReadRoles.remove(event.getRole().getRole());
+                rt.getVO().setReadRoles(Collections.unmodifiableSet(newReadRoles));
             }
-        });
+            if(rt.getVO().getSetRoles().contains(event.getRole().getRole())) {
+                Set<Role> newSetRoles = new HashSet<>(rt.getVO().getSetRoles());
+                newSetRoles.remove(event.getRole().getRole());
+                rt.getVO().setSetRoles(Collections.unmodifiableSet(newSetRoles));
+            }
+        }
     }
     
     @Override

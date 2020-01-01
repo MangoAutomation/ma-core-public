@@ -4,12 +4,27 @@
  */
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
+import java.util.ArrayList;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
+import com.serotonin.m2m2.rt.script.ScriptError;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -21,6 +36,9 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
 	public static final String DESC_KEY = "eventHandlers.type.setPoint";
 	public static final int ACTIVE_SCRIPT_TYPE = 0;
 	public static final int INACTIVE_SCRIPT_TYPE = 1;
+	
+    @Autowired
+    PermissionService service;
 	
 	@Override
 	public String getEventHandlerTypeName() {
@@ -55,4 +73,118 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     public void deleteRelationalData(AbstractEventHandlerVO<?> vo) {
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SCRIPT);
     }
+    
+    @Override
+    public void validate(ProcessResult result, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
+        commonValidation(result, vo, savingUser);
+        if(vo.getScriptRoles() != null) {
+            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getRoles());
+        }       
+    }
+    
+    @Override
+    public void validate(ProcessResult result, SetPointEventHandlerVO existing, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
+        commonValidation(result, vo, savingUser);
+        if (vo.getScriptRoles() == null) {
+            result.addContextualMessage("scriptRoles", "validate.permission.null");
+        }else {
+            Set<Role> existingRoles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
+            service.validateVoRoles(result, "scriptRoles", savingUser, false,
+                    existingRoles, vo.getScriptRoles().getRoles());
+        }
+    }
+    
+    private void commonValidation(ProcessResult response, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
+        DataPointVO dp = DataPointDao.getInstance().get(vo.getTargetPointId(), false);
+
+        int dataType = DataTypes.UNKNOWN;
+        if (dp == null)
+            response.addContextualMessage("targetPointId", "eventHandlers.noTargetPoint");
+        else {
+            dataType = dp.getPointLocator().getDataTypeId();
+            if(!dp.getPointLocator().isSettable())
+                response.addContextualMessage("targetPointId", "event.setPoint.targetNotSettable");
+        }
+
+        if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_NONE && vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_NONE) {
+            response.addContextualMessage("activeAction", "eventHandlers.noSetPointAction");
+            response.addContextualMessage("inactiveAction", "eventHandlers.noSetPointAction");
+        }
+        MangoJavaScriptService javaScriptService = Common.getBean(MangoJavaScriptService.class);
+        // Active
+        if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
+            try {
+                Integer.parseInt(vo.getActiveValueToSet());
+            }
+            catch (NumberFormatException e) {
+                response.addContextualMessage("activeValueToSet", "eventHandlers.invalidActiveValue");
+            }
+        }
+        else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+            try {
+                Double.parseDouble(vo.getActiveValueToSet());
+            }
+            catch (NumberFormatException e) {
+                response.addContextualMessage("activeValueToSet", "eventHandlers.invalidActiveValue");
+            }
+        }
+        else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
+            DataPointVO dpActive = DataPointDao.getInstance().get(vo.getActivePointId(), false);
+
+            if (dpActive == null)
+                response.addContextualMessage("activePointId", "eventHandlers.invalidActiveSource");
+            else if (dataType != dpActive.getPointLocator().getDataTypeId())
+                response.addContextualMessage("activeDataPointId", "eventHandlers.invalidActiveSourceType");
+        }
+        else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
+            if(StringUtils.isEmpty(vo.getActiveScript()))
+                response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
+            try {
+                javaScriptService.compile(vo.getActiveScript(), true, vo.getScriptRoles());
+            } catch(ScriptError e) {
+                response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+            }
+        }
+
+        // Inactive
+        if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
+            try {
+                Integer.parseInt(vo.getInactiveValueToSet());
+            }
+            catch (NumberFormatException e) {
+                response.addContextualMessage("inactiveValueToSet", "eventHandlers.invalidInactiveValue");
+            }
+        }
+        else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
+            try {
+                Double.parseDouble(vo.getInactiveValueToSet());
+            }
+            catch (NumberFormatException e) {
+                response.addContextualMessage("inactiveValueToSet", "eventHandlers.invalidInactiveValue");
+            }
+        }
+        else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
+            DataPointVO dpInactive = DataPointDao.getInstance().get(vo.getInactivePointId(), false);
+
+            if (dpInactive == null)
+                response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSource");
+            else if (dataType != dpInactive.getPointLocator().getDataTypeId())
+                response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSourceType");
+        }
+        else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
+            if(StringUtils.isEmpty(vo.getInactiveScript()))
+                response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
+            try {
+                javaScriptService.compile(vo.getInactiveScript(), true, vo.getScriptRoles());
+            } catch(ScriptError e) {
+                response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScriptError", e.getTranslatableMessage());
+            }
+        }
+        
+        if(vo.getAdditionalContext() != null)
+            validateScriptContext(vo.getAdditionalContext(), response);
+        else
+            vo.setAdditionalContext(new ArrayList<>());
+    }
+    
 }

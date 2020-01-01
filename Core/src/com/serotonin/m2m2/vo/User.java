@@ -45,7 +45,7 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
 public class User extends AbstractVO<User> implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
@@ -105,7 +105,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     @JsonProperty
     private JsonNode data;
     @JsonProperty
-    private Set<RoleVO> roles = Collections.unmodifiableSet(Collections.emptySet());
+    private Set<Role> roles = Collections.unmodifiableSet(Collections.emptySet());
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -445,7 +445,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities.get(() -> {
-            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(roles));
+            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(getRoles()));
         });
     }
 
@@ -683,11 +683,11 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     }
 
     @Override
-    public Set<RoleVO> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
-    
-    public void setRoles(Set<RoleVO> roles) {
+
+    public void setRoles(Set<Role> roles) {
         this.roles = roles;
         this.authorities.reset();
     }

@@ -17,7 +17,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.timer.OneTimeTrigger;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.timer.TimerTrigger;
@@ -63,7 +63,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * Return null to use getReadPermissionTypeName instead
      * @return
      */
-    protected Set<RoleVO> getReadRoles() {
+    protected Set<Role> getReadRoles() {
         return null;
     }
 
@@ -78,7 +78,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * Return null to use getWritePermissionTypeName instead
      * @return
      */
-    protected Set<RoleVO> getWriteRoles() {
+    protected Set<Role> getWriteRoles() {
         return null;
     }
 
@@ -87,13 +87,13 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @throws PermissionException
      */
     public void ensureStoreReadPermission(User user) {
-        Set<RoleVO> roles = getReadRoles();
+        Set<Role> roles = getReadRoles();
         PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
 
         if (roles != null) {
             permissionService.get().ensureHasAnyRole(user, roles);
         } else if (permission != null) {
-            permissionService.get().ensurePermission(user, permission);
+            permissionService.get().ensureHasAnyRole(user, permission.getRoles());
         }
     }
 
@@ -102,13 +102,13 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @throws PermissionException
      */
     public void ensureStoreWritePermission(User user) {
-        Set<RoleVO> roles = getWriteRoles();
+        Set<Role> roles = getWriteRoles();
         PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
 
         if (roles != null) {
             permissionService.get().ensureHasAnyRole(user, roles);
         } else if (permission != null) {
-            permissionService.get().ensurePermission(user, permission);
+            permissionService.get().ensureHasAnyRole(user, permission.getRoles());
         }
     }
 

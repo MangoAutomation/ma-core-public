@@ -49,7 +49,7 @@ import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
@@ -234,7 +234,7 @@ public class MangoTestBase {
      * @param permissions
      * @return
      */
-    protected List<User> createUsers(int count, RoleVO... roles){
+    protected List<User> createUsers(int count, Role... roles){
         List<User> users = new ArrayList<>();
         for(int i=0; i<count; i++) {
             User user = createUser("User" + i,
@@ -256,7 +256,7 @@ public class MangoTestBase {
      * @param roles
      * @return
      */
-    protected User createUser(String name, String username, String password, String email, RoleVO... roles) {
+    protected User createUser(String name, String username, String password, String email, Role... roles) {
         return createUser(Common.NEW_ID, name, username, password, email, roles);
     }
     
@@ -270,7 +270,7 @@ public class MangoTestBase {
      * @param roles
      * @return
      */
-    protected User createUser(int id, String name, String username, String password, String email, RoleVO... roles) {
+    protected User createUser(int id, String name, String username, String password, String email, Role... roles) {
         User user = new User();
         user.setId(id);
         user.setName(name);

@@ -15,7 +15,7 @@ import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -36,8 +36,8 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
      * @return
      */
     abstract String getCreatePermissionType();
-    abstract void setReadRoles(Set<RoleVO> roles, VO vo);
-    abstract void setEditRoles(Set<RoleVO> roles, VO vo);
+    abstract void setReadRoles(Set<Role> roles, VO vo);
+    abstract void setEditRoles(Set<Role> roles, VO vo);
     
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
@@ -230,8 +230,8 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             service.insert(vo, true, systemSuperadmin);
             VO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
-            roleService.delete(editRole, systemSuperadmin);
-            roleService.delete(readRole, systemSuperadmin);
+            roleService.delete(editRole.getId(), systemSuperadmin);
+            roleService.delete(readRole.getId(), systemSuperadmin);
             VO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
             setReadRoles(Collections.emptySet(), fromDb);
             setEditRoles(Collections.emptySet(), fromDb);
@@ -259,7 +259,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         });
     }
     
-    void addRoleToCreatePermission(RoleVO vo) {
+    void addRoleToCreatePermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
             roleService.addRoleToPermission(vo, getCreatePermissionType(), systemSuperadmin);

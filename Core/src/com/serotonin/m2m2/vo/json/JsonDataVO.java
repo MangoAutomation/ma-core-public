@@ -18,7 +18,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -36,9 +36,9 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 	private Object jsonData;
 
     @JsonProperty
-    private Set<RoleVO> readRoles = Collections.emptySet();
+    private Set<Role> readRoles = Collections.emptySet();
     @JsonProperty
-    private Set<RoleVO> editRoles = Collections.emptySet();
+    private Set<Role> editRoles = Collections.emptySet();
 	@JsonProperty
 	private boolean publicData;
 	
@@ -49,16 +49,16 @@ public class JsonDataVO extends AbstractVO<JsonDataVO> implements Serializable, 
 		this.jsonData = data;
 	}
 
-	public Set<RoleVO> getReadRoles() {
+	public Set<Role> getReadRoles() {
         return readRoles;
     }
-    public void setReadRoles(Set<RoleVO> readRoles) {
+    public void setReadRoles(Set<Role> readRoles) {
         this.readRoles = readRoles;
     }
-    public Set<RoleVO> getEditRoles() {
+    public Set<Role> getEditRoles() {
         return editRoles;
     }
-    public void setEditRoles(Set<RoleVO> editRoles) {
+    public void setEditRoles(Set<Role> editRoles) {
         this.editRoles = editRoles;
     }
     public boolean isPublicData() {

@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -13,17 +14,12 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 public class CoreFileStoreWritePermissionDefinition extends PermissionDefinition{
 
 	public static final String TYPE_NAME = "filestore.core.write";
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.PermissionDefinition#getPermissionKey()
-	 */
+
 	@Override
-	public String getPermissionKey() {
-		return "filestore.core.permission.write";
+	public TranslatableMessage getDescription() {
+		return new TranslatableMessage("filestore.core.permission.write");
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.PermissionDefinition#getPermissionTypeName()
-	 */
 	@Override
 	public String getPermissionTypeName() {
 		return TYPE_NAME;

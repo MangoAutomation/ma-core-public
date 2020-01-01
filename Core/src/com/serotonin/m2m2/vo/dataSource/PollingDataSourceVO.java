@@ -8,23 +8,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -44,29 +38,6 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> exte
     @JsonProperty
     protected boolean useCron = false;
     protected String cronPattern;
-    
-    @Override
-    public void validate(ProcessResult response, PermissionService service, PermissionHolder holder) {
-        if(useCron) {
-            if (StringUtils.isBlank(cronPattern))
-                response.addContextualMessage("cronPattern", "validate.required");
-            else {
-                try {
-                    new CronTimerTrigger(cronPattern);
-                }
-                catch (Exception e) {
-                    response.addContextualMessage("cronPattern", "validate.invalidCron", cronPattern);
-                }
-            }
-            if(quantize)
-                response.addContextualMessage("quantize", "validate.cronCannotBeQuantized");
-        }else {
-            if (!Common.TIME_PERIOD_CODES.isValidId(updatePeriodType))
-                response.addContextualMessage("updatePeriodType", "validate.invalidValue");
-            if (updatePeriods <= 0)
-                response.addContextualMessage("updatePeriods", "validate.greaterThanZero");
-        }
-    }
 
     public boolean isQuantize() {
         return quantize;

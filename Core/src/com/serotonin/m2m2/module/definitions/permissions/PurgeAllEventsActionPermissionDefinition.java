@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -15,8 +16,8 @@ public class PurgeAllEventsActionPermissionDefinition extends PermissionDefiniti
     public static final String PERMISSION = "action.purgeAllEvents";
 
     @Override
-    public String getPermissionKey() {
-        return "systemSettings.purgeAllEvents";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("systemSettings.purgeAllEvents");
     }
 
     @Override

@@ -31,8 +31,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
-import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.role.RoleToVoMapping;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -42,9 +41,6 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 @Repository
 public class RoleDao extends AbstractDao<RoleVO> {
 
-    public static final String SUPERADMIN_ROLE_NAME = "superadmin";
-    public static final String USER_ROLE_NAME = "user";
-    
     private static final LazyInitSupplier<RoleDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(RoleDao.class);
         if(o == null)
@@ -52,23 +48,13 @@ public class RoleDao extends AbstractDao<RoleVO> {
         return (RoleDao)o;
     });
     
-    private final LazyInitSupplier<RoleVO> superadminRole = new LazyInitSupplier<>(() -> {
-       return queryForObject(SELECT_ALL + " WHERE xid=?", 
-               new Object[] {SUPERADMIN_ROLE_NAME}, 
-               getRowMapper()); 
-    });
-    
-    private final LazyInitSupplier<RoleVO> userRole = new LazyInitSupplier<>(() -> {
-        return queryForObject(SELECT_ALL + " WHERE xid=?", 
-                new Object[] {USER_ROLE_NAME}, 
-                getRowMapper()); 
-     });
-    
     private RoleDao() {
         super(AuditEventType.TYPE_ROLE, "r",
                 new String[0], false,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"));
     }
+    
+    private final String SELECT_ROLE = "SELECT id,xid FROM roles AS r ";
     
     /**
      * Get the roles for a given permission type regardless of the VOs if any 
@@ -76,10 +62,10 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      * @return
      */
-    public Set<RoleVO> getRoles(String permissionType) {
-        return query(SELECT_ALL + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.permissionType=?", 
+    public Set<Role> getRoles(String permissionType) {
+        return query(SELECT_ROLE + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.permissionType=?", 
                 new Object[] {permissionType}, 
-                new RoleVoSetResultSetExtractor());
+                new RoleSetResultSetExtractor());
     }
     
     /**
@@ -87,7 +73,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param vo
      * @return
      */
-    public Set<RoleVO> getRoles(AbstractBasicVO vo, String permissionType) {
+    public Set<Role> getRoles(AbstractBasicVO vo, String permissionType) {
         return getRoles(vo.getId(), vo.getClass().getSimpleName(), permissionType);
     }
     
@@ -98,8 +84,42 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      * @return
      */
-    public Set<RoleVO> getRoles(int voId, String voClassSimpleName, String permissionType) {
-        return query(SELECT_ALL + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
+    public Set<Role> getRoles(int voId, String voClassSimpleName, String permissionType) {
+        return query(SELECT_ROLE + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
+                new Object[] {voId, voClassSimpleName, permissionType}, 
+                new RoleSetResultSetExtractor()); 
+    }
+    
+    /**
+     * Get the roles for a given permission type regardless of the VOs if any 
+     *  that are linked to it.
+     * @param permissionType
+     * @return
+     */
+    public Set<RoleVO> getRoleVOs(String permissionType) {
+        return query(SELECT_ALL + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.permissionType=?", 
+                new Object[] {permissionType}, 
+                new RoleVoSetResultSetExtractor());
+    }
+    
+    /**
+     * Get the roles for a given VO
+     * @param vo
+     * @return
+     */
+    public Set<RoleVO> getRoleVOs(AbstractBasicVO vo, String permissionType) {
+        return getRoleVOs(vo.getId(), vo.getClass().getSimpleName(), permissionType);
+    }
+    
+    /**
+     * Get the role VOs for a given vo based on the provided information
+     * @param voId
+     * @param voClassSimpleName
+     * @param permissionType
+     * @return
+     */
+    public Set<RoleVO> getRoleVOs(int voId, String voClassSimpleName, String permissionType) {
+        return query(SELECT_ROLE + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.voId=? AND rm.voType=? AND rm.permissionType=?",
                 new Object[] {voId, voClassSimpleName, permissionType}, 
                 new RoleVoSetResultSetExtractor()); 
     }
@@ -107,42 +127,15 @@ public class RoleDao extends AbstractDao<RoleVO> {
     @Override
     public boolean delete(RoleVO vo) {
         //First get all mappings so we can publish them in the event
-        List<RoleToVoMapping> mappings = getAllMappings(vo);
-        List<RoleToVoMapping> userMappings = getUserRoleMappings(vo);
-        mappings.addAll(userMappings);
         if(super.delete(vo)) {
-            this.eventPublisher.publishEvent(new RoleDeletedDaoEvent(this, vo, mappings));
+            this.eventPublisher.publishEvent(new RoleDeletedDaoEvent(this, vo));
             return true;
         }else {
             return false;
         }
     }
     
-    private static final String SELECT_VO_ROLE_MAPPINGS = "SELECT roleId, voId, voType, permissionType FROM roleMappings";
     private static final String INSERT_VO_ROLE_MAPPING = "INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)";
-    private static final String SELECT_USER_ROLE_MAPPINGS = "SELECT roleId, userId FROM userRoleMappings";
-
-    /**
-     * Get all mappings for a role
-     * @param vo
-     * @return
-     */
-    public List<RoleToVoMapping> getAllMappings(RoleVO role) {
-        return query(SELECT_VO_ROLE_MAPPINGS + " WHERE roleId=?", new Object[] {role.getId()}, (rs, index) -> {
-            return new RoleToVoMapping(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getString(4));
-        });
-    }
-    
-    /**
-     * Get all user role mappings for this role
-     * @param role
-     * @return
-     */
-    public List<RoleToVoMapping> getUserRoleMappings(RoleVO role) {
-        return query(SELECT_USER_ROLE_MAPPINGS + " WHERE roleId=?", new Object[] {role.getId()}, (rs, index) -> {
-            return new RoleToVoMapping(rs.getInt(1), rs.getInt(2), User.class.getSimpleName(), null);
-        });
-    }
     
     /**
      * Add a role to the given vo's permission type
@@ -150,7 +143,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param vo
      * @param permissionType
      */
-    public void addRoleToVoPermission(RoleVO role, AbstractBasicVO vo, String permissionType) {
+    public void addRoleToVoPermission(Role role, AbstractBasicVO vo, String permissionType) {
         doInsert(INSERT_VO_ROLE_MAPPING, 
                 new Object[]{
                         role.getId(),
@@ -160,7 +153,12 @@ public class RoleDao extends AbstractDao<RoleVO> {
                 });
     }
     
-    public void addRoleToPermission(RoleVO role, String permissionType) {
+    /**
+     * Add a role to a system permission
+     * @param role
+     * @param permissionType
+     */
+    public void addRoleToPermission(Role role, String permissionType) {
         doInsert(INSERT_VO_ROLE_MAPPING, 
                 new Object[]{
                         role.getId(),
@@ -178,7 +176,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      * @param newVO - is this a new VO
      */
-    public void replaceRolesOnVoPermission(Set<RoleVO> roles, AbstractBasicVO vo, String permissionType, boolean newVO) {
+    public void replaceRolesOnVoPermission(Set<Role> roles, AbstractBasicVO vo, String permissionType, boolean newVO) {
         replaceRolesOnVoPermission(roles, vo.getId(), vo.getClass().getSimpleName(), permissionType, newVO);
     }
     
@@ -191,7 +189,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @param permissionType
      * @param newVO - is this a new VO
      */
-    public void replaceRolesOnVoPermission(Set<RoleVO> roles, int voId, String classSimpleName, String permissionType, boolean newVO) {
+    public void replaceRolesOnVoPermission(Set<Role> roles, int voId, String classSimpleName, String permissionType, boolean newVO) {
         //Delete em all
         if(!newVO) {
             ejt.update("DELETE FROM roleMappings WHERE voId=? AND voType=? AND permissionType=?", 
@@ -202,7 +200,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
                     });
         }
         //Push the new ones in
-        List<RoleVO> entries = new ArrayList<>(roles);
+        List<Role> entries = new ArrayList<>(roles);
         ejt.batchUpdate(INSERT_VO_ROLE_MAPPING, new BatchPreparedStatementSetter() {
             @Override
             public int getBatchSize() {
@@ -211,7 +209,7 @@ public class RoleDao extends AbstractDao<RoleVO> {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                RoleVO role = entries.get(i);
+                Role role = entries.get(i);
                 ps.setInt(1, role.getId());
                 ps.setInt(2, voId);
                 ps.setString(3, classSimpleName);
@@ -242,22 +240,6 @@ public class RoleDao extends AbstractDao<RoleVO> {
                         classSimpleName,
                         permissionType,
                 });
-    }
-
-    /**
-     * Get the superadmin role
-     * @return
-     */
-    public RoleVO getSuperadminRole() {
-        return superadminRole.get();
-    }
-    
-    /**
-     * Get the default user role
-     * @return
-     */
-    public RoleVO getUserRole() {
-        return userRole.get();
     }
     
     /**
@@ -303,23 +285,37 @@ public class RoleDao extends AbstractDao<RoleVO> {
 
     @Override
     public RowMapper<RoleVO> getRowMapper() {
-        return new RoleRowMapper();
+        return new RoleVORowMapper();
     }
     
     /**
-     * Get a result set extractor for an unmodifiable set of roles
+     * Get a result set extractor for an unmodifiable set of role vos
      * @return
      */
     public RoleVoSetResultSetExtractor getRoleVoSetResultSetExtractor() {
         return new RoleVoSetResultSetExtractor();
     }
     
-    class RoleRowMapper implements RowMapper<RoleVO> {
+    /**
+     * Get a result set extractor for an unmodifiable set of roles
+     * @return
+     */
+    public RoleSetResultSetExtractor getRoleSetResultSetExtractor() {
+        return new RoleSetResultSetExtractor();
+    }
+    
+    class RoleVORowMapper implements RowMapper<RoleVO> {
         @Override
         public RoleVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            RoleVO vo = new RoleVO(rs.getString(2), rs.getString(3));
-            vo.setId(rs.getInt(1));
+            RoleVO vo = new RoleVO(rs.getInt(1), rs.getString(2), rs.getString(3));
             return vo;
+        }
+    }
+    
+    class RoleRowMapper implements RowMapper<Role> {
+        @Override
+        public Role mapRow(ResultSet rs, int rowNum) throws SQLException {
+            return new Role(rs.getInt(1), rs.getString(2));
         }
     }
 
@@ -330,15 +326,34 @@ public class RoleDao extends AbstractDao<RoleVO> {
      */
     private class RoleVoSetResultSetExtractor implements ResultSetExtractor<Set<RoleVO>> {
 
-        private final RoleRowMapper rowMapper;
+        private final RoleVORowMapper rowMapper;
         
         public RoleVoSetResultSetExtractor() {
-            this.rowMapper = new RoleRowMapper();
+            this.rowMapper = new RoleVORowMapper();
         }
         
         @Override
         public Set<RoleVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
             Set<RoleVO> results = new HashSet<>();
+            int rowNum = 0;
+            while (rs.next()) {
+                results.add(this.rowMapper.mapRow(rs, rowNum++));
+            }
+            return Collections.unmodifiableSet(results);
+        }     
+    }
+    
+    private class RoleSetResultSetExtractor implements ResultSetExtractor<Set<Role>> {
+
+        private final RoleRowMapper rowMapper;
+        
+        public RoleSetResultSetExtractor() {
+            this.rowMapper = new RoleRowMapper();
+        }
+        
+        @Override
+        public Set<Role> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            Set<Role> results = new HashSet<>();
             int rowNum = 0;
             while (rs.next()) {
                 results.add(this.rowMapper.mapRow(rs, rowNum++));
@@ -356,7 +371,6 @@ public class RoleDao extends AbstractDao<RoleVO> {
         private static final long serialVersionUID = 1L;
         
         private final RoleVO role;
-        private final List<RoleToVoMapping> mappings;
         
         /**
          * 
@@ -364,19 +378,15 @@ public class RoleDao extends AbstractDao<RoleVO> {
          * @param role - the role that was deleted
          * @param mappings - the mappings at the time of deletion
          */
-        public RoleDeletedDaoEvent(RoleDao dao, RoleVO role,  List<RoleToVoMapping> mappings) {
+        public RoleDeletedDaoEvent(RoleDao dao, RoleVO role) {
             super(dao);
             this.role = role;
-            this.mappings = mappings;
         }
         
         public RoleVO getRole() {
             return role;
         }
 
-        public List<RoleToVoMapping> getMappings() {
-            return mappings;
-        }
         
     }
 }

@@ -122,7 +122,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     @Override
     public ProcessResult validate(PublisherVO<T> vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        vo.validate(response, permissionService, user);
+        vo.getDefinition().validate(response, vo, user);
         return response;
     }
     
@@ -130,7 +130,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     public ProcessResult validate(PublisherVO<T> existing, PublisherVO<T> vo,
             PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        vo.validate(response, existing, permissionService, user);
+        vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
     

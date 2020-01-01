@@ -2,7 +2,7 @@ package com.serotonin.m2m2.vo;
 
 import java.util.Set;
 
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Interface that represents both full data point VOs and summary objects.
@@ -26,11 +26,11 @@ public interface IDataPoint {
      * Roles that can read this point's value and configuration
      * @return
      */
-    Set<RoleVO> getReadRoles();
+    Set<Role> getReadRoles();
 
     /**
      * Roles that can set the point's value
      * @return
      */
-    Set<RoleVO> getSetRoles();
+    Set<Role> getSetRoles();
 }

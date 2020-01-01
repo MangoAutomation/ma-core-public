@@ -98,7 +98,7 @@ public abstract class ModuleQueryDefinition extends ModuleElementDefinition {
         if(def == null)
             return;
         else
-            permissionService.get().ensurePermission(user, def);
+            permissionService.get().ensureHasAnyRole(user, def.getRoles());
     }
 
     /**

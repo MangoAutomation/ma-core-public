@@ -15,10 +15,10 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Class for plug-in User Access for Authentication Data
@@ -47,15 +47,15 @@ public class MangoUserDetailsService implements UserDetailsService {
 	 * @param roles
 	 * @return
 	 */
-	public static Set<GrantedAuthority> getGrantedAuthorities(Set<RoleVO> roles) {
+	public static Set<GrantedAuthority> getGrantedAuthorities(Set<Role> roles) {
 	    if (roles == null) {
 	        return Collections.emptySet();
 	    }
 
         Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(roles.size());
         
-        for (RoleVO role : roles) {
-        	if(role.equals(RoleDao.getInstance().getSuperadminRole())) {
+        for (Role role : roles) {
+        	if(role.equals(PermissionHolder.SUPERADMIN_ROLE)) {
         		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         	}else {
             	grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role.getXid().toUpperCase(Locale.ROOT)));

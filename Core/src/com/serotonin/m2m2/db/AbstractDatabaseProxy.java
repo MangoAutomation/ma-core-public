@@ -47,6 +47,7 @@ import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.provider.Providers;
 
@@ -352,8 +353,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         // New database, add default data
 
         //Add default user and superadmin roles
-        RoleDao.getInstance().insert(new RoleVO(RoleDao.SUPERADMIN_ROLE_NAME, Common.translate("roles.superadmin")), true);
-        RoleDao.getInstance().insert(new RoleVO(RoleDao.USER_ROLE_NAME, Common.translate("roles.user")), true);
+        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, Common.translate("roles.superadmin")), true);
+        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, Common.translate("roles.user")), true);
 
         //Create a default user.
         User user = new User();
@@ -363,7 +364,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         user.setPassword(Common.encrypt("admin"));
         user.setEmail("admin@mango.example.com");
         user.setPhone("");
-        user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(RoleDao.getInstance().getSuperadminRole()))));
+        user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(PermissionHolder.SUPERADMIN_ROLE.get()))));
         user.setDisabled(false);
         user.setHomeUrl("/ui/administration/home");
         UserDao.getInstance().saveUser(user);

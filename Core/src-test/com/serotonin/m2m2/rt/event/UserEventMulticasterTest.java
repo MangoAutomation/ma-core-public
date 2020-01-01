@@ -16,7 +16,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
@@ -42,7 +41,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
 
         //Add some roles
-        mockRole = new RoleVO("MOCK", "Mock test role.");
+        mockRole = new RoleVO(Common.NEW_ID, "MOCK", "Mock test role.");
         roleService.insert(mockRole, false, systemSuperadmin);
         
     }
@@ -50,7 +49,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
     @Test
     public void testAddRemoveListeners() {
         int userCount = 3;
-        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         List<MockUserEventListener> listenerSet1 = new ArrayList<>();
         UserEventListener multicaster = null;
         
@@ -90,7 +89,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
         int eventCount = 13;
         int userCount = 13;
         
-        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
         for(User u : users) {
@@ -137,7 +136,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
         int eventCount = 10000;
         int userCount = 100;
         
-        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
         for(User u : users) {
@@ -186,11 +185,11 @@ public class UserEventMulticasterTest extends MangoTestBase {
         int userCount = 5*6;
         
         //Add them out of order so the tree is jumbled with permissions hither and yon
-        List<User> users = createUsers(userCount/6, RoleDao.getInstance().getSuperadminRole());
-        users.addAll(createUsers(userCount/6, mockRole));
+        List<User> users = createUsers(userCount/6, PermissionHolder.SUPERADMIN_ROLE.get());
+        users.addAll(createUsers(userCount/6, mockRole.getRole()));
         users.addAll(createUsers(userCount/6));
-        users.addAll(createUsers(userCount/6, RoleDao.getInstance().getSuperadminRole()));
-        users.addAll(createUsers(userCount/6, mockRole));
+        users.addAll(createUsers(userCount/6, PermissionHolder.SUPERADMIN_ROLE.get()));
+        users.addAll(createUsers(userCount/6, mockRole.getRole()));
         users.addAll(createUsers(userCount/6));
         List<Integer> idsToNotify = new ArrayList<>();
         List<MockUserEventListener> listeners = new ArrayList<>();

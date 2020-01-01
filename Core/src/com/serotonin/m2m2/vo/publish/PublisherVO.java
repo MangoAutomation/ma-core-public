@@ -34,14 +34,13 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
-import com.serotonin.m2m2.vo.ChangeValidatable;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.util.SerializationHelper;
 
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<T>> implements Serializable, JsonSerializable, ChangeValidatable<PublisherVO<T>> {
+abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<T>> implements Serializable, JsonSerializable {
     public static final String XID_PREFIX = "PUB_";
 
     public interface PublishType{
@@ -94,7 +93,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
     abstract public ExportCodes getEventCodes();
 
-    private PublisherDefinition definition;
+    private PublisherDefinition<T> definition;
 
     private Map<Integer, AlarmLevels> alarmLevels = new HashMap<>();
 
@@ -116,11 +115,11 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     @JsonProperty
     private boolean publishAttributeChanges;
 
-    public final PublisherDefinition getDefinition() {
+    public final PublisherDefinition<T> getDefinition() {
         return definition;
     }
 
-    public void setDefinition(PublisherDefinition definition) {
+    public void setDefinition(PublisherDefinition<T> definition) {
         this.definition = definition;
     }
 

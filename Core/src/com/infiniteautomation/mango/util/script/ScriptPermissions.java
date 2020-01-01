@@ -27,6 +27,7 @@ import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -38,14 +39,14 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
 
     public static final String JSON_KEY = "scriptRoles";
     
-    private final Set<RoleVO> roles;
+    private final Set<Role> roles;
     private final String permissionHolderName; //Name for exception messages
 
     public ScriptPermissions() {
         this(Collections.emptySet());
     }
 
-    public ScriptPermissions(Set<RoleVO> permissionsSet) {
+    public ScriptPermissions(Set<Role> permissionsSet) {
         this(permissionsSet, "script");
     }
 
@@ -53,7 +54,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
         this(user.getRoles(), user.getPermissionHolderName());
     }
 
-    public ScriptPermissions(Set<RoleVO> roles, String permissionHolderName) {
+    public ScriptPermissions(Set<Role> roles, String permissionHolderName) {
         if (roles != null) {
             this.roles = roles;
         } else {
@@ -76,7 +77,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     }
     
     @Override
-    public Set<RoleVO> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 
@@ -96,7 +97,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             for(String permission : permissionsSet) {
                 RoleVO role = RoleDao.getInstance().getByXid(permission, false);
                 if(role != null) {
-                    roles.add(role);
+                    roles.add(role.getRole());
                 }
             }
         }else if(ver == 2) {
@@ -125,7 +126,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             try{
                 PermissionService service = Common.getBean(PermissionService.class);
                 JsonObject o = jsonObject.getJsonObject("scriptPermissions");
-                Set<RoleVO> roles = new HashSet<>();
+                Set<Role> roles = new HashSet<>();
                 Set<String> permissions = new HashSet<>();
                 permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("dataSourcePermissions")));
                 permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("dataPointSetPermissions")));
@@ -135,7 +136,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                 for(String permission : permissions) {
                     RoleVO role = RoleDao.getInstance().getByXid(permission, false);
                     if(role != null) {
-                        roles.add(role);
+                        roles.add(role.getRole());
                     } else {
                         throw new TranslatableJsonException("emport.error.missingRole", permission, "scriptPermissions");
                     }
@@ -146,19 +147,19 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                 //Munchy munch, not a legacy script permissions object
             }
 
-            Set<RoleVO> roles = new HashSet<>();
+            Set<Role> roles = new HashSet<>();
             JsonArray permissions = jsonObject.getJsonArray("scriptPermissions");
             for(JsonValue jv : permissions) {
                 RoleVO role = RoleDao.getInstance().getByXid(jv.toString(), false);
                 if(role != null) {
-                    roles.add(role);
+                    roles.add(role.getRole());
                 } else {
                     throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), "scriptPermissions");
                 }
             }
             return new ScriptPermissions(roles);
         }else if(jsonObject.containsKey(JSON_KEY)){
-            Set<RoleVO> roles = new HashSet<>();
+            Set<Role> roles = new HashSet<>();
             JsonArray jsonRoles = jsonObject.getJsonArray(JSON_KEY);
             try {
                 reader.readInto(roles, jsonRoles);

@@ -30,14 +30,13 @@ import com.infiniteautomation.mango.util.script.MangoJavaScriptResult;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.rt.dataImage.IDataPointValueSource;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.util.log.LogLevel;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -409,8 +408,8 @@ public class ScriptingTest extends MangoTestBase {
         }
 
         @Override
-        public Set<RoleVO> getRoles() {
-            return Collections.singleton(RoleDao.getInstance().getSuperadminRole());
+        public Set<Role> getRoles() {
+            return Collections.singleton(PermissionHolder.SUPERADMIN_ROLE.get());
         }
     };
 

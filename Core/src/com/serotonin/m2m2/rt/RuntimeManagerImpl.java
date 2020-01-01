@@ -293,6 +293,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
+    public List<? extends DataSourceRT<?>> getRunningDataSources() {
+        return new ArrayList<>(runningDataSources.values());
+    }
+    
+    @Override
     public boolean isDataSourceRunning(int dataSourceId) {
         return getRunningDataSource(dataSourceId) != null;
     }
@@ -746,6 +751,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public DataPointRT getDataPoint(int dataPointId) {
         return dataPoints.get(dataPointId);
+    }
+    
+    @Override
+    public List<DataPointRT> getRunningDataPoints() {
+        return new ArrayList<>(dataPoints.values());
     }
 
     @Override

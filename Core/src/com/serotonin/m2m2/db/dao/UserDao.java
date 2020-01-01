@@ -49,7 +49,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
@@ -154,8 +154,8 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      * @param vo
      * @return
      */
-    public Set<RoleVO> getUserRoles(User vo) {
-        return query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRoleVoSetResultSetExtractor());
+    public Set<Role> getUserRoles(User vo) {
+        return query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRoleSetResultSetExtractor());
     }
     
     @Override
@@ -170,7 +170,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             ejt.update(USER_ROLES_DELETE, new Object[] {vo.getId()});
         }
         //insert role mappings
-        List<RoleVO> entries = new ArrayList<>(vo.getRoles());
+        List<Role> entries = new ArrayList<>(vo.getRoles());
         ejt.batchUpdate(USER_ROLE_INSERT, new BatchPreparedStatementSetter() {
             @Override
             public int getBatchSize() {
@@ -179,7 +179,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                RoleVO role = entries.get(i);
+                Role role = entries.get(i);
                 ps.setInt(1, role.getId());
                 ps.setInt(2, vo.getId());
             }

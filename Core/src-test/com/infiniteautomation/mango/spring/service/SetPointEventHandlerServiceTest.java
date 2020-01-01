@@ -31,7 +31,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -54,21 +54,21 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         inactiveDataPoint = createDataPoint(dsVo, Collections.singleton(readRole), Collections.singleton(readRole));
     }
     
-    MockDataSourceVO createDataSource(Set<RoleVO> editRoles) {
+    MockDataSourceVO createDataSource(Set<Role> editRoles) {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditRoles(editRoles);
         return dataSourceService.insert(dsVo, true, systemSuperadmin);
     }
     
-    DataPointVO createDataPoint(DataSourceVO<?> dsVo, Set<RoleVO> readRoles, Set<RoleVO> setRoles) {
+    DataPointVO createDataPoint(DataSourceVO<?> dsVo, Set<Role> readRoles, Set<Role> setRoles) {
         DataPointVO point = new DataPointVO();
         point.setDataSourceId(dsVo.getId());
         point.setName("permissions_test_datasource");
         point.setReadRoles(readRoles);
         point.setSetRoles(setRoles);
         point.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
-        dataPointService.insert(point, true, systemSuperadmin);
+        point = dataPointService.insert(point, true, systemSuperadmin);
         return point;
     }
     
@@ -92,6 +92,8 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
             SetPointEventHandlerVO vo = newVO();
+            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+            vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
             service.insert(vo, true, editUser);
         });
@@ -107,8 +109,8 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             service.insert(vo, true, systemSuperadmin);
             SetPointEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
-            roleService.delete(editRole, systemSuperadmin);
-            roleService.delete(readRole, systemSuperadmin);
+            roleService.delete(editRole.getId(), systemSuperadmin);
+            roleService.delete(readRole.getId(), systemSuperadmin);
             SetPointEventHandlerVO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
             fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
             assertVoEqual(fromDb, updated);
@@ -166,6 +168,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         vo.setActiveScript("return true;");
         vo.setInactiveScript("return true;");
         vo.setTargetPointId(activeDataPoint.getId());
+        vo.setActivePointId(activeDataPoint.getId());
         vo.setActiveAction(SetPointEventHandlerVO.SET_ACTION_POINT_VALUE);
         vo.setInactivePointId(inactiveDataPoint.getId());
         vo.setInactiveAction(SetPointEventHandlerVO.SET_ACTION_POINT_VALUE);
@@ -177,7 +180,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         return existing;
     }
     
-    void addRoleToCreatePermission(RoleVO vo) {
+    void addRoleToCreatePermission(Role vo) {
         roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION, systemSuperadmin);
     }
 

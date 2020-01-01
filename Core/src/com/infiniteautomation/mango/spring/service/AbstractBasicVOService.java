@@ -3,6 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -14,10 +18,10 @@ import com.serotonin.m2m2.db.dao.AbstractBasicVOAccess;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -30,30 +34,18 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
 
     protected final DAO dao;
     protected final PermissionService permissionService;
-    protected final PermissionDefinition createPermissionDefinition;
-    
-    /**
-     * Service without a create permission
-     * @param dao
-     * @param permissionService
-     */
-    public AbstractBasicVOService(DAO dao, PermissionService permissionService) {
-        this(dao, permissionService, null);
-    }
 
     /**
-     * Service with a create permission
+     * Service
      * @param dao
      * @param permissionService
      * @param createPermissionDefinition
      */
-    public AbstractBasicVOService(DAO dao, PermissionService permissionService, PermissionDefinition createPermissionDefinition) {
+    public AbstractBasicVOService(DAO dao, PermissionService permissionService) {
         this.dao = dao;
         this.permissionService = permissionService;
-        this.createPermissionDefinition = createPermissionDefinition;
     }
 
-    
     /**
      * Validate a new VO
      * @param vo
@@ -80,6 +72,16 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      */
     abstract public boolean hasReadPermission(PermissionHolder user, T vo);
 
+
+    /**
+     * Get any create permission roles
+     *  override as necessary
+     * @return
+     */
+    public Set<Role> getCreatePermissionRoles() {
+        return Collections.emptySet();
+    }
+    
     /**
      * Handle when a role was deleted with the existing mappings at the time of deletion
      * You must annotate the overridden method with @EventListener in order for this to work.
@@ -339,11 +341,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @return
      */
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
-        if(this.createPermissionDefinition != null) {
-            return permissionService.hasPermission(user, createPermissionDefinition);
-        }else {
-            return permissionService.hasAdminRole(user);
-        }
+        return permissionService.hasAnyRole(user, getCreatePermissionRoles());
     }
 
     /**
@@ -399,6 +397,15 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     public void ensureDeletePermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasDeletePermission(user, vo))
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+    }
+    
+    /**
+     * Convert Set<RoleVO> to Set<Role>
+     * @param roles
+     * @return
+     */
+    protected Set<Role> convertToRoles(Set<RoleVO> roles){
+        return roles.stream().map(RoleVO::getRole).collect(Collectors.toSet());
     }
     
     /**

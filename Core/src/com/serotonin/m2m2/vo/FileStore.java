@@ -9,7 +9,7 @@ import java.util.Set;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  *
@@ -17,8 +17,8 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 public class FileStore extends AbstractBasicVO {
     private String storeName;
-    private Set<RoleVO> readRoles = Collections.emptySet();
-    private Set<RoleVO> writeRoles = Collections.emptySet();
+    private Set<Role> readRoles = Collections.emptySet();
+    private Set<Role> writeRoles = Collections.emptySet();
 
     public String getStoreName() {
         return storeName;
@@ -27,16 +27,16 @@ public class FileStore extends AbstractBasicVO {
         this.storeName = storeName;
     }
     
-    public Set<RoleVO> getReadRoles() {
+    public Set<Role> getReadRoles() {
         return readRoles;
     }
-    public void setReadRoles(Set<RoleVO> readRoles) {
+    public void setReadRoles(Set<Role> readRoles) {
         this.readRoles = readRoles;
     }
-    public Set<RoleVO> getWriteRoles() {
+    public Set<Role> getWriteRoles() {
         return writeRoles;
     }
-    public void setWriteRoles(Set<RoleVO> writeRoles) {
+    public void setWriteRoles(Set<Role> writeRoles) {
         this.writeRoles = writeRoles;
     }
     public FileStoreDefinition toDefinition() {
@@ -61,7 +61,7 @@ public class FileStore extends AbstractBasicVO {
             return null;
         }
         @Override
-        protected Set<RoleVO> getReadRoles() {
+        protected Set<Role> getReadRoles() {
             return fs.getReadRoles();
         }
         @Override
@@ -69,7 +69,7 @@ public class FileStore extends AbstractBasicVO {
             return null;
         }
         @Override
-        protected Set<RoleVO> getWriteRoles() {
+        protected Set<Role> getWriteRoles() {
             return fs.getWriteRoles();
         }
     }

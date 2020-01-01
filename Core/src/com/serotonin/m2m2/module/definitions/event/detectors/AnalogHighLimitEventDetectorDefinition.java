@@ -5,14 +5,16 @@
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogHighLimitDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
  *
  */
-public class AnalogHighLimitEventDetectorDefinition extends PointEventDetectorDefinition<AnalogHighLimitDetectorVO>{
+public class AnalogHighLimitEventDetectorDefinition extends TimeoutDetectorDefinition<AnalogHighLimitDetectorVO> {
 
 	public static final String TYPE_NAME = "HIGH_LIMIT";
 		
@@ -35,5 +37,18 @@ public class AnalogHighLimitEventDetectorDefinition extends PointEventDetectorDe
 	protected AnalogHighLimitDetectorVO createEventDetectorVO(int sourceId) {
         return new AnalogHighLimitDetectorVO(DataPointDao.getInstance().get(sourceId, true));
 	}
+	
+	   @Override
+	    public void validate(ProcessResult response, AnalogHighLimitDetectorVO vo, PermissionHolder user) {
+	        super.validate(response, vo, user);
+	        
+	        if(vo.isUseResetLimit()) {
+	            if(vo.isNotHigher() && vo.getResetLimit() <= vo.getLimit()) {
+	                response.addContextualMessage("resetLimit", "validate.greaterThan", vo.getLimit());
+	            } else if(!vo.isNotHigher() && vo.getResetLimit() >= vo.getLimit()) {
+	                response.addContextualMessage("resetLimit", "validate.lessThan", vo.getLimit());
+	            }
+	        }
+	    }
 
 }

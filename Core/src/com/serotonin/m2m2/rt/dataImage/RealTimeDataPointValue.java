@@ -22,7 +22,7 @@ import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * 
@@ -130,11 +130,11 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 			return this.rt.getPointValue();
 	}
 
-	public Set<RoleVO> getReadRoles(){
+	public Set<Role> getReadRoles(){
 		return vo.getReadRoles();
 	}
 	
-	public Set<RoleVO> getSetRoles(){
+	public Set<Role> getSetRoles(){
 		return vo.getSetRoles();
 	}
 	

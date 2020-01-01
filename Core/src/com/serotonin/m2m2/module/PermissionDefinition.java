@@ -9,6 +9,8 @@ import java.util.Set;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -22,13 +24,13 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 abstract public class PermissionDefinition extends ModuleElementDefinition {
     /**
-     * A reference to a human readable and translatable brief description of the permission. Key references values in
-     * i18n.properties files. Descriptions are used in the system settings permission section and so should be as brief
-     * as possible.
+     * A  human readable and translatable brief description of the permission. 
+     *  Descriptions are used in the system settings permission section and so should be as brief
+     *  as possible.
      *
      * @return the reference key to the permission description.
      */
-    abstract public String getPermissionKey();
+    abstract public TranslatableMessage getDescription();
 
     /**
      * An internal identifier for this type of permission. Must be unique within an MA instance, and is recommended
@@ -45,8 +47,21 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * or installed.  The roles must already exist in the roles table
      * @return - Set of roles to assign to permission
      */
-    public Set<RoleVO> getDefaultRoles(){
+    protected Set<Role> getDefaultRoles(){
         return Collections.emptySet();
+    }
+    
+    /**
+     * Get the current set of Role objects for this permission
+     * @return
+     */
+    public Set<Role> getRoles() {
+        Set<Role> roles = RoleDao.getInstance().getRoles(getPermissionTypeName());
+        if(roles.isEmpty()) {
+            return getDefaultRoles();
+        }else {
+            return roles;
+        }
     }
 
     /**
@@ -54,9 +69,12 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return
      */
     public MangoPermission getPermission() {
-        Set<RoleVO> roles = RoleDao.getInstance().getRoles(getPermissionTypeName());
+        Set<RoleVO> roles = RoleDao.getInstance().getRoleVOs(getPermissionTypeName());
         if(roles.isEmpty()) {
-            return new MangoPermission(getPermissionTypeName(), getDefaultRoles());
+            for(Role role : getDefaultRoles()) {
+                roles.add(RoleDao.getInstance().getByXid(role.getXid(), true));
+            }
+            return new MangoPermission(getPermissionTypeName(), roles);
         }else {
             return new MangoPermission(getPermissionTypeName(), roles);
         }

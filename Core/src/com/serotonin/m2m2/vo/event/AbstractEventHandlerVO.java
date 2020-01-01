@@ -7,31 +7,23 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.ChangeValidatable;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
-import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 
-public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> implements ChangeValidatable<T> {
+public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
     public static final String XID_PREFIX = "EH_";
     
     @JsonProperty
@@ -149,50 +141,5 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
         }else {
             super.jsonRead(reader, jsonObject);
         }
-    }
-    
-    public static void validateScriptContext(List<IntStringPair> additionalContext, ProcessResult response) {
-        List<String> varNameSpace = new ArrayList<String>();
-        
-        int pos = 0;
-        for(IntStringPair cxt : additionalContext) {
-            if(DataPointDao.getInstance().getXidById(cxt.getKey()) == null)
-                response.addContextualMessage("scriptContext[" + pos + "].id", "event.script.contextPointMissing", cxt.getValue(), cxt.getKey());
-            
-            String varName = cxt.getValue();
-            if (StringUtils.isBlank(varName)) {
-                response.addContextualMessage("scriptContext[" + pos + "].varaibleName", "validate.allVarNames");
-                break;
-            }
-
-            if (!VarNames.validateVarName(varName)) {
-                response.addContextualMessage("scriptContext[" + pos + "].varaibleName","validate.invalidVarName", varName);
-                break;
-            }
-
-            if (varNameSpace.contains(varName)) {
-                response.addContextualMessage("scriptContext[" + pos + "].variableName", "validate.duplicateVarName", varName);
-                break;
-            }
-
-            varNameSpace.add(varName);
-            pos++;
-        }
-    }
-    
-    public static void validateRecipient(String prefix, RecipientListEntryBean b, ProcessResult response) {
-        switch(b.getRecipientType()) {
-            case EmailRecipient.TYPE_MAILING_LIST:
-                if(b.getReferenceId() < 1)
-                    response.addContextualMessage(prefix, "validate.invalidValue");
-                break;
-            case EmailRecipient.TYPE_USER:
-                if(b.getReferenceId() < 1)
-                    response.addContextualMessage(prefix, "validate.invalidValue");
-                break;
-            case EmailRecipient.TYPE_ADDRESS:
-                //TODO Validate email format?
-                break;
-        }        
     }
 }

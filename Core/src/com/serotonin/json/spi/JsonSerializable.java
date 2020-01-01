@@ -13,6 +13,7 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -51,10 +52,10 @@ public interface JsonSerializable {
      * @return
      * @throws TranslatableJsonException 
      */
-    default Set<RoleVO> readLegacyPermissions(String permissionName, Set<RoleVO> existing, JsonObject jsonObject) throws TranslatableJsonException {
+    default Set<Role> readLegacyPermissions(String permissionName, Set<Role> existing, JsonObject jsonObject) throws TranslatableJsonException {
         //Legacy permissions support
         if(jsonObject.containsKey(permissionName)) {
-            Set<RoleVO> roles;
+            Set<Role> roles;
             if(existing != null) {
                 roles = new HashSet<>(existing);
             }else {
@@ -64,7 +65,7 @@ public interface JsonSerializable {
             for(JsonValue jv : permissions) {
                 RoleVO role = RoleDao.getInstance().getByXid(jv.toString(), false);
                 if(role != null) {
-                    roles.add(role);
+                    roles.add(role.getRole());
                 } else {
                     throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), permissionName);
                 }

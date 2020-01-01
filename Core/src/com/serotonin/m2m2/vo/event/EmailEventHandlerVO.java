@@ -7,15 +7,11 @@ package com.serotonin.m2m2.vo.event;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -29,19 +25,13 @@ import com.serotonin.json.util.TypeDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
-import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.SerializationHelper;
-
-import freemarker.template.Template;
 
 /**
  * @author Terry Packer
@@ -220,75 +210,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     
     public int getSubject() {
         return subject;
-    }
-
-	@Override
-	public void validate(ProcessResult result, PermissionService service, PermissionHolder savingUser) {
-	    commonValidation(result, service, savingUser);
-        if(scriptRoles != null) {
-            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, scriptRoles.getRoles());
-        }
-        
-	}
-    
-    @Override
-    public void validate(ProcessResult result, EmailEventHandlerVO existing,
-            PermissionService service, PermissionHolder savingUser) {
-        commonValidation(result, service, savingUser);
-        if (scriptRoles != null) {
-            result.addContextualMessage("scriptRoles", "validate.permission.null");
-        }else {
-            Set<RoleVO> existingRoles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
-            service.validateVoRoles(result, "scriptRoles", savingUser, false,
-                    existingRoles, scriptRoles.getRoles());
-        }
-    }
-	
-    private void commonValidation(ProcessResult result, PermissionService service, PermissionHolder savingUser) {
-        if(activeRecipients != null) {
-            int pos = 0;
-            for(RecipientListEntryBean b : activeRecipients) {
-                validateRecipient("activeRecipients[" + pos + "]", b, result);
-                pos++;
-            }
-        }
-        
-        if (sendEscalation) {
-            if (escalationDelay <= 0)
-                result.addContextualMessage("escalationDelay", "eventHandlers.escalDelayError");
-            if(!Common.TIME_PERIOD_CODES.isValidId(escalationDelayType))
-                result.addContextualMessage("escalationDelayType", "validate.invalidValue");
-            if(escalationRecipients != null) {
-                int pos = 0;
-                for(RecipientListEntryBean b : escalationRecipients) {
-                    validateRecipient("escalationRecipients[" + pos + "]", b, result);
-                    pos++;
-                }
-            }
-        } else if(repeatEscalations)
-            setRepeatEscalations(false);
-        
-        try {
-            new Template("customTemplate", new StringReader(customTemplate), Common.freemarkerConfiguration);
-        }catch(Exception e) {
-            result.addContextualMessage("customTemplate", "common.default", e.getMessage());
-        }
-        
-        if(additionalContext != null)
-            validateScriptContext(additionalContext, result);
-        else
-            setAdditionalContext(new ArrayList<>());
-
-        if(!StringUtils.isEmpty(script)) {
-            try {
-                Common.getBean(MangoJavaScriptService.class).compile(script, true, scriptRoles);
-            } catch(ScriptError e) {
-                result.addContextualMessage("script", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
-            }
-        }
-        if(!SUBJECT_INCLUDE_CODES.isValidId(subject))
-            result.addContextualMessage("subject", "validate.invalidValue");
-
     }
     
 	//

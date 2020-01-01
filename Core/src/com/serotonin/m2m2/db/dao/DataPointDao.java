@@ -757,8 +757,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      */
     public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
         Condition condition = null;
+        //TODO Mango 4.0 fix this
         if (!user.hasAdminRole()) {
-            condition = this.userHasPermission(user);
+            //condition = this.userHasPermission(user);
         }
         SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
         this.customizedQuery(select, condition, sort, limit, offset, callback);
@@ -809,8 +810,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
         }).collect(Collectors.toCollection(ArrayList::new));
 
+        //TODO Mango 4.0 fix this
         if (!user.hasAdminRole()) {
-            conditions.add(this.userHasPermission(user));
+            //conditions.add(this.userHasPermission(user));
         }
 
         Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
@@ -819,6 +821,45 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                 .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
 
         this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
+    }
+    
+    //TODO  Mango 4.0 fix this
+    public Condition userHasPermission(User user) {
+        Set<String> userPermissions = new HashSet<>();
+        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
+
+        for (String userPermission : userPermissions) {
+            conditions.add(fieldMatchesUserPermission(READ_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
+        }
+
+        return DSL.or(conditions);
+    }
+    
+    //TODO Mango 4.0 fix this
+    public Condition userHasSetPermission(User user) {
+        Set<String> userPermissions = new HashSet<>();
+        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 2);
+
+        for (String userPermission : userPermissions) {
+            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
+            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
+        }
+
+        return DSL.or(conditions);
+    }
+
+    //TODO Mango 4.0 fix this
+    public Condition userHasEditPermission(User user) {
+        Set<String> userPermissions = new HashSet<>();
+        List<Condition> conditions = new ArrayList<>(userPermissions.size());
+
+        for (String userPermission : userPermissions) {
+            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
+        }
+
+        return DSL.or(conditions);
     }
 
     @Override
@@ -850,42 +891,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
     public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
-
-    public Condition userHasPermission(User user) {
-        Set<String> userPermissions = user.getPermissionsSet();
-        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
-
-        for (String userPermission : userPermissions) {
-            conditions.add(fieldMatchesUserPermission(READ_PERMISSION, userPermission));
-            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
-            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
-        }
-
-        return DSL.or(conditions);
-    }
-
-    public Condition userHasSetPermission(User user) {
-        Set<String> userPermissions = user.getPermissionsSet();
-        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 2);
-
-        for (String userPermission : userPermissions) {
-            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
-            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
-        }
-
-        return DSL.or(conditions);
-    }
-
-    public Condition userHasEditPermission(User user) {
-        Set<String> userPermissions = user.getPermissionsSet();
-        List<Condition> conditions = new ArrayList<>(userPermissions.size());
-
-        for (String userPermission : userPermissions) {
-            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
-        }
-
-        return DSL.or(conditions);
-    }
 
     Condition fieldMatchesUserPermission(Field<String> field, String userPermission) {
         return DSL.or(

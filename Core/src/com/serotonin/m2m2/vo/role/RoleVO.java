@@ -16,16 +16,13 @@ public class RoleVO extends AbstractVO<RoleVO> {
 
     private static final long serialVersionUID = 1L;
     public static final String XID_PREFIX = "ROLE_";
+    private final Role role;
     
     public RoleVO(int id, String xid, String name) {
         this.id = id;
         this.xid = xid;
         this.name = name;
-    }
-    
-    public RoleVO(String xid, String name) {
-        this.xid = xid;
-        this.name = name;
+        this.role = new Role(id, xid);
     }
     
     @Override
@@ -43,5 +40,9 @@ public class RoleVO extends AbstractVO<RoleVO> {
     @Override
     public String getTypeKey() {
         return "event.audit.role";
+    }
+    
+    public Role getRole() {
+        return role;
     }
 }

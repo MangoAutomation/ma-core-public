@@ -5,7 +5,9 @@
 package com.serotonin.m2m2.module;
 
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -36,12 +38,12 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  *
  * @author Matthew Lohbihler
  */
-abstract public class PublisherDefinition extends ModuleElementDefinition {
+abstract public class PublisherDefinition<T extends PublishedPointVO> extends ModuleElementDefinition {
     /**
      * Used by MA core code to create a new publisher instance as required. Should not be used by client code.
      */
-    public PublisherVO<?> baseCreatePublisherVO() {
-        PublisherVO<? extends PublishedPointVO> pub = createPublisherVO();
+    public PublisherVO<T> baseCreatePublisherVO() {
+        PublisherVO<T> pub = createPublisherVO();
         pub.setDefinition(this);
         return pub;
     }
@@ -67,8 +69,27 @@ abstract public class PublisherDefinition extends ModuleElementDefinition {
      *
      * @return a new instance of the publisher.
      */
-    abstract protected PublisherVO<? extends PublishedPointVO> createPublisherVO();
+    abstract protected PublisherVO<T> createPublisherVO();
 
+    /**
+     * Validate a new publisher
+     * @param response
+     * @param pub
+     * @param user
+     */
+    abstract public void validate(ProcessResult response, PublisherVO<T> pub, PermissionHolder user);
+    
+    /**
+     * Validate a data source about to be updated
+     *  override as necessary
+     * @param response
+     * @param existing
+     * @param ds
+     * @param user
+     */
+    public void validate(ProcessResult response, PublisherVO<T> existing, PublisherVO<T> vo, PermissionHolder user) {
+        validate(response, vo, user);
+    }
 
     /**
      * If the module is uninstalled, delete any publishers of this type. If this method is overridden, be sure to call

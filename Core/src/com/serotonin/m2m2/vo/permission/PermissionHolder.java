@@ -11,7 +11,7 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Something that holds permissions, typically a user. Could however in the future be groups, data source scripts etc.
@@ -20,6 +20,23 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 public interface PermissionHolder {
 
+    public static final String SUPERADMIN_ROLE_XID = "superadmin";
+    public static final String USER_ROLE_XID = "user";
+    
+    /**
+     * The superadmin role from the database upon initialization
+     */
+    public static final LazyInitSupplier<Role> SUPERADMIN_ROLE = new LazyInitSupplier<>(()-> {
+        return RoleDao.getInstance().getByXid(SUPERADMIN_ROLE_XID, false).getRole();
+    });
+
+    /**
+     * The user role from the database upon initialization
+     */
+    public static final LazyInitSupplier<Role> USER_ROLE = new LazyInitSupplier<>(()-> {
+        return RoleDao.getInstance().getByXid(USER_ROLE_XID, false).getRole();
+    });
+    
     /**
      * Represents the Mango system and is a member of the superadmin role. This PermissionHolder should only be used in scenarios
      * where the code needs to use a service that requires a PermissionHolder but there is no user currently logged in. i.e. for
@@ -29,7 +46,7 @@ public interface PermissionHolder {
      * @Qualifier(SYSTEM_SUPERADMIN_PERMISSION_HOLDER) PermissionHolder
      */
     public static final PermissionHolder SYSTEM_SUPERADMIN = new PermissionHolder() {
-        private final LazyInitializer<Set<RoleVO>> roles = new LazyInitializer<>();
+        private final LazyInitializer<Set<Role>> roles = new LazyInitializer<>();
         
         @Override
         public String getPermissionHolderName() {
@@ -42,9 +59,9 @@ public interface PermissionHolder {
         }
         
         @Override
-        public Set<RoleVO> getRoles() {
+        public Set<Role> getRoles() {
             return roles.get(() -> {
-                return Collections.singleton(RoleDao.getInstance().getSuperadminRole());
+                return Collections.singleton(SUPERADMIN_ROLE.get());
             });
         }
     };
@@ -67,7 +84,7 @@ public interface PermissionHolder {
      * The roles for this permission holder 
      * @return
      */
-    Set<RoleVO> getRoles();
+    Set<Role> getRoles();
 
     default boolean hasAdminRole() {
         return permissionService.get().hasAdminRole(this);
@@ -81,15 +98,15 @@ public interface PermissionHolder {
      * @param requiredRole
      * @return
      */
-    default boolean hasSingleRole(RoleVO requiredRole) {
+    default boolean hasSingleRole(Role requiredRole) {
         return permissionService.get().hasSingleRole(this, requiredRole);
     }
 
-    default boolean hasAnyRole(Set<RoleVO> requiredRoles) {
+    default boolean hasAnyRole(Set<Role> requiredRoles) {
         return permissionService.get().hasAnyRole(this, requiredRoles);
     }
 
-    default boolean hasAllRoles(Set<RoleVO> requiredRoles) {
+    default boolean hasAllRoles(Set<Role> requiredRoles) {
         return permissionService.get().hasAllRoles(this, requiredRoles);
     }
 
@@ -104,15 +121,15 @@ public interface PermissionHolder {
      *  
      * @param requiredRole
      */
-    default void ensureHasSingleRole(RoleVO requiredRole) {
+    default void ensureHasSingleRole(Role requiredRole) {
         permissionService.get().ensureSingleRole(this, requiredRole);
     }
     
-    default void ensureHasAnyRole(Set<RoleVO> requiredRoles) {
+    default void ensureHasAnyRole(Set<Role> requiredRoles) {
         permissionService.get().ensureHasAnyRole(this, requiredRoles);
     }
 
-    default void ensureHasAllRoles(Set<RoleVO> requiredRoles) {
+    default void ensureHasAllRoles(Set<Role> requiredRoles) {
         permissionService.get().ensureHasAllRoles(this, requiredRoles);
     }
 }

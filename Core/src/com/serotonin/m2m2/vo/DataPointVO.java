@@ -52,6 +52,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.SerializationHelper;
 
@@ -218,9 +219,9 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     @JsonProperty
     private int intervalLoggingSampleWindowSize;
     @JsonProperty
-    private Set<RoleVO> readRoles = Collections.emptySet();
+    private Set<Role> readRoles = Collections.emptySet();
     @JsonProperty
-    private Set<RoleVO> setRoles = Collections.emptySet();
+    private Set<Role> setRoles = Collections.emptySet();
 
     //
     //
@@ -714,20 +715,20 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     }
 
     @Override
-    public Set<RoleVO> getReadRoles() {
+    public Set<Role> getReadRoles() {
         return readRoles;
     }
 
-    public void setReadRoles(Set<RoleVO> readRoles) {
+    public void setReadRoles(Set<Role> readRoles) {
         this.readRoles = readRoles;
     }
 
     @Override
-    public Set<RoleVO> getSetRoles() {
+    public Set<Role> getSetRoles() {
         return setRoles;
     }
 
-    public void setSetRoles(Set<RoleVO> setRoles) {
+    public void setSetRoles(Set<Role> setRoles) {
         this.setRoles = setRoles;
     }
 

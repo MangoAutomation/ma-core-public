@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -14,8 +15,8 @@ public class UserCreatePermission extends PermissionDefinition {
     public static final String PERMISSION = "users.create";
 
     @Override
-    public String getPermissionKey() {
-        return "users.permissions.create";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("users.permissions.create");
     }
 
     @Override

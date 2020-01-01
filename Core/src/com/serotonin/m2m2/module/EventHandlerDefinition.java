@@ -4,8 +4,20 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+
+import com.serotonin.db.pair.IntStringPair;
+import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
+import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
+import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Provides modules with the ability to register additional event handlers
@@ -73,6 +85,26 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
     }
     
     /**
+     * Validate a new event handler
+     * @param response
+     * @param ds
+     * @param user
+     */
+    abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
+    
+    /**
+     * Validate an event handler that is about to be updated
+     *  override as necessary
+     * @param response
+     * @param existing
+     * @param ds
+     * @param user
+     */
+    public void validate(ProcessResult response, T existing, T ds, PermissionHolder user) {
+        validate(response, ds, user);
+    }
+    
+    /**
      * Used by MA core code to create a new event handler instances as required. Should not be used by client code.
      */
     public final T baseCreateEventHandlerVO() {
@@ -82,5 +114,49 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
     }
 
 
+    protected void validateScriptContext(List<IntStringPair> additionalContext, ProcessResult response) {
+        List<String> varNameSpace = new ArrayList<String>();
+        
+        int pos = 0;
+        for(IntStringPair cxt : additionalContext) {
+            if(DataPointDao.getInstance().getXidById(cxt.getKey()) == null)
+                response.addContextualMessage("scriptContext[" + pos + "].id", "event.script.contextPointMissing", cxt.getValue(), cxt.getKey());
+            
+            String varName = cxt.getValue();
+            if (StringUtils.isBlank(varName)) {
+                response.addContextualMessage("scriptContext[" + pos + "].varaibleName", "validate.allVarNames");
+                break;
+            }
+
+            if (!VarNames.validateVarName(varName)) {
+                response.addContextualMessage("scriptContext[" + pos + "].varaibleName","validate.invalidVarName", varName);
+                break;
+            }
+
+            if (varNameSpace.contains(varName)) {
+                response.addContextualMessage("scriptContext[" + pos + "].variableName", "validate.duplicateVarName", varName);
+                break;
+            }
+
+            varNameSpace.add(varName);
+            pos++;
+        }
+    }
+    
+    protected void validateRecipient(String prefix, RecipientListEntryBean b, ProcessResult response) {
+        switch(b.getRecipientType()) {
+            case EmailRecipient.TYPE_MAILING_LIST:
+                if(b.getReferenceId() < 1)
+                    response.addContextualMessage(prefix, "validate.invalidValue");
+                break;
+            case EmailRecipient.TYPE_USER:
+                if(b.getReferenceId() < 1)
+                    response.addContextualMessage(prefix, "validate.invalidValue");
+                break;
+            case EmailRecipient.TYPE_ADDRESS:
+                //TODO Validate email format?
+                break;
+        }        
+    }
     
 }

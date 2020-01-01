@@ -14,7 +14,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -28,12 +28,12 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     }
 
     @Override
-    void setReadRoles(Set<RoleVO> roles, JsonDataVO vo) {
+    void setReadRoles(Set<Role> roles, JsonDataVO vo) {
         vo.setReadRoles(roles);
     }
 
     @Override
-    void setEditRoles(Set<RoleVO> roles, JsonDataVO vo) {
+    void setEditRoles(Set<Role> roles, JsonDataVO vo) {
         vo.setEditRoles(roles);        
     }
 

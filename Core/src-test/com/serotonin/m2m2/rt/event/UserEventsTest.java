@@ -21,7 +21,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.rt.EventManager;
@@ -29,6 +28,7 @@ import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  *
@@ -42,7 +42,7 @@ public class UserEventsTest extends MangoTestBase {
 
     @Test
     public void testListenerAddRemoveSyncrhonization() throws InterruptedException {
-        List<User> users = createUsers(1, RoleDao.getInstance().getSuperadminRole());
+        List<User> users = createUsers(1, PermissionHolder.SUPERADMIN_ROLE.get());
         
         ExecutorService executor = Executors.newFixedThreadPool(3);
         SynchronousQueue<MockUserEventListener> queue = new SynchronousQueue<>();
@@ -98,7 +98,7 @@ public class UserEventsTest extends MangoTestBase {
     public void testRaiseEvents() throws InterruptedException {
         
         //Create some users
-        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {
@@ -146,7 +146,7 @@ public class UserEventsTest extends MangoTestBase {
     public void testDeactivateEvents() throws InterruptedException {
         
         //Create some users
-        List<User> users = createUsers(userCount, RoleDao.getInstance().getSuperadminRole());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {

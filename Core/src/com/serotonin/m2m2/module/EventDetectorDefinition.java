@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -13,7 +14,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  *
  */
-public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<T>> extends ModuleElementDefinition{
+public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<T>> extends ModuleElementDefinition {
 
 	/**
 	 * Name of the column in the event detectors into which to store the source id
@@ -86,6 +87,26 @@ public abstract class EventDetectorDefinition<T extends AbstractEventDetectorVO<
      * @return
      */
     abstract public boolean hasReadPermission(PermissionHolder user, T vo);
+    
+    /**
+     * Validate a new event detector
+     * @param response
+     * @param ds
+     * @param user
+     */
+    abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
+    
+    /**
+     * Validate an event detector that is about to be updated
+     *  override as necessary
+     * @param response
+     * @param existing
+     * @param ds
+     * @param user
+     */
+    public void validate(ProcessResult response, T existing, T ds, PermissionHolder user) {
+        validate(response, ds, user);
+    }
     
     /**
      * Used by MA core code to create a new event detector instances as required. Should not be used by client code.

@@ -38,7 +38,7 @@ import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 import freemarker.template.TemplateException;
@@ -65,26 +65,28 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     
     @Autowired
     public UsersService(UserDao dao, PermissionService permissionService, SystemSettingsDao systemSettings, PasswordService passwordService) {
-        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(UserCreatePermission.PERMISSION));
+        super(dao, permissionService);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
         this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
     }
     
     @Override
+    public Set<Role> getCreatePermissionRoles() {
+        return ModuleRegistry.getPermissionDefinition(UserCreatePermission.PERMISSION).getRoles();
+    }
+    
+    @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        event.getMappings().stream().forEach((mapping) -> {
-            if(mapping.isForVoType(User.class)) {
-                User user = dao.getUser(mapping.getVoId());
-                if(user != null) {
-                    Set<RoleVO> updated = new HashSet<>(user.getRoles());
-                    updated.remove(event.getRole());
-                    user.setRoles(updated);
-                    dao.saveUser(user);    
-                }
+        for(User user : dao.getAll(true)) {
+            if(user.getRoles().contains(event.getRole().getRole())) {
+                Set<Role> updated = new HashSet<>(user.getRoles());
+                updated.remove(event.getRole().getRole());
+                user.setRoles(updated);
+                dao.saveUser(user);  
             }
-        });
+        }
     }
     
     /*
@@ -423,7 +425,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     public boolean hasEditPermission(PermissionHolder holder, User vo) {
         if(holder.hasAdminRole()) {
             return true;
-        }else if (holder instanceof User && ((User) holder).getId()  == vo.getId() && permissionService.hasPermission(holder, editSelfPermission))
+        }else if (holder instanceof User && ((User) holder).getId()  == vo.getId() && permissionService.hasAnyRole(holder, editSelfPermission.getRoles()))
             return true;
         else
             return false;

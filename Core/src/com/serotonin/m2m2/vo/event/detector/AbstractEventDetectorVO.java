@@ -21,7 +21,6 @@ import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.ChangeValidatable;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 
@@ -29,7 +28,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
  * @author Terry Packer
  *
  */
-public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<T>> extends AbstractVO<T> implements ChangeValidatable<T> {
+public abstract class AbstractEventDetectorVO<T extends AbstractEventDetectorVO<T>> extends AbstractVO<T> {
 
 	private static final long serialVersionUID = 1L;
 

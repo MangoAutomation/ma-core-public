@@ -96,7 +96,7 @@ implements MethodSecurityExpressionOperations {
         if(def == null) {
             return false;
         }else {
-            return permissionService.hasPermission((User) this.getPrincipal(), def);
+            return permissionService.hasPermission((User) this.getPrincipal(), def.getPermission());
         }
     }
 

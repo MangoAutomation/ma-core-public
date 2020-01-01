@@ -9,12 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -23,19 +18,13 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
-import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.SetPointHandlerRT;
-import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -157,120 +146,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     
     public void setAdditionalContext(List<IntStringPair> additionalContext) {
     	this.additionalContext = additionalContext;
-    }
-    
-    @Override
-    public void validate(ProcessResult result, PermissionService service, PermissionHolder savingUser) {
-        commonValidation(result, service, savingUser);
-        if(scriptRoles != null) {
-            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, scriptRoles.getRoles());
-        }       
-    }
-    
-    @Override
-    public void validate(ProcessResult result, SetPointEventHandlerVO existing,
-            PermissionService service, PermissionHolder savingUser) {
-        commonValidation(result, service, savingUser);
-        if (scriptRoles != null) {
-            result.addContextualMessage("scriptRoles", "validate.permission.null");
-        }else {
-            Set<RoleVO> existingRoles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
-            service.validateVoRoles(result, "scriptRoles", savingUser, false,
-                    existingRoles, scriptRoles.getRoles());
-        }
-    }
-    
-    private void commonValidation(ProcessResult response, PermissionService service, PermissionHolder savingUser) {
-        DataPointVO dp = DataPointDao.getInstance().get(targetPointId, false);
-
-        int dataType = DataTypes.UNKNOWN;
-        if (dp == null)
-            response.addContextualMessage("targetPointId", "eventHandlers.noTargetPoint");
-        else {
-            dataType = dp.getPointLocator().getDataTypeId();
-            if(!dp.getPointLocator().isSettable())
-                response.addContextualMessage("targetPointId", "event.setPoint.targetNotSettable");
-        }
-
-        if (activeAction == SetPointEventHandlerVO.SET_ACTION_NONE && inactiveAction == SetPointEventHandlerVO.SET_ACTION_NONE) {
-            response.addContextualMessage("activeAction", "eventHandlers.noSetPointAction");
-            response.addContextualMessage("inactiveAction", "eventHandlers.noSetPointAction");
-        }
-        MangoJavaScriptService javaScriptService = Common.getBean(MangoJavaScriptService.class);
-        // Active
-        if (activeAction == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
-            try {
-                Integer.parseInt(activeValueToSet);
-            }
-            catch (NumberFormatException e) {
-                response.addContextualMessage("activeValueToSet", "eventHandlers.invalidActiveValue");
-            }
-        }
-        else if (activeAction == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
-            try {
-                Double.parseDouble(activeValueToSet);
-            }
-            catch (NumberFormatException e) {
-                response.addContextualMessage("activeValueToSet", "eventHandlers.invalidActiveValue");
-            }
-        }
-        else if (activeAction == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
-            DataPointVO dpActive = DataPointDao.getInstance().get(activePointId, false);
-
-            if (dpActive == null)
-                response.addContextualMessage("activePointId", "eventHandlers.invalidActiveSource");
-            else if (dataType != dpActive.getPointLocator().getDataTypeId())
-                response.addContextualMessage("activeDataPointId", "eventHandlers.invalidActiveSourceType");
-        }
-        else if (activeAction == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-            if(StringUtils.isEmpty(activeScript))
-                response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
-            try {
-                javaScriptService.compile(activeScript, true, scriptRoles);
-            } catch(ScriptError e) {
-                response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
-            }
-        }
-
-        // Inactive
-        if (inactiveAction == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.MULTISTATE) {
-            try {
-                Integer.parseInt(inactiveValueToSet);
-            }
-            catch (NumberFormatException e) {
-                response.addContextualMessage("inactiveValueToSet", "eventHandlers.invalidInactiveValue");
-            }
-        }
-        else if (inactiveAction == SetPointEventHandlerVO.SET_ACTION_STATIC_VALUE && dataType == DataTypes.NUMERIC) {
-            try {
-                Double.parseDouble(inactiveValueToSet);
-            }
-            catch (NumberFormatException e) {
-                response.addContextualMessage("inactiveValueToSet", "eventHandlers.invalidInactiveValue");
-            }
-        }
-        else if (inactiveAction == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
-            DataPointVO dpInactive = DataPointDao.getInstance().get(inactivePointId, false);
-
-            if (dpInactive == null)
-                response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSource");
-            else if (dataType != dpInactive.getPointLocator().getDataTypeId())
-                response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSourceType");
-        }
-        else if (inactiveAction == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-            if(StringUtils.isEmpty(inactiveScript))
-                response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
-            try {
-                javaScriptService.compile(inactiveScript, true, scriptRoles);
-            } catch(ScriptError e) {
-                response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScriptError", e.getTranslatableMessage());
-            }
-        }
-        
-        if(additionalContext != null)
-            validateScriptContext(additionalContext, response);
-        else
-            setAdditionalContext(new ArrayList<>());
     }
     
     //

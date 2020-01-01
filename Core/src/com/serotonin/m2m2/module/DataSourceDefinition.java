@@ -5,12 +5,14 @@
 package com.serotonin.m2m2.module;
 
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.EventDataSource;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * A data source is the means by which MA gets values into a data point, and writes set point values back to source
@@ -27,9 +29,7 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
  * the code (usually a thread or scheduled process) that does the actual work of connecting or listening or whatever is
  * appropriate for the given protocol. When you are editing a data source, you are changing the attributes of the VO.
  * When you start the data source, you are providing a VO to an RT, and then running the RT.
- *
- * DWR is how MA realizes AJAX. More information is available here: http://directwebremoting.org/dwr/index.html.
- *
+ * *
  * When creating a data source for MA, the following components are required:
  * <dl>
  * <dt>Subclass of {@link DataSourceVO}</dt>
@@ -44,25 +44,19 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
  *
  * <dt>Subclass of {@link PointLocatorRT}</dt>
  * <dd>A runtime implementation of the point locator</dd>
- *
- * <dt>Editing JSP</dt>
- * <dd>The page on which a user can edit an instance of the data source</dd>
- *
- * <dt>Subclass of {@link DataSourceEditDwr}</dt>
- * <dd>The server-side AJAX controller for the editing JSP</dd>
- *
+ * 
  * <dt>Optional</dt>
  * <dd>Online documentation files, translation files (strongly recommended), data source commissioning tools.</dd>
  * </dl>
  *
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceDefinition extends ModuleElementDefinition {
+abstract public class DataSourceDefinition<T extends DataSourceVO<T>> extends ModuleElementDefinition {
     /**
      * Used by MA core code to create a new data source instance as required. Should not be used by client code.
      */
     public final DataSourceVO<?> baseCreateDataSourceVO() {
-        DataSourceVO<?> ds = createDataSourceVO();
+        T ds = createDataSourceVO();
         ds.setDefinition(this);
         return ds;
     }
@@ -95,7 +89,27 @@ abstract public class DataSourceDefinition extends ModuleElementDefinition {
      *
      * @return a new instance of the data source.
      */
-    abstract protected DataSourceVO<?> createDataSourceVO();
+    abstract protected T createDataSourceVO();
+
+    /**
+     * Validate a new data source
+     * @param response
+     * @param ds
+     * @param user
+     */
+    abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
+    
+    /**
+     * Validate a data source about to be updated
+     *  override as necessary
+     * @param response
+     * @param existing
+     * @param ds
+     * @param user
+     */
+    public void validate(ProcessResult response, T existing, T ds, PermissionHolder user) {
+        validate(response, ds, user);
+    }
 
     /**
      * Override this method as required. The start priority determines the order in which data sources are started by

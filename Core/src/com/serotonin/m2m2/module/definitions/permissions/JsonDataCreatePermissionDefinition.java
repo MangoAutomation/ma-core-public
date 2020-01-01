@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -15,8 +16,8 @@ public class JsonDataCreatePermissionDefinition extends PermissionDefinition{
     public static final String TYPE_NAME = "jsonData.create";
 
     @Override
-    public String getPermissionKey() {
-        return "jsonData.permission.create";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("jsonData.permission.create");
     }
 
     @Override

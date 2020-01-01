@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -15,8 +16,8 @@ public class SqlRestoreActionPermissionDefinition extends PermissionDefinition{
     public static final String PERMISSION = "action.sqlRestore";
 
     @Override
-    public String getPermissionKey() {
-        return "systemSettings.restoreDatabase";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("systemSettings.restoreDatabase");
     }
 
     @Override

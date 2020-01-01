@@ -4,15 +4,16 @@
  */
 package com.serotonin.m2m2.vo.publish.mock;
 
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.PublisherDefinition;
-import com.serotonin.m2m2.vo.publish.PublishedPointVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
 /**
  *
  * @author Terry Packer
  */
-public class MockPublisherDefinition extends PublisherDefinition{
+public class MockPublisherDefinition extends PublisherDefinition<MockPublishedPointVO> {
 
     public static final String TYPE_NAME = "MOCK";
     
@@ -27,10 +28,15 @@ public class MockPublisherDefinition extends PublisherDefinition{
     }
 
     @Override
-    protected PublisherVO<? extends PublishedPointVO> createPublisherVO() {
+    protected PublisherVO<MockPublishedPointVO> createPublisherVO() {
         MockPublisherVO pub = new MockPublisherVO();
         pub.setDefinition(this);
         return pub;
+    }
+
+    @Override
+    public void validate(ProcessResult response, PublisherVO<MockPublishedPointVO> pub,
+            PermissionHolder user) {
     }
 
 }

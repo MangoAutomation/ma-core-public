@@ -9,6 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,7 @@ import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePerm
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -42,7 +44,12 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      */
     @Autowired
     public FileStoreService(FileStoreDao dao, PermissionService permissionService) {
-        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(UserFileStoreCreatePermissionDefinition.TYPE_NAME));
+        super(dao, permissionService);
+    }
+    
+    @Override
+    public Set<Role> getCreatePermissionRoles() {
+        return ModuleRegistry.getPermissionDefinition(UserFileStoreCreatePermissionDefinition.TYPE_NAME).getRoles();
     }
     
     @Override

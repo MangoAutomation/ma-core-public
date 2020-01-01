@@ -26,17 +26,11 @@ public class PointChangeDetectorVO extends AbstractPointEventDetectorVO<PointCha
                 DataTypes.ALPHANUMERIC });
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()
-	 */
 	@Override
 	public AbstractEventDetectorRT<PointChangeDetectorVO> createRuntime() {
 		return new PointChangeDetectorRT(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#getConfigurationDescription()
-	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
 		return new TranslatableMessage("event.detectorVo.change");

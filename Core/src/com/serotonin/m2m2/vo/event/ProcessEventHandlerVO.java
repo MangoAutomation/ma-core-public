@@ -8,18 +8,13 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.ProcessHandlerRT;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.SerializationHelper;
 
 /**
@@ -63,24 +58,6 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHa
 
     public void setInactiveProcessTimeout(int inactiveProcessTimeout) {
         this.inactiveProcessTimeout = inactiveProcessTimeout;
-    }
-    
-    @Override
-    public void validate(ProcessResult result, PermissionService service, PermissionHolder savingUser) {
-        if (StringUtils.isBlank(activeProcessCommand) && StringUtils.isBlank(inactiveProcessCommand))
-            result.addGenericMessage("eventHandlers.invalidCommands");
-
-        if (!StringUtils.isBlank(activeProcessCommand) && activeProcessTimeout <= 0)
-            result.addGenericMessage("validate.greaterThanZero");
-
-        if (!StringUtils.isBlank(inactiveProcessCommand) && inactiveProcessTimeout <= 0)
-            result.addGenericMessage("validate.greaterThanZero");
-    }
-    
-    @Override
-    public void validate(ProcessResult result, ProcessEventHandlerVO existing,
-            PermissionService service, PermissionHolder savingUser) {
-        validate(result, service, savingUser);
     }
     
     //

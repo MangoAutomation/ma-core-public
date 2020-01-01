@@ -4,13 +4,12 @@
  */
 package com.serotonin.m2m2.module;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.m2m2.vo.User;
 
@@ -23,9 +22,8 @@ import com.serotonin.m2m2.vo.User;
 @Deprecated 
 abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
-    private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
-        return Common.getBean(PermissionService.class);
-    });
+    @Autowired
+    private PermissionService service;
     
     /**
      * The reference key to the action. Should be unique across all Modules and Mango Core
@@ -57,7 +55,7 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
         PermissionDefinition permission = getPermissionDefinition();
         if(permission == null)
             return;
-        permissionService.get().ensurePermission(user, permission);
+        service.hasAnyRole(user, permission.getRoles());
     }
 
     /**

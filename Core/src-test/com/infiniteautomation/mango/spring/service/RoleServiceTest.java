@@ -65,27 +65,27 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
 
     @Test(expected = ValidationException.class)
     public void cannotInsertNewUserRole() {
-        RoleVO vo = new RoleVO(RoleDao.USER_ROLE_NAME, "user default");
+        RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
         service.insert(vo, true, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotInsertSuperadminRole() {
-        RoleVO vo = new RoleVO(RoleDao.SUPERADMIN_ROLE_NAME, "Superadmin default");
+        RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
         service.insert(vo, true, systemSuperadmin);
     }
     
     @Test(expected = ValidationException.class)
     public void cannotModifyUserRole() {
-        RoleVO vo = service.get(RoleDao.USER_ROLE_NAME, true, systemSuperadmin);
-        RoleVO updated = new RoleVO(vo.getXid(), vo.getName());
+        RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID, true, systemSuperadmin);
+        RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
         service.update(vo.getXid(), updated, true, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotModifySuperadminRole() {
-        RoleVO vo = service.get(RoleDao.SUPERADMIN_ROLE_NAME, true, systemSuperadmin);
-        RoleVO updated = new RoleVO(vo.getXid(), "Superadmin default changed");
+        RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID, true, systemSuperadmin);
+        RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
         service.update(vo.getXid(), updated, true, systemSuperadmin);
     }
     
@@ -108,12 +108,12 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
 
     @Override
     RoleVO newVO() {
-        RoleVO vo = new RoleVO(dao.generateUniqueXid(), "default test role");
+        RoleVO vo = new RoleVO(Common.NEW_ID, dao.generateUniqueXid(), "default test role");
         return vo;
     }
 
     @Override
     RoleVO updateVO(RoleVO existing) {
-        return new RoleVO(existing.getXid(), "updated name");
+        return new RoleVO(Common.NEW_ID, existing.getXid(), "updated name");
     }
 }

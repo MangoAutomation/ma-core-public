@@ -17,13 +17,13 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -79,7 +79,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             DataPointVO vo = newVO();
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-            vo.setSetRoles(Collections.singleton(RoleDao.getInstance().getUserRole()));
+            vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()));
             service.insert(vo, true, systemSuperadmin);
             DataPointVO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
@@ -95,9 +95,9 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     public void testUserEditRoleFails() {
         runTest(() -> {
             DataPointVO vo = newVO();
-            setReadRoles(Collections.singleton(RoleDao.getInstance().getUserRole()), vo);
+            setReadRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()), vo);
             setEditRoles(Collections.emptySet(), vo);
-            vo.setSetRoles(Collections.singleton(RoleDao.getInstance().getUserRole()));
+            vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()));
             service.insert(vo, true, systemSuperadmin);
             DataPointVO fromDb = service.get(vo.getId(), true, readUser);
             assertVoEqual(vo, fromDb);
@@ -175,12 +175,12 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     }
 
     @Override
-    void setReadRoles(Set<RoleVO> roles, DataPointVO vo) {
+    void setReadRoles(Set<Role> roles, DataPointVO vo) {
         vo.setReadRoles(roles);
     }
 
     @Override
-    void setEditRoles(Set<RoleVO> roles, DataPointVO vo) {
+    void setEditRoles(Set<Role> roles, DataPointVO vo) {
         T ds = dataSourceService.get(vo.getDataSourceId(), true, systemSuperadmin);
         ds.setEditRoles(roles);
         dataSourceService.update(ds.getXid(), ds, true, systemSuperadmin);

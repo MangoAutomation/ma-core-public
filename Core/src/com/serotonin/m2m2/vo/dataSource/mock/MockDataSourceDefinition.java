@@ -4,14 +4,15 @@
  */
 package com.serotonin.m2m2.vo.dataSource.mock;
 
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.DataSourceDefinition;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
  *
  */
-public class MockDataSourceDefinition extends DataSourceDefinition{
+public class MockDataSourceDefinition extends DataSourceDefinition<MockDataSourceVO> {
 
     public static final String TYPE_NAME = "MOCK";
     
@@ -26,7 +27,13 @@ public class MockDataSourceDefinition extends DataSourceDefinition{
 	}
 
 	@Override
-	protected DataSourceVO<?> createDataSourceVO() {
+	protected MockDataSourceVO createDataSourceVO() {
 		return new MockDataSourceVO();
 	}
+
+    @Override
+    public void validate(ProcessResult response, MockDataSourceVO ds, PermissionHolder user) {
+        
+    }
+	
 }

@@ -22,7 +22,7 @@ import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -44,7 +44,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     public void testInvalidPermission() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
             service.insert(vo, true, readUser);            
         });
@@ -54,7 +54,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     public void testAddOverprivledgedEditRole() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
             service.insert(vo, true, systemSuperadmin);
             MailingList fromDb = service.get(vo.getId(), true, systemSuperadmin);
@@ -67,7 +67,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     public void testRemoveOverprivledgedEditRole() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
             service.insert(vo, true, systemSuperadmin);
             MailingList fromDb = service.get(vo.getId(), true, systemSuperadmin);
@@ -80,9 +80,8 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     @Test(expected = ValidationException.class)
     public void testAddMissingEditRole() {
         MailingList vo = newVO();
-        RoleVO role = new RoleVO("new-role", "no name");
-        role.setId(10000);
-        Set<RoleVO> editRoles = Collections.singleton(role); 
+        Role role = new Role(10000, "new-role");
+        Set<Role> editRoles = Collections.singleton(role); 
         vo.setEditRoles(editRoles);
         service.insert(vo, true, systemSuperadmin);   
     }
@@ -91,7 +90,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     public void testRemoveRole() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<RoleVO> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
             service.insert(vo, true, systemSuperadmin);
             roleService.delete(editRole.getXid(), systemSuperadmin);
@@ -134,12 +133,12 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     }
     
     @Override
-    void setReadRoles(Set<RoleVO> roles, MailingList vo) {
+    void setReadRoles(Set<Role> roles, MailingList vo) {
         vo.setReadRoles(roles);
     }
     
     @Override
-    void setEditRoles(Set<RoleVO> roles, MailingList vo) {
+    void setEditRoles(Set<Role> roles, MailingList vo) {
         vo.setEditRoles(roles);
     }
     

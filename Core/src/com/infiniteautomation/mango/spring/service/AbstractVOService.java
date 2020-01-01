@@ -11,7 +11,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractVOAccess;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -32,16 +31,6 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      */
     public AbstractVOService(DAO dao, PermissionService permissionService) {
         super(dao, permissionService);
-    }
-
-    /**
-     * Service with a create permission
-     * @param dao
-     * @param permissionService
-     * @param createPermissionDefinition
-     */
-    public AbstractVOService(DAO dao, PermissionService permissionService, PermissionDefinition createPermissionDefinition) {
-        super(dao, permissionService, createPermissionDefinition);
     }
     
     /**

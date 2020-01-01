@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Set;
+
 import org.springframework.stereotype.Service;
 
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -12,6 +14,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -21,7 +24,12 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> {
 
     public JsonDataService(JsonDataDao dao, PermissionService permissionService) {
-        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(JsonDataCreatePermissionDefinition.TYPE_NAME));
+        super(dao, permissionService);
+    }
+    
+    @Override
+    public Set<Role> getCreatePermissionRoles() {
+        return ModuleRegistry.getPermissionDefinition(JsonDataCreatePermissionDefinition.TYPE_NAME).getRoles();
     }
 
     @Override

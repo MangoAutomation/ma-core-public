@@ -23,7 +23,7 @@ import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -160,7 +160,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             service.insert(vo, true, systemSuperadmin);
             User fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
-            roleService.delete(readRole, systemSuperadmin);
+            roleService.delete(readRole.getId(), systemSuperadmin);
             fromDb.setRoles(Collections.emptySet());
             //Check database
             User updated = service.get(fromDb.getId(), true, systemSuperadmin);
@@ -208,7 +208,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         service.insert(vo, true, systemSuperadmin);
     }
     
-    void addRoleToEditSelfPermission(RoleVO vo) {
+    void addRoleToEditSelfPermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
             roleService.addRoleToPermission(vo, UserEditSelfPermission.PERMISSION, systemSuperadmin);
@@ -221,12 +221,12 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Override
-    void setReadRoles(Set<RoleVO> roles, User vo) {
+    void setReadRoles(Set<Role> roles, User vo) {
         
     }
 
     @Override
-    void setEditRoles(Set<RoleVO> roles, User vo) {
+    void setEditRoles(Set<Role> roles, User vo) {
         
     }
 

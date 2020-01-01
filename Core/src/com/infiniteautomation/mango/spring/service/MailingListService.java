@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Mailing list service
@@ -33,7 +36,12 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     
     @Autowired 
     public MailingListService(MailingListDao dao, PermissionService permissionService) {
-        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(MailingListCreatePermission.PERMISSION));
+        super(dao, permissionService);
+    }
+    
+    @Override
+    public Set<Role> getCreatePermissionRoles() {
+        return ModuleRegistry.getPermissionDefinition(MailingListCreatePermission.PERMISSION).getRoles();
     }
     
     /**

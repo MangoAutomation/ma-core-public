@@ -2,7 +2,7 @@ package com.serotonin.m2m2.vo;
 
 import java.util.Set;
 
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 public class DataPointSummary implements IDataPoint {
     private int id;
@@ -10,8 +10,8 @@ public class DataPointSummary implements IDataPoint {
     private String name;
     private int dataSourceId;
     private String deviceName;
-    private Set<RoleVO> readRoles;
-    private Set<RoleVO> setRoles;
+    private Set<Role> readRoles;
+    private Set<Role> setRoles;
 
     public DataPointSummary() {
         // no op
@@ -78,20 +78,20 @@ public class DataPointSummary implements IDataPoint {
     }
 
     @Override
-    public Set<RoleVO> getReadRoles() {
+    public Set<Role> getReadRoles() {
         return readRoles;
     }
 
-    public void setReadRoles(Set<RoleVO>  readRoles) {
+    public void setReadRoles(Set<Role>  readRoles) {
         this.readRoles = readRoles;
     }
 
     @Override
-    public Set<RoleVO>  getSetRoles() {
+    public Set<Role>  getSetRoles() {
         return setRoles;
     }
 
-    public void setSetPermission(Set<RoleVO> setRoles) {
+    public void setSetPermission(Set<Role> setRoles) {
         this.setRoles = setRoles;
     }
 

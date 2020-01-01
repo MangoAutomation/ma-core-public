@@ -6,9 +6,10 @@ package com.serotonin.m2m2.module.definitions.permissions;
 import java.util.Collections;
 import java.util.Set;
 
-import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * This permission determines who can edit themselves
@@ -20,8 +21,8 @@ public class UserEditSelfPermission extends PermissionDefinition{
     public static final String PERMISSION = "permissions.user.editSelf";
 
     @Override
-    public String getPermissionKey() {
-        return "systemSettings.permissions.userEditSelf";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("systemSettings.permissions.userEditSelf");
     }
 
     @Override
@@ -30,7 +31,7 @@ public class UserEditSelfPermission extends PermissionDefinition{
     }
 
     @Override
-    public Set<RoleVO> getDefaultRoles() {
-        return Collections.singleton(RoleDao.getInstance().getUserRole());
+    public Set<Role> getDefaultRoles() {
+        return Collections.singleton(PermissionHolder.USER_ROLE.get());
     }
 }

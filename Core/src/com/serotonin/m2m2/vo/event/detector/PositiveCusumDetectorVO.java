@@ -4,16 +4,13 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.PositiveCusumDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -46,16 +43,6 @@ public class PositiveCusumDetectorVO extends TimeoutDetectorVO<PositiveCusumDete
 
 	public void setWeight(double weight) {
 		this.weight = weight;
-	}
-	
-	@Override
-	public void validate(ProcessResult response, PermissionService service, PermissionHolder user) {
-		super.validate(response, service, user);
-		
-		if(Double.isInfinite(limit) || Double.isNaN(limit))
-            response.addContextualMessage("limit", "validate.invalidValue");
-        if(Double.isInfinite(weight) || Double.isNaN(weight))
-            response.addContextualMessage("weight", "validate.invalidValue");
 	}
 
 	@Override

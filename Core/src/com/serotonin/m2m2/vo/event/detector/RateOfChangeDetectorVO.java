@@ -5,7 +5,6 @@ package com.serotonin.m2m2.vo.event.detector;
 
 import java.io.IOException;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -13,16 +12,14 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.Common.TimePeriods;
-import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.rt.event.detectors.RateOfChangeDetectorRT;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -132,45 +129,6 @@ public class RateOfChangeDetectorVO extends TimeoutDetectorVO<RateOfChangeDetect
 
     public void setUseAbsoluteValue(boolean useAbsoluteValue) {
         this.useAbsoluteValue = useAbsoluteValue;
-    }
-
-    @Override
-    public void validate(ProcessResult response, PermissionService service, PermissionHolder user) {
-        super.validate(response, service, user);
-
-        if(comparisonMode == null) {
-            response.addContextualMessage("comparisonMode", "validate.required");
-            return;
-        }
-        
-        if(calculationMode == null) {
-            response.addContextualMessage("calculationMode", "validate.required");
-            return;
-        }
-        
-        if(calculationMode == CalculationMode.AVERAGE && rateOfChangePeriods == 0)
-            response.addContextualMessage("rateOfChangePeriods", "validate.greaterThanZero");
-        else if(calculationMode == CalculationMode.INSTANTANEOUS && rateOfChangePeriods != 0)
-            response.addContextualMessage("rateOfChangePeriods", "validate.invalidValue");
-            
-        
-        if(useResetThreshold) {
-            if(comparisonMode == ComparisonMode.LESS_THAN && resetThreshold <= rateOfChangeThreshold) {
-                response.addContextualMessage("resetThreshold", "validate.greaterThan", rateOfChangeThreshold);
-            } else if(comparisonMode == ComparisonMode.LESS_THAN_OR_EQUALS && resetThreshold <= rateOfChangeThreshold) {
-                response.addContextualMessage("resetThreshold", "validate.greaterThan", rateOfChangeThreshold);
-            } else if(comparisonMode == ComparisonMode.GREATER_THAN && resetThreshold >= rateOfChangeThreshold) {
-                response.addContextualMessage("resetThreshold", "validate.lessThan", rateOfChangeThreshold);
-            } else if(comparisonMode == ComparisonMode.GREATER_THAN_OR_EQUALS && resetThreshold >= rateOfChangeThreshold) {
-                response.addContextualMessage("resetThreshold", "validate.lessThan", rateOfChangeThreshold);
-            }
-        }
-        
-        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangeThresholdPeriodType))
-            response.addContextualMessage("rateOfChangeThresholdPeriodType", "validate.invalidValue");
-        
-        if (!Common.TIME_PERIOD_CODES.isValidId(rateOfChangePeriodType))
-            response.addContextualMessage("rateOfChangePeriodType", "validate.invalidValue");
     }
     
     @Override

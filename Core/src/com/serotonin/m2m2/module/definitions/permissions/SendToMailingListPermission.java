@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -15,8 +16,8 @@ public class SendToMailingListPermission extends PermissionDefinition {
     public static final String PERMISSION = "permissions.user.sendToMailingList";
 
     @Override
-    public String getPermissionKey() {
-        return "systemSettings.permissions.sendToMailingList";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("systemSettings.permissions.sendToMailingList");
     }
 
     @Override

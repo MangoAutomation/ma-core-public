@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -28,6 +29,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -60,7 +62,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasAdminRole(PermissionHolder holder) {
-        return hasSingleRole(holder, roleDao.getSuperadminRole());
+        return hasSingleRole(holder, PermissionHolder.SUPERADMIN_ROLE.get());
     }
     
     /**
@@ -76,12 +78,12 @@ public class PermissionService {
     /**
      * Does this permission holder have any role defined in this permission?
      * @param holder
-     * @param createPermissionDefinition
+     * @param permission
      * @return
      */
-    public boolean hasPermission(PermissionHolder holder, PermissionDefinition permission) {
-        Set<RoleVO> roles = permission.getPermission().getRoles();
-        return hasAnyRole(holder, roles);
+    public boolean hasPermission(PermissionHolder holder, MangoPermission permission) {
+        Set<RoleVO> roles = permission.getRoles();
+        return hasAnyRole(holder, roles.stream().map(RoleVO::getRole).collect(Collectors.toSet()));
     }
     
     /**
@@ -89,7 +91,7 @@ public class PermissionService {
      * @param user
      * @param permission
      */
-    public void ensurePermission(PermissionHolder user, PermissionDefinition permission) {
+    public void ensurePermission(PermissionHolder user, MangoPermission permission) {
         if (!hasPermission(user, permission)) {
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredGrantedPermission", user != null ? user.getPermissionHolderName() : ""), user);
         }
@@ -109,7 +111,7 @@ public class PermissionService {
 
         for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
             MangoPermission permission = def.getValue().getPermission();
-            Set<RoleVO> roles = permission.getRoles();
+            Set<Role> roles = permission.getRoles().stream().map(RoleVO::getRole).collect(Collectors.toSet());
             if(hasAnyRole(holder, roles)) {
                 grantedPermissions.add(permission);
             }
@@ -127,7 +129,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder, AbstractVO<?> vo, String permissionType) {
-        Set<RoleVO> roles = roleDao.getRoles(vo, permissionType);
+        Set<Role> roles = roleDao.getRoles(vo, permissionType);
         return hasAnyRole(holder, roles);
     }
     
@@ -152,7 +154,7 @@ public class PermissionService {
         
         if(user.hasAdminRole()) return true;
         
-        return hasPermission(user, dataSourcePermission);
+        return hasPermission(user, dataSourcePermission.getPermission());
     }
     
     /**
@@ -201,7 +203,7 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataSourcePermission(PermissionHolder user, int dsId) throws PermissionException {
-        Set<RoleVO> editRoles = roleDao.getRoles(dsId, DataSourceVO.class.getSimpleName(), EDIT);
+        Set<Role> editRoles = roleDao.getRoles(dsId, DataSourceVO.class.getSimpleName(), EDIT);
         return hasAnyRole(user, editRoles);
     }
     
@@ -259,7 +261,7 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataPointReadPermission(PermissionHolder user, int dataPointId) throws PermissionException {
-        Set<RoleVO> editRoles = roleDao.getRoles(dataPointId, DataPointVO.class.getSimpleName(), READ);
+        Set<Role> editRoles = roleDao.getRoles(dataPointId, DataPointVO.class.getSimpleName(), READ);
         return hasAnyRole(user, editRoles);
     }
     
@@ -312,7 +314,7 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataPointSetPermission(PermissionHolder user, int dataPointId) throws PermissionException {
-        Set<RoleVO> editRoles = roleDao.getRoles(dataPointId, DataPointVO.class.getSimpleName(), SET);
+        Set<Role> editRoles = roleDao.getRoles(dataPointId, DataPointVO.class.getSimpleName(), SET);
         return hasAnyRole(user, editRoles);
     }
     
@@ -353,10 +355,10 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    public boolean hasAnyRole(PermissionHolder user, Set<RoleVO> requiredRoles) {
+    public boolean hasAnyRole(PermissionHolder user, Set<Role> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
         
-        Set<RoleVO> heldRoles = user.getRoles();
+        Set<Role> heldRoles = user.getRoles();
         return containsAnyRole(heldRoles, requiredRoles);
     }
     
@@ -365,7 +367,7 @@ public class PermissionService {
      * @param user
      * @param requiredPermissions
      */
-    public void ensureHasAnyRole(PermissionHolder user, Set<RoleVO> requiredRoles) {
+    public void ensureHasAnyRole(PermissionHolder user, Set<Role> requiredRoles) {
         if (!hasAnyRole(user, requiredRoles)) {
             ensureValidPermissionHolder(user);
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
@@ -380,10 +382,10 @@ public class PermissionService {
      * @param requiredRole
      * @return
      */
-    public boolean hasSingleRole(PermissionHolder user, RoleVO requiredRole) {
+    public boolean hasSingleRole(PermissionHolder user, Role requiredRole) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<RoleVO> heldRoles = user.getRoles();
+        Set<Role> heldRoles = user.getRoles();
         return containsSingleRole(heldRoles, requiredRole);
     }
     
@@ -396,7 +398,7 @@ public class PermissionService {
      * @param requiredRole
      * @throws PermissionException
      */
-    public void ensureSingleRole(PermissionHolder holder, RoleVO requiredRole) throws PermissionException {
+    public void ensureSingleRole(PermissionHolder holder, Role requiredRole) throws PermissionException {
         if(!hasSingleRole(holder, requiredRole)) {
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", holder.getPermissionHolderName()), holder);
         }
@@ -408,10 +410,10 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    public boolean hasAllRoles(PermissionHolder user, Set<RoleVO> requiredRoles) {
+    public boolean hasAllRoles(PermissionHolder user, Set<Role> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<RoleVO> heldRoles = user.getRoles();
+        Set<Role> heldRoles = user.getRoles();
         return containsAll(heldRoles, requiredRoles);
     }
     
@@ -420,7 +422,7 @@ public class PermissionService {
      * @param user
      * @param requiredRoles
      */
-    public void ensureHasAllRoles(PermissionHolder user, Set<RoleVO> requiredRoles) {
+    public void ensureHasAllRoles(PermissionHolder user, Set<Role> requiredRoles) {
         if (!hasAllRoles(user, requiredRoles)) {
             ensureValidPermissionHolder(user);
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
@@ -458,7 +460,7 @@ public class PermissionService {
      * @param requiredRole
      * @return
      */
-    public boolean containsSingleRole(Set<RoleVO> heldRoles, RoleVO requiredRole) {
+    public boolean containsSingleRole(Set<Role> heldRoles, Role requiredRole) {
         // empty permissions string indicates that only superadmins are allowed access
         if (requiredRole == null) {
             return false;
@@ -473,10 +475,10 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    private boolean containsAll(Set<RoleVO> heldRoles, Set<RoleVO> requiredRoles) {
+    private boolean containsAll(Set<Role> heldRoles, Set<Role> requiredRoles) {
         checkRoleSet(requiredRoles);
         
-        if (heldRoles.contains(roleDao.getSuperadminRole())) {
+        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE.get())) {
             return true;
         }
 
@@ -485,7 +487,7 @@ public class PermissionService {
             return false;
         }
         
-        for(RoleVO role : requiredRoles) {
+        for(Role role : requiredRoles) {
             if(!heldRoles.contains(role)) {
                return false; 
             }
@@ -499,10 +501,10 @@ public class PermissionService {
      * @param requiredRoles
      * @return
      */
-    private boolean containsAnyRole(Set<RoleVO> heldRoles, Set<RoleVO> requiredRoles) {
+    private boolean containsAnyRole(Set<Role> heldRoles, Set<Role> requiredRoles) {
         checkRoleSet(requiredRoles);
         //If I am superadmin or this has the default user role the we are good
-        if (heldRoles.contains(roleDao.getSuperadminRole()) || requiredRoles.contains(roleDao.getUserRole())) {
+        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE.get()) || requiredRoles.contains(PermissionHolder.USER_ROLE.get())) {
             return true;
         }
 
@@ -511,7 +513,7 @@ public class PermissionService {
             return false;
         }
 
-        for (RoleVO requiredRole : requiredRoles) {
+        for (Role requiredRole : requiredRoles) {
             if (heldRoles.contains(requiredRole)) {
                 return true;
             }
@@ -542,7 +544,7 @@ public class PermissionService {
      * @param newRoles - the new permissions to validate
      */
     public void validateVoRoles(ProcessResult result, String contextKey, PermissionHolder holder,
-            boolean savedByOwner, Set<RoleVO> existingRoles, Set<RoleVO> newRoles) {
+            boolean savedByOwner, Set<Role> existingRoles, Set<Role> newRoles) {
         if (holder == null) {
             result.addContextualMessage(contextKey, "validate.userRequired");
             return;
@@ -553,7 +555,7 @@ public class PermissionService {
             return;
         }
 
-        for (RoleVO role : newRoles) {
+        for (Role role : newRoles) {
             if (role == null) {
                 result.addContextualMessage(contextKey, "validate.role.empty");
                 return;
@@ -566,20 +568,20 @@ public class PermissionService {
             return;
 
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newRoles.contains(roleDao.getUserRole()) && Collections.disjoint(holder.getRoles(), newRoles)) {
+        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE.get()) && Collections.disjoint(holder.getRoles(), newRoles)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 
         if(existingRoles != null) {
             //Check for permissions being added that the user does not have
-            Set<RoleVO> added = new HashSet<>(newRoles);
+            Set<Role> added = new HashSet<>(newRoles);
             added.removeAll(existingRoles);
             added.removeAll(holder.getRoles());
             if(added.size() > 0) {
                 result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getRoles()));
             }
             //Check for permissions being removed that the user does not have
-            Set<RoleVO> removed = new HashSet<>(existingRoles);
+            Set<Role> removed = new HashSet<>(existingRoles);
             removed.removeAll(newRoles);
             removed.removeAll(holder.getRoles());
             if(removed.size() > 0) {
@@ -596,7 +598,7 @@ public class PermissionService {
      *  - xid of role cannot be null
      * @param requiredPermissions
      */
-    private static void checkRoleSet(Set<RoleVO> requiredRoles) {
+    private static void checkRoleVOSet(Set<RoleVO> requiredRoles) {
         Objects.requireNonNull(requiredRoles, "Role set cannot be null");
 
         for (RoleVO requiredRole : requiredRoles) {
@@ -607,13 +609,61 @@ public class PermissionService {
     }
     
     /**
+     * Check a role set so that
+     *  - set cannot be null
+     *  - role in set cannot be null
+     *  - xid of role cannot be null
+     * @param requiredPermissions
+     */
+    private static void checkRoleSet(Set<Role> requiredRoles) {
+        Objects.requireNonNull(requiredRoles, "Role set cannot be null");
+
+        for (Role requiredRole : requiredRoles) {
+            if (requiredRole == null || requiredRole.getXid().isEmpty()) {
+                throw new IllegalArgumentException("Role in set cannot be null or have empty role");
+            }
+        }
+    }
+    
+    /**
+     * Turn a set of RoleVOs into a comma separated list for display in a message
+     * @param roles
+     * @return
+     */
+    public String implodeRoleVOs(Set<RoleVO> roles) {
+        checkRoleVOSet(roles);
+        return String.join(",", roles.stream().map(role -> role.getXid()).collect(Collectors.toSet()));
+    }
+    
+    /**
      * Turn a set of roles into a comma separated list for display in a message
      * @param roles
      * @return
      */
-    public String implodeRoles(Set<RoleVO> roles) {
-        checkRoleSet(roles);
+    public String implodeRoles(Set<Role> roles) {
+        if(roles == null)
+            return "";
         return String.join(",", roles.stream().map(role -> role.getXid()).collect(Collectors.toSet()));
+    }
+    
+    /**
+     * Explode a legacy comma separated string into a set of Role objects
+     *  if the Role doesn't exist it is still added but with an ID of -1
+     * @param groups
+     * @return
+     */
+    public Set<Role> explodeLegacyPermissionGroupsToRoles(String groups){
+        Set<String> permissions = explodeLegacyPermissionGroups(groups);
+        Set<Role> roles = new HashSet<>(permissions.size());
+        for(String permission : permissions) {
+            RoleVO vo = roleDao.getByXid(permission, true);
+            if(vo != null) {
+                roles.add(vo.getRole());
+            }else {
+                roles.add(new Role(Common.NEW_ID, permission));
+            }
+        }
+        return roles;
     }
     
     /**

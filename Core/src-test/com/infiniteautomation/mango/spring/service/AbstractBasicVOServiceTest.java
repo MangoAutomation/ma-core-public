@@ -12,6 +12,9 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -22,6 +25,7 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -48,10 +52,10 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     protected User deleteUser;
     protected User allUser;
     
-    protected RoleVO readRole;
-    protected RoleVO editRole;
-    protected RoleVO deleteRole;
-    protected RoleVO setRole;
+    protected Role readRole;
+    protected Role editRole;
+    protected Role deleteRole;
+    protected Role setRole;
     
     /**
      * Create a new VO with all fields populated except any roles
@@ -82,6 +86,16 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     
     public User getEditUser() {
         return editUser;
+    }
+    
+    /**
+     * 
+     * @param holder
+     */
+    public void setContextUser(PermissionHolder holder) {
+        SecurityContextImpl sc = new SecurityContextImpl();
+        sc.setAuthentication(new PreAuthenticatedAuthenticationToken(holder, holder.getRoles()));
+        SecurityContextHolder.setContext(sc);
     }
     
     @Test
@@ -123,12 +137,12 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
         return service.insert(vo, true, systemSuperadmin);
     }
     
-    void assertRoles(Set<RoleVO> expected, Set<RoleVO> actual) {
+    void assertRoles(Set<Role> expected, Set<Role> actual) {
         assertEquals(expected.size(), actual.size());
-        Set<RoleVO> missing = new HashSet<>();
-        for(RoleVO expectedRole : expected) {
+        Set<Role> missing = new HashSet<>();
+        for(Role expectedRole : expected) {
             boolean found = false;
-            for(RoleVO actualRole : actual) {
+            for(Role actualRole : actual) {
                 if(StringUtils.equals(expectedRole.getXid(), actualRole.getXid())) {
                     found = true;
                     break;
@@ -140,8 +154,8 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
         }
         if(missing.size() > 0) {
             String missingRoles = "";
-            for(RoleVO missingRole : missing) {
-                missingRoles += "< " + missingRole.getId() + " - " + missingRole.getName() + "> ";
+            for(Role missingRole : missing) {
+                missingRoles += "< " + missingRole.getId() + " - " + missingRole.getXid() + "> ";
             }
             fail("Not all roles matched, missing: " + missingRoles);
         }
@@ -153,17 +167,21 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
 
         //Add some roles
-        readRole = new RoleVO("read-role", "Role to allow reading.");
-        roleService.insert(readRole, true, systemSuperadmin);
+        RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
+        roleService.insert(temp, true, systemSuperadmin);
+        readRole = new Role(temp);
         
-        editRole = new RoleVO("edit-role", "Role to allow editing.");
-        roleService.insert(editRole, true, systemSuperadmin);
+        temp = new RoleVO(Common.NEW_ID, "edit-role", "Role to allow editing.");
+        roleService.insert(temp, true, systemSuperadmin);
+        editRole = new Role(temp);
         
-        setRole = new RoleVO("set-role", "Role to allow setting.");
-        roleService.insert(setRole, true, systemSuperadmin);
+        temp = new RoleVO(Common.NEW_ID, "set-role", "Role to allow setting.");
+        roleService.insert(temp, true, systemSuperadmin);
+        setRole = new Role(temp);
         
-        deleteRole = new RoleVO("delete-role", "Role to allow deleting.");
-        roleService.insert(deleteRole, true, systemSuperadmin);
+        temp = new RoleVO(Common.NEW_ID, "delete-role", "Role to allow deleting.");
+        roleService.insert(temp, true, systemSuperadmin);
+        deleteRole = new Role(temp);
 
         readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
         editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
@@ -193,7 +211,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             fail(failureMessage);
         }
     }
-    public RoleVO getEditRole() {
+    public Role getEditRole() {
         return editRole;
     }
     public RoleService getRoleService() {

@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Service for access to event handlers
@@ -29,11 +29,19 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 @Service
 public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends AbstractVOService<T, EventHandlerDao<T>> {
 
+    private final EventHandlerCreatePermission createPermission;
+    
     @Autowired
-    public EventHandlerService(EventHandlerDao<T> dao, PermissionService permissionService) {
-        super(dao, permissionService, ModuleRegistry.getPermissionDefinition(EventHandlerCreatePermission.PERMISSION));
+    public EventHandlerService(EventHandlerDao<T> dao, PermissionService permissionService, EventHandlerCreatePermission createPermission) {
+        super(dao, permissionService);
+        this.createPermission = createPermission;
     }
 
+    @Override
+    public Set<Role> getCreatePermissionRoles() {
+        return createPermission.getRoles();
+    }
+    
     @Override
     public boolean hasEditPermission(PermissionHolder user, T vo) {
         return user.hasAdminRole();
@@ -56,14 +64,14 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
     @Override
     public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        vo.validate(result, permissionService, user);
+        vo.getDefinition().validate(result, vo, user);
         return result;
     }
     
     @Override
     public ProcessResult validate(T existing, T vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        vo.validate(result, existing, permissionService, user);
+        vo.getDefinition().validate(result, existing, vo, user);
         return result;
     }
     

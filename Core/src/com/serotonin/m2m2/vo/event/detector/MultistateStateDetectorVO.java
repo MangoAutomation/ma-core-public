@@ -35,17 +35,11 @@ public class MultistateStateDetectorVO extends TimeoutDetectorVO<MultistateState
 		this.state = state;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()
-	 */
 	@Override
 	public AbstractEventDetectorRT<MultistateStateDetectorVO> createRuntime() {
 		return new MultistateStateDetectorRT(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#getConfigurationDescription()
-	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
         TranslatableMessage durationDesc = getDurationDescription();

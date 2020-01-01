@@ -24,7 +24,7 @@ import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermi
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -52,6 +52,8 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
             EmailEventHandlerVO vo = newVO();
+            ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
+            vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
             service.insert(vo, true, editUser);
         });
@@ -67,8 +69,8 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             service.insert(vo, true, systemSuperadmin);
             EmailEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
             assertVoEqual(vo, fromDb);
-            roleService.delete(editRole, systemSuperadmin);
-            roleService.delete(readRole, systemSuperadmin);
+            roleService.delete(editRole.getId(), systemSuperadmin);
+            roleService.delete(readRole.getId(), systemSuperadmin);
             EmailEventHandlerVO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
             fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
             assertVoEqual(fromDb, updated);
@@ -132,7 +134,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
         return existing;
     }
     
-    void addRoleToCreatePermission(RoleVO vo) {
+    void addRoleToCreatePermission(Role vo) {
         roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION, systemSuperadmin);
     }
 

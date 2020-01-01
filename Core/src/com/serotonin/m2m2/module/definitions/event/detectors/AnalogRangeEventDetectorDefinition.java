@@ -5,14 +5,16 @@
 package com.serotonin.m2m2.module.definitions.event.detectors;
 
 import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogRangeDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
  *
  */
-public class AnalogRangeEventDetectorDefinition extends PointEventDetectorDefinition<AnalogRangeDetectorVO>{
+public class AnalogRangeEventDetectorDefinition extends TimeoutDetectorDefinition<AnalogRangeDetectorVO>{
 
 	public static final String TYPE_NAME = "RANGE";
 		
@@ -33,6 +35,14 @@ public class AnalogRangeEventDetectorDefinition extends PointEventDetectorDefini
 	@Override
 	protected AnalogRangeDetectorVO createEventDetectorVO(int sourceId) {
         return new AnalogRangeDetectorVO(DataPointDao.getInstance().get(sourceId, true));
-
 	}
+	
+    @Override
+    public void validate(ProcessResult response, AnalogRangeDetectorVO vo, PermissionHolder user) {
+        super.validate(response, vo, user);
+        
+        if(vo.getHigh() <= vo.getLow())
+            response.addContextualMessage("high", "validate.greaterThan", vo.getLow());
+    }	
+	
 }

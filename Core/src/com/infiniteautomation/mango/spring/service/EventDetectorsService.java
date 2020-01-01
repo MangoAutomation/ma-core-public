@@ -107,14 +107,14 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
     @Override
     public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        vo.validate(response, permissionService, user);
+        vo.getDefinition().validate(response, vo, user);
         return response;
     }
 
     @Override
     public ProcessResult validate(T existing, T vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        vo.validate(response, existing, permissionService, user);
+        vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
     

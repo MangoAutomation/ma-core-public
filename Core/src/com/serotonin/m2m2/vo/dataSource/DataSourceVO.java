@@ -35,12 +35,11 @@ import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
-import com.serotonin.m2m2.vo.ChangeValidatable;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
-abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> implements ChangeValidatable<T> {
+abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
     public static final String XID_PREFIX = "DS_";
 
     abstract public TranslatableMessage getConnectionDescription();
@@ -64,7 +63,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         return id == Common.NEW_ID;
     }
 
-    private DataSourceDefinition definition;
+    private DataSourceDefinition<T> definition;
 
     private Map<Integer, AlarmLevels> alarmLevels = new HashMap<>();
 
@@ -74,13 +73,13 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     @JsonProperty
     private int purgePeriod = 1;
     @JsonProperty
-    private Set<RoleVO> editRoles = Collections.emptySet();
+    private Set<Role> editRoles = Collections.emptySet();
 
-    public final DataSourceDefinition getDefinition() {
+    public final DataSourceDefinition<T> getDefinition() {
         return definition;
     }
 
-    public void setDefinition(DataSourceDefinition definition) {
+    public void setDefinition(DataSourceDefinition<T> definition) {
         this.definition = definition;
     }
 
@@ -146,11 +145,11 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         this.purgePeriod = purgePeriod;
     }
 
-    public Set<RoleVO> getEditRoles() {
+    public Set<Role> getEditRoles() {
         return editRoles;
     }
 
-    public void setEditRoles(Set<RoleVO> editRoles) {
+    public void setEditRoles(Set<Role> editRoles) {
         this.editRoles = editRoles;
     }
 

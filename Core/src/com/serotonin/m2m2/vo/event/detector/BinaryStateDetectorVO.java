@@ -35,17 +35,11 @@ public class BinaryStateDetectorVO extends TimeoutDetectorVO<BinaryStateDetector
 		this.state = state;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#createRuntime()
-	 */
 	@Override
 	public AbstractEventDetectorRT<BinaryStateDetectorVO> createRuntime() {
 		return new BinaryStateDetectorRT(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO#getConfigurationDescription()
-	 */
 	@Override
 	protected TranslatableMessage getConfigurationDescription() {
         TranslatableMessage durationDesc = getDurationDescription();

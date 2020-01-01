@@ -49,6 +49,8 @@ public interface RuntimeManager extends ILifecycle {
     //
     DataSourceRT<? extends DataSourceVO<?>> getRunningDataSource(int dataSourceId);
 
+    List<? extends DataSourceRT<?>> getRunningDataSources();
+    
     boolean isDataSourceRunning(int dataSourceId);
 
     List<DataSourceVO<?>> getDataSources();
@@ -120,6 +122,8 @@ public interface RuntimeManager extends ILifecycle {
     boolean isDataPointRunning(int dataPointId);
 
     DataPointRT getDataPoint(int dataPointId);
+    
+    List<DataPointRT> getRunningDataPoints();
 
     void addDataPointListener(int dataPointId, DataPointListener l);
 

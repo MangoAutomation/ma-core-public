@@ -19,6 +19,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -47,9 +48,9 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
     public RoleVO delete(String xid, PermissionHolder user)
             throws PermissionException, NotFoundException {
         //Cannot delete the 'user' or 'superadmin' roles
-        if(StringUtils.equalsIgnoreCase(xid, RoleDao.SUPERADMIN_ROLE_NAME)) {
+        if(StringUtils.equalsIgnoreCase(xid, getSuperadminRole().getXid())) {
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterSuperadminRole"), user);
-        }else if(StringUtils.equalsIgnoreCase(xid, RoleDao.USER_ROLE_NAME)) {
+        }else if(StringUtils.equalsIgnoreCase(xid, getUserRole().getXid())) {
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterUserRole"), user);
         }
         return super.delete(xid, user);
@@ -60,10 +61,10 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         ProcessResult result = super.validate(vo, user);
         
         //Don't allow the use of role 'user' or 'superadmin'
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), RoleDao.SUPERADMIN_ROLE_NAME)) {
+        if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterSuperadminRole");
         }
-        if(StringUtils.equalsIgnoreCase(vo.getXid(), RoleDao.USER_ROLE_NAME)) {
+        if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterUserRole");
         }
         
@@ -91,9 +92,9 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
      * @param permissionType
      * @param user
      */
-    public void addRoleToPermission(RoleVO role, String permissionType, PermissionHolder user) {
+    public void addRoleToPermission(Role role, String permissionType, PermissionHolder user) {
         permissionService.ensureAdminRole(user);
-        Set<RoleVO> permissionRoles = this.dao.getRoles(permissionType);
+        Set<Role> permissionRoles = this.dao.getRoles(permissionType);
         if(permissionRoles.contains(role)) {
             ProcessResult result = new ProcessResult();
             result.addGenericMessage("roleAlreadyAssignedToPermission", role.getXid(), permissionType);
@@ -110,13 +111,13 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
      * @param permissionType
      * @param user
      */
-    public void addRoleToVoPermission(RoleVO role, AbstractVO<?> vo, String permissionType, PermissionHolder user) throws ValidationException {
+    public void addRoleToVoPermission(Role role, AbstractVO<?> vo, String permissionType, PermissionHolder user) throws ValidationException {
         permissionService.ensureAdminRole(user);
         //TODO PermissionHolder check?
         // Superadmin ok
         // holder must contain the role already?
         //Cannot add an existing mapping
-        Set<RoleVO> roles = this.dao.getRoles(vo.getId(), vo.getClass().getSimpleName(), permissionType);
+        Set<Role> roles = this.dao.getRoles(vo.getId(), vo.getClass().getSimpleName(), permissionType);
         if(roles.contains(role)) {
             ProcessResult result = new ProcessResult();
             result.addGenericMessage("role.alreadyAssignedToPermission", role.getXid(), permissionType,  vo.getClass().getSimpleName());
@@ -129,15 +130,15 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
      * Get the superadmin role
      * @return
      */
-    public RoleVO getSuperadminRole() {
-        return dao.getSuperadminRole();
+    public Role getSuperadminRole() {
+        return PermissionHolder.SUPERADMIN_ROLE.get();
     }
     
     /**
      * Get the default user role
      * @return
      */
-    public RoleVO getUserRole() {
-        return dao.getUserRole();
+    public Role getUserRole() {
+        return PermissionHolder.USER_ROLE.get();
     }
 }

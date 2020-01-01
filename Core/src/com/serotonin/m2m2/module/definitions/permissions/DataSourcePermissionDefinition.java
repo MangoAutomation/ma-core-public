@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -17,8 +18,8 @@ public class DataSourcePermissionDefinition extends PermissionDefinition {
     public static String PERMISSION = "permissionDatasource";
     
     @Override
-	public String getPermissionKey() {
-		return "systemSettings.permissions.datasourceManagement";
+    public TranslatableMessage getDescription() {
+		return new TranslatableMessage("systemSettings.permissions.datasourceManagement");
 	}
 
 	@Override

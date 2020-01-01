@@ -3,6 +3,7 @@
  */
 package com.serotonin.m2m2.module.definitions.permissions;
 
+import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
@@ -14,8 +15,8 @@ public class EventHandlerCreatePermission extends PermissionDefinition {
     public static final String PERMISSION = "eventHandlers.create";
 
     @Override
-    public String getPermissionKey() {
-        return "eventHandlers.permission.create";
+    public TranslatableMessage getDescription() {
+        return new TranslatableMessage("eventHandlers.permission.create");
     }
 
     @Override
