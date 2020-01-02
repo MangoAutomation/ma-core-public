@@ -71,7 +71,6 @@ import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.util.BackgroundContext;
-import com.serotonin.m2m2.util.DocumentationManifest;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.InstanceLicense;
 import com.serotonin.m2m2.util.license.LicenseFeature;
@@ -155,7 +154,6 @@ public class Common {
     public static final List<String> moduleScripts = new ArrayList<String>();
     public static final List<String> moduleJspfs = new ArrayList<String>();
 
-    public static final DocumentationManifest documentationManifest = new DocumentationManifest();
     public static final List<ImageSet> imageSets = new ArrayList<ImageSet>();
     public static final List<DynamicImage> dynamicImages = new ArrayList<DynamicImage>();
 
