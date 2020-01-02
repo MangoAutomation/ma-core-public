@@ -118,7 +118,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
             Set<Role> roles = new HashSet<>(combined.size() + 1);
             roles.add(PermissionHolder.USER_ROLE.get());
             for(String group : combined) {
-               RoleVO role = RoleDao.getInstance().getByXid(group, false);
+               RoleVO role = RoleDao.getInstance().getByXid(group);
                if(role != null) {
                    roles.add(role.getRole());
                }
@@ -135,7 +135,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
             Set<Role> roles = new HashSet<>(combined.size() + 1);
             roles.add(PermissionHolder.USER_ROLE.get());
             for(String group : combined) {
-               RoleVO role = RoleDao.getInstance().getByXid(group, false);
+               RoleVO role = RoleDao.getInstance().getByXid(group);
                if(role != null) {
                    roles.add(role.getRole());
                }

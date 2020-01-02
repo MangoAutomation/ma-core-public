@@ -673,7 +673,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dsVo.setEnabled(true);
         dsVo.setUpdatePeriods(1);
         dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
-        User admin = UserDao.getInstance().getUser("admin");
+        User admin = UserDao.getInstance().getByXid("admin");
         BackgroundContext.set(admin);
         try {
             validate(dsVo);

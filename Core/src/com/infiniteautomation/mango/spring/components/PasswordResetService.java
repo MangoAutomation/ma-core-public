@@ -80,7 +80,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        User user = this.usersService.get(username, true, this.systemSuperadmin);
+        User user = this.usersService.get(username, this.systemSuperadmin);
 
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
@@ -145,7 +145,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         // we copy the user so that when we set the new password it doesn't modify the cached instance
         User updated = existing.copy();
         updated.setPlainTextPassword(newPassword);
-        this.usersService.update(existing, updated, true, this.systemSuperadmin);
+        this.usersService.update(existing, updated, this.systemSuperadmin);
         return updated;
     }
 

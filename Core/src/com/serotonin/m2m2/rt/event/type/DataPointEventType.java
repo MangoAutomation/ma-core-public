@@ -51,7 +51,7 @@ public class DataPointEventType extends EventType {
     @Override
     public int getDataSourceId() {
         if (dataSourceId == -1){
-            DataPointVO vo = DataPointDao.getInstance().get(dataPointId, false);
+            DataPointVO vo = DataPointDao.getInstance().get(dataPointId);
             if(vo != null) //In case the point has been deleted
                 dataSourceId = vo.getDataSourceId();
         }
@@ -133,7 +133,7 @@ public class DataPointEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        DataPointVO point = DataPointDao.getInstance().get(dataPointId, true);
+        DataPointVO point = DataPointDao.getInstance().get(dataPointId);
         if(point == null)
             return false;
         return service.hasDataPointReadPermission(user, point);

@@ -48,7 +48,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
      */
     public T insertAndReload(T vo, boolean restartSource, PermissionHolder user)
             throws PermissionException, ValidationException {
-        vo = super.insert(vo, true, user);
+        vo = super.insert(vo, user);
         
         if(restartSource)
             vo.getDefinition().restartSource(vo);
@@ -63,12 +63,11 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
      * @param existing
      * @param vo
      * @param restartSource
-     * @param full
      * @param user
      * @return
      */
-    public T updateAndReload(String existing, T vo, boolean restartSource, boolean full, PermissionHolder user) {
-        T updated = update(get(existing, full, user), vo, full, user);
+    public T updateAndReload(String existing, T vo, boolean restartSource, PermissionHolder user) {
+        T updated = update(get(existing, user), vo, user);
         if(restartSource)
             updated.getDefinition().restartSource(updated);
         return updated;

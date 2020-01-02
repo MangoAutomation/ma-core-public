@@ -1471,7 +1471,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 JsonArray handlerXids = pedObject.getJsonArray("handlers");
                 if(handlerXids != null)
                     for(int k = 0; k < handlerXids.size(); k+=1) {
-                        AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k), true);
+                        AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
                         if(eh == null) {
                             throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
                         }else {

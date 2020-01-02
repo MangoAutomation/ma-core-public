@@ -131,13 +131,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
         
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
-        List<DataSourceVO<?>> configs = DataSourceDao.getInstance().getAll(true);
+        List<DataSourceVO<?>> configs = DataSourceDao.getInstance().getAll();
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
         for (DataSourceVO<?> config : configs) {
             if (config.isEnabled()) {
                 if (safe) {
                     config.setEnabled(false);
-                    DataSourceDao.getInstance().update(config, true);
+                    DataSourceDao.getInstance().update(config.getId(), config);
                 }
                 else if (config.getDefinition() != null) {
                     List<DataSourceVO<?>> priorityList = priorityMap.get(config.getDefinition().getStartPriority());
@@ -304,12 +304,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public List<DataSourceVO<?>> getDataSources() {
-        return DataSourceDao.getInstance().getAll(true);
+        return DataSourceDao.getInstance().getAll();
     }
 
     @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
-        return DataSourceDao.getInstance().get(dataSourceId, true);
+        return DataSourceDao.getInstance().get(dataSourceId);
     }
 
     @Override
@@ -323,7 +323,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public void insertDataSource(DataSourceVO<?> vo) {
 
         // In this case it is new data source, we need to save to the database first so that it has a proper id.
-        DataSourceDao.getInstance().insert(vo, true);
+        DataSourceDao.getInstance().insert(vo);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -338,7 +338,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         stopDataSource(vo.getId());
 
         // In this case it is new data source, we need to save to the database first so that it has a proper id.
-        DataSourceDao.getInstance().update(existing, vo, true);
+        DataSourceDao.getInstance().update(existing, vo);
 
         // If the data source is enabled, start it.
         if (vo.isEnabled()) {
@@ -487,7 +487,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 peds.remove();
         }
 
-        DataPointDao.getInstance().insert(vo, true);
+        DataPointDao.getInstance().insert(vo);
 
         if (vo.isEnabled())
             startDataPoint(vo, null);
@@ -521,7 +521,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 peds.remove();
         }
 
-        DataPointDao.getInstance().update(existing, vo, true);
+        DataPointDao.getInstance().update(existing, vo);
 
         if (vo.isEnabled())
             startDataPoint(vo, null);

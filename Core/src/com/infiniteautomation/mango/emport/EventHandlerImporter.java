@@ -40,7 +40,7 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                handler = service.get(xid, true, user);
+                handler = service.get(xid, user);
             }catch(NotFoundException e) {
                 //Nothing, done below
             }          
@@ -92,9 +92,9 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
     
                 boolean isnew = handler.getId() == Common.NEW_ID;
                 if(isnew) {
-                    service.insert(handler, true, user);
+                    service.insert(handler, user);
                 }else {
-                    service.update(handler.getId(), handler, true, user);
+                    service.update(handler.getId(), handler, user);
                 }
 
             }catch(ValidationException e) {

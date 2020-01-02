@@ -353,8 +353,8 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         // New database, add default data
 
         //Add default user and superadmin roles
-        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, Common.translate("roles.superadmin")), true);
-        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, Common.translate("roles.user")), true);
+        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, Common.translate("roles.superadmin")));
+        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, Common.translate("roles.user")));
 
         //Create a default user.
         User user = new User();
@@ -367,7 +367,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(PermissionHolder.SUPERADMIN_ROLE.get()))));
         user.setDisabled(false);
         user.setHomeUrl("/ui/administration/home");
-        UserDao.getInstance().saveUser(user);
+        UserDao.getInstance().insert(user);
 
     };
 }

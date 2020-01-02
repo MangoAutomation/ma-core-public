@@ -38,7 +38,7 @@ public class UserImporter extends Importer {
         }else {
             User existing = null;
             try {
-                existing = usersService.get(username, true, user);
+                existing = usersService.get(username, user);
             }catch(NotFoundException e) {
                 existing = null;
             }
@@ -64,10 +64,10 @@ public class UserImporter extends Importer {
 
                 try {
                     if(existing == null) {
-                        usersService.insert(imported, true, user);
+                        usersService.insert(imported, user);
                         addSuccessMessage(true, "emport.user.prefix", username);
                     }else {
-                        usersService.update(existing, imported, true, user);
+                        usersService.update(existing, imported, user);
                         addSuccessMessage(false, "emport.user.prefix", username);
                     }
                 }catch(ValidationException e) {

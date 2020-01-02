@@ -35,7 +35,7 @@ public class NoUpdateEventDetectorDefinition extends TimeoutDetectorDefinition<N
 
 	@Override
 	protected NoUpdateDetectorVO createEventDetectorVO(int sourceId) {
-        return new NoUpdateDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new NoUpdateDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
 	   @Override

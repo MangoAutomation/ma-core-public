@@ -35,7 +35,7 @@ public class AnalogChangeEventDetectorDefinition extends TimeoutDetectorDefiniti
 
 	@Override
 	protected AnalogChangeDetectorVO createEventDetectorVO(int sourceId) {
-        return new AnalogChangeDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new AnalogChangeDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
     @Override

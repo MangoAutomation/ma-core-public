@@ -90,7 +90,7 @@ public class HistoricalDataPoint implements IDataPointValueSource {
 
 	@Override
 	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
-		return new DataPointWrapper(DataPointDao.getInstance().get(vo.getId(), true), rtWrapper);
+		return new DataPointWrapper(DataPointDao.getInstance().get(vo.getId()), rtWrapper);
 	}
 
 	@Override

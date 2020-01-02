@@ -35,7 +35,7 @@ public class PositiveCusumEventDetectorDefinition extends TimeoutDetectorDefinit
 	
 	@Override
 	protected PositiveCusumDetectorVO createEventDetectorVO(int sourceId) {
-        return new PositiveCusumDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new PositiveCusumDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
     @Override

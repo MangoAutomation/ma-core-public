@@ -32,7 +32,7 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                vo = service.get(xid, true, user);
+                vo = service.get(xid, user);
             }catch(NotFoundException e) {
                 
             }
@@ -42,7 +42,7 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
             if (StringUtils.isBlank(typeStr))
                 addFailureMessage("emport.dataSource.missingType", xid, ModuleRegistry.getDataSourceDefinitionTypes());
             else {
-                DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(typeStr);
+                DataSourceDefinition<?> def = ModuleRegistry.getDataSourceDefinition(typeStr);
                 if (def == null)
                     addFailureMessage("emport.dataSource.invalidType", xid, typeStr,
                             ModuleRegistry.getDataSourceDefinitionTypes());
@@ -60,9 +60,9 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
                 boolean isnew = vo.isNew();
                 if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
                     if(isnew) {
-                        service.insert(vo, true, user);
+                        service.insert(vo, user);
                     }else {
-                        service.update(vo.getId(), vo, true, user);
+                        service.update(vo.getId(), vo, user);
                     }
                     addSuccessMessage(isnew, "emport.dataSource.prefix", xid);
                 }else{

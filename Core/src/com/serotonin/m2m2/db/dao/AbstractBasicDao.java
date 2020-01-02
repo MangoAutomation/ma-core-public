@@ -299,10 +299,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             }
 
             SELECT_BY_ID = SELECT_ALL + " WHERE id=?";
-            SELECT_BY_XID = SELECT_ALL + " WHERE xid=?";
+            SELECT_BY_XID = SELECT_ALL + " WHERE " + getXidColumnName() + "=?";
             SELECT_BY_NAME = SELECT_ALL + " WHERE name=?";
             SELECT_XID_BY_ID = "SELECT xid FROM " + tableName + " WHERE id=?";
-            SELECT_ID_BY_XID = "SELECT id FROM " + tableName + " WHERE xid=?";
+            SELECT_ID_BY_XID = "SELECT id FROM " + tableName + " WHERE " + getXidColumnName() + "=?";
             INSERT = insert + ") VALUES (" + insertValues + ")";
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
@@ -340,10 +340,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             }
 
             SELECT_BY_ID = SELECT_ALL + " WHERE " + this.tablePrefix + "id=?";
-            SELECT_BY_XID = SELECT_ALL + " WHERE " + this.tablePrefix + "xid=?";
+            SELECT_BY_XID = SELECT_ALL + " WHERE " + this.tablePrefix + getXidColumnName() + "=?";
             SELECT_BY_NAME = SELECT_ALL + " WHERE " + this.tablePrefix + "name=?";
-            SELECT_XID_BY_ID = "SELECT " + this.tablePrefix + "xid FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + "id=?";
-            SELECT_ID_BY_XID = "SELECT " + this.tablePrefix + "id FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + "xid=?";
+            SELECT_XID_BY_ID = "SELECT " + this.tablePrefix + getXidColumnName() + " FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + "id=?";
+            SELECT_ID_BY_XID = "SELECT " + this.tablePrefix + "id FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + getXidColumnName() + "=?";
             INSERT = insert + ") VALUES (" + insertValues + ")";
             UPDATE = update + " WHERE id=?";
             DELETE = "DELETE FROM " + tableName + " WHERE id=?";
@@ -432,7 +432,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public String getPkColumnName() {
         return "id";
     }
-
+    
+    /**
+     * Override as necessary
+     * @return
+     */
+    public String getXidColumnName() {
+        return "xid";
+    }
 
     /**
      * Gets the table name that the Dao operates on
@@ -497,7 +504,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     @Override
     public boolean delete(int id) {
-        return delete(get(id, true));
+        return delete(get(id));
     }
 
     @Override
@@ -522,26 +529,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public void deleteRelationalData(T vo) { }
     
     @Override
-    public void insert(T vo, boolean full) {
-        if (full) {
-            getTransactionTemplate().execute(status -> {
-                int id = -1;
-                if (insertStatementPropertyTypes == null)
-                    id = ejt.doInsert(INSERT, voToObjectArray(vo));
-                else
-                    id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
-                vo.setId(id);
-                saveRelationalData(vo, true);
-                return null;
-            });
-        } else {
+    public void insert(T vo) {
+        getTransactionTemplate().execute(status -> {
             int id = -1;
             if (insertStatementPropertyTypes == null)
                 id = ejt.doInsert(INSERT, voToObjectArray(vo));
             else
                 id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
             vo.setId(id);
-        }
+            saveRelationalData(vo, true);
+            return null;
+        });
+        
         this.publishEvent(createDaoEvent(DaoEventType.CREATE, vo, null));
 
         if (this.countMonitor != null)
@@ -552,26 +551,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public void saveRelationalData(T vo, boolean insert) { }
 
     @Override
-    public void update(T vo, boolean full) {
-        update(get(vo.getId(), full), vo, full);
+    public void update(int id, T vo) {
+        update(get(id), vo);
     }
     
     @Override
-    public void update(T existing, T vo, boolean full) {
-        if(full) {
-            getTransactionTemplate().execute(status -> {
-                List<Object> list = new ArrayList<>();
-                list.addAll(Arrays.asList(voToObjectArray(vo)));
-                list.add(vo.getId());
-        
-                if (updateStatementPropertyTypes == null)
-                    ejt.update(UPDATE, list.toArray());
-                else
-                    ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-                saveRelationalData(vo, false);
-                return null;
-            });
-        }else {
+    public void update(T existing, T vo) {
+        getTransactionTemplate().execute(status -> {
             List<Object> list = new ArrayList<>();
             list.addAll(Arrays.asList(voToObjectArray(vo)));
             list.add(vo.getId());
@@ -580,35 +566,35 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 ejt.update(UPDATE, list.toArray());
             else
                 ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
-        }
+            saveRelationalData(vo, false);
+            return null;
+        });
         this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, existing));
     }
 
     @Override
-    public T get(int id, boolean full) {
+    public T get(int id) {
         T item = queryForObject(SELECT_BY_ID, new Object[] { id }, getRowMapper(), null);
-        if (item != null && full) {
+        if (item != null) {
             loadRelationalData(item);
         }
         return item;
     }
     
     @Override
-    public void getAll(MappedRowCallback<T> callback, boolean full) {
+    public void getAll(MappedRowCallback<T> callback) {
         query(SELECT_ALL_FIXED_SORT, new Object[] {}, getCallbackResultSetExtractor((item, index)->{
-            if(full) {
-                loadRelationalData(item);
-            }
+            loadRelationalData(item);
             callback.row(item, index);
         }));
     }
     
     @Override
-    public List<T> getAll(boolean full) {
+    public List<T> getAll() {
         List<T> items = new ArrayList<>();
         getAll((item, index) -> {
             items.add(item);
-        }, full);
+        });
         return items;
     }
 

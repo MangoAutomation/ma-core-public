@@ -175,7 +175,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
                 loadRelationalData((MailingList) e);
             else if (e instanceof UserEntry) {
                 UserEntry ue = (UserEntry) e;
-                ue.setUser(userDao.getUser(ue.getUserId()));
+                ue.setUser(userDao.get(ue.getUserId()));
             }
         }
     }

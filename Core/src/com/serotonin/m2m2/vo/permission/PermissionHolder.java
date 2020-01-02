@@ -27,14 +27,14 @@ public interface PermissionHolder {
      * The superadmin role from the database upon initialization
      */
     public static final LazyInitSupplier<Role> SUPERADMIN_ROLE = new LazyInitSupplier<>(()-> {
-        return RoleDao.getInstance().getByXid(SUPERADMIN_ROLE_XID, false).getRole();
+        return RoleDao.getInstance().getByXid(SUPERADMIN_ROLE_XID).getRole();
     });
 
     /**
      * The user role from the database upon initialization
      */
     public static final LazyInitSupplier<Role> USER_ROLE = new LazyInitSupplier<>(()-> {
-        return RoleDao.getInstance().getByXid(USER_ROLE_XID, false).getRole();
+        return RoleDao.getInstance().getByXid(USER_ROLE_XID).getRole();
     });
     
     /**

@@ -111,7 +111,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public List<DataSourceVO<?>> getDataSources() {
         if(useDatabase)
-            return DataSourceDao.getInstance().getAll(true);
+            return DataSourceDao.getInstance().getAll();
         else 
             return null;
     }
@@ -119,7 +119,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
         if(useDatabase)
-            return DataSourceDao.getInstance().get(dataSourceId, true);
+            return DataSourceDao.getInstance().get(dataSourceId);
         else 
             return null;
     }
@@ -133,14 +133,14 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public void insertDataSource(DataSourceVO<?> vo) {
         if(useDatabase) {
-            DataSourceDao.getInstance().insert(vo, true);
+            DataSourceDao.getInstance().insert(vo);
         }
     }
 
     @Override
     public void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo) {
         if(useDatabase) {
-            DataSourceDao.getInstance().update(existing, vo, true);
+            DataSourceDao.getInstance().update(existing, vo);
         }
     }
 
@@ -158,14 +158,14 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override 
     public void insertDataPoint(DataPointVO vo) {
         if(useDatabase) {
-            DataPointDao.getInstance().insert(vo, true);
+            DataPointDao.getInstance().insert(vo);
         }
     }
     
     @Override
     public void updateDataPoint(DataPointVO existing, DataPointVO vo) {
         if(useDatabase) {
-            DataPointDao.getInstance().update(existing, vo, true);
+            DataPointDao.getInstance().update(existing, vo);
         }
     }
 
@@ -312,7 +312,7 @@ public class MockRuntimeManager implements RuntimeManager {
     @Override
     public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
         if(useDatabase)
-            return PublisherDao.getInstance().get(publisherId, true);
+            return PublisherDao.getInstance().get(publisherId);
         else
             return null;
     }

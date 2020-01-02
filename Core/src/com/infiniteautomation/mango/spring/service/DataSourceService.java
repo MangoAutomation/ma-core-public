@@ -87,7 +87,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     }
 
     @Override
-    public T insert(T vo, boolean full, PermissionHolder user)
+    public T insert(T vo, PermissionHolder user)
             throws PermissionException, ValidationException {
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
@@ -112,7 +112,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     
     @Override
     public T update(T existing, T vo,
-            boolean full, PermissionHolder user) throws PermissionException, ValidationException {
+            PermissionHolder user) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         
         //Ensure matching data source types
@@ -131,7 +131,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     @Override
     public T delete(String xid, PermissionHolder user)
             throws PermissionException, NotFoundException {
-        T vo = get(xid, true, user);
+        T vo = get(xid, user);
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
         return vo;
@@ -145,6 +145,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      */
     public DataSourceDefinition<T> getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
         permissionService.ensureDataSourcePermission(user);
+        @SuppressWarnings("unchecked")
         DataSourceDefinition<T> def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
             throw new NotFoundException();
@@ -159,7 +160,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param user
      */
     public void restart(String xid, boolean enabled, boolean restart, PermissionHolder user) {
-        T vo = get(xid, true, user);
+        T vo = get(xid, user);
         T existing = vo.copy();
         ensureEditPermission(user, vo);
         if (enabled && restart) {
@@ -185,7 +186,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @throws NotFoundException
      */
     public T copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints, PermissionHolder user) throws PermissionException, NotFoundException {
-        T existing = get(xid, true, user);
+        T existing = get(xid, user);
         ensureCreatePermission(user, existing);
         //Determine the new name
         String newName;
@@ -229,7 +230,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         if(copyPoints) {
             copyDataSourcePoints(existing.getId(), copy, newDeviceName, user);
         }
-        return get(newXid, true, user);
+        return get(newXid, user);
     }
    
     /**
@@ -259,7 +260,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
                 ped.setId(Common.NEW_ID);
                 ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
             }
-            dataPointService.insert(dataPointCopy, true, user);
+            dataPointService.insert(dataPointCopy, user);
         }
     }
 

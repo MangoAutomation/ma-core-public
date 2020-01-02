@@ -45,7 +45,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         EmailEventHandlerVO vo = newVO();
-        service.insert(vo, true, editUser);
+        service.insert(vo, editUser);
     }
 
     @Test
@@ -55,7 +55,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
-            service.insert(vo, true, editUser);
+            service.insert(vo, editUser);
         });
     }
     
@@ -66,12 +66,12 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
 
-            service.insert(vo, true, systemSuperadmin);
-            EmailEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            service.insert(vo, systemSuperadmin);
+            EmailEventHandlerVO fromDb = service.get(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);
             roleService.delete(editRole.getId(), systemSuperadmin);
             roleService.delete(readRole.getId(), systemSuperadmin);
-            EmailEventHandlerVO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
+            EmailEventHandlerVO updated = service.get(fromDb.getId(), systemSuperadmin);
             fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
             assertVoEqual(fromDb, updated);
         });
@@ -84,15 +84,15 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             EmailEventHandlerVO vo = newVO();
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            service.update(vo.getXid(), vo, true, systemSuperadmin);
-            EmailEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            service.update(vo.getXid(), vo, systemSuperadmin);
+            EmailEventHandlerVO fromDb = service.get(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);
             service.delete(vo.getId(), systemSuperadmin);
             
             //Ensure the mappings are gone
             assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
             
-            service.get(vo.getId(), true, systemSuperadmin);
+            service.get(vo.getId(), systemSuperadmin);
         });
     }
     

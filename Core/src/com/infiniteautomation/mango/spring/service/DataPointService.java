@@ -90,7 +90,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
     
     @Override
-    public DataPointVO insert(DataPointVO vo, boolean full, PermissionHolder user)
+    public DataPointVO insert(DataPointVO vo, PermissionHolder user)
             throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
@@ -113,7 +113,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     
     @Override
     public DataPointVO update(DataPointVO existing, DataPointVO vo,
-            boolean full, PermissionHolder user) throws PermissionException, ValidationException {
+           PermissionHolder user) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         
         vo.setId(existing.getId());
@@ -141,7 +141,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * @throws PermissionException
      */
     public void enableDisable(String xid, boolean enabled, boolean restart, PermissionHolder user) throws NotFoundException, PermissionException {
-        DataPointVO vo = get(xid, true, user);
+        DataPointVO vo = get(xid, user);
         permissionService.ensureDataSourcePermission(user, vo.getDataSourceId());
         if (enabled && restart) {
             Common.runtimeManager.restartDataPoint(vo);
@@ -254,7 +254,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         else if(!validateRollup(vo))
             response.addContextualMessage("rollup", "validate.rollup.incompatible", vo.getRollup());
 
-        DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId(), false);
+        DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
         if(dsvo == null) {
             response.addContextualMessage("dataSourceId", "validate.invalidValue");
             return response;

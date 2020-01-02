@@ -20,12 +20,11 @@ import net.jazdw.rql.parser.ASTNode;
 public interface AbstractBasicVOAccess<T extends AbstractBasicVO> {
 
     /**
-     * Insert a vo with optionally saving relational data in a transaction
+     * Insert a vo and save relational data in a transaction
      * 
      * @param vo
-     * @param full - update relational data too
      */
-    public void insert(T vo, boolean full);
+    public void insert(T vo);
     
     /**
      * Save relational data for a vo to a different table,
@@ -36,45 +35,42 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> {
     public void saveRelationalData(T vo, boolean insert);
     
     /**
-     * Update a vo with optionally saving its relational data in a transaction.
+     * Update a vo and save its relational data in a transaction.
      * Fire Dao event upon completion
+     * @param id existing id of vo
      * @param vo
-     * @param full - update relational data too
      */
-    public void update(T vo, boolean full);
-    
+    public void update(int id, T vo);
     
     /**
-     * Update a vo with optionally saving its relational data in a transaction.
+     * Update a vo and save its relational data in a transaction.
      * Fire Dao event upon completion
      * @param existing
      * @param vo
-     * @param full - update relational data too
      */
-    public void update(T existing, T vo, boolean full);
+    public void update(T existing, T vo);
     
     /**
-     * Return a VO and load optionally its relational data
+     * Return a VO and load its relational data
      *
      * @param id
-     * @param full - return relational data too
      * @return
      */
-    public T get(int id, boolean full);
+    public T get(int id);
     
     /**
      * Callback for all VOs with FKs Populated optionally
      *
      * @return
      */
-    public void getAll(MappedRowCallback<T> callback, boolean full);
+    public void getAll(MappedRowCallback<T> callback);
     
     /**
      * Return all VOs with FKs Populated optionally
      *
      * @return
      */
-    public List<T> getAll(boolean full);
+    public List<T> getAll();
     
     /**
      * Load relational data from another table, does not happen within a transaction
@@ -87,12 +83,14 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> {
      * there is no ON CASCADE for the FK
      * 
      * @param id
+     * @return true if was deleted
      */
     public boolean delete(int id);
     
     /**
      * Delete a VO (uses id to find it)
      * @param vo
+     * @return true if was deleted
      */
     public boolean delete(T vo);
 

@@ -110,7 +110,7 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
             throw new NotFoundException();
         }
 
-        User user = this.usersService.get(username, true, this.systemSuperadmin);
+        User user = this.usersService.get(username, this.systemSuperadmin);
         Integer userId = user.getId();
         this.verifyClaim(token, USER_ID_CLAIM, userId);
 

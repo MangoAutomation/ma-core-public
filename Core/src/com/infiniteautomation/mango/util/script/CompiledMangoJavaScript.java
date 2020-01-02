@@ -181,7 +181,7 @@ public class CompiledMangoJavaScript {
         Map<String, IDataPointValueSource> context = new HashMap<>();
         if(variables != null) {
             for(ScriptContextVariable variable : variables) {
-                DataPointVO dpvo = DataPointDao.getInstance().get(variable.getDataPointId(), true);
+                DataPointVO dpvo = DataPointDao.getInstance().get(variable.getDataPointId());
                 if(dpvo != null) {
                     DataPointRT dprt = Common.runtimeManager.getDataPoint(dpvo.getId());
                     //So we can test with points disabled
@@ -189,7 +189,7 @@ public class CompiledMangoJavaScript {
                         if(testRun) {
                             if(dpvo.getDefaultCacheSize() == 0)
                                 dpvo.setDefaultCacheSize(1);
-                            dprt = new DataPointRT(dpvo, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(dpvo.getDataSourceId(), true), null);
+                            dprt = new DataPointRT(dpvo, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(dpvo.getDataSourceId()), null);
                             dprt.resetValues(); //otherwise variable.value will be empty
                         }else {
                             throw new DataPointStateException(variable.getDataPointId(), new TranslatableMessage(

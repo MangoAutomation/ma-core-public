@@ -35,7 +35,7 @@ public class StateChangeCountEventDetectorDefinition extends TimeoutDetectorDefi
 
 	@Override
 	protected StateChangeCountDetectorVO createEventDetectorVO(int sourceId) {
-        return new StateChangeCountDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new StateChangeCountDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 
     @Override

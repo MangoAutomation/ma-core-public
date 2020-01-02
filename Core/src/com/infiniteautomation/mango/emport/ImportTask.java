@@ -278,7 +278,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             //We can't really guarantee that the import didn't also contain event detectors on the point or that the
             // Data Point VO's we retrieved are still correct, so mix in the detectors to the point out of the database.
             boolean isNew = true;
-            DataPointVO saved = DataPointDao.getInstance().get(dpvo.getId(), true);
+            DataPointVO saved = DataPointDao.getInstance().get(dpvo.getId());
             DataPointDao.getInstance().loadEventDetectors(saved);
             for(AbstractPointEventDetectorVO<?> eventDetector : dpvo.getEventDetectors()) {
                 Iterator<AbstractPointEventDetectorVO<?>> iter = saved.getEventDetectors().iterator();
@@ -296,7 +296,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             }
             
             //Save the data point
-            dataPointService.update(saved.getId(), saved, true, user);
+            dataPointService.update(saved.getId(), saved, user);
             for(AbstractPointEventDetectorVO<?> modified : dpvo.getEventDetectors())
                 importContext.addSuccessMessage(isNew, "emport.eventDetector.prefix", modified.getXid());
         }

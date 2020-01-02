@@ -77,7 +77,7 @@ public class EventDao extends BaseDao {
                 LOG.error(e.getMessage(), e);
             }
             vo.setMessage(event.getMessage());
-            AuditEventDao.getInstance().insert(vo, false);
+            AuditEventDao.getInstance().insert(vo);
             // Save for use in the cache
             type.setReferenceId2(vo.getId());
         } else {
@@ -371,7 +371,7 @@ public class EventDao extends BaseDao {
     }
 
     public EventInstance insertEventComment(UserCommentVO comment) {
-        UserCommentDao.getInstance().insert(comment, false);
+        UserCommentDao.getInstance().insert(comment);
         return getEventInstance(comment.getReferenceId());
     }
 

@@ -349,7 +349,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                                 renderedPointValues.add(rpvt);
                             }
                     } else {
-                        dpvo = DataPointDao.getInstance().get(pair.getKey(), true);
+                        dpvo = DataPointDao.getInstance().get(pair.getKey());
                         if(dpvo == null)
                             continue;
 
@@ -381,7 +381,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 for(IntStringPair pair : additionalContext) {
                     DataPointRT dprt = Common.runtimeManager.getDataPoint(pair.getKey());
                     if(dprt == null) {
-                        DataPointVO targetVo = DataPointDao.getInstance().get(pair.getKey(), false);
+                        DataPointVO targetVo = DataPointDao.getInstance().get(pair.getKey());
                         if(targetVo == null) {
                             LOG.warn("Additional context point with ID: " + pair.getKey() + " and context name " + pair.getValue() + " could not be found.");
                             continue; //Not worth aborting the email, just warn it
@@ -389,7 +389,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
                         if(targetVo.getDefaultCacheSize() == 0)
                             targetVo.setDefaultCacheSize(1);
-                        dprt = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(targetVo.getDataSourceId(), true), null);
+                        dprt = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(targetVo.getDataSourceId()), null);
                         dprt.resetValues();
                     }
                     context.put(pair.getValue(), dprt);

@@ -264,7 +264,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
         int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
 
-        User existing = this.usersService.get(userId, true, this.systemSuperadmin);
+        User existing = this.usersService.get(userId, this.systemSuperadmin);
         this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
 
         User updated = existing.copy();
@@ -276,7 +276,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         // generating the token.
         BackgroundContext.set(this.systemSuperadmin);
         try {
-            return this.usersService.update(existing, updated, true, this.systemSuperadmin);
+            return this.usersService.update(existing, updated, this.systemSuperadmin);
         }finally {
             BackgroundContext.remove();
         }
@@ -307,7 +307,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         
         BackgroundContext.set(this.systemSuperadmin);
         try {
-            newUser = this.usersService.insert(newUser, true, this.systemSuperadmin);
+            newUser = this.usersService.insert(newUser, this.systemSuperadmin);
         }finally {
             BackgroundContext.remove();
         }

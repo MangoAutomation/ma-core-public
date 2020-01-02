@@ -95,7 +95,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     }
     
     private void commonValidation(ProcessResult response, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
-        DataPointVO dp = DataPointDao.getInstance().get(vo.getTargetPointId(), false);
+        DataPointVO dp = DataPointDao.getInstance().get(vo.getTargetPointId());
 
         int dataType = DataTypes.UNKNOWN;
         if (dp == null)
@@ -129,7 +129,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
             }
         }
         else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
-            DataPointVO dpActive = DataPointDao.getInstance().get(vo.getActivePointId(), false);
+            DataPointVO dpActive = DataPointDao.getInstance().get(vo.getActivePointId());
 
             if (dpActive == null)
                 response.addContextualMessage("activePointId", "eventHandlers.invalidActiveSource");
@@ -164,7 +164,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
             }
         }
         else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_POINT_VALUE) {
-            DataPointVO dpInactive = DataPointDao.getInstance().get(vo.getInactivePointId(), false);
+            DataPointVO dpInactive = DataPointDao.getInstance().get(vo.getInactivePointId());
 
             if (dpInactive == null)
                 response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSource");

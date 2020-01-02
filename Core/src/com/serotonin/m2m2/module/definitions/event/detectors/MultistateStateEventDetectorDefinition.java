@@ -35,7 +35,7 @@ public class MultistateStateEventDetectorDefinition extends PointEventDetectorDe
 
 	 @Override
 	protected MultistateStateDetectorVO createEventDetectorVO(int sourceId) {
-	     return new MultistateStateDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+	     return new MultistateStateDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 
     @Override

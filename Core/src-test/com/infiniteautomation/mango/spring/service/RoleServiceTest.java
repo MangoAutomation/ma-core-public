@@ -38,14 +38,14 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
             MockDataSourceVO ds = new MockDataSourceVO();
             ds.setXid("DS_TEST1");
             ds.setName("TEST");
-            DataSourceDao.getInstance().insert(ds, true);
+            DataSourceDao.getInstance().insert(ds);
             
             DataPointVO dp = new DataPointVO();
             dp.setXid("DP_PERM_TEST");
             dp.setName("test name");
             dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
             dp.setDataSourceId(ds.getId());
-            DataPointDao.getInstance().insert(dp, true);
+            DataPointDao.getInstance().insert(dp);
             
             //TODO Wire into data point service?
             //Mock up the insert into the mapping table for now
@@ -66,27 +66,27 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
     @Test(expected = ValidationException.class)
     public void cannotInsertNewUserRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
-        service.insert(vo, true, systemSuperadmin);
+        service.insert(vo, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotInsertSuperadminRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
-        service.insert(vo, true, systemSuperadmin);
+        service.insert(vo, systemSuperadmin);
     }
     
     @Test(expected = ValidationException.class)
     public void cannotModifyUserRole() {
-        RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID, true, systemSuperadmin);
+        RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID, systemSuperadmin);
         RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
-        service.update(vo.getXid(), updated, true, systemSuperadmin);
+        service.update(vo.getXid(), updated, systemSuperadmin);
     }
 
     @Test(expected = ValidationException.class)
     public void cannotModifySuperadminRole() {
-        RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID, true, systemSuperadmin);
+        RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID, systemSuperadmin);
         RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
-        service.update(vo.getXid(), updated, true, systemSuperadmin);
+        service.update(vo.getXid(), updated, systemSuperadmin);
     }
     
     @Override

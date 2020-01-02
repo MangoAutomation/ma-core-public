@@ -53,7 +53,7 @@ public interface AbstractVOAccess<T extends AbstractVO<?>> extends AbstractBasic
      *            XID to search for
      * @return vo if found, otherwise null
      */
-    public T getByXid(String xid, boolean full);
+    public T getByXid(String xid);
     
     
     /**
@@ -63,5 +63,5 @@ public interface AbstractVOAccess<T extends AbstractVO<?>> extends AbstractBasic
      *            name to search for
      * @return List of VO with matching name
      */
-    public List<T> getByName(String name, boolean full);
+    public List<T> getByName(String name);
 }

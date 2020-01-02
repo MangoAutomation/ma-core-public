@@ -41,7 +41,7 @@ public class AlphanumericRegexStateEventDetectorDefinition extends TimeoutDetect
 	
 	@Override
 	protected AlphanumericRegexStateDetectorVO createEventDetectorVO(int sourceId) {
-	    return new AlphanumericRegexStateDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+	    return new AlphanumericRegexStateDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
     @Override

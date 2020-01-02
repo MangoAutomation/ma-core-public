@@ -99,7 +99,7 @@ public class ScriptContextVariable implements Serializable{
         StringBuilder sb = new StringBuilder();
         boolean first = true;
         for (ScriptContextVariable ivp : context) {
-            DataPointVO dp = dataPointDao.get(ivp.getDataPointId(), false);
+            DataPointVO dp = dataPointDao.get(ivp.getDataPointId());
             if (first){
                 first = false;
             }else

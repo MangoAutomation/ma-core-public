@@ -76,7 +76,7 @@ public class DataSourceQuery extends ScriptUtility {
 	}
 	
 	public DataSourceWrapper byXid(String xid) {
-	    DataSourceVO<?> ds = DataSourceDao.getInstance().getByXid(xid, true);
+	    DataSourceVO<?> ds = DataSourceDao.getInstance().getByXid(xid);
 	    if(ds == null)
 	        return null;
 	    

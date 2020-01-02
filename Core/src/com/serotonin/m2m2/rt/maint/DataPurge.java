@@ -77,7 +77,7 @@ public class DataPurge {
                 purgeFilters.add(pfd.getPurgeFilter());
 
 	        // Get the data point information.
-	        List<DataPointVO> dataPoints = dataPointDao.getAll(false);
+	        List<DataPointVO> dataPoints = dataPointDao.getAll();
 	        for (DataPointVO dataPoint : dataPoints)
 	            purgePoint(dataPoint, countPointValues, purgeFilters);
 	        
@@ -131,7 +131,7 @@ public class DataPurge {
             }
             else {
                 // Check the data source level.
-                DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataPoint.getDataSourceId(), false);
+                DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataPoint.getDataSourceId());
                 if (ds.isPurgeOverride()) {
                     purgeType = ds.getPurgeType();
                     purgePeriod = ds.getPurgePeriod();

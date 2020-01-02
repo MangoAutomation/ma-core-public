@@ -424,7 +424,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         
         JsonArray context = new JsonArray();
         for(IntStringPair pnt : additionalContext) {
-        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey(), true);
+        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey());
         	if(dpvo != null) {
         		JsonObject point = new JsonObject();
         		point.put("dataPointXid", dpvo.getXid());

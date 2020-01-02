@@ -79,12 +79,12 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        for(User user : dao.getAll(true)) {
+        for(User user : dao.getAll()) {
             if(user.getRoles().contains(event.getRole().getRole())) {
                 Set<Role> updated = new HashSet<>(user.getRoles());
                 updated.remove(event.getRole().getRole());
                 user.setRoles(updated);
-                dao.saveUser(user);  
+                dao.update(dao.get(user.getId()), user);  
             }
         }
     }
@@ -93,9 +93,9 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      * Nice little hack since Users don't have an XID.
      */
     @Override
-    public User get(String username, boolean full, PermissionHolder user)
+    public User get(String username, PermissionHolder user)
             throws NotFoundException, PermissionException {
-        User vo = dao.getUser(username);
+        User vo = dao.getByXid(username);
         if(vo == null)
             throw new NotFoundException();
         ensureReadPermission(user, vo);
@@ -118,7 +118,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     }
     
     @Override
-    public User insert(User vo, boolean full, PermissionHolder user)
+    public User insert(User vo, PermissionHolder user)
             throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
@@ -141,12 +141,12 @@ public class UsersService extends AbstractVOService<User, UserDao> {
             vo.setCreated(new Date());
         }
         
-        dao.saveUser(vo);
+        dao.insert(vo);
         return vo;
     }
 
     @Override
-    public User update(User existing, User vo, boolean full, PermissionHolder holder)
+    public User update(User existing, User vo, PermissionHolder holder)
             throws PermissionException, ValidationException {
         ensureEditPermission(holder, existing);
         vo.setId(existing.getId());
@@ -175,7 +175,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         }
         
         ensureValid(existing, vo, holder);
-        dao.saveUser(vo);
+        dao.update(existing, vo);
         return vo;
     }
     
@@ -190,7 +190,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
         //Only admin can delete
         user.ensureHasAdminRole();
 
-        dao.deleteUser(vo.getId());
+        dao.delete(vo);
         return vo;
     }
     
@@ -203,7 +203,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      */
     public void updatePassword(User user, String newPassword, User permissionHolder) throws ValidationException {
         // don't want to change the passed in user in case it comes from the cache (in which case another thread might use it)
-        User copy = this.get(user.getId(), false, permissionHolder);
+        User copy = this.get(user.getId(), permissionHolder);
         copy.setPlainTextPassword(newPassword);
         ensureValid(user, permissionHolder);
         copy.hashPlainText();
@@ -221,7 +221,7 @@ public class UsersService extends AbstractVOService<User, UserDao> {
     public void lockPassword(String username, PermissionHolder user)
             throws PermissionException, NotFoundException {
         permissionService.ensureAdminRole(user);
-        User toLock = get(username, false, user);
+        User toLock = this.get(username, user);
         if (user instanceof User && ((User) user).getId() == toLock.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.cannotLockOwnPassword"), user);
         dao.lockPassword(toLock);
@@ -451,10 +451,10 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      * @throws AddressException 
      */
     public User approveUser(String username, boolean sendEmail, PermissionHolder user) throws PermissionException, NotFoundException, TemplateException, IOException, AddressException {
-        User existing = get(username, true, user);
+        User existing = this.get(username, user);
         User approved = existing.copy();
         approved.setDisabled(false);
-        update(existing, approved, true, user);
+        update(existing, approved, user);
         
         Translations translations = existing.getTranslations();
         Map<String, Object> model = new HashMap<>();

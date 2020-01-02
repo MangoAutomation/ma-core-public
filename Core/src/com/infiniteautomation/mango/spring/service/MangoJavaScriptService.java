@@ -153,7 +153,7 @@ public class MangoJavaScriptService {
         List<String> varNameSpace = new ArrayList<String>();
         for(ScriptContextVariable var : context) {
             String varName = var.getVariableName();
-            DataPointVO dp = DataPointDao.getInstance().get(var.getDataPointId(), true);
+            DataPointVO dp = DataPointDao.getInstance().get(var.getDataPointId());
             if(dp == null)
                 result.addContextualMessage("context", "javascript.validate.missingContextPoint", varName);
             else {

@@ -34,7 +34,7 @@ public class AnalogRangeEventDetectorDefinition extends TimeoutDetectorDefinitio
 
 	@Override
 	protected AnalogRangeDetectorVO createEventDetectorVO(int sourceId) {
-        return new AnalogRangeDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new AnalogRangeDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
     @Override

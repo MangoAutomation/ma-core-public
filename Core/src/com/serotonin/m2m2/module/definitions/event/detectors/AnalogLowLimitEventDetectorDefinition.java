@@ -35,7 +35,7 @@ public class AnalogLowLimitEventDetectorDefinition extends TimeoutDetectorDefini
 
 	@Override
 	protected AnalogLowLimitDetectorVO createEventDetectorVO(int sourceId) {
-        return new AnalogLowLimitDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new AnalogLowLimitDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
     @Override

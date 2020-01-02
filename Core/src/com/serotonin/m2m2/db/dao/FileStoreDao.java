@@ -47,7 +47,7 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
     }
 
     public Map<String, FileStoreDefinition> getFileStoreMap() {
-        List<FileStore> fileStores = getAll(true);
+        List<FileStore> fileStores = getAll();
         Map<String, FileStoreDefinition> definitionsMap = new HashMap<String, FileStoreDefinition>();
         for(FileStore fs : fileStores)
             definitionsMap.put(fs.getStoreName(), fs.toDefinition());

@@ -46,7 +46,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             xid = dataPointService.getDao().generateUniqueXid();
         }else {
             try {
-                vo = dataPointService.get(xid, true, user);
+                vo = dataPointService.get(xid, user);
             }catch(NotFoundException e) {
                 
             }
@@ -56,7 +56,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             // Locate the data source for the point.
             String dsxid = json.getString("dataSourceXid");
             try {
-                dsvo = dataSourceService.get(dsxid, false, user);
+                dsvo = dataSourceService.get(dsxid, user);
             }catch(NotFoundException e) {
                 addFailureMessage("emport.dataPoint.badReference", xid);
                 return;
@@ -87,9 +87,9 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
                 try {
                 	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
                 	    if(isNew) {
-                	        dataPointService.insert(vo, true, user);
+                	        dataPointService.insert(vo, user);
                 	    }else {
-                	        dataPointService.update(vo.getId(), vo, true, user);
+                	        dataPointService.update(vo.getId(), vo, user);
                 	    }
                 		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                 	}else{

@@ -63,7 +63,7 @@ public interface JsonSerializable {
             }
             JsonArray permissions = jsonObject.getJsonArray(permissionName);
             for(JsonValue jv : permissions) {
-                RoleVO role = RoleDao.getInstance().getByXid(jv.toString(), false);
+                RoleVO role = RoleDao.getInstance().getByXid(jv.toString());
                 if(role != null) {
                     roles.add(role.getRole());
                 } else {

@@ -109,13 +109,13 @@ public class ConfigurationExportData {
         Map<String, Object> data = new LinkedHashMap<>();
         
         if (ArrayUtils.contains(exportElements, DATA_SOURCES))
-            data.put(DATA_SOURCES, DataSourceDao.getInstance().getAll(true));
+            data.put(DATA_SOURCES, DataSourceDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, DATA_POINTS))
-            data.put(DATA_POINTS, DataPointDao.getInstance().getAll(true));
+            data.put(DATA_POINTS, DataPointDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, USERS))
-            data.put(USERS, UserDao.getInstance().getUsers());
+            data.put(USERS, UserDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, MAILING_LISTS))
-            data.put(MAILING_LISTS, MailingListDao.getInstance().getAll(true));
+            data.put(MAILING_LISTS, MailingListDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, PUBLISHERS))
             data.put(PUBLISHERS, PublisherDao.getInstance().getPublishers());
         if (ArrayUtils.contains(exportElements, EVENT_HANDLERS))
@@ -125,7 +125,7 @@ public class ConfigurationExportData {
         if (ArrayUtils.contains(exportElements, VIRTUAL_SERIAL_PORTS))
             data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, JSON_DATA))
-            data.put(JSON_DATA, JsonDataDao.getInstance().getAll(true));
+            data.put(JSON_DATA, JsonDataDao.getInstance().getAll());
         
         //TODO Add EVENT_DETECTORS
         //TODO Write the ImportTask properly for EventDetectors...

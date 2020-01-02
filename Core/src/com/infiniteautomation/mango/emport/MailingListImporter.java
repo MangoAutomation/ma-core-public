@@ -35,7 +35,7 @@ public class MailingListImporter extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                vo = service.get(xid, true, user);
+                vo = service.get(xid, user);
             }catch(NotFoundException e) {
 
             }
@@ -50,9 +50,9 @@ public class MailingListImporter extends Importer {
             ctx.getReader().readInto(vo, json);
             boolean isnew = vo.getId() == Common.NEW_ID;
             if(isnew) {
-                service.insert(vo, true, user);
+                service.insert(vo, user);
             }else {
-                service.update(vo.getId(), vo, true, user);
+                service.update(vo.getId(), vo, user);
             }
             addSuccessMessage(isnew, "emport.mailingList.prefix", xid);
         }catch(ValidationException e) {

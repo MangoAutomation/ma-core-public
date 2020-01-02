@@ -59,7 +59,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 */
 	public int refreshDataPoint(String xid){
 		
-		DataPointVO vo = DataPointDao.getInstance().getByXid(xid, false);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		
 		if(vo != null){
 			
@@ -89,7 +89,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
      */
     public int refreshDataSource(String xid){
         
-        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid, false);
+        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
         
         if(vo != null){
             
@@ -115,7 +115,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 */
 	public boolean isDataSourceEnabled(String xid){
 		
-		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid, false);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		
 		if(vo == null)
 			return false;
@@ -136,11 +136,11 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 */
 	public int enableDataSource(String xid) {
 	    try {
-	        DS vo = dataSourceService.get(xid, true, permissions);
+	        DS vo = dataSourceService.get(xid, permissions);
 	        if(!vo.isEnabled()) {
 	            vo.setEnabled(true);
 	            try{
-	                dataSourceService.update(xid, vo, true, permissions);
+	                dataSourceService.update(xid, vo, permissions);
 	            }catch(Exception e){
 	                LOG.error(e.getMessage(), e);
 	                throw e;
@@ -160,11 +160,11 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 */
 	public int disableDataSource(String xid){
         try {
-            DS vo = dataSourceService.get(xid, true, permissions);
+            DS vo = dataSourceService.get(xid, permissions);
             if(vo.isEnabled()) {
                 vo.setEnabled(false);
                 try{
-                    dataSourceService.update(xid, vo, true, permissions);
+                    dataSourceService.update(xid, vo, permissions);
                 }catch(Exception e){
                     LOG.error(e.getMessage(), e);
                     throw e;
@@ -186,12 +186,12 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 * @return true if it is, false if it is not
 	 */
 	public boolean isDataPointEnabled(String xid){
-		DataPointVO vo = DataPointDao.getInstance().getByXid(xid, false);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null)
 			return false;
 		else{
 			if(permissionService.hasDataPointSetPermission(permissions, vo) || permissionService.hasDataPointReadPermission(permissions, vo)){
-				DataSourceVO<?> ds = DataSourceDao.getInstance().get(vo.getDataSourceId(), false);
+				DataSourceVO<?> ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
 				if(ds == null)
 					return false;
 				return (ds.isEnabled() && vo.isEnabled());
@@ -206,7 +206,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
 	 */
 	public int enableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.getInstance().getByXid(xid, true);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled()){
@@ -227,7 +227,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
 	 */
 	public int disableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.getInstance().getByXid(xid, true);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled()){
@@ -248,7 +248,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
      * @return true if it is, false if it is not or no permission
      */
     public boolean isPublisherEnabled(String xid){
-        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid, false);
+        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
         
         if(vo == null)
             return false;
@@ -268,7 +268,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enablePublisher(String xid){
-        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid, true);
+        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
         if(vo == null || !permissionService.hasAdminRole(permissions))
             return DOES_NOT_EXIST;
         else if(!vo.isEnabled()){
@@ -290,7 +290,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disablePublisher(String xid){
-        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid, true);
+        PublisherVO<?> vo = PublisherDao.getInstance().getByXid(xid);
         if(vo == null || !permissionService.hasAdminRole(permissions))
             return DOES_NOT_EXIST;
         else if(vo.isEnabled()){

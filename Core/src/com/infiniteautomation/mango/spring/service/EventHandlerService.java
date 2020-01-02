@@ -55,7 +55,7 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
     @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        List<T> all = dao.getAll(true);
+        List<T> all = dao.getAll();
         all.stream().forEach((eh) -> {
             eh.getDefinition().handleRoleDeletedEvent(eh, event);
         });

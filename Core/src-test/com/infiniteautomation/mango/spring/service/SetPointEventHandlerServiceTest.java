@@ -58,7 +58,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditRoles(editRoles);
-        return dataSourceService.insert(dsVo, true, systemSuperadmin);
+        return dataSourceService.insert(dsVo, systemSuperadmin);
     }
     
     DataPointVO createDataPoint(DataSourceVO<?> dsVo, Set<Role> readRoles, Set<Role> setRoles) {
@@ -68,7 +68,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         point.setReadRoles(readRoles);
         point.setSetRoles(setRoles);
         point.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
-        point = dataPointService.insert(point, true, systemSuperadmin);
+        point = dataPointService.insert(point, systemSuperadmin);
         return point;
     }
     
@@ -85,7 +85,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         SetPointEventHandlerVO vo = newVO();
-        service.insert(vo, true, editUser);
+        service.insert(vo, editUser);
     }
 
     @Test
@@ -95,7 +95,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
-            service.insert(vo, true, editUser);
+            service.insert(vo, editUser);
         });
     }
     
@@ -106,12 +106,12 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
 
-            service.insert(vo, true, systemSuperadmin);
-            SetPointEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            service.insert(vo, systemSuperadmin);
+            SetPointEventHandlerVO fromDb = service.get(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);
             roleService.delete(editRole.getId(), systemSuperadmin);
             roleService.delete(readRole.getId(), systemSuperadmin);
-            SetPointEventHandlerVO updated = service.get(fromDb.getId(),true,  systemSuperadmin);
+            SetPointEventHandlerVO updated = service.get(fromDb.getId(), systemSuperadmin);
             fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
             assertVoEqual(fromDb, updated);
         });
@@ -124,15 +124,15 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             SetPointEventHandlerVO vo = newVO();
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            service.update(vo.getXid(), vo, true, systemSuperadmin);
-            SetPointEventHandlerVO fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            service.update(vo.getXid(), vo, systemSuperadmin);
+            SetPointEventHandlerVO fromDb = service.get(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);
             service.delete(vo.getId(), systemSuperadmin);
             
             //Ensure the mappings are gone
             assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
             
-            service.get(vo.getId(), true, systemSuperadmin);
+            service.get(vo.getId(), systemSuperadmin);
         });
     }
     

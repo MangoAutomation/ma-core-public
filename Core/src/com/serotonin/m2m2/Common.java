@@ -204,6 +204,7 @@ public class Common {
     public static int defaultTaskQueueSize = 1;
 
     public static final String APPLICATION_LOGO = "/images/logo.png";
+
     public static AbstractTimer timer = new OrderedRealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
@@ -554,12 +555,21 @@ public class Common {
         return backgroundContext.getProcessDescriptionKey();
     }
 
-    public static Path getFiledataPath() {
-        return FILEDATA_PATH.get();
-    }
+    private static String lazyFiledataPath = null;
 
-    public static Path getTempPath() {
-        return TEMP.get();
+    public static String getFiledataPath() {
+        if (lazyFiledataPath == null) {
+            String name = SystemSettingsDao.instance.getValue(SystemSettingsDao.FILEDATA_PATH);
+            if (name.startsWith("~"))
+                name = getWebPath(name.substring(1));
+
+            File file = new File(name);
+            if (!file.exists())
+                file.mkdirs();
+
+            lazyFiledataPath = name;
+        }
+        return lazyFiledataPath;
     }
 
     public static CronTimerTrigger getCronTrigger(int periodType, int delaySeconds) {

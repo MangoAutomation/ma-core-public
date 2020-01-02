@@ -200,7 +200,7 @@ public class MangoTestBase {
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
         
-        User admin = UserDao.getInstance().getUser("admin");
+        User admin = UserDao.getInstance().getByXid("admin");
         
         @SuppressWarnings("unchecked")
         ImportTask<?,?,?> task = new ImportTask<>(jo, 
@@ -281,8 +281,8 @@ public class MangoTestBase {
         user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(roles))));
         user.setDisabled(false);
         UsersService service = Common.getBean(UsersService.class);
-        service.insert(user, true, PermissionHolder.SYSTEM_SUPERADMIN);
-        return service.get(user.getId(), true, PermissionHolder.SYSTEM_SUPERADMIN);
+        service.insert(user, PermissionHolder.SYSTEM_SUPERADMIN);
+        return service.get(user.getId(), PermissionHolder.SYSTEM_SUPERADMIN);
     }
     
     /**

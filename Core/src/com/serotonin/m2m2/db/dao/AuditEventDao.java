@@ -61,17 +61,11 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
         });
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getTableName()
-     */
     @Override
     protected String getTableName() {
         return SchemaDefinition.AUDIT_TABLE;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#voToObjectArray(java.lang.Object)
-     */
     @Override
     protected Object[] voToObjectArray(AuditEventInstanceVO vo) {
         String jsonData = null;
@@ -94,9 +88,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
         };
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertyTypeMap()
-     */
     @Override
     protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
         LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
@@ -112,17 +103,11 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
         return map;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getPropertiesMap()
-     */
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.db.dao.AbstractBasicDao#getRowMapper()
-     */
     @Override
     public RowMapper<AuditEventInstanceVO> getRowMapper() {
         return new AuditEventInstanceRowMapper();
@@ -130,9 +115,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
 
     class AuditEventInstanceRowMapper implements RowMapper<AuditEventInstanceVO>{
 
-        /* (non-Javadoc)
-         * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
-         */
         @Override
         public AuditEventInstanceVO mapRow(ResultSet rs, int rowNum)
                 throws SQLException {
@@ -207,5 +189,4 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
     public int purgeEventsBefore(final long time, final AlarmLevels alarmLevel) {
         return ejt.update("delete from audit where ts<? and alarmLevel=?", new Object[] {time, alarmLevel.value()});
     }
-    
 }

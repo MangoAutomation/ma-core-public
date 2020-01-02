@@ -656,7 +656,7 @@ public class PermissionService {
         Set<String> permissions = explodeLegacyPermissionGroups(groups);
         Set<Role> roles = new HashSet<>(permissions.size());
         for(String permission : permissions) {
-            RoleVO vo = roleDao.getByXid(permission, true);
+            RoleVO vo = roleDao.getByXid(permission);
             if(vo != null) {
                 roles.add(vo.getRole());
             }else {

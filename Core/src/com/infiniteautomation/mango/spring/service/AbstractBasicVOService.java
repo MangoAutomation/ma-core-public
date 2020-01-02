@@ -5,7 +5,6 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -183,13 +182,12 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * 
      * @param id
      * @param user
-     * @param full - include relational data
      * @return
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public T get(int id, boolean full, PermissionHolder user) throws NotFoundException, PermissionException {
-        T vo = dao.get(id, full);
+    public T get(int id, PermissionHolder user) throws NotFoundException, PermissionException {
+        T vo = dao.get(id);
         if(vo == null)
             throw new NotFoundException();
         ensureReadPermission(user, vo);
@@ -200,12 +198,11 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * 
      * @param vo
      * @param user
-     * @param full - include relational data
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insert(T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
+    public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
         
@@ -217,7 +214,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
         }
         
         ensureValid(vo, user);
-        dao.insert(vo, full);
+        dao.insert(vo);
         return vo;
     }
     
@@ -225,32 +222,30 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * 
      * @param existingId
      * @param vo
-     * @param full
      * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(int existingId, T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
-        return update(get(existingId, full, user), vo, full, user);
+    public T update(int existingId, T vo, PermissionHolder user) throws PermissionException, ValidationException {
+        return update(get(existingId, user), vo, user);
     }
     
     /**
      * 
      * @param existing
      * @param vo
-     * @param full - include relational data
      * @param user
      * 
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(T existing, T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
+    public T update(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
-        dao.update(existing, vo, full);
+        dao.update(existing, vo);
         return vo;
     }
     
@@ -263,7 +258,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @throws NotFoundException
      */
     public T delete(int id, PermissionHolder user) throws PermissionException, NotFoundException {
-        T vo = get(id, true, user);
+        T vo = get(id, user);
         return delete(vo, user);
     }
     
@@ -284,18 +279,13 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * Query for VOs and optionally load the relational info
      * @param conditions
-     * @param full
      * @param callback
      */
-    public void customizedQuery(ConditionSortLimit conditions, boolean full, MappedRowCallback<T> callback) {
-        if(full) {
-            dao.customizedQuery(conditions, (item, index) ->{
-                dao.loadRelationalData(item);
-                callback.row(item, index);
-            });
-        }else {
-            dao.customizedQuery(conditions, callback);
-        }
+    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
+        dao.customizedQuery(conditions, (item, index) ->{
+            dao.loadRelationalData(item);
+            callback.row(item, index);
+        });
     }
     
     /**
@@ -304,15 +294,11 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * @param full - load relational data
      * @param callback
      */
-    public void customizedQuery(ASTNode conditions, boolean full, MappedRowCallback<T> callback) {
-        if(full) {
-            dao.customizedQuery(dao.rqlToCondition(conditions), (item, index) ->{
-                dao.loadRelationalData(item);
-                callback.row(item, index);
-            });
-        }else {
-            dao.customizedQuery(dao.rqlToCondition(conditions), callback);
-        }
+    public void customizedQuery(ASTNode conditions, MappedRowCallback<T> callback) {
+        dao.customizedQuery(dao.rqlToCondition(conditions), (item, index) ->{
+            dao.loadRelationalData(item);
+            callback.row(item, index);
+        });
     }
     
     /**
@@ -397,15 +383,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     public void ensureDeletePermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasDeletePermission(user, vo))
             throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
-    }
-    
-    /**
-     * Convert Set<RoleVO> to Set<Role>
-     * @param roles
-     * @return
-     */
-    protected Set<Role> convertToRoles(Set<RoleVO> roles){
-        return roles.stream().map(RoleVO::getRole).collect(Collectors.toSet());
     }
     
     /**

@@ -31,7 +31,7 @@ public class RuntimeManagerScriptTestUtility<DS extends DataSourceVO<DS>> extend
 	@Override
 	public int refreshDataPoint(String xid){
 		
-		DataPointVO vo = DataPointDao.getInstance().getByXid(xid, false);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		
 		if(vo != null){
 			
@@ -61,7 +61,7 @@ public class RuntimeManagerScriptTestUtility<DS extends DataSourceVO<DS>> extend
      */
     public int refreshDataSource(String xid){
         
-        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid, false);
+        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
         
         if(vo != null){
             
@@ -87,7 +87,7 @@ public class RuntimeManagerScriptTestUtility<DS extends DataSourceVO<DS>> extend
 	 */
 	@Override
 	public int enableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid, false);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		if(vo == null || !permissionService.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
@@ -103,7 +103,7 @@ public class RuntimeManagerScriptTestUtility<DS extends DataSourceVO<DS>> extend
 	 */
 	@Override
 	public int disableDataSource(String xid){
-		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid, false);
+		DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
 		if(vo == null || !permissionService.hasDataSourcePermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())
@@ -119,7 +119,7 @@ public class RuntimeManagerScriptTestUtility<DS extends DataSourceVO<DS>> extend
 	 */
 	@Override
 	public int enableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.getInstance().getByXid(xid, false);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(!vo.isEnabled())
@@ -135,7 +135,7 @@ public class RuntimeManagerScriptTestUtility<DS extends DataSourceVO<DS>> extend
 	 */
 	@Override
 	public int disableDataPoint(String xid){
-		DataPointVO vo = DataPointDao.getInstance().getByXid(xid, false);
+		DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 		if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
 			return DOES_NOT_EXIST;
 		else if(vo.isEnabled())

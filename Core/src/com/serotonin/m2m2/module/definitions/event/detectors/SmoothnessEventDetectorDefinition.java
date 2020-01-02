@@ -34,7 +34,7 @@ public class SmoothnessEventDetectorDefinition extends TimeoutDetectorDefinition
 
 	@Override
 	protected SmoothnessDetectorVO createEventDetectorVO(int sourceId) {
-        return new SmoothnessDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new SmoothnessDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
     @Override

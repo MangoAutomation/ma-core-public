@@ -43,6 +43,6 @@ public class SuperadminPermissionDefinition extends PermissionDefinition {
 
     @Override
     public MangoPermission getPermission() {
-        return new MangoPermission(PERMISSION, Collections.singleton(RoleDao.getInstance().getByXid(PermissionHolder.SUPERADMIN_ROLE_XID, true)));
+        return new MangoPermission(PERMISSION, Collections.singleton(RoleDao.getInstance().getByXid(PermissionHolder.SUPERADMIN_ROLE_XID)));
     }
 }

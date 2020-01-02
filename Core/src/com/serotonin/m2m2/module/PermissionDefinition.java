@@ -72,7 +72,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
         Set<RoleVO> roles = RoleDao.getInstance().getRoleVOs(getPermissionTypeName());
         if(roles.isEmpty()) {
             for(Role role : getDefaultRoles()) {
-                roles.add(RoleDao.getInstance().getByXid(role.getXid(), true));
+                roles.add(RoleDao.getInstance().getByXid(role.getXid()));
             }
             return new MangoPermission(getPermissionTypeName(), roles);
         }else {

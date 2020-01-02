@@ -257,7 +257,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     @Override
-    public void insert(DataPointVO vo, boolean full) {
+    public void insert(DataPointVO vo) {
         checkAddPoint();
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.beforeInsert(vo);
@@ -266,14 +266,14 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         if (vo.getTextRenderer() == null)
             vo.defaultTextRenderer();
         
-        super.insert(vo, full);
+        super.insert(vo);
         
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.afterInsert(vo);
     }
     
     @Override
-    public void update(DataPointVO existing, DataPointVO vo, boolean full) {
+    public void update(DataPointVO existing, DataPointVO vo) {
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.beforeUpdate(vo);
         
@@ -281,7 +281,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId())
             Common.databaseProxy.newPointValueDao().deletePointValues(vo.getId());
 
-        super.update(existing, vo, full);
+        super.update(existing, vo);
         
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.afterUpdate(vo);
@@ -375,10 +375,10 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
             if (ped.getId() > 0){
                 //Remove from list
                 AbstractPointEventDetectorVO<?> existing = removeFromList(existingDetectors, ped.getId());
-                EventDetectorDao.getInstance().update(existing, ped, true);
+                EventDetectorDao.getInstance().update(existing, ped);
             } else {
                 ped.setId(Common.NEW_ID);
-                EventDetectorDao.getInstance().insert(ped, true);
+                EventDetectorDao.getInstance().insert(ped);
             }
         }
 
@@ -714,7 +714,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         //Get the values from the datasource table
         //TODO Could speed this up if necessary...
-        DataSourceVO<?> dsVo = DataSourceDao.getInstance().get(vo.getDataSourceId(), false);
+        DataSourceVO<?> dsVo = DataSourceDao.getInstance().get(vo.getDataSourceId());
         vo.setDataSourceName(dsVo.getName());
         vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
         vo.setDataSourceXid(dsVo.getXid());

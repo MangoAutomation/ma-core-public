@@ -34,7 +34,7 @@ public class PublisherImporter<PUB extends PublishedPointVO> extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try{
-                vo = service.get(xid, true, user);
+                vo = service.get(xid, user);
             }catch(NotFoundException e) {
                 
             }
@@ -44,7 +44,7 @@ public class PublisherImporter<PUB extends PublishedPointVO> extends Importer {
             if (StringUtils.isBlank(typeStr))
                 addFailureMessage("emport.publisher.missingType", xid, ModuleRegistry.getPublisherDefinitionTypes());
             else {
-                PublisherDefinition def = ModuleRegistry.getPublisherDefinition(typeStr);
+                PublisherDefinition<?> def = ModuleRegistry.getPublisherDefinition(typeStr);
                 if (def == null)
                     addFailureMessage("emport.publisher.invalidType", xid, typeStr,
                             ModuleRegistry.getPublisherDefinitionTypes());

@@ -29,12 +29,9 @@ import com.serotonin.m2m2.vo.role.Role;
 @Component
 public class MangoUserDetailsService implements UserDetailsService {
 
-	/* (non-Javadoc)
-	 * @see org.springframework.security.core.userdetails.UserDetailsService#loadUserByUsername(java.lang.String)
-	 */
 	@Override
 	public User loadUserByUsername(String username) throws UsernameNotFoundException {
-		User user = UserDao.getInstance().getUser(username);
+		User user = UserDao.getInstance().getByXid(username);
 		if (user == null)
 		    throw new UsernameNotFoundException(username);
 		else
@@ -55,7 +52,7 @@ public class MangoUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(roles.size());
         
         for (Role role : roles) {
-        	if(role.equals(PermissionHolder.SUPERADMIN_ROLE)) {
+        	if(role.equals(PermissionHolder.SUPERADMIN_ROLE.get())) {
         		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         	}else {
             	grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role.getXid().toUpperCase(Locale.ROOT)));

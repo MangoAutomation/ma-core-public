@@ -16,7 +16,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.dao.UserDao;
 
 /**
  * @author Jared Wiltshire
@@ -52,7 +51,7 @@ public class Upgrade21 extends DBUpgrade {
             if(toRemove.keySet().size() > 0) {
                 toRemove.keySet().stream().forEach((key) -> {
                     LOG.warn("Removing duplicate user '" + toRemove.get(key) + "' with id " + key);
-                    UserDao.getInstance().deleteUser(key);
+                    ejt.update("DELETE FROM users WHERE id=?", new Object[] {key});
                     PrintWriter pw = new PrintWriter(out);
                     pw.write("WARN: Removing duplicate user '" + toRemove.get(key) + "' with id " + key + "\n");
                     pw.flush();

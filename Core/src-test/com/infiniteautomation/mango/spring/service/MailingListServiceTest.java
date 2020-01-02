@@ -46,7 +46,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO();
             Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
-            service.insert(vo, true, readUser);            
+            service.insert(vo, readUser);            
         });
     }
 
@@ -56,10 +56,10 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO();
             Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
-            service.insert(vo, true, systemSuperadmin);
-            MailingList fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            service.insert(vo, systemSuperadmin);
+            MailingList fromDb = service.get(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);
-            service.update(vo.getXid(), vo, true, readUser);
+            service.update(vo.getXid(), vo, readUser);
         });
     }
 
@@ -69,11 +69,11 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO();
             Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
-            service.insert(vo, true, systemSuperadmin);
-            MailingList fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            service.insert(vo, systemSuperadmin);
+            MailingList fromDb = service.get(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);
             vo.setEditRoles(Collections.emptySet());
-            service.update(vo.getXid(), vo, true, readUser);            
+            service.update(vo.getXid(), vo, readUser);            
         });
     }
     
@@ -83,7 +83,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         Role role = new Role(10000, "new-role");
         Set<Role> editRoles = Collections.singleton(role); 
         vo.setEditRoles(editRoles);
-        service.insert(vo, true, systemSuperadmin);   
+        service.insert(vo, systemSuperadmin);   
     }
     
     @Test
@@ -92,10 +92,10 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO();
             Set<Role> editRoles = Collections.singleton(editRole); 
             vo.setEditRoles(editRoles);
-            service.insert(vo, true, systemSuperadmin);
+            service.insert(vo, systemSuperadmin);
             roleService.delete(editRole.getXid(), systemSuperadmin);
             vo.setEditRoles(Collections.emptySet());
-            MailingList fromDb = service.get(vo.getId(), true, systemSuperadmin);
+            MailingList fromDb = service.get(vo.getId(), systemSuperadmin);
             assertVoEqual(vo, fromDb);            
         });
     }

@@ -42,7 +42,7 @@ public class RealTimeDataPointValue implements JsonSerializable, DataPointListen
 
 	
 	RealTimeDataPointValue(DataPointSummary summary, List<String> paths){
-	    this.vo = DataPointDao.getInstance().get(summary.getId(), true);
+	    this.vo = DataPointDao.getInstance().get(summary.getId());
         this.rt = Common.runtimeManager.getDataPoint(summary.getId());
 		Common.runtimeManager.addDataPointListener(summary.getId(), this);
 		

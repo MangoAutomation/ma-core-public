@@ -125,20 +125,12 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     /**
-     * Get a user by ID from the database (no cache)
-     * @param id
-     * @return
-     */
-    public User getUser(int id) {
-        return this.get(id, true);
-    }
-
-    /**
      * Get a user from the cache, load from database first if necessary
      * @param username
      * @return
      */
-    public User getUser(String username) {
+    @Override
+    public User getByXid(String username) {
         if (username == null) return null;
 
         return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
@@ -248,7 +240,8 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         }
     }
 
-    public List<User> getUsers() {
+    @Override
+    public List<User> getAll() {
         return query(SELECT_ALL + " ORDER BY username", new Object[0], new UserRowMapper());
     }
 
@@ -257,120 +250,62 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 new UserRowMapper());
     }
 
-    public void saveUser(final User user) {
-        // ensure passwords prefixed with {PLAINTEXT} are always hashed before database insertion/update
-        // we hash plain text passwords after validation has taken place so we can check complexity etc
-        user.hashPlainText();
-
-        if (user.getId() == Common.NEW_ID)
-            insertUser(user);
-        else
-            updateUser(user);
-    }
-
-    private static final String USER_INSERT = "INSERT INTO users (username, password, email, phone, " //
-            + "disabled, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, timezone, muted, " //
-            + "name, locale, tokenVersion, passwordVersion, passwordChangeTimestamp, " //
-            + "sessionExpirationOverride, sessionExpirationPeriods, sessionExpirationPeriodType, "
-            + "organization, organizationalRole, createdTs, emailVerifiedTs, data) " //
-            + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
     private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";
     private static final String USER_ROLE_INSERT = "INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)";
     private static final String USER_ROLES_SELECT = "SELECT r.id, r.xid, r.name FROM userRoleMappings AS ur JOIN roles r ON ur.roleId=r.id JOIN users u ON ur.userId=u.id WHERE ur.userId=?";
 
-    void insertUser(User user) {
-
-        getTransactionTemplate().execute(new TransactionCallback<Integer>() {
-            @Override
-            public Integer doInTransaction(TransactionStatus status) {
-                user.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
-                int id = ejt.doInsert(
-                        USER_INSERT,
-                        new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
-                                boolToChar(user.isDisabled()), user.getHomeUrl(),
-                                user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()), user.getTimezone(),
-                                boolToChar(user.isMuted()), user.getName(), user.getLocale(), user.getTokenVersion(),
-                                user.getPasswordVersion(), user.getPasswordChangeTimestamp(), boolToChar(user.isSessionExpirationOverride()),
-                                user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
-                                user.getOrganization(), user.getOrganizationalRole(), 
-                                user.getCreatedTs() == null ? Common.timer.currentTimeMillis() : user.getCreatedTs(), user.getEmailVerifiedTs(), convertData(user.getData())},
-                        new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.VARCHAR,
-                                Types.INTEGER, Types.VARCHAR, Types.VARCHAR,
-                                Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                Types.INTEGER, Types.BIGINT, Types.CHAR,
-                                Types.INTEGER, Types.VARCHAR,
-                                Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB}
-                        );
-                user.setId(id);
-                saveRelationalData(user, true);
-                return id;
-            }
-        });
-        AuditEventType.raiseAddedEvent(AuditEventType.TYPE_USER, user);
-        this.countMonitor.increment();
-
-        this.eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.CREATE, user, null));
+    @Override
+    public void insert(User vo) {
+        // ensure passwords prefixed with {PLAINTEXT} are always hashed before database insertion/update
+        // we hash plain text passwords after validation has taken place so we can check complexity etc
+        vo.hashPlainText();
+        if(vo.getCreatedTs() == null) {
+            vo.setCreated(new Date(Common.timer.currentTimeMillis()));
+        }
+        super.insert(vo);
     }
 
-    private static final String USER_UPDATE = "UPDATE users SET " //
-            + "  username=?, password=?, email=?, phone=?, disabled=?, homeUrl=?, receiveAlarmEmails=?, " //
-            + "  receiveOwnAuditEvents=?, timezone=?, muted=?, name=?, locale=?, passwordVersion=?, passwordChangeTimestamp=?," //
-            + " sessionExpirationOverride=?, sessionExpirationPeriods=?, sessionExpirationPeriodType=?,"
-            + " organization=?, organizationalRole=?, createdTs=?, emailVerifiedTs=?, data=?"
-            + " WHERE id=?";
-
-    void updateUser(User user) {
-        //TODO Mango 4.0 do we really need this?  It's not done on insert?
-//        // Potential fix for "An attempt was made to get a data value of type 'VARCHAR' from a data value of type 'null'"
-//        if (user.getPhone() == null)
-//            user.setPhone("");
-//        if (user.getHomeUrl() == null)
-//            user.setHomeUrl("");
-//        if (user.getTimezone() == null)
-//            user.setTimezone("");
-//        if (user.getName() == null)
-//            user.setName("");
-//        if (user.getLocale() == null)
-//            user.setLocale("");
-
-        int originalPwVersion = user.getPasswordVersion();
-
+    @Override
+    public void update(User existing, User vo) {
+        // ensure passwords prefixed with {PLAINTEXT} are always hashed before database insertion/update
+        // we hash plain text passwords after validation has taken place so we can check complexity etc
+        vo.hashPlainText();
         try {
             User old = getTransactionTemplate().execute(new TransactionCallback<User>() {
                 @Override
                 public User doInTransaction(TransactionStatus status) {
-                    User old = getUser(user.getId());
+                    User old = get(vo.getId());
                     if (old == null) {
                         return null;
                     }
 
-                    boolean passwordChanged = !old.getPassword().equals(user.getPassword());
+                    boolean passwordChanged = !old.getPassword().equals(vo.getPassword());
                     if (passwordChanged) {
-                        user.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
-                        user.setPasswordVersion(old.getPasswordVersion() + 1);
+                        vo.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
+                        vo.setPasswordVersion(old.getPasswordVersion() + 1);
                     } else {
-                        user.setPasswordChangeTimestamp(old.getPasswordChangeTimestamp());
-                        user.setPasswordVersion(old.getPasswordVersion());
+                        vo.setPasswordChangeTimestamp(old.getPasswordChangeTimestamp());
+                        vo.setPasswordVersion(old.getPasswordVersion());
+                    }
+                    UserDao.super.update(old, vo);
+                    //Set the last login time so it is available on the saved user
+                    vo.setLastLogin(old.getLastLogin());
+
+                    boolean permissionsChanged = !old.getRoles().equals(vo.getRoles());
+
+                    EnumSet<UpdatedFields> fields = EnumSet.noneOf(UpdatedFields.class);
+                    if (passwordChanged) {
+                        fields.add(UpdatedFields.PASSWORD);
+                    }
+                    if (permissionsChanged) {
+                        fields.add(UpdatedFields.PERMISSIONS);
                     }
 
-                    ejt.update(
-                            USER_UPDATE,
-                            new Object[] { user.getUsername(), user.getPassword(), user.getEmail(), user.getPhone(),
-                                    boolToChar(user.isDisabled()), user.getHomeUrl(),
-                                    user.getReceiveAlarmEmails().value(), boolToChar(user.isReceiveOwnAuditEvents()),
-                                    user.getTimezone(), boolToChar(user.isMuted()), user.getName(), user.getLocale(),
-                                    user.getPasswordVersion(), user.getPasswordChangeTimestamp(),
-                                    boolToChar(user.isSessionExpirationOverride()), user.getSessionExpirationPeriods(), user.getSessionExpirationPeriodType(),
-                                    user.getOrganization(), user.getOrganizationalRole(), user.getCreatedTs(), user.getEmailVerifiedTs(), convertData(user.getData()),
-                                    user.getId() },
-                            new int[] { Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                    Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                                    Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BIGINT,
-                                    Types.CHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BIGINT, Types.BIGINT, Types.CLOB, Types.INTEGER}
-                            );
-                    saveRelationalData(user, false);
+                    if (passwordChanged || permissionsChanged || vo.isDisabled()) {
+                        exireSessionsForUser(old);
+                    }
+
+                    userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
                     return old;
                 }
             });
@@ -378,33 +313,9 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             if (old == null) {
                 throw new NotFoundException();
             }
-
-            AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
-
-            //Set the last login time so it is available on the saved user
-            user.setLastLogin(old.getLastLogin());
-
-            boolean permissionsChanged = !old.getRoles().equals(user.getRoles());
-            boolean passwordChanged = user.getPasswordVersion() > originalPwVersion;
-
-            EnumSet<UpdatedFields> fields = EnumSet.noneOf(UpdatedFields.class);
-            if (passwordChanged) {
-                fields.add(UpdatedFields.PASSWORD);
-            }
-            if (permissionsChanged) {
-                fields.add(UpdatedFields.PERMISSIONS);
-            }
-
-            if (passwordChanged || permissionsChanged || user.isDisabled()) {
-                exireSessionsForUser(old);
-            }
-
-            userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
-            eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old.getUsername(), fields));
-
         } catch (DataIntegrityViolationException e) {
             // Log some information about the user object.
-            LOG.error("Error updating user: " + user, e);
+            LOG.error("Error updating user: " + vo, e);
             throw e;
         }
     }
@@ -418,34 +329,31 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         }
     }
 
-    public void deleteUser(final int userId) {
-        User user = getTransactionTemplate().execute(new TransactionCallback<User>() {
-            @Override
-            public User doInTransaction(TransactionStatus status) {
-                User user = get(userId, true);
-
-                Object[] args = new Object[] { userId };
-                ejt.update("UPDATE userComments SET userId=null WHERE userId=?", args);
-                ejt.update("DELETE FROM mailingListMembers WHERE userId=?", args);
-                ejt.update("DELETE FROM userEvents WHERE userId=?", args);
-                ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
-                        new TranslatableMessage("events.ackedByDeletedUser").serialize(), userId });
-                ejt.update("DELETE FROM users WHERE id=?", args);
-
-                return user;
-            }
-        });
-
-        AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_USER, user);
-        countMonitor.decrement();
-
-        // expire the user's sessions
-        exireSessionsForUser(user);
-
-        userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.DELETE, user, null));
+    @Override
+    public boolean delete(User vo) {
+        boolean deleted = super.delete(vo);
+        if(deleted) {
+            // expire the user's sessions
+            exireSessionsForUser(vo);
+            userCache.remove(vo.getUsername().toLowerCase(Locale.ROOT));
+        }
+        return deleted;
+    }
+    
+    @Override
+    public void deleteRelationalData(User vo) {
+        Object[] args = new Object[] { vo.getId() };
+        ejt.update("UPDATE userComments SET userId=null WHERE userId=?", args);
+        ejt.update("DELETE FROM mailingListMembers WHERE userId=?", args);
+        ejt.update("DELETE FROM userEvents WHERE userId=?", args);
+        ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
+                new TranslatableMessage("events.ackedByDeletedUser").serialize(), vo.getId() });
     }
 
+    /**
+     * Revoke all tokens for user
+     * @param user
+     */
     public void revokeTokens(User user) {
         int userId = user.getId();
         int currentTokenVersion = user.getTokenVersion();
@@ -506,18 +414,18 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
-        User old = getUser(userId);
+        User old = get(userId);
         ejt.update("UPDATE users SET homeUrl=? WHERE id=?", new Object[] { homeUrl, userId });
-        User user = getUser(userId);
+        User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
         eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
     }
 
     public void saveMuted(int userId, boolean muted) {
-        User old = getUser(userId);
+        User old = get(userId);
         ejt.update("UPDATE users SET muted=? WHERE id=?", new Object[] { boolToChar(muted), userId });
-        User user = getUser(userId);
+        User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
         eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
@@ -530,19 +438,19 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 vo.getPassword(),
                 vo.getEmail(),
                 vo.getPhone(),
-                vo.isDisabled(),
+                boolToChar(vo.isDisabled()),
                 vo.getHomeUrl(),
                 vo.getLastLogin(),
                 vo.getReceiveAlarmEmails().value(),
-                vo.isReceiveOwnAuditEvents(),
+                boolToChar(vo.isReceiveOwnAuditEvents()),
                 vo.getTimezone(),
-                vo.isMuted(),
+                boolToChar(vo.isMuted()),
                 vo.getName(),
                 vo.getLocale(),
                 vo.getTokenVersion(),
                 vo.getPasswordVersion(),
                 vo.getPasswordChangeTimestamp(),
-                vo.isSessionExpirationOverride(),
+                boolToChar(vo.isSessionExpirationOverride()),
                 vo.getSessionExpirationPeriods(),
                 vo.getSessionExpirationPeriodType(),
                 vo.getOrganization(),
@@ -603,6 +511,11 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     protected String getXidPrefix() {
         return "";
     }
+    
+    @Override
+    public String getXidColumnName() {
+        return "username";
+    }
 
     @Override
     public void systemSettingsSaved(String key, String oldValue, String newValue) {
@@ -639,20 +552,5 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             LOG.error(e.getMessage(), e);
         }
         return null;
-    }
-    
-    //Override default get methods
-    @Override
-    public boolean delete(User user) {
-        throw new UnsupportedOperationException("Use deleteUser()");
-    }
-    @Override
-    public void insert(User vo, boolean full) {
-        throw new UnsupportedOperationException("Use saveUser()");
-    }
-    
-    @Override
-    public void update(User existing, User vo, boolean full) {
-        throw new UnsupportedOperationException("Use saveUser()");
     }
 }

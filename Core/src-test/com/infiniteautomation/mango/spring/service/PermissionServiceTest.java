@@ -9,7 +9,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
@@ -73,7 +72,7 @@ public class PermissionServiceTest extends MangoTestBase {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditRoles(editRoles);
-        return dataSourceService.insert(dsVo, true, systemSuperadmin);
+        return dataSourceService.insert(dsVo, systemSuperadmin);
     }
 
     DataPointVO createDataPoint() {
@@ -96,13 +95,13 @@ public class PermissionServiceTest extends MangoTestBase {
         point.setReadRoles(readRoles);
         point.setSetRoles(setRoles);
         point.setPointLocator(new MockPointLocatorVO());
-        dataPointService.insert(point, true, systemSuperadmin);
+        dataPointService.insert(point, systemSuperadmin);
         return point;
     }
     
     Role randomRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, UUID.randomUUID().toString(), "Random permission");
-        roleService.insert(vo, true, PermissionHolder.SYSTEM_SUPERADMIN);
+        roleService.insert(vo, PermissionHolder.SYSTEM_SUPERADMIN);
         return new Role(vo);
     }
     
@@ -152,7 +151,7 @@ public class PermissionServiceTest extends MangoTestBase {
         //Test 2 roles
         roles.add(randomRole());
         testUser.setRoles(new HashSet<>(roles));
-        usersService.update(testUser.getUsername(), testUser, true, systemSuperadmin);
+        usersService.update(testUser.getUsername(), testUser, systemSuperadmin);
         assertTrue(permissionService.hasAnyRole(testUser, roles));
         assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>()));
         assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>(Arrays.asList(randomRole(), randomRole()))));
@@ -160,7 +159,7 @@ public class PermissionServiceTest extends MangoTestBase {
         //Test 3 roles
         roles.add(randomRole());
         testUser.setRoles(new HashSet<>(roles));
-        usersService.update(testUser.getUsername(), testUser, true, systemSuperadmin);
+        usersService.update(testUser.getUsername(), testUser, systemSuperadmin);
         assertTrue(permissionService.hasAnyRole(testUser, roles));
         assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>()));
         assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>(Arrays.asList(randomRole(), randomRole(), randomRole()))));
@@ -207,7 +206,7 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureAdminRoleOK() {
         User testUser = this.createTestUser();
         testUser.setRoles(Collections.singleton(roleService.getSuperadminRole()));
-        usersService.update(testUser.getUsername(), testUser, true, systemSuperadmin);
+        usersService.update(testUser.getUsername(), testUser, systemSuperadmin);
         permissionService.ensureAdminRole(testUser);
     }
     
@@ -221,7 +220,7 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureDataSourcePermissionOK() {
         User testUser = this.createTestUser();
         testUser.setRoles(Collections.singleton(roleService.getSuperadminRole()));
-        usersService.update(testUser.getUsername(), testUser, true, systemSuperadmin);
+        usersService.update(testUser.getUsername(), testUser, systemSuperadmin);
         permissionService.ensureDataSourcePermission(testUser);
     }
 
@@ -332,11 +331,6 @@ public class PermissionServiceTest extends MangoTestBase {
         assertTrue(joinedPerms.contains(perm2.getXid()));
         assertTrue(joinedPerms.contains(","));
         assertFalse(joinedPerms.contains(" "));
-
-        String expectedString = "";
-        Iterator<Role> roleIt = permSet.iterator();
-        expectedString = roleIt.next().getXid() + "," + roleIt.next().getXid();
-        assertTrue(expectedString + " not = to " + joinedPerms, expectedString.equals(joinedPerms));
     }
 
     @Test

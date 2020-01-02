@@ -62,16 +62,14 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
 
     /**
      * 
-     * 
      * @param xid
-     * @param full
      * @param user
      * @return
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public T get(String xid, boolean full, PermissionHolder user) throws NotFoundException, PermissionException {
-        T vo = dao.getByXid(xid, full);
+    public T get(String xid, PermissionHolder user) throws NotFoundException, PermissionException {
+        T vo = dao.getByXid(xid);
            
         if(vo == null)
             throw new NotFoundException();
@@ -82,14 +80,13 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     /**
      * 
      * @param vo
-     * @param full
      * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
     @Override
-    public T insert(T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException {
+    public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
         //Ensure they can create
         ensureCreatePermission(user, vo);
         
@@ -105,23 +102,22 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
             vo.setXid(dao.generateUniqueXid());
         
         ensureValid(vo, user);
-        dao.insert(vo, full);
+        dao.insert(vo);
         return vo;
     }
 
     /**
-     * Update a vo without and optionally its relational data
+     * Update a vo 
      * @param existingXid
      * @param vo
-     * @param full
      * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      * @throws NotFoundException
      */
-    public T update(String existingXid, T vo, boolean full, PermissionHolder user) throws PermissionException, ValidationException, NotFoundException {
-        return update(get(existingXid, full, user), vo, full, user);
+    public T update(String existingXid, T vo, PermissionHolder user) throws PermissionException, ValidationException, NotFoundException {
+        return update(get(existingXid, user), vo, user);
     }
    
     
@@ -134,7 +130,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * @throws NotFoundException
      */
     public T delete(String xid, PermissionHolder user) throws PermissionException, NotFoundException {
-        T vo = get(xid, true, user);
+        T vo = get(xid, user);
         return delete(vo, user);
     }
     

@@ -35,7 +35,7 @@ public class AlphanumericStateEventDetectorDefinition extends TimeoutDetectorDef
 	
 	@Override
 	protected AlphanumericStateDetectorVO createEventDetectorVO(int sourceId) {
-	    return new AlphanumericStateDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+	    return new AlphanumericStateDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 	
 

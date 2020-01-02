@@ -35,7 +35,7 @@ public class BinaryStateEventDetectorDefinition extends PointEventDetectorDefini
 
 	@Override
     protected BinaryStateDetectorVO createEventDetectorVO(int sourceId) {
-        return new BinaryStateDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new BinaryStateDetectorVO(DataPointDao.getInstance().get(sourceId));
     }
 
     @Override

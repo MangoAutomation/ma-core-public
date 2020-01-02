@@ -28,7 +28,7 @@ public class DataSourceRestorer extends Restorer<DataSourceVO<?>> {
 
     @Override
     protected DataSourceVO<?> getExisting(int id){
-        return DataSourceDao.getInstance().get(id, false);
+        return DataSourceDao.getInstance().get(id);
     }
     
     @Override
@@ -39,7 +39,7 @@ public class DataSourceRestorer extends Restorer<DataSourceVO<?>> {
         if (StringUtils.isBlank(typeStr))
             addFailureMessage("emport.dataSource.missingType", xid, ModuleRegistry.getDataSourceDefinitionTypes());
         else {
-            DataSourceDefinition def = ModuleRegistry.getDataSourceDefinition(typeStr);
+            DataSourceDefinition<?> def = ModuleRegistry.getDataSourceDefinition(typeStr);
             if (def == null)
                 addFailureMessage("emport.template.invalidType", xid, typeStr,
                         ModuleRegistry.getDataSourceDefinitionTypes());

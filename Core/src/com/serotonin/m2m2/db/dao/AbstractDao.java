@@ -89,28 +89,26 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     }
 
     @Override
-    public T getByXid(String xid, boolean full) {
+    public T getByXid(String xid) {
         if (xid == null || !this.propertyTypeMap.keySet().contains("xid")) {
             return null;
         }
 
         T vo = queryForObject(SELECT_BY_XID, new Object[] { xid }, getRowMapper(), null);
-        if(vo != null && full) {
+        if(vo != null) {
             loadRelationalData(vo);
         }
         return vo;
     }
 
     @Override
-    public List<T> getByName(String name, boolean full) {
+    public List<T> getByName(String name) {
         if (name == null || !this.propertyTypeMap.keySet().contains("name")) {
             return null;
         }
         List<T> items = new ArrayList<>();
         query(SELECT_BY_NAME, new Object[] { name }, getCallbackResultSetExtractor((item, index)->{
-            if(full) {
-                loadRelationalData(item);
-            }
+            loadRelationalData(item);
             items.add(item);
         }));
         return items;
@@ -149,20 +147,20 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     }
     
     @Override
-    public void insert(T vo, boolean full) {
+    public void insert(T vo) {
         if (vo.getXid() == null) {
             vo.setXid(generateUniqueXid());
         }
-        super.insert(vo, full);
+        super.insert(vo);
         AuditEventType.raiseAddedEvent(this.typeName, vo);
     }
     
     @Override
-    public void update(T existing, T vo, boolean full) {
+    public void update(T existing, T vo) {
         if (vo.getXid() == null) {
             vo.setXid(existing.getXid());
         }
-        super.update(existing, vo, full);
+        super.update(existing, vo);
         AuditEventType.raiseChangedEvent(this.typeName, existing, vo);
     }
     
@@ -183,7 +181,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         TransactionCallback<Integer> callback = new TransactionCallback<Integer>() {
             @Override
             public Integer doInTransaction(TransactionStatus status) {
-                T vo = get(existingId, full);
+                T vo = get(existingId);
 
                 // Copy the vo
                 @SuppressWarnings("unchecked")
@@ -191,7 +189,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
                 copy.setId(Common.NEW_ID);
                 copy.setXid(newXid);
                 copy.setName(newName);
-                insert(copy, full);
+                insert(copy);
                 
                 // Copy permissions.
                 return copy.getId();

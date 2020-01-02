@@ -35,7 +35,7 @@ public class PointChangeEventDetectorDefinition extends PointEventDetectorDefini
 	
 	@Override
 	protected PointChangeDetectorVO createEventDetectorVO(int sourceId) {
-        return new PointChangeDetectorVO(DataPointDao.getInstance().get(sourceId, true));
+        return new PointChangeDetectorVO(DataPointDao.getInstance().get(sourceId));
 	}
 
     @Override
