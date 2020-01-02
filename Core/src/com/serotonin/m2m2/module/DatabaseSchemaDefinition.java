@@ -4,22 +4,22 @@
  */
 package com.serotonin.m2m2.module;
 
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.util.List;
 
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.Constants;
 
 /**
  * A database schema definition allows a module to create an manage database tables and other objects as necessary to
  * perform its functionality.
- * 
+ *
  * IMPORTANT: any tables with foreign keys into core tables MUST have an "on delete cascade" clause. FKs that reference
  * non-PK fields MUST also have an "on update cascade" clause. Failure to do this will result in esoteric error messages
  * presented to users, and the final blame for such being assigned to your module. Failure to fix such conditions will
  * result in bad module karma, if not outright module removal.
- * 
+ *
  * @author Matthew Lohbihler
  */
 abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
@@ -27,7 +27,7 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
     /**
      * Modules should add all table names that they manage to the given list. The names are used to perform conversions
      * between one type of database (e.g. Derby) and another (e.g. MySQL).
-     * 
+     *
      * @param tableNames
      *            the list of table name to add to
      */
@@ -38,7 +38,7 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * version" (see below) changes, and must be named Upgrade&lt;version&gt;, where &lt;version&gt; is the version
      * <b>from which</b> the module is being upgraded. (For example, Upgrade1 will upgrade version 1 to the next version
      * - presumably, but not necessarily, 2.) Upgrade classes extend the DBUpgrade class.
-     * 
+     *
      * @return the package name where upgrade classes can be found
      */
     abstract public String getUpgradePackage();
@@ -48,14 +48,14 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
      * the database - which represents the version of the schema - and determines whether the database needs to be
      * upgraded. This is separated from the version of the module because a module upgrade often does not require
      * database changes.
-     * 
+     *
      * ONLY POSITIVE NUMBERS should be used as version numbers. The recommendation is to start at 1 and increase from
      * there.
-     * 
+     *
      * @return the database schema version number required by the current code.
      */
     abstract public int getDatabaseSchemaVersion();
-    
+
     /**
      * The module will check for this table and if it does not exist the install scripts
      *  will be run
@@ -66,19 +66,18 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
     /**
      * Provides the module an opportunity to check if it is a new installation (typically by checking if a table that it
      * uses exists or not). Modules should perform any required installation tasks at this time.
-     * 
+     *
      * NOTE that the dao's are NOT available yet
-     * 
+     *
      * @param ejt
      *            the JDBC template that provides access to the database
      */
     public void newInstallationCheck(ExtendedJdbcTemplate ejt) {
         if (!Common.databaseProxy.tableExists(ejt, getNewInstallationCheckTableName())) {
-            Path path = getInstallScriptPath();
-            Common.databaseProxy.runScriptFile(path.toFile(), null);
+            Common.databaseProxy.runScript(getInstallScript(), null);
         }
     }
-    
+
     /**
      * Check and un-install if necessary
      */
@@ -86,32 +85,35 @@ abstract public class DatabaseSchemaDefinition extends ModuleElementDefinition {
     public void postRuntimeManagerTerminate(boolean uninstall) {
         if(uninstall) {
             // Remove the database tables.
-            Path path = getUninstallScriptPath();
-            Common.databaseProxy.runScriptFile(path.toFile(), null);
+            Common.databaseProxy.runScript(getUninstallScript(), null);
         }
     }
-    
+
     /**
      * Get the install script path based on the database type
      *  assumes the scripts are within module at web/db/
      * @return
      */
-    protected Path getInstallScriptPath() {
-        return getModule().modulePath()
-                .resolve(Constants.DIR_WEB)
-                .resolve(Constants.DIR_DB)
-                .resolve("createTables-" + Common.databaseProxy.getType().name() + ".sql");
+    protected InputStream getInstallScript() {
+        String scriptName = "createTables-" + Common.databaseProxy.getType().name() + ".sql";
+        InputStream resource = this.getClass().getResourceAsStream(scriptName);
+        if (resource == null) {
+            throw new ShouldNeverHappenException("Could not get script " + scriptName + " for class " + this.getClass().getName());
+        }
+        return resource;
     }
-    
+
     /**
      * Get the un-install script path based on the database type
      *  assumes the scripts are within module at web/db/
      * @return
      */
-    protected Path getUninstallScriptPath() {
-        return getModule().modulePath()
-                .resolve(Constants.DIR_WEB)
-                .resolve(Constants.DIR_DB)
-                .resolve("uninstall.sql");
+    protected InputStream getUninstallScript() {
+        String scriptName = "uninstall.sql";
+        InputStream resource = this.getClass().getResourceAsStream(scriptName);
+        if (resource == null) {
+            throw new ShouldNeverHappenException("Could not get script " + scriptName + " for class " + this.getClass().getName());
+        }
+        return resource;
     }
 }
