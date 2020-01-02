@@ -5,7 +5,6 @@ package com.serotonin.m2m2.db;
 
 import org.junit.Test;
 
-import com.serotonin.m2m2.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
 
@@ -15,20 +14,20 @@ import com.serotonin.m2m2.MockMangoLifecycle;
  * @author Terry Packer
  */
 public class H2DatabaseUpgradeTest extends MangoTestBase {
-    
-    private final String createScript = "/db/version1/createTables-H2.sql";
-    private final String dataScript = "/db/version1/defaultData-H2.sql";
-    
+
+    private final String createScript = "version1/createTables-H2.sql";
+    private final String dataScript = "version1/defaultData-H2.sql";
+
     @Test
     public void doUpgrade() {
-        
+
     }
-    
+
     //TODO Insert Test Data!
     protected void insertTestData() {
-        
+
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.MangoTestBase#getLifecycle()
      */

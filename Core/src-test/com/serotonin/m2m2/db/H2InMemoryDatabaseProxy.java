@@ -2,7 +2,7 @@
  * Copyright (C) 2017 Infinite Automation Software. All rights reserved.
  *
  */
-package com.serotonin.m2m2;
+package com.serotonin.m2m2.db;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,6 +31,9 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.IMangoLifecycle;
+import com.serotonin.m2m2.MockPointValueDao;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.NoSQLProxy;
 import com.serotonin.m2m2.db.NoSQLProxyFactory;

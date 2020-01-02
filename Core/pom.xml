@@ -15,22 +15,9 @@
 	</properties>
 	<build>
 		<testResources>
-			<testResource>
-				<directory>src-test</directory>
-				<excludes>
-					<exclude>**/*.java</exclude>
-					<exclude>resources/</exclude>
-				</excludes>
-			</testResource>
-			<testResource>
-				<directory>src-test/resources</directory>
-			</testResource>
-			<testResource>
-				<directory>db</directory>
-			</testResource>
-			<testResource>
-				<directory>db-test</directory>
-			</testResource>
+            <testResource>
+                <directory>resources-test</directory>
+            </testResource>
 			<testResource>
 				<directory>classes</directory>
 				<includes>

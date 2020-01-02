@@ -201,15 +201,8 @@
     <testSourceDirectory>src-test</testSourceDirectory>
     <testOutputDirectory>maven-target/test-classes</testOutputDirectory>
     <testResources>
-       <testResource>
-           <directory>src-test</directory>
-           <excludes>
-             <exclude>**/*.java</exclude>
-             <exclude>src-test/resources</exclude>
-           </excludes>
-        </testResource>
         <testResource>
-            <directory>src-test/resources</directory>
+            <directory>resources-test</directory>
         </testResource>
     </testResources>
     <pluginManagement>
