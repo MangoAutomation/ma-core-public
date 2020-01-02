@@ -301,7 +301,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             SELECT_BY_ID = SELECT_ALL + " WHERE id=?";
             SELECT_BY_XID = SELECT_ALL + " WHERE " + getXidColumnName() + "=?";
             SELECT_BY_NAME = SELECT_ALL + " WHERE name=?";
-            SELECT_XID_BY_ID = "SELECT xid FROM " + tableName + " WHERE id=?";
+            SELECT_XID_BY_ID = "SELECT " + getXidColumnName() + " FROM " + tableName + " WHERE id=?";
             SELECT_ID_BY_XID = "SELECT id FROM " + tableName + " WHERE " + getXidColumnName() + "=?";
             INSERT = insert + ") VALUES (" + insertValues + ")";
             UPDATE = update + " WHERE id=?";
