@@ -7,8 +7,6 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.spring.events.DaoEvent;
-import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
@@ -88,27 +86,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      */
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
         
-    }
-    
-    /**
-     * Be notified when a Role is changed, useful to update any VOs in the runtime that have this role.
-     * You must annotate the overridden method with @EventListener in order for this to work.
-     * @param event
-     */
-    protected void handleRoleDaoEvent(DaoEvent<RoleVO> event) {
-        processChangedRole(event.getVo(), event.getType());
-    }
-    
-    protected void processChangedRole(RoleVO role, DaoEventType type) {
-        switch(type) {
-            case CREATE:
-                roleCreated(role);
-            case DELETE:
-                roleDeleted(role);
-            case UPDATE:
-                roleUpdated(role);
-                break;
-        }
     }
     
     /**
