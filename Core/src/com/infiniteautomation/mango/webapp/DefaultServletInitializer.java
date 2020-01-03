@@ -47,7 +47,7 @@ public class DefaultServletInitializer implements WebApplicationInitializer {
 
         registration.setInitParameter("acceptRanges", "true");
         registration.setInitParameter("dirAllowed", env.getProperty("web.defaultServlet.dirAllowed", "false"));
-        registration.setInitParameter("welcomeServlets", "false");
+        registration.setInitParameter("welcomeServlets", "exact");
         registration.setInitParameter("redirectWelcome", "false");
         registration.setInitParameter("maxCacheSize", env.getProperty("web.defaultServlet.maxCacheSize", "256000000"));
         registration.setInitParameter("maxCachedFileSize", env.getProperty("web.defaultServlet.maxCachedFileSize", "200000000"));
