@@ -18,10 +18,8 @@ import com.serotonin.m2m2.Common;
  */
 public class StringColumnQueryAppender extends GenericSQLColumnQueryAppender{
 	
-	/* (non-Javadoc)
-	 * @see com.infiniteautomation.mango.db.query.SQLColumnQueryAppender#appendSQL(com.infiniteautomation.mango.db.query.SQLQueryColumn, java.lang.StringBuilder, java.lang.StringBuilder, java.util.List, java.util.List)
-	 */
-	@Override
+	@SuppressWarnings("deprecation")
+    @Override
 	public void appendSQL(SQLQueryColumn column,
 			StringBuilder selectSql, StringBuilder countSql,
 			List<Object> selectArgs, List<Object> columnArgs, ComparisonEnum comparison) {

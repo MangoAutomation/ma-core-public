@@ -15,9 +15,6 @@ import net.jazdw.rql.parser.SimpleASTVisitor;
  */
 public class RQLToLimitVisitor implements SimpleASTVisitor<Integer>{
 
-	/* (non-Javadoc)
-	 * @see net.jazdw.rql.parser.SimpleASTVisitor#visit(net.jazdw.rql.parser.ASTNode)
-	 */
 	@Override
 	public Integer visit(ASTNode node) {
 		Integer limit = null;

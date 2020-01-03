@@ -12,7 +12,6 @@ import javax.script.ScriptEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
@@ -60,18 +59,13 @@ public class DataSourceQuery extends ScriptUtility {
 	
 	public List<DataSourceWrapper> query(String query){
 		ASTNode root = parser.parse(query);
-		BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.getInstance().createQuery(root, true);
-		
-		List<DataSourceVO<?>> dataSources = sqlQuery.immediateQuery();
-		List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();
-
-		//Filter on permissions
-		for(DataSourceVO<?> ds : dataSources){
-			if(permissionService.hasDataSourcePermission(permissions, ds)){
-				List<DataPointWrapper> points = getPointsForSource(ds);
-				results.add(new DataSourceWrapper(ds, points));
-			}
-		}
+        List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();		
+		DataSourceDao.getInstance().rqlQuery(root, (ds, index) -> {
+	          if(permissionService.hasDataSourcePermission(permissions, ds)){
+	                List<DataPointWrapper> points = getPointsForSource(ds);
+	                results.add(new DataSourceWrapper(ds, points));
+	            }
+		});
 		return results;
 	}
 	

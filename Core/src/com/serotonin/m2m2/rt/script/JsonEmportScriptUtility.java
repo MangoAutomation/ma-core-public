@@ -10,7 +10,6 @@ import javax.script.ScriptEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.spring.service.DataPointService;
@@ -127,10 +126,11 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     public String dataSourceQuery(String query, int prettyIndent) {
         Map<String, Object> data = new LinkedHashMap<>();
         if(permissionService.hasAdminRole(permissions)) {
+            List<DataSourceVO<?>> dataSources = new ArrayList<>();
             ASTNode root = parser.parse(query);
-            BaseSqlQuery<DataSourceVO<?>> sqlQuery = DataSourceDao.getInstance().createQuery(root, true);
-
-            List<DataSourceVO<?>> dataSources = sqlQuery.immediateQuery();
+            DataSourceDao.getInstance().rqlQuery(root, (ds, index) -> {
+                dataSources.add(ds);
+            });
             data.put(ConfigurationExportData.DATA_SOURCES, dataSources);
         }
         try{

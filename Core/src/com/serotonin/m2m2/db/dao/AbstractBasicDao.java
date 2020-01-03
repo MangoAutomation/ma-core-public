@@ -48,20 +48,13 @@ import org.springframework.jdbc.core.RowMapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.infiniteautomation.mango.db.query.BaseSqlQuery;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
-import com.infiniteautomation.mango.db.query.RQLToSQLSelect;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
-import com.infiniteautomation.mango.db.query.SQLStatement;
-import com.infiniteautomation.mango.db.query.SQLSubQuery;
-import com.infiniteautomation.mango.db.query.StreamableRowCallback;
-import com.infiniteautomation.mango.db.query.StreamableSqlQuery;
 import com.infiniteautomation.mango.db.query.TableModel;
-import com.infiniteautomation.mango.db.query.appender.SQLColumnQueryAppender;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -644,53 +637,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 LOG.warn("No case for adding limit to database of type: " + Common.databaseProxy.getType());
                 return sql;
         }
-    }
-
-    /**
-     * TODO Mango 4.0 Remove me
-     * @param root
-     * @param selectCallback
-     * @param countCallback
-     * @param modelMap
-     * @param modifiers
-     * @param applyLimitToSelectSql
-     * @return
-     */
-    @Deprecated 
-    public StreamableSqlQuery<T> createQuery(ASTNode root, StreamableRowCallback<T> selectCallback,
-            StreamableRowCallback<Long> countCallback, Map<String, String> modelMap,
-            Map<String, SQLColumnQueryAppender> modifiers, boolean applyLimitToSelectSql) {
-
-        SQLStatement statement;
-        if (useSubQuery) {
-            statement = new SQLSubQuery(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-                    applyLimitToSelectSql, Common.envProps.getBoolean("db.forceUseIndex", false), null, this.indexes, this.databaseType);
-        } else {
-            statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-                    applyLimitToSelectSql, Common.envProps.getBoolean("db.forceUseIndex", false), this.indexes, this.databaseType);
-        }
-        if (root != null)
-            root.accept(new RQLToSQLSelect<T>(this, modelMap, modifiers), statement);
-
-        statement.build();
-        return new StreamableSqlQuery<T>(this, Common.envProps.getBoolean("db.stream", false), statement, selectCallback, countCallback);
-    }
-
-    /**
-     *
-     * @param root
-     * @param applyLimitToSelectSql
-     * @return
-     */
-    public BaseSqlQuery<T> createQuery(ASTNode root, boolean applyLimitToSelectSql) {
-
-        SQLStatement statement = new SQLStatement(SELECT_ALL_BASE, COUNT_BASE, joins, getTableName(), TABLE_PREFIX,
-                applyLimitToSelectSql, Common.envProps.getBoolean("db.forceUseIndex", false), this.indexes, this.databaseType);
-        if (root != null)
-            root.accept(new RQLToSQLSelect<T>(this), statement);
-
-        statement.build();
-        return new BaseSqlQuery<T>(this, statement);
     }
 
     /**
