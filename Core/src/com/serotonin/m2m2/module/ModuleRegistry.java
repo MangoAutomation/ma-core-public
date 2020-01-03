@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
@@ -120,6 +123,7 @@ import com.serotonin.provider.Providers;
  * @author Matthew Lohbihler
  */
 public class ModuleRegistry {
+    static final Log LOG = LogFactory.getLog(ModuleRegistry.class);
 
     public static final String SYSTEM_SETTINGS_URL = "/system_settings.shtm";
 
@@ -763,7 +767,11 @@ public class ModuleRegistry {
                     }
                     for (Module module : MODULES.values()) {
                         for (FileStoreDefinition def : module.getDefinitions(FileStoreDefinition.class)) {
-                            def.ensureExists();
+                            try {
+                                def.ensureExists();
+                            } catch (IOException e) {
+                                LOG.error("Couldn't create directory for file store", e);
+                            }
                             map.put(def.getStoreName(), def);
                         }
                     }

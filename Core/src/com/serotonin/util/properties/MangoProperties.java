@@ -18,6 +18,14 @@ public interface MangoProperties {
 
     String getString(String key, String defaultValue);
 
+    default String getStringAllowEmpty(String key, String defaultValue) {
+        String value = getString(key);
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
+    }
+
     /**
      * Does not remove empty entries.
      * Default is only returned if the property is not defined at all (i.e. commented out).
