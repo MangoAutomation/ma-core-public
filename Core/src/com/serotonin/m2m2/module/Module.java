@@ -130,10 +130,7 @@ public class Module {
      * @return absolute path to the module's data directory
      */
     public Path moduleDataPath() {
-        String location = Common.envProps.getString(MODULE_DATA_ENV_PROP);
-        if (location == null || location.isEmpty()) {
-            location = MODULE_DATA_ENV_PROP_DEFAULT;
-        }
+        String location = Common.envProps.getString(MODULE_DATA_ENV_PROP, MODULE_DATA_ENV_PROP_DEFAULT);
         Path dataPath = Common.MA_HOME_PATH.resolve(location).resolve(name);
 
         try {
