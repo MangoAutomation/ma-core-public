@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Connection;
@@ -183,13 +184,15 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             // Create the tables
             try {
                 String scriptName = "createTables-" + getType().name() + ".sql";
-                InputStream resource = AbstractDatabaseProxy.class.getResourceAsStream(scriptName);
-                if (resource == null) {
-                    throw new ShouldNeverHappenException("Could not get script " + scriptName + " for class " + AbstractDatabaseProxy.class.getName());
+                try (InputStream resource = AbstractDatabaseProxy.class.getResourceAsStream(scriptName)) {
+                    if (resource == null) {
+                        throw new ShouldNeverHappenException("Could not get script " + scriptName + " for class " + AbstractDatabaseProxy.class.getName());
+                    }
+                    try (OutputStream os = new FileOutputStream(new File(Common.getLogsDir(), "createTables.log"))) {
+                        runScript(resource, os);
+                    }
                 }
-                runScript(resource, new FileOutputStream(new File(Common.getLogsDir(), "createTables.log")));
-            }
-            catch (FileNotFoundException e) {
+            } catch (IOException e) {
                 throw new ShouldNeverHappenException(e);
             }
             coreIsNew = true;
