@@ -6,7 +6,6 @@ package com.serotonin.m2m2.rt.dataImage.types;
 
 import java.awt.Image;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -102,7 +101,7 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
         try {
             if (data != null)
                 return ImageUtils.createImage(data);
-            return ImageUtils.loadImage(new File(Common.getFiledataPath(), getFilename()).getPath());
+            return ImageUtils.loadImage(Common.getFiledataPath().resolve(getFilename()).toFile().getPath());
         }
         catch (InterruptedException e) {
             // no op
@@ -117,7 +116,7 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
         FileInputStream in = null;
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
-            in = new FileInputStream(new File(Common.getFiledataPath(), getFilename()).getPath());
+            in = new FileInputStream(Common.getFiledataPath().resolve(getFilename()).toFile().getPath());
             StreamUtils.transfer(in, out);
         }
         finally {
@@ -229,7 +228,7 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
     public <T extends DataValue> int compareTo(T that) {
         return compareTo((ImageValue) that);
     }
-    
+
     public byte[] getDigest() {
         if(digest == null) {
             try {
@@ -255,7 +254,7 @@ public class ImageValue extends DataValue implements Comparable<ImageValue> {
         }
         return digest;
     }
-    
+
     public boolean equalDigests(byte[] digest) {
         return MessageDigest.isEqual(this.digest != null ? this.digest : getDigest(), digest);
     }

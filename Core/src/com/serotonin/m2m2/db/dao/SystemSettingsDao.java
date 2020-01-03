@@ -70,7 +70,7 @@ import com.serotonin.m2m2.vo.systemSettings.SystemSettingsEventDispatcher;
  * Dao access for system settings,
  *  this class is a spring bean declared in the MangoRuntimeContextConfiguration,
  *  as such it is not annotated as a bean here.
- * 
+ *
  * @author Jared Wiltshire
  */
 public class SystemSettingsDao extends BaseDao {
@@ -143,11 +143,9 @@ public class SystemSettingsDao extends BaseDao {
     public static final String LANGUAGE = "language";
 
     // Customization
-    public static final String FILEDATA_PATH = "filedata.path";
     public static final String DATASOURCE_DISPLAY_SUFFIX = ".display";
     public static final String HTTPDS_PROLOGUE = "httpdsPrologue";
     public static final String HTTPDS_EPILOGUE = "httpdsEpilogue";
-    public static final String UI_PERFORMANCE = "uiPerformance";
     public static final String FUTURE_DATE_LIMIT_PERIODS = "futureDateLimitPeriods";
     public static final String FUTURE_DATE_LIMIT_PERIOD_TYPE = "futureDateLimitPeriodType";
     public static final String INSTANCE_DESCRIPTION = "instanceDescription";
@@ -237,9 +235,9 @@ public class SystemSettingsDao extends BaseDao {
     public static final String PASSWORD_LENGTH_MAX = "password.rule.lengthMax";
     //TODO Dictionary
     //TODO Validation
-    
+
     public static final SystemSettingsDao instance = new SystemSettingsDao();
-    
+
     /**
      * Will remain null until the runtime context is refreshed so the JSON methods of this class should not be used early in the lifecycle.
      */
@@ -317,18 +315,6 @@ public class SystemSettingsDao extends BaseDao {
         if (value == null)
             return defaultValue;
         return charToBool(value);
-    }
-
-    /**
-     * This method uses Serotonin JSON deserialization. Prefer {@link #getAsJson(String, Class)}
-     *
-     * @param key
-     * @param clazz
-     * @return
-     */
-    @Deprecated
-    public <T> T getJsonObject(String key, Class<T> clazz) {
-        return getJsonObject(key, clazz);
     }
 
     /**
@@ -685,10 +671,8 @@ public class SystemSettingsDao extends BaseDao {
 
         DEFAULT_VALUES.put(LANGUAGE, Locale.getDefault().toString());
 
-        DEFAULT_VALUES.put(FILEDATA_PATH, "~/WEB-INF/filedata");
         DEFAULT_VALUES.put(HTTPDS_PROLOGUE, "");
         DEFAULT_VALUES.put(HTTPDS_EPILOGUE, "");
-        DEFAULT_VALUES.put(UI_PERFORMANCE, 2000);
         DEFAULT_VALUES.put(FUTURE_DATE_LIMIT_PERIODS, 24);
         DEFAULT_VALUES.put(FUTURE_DATE_LIMIT_PERIOD_TYPE, Common.TimePeriods.HOURS);
         DEFAULT_VALUES.put(INSTANCE_DESCRIPTION, "My Mango Automation");
@@ -783,7 +767,7 @@ public class SystemSettingsDao extends BaseDao {
 
         DEFAULT_VALUES.put(EXPORT_HIERARCHY_PATH, false);
         DEFAULT_VALUES.put(HIERARCHY_PATH_SEPARATOR, "/");
-        
+
         DEFAULT_VALUES.put(PASSWORD_UPPER_CASE_COUNT, 0);
         DEFAULT_VALUES.put(PASSWORD_LOWER_CASE_COUNT, 0);
         DEFAULT_VALUES.put(PASSWORD_DIGIT_COUNT, 0);
@@ -1197,7 +1181,7 @@ public class SystemSettingsDao extends BaseDao {
                 response.addContextualMessage(PUBLICLY_RESOLVABLE_BASE_URL, "validate.invalidValue");
             }
         }
-        
+
         //Validate password settings
         Integer passwordLengthMin = getIntValue(PASSWORD_LENGTH_MIN, settings);
         Integer passwordLengthMax = getIntValue(PASSWORD_LENGTH_MAX, settings);
@@ -1217,7 +1201,7 @@ public class SystemSettingsDao extends BaseDao {
             response.addContextualMessage(PASSWORD_LENGTH_MAX, "validate.greaterThanOrEqualTo", passwordLengthMin);
             response.addContextualMessage(PASSWORD_LENGTH_MIN, "validate.lessThanOrEqualTo", passwordLengthMax);
         }
-        
+
         Integer passwordSetting = getIntValue(PASSWORD_UPPER_CASE_COUNT, settings);
         if(passwordSetting != 0) {
             if (passwordSetting < 0) {

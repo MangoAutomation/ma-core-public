@@ -59,10 +59,7 @@ public class OverridingWebAppContext extends WebAppContext {
 
         //Temp and JSP Compilation Settings (The order of these is important)
         //@See http://eclipse.org/jetty/documentation/current/ref-temporary-directories.html
-        File tempDirPath = Common.TEMP.toFile();
-        if (!tempDirPath.exists()) {
-            tempDirPath.mkdirs();
-        }
+        File tempDirPath = Common.getTempPath().toFile();
         this.setAttribute("javax.servlet.context.tempdir", tempDirPath.getAbsolutePath());
         this.setPersistTempDirectory(true);
         this.setTempDirectory(tempDirPath);

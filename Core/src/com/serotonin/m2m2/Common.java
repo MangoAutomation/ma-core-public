@@ -5,9 +5,11 @@
 package com.serotonin.m2m2;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -118,11 +120,28 @@ public class Common {
         MA_HOME = MA_HOME_PATH.toString();
     }
 
+    public static MangoProperties envProps;
+
     public static final Path OVERRIDES = MA_HOME_PATH.resolve("overrides");
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
-    public static final Path TEMP = MA_HOME_PATH.resolve("work");
+
+    private static final LazyInitSupplier<Path> TEMP = new LazyInitSupplier<>(() -> {
+        try {
+            return Files.createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")));
+        } catch (IOException e) {
+            return null;
+        }
+    });
+
+    private static final LazyInitSupplier<Path> FILEDATA_PATH = new LazyInitSupplier<>(() -> {
+        try {
+            return Files.createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")));
+        } catch (IOException e) {
+            return null;
+        }
+    });
 
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
@@ -130,7 +149,6 @@ public class Common {
 
     public static final int NEW_ID = -1;
 
-    public static MangoProperties envProps;
     public static Properties releaseProps;
     public static Configuration freemarkerConfiguration;
     public static DatabaseProxy databaseProxy;
@@ -147,7 +165,7 @@ public class Common {
     // for all the different tasks.
     public static int defaultTaskQueueSize = 1;
 
-    public static String applicationLogo = "/images/logo.png";
+    public static final String APPLICATION_LOGO = "/images/logo.png";
     public static AbstractTimer timer = new OrderedRealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
@@ -513,21 +531,12 @@ public class Common {
         return backgroundContext.getProcessDescriptionKey();
     }
 
-    private static String lazyFiledataPath = null;
+    public static Path getFiledataPath() {
+        return FILEDATA_PATH.get();
+    }
 
-    public static String getFiledataPath() {
-        if (lazyFiledataPath == null) {
-            String name = SystemSettingsDao.instance.getValue(SystemSettingsDao.FILEDATA_PATH);
-            if (name.startsWith("~"))
-                name = getWebPath(name.substring(1));
-
-            File file = new File(name);
-            if (!file.exists())
-                file.mkdirs();
-
-            lazyFiledataPath = name;
-        }
-        return lazyFiledataPath;
+    public static Path getTempPath() {
+        return TEMP.get();
     }
 
     public static CronTimerTrigger getCronTrigger(int periodType, int delaySeconds) {
@@ -747,7 +756,18 @@ public class Common {
     private static String systemLanguage;
     private static Translations systemTranslations;
     private static Locale systemLocale;
-    private static List<StringStringPair> languages;
+
+    private static final LazyInitSupplier<List<StringStringPair>> LANGUAGES = new LazyInitSupplier<>(() -> {
+        List<StringStringPair> languages = new ArrayList<>();
+        for (String localeStr : ModuleRegistry.getLocales()) {
+            Locale locale = parseLocale(localeStr);
+            if (locale != null) {
+                languages.add(new StringStringPair(localeStr, Translations.getTranslations(locale).translate("locale.name")));
+            }
+        }
+        StringStringPairComparator.sort(languages);
+        return languages;
+    });
 
     public static String translate(String key) {
         ensureI18n();
@@ -792,20 +812,7 @@ public class Common {
     }
 
     public static List<StringStringPair> getLanguages() {
-        if (languages == null) {
-            languages = new ArrayList<StringStringPair>();
-
-            for (String localeStr : ModuleRegistry.getLocales()) {
-                Locale locale = parseLocale(localeStr);
-                if (locale != null)
-                    languages.add(new StringStringPair(localeStr, Translations.getTranslations(locale).translate(
-                            "locale.name")));
-            }
-
-            StringStringPairComparator.sort(languages);
-        }
-
-        return languages;
+        return LANGUAGES.get();
     }
 
     public static Locale parseLocale(String str) {

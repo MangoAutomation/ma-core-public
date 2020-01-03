@@ -5,9 +5,10 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -44,7 +45,6 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.WideQueryCallback;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
-import com.serotonin.io.StreamUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.ImageSaveException;
@@ -153,26 +153,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             if (!imageValue.isSaved()) {
                 imageValue.setId(id);
 
-                File file = new File(Common.getFiledataPath(), imageValue.getFilename());
-
-                // Write the file.
-                FileOutputStream out = null;
-                try {
-                    out = new FileOutputStream(file);
-                    StreamUtils.transfer(new ByteArrayInputStream(imageValue.getData()), out);
-                }
-                catch (IOException e) {
+                Path filePath = Common.getFiledataPath().resolve(imageValue.getFilename());
+                try (InputStream is = new ByteArrayInputStream(imageValue.getData())) {
+                    Files.copy(is, filePath);
+                } catch (IOException e) {
                     // Rethrow as an RTE
                     throw new ImageSaveException(e);
-                }
-                finally {
-                    try {
-                        if (out != null)
-                            out.close();
-                    }
-                    catch (IOException e) {
-                        // no op
-                    }
                 }
 
                 // Allow the data to be GC'ed
@@ -330,26 +316,12 @@ public class PointValueDaoSQL extends BaseDao implements PointValueDao {
             if (!imageValue.isSaved()) {
                 imageValue.setId(id);
 
-                File file = new File(Common.getFiledataPath(), imageValue.getFilename());
-
-                // Write the file.
-                FileOutputStream out = null;
-                try {
-                    out = new FileOutputStream(file);
-                    StreamUtils.transfer(new ByteArrayInputStream(imageValue.getData()), out);
-                }
-                catch (IOException e) {
+                Path filePath = Common.getFiledataPath().resolve(imageValue.getFilename());
+                try (InputStream is = new ByteArrayInputStream(imageValue.getData())) {
+                    Files.copy(is, filePath);
+                } catch (IOException e) {
                     // Rethrow as an RTE
                     throw new ImageSaveException(e);
-                }
-                finally {
-                    try {
-                        if (out != null)
-                            out.close();
-                    }
-                    catch (IOException e) {
-                        // no op
-                    }
                 }
 
                 // Allow the data to be GC'ed

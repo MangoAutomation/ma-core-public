@@ -37,9 +37,9 @@ import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.TimerTask;
 
 public class DataPurge {
-	
-	public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
-	
+
+    public static final String ENABLE_POINT_DATA_PURGE = "enablePurgePointValues";
+
     private static final Log log = LogFactory.getLog(DataPurge.class);
     private long runtime;
     private final DataPointDao dataPointDao = DataPointDao.getInstance();
@@ -69,28 +69,28 @@ public class DataPurge {
 
         boolean purgePoints = SystemSettingsDao.instance.getBooleanValue(ENABLE_POINT_DATA_PURGE);
         boolean countPointValues = SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.POINT_DATA_PURGE_COUNT);
-        
+
         if(purgePoints){
             // Get any filters for the data purge from the modules
             List<PurgeFilter> purgeFilters = new ArrayList<PurgeFilter>();
             for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
                 purgeFilters.add(pfd.getPurgeFilter());
-            
-	        // Get the data point information.
-	        List<DataPointVO> dataPoints = dataPointDao.getDataPoints(null, false);
-	        for (DataPointVO dataPoint : dataPoints)
-	            purgePoint(dataPoint, countPointValues, purgeFilters);
-	        
-	        if(countPointValues)
-	        	deletedSamples += pointValueDao.deleteOrphanedPointValues();
-	        else
-	        	pointValueDao.deleteOrphanedPointValuesWithoutCount();
-	        
-	        pointValueDao.deleteOrphanedPointValueAnnotations();
-	
-	        log.info("Data purge ended, " + deletedSamples + " point samples deleted");
+
+            // Get the data point information.
+            List<DataPointVO> dataPoints = dataPointDao.getDataPoints(null, false);
+            for (DataPointVO dataPoint : dataPoints)
+                purgePoint(dataPoint, countPointValues, purgeFilters);
+
+            if(countPointValues)
+                deletedSamples += pointValueDao.deleteOrphanedPointValues();
+            else
+                pointValueDao.deleteOrphanedPointValuesWithoutCount();
+
+            pointValueDao.deleteOrphanedPointValueAnnotations();
+
+            log.info("Data purge ended, " + deletedSamples + " point samples deleted");
         }else{
-        	log.info("Purge for data points not enabled, skipping.");
+            log.info("Purge for data points not enabled, skipping.");
         }
 
         // File data purge
@@ -110,15 +110,15 @@ public class DataPurge {
         if (dataPoint.getLoggingType() == DataPointVO.LoggingTypes.NONE){
             // If there is no logging, then there should be no data, unless logging was just changed to none. In either
             // case, it's ok to delete everything.
-        	log.info("Purging all data for data point with id " + dataPoint.getId() + " because it is set to logging type NONE.");
-        	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
-        		if(countPointValues)
-        			deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId());
-        		else{
-        			if(Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId()))
-        				anyDeletedSamples = true;
-        		}
-        	}
+            log.info("Purging all data for data point with id " + dataPoint.getId() + " because it is set to logging type NONE.");
+            if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+                if(countPointValues)
+                    deletedSamples += Common.runtimeManager.purgeDataPointValues(dataPoint.getId());
+                else{
+                    if(Common.runtimeManager.purgeDataPointValuesWithoutCount(dataPoint.getId()))
+                        anyDeletedSamples = true;
+                }
+            }
         }
         else {
             // Determine the purging properties to use.
@@ -168,7 +168,7 @@ public class DataPurge {
     }
 
     private void filedataPurge() {
-        // The file ids for points will have been filled in by the purge point method calls. Now get the ids from 
+        // The file ids for points will have been filled in by the purge point method calls. Now get the ids from
         // elsewhere.
 
         List<List<Long>> imageIds = new ArrayList<List<Long>>();
@@ -181,7 +181,7 @@ public class DataPurge {
             Collections.sort(ids);
 
         // Get all of the existing filenames.
-        File dir = new File(Common.getFiledataPath());
+        File dir = Common.getFiledataPath().toFile();
         String[] files = dir.list();
         if (files != null) {
             for (String filename : files) {
@@ -209,12 +209,12 @@ public class DataPurge {
      */
     private void eventPurge() {
         DateTime cutoffTruncated = DateUtils.truncateDateTime(new DateTime(runtime), Common.TimePeriods.DAYS);
-        
+
         //Purge All Events at this rate
         DateTime cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EVENT_PURGE_PERIODS));
         this.deletedEvents = Common.eventManager.purgeEventsBefore(cutoff.getMillis());
-        
+
         //Purge Data Point Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_POINT_EVENT_PURGE_PERIODS));
@@ -224,17 +224,17 @@ public class DataPurge {
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.DATA_SOURCE_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.DATA_SOURCE);
-        
+
         //Purge the Data Source Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.SYSTEM_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.SYSTEM);
-        
+
         //Purge the Data Source Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.PUBLISHER_EVENT_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),EventType.EventTypeNames.PUBLISHER);
-        
+
         //Purge the Data Source Events
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.AUDIT_EVENT_PURGE_PERIODS));
@@ -244,72 +244,72 @@ public class DataPurge {
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.NONE_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.NONE);
-        
+
         //Purge Alarm Level INFORMATION
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.INFORMATION_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.INFORMATION);
-        
+
         //Purge Alarm Level IMPORTANT
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.IMPORTANT_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.IMPORTANT);
-        
+
         //Purge Alarm Level WARNING
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.WARNING_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.WARNING);
-        
+
         //Purge Alarm Level URGENT
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.URGENT_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.URGENT);
-        
+
         //Purge Alarm Level CRITICAL
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.CRITICAL_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.CRITICAL);
-        
+
         //Purge Alarm Level LIFE_SAFETY
         cutoff = DateUtils.minus(cutoffTruncated, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIOD_TYPE),
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LIFE_SAFETY_ALARM_PURGE_PERIODS));
         this.deletedEvents += Common.eventManager.purgeEventsBefore(cutoff.getMillis(),AlarmLevels.LIFE_SAFETY);
-        
+
         if (this.deletedEvents > 0)
             log.info("Event purge ended, " + this.deletedEvents + " events deleted");
-        
+
     }
-    
+
     public long getDeletedSamples() {
-		return deletedSamples;
-	}
+        return deletedSamples;
+    }
 
-	public void setDeletedSamples(long deletedSamples) {
-		this.deletedSamples = deletedSamples;
-	}
+    public void setDeletedSamples(long deletedSamples) {
+        this.deletedSamples = deletedSamples;
+    }
 
-	public long getDeletedFiles() {
-		return deletedFiles;
-	}
+    public long getDeletedFiles() {
+        return deletedFiles;
+    }
 
-	public void setDeletedFiles(long deletedFiles) {
-		this.deletedFiles = deletedFiles;
-	}
+    public void setDeletedFiles(long deletedFiles) {
+        this.deletedFiles = deletedFiles;
+    }
 
-	public long getDeletedEvents() {
-		return deletedEvents;
-	}
+    public long getDeletedEvents() {
+        return deletedEvents;
+    }
 
-	public void setDeletedEvents(long deletedEvents) {
-		this.deletedEvents = deletedEvents;
-	}
+    public void setDeletedEvents(long deletedEvents) {
+        this.deletedEvents = deletedEvents;
+    }
 
-	public boolean isAnyDeletedSamples(){
-		return anyDeletedSamples;
-	}
+    public boolean isAnyDeletedSamples(){
+        return anyDeletedSamples;
+    }
 
 
-	static class DataPurgeTask extends TimerTask {
+    static class DataPurgeTask extends TimerTask {
         DataPurgeTask() throws ParseException {
             // Test trigger for running every 5 minutes.
             //super(new CronTimerTrigger("0 0/5 * * * ?"));

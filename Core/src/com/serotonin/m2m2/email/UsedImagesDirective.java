@@ -40,9 +40,9 @@ public class UsedImagesDirective implements TemplateDirectiveModel {
             if (Boolean.parseBoolean(s)) {
                 writeLogo = true;
 
-                if (!imageList.contains(Common.applicationLogo))
-                    imageList.add(Common.applicationLogo);
-                env.getOut().write(Common.applicationLogo);
+                if (!imageList.contains(Common.APPLICATION_LOGO))
+                    imageList.add(Common.APPLICATION_LOGO);
+                env.getOut().write(Common.APPLICATION_LOGO);
             }
         }
 
