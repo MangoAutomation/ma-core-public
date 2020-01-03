@@ -27,7 +27,6 @@ import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoPropertySource;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
@@ -42,8 +41,6 @@ import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.util.MapWrap;
 import com.serotonin.m2m2.util.MapWrapConverter;
-import com.serotonin.m2m2.view.chart.BaseChartRenderer;
-import com.serotonin.m2m2.view.chart.ChartRenderer;
 import com.serotonin.m2m2.view.text.BaseTextRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
@@ -142,7 +139,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.envProps = getEnvProps();
 
         Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
-        Common.JSON_CONTEXT.addResolver(new BaseChartRenderer.Resolver(), ChartRenderer.class);
         Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
         Common.JSON_CONTEXT.addResolver(new EmailRecipientResolver(), EmailRecipient.class);
         Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);

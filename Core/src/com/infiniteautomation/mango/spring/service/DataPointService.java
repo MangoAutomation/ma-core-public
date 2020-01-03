@@ -275,13 +275,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             }
         }
 
-        // Check chart renderer type
-        if (vo.getChartRenderer() != null) {
-            if(!vo.getChartRenderer().getDef().supports(vo.getPointLocator().getDataTypeId()))
-                response.addGenericMessage("validate.chart.incompatible");
-            vo.getChartRenderer().validate(response);
-        }
-
         // Check the plot type
         if (!DataPointVO.PLOT_TYPE_CODES.isValidId(vo.getPlotType()))
             response.addContextualMessage("plotType", "validate.invalidValue");

@@ -502,11 +502,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // it.
         int dataType = vo.getPointLocator().getDataTypeId();
 
-        // Chart renderer
-        if (vo.getChartRenderer() != null && !vo.getChartRenderer().getDef().supports(dataType))
-            // Return to a default renderer
-            vo.setChartRenderer(null);
-
         // Text renderer
         if (vo.getTextRenderer() != null && !vo.getTextRenderer().getDef().supports(dataType))
             // Return to a default renderer
