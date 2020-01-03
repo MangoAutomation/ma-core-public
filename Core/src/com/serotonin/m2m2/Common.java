@@ -74,8 +74,6 @@ import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.InstanceLicense;
 import com.serotonin.m2m2.util.license.LicenseFeature;
-import com.serotonin.m2m2.view.DynamicImage;
-import com.serotonin.m2m2.view.ImageSet;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
@@ -123,6 +121,7 @@ public class Common {
     public static final Path OVERRIDES = MA_HOME_PATH.resolve("overrides");
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
+    public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
     public static final Path TEMP = MA_HOME_PATH.resolve("work");
 
     public static final String UTF8 = "UTF-8";
@@ -149,14 +148,6 @@ public class Common {
     public static int defaultTaskQueueSize = 1;
 
     public static String applicationLogo = "/images/logo.png";
-    public static String applicationFavicon = "/images/favicon.ico";
-    public static final List<String> moduleStyles = new ArrayList<String>();
-    public static final List<String> moduleScripts = new ArrayList<String>();
-    public static final List<String> moduleJspfs = new ArrayList<String>();
-
-    public static final List<ImageSet> imageSets = new ArrayList<ImageSet>();
-    public static final List<DynamicImage> dynamicImages = new ArrayList<DynamicImage>();
-
     public static AbstractTimer timer = new OrderedRealTimeTimer();
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
@@ -520,38 +511,6 @@ public class Common {
         if (backgroundContext == null)
             return null;
         return backgroundContext.getProcessDescriptionKey();
-    }
-
-    //
-    // Image sets and dynamic images
-    public static List<String> getImageSetIds() {
-        List<String> result = new ArrayList<String>();
-        for (ImageSet s : imageSets)
-            result.add(s.getId());
-        return result;
-    }
-
-    public static ImageSet getImageSet(String id) {
-        for (ImageSet imageSet : imageSets) {
-            if (imageSet.getId().equals(id))
-                return imageSet;
-        }
-        return null;
-    }
-
-    public static List<String> getDynamicImageIds() {
-        List<String> result = new ArrayList<String>();
-        for (DynamicImage d : dynamicImages)
-            result.add(d.getId());
-        return result;
-    }
-
-    public static DynamicImage getDynamicImage(String id) {
-        for (DynamicImage dynamicImage : dynamicImages) {
-            if (dynamicImage.getId().equals(id))
-                return dynamicImage;
-        }
-        return null;
     }
 
     private static String lazyFiledataPath = null;
