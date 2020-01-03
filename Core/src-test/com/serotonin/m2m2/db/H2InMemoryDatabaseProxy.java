@@ -34,9 +34,6 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockPointValueDao;
-import com.serotonin.m2m2.db.DatabaseProxy;
-import com.serotonin.m2m2.db.NoSQLProxy;
-import com.serotonin.m2m2.db.NoSQLProxyFactory;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
@@ -53,14 +50,14 @@ import com.serotonin.provider.Providers;
 
 /**
  * Using an H2 in memory database we can easily mock the database proxy.
- * 
- * If you do not call initialize, none of the tables are created.  However 
+ *
+ * If you do not call initialize, none of the tables are created.  However
  *   it is possible to use the PointValueDao via the mock in memory list implementation.
- *  
+ *
  * @author Terry Packer
  */
 public class H2InMemoryDatabaseProxy implements DatabaseProxy {
-    
+
     protected String databaseName = "test";
     protected JdbcConnectionPool dataSource;
     protected NoSQLProxy noSQLProxy;
@@ -73,20 +70,20 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     protected boolean useMetrics = false;
     protected String altCreateScript = null;
     protected String defaultDataScript = null;
-    
+
     public H2InMemoryDatabaseProxy() {
         mockPointValueDao = new MockPointValueDao();
     }
-    
+
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort) {
         this(initWebConsole, webPort, false);
         this.mockPointValueDao = new MockPointValueDao();
     }
-    
+
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics) {
         this(initWebConsole, webPort, useMetrics, null, null);
     }
-    
+
     public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics, String altCreateScript, String defaultDataScript) {
         this.mockPointValueDao = new MockPointValueDao();
         this.initWebConsole = initWebConsole;
@@ -95,22 +92,22 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         this.altCreateScript = altCreateScript;
         this.defaultDataScript = defaultDataScript;
     }
-    
+
     public String getUrl() {
         //Using lock mode 0 to avoid lock timeouts from constantly rebuilding the database between tests
         //TODO remove when we can restart the database between tests instead of cleaning it
         return "jdbc:h2:mem:" + databaseName+ ";DB_CLOSE_DELAY=-1;LOCK_MODE=0";
     }
-    
+
     public void runScriptPreInitialize(InputStream scriptStream) {
         JdbcDataSource jds = new JdbcDataSource();
         String url = getUrl();
         jds.setUrl(url);
         JdbcConnectionPool dataSource = JdbcConnectionPool.create(jds);
-        
+
         dataSource.dispose();
     }
-    
+
     @Override
     public void initialize(ClassLoader classLoader) {
         JdbcDataSource jds = new JdbcDataSource();
@@ -118,7 +115,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         jds.setUrl(url);
         dataSource = JdbcConnectionPool.create(jds);
         transactionManager = new DataSourceTransactionManager(dataSource);
-        
+
         if(initWebConsole) {
             String webArgs[] = new String[4];
             webArgs[0] = "-webPort";
@@ -132,37 +129,37 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                 throw new RuntimeException(e);
             }
         }
-        
+
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
-        
+
         if(altCreateScript != null)
             runScript(this.getClass().getResourceAsStream(altCreateScript), System.out);
         if(defaultDataScript != null)
             runScript(this.getClass().getResourceAsStream(defaultDataScript), System.out);
-        
+
         //Create the empty database
         if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
-            runScript(this.getClass().getResourceAsStream("/createTables-" + getType().name() + ".sql"), System.out);
+            runScript(this.getClass().getResourceAsStream("createTables-" + getType().name() + ".sql"), System.out);
 
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
                 def.newInstallationCheck(ejt);
-            
+
             SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                     Integer.toString(Common.getDatabaseSchemaVersion()));
             SystemSettingsDao.instance.setValue(SystemSettingsDao.BACKUP_ENABLED, "false");
             SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED, "false");
-            
+
             // Add the settings flag that this is a new instance. This flag is removed when an administrator
             // logs in.
             SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
-            
+
             Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
                 @Override
                 public void run() {
-                        // New database. Create a default user.
+                    // New database. Create a default user.
                     User user = new User();
                     user.setId(Common.NEW_ID);
                     user.setName("Administrator");
@@ -173,28 +170,28 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                     user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
                     user.setDisabled(false);
                     UserDao.getInstance().saveUser(user);
-                    
+
                     DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
                     factory.saveDefaultTemplates();
-               }
+                }
             });
-        } 
-        
+        }
+
         // The database exists, so let's make its schema version matches the application version.
         DBUpgrade.checkUpgrade();
-        
+
         // Check if we are using NoSQL
         if (NoSQLProxyFactory.instance.getProxy() != null) {
             noSQLProxy = NoSQLProxyFactory.instance.getProxy();
             noSQLProxy.initialize();
         }
-        
+
         initialized = true;
     }
 
     @Override
     public DatabaseType getType() {
-       return DatabaseType.H2;
+        return DatabaseType.H2;
     }
 
     @Override
@@ -217,7 +214,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public void terminateImpl() {
 
-        
+
     }
 
     @Override
@@ -244,7 +241,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public void executeCompress(ExtendedJdbcTemplate ejt) {
 
-        
+
     }
 
     @Override
@@ -286,7 +283,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                 statement.delete(0, statement.length() - 1);
             }
         }
-        
+
     }
 
     @Override
@@ -359,7 +356,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             if (conn != null)
                 DataSourceUtils.releaseConnection(conn, dataSource);
         }
-        
+
     }
 
     @Override
@@ -404,7 +401,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     protected String getLimitDelete(String sql, int chunkSize) {
         return sql + " LIMIT " + chunkSize;
     }
-    
+
     @Override
     public String getDatabasePassword(String propertyPrefix) {
         return null;
@@ -441,12 +438,12 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
      * @throws Exception
      */
     public void clean() throws Exception {
-        
+
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
-        
+
         runScript(new String[] {"DROP ALL OBJECTS;"}, null);
-        runScript(this.getClass().getResourceAsStream("/createTables-" + getType().name() + ".sql"), null);
+        runScript(this.getClass().getResourceAsStream("createTables-" + getType().name() + ".sql"), null);
 
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             def.newInstallationCheck(ejt);
@@ -457,7 +454,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         // Add the settings flag that this is a new instance. This flag is removed when an administrator
         // logs in.
         SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
-        
+
         User user = new User();
         user.setId(Common.NEW_ID);
         user.setName("Administrator");
@@ -468,7 +465,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         user.setPermissions(SuperadminPermissionDefinition.GROUP_NAME);
         user.setDisabled(false);
         UserDao.getInstance().saveUser(user);
-        
+
         //Clean the noSQL database
         // Check if we are using NoSQL
         if (NoSQLProxyFactory.instance.getProxy() != null) {
@@ -481,5 +478,5 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     public PlatformTransactionManager getTransactionManager() {
         return transactionManager;
     }
-    
+
 }
