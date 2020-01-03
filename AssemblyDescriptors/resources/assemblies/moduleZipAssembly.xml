@@ -15,7 +15,6 @@
         <include>RELEASE-NOTES</include>
         <include>licenseTypes.xml</include>
         <include>web/**</include>
-        <include>dox/**</include>
         <include>classes/**</include>
       </includes>
     </fileSet>
@@ -33,14 +32,6 @@
         <include>module.properties</include>
       </includes>
       <filtered>true</filtered>
-    </fileSet>
-    <fileSet>
-      <directory>${project.build.directory}/work</directory>
-      <outputDirectory>work/jsp</outputDirectory>
-      <includes>
-        <include>org/apache/jsp/modules/${moduleName}/**/*.class</include>
-        <include>org/apache/jsp/tag/web/${moduleName}/**/*.class</include>
-      </includes>
     </fileSet>
   </fileSets>
   <dependencySets>

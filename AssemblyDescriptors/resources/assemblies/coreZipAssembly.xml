@@ -28,7 +28,6 @@
       	<include>LICENSE</include>
         <include>licenseTypes.xml</include>
         <include>RELEASE-NOTES</include>
-        <include>db/**</include>
         <include>classes/**</include>
         <include>ftl/**</include>
         <include>web/**</include>
@@ -38,13 +37,6 @@
       	<exclude>web/WEB-INF/filedata/**</exclude>
       	<exclude>web/modules/**</exclude>
       </excludes>
-    </fileSet>
-    <fileSet>
-      <directory>${project.build.directory}/work</directory>
-      <outputDirectory>work/jsp</outputDirectory>
-      <includes>
-        <include>**/*.class</include>
-      </includes>
     </fileSet>
     <fileSet>
       <!-- release.properties inclusion with filtering the build number in -->
