@@ -33,10 +33,6 @@ abstract public class EmailInline {
     public static class FileInline extends EmailInline {
         private final File file;
 
-        public FileInline(String contentId, String filename) {
-            this(contentId, new File(filename));
-        }
-
         public FileInline(String contentId, File file) {
             super(contentId);
             this.file = file;
@@ -70,6 +66,7 @@ abstract public class EmailInline {
         @Override
         public void attach(MimeMessageHelper mimeMessageHelper) throws MessagingException {
             mimeMessageHelper.addInline(contentId, new InputStreamSource() {
+                @Override
                 public InputStream getInputStream() {
                     return new ByteArrayInputStream(content);
                 }

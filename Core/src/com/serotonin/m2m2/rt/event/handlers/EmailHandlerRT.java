@@ -404,7 +404,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                     }
                 });
 
-                
+
                 try (ScriptLog scriptLog = new ScriptLog("emailScript-" + evt.getId())) {
                     MangoJavaScriptService service = Common.getBean(MangoJavaScriptService.class);
                     long time = evt.isActive() || !evt.isRtnApplicable() ? evt.getActiveTimestamp() : evt.getRtnTimestamp();
@@ -459,7 +459,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
             }
 
             for (String s : inlineImages.getImageList())
-                content.addInline(new EmailInline.FileInline(s, Common.getWebPath(s)));
+                content.addInline(new EmailInline.FileInline(s, Common.WEB.resolve(s).toFile()));
 
             if(toAddrs.length > 0)
                 EmailWorkItem.queueEmail(toAddrs, content, postEmail);
@@ -556,7 +556,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
     class SetCallback extends ScriptPointValueSetter {
         private final MangoJavaScriptService service;
-        
+
         public SetCallback(ScriptPermissions permissions) {
             super(permissions);
             this.service = Common.getBean(MangoJavaScriptService.class);
@@ -612,36 +612,36 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
     public void raiseRecursionFailureEvent() {
         LOG.error("Recursion failure in setting value from email handler");
     }
-    
+
     static class EmailPointWrapper extends DataPointWrapper {
         List<PointValueTime> rawValues;
         List<RenderedPointValueTime> values;
         String contextKey;
-        
+
         public EmailPointWrapper(DataPointVO vo) {
             super(vo, null);
         }
-        
+
         public void setRawValues(List<PointValueTime> rawValues) {
             this.rawValues = rawValues;
         }
-        
+
         public List<PointValueTime> getRawValues() {
             return rawValues;
         }
-        
+
         public void setValues(List<RenderedPointValueTime> values) {
             this.values = values;
         }
-        
+
         public List<RenderedPointValueTime> getValues() {
             return values;
         }
-        
+
         public void setContextKey(String contextKey) {
             this.contextKey = contextKey;
         }
-        
+
         public String getContextKey() {
             return contextKey;
         }

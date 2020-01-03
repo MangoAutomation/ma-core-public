@@ -122,7 +122,7 @@ public class Common {
 
     public static MangoProperties envProps;
 
-    public static final Path OVERRIDES = MA_HOME_PATH.resolve("overrides");
+    public static final Path OVERRIDES = MA_HOME_PATH.resolve(Constants.DIR_OVERRIDES);
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
@@ -287,14 +287,6 @@ public class Common {
 
     public static final int getDatabaseSchemaVersion() {
         return 29;
-    }
-
-    public static String getWebPath(String path) {
-        return MA_HOME + "/web" + (path.startsWith("/") ? path : "/" + path);
-    }
-
-    public static String getOverrideWebPath(String path) {
-        return MA_HOME + "/overrides/web" + (path.startsWith("/") ? path : "/" + path);
     }
 
     public static File getLogsDir() {
@@ -892,5 +884,4 @@ public class Common {
     public static <T> T getBean(Class<T> clazz, String name) {
         return getRuntimeContext().getBean(name, clazz);
     }
-
 }

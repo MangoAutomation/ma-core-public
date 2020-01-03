@@ -214,7 +214,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     private void freemarkerInitialize() {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
-        File baseTemplateDir = Common.MA_HOME_PATH.resolve("ftl").toFile();
+        File baseTemplateDir = Common.MA_HOME_PATH.resolve(Constants.DIR_FTL).toFile();
         if(!baseTemplateDir.exists()) {
             LOG.info("Not initializing Freemarker, this test is not running in Core source tree.  Requires ./ftl directory to initialize.");
             return;
@@ -224,7 +224,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             List<TemplateLoader> loaders = new ArrayList<>();
 
             // Add the overrides directory.
-            File override = Common.MA_HOME_PATH.resolve("overrides/ftl").toFile();
+            File override = Common.OVERRIDES.resolve(Constants.DIR_FTL).toFile();
             if (override.exists())
                 loaders.add(new FileTemplateLoader(override));
 
