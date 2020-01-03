@@ -34,11 +34,15 @@ import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.Index;
@@ -46,6 +50,7 @@ import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -105,13 +110,13 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     public static final Field<String> READ_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("readPermission"), SQLDataType.VARCHAR(255).nullable(true));
     public static final Field<String> SET_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("setPermission"), SQLDataType.VARCHAR(255).nullable(true));
 
-    /**
-     * Private as we only ever want 1 of these guys
-     */
-    private DataPointDao() {
+    @Autowired
+    private DataPointDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
         super(EventType.EventTypeNames.DATA_POINT, "dp",
                 new String[] { "ds.name", "ds.xid", "ds.dataSourceType" }, //Extra Properties not in table
-                false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"));
+                false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
+                mapper, publisher);
     }
 
     /**
@@ -132,10 +137,9 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * @param includeRelationalData
      * @return
      */
-    public List<DataPointVO> getDataPoints(int dataSourceId, boolean includeRelationalData) {
+    public List<DataPointVO> getDataPoints(int dataSourceId) {
         List<DataPointVO> dps = query(SELECT_ALL + " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
-        if (includeRelationalData)
             loadPartialRelationalData(dps);
         return dps;
     }

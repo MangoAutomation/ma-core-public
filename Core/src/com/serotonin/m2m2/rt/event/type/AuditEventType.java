@@ -153,28 +153,24 @@ public class AuditEventType extends EventType {
     }
 
     private static void raiseEvent(int changeType, String auditEventType, AbstractVO<?> to, String key, Map<String, Object> context) {
-        User user = Common.getUser();
+        PermissionHolder user = Common.getUser();
+        User raisingUser = null;
         Object username;
-        if (user != null)
-            username = user.getUsername() + " (" + user.getId() + ")";
-        else {
-            PermissionHolder holder = Common.getBackgroundContextPermissionHolder();
-            if(holder == null) {
-                String descKey = Common.getBackgroundProcessDescription();
-                if (descKey == null)
-                    username = new TranslatableMessage("common.unknown");
-                else
-                    username = new TranslatableMessage(descKey);
-            }else {
-                username = holder.getPermissionHolderName();
-            }
+        if (user instanceof User) {
+            raisingUser = (User)user;
+            username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
+        
+        }else if(user != null) {
+            username = user.getPermissionHolderName();
+        }else {
+            username = new TranslatableMessage("common.unknown");
         }
 
         TranslatableMessage message = new TranslatableMessage(key, username, new TranslatableMessage(to.getTypeKey()),
                 to.getName(), to.getXid());
 
         AuditEventType type = new AuditEventType(auditEventType, changeType, to.getId());
-        type.setRaisingUser(user);
+        type.setRaisingUser(raisingUser);
 
         Common.backgroundProcessing.addWorkItem(new AuditEventWorkItem(type, Common.timer.currentTimeMillis(), message, context));
     }

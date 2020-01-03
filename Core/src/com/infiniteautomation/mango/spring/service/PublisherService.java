@@ -18,7 +18,6 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
@@ -52,8 +51,9 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     }
 
     @Override
-    public PublisherVO<T> insert(PublisherVO<T> vo,PermissionHolder user)
+    public PublisherVO<T> insert(PublisherVO<T> vo)
             throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
         
@@ -75,8 +75,8 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     }
     
     @Override
-    public PublisherVO<T> update(PublisherVO<T> existing, PublisherVO<T> vo,
-            PermissionHolder user) throws PermissionException, ValidationException {
+    public PublisherVO<T> update(PublisherVO<T> existing, PublisherVO<T> vo) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
         
         //Ensure matching data source types
@@ -93,9 +93,10 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
     }
     
     @Override
-    public PublisherVO<T> delete(String xid, PermissionHolder user)
+    public PublisherVO<T> delete(String xid)
             throws PermissionException, NotFoundException {
-        PublisherVO<T> vo = get(xid, user);
+        PublisherVO<T> vo = get(xid);
+        PermissionHolder user = Common.getUser();
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deletePublisher(vo.getId());
         return vo;
@@ -105,10 +106,10 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
      * @param xid
      * @param enabled
      * @param restart
-     * @param user
      */
-    public void restart(String xid, boolean enabled, boolean restart, User user) {
-        PublisherVO<T>  vo = get(xid, user);
+    public void restart(String xid, boolean enabled, boolean restart) {
+        PublisherVO<T>  vo = get(xid);
+        PermissionHolder user = Common.getUser();
         ensureEditPermission(user, vo);
         if (enabled && restart) {
             vo.setEnabled(true);

@@ -14,12 +14,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.JoinClause;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -62,8 +67,13 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         }
     }
 
-    private EventHandlerDao() {
-        super(AuditEventType.TYPE_EVENT_HANDLER, "eh", new String[0], false, new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"));
+    @Autowired
+    private EventHandlerDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
+        super(AuditEventType.TYPE_EVENT_HANDLER, "eh", 
+                new String[0], false, 
+                new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
+                mapper, publisher);
     }
 
     /**

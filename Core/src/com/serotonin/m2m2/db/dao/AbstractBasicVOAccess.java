@@ -51,8 +51,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> {
     public void update(T existing, T vo);
     
     /**
-     * Return a VO and load its relational data
-     *
+     * Return a VO and load its relational data using the user to ensure read permission
      * @param id
      * @return
      */
@@ -71,7 +70,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO> {
      * @return
      */
     public List<T> getAll();
-    
+        
     /**
      * Load relational data from another table, does not happen within a transaction
      * @param vo

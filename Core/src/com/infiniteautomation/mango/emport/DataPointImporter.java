@@ -18,7 +18,6 @@ import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
     
@@ -29,9 +28,8 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
     
     public DataPointImporter(JsonObject json, 
             DataPointService dataPointService,
-            DataSourceService<DS> dataSourceService,
-            PermissionHolder user) {
-        super(json, user);
+            DataSourceService<DS> dataSourceService) {
+        super(json);
         this.dataPointService = dataPointService;
         this.dataSourceService = dataSourceService;
     }
@@ -46,7 +44,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             xid = dataPointService.getDao().generateUniqueXid();
         }else {
             try {
-                vo = dataPointService.get(xid, user);
+                vo = dataPointService.get(xid);
             }catch(NotFoundException e) {
                 
             }
@@ -56,7 +54,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             // Locate the data source for the point.
             String dsxid = json.getString("dataSourceXid");
             try {
-                dsvo = dataSourceService.get(dsxid, user);
+                dsvo = dataSourceService.get(dsxid);
             }catch(NotFoundException e) {
                 addFailureMessage("emport.dataPoint.badReference", xid);
                 return;
@@ -87,9 +85,9 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
                 try {
                 	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
                 	    if(isNew) {
-                	        dataPointService.insert(vo, user);
+                	        dataPointService.insert(vo);
                 	    }else {
-                	        dataPointService.update(vo.getId(), vo, user);
+                	        dataPointService.update(vo.getId(), vo);
                 	    }
                 		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
                 	}else{

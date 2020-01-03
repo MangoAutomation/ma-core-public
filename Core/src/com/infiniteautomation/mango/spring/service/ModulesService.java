@@ -66,6 +66,7 @@ import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.web.http.HttpUtils4;
 
@@ -107,7 +108,7 @@ public class ModulesService implements ModuleNotificationListener {
         synchronized(SHUTDOWN_TASK_LOCK){
             if (SHUTDOWN_TASK == null) {
                 IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, true, Common.getHttpUser());
+                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, true, Common.getUser());
                 //Get the redirect page
                 result.addData("shutdownUri", "/shutdown.htm");
             }
@@ -125,7 +126,7 @@ public class ModulesService implements ModuleNotificationListener {
             if (SHUTDOWN_TASK == null) {
                 //Ensure our lifecycle state is set to PRE_SHUTDOWN
                 IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, false, Common.getHttpUser());
+                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, false, Common.getUser());
                 //Get the redirect page
                 result.addData("shutdownUri", "/shutdown.htm");
             }
@@ -149,7 +150,15 @@ public class ModulesService implements ModuleNotificationListener {
             JsonValue jsonResponse = getAvailableUpgrades();
 
             if (jsonResponse == null) {
-                result.addData("error", new TranslatableMessage("modules.versionCheck.storeNotSet").translate(Common.getHttpUser().getTranslations()));
+                PermissionHolder user = Common.getUser();
+                Translations translations;
+                if(user instanceof User) {
+                    translations = ((User)user).getTranslations();
+                }else {
+                    translations = Common.getTranslations();
+                }
+                    
+                result.addData("error", new TranslatableMessage("modules.versionCheck.storeNotSet").translate(translations));
                 return result;
             }
             if (jsonResponse instanceof JsonString)
@@ -230,7 +239,7 @@ public class ModulesService implements ModuleNotificationListener {
         synchronized(UPGRADE_DOWNLOADER_LOCK){
             // Ensure that 2 downloads cannot start at the same time.
             if (UPGRADE_DOWNLOADER == null) {
-                UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart, Common.getHttpUser());
+                UPGRADE_DOWNLOADER = new UpgradeDownloader(modules, backup, restart, Common.getUser());
                 //Clear out common info
                 resetUpgradeStatus();
                 Common.backgroundProcessing.execute(UPGRADE_DOWNLOADER);
@@ -423,7 +432,7 @@ public class ModulesService implements ModuleNotificationListener {
         private final File coreDir = new File(Common.MA_HOME);
         private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
         private volatile boolean cancelled = false;
-        private User user;
+        private PermissionHolder user;
 
         /**
          * Only allow 1 to be scheduled all others will be rejected
@@ -431,7 +440,7 @@ public class ModulesService implements ModuleNotificationListener {
          * @param backup
          * @param restart
          */
-        public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart, User user) {
+        public UpgradeDownloader(List<StringStringPair> modules, boolean backup, boolean restart, PermissionHolder user) {
             super("Upgrade downloader", "UpgradeDownloader", 0);
             this.modules = modules;
             this.backup = backup;

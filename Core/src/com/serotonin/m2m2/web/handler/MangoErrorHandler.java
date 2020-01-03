@@ -20,6 +20,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.BrowserRequestMatcher;
 
 /**
@@ -83,11 +84,12 @@ public class MangoErrorHandler extends ErrorHandler {
                         //
                         //Are we a PermissionException
                         if(th instanceof PermissionException){
-                            User user = Common.getHttpUser();
-                            if(user == null)
+                            PermissionHolder user = Common.getUser();
+                            if(user instanceof User) {
+                                uri = DefaultPagesDefinition.getUnauthorizedUri(request, response, (User)user);
+                            }else {
                                 uri = ACCESS_DENIED;
-                            else
-                                uri = DefaultPagesDefinition.getUnauthorizedUri(request, response, Common.getHttpUser());
+                            }
                             // Put exception into request scope (perhaps of use to a view)
                             request.setAttribute(WebAttributes.ACCESS_DENIED_403, th);
                             response.sendRedirect(uri);

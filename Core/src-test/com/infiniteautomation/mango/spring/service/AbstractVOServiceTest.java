@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.service;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.vo.AbstractVO;
 
@@ -28,25 +29,35 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO<?>, DAO extend
     @Test
     public void testUpdateViaXid() {
         runTest(() -> {
-            VO vo = insertNewVO();
-            VO fromDb = service.get(vo.getId(), systemSuperadmin);
-            assertVoEqual(vo, fromDb);
-            
-            VO updated = updateVO(vo);
-            service.update(vo.getXid(), updated, systemSuperadmin);
-            fromDb = service.get(updated.getXid(), systemSuperadmin);
-            assertVoEqual(updated, fromDb);            
+            Common.setUser(systemSuperadmin);
+            try {
+                VO vo = insertNewVO();
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                
+                VO updated = updateVO(vo);
+                service.update(vo.getXid(), updated);
+                fromDb = service.get(updated.getXid());
+                assertVoEqual(updated, fromDb);    
+            }finally {
+                Common.removeUser();
+            }
         });
     }
     
     @Test(expected = NotFoundException.class)
     public void testDeleteViaXid() {
         runTest(() -> {
-            VO vo = insertNewVO();
-            VO fromDb = service.get(vo.getId(), systemSuperadmin);
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getXid(), systemSuperadmin);
-            service.get(vo.getXid(), systemSuperadmin);            
+            Common.setUser(systemSuperadmin);
+            try {
+                VO vo = insertNewVO();
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                service.delete(vo.getXid());
+                service.get(vo.getXid());    
+            }finally {
+                Common.removeUser();
+            }
         });
     }
     

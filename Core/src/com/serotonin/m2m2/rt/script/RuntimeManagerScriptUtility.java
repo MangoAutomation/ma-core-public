@@ -135,12 +135,13 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
 	 */
 	public int enableDataSource(String xid) {
+	    Common.setUser(permissions);
 	    try {
-	        DS vo = dataSourceService.get(xid, permissions);
+	        DS vo = dataSourceService.get(xid);
 	        if(!vo.isEnabled()) {
 	            vo.setEnabled(true);
 	            try{
-	                dataSourceService.update(xid, vo, permissions);
+	                dataSourceService.update(xid, vo);
 	            }catch(Exception e){
 	                LOG.error(e.getMessage(), e);
 	                throw e;
@@ -150,6 +151,8 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	            return OPERATION_NO_CHANGE;
 	    }catch(Exception e) {
 	        return DOES_NOT_EXIST;   
+	    }finally {
+	        Common.removeUser();
 	    }
 	}
 
@@ -159,12 +162,13 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
 	 * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
 	 */
 	public int disableDataSource(String xid){
+	    Common.setUser(permissions);
         try {
-            DS vo = dataSourceService.get(xid, permissions);
+            DS vo = dataSourceService.get(xid);
             if(vo.isEnabled()) {
                 vo.setEnabled(false);
                 try{
-                    dataSourceService.update(xid, vo, permissions);
+                    dataSourceService.update(xid, vo);
                 }catch(Exception e){
                     LOG.error(e.getMessage(), e);
                     throw e;
@@ -174,6 +178,8 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
                 return OPERATION_NO_CHANGE;
         }catch(Exception e) {
             return DOES_NOT_EXIST;   
+        }finally {
+            Common.removeUser();
         }
 	}
 	

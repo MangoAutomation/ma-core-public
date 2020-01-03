@@ -12,9 +12,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.db.pair.IntStringPair;
@@ -38,8 +43,13 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
         return dao;
     });
 
-    private FileStoreDao() {
-        super("fs", new String[] {}, false,  new TranslatableMessage("internal.monitor.filestoreCount"));
+    @Autowired
+    private FileStoreDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
+        super("fs", new String[] {}, 
+                false,  
+                new TranslatableMessage("internal.monitor.filestoreCount"),
+                mapper, publisher);
     }
 
     public static FileStoreDao getInstance() {

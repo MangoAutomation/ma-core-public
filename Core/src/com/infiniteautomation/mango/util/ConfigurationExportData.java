@@ -100,6 +100,7 @@ public class ConfigurationExportData {
      * Get a map of desired export data.
      * 
      * @param exportElements if null full export is returned
+     * @param user
      * @return
      */
     public static Map<String, Object> createExportDataMap(String[] exportElements){

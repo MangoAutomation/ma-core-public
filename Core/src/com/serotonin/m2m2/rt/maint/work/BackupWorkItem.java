@@ -189,8 +189,13 @@ public class BackupWorkItem implements WorkItem {
 	 * @return
 	 */
 	public String getBackup(){
-        Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);
-        return Common.getBean(EmportService.class).export(data, 3, PermissionHolder.SYSTEM_SUPERADMIN);
+	    Common.setUser(PermissionHolder.SYSTEM_SUPERADMIN);
+	    try {
+            Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);
+            return Common.getBean(EmportService.class).export(data, 3);
+	    }finally {
+	        Common.removeUser();
+	    }
 	}
 
 	/**

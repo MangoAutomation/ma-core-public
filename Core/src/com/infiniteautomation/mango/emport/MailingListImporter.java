@@ -14,15 +14,14 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public class MailingListImporter extends Importer {
     
     private final MailingListService service;
     
     public MailingListImporter(JsonObject json,
-            MailingListService service, PermissionHolder user) {
-        super(json, user);
+            MailingListService service) {
+        super(json);
         this.service = service;
     }
 
@@ -35,7 +34,7 @@ public class MailingListImporter extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                vo = service.get(xid, user);
+                vo = service.get(xid);
             }catch(NotFoundException e) {
 
             }
@@ -50,9 +49,9 @@ public class MailingListImporter extends Importer {
             ctx.getReader().readInto(vo, json);
             boolean isnew = vo.getId() == Common.NEW_ID;
             if(isnew) {
-                service.insert(vo, user);
+                service.insert(vo);
             }else {
-                service.update(vo.getId(), vo, user);
+                service.update(vo.getId(), vo);
             }
             addSuccessMessage(isnew, "emport.mailingList.prefix", xid);
         }catch(ValidationException e) {

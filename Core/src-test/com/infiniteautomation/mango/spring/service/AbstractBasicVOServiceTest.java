@@ -101,40 +101,55 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     @Test
     public void testCreate() {
         runTest(() -> {
-            VO vo = insertNewVO();
-            VO fromDb = service.get(vo.getId(), systemSuperadmin);
-            assertVoEqual(vo, fromDb);            
+            Common.setUser(systemSuperadmin);
+            try {
+                VO vo = insertNewVO();
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);     
+            }finally {
+                Common.removeUser();
+            }
         });
     }
     
     @Test
     public void testUpdate() {
         runTest(() -> {
-            VO vo = insertNewVO();
-            VO fromDb = service.get(vo.getId(), systemSuperadmin);
-            assertVoEqual(vo, fromDb);
-            
-            VO updated = updateVO(vo);
-            service.update(vo.getId(), updated, systemSuperadmin);
-            fromDb = service.get(vo.getId(), systemSuperadmin);
-            assertVoEqual(updated, fromDb);            
+            Common.setUser(systemSuperadmin);
+            try {
+                VO vo = insertNewVO();
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                
+                VO updated = updateVO(vo);
+                service.update(vo.getId(), updated);
+                fromDb = service.get(vo.getId());
+                assertVoEqual(updated, fromDb);
+            }finally {
+                Common.removeUser();
+            }
         });
     }
     
     @Test(expected = NotFoundException.class)
     public void testDelete() {
         runTest(() -> {
-            VO vo = insertNewVO();
-            VO fromDb = service.get(vo.getId(), systemSuperadmin);
-            assertVoEqual(vo, fromDb);
-            service.delete(vo.getId(), systemSuperadmin);
-            service.get(vo.getId(), systemSuperadmin);
+            Common.setUser(systemSuperadmin);
+            try {
+                VO vo = insertNewVO();
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                service.delete(vo.getId());
+                service.get(vo.getId());
+            }finally {
+                Common.removeUser();
+            }
         });
     }
     
     VO insertNewVO() {
         VO vo = newVO();
-        return service.insert(vo, systemSuperadmin);
+        return service.insert(vo);
     }
     
     void assertRoles(Set<Role> expected, Set<Role> actual) {
@@ -165,29 +180,33 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
         roleService = Common.getBean(RoleService.class);
         
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
-
-        //Add some roles
-        RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
-        roleService.insert(temp, systemSuperadmin);
-        readRole = new Role(temp);
-        
-        temp = new RoleVO(Common.NEW_ID, "edit-role", "Role to allow editing.");
-        roleService.insert(temp, systemSuperadmin);
-        editRole = new Role(temp);
-        
-        temp = new RoleVO(Common.NEW_ID, "set-role", "Role to allow setting.");
-        roleService.insert(temp, systemSuperadmin);
-        setRole = new Role(temp);
-        
-        temp = new RoleVO(Common.NEW_ID, "delete-role", "Role to allow deleting.");
-        roleService.insert(temp, systemSuperadmin);
-        deleteRole = new Role(temp);
-
-        readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
-        editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
-        setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
-        deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
-        allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);   
+        Common.setUser(systemSuperadmin);
+        try {
+            //Add some roles
+            RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
+            roleService.insert(temp);
+            readRole = new Role(temp);
+            
+            temp = new RoleVO(Common.NEW_ID, "edit-role", "Role to allow editing.");
+            roleService.insert(temp);
+            editRole = new Role(temp);
+            
+            temp = new RoleVO(Common.NEW_ID, "set-role", "Role to allow setting.");
+            roleService.insert(temp);
+            setRole = new Role(temp);
+            
+            temp = new RoleVO(Common.NEW_ID, "delete-role", "Role to allow deleting.");
+            roleService.insert(temp);
+            deleteRole = new Role(temp);
+    
+            readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
+            editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
+            setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
+            deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
+            allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);  
+        }finally {
+            Common.removeUser();
+        }
     }
     
     @FunctionalInterface

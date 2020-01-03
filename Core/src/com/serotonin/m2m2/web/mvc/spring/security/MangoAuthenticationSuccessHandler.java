@@ -25,6 +25,7 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.module.DefaultPagesDefinition.LoginUriInfo;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Jared Wiltshire
@@ -49,9 +50,9 @@ public class MangoAuthenticationSuccessHandler extends SavedRequestAwareAuthenti
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response) {
         String url = super.determineTargetUrl(request, response);
-        if (url == null || url.equals(this.getDefaultTargetUrl())) {
-            User user = Common.getHttpUser();
-            LoginUriInfo info = DefaultPagesDefinition.getDefaultUriInfo(request, response, user);
+        PermissionHolder user = Common.getUser();
+        if (user instanceof User && (url == null || url.equals(this.getDefaultTargetUrl()))) {
+            LoginUriInfo info = DefaultPagesDefinition.getDefaultUriInfo(request, response, (User)user);
             return info.getUri();
         }
         return url;

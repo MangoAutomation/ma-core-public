@@ -80,15 +80,20 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        User user = this.usersService.get(username, this.systemSuperadmin);
-
-        Integer userId = user.getId();
-        this.verifyClaim(token, USER_ID_CLAIM, userId);
-
-        Integer pwVersion = user.getPasswordVersion();
-        this.verifyClaim(token, USER_PASSWORD_VERSION_CLAIM, pwVersion);
-
-        return user;
+        Common.setUser(this.systemSuperadmin);
+        try {
+            User user = this.usersService.get(username);
+    
+            Integer userId = user.getId();
+            this.verifyClaim(token, USER_ID_CLAIM, userId);
+    
+            Integer pwVersion = user.getPasswordVersion();
+            this.verifyClaim(token, USER_PASSWORD_VERSION_CLAIM, pwVersion);
+    
+            return user;
+        }finally {
+            Common.removeUser();
+        }
     }
 
     @Override
@@ -145,8 +150,13 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         // we copy the user so that when we set the new password it doesn't modify the cached instance
         User updated = existing.copy();
         updated.setPlainTextPassword(newPassword);
-        this.usersService.update(existing, updated, this.systemSuperadmin);
-        return updated;
+        Common.setUser(this.systemSuperadmin);
+        try {
+            this.usersService.update(existing, updated);
+            return updated;
+        }finally {
+           Common.removeUser(); 
+        }
     }
 
     public void sendEmail(User user) throws TemplateException, IOException, AddressException {

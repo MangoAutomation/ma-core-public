@@ -43,7 +43,6 @@ import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
@@ -674,12 +673,12 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dsVo.setUpdatePeriods(1);
         dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
         User admin = UserDao.getInstance().getByXid("admin");
-        BackgroundContext.set(admin);
+        Common.setUser(admin);
         try {
             validate(dsVo);
             Common.runtimeManager.insertDataSource(dsVo);
         }finally {
-            BackgroundContext.remove(); 
+            Common.removeUser();
         }
         //Create point locator
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
@@ -716,12 +715,12 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         eventDetectors.add(rocVo);
         dpVo.setEventDetectors(eventDetectors);
         
-        BackgroundContext.set(admin);
+        Common.setUser(admin);
         try {
             validate(dpVo);
             Common.runtimeManager.insertDataPoint(dpVo);
         }finally {
-            BackgroundContext.remove();
+            Common.removeUser();
         }
         return dpVo;
     }

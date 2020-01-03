@@ -87,8 +87,9 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     }
 
     @Override
-    public T insert(T vo, PermissionHolder user)
+    public T insert(T vo)
             throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
         
@@ -111,8 +112,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     
     
     @Override
-    public T update(T existing, T vo,
-            PermissionHolder user) throws PermissionException, ValidationException {
+    public T update(T existing, T vo) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
         
         //Ensure matching data source types
@@ -129,9 +130,10 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     }
     
     @Override
-    public T delete(String xid, PermissionHolder user)
+    public T delete(String xid)
             throws PermissionException, NotFoundException {
-        T vo = get(xid, user);
+        T vo = get(xid);
+        PermissionHolder user = Common.getUser();
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
         return vo;
@@ -157,11 +159,11 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param xid
      * @param enabled - Enable or disable the data source
      * @param restart - Restart the data source, enabled must equal true
-     * @param user
      */
-    public void restart(String xid, boolean enabled, boolean restart, PermissionHolder user) {
-        T vo = get(xid, user);
+    public void restart(String xid, boolean enabled, boolean restart) {
+        T vo = get(xid);
         T existing = vo.copy();
+        PermissionHolder user = Common.getUser();
         ensureEditPermission(user, vo);
         if (enabled && restart) {
             vo.setEnabled(true);
@@ -180,13 +182,13 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param copyDeviceName
      * @param enabled
      * @param copyPoints
-     * @param user
      * @return
      * @throws PermissionException
      * @throws NotFoundException
      */
-    public T copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints, PermissionHolder user) throws PermissionException, NotFoundException {
-        T existing = get(xid, user);
+    public T copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints) throws PermissionException, NotFoundException {
+        T existing = get(xid);
+        PermissionHolder user = Common.getUser();
         ensureCreatePermission(user, existing);
         //Determine the new name
         String newName;
@@ -228,9 +230,9 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         Common.runtimeManager.insertDataSource(copy);
         
         if(copyPoints) {
-            copyDataSourcePoints(existing.getId(), copy, newDeviceName, user);
+            copyDataSourcePoints(existing.getId(), copy, newDeviceName);
         }
-        return get(newXid, user);
+        return get(newXid);
     }
    
     /**
@@ -240,10 +242,9 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param newDeviceName - if null will use data source copy's name
      * @param user
      */
-    private void copyDataSourcePoints(int dataSourceId, DataSourceVO<?> dataSourceCopy, String newDeviceName,
-            PermissionHolder user) {
+    private void copyDataSourcePoints(int dataSourceId, DataSourceVO<?> dataSourceCopy, String newDeviceName) {
         // Copy the points by getting each point without any relational data and loading it as we need it
-        for (DataPointVO dataPoint : dataPointService.getDataPoints(dataSourceId, true, user)) {
+        for (DataPointVO dataPoint : dataPointService.getDataPoints(dataSourceId)) {
             DataPointVO dataPointCopy = dataPoint.copy();
             dataPointCopy.setId(Common.NEW_ID);
             dataPointCopy.setXid(dataPointService.getDao().generateUniqueXid());
@@ -260,7 +261,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
                 ped.setId(Common.NEW_ID);
                 ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
             }
-            dataPointService.insert(dataPointCopy, user);
+            dataPointService.insert(dataPointCopy);
         }
     }
 

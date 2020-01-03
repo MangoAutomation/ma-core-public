@@ -20,11 +20,16 @@ import org.jooq.Record;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
@@ -59,8 +64,13 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return (DataSourceDao<DataSourceVO<?>>)o;
     });
 
-    private DataSourceDao() {
-        super(AuditEventType.TYPE_DATA_SOURCE, "ds", new String[0], false, new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"));
+    @Autowired
+    private DataSourceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
+        super(AuditEventType.TYPE_DATA_SOURCE, "ds", 
+                new String[0], false, 
+                new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
+                mapper, publisher);
     }
 
     /**

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -57,10 +58,12 @@ public class MangoAccessDeniedHandler implements AccessDeniedHandler {
                 // browser HTML request
                 String accessDeniedUrl = ACCESS_DENIED;
 
-                User user = Common.getHttpUser();
-                if (user != null) {
-                    LOG.warn("Denied user is " + user.getUsername());
-                    accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, user);
+                PermissionHolder user = Common.getUser();
+                if (user instanceof User) {
+                    LOG.warn("Denied user is " + user.getPermissionHolderName());
+                    accessDeniedUrl = DefaultPagesDefinition.getUnauthorizedUri(request, response, (User)user);
+                }else if(user != null) {
+                    LOG.warn("Denied permission holder is " + user.getPermissionHolderName());
                 }
 
                 // Put exception into request scope (perhaps of use to a view)

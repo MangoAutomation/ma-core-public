@@ -20,6 +20,9 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -27,6 +30,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -61,10 +66,13 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
 
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
-    private PublisherDao(){
+    @Autowired
+    private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher){
     	super(AuditEventType.TYPE_PUBLISHER, "pub",
     	        new String[0], false, 
-    	        new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"));
+    	        new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
+    	        mapper, publisher);
     }
     
     /**

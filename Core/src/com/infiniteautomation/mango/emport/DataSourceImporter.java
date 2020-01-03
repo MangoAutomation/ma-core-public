@@ -13,13 +13,12 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
     
     private final DataSourceService<DS> service;
-    public DataSourceImporter(JsonObject json, DataSourceService<DS> dataSourceService, PermissionHolder user) {
-        super(json, user);
+    public DataSourceImporter(JsonObject json, DataSourceService<DS> dataSourceService) {
+        super(json);
         this.service = dataSourceService;
     }
 
@@ -32,7 +31,7 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                vo = service.get(xid, user);
+                vo = service.get(xid);
             }catch(NotFoundException e) {
                 
             }
@@ -60,9 +59,9 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
                 boolean isnew = vo.isNew();
                 if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
                     if(isnew) {
-                        service.insert(vo, user);
+                        service.insert(vo);
                     }else {
-                        service.update(vo.getId(), vo, user);
+                        service.update(vo.getId(), vo);
                     }
                     addSuccessMessage(isnew, "emport.dataSource.prefix", xid);
                 }else{

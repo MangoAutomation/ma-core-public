@@ -38,8 +38,6 @@ import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -56,7 +54,6 @@ import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ModuleNotLoadedException;
@@ -68,6 +65,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -89,14 +87,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public static final String AND = " AND ";
     public static final String LIMIT = " LIMIT ";
 
-    // TODO Mango 4.0 add to constructor and make final, also look at simplifying the constructor set in the superclass
-    @Autowired
-    @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)
-    private ObjectMapper mapper;
-
-    // TODO Mango 4.0 add to constructor and make final, also look at simplifying the constructor set in the superclass
-    @Autowired
-    protected ApplicationEventPublisher eventPublisher;
+    private final ObjectMapper mapper;
+    protected final ApplicationEventPublisher eventPublisher;
 
     /**
      * Map UI or Model member names to the Database Column Names. They will get
@@ -122,6 +114,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     /*
      * SQL templates
      */
+    protected final Field<Object> PK_COLUMN;
+
+    
     protected final String TABLE_PREFIX; // Without ending .
     protected final String SELECT_ALL_BASE; // Without location of FROM
     protected final String SELECT_ALL;
@@ -148,9 +143,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     public final String tablePrefix; // Prefix with dot table.
 
-    // Use SubQuery for restrictions not in Joined Tables
-    protected final boolean useSubQuery;
-
     protected final String pkColumn;
 
     //Monitor for count of table
@@ -167,9 +159,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     /**
      * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
      * @param extraProperties - Other SQL for use in Queries
+     * @param tablePrefix
+     * @param extraProperties
+     * @param mapper
+     * @param publisher
      */
-    public AbstractBasicDao(String tablePrefix, String[] extraProperties) {
-        this(tablePrefix, extraProperties, false, null);
+    public AbstractBasicDao(String tablePrefix, String[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(tablePrefix, extraProperties, false, null, mapper, publisher);
     }
 
     /**
@@ -177,17 +173,21 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @param extraProperties - Other SQL for use in Queries
      * @param useSubQuery - Compute and use subqueries for performance
      * @param countMonitorName - If not null create a monitor to track table row count
+     * @param mapper
+     * @param publisher
      */
-    public AbstractBasicDao(String tablePrefix, String[] extraProperties,boolean useSubQuery, TranslatableMessage countMonitorName) {
-
+    public AbstractBasicDao(String tablePrefix, String[] extraProperties,boolean useSubQuery, 
+            TranslatableMessage countMonitorName,
+            ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        
         TABLE_PREFIX = tablePrefix;
+        
         if (tablePrefix != null)
             this.tablePrefix = tablePrefix + ".";
         else
             this.tablePrefix = "";
 
         this.tableName = getTableName();
-        this.useSubQuery = useSubQuery;
 
         this.table = DSL.table(DSL.name(this.tableName));
         this.tableAlias = DSL.name(TABLE_PREFIX);
@@ -203,6 +203,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             throw new ShouldNeverHappenException("Property Type Map is required!");
         else
             this.propertyTypeMap = propTypeMap;
+        
+        this.mapper = mapper;
+        this.eventPublisher = publisher;
 
         // generate SQL statements
         String selectAll = "SELECT ";
@@ -269,15 +272,21 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
         this.joinedTable = DSL.table(joinedTableSql);
 
+        this.pkColumn = getPkColumnName();
+        if (StringUtils.isEmpty(pkColumn)) {
+            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, "id"));
+        }else {
+            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, getPkColumnName()));
+        }
+
         // Add the table prefix to the queries if necessary
         SELECT_ALL_BASE = selectAll + " FROM ";
-        this.pkColumn = getPkColumnName();
-
         if (this.tablePrefix.equals("")) {
-            if (StringUtils.isEmpty(pkColumn))
+            if (StringUtils.isEmpty(pkColumn)) {
                 COUNT_BASE = "SELECT COUNT(*) FROM ";
-            else
+            }else {
                 COUNT_BASE = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM ";
+            }
 
             if (joinSql != null)
                 SELECT_ALL = selectAll + " FROM " + tableName + joinSql;
@@ -459,6 +468,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected abstract LinkedHashMap<String, Integer> getPropertyTypeMap();
 
     /**
+     * Condition required for user to have read permission.  Override as required, note 
+     *  that when overriding the user can and will sometimes be null
+     * @param user - reading user (can be null)
+     * @return
+     */
+    protected Condition hasReadPermission(PermissionHolder user) {
+        return DSL.trueCondition();
+    }
+    
+    /**
      * Returns a map which maps a virtual property to a real one used for
      * sorting/filtering from the database e.g. dateFormatted -> timestamp
      *
@@ -564,10 +583,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         });
         this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, existing));
     }
-
+    
     @Override
     public T get(int id) {
-        T item = queryForObject(SELECT_BY_ID, new Object[] { id }, getRowMapper(), null);
+        Select<Record> query = this.create.select(this.fields)
+                .from(this.joinedTable)
+                .where(PK_COLUMN.eq(id))
+                .limit(1);
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
+        T item = this.queryForObject(sql, args.toArray(new Object[args.size()]), getRowMapper(), null);
         if (item != null) {
             loadRelationalData(item);
         }
@@ -576,7 +601,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     
     @Override
     public void getAll(MappedRowCallback<T> callback) {
-        query(SELECT_ALL_FIXED_SORT, new Object[] {}, getCallbackResultSetExtractor((item, index)->{
+        PermissionHolder user = Common.getUser();
+        Select<Record> query = this.create.select(this.fields)
+                .from(this.joinedTable)
+                .where(this.hasReadPermission(user));
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
+        query(sql, args.toArray(), getCallbackResultSetExtractor((item, index) -> {
             loadRelationalData(item);
             callback.row(item, index);
         }));
@@ -596,46 +627,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     
     @Override
     public int count() {
-        return ejt.queryForInt(COUNT, new Object[0], 0);
-    }
-
-    protected String applyRange(String sql, List<Object> args, Integer offset, Integer limit) {
-        if (offset == null || limit == null) {
-            return sql;
-        }
-
-        switch (Common.databaseProxy.getType()) {
-            case MYSQL:
-            case POSTGRES:
-                args.add(limit);
-                args.add(offset);
-                return sql + " LIMIT ? OFFSET ?";
-            case MSSQL:
-            case H2:
-                args.add(offset);
-                args.add(limit);
-                return sql + " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-            default:
-                LOG.warn("No case for adding limit to database of type: " + Common.databaseProxy.getType());
-                return sql;
-        }
-    }
-
-    protected String applyLimit(String sql, List<Object> args, Integer limit) {
-        if (limit == null) {
-            return sql;
-        }
-
-        switch (Common.databaseProxy.getType()) {
-            case MYSQL:
-            case POSTGRES:
-            case MSSQL:
-            case H2:
-                args.add(limit);
-                return sql + " LIMIT ? ";
-            default:
-                LOG.warn("No case for adding limit to database of type: " + Common.databaseProxy.getType());
-                return sql;
+        if (StringUtils.isEmpty(pkColumn)) {
+            return this.create.fetchCount(table);
+        }else {
+            return this.create.select(DSL.countDistinct(PK_COLUMN)).from(this.tableName + " AS " + TABLE_PREFIX).fetchOneInto(Integer.class);
         }
     }
 
@@ -702,8 +697,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             if(fetchSize > 0)
                 stmt.setFetchSize(fetchSize);
         }
-
-
 
         int index = 1;
         for (Object o : args) {
@@ -774,7 +767,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public int customizedCount(ConditionSortLimit conditions) {
         Condition condition = conditions.getCondition();
         SelectSelectStep<Record1<Integer>> count;
-        if (this.pkColumn != null && !this.pkColumn.isEmpty()) {
+        if (StringUtils.isNotEmpty(this.pkColumn)) {
             count = this.create.select(DSL.countDistinct(DSL.field(tableAlias.append(this.pkColumn))));
         } else {
             count = this.create.selectCount();

@@ -33,6 +33,7 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.TimerTask;
 

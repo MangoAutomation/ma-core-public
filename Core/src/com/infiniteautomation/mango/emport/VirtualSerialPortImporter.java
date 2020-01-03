@@ -13,7 +13,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Template Importer
@@ -22,8 +21,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 public class VirtualSerialPortImporter extends Importer {
-    public VirtualSerialPortImporter(JsonObject json, PermissionHolder user) {
-        super(json, user);
+    public VirtualSerialPortImporter(JsonObject json) {
+        super(json);
     }
 
     @Override

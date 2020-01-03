@@ -72,10 +72,13 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String getFullConfiguration(int prettyIndent) {
         EmportService service = Common.getBean(EmportService.class);
+        Common.setUser(permissions);
         try{
-            return service.export(ConfigurationExportData.createExportDataMap(null), prettyIndent, permissions);
+            return service.export(ConfigurationExportData.createExportDataMap(null), prettyIndent);
         }catch(PermissionException e) {
             return "{}";
+        }finally {
+            Common.removeUser();
         }
     }
 
@@ -84,11 +87,14 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getConfiguration(String type, int prettyIndent) {
-        Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
+        Common.setUser(permissions);
         try {
-            return Common.getBean(EmportService.class).export(data, prettyIndent, permissions);
+            Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
+            return Common.getBean(EmportService.class).export(data, prettyIndent);
         }catch(PermissionException e) {
             return "{}";
+        }finally {
+            Common.removeUser();
         }
     }
 
@@ -111,11 +117,13 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
             data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
         }
-        
+        Common.setUser(permissions);
         try{
-            return Common.getBean(EmportService.class).export(data, prettyIndent, permissions);
+            return Common.getBean(EmportService.class).export(data, prettyIndent);
         }catch(PermissionException e) {
             return "{}";
+        }finally {
+            Common.removeUser();
         }
     }
 
@@ -133,10 +141,13 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             });
             data.put(ConfigurationExportData.DATA_SOURCES, dataSources);
         }
+        Common.setUser(permissions);
         try{
-            return Common.getBean(EmportService.class).export(data, prettyIndent, permissions);
+            return Common.getBean(EmportService.class).export(data, prettyIndent);
         }catch(PermissionException e) {
             return "{}";
+        }finally {
+            Common.removeUser();
         }
     }
 

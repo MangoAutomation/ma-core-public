@@ -7,9 +7,11 @@ package com.serotonin.m2m2.db.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ShouldNeverHappenException;
@@ -38,8 +40,10 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param useSubQuery - Compute queries as sub-queries
      * @param countMonitorName - If not null create a monitor to track table row count
      */
-    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, boolean useSubQuery, TranslatableMessage countMonitorName) {
-        super(tablePrefix, extraProperties, useSubQuery, countMonitorName);
+    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, 
+            boolean useSubQuery, TranslatableMessage countMonitorName,
+            ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        super(tablePrefix, extraProperties, useSubQuery, countMonitorName, mapper, publisher);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
@@ -49,23 +53,8 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param tablePrefix - Table prefix for Selects/Joins
      * @param extraProperties - Any extra SQL for queries
      */
-    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties) {
-        this(typeName, tablePrefix, extraProperties, false, null);
-    }
-
-    /**
-     * @param typeName - Type name for Audit events
-     */
-    protected AbstractDao(String typeName) {
-        this(typeName, null, new String[0]);
-    }
-
-    /**
-     * @param typeName - Type name for Audit events
-     * @param countMonitorName - If not null used to track count of table rows
-     */
-    protected AbstractDao(String typeName, TranslatableMessage countMonitorName) {
-        this(typeName, null, new String[0], false, countMonitorName);
+    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(typeName, tablePrefix, extraProperties, false, null, mapper, publisher);
     }
 
     /**
@@ -122,18 +111,6 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     @Override
     public String getXidById(int id) {
         return this.queryForObject(SELECT_XID_BY_ID, new Object[] { id }, String.class, null);
-    }
-    
-    /**
-     * Get all vo in the system
-     *
-     * @return List of all vo
-     */
-    public List<T> getRange(int offset, int limit) {
-        List<Object> args = new ArrayList<>();
-        String sql = SELECT_ALL_FIXED_SORT;
-        sql = applyRange(sql, args, offset, limit);
-        return query(sql, args.toArray(), getRowMapper());
     }
 
     @Override

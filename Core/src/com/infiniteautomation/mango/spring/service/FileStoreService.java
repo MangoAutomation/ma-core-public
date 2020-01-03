@@ -87,8 +87,8 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         return permissionService.hasAnyRole(user, vo.getReadRoles());
     }
 
-    public void deleteFileStore(FileStore fs, boolean purgeFiles, PermissionHolder holder) throws IOException, PermissionException, NotFoundException {
-        fs = delete(fs.getId(), holder);
+    public void deleteFileStore(FileStore fs, boolean purgeFiles) throws IOException, PermissionException, NotFoundException {
+        fs = delete(fs.getId());
         if(purgeFiles) {
             File root = fs.toDefinition().getRoot();
             FileUtils.deleteDirectory(root);

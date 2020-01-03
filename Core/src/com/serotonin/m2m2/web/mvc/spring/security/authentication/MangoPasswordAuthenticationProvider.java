@@ -135,10 +135,13 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
                     throw new PasswordChangeException(new TranslatableMessage("rest.exception.samePassword"));
                 }
 
+                Common.setUser(user);
                 try {
-                    usersService.updatePassword(user, newPassword, user);
+                    usersService.updatePassword(user, newPassword);
                 } catch (ValidationException e) {
                     throw new PasswordChangeException(new TranslatableMessage("rest.exception.complexityRequirementsFailed"));
+                }finally {
+                    Common.removeUser();
                 }
             }
 

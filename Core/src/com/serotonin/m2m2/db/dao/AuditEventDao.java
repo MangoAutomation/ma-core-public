@@ -13,9 +13,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -33,9 +38,6 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
  */
 @Repository()
 public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
-
-    @Deprecated
-    public static AuditEventDao instance;
     private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
 
     /**
@@ -43,9 +45,10 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
      * @param extraProperties
      * @param extraSQL
      */
-    private AuditEventDao() {
-        super("aud", new String[0]);
-        instance = this;
+    @Autowired
+    private AuditEventDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
+        super("aud", new String[0], mapper, publisher);
     }
 
     /**

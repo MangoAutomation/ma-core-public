@@ -17,10 +17,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -48,9 +53,13 @@ public class MailingListDao extends AbstractDao<MailingList> {
         return (MailingListDao)o;
     });
 
-
-    private MailingListDao(){
-        super(AuditEventType.TYPE_MAILING_LIST, "ml", new String[] {}, false, new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"));
+    @Autowired
+    private MailingListDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher){
+        super(AuditEventType.TYPE_MAILING_LIST, "ml", 
+                new String[] {}, false, 
+                new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
+                mapper, publisher);
     }
 
     public static MailingListDao getInstance() {

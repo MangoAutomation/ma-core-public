@@ -66,27 +66,47 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
     @Test(expected = ValidationException.class)
     public void cannotInsertNewUserRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
-        service.insert(vo, systemSuperadmin);
+        Common.setUser(systemSuperadmin);
+        try {
+            service.insert(vo);
+        }finally {
+            Common.removeUser();
+        }
     }
 
     @Test(expected = ValidationException.class)
     public void cannotInsertSuperadminRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
-        service.insert(vo, systemSuperadmin);
+        Common.setUser(systemSuperadmin);
+        try {
+            service.insert(vo);
+        }finally {
+            Common.removeUser();
+        }
     }
     
     @Test(expected = ValidationException.class)
     public void cannotModifyUserRole() {
-        RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID, systemSuperadmin);
-        RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
-        service.update(vo.getXid(), updated, systemSuperadmin);
+        Common.setUser(systemSuperadmin);
+        try {
+            RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID);
+            RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
+            service.update(vo.getXid(), updated);
+        }finally {
+            Common.removeUser();
+        }
     }
 
     @Test(expected = ValidationException.class)
     public void cannotModifySuperadminRole() {
-        RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID, systemSuperadmin);
-        RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
-        service.update(vo.getXid(), updated, systemSuperadmin);
+        Common.setUser(systemSuperadmin);
+        try {
+            RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID);
+            RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
+            service.update(vo.getXid(), updated);
+        }finally {
+            Common.removeUser();
+        }
     }
     
     @Override

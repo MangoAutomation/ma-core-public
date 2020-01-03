@@ -20,14 +20,13 @@ import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends Importer {
     
     private final EventHandlerService<EH> service;
     
-    public EventHandlerImporter(JsonObject json, EventHandlerService<EH> service, PermissionHolder user) {
-        super(json, user);
+    public EventHandlerImporter(JsonObject json, EventHandlerService<EH> service) {
+        super(json);
         this.service = service;
     }
 
@@ -40,7 +39,7 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
-                handler = service.get(xid, user);
+                handler = service.get(xid);
             }catch(NotFoundException e) {
                 //Nothing, done below
             }          
@@ -92,9 +91,9 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
     
                 boolean isnew = handler.getId() == Common.NEW_ID;
                 if(isnew) {
-                    service.insert(handler, user);
+                    service.insert(handler);
                 }else {
-                    service.update(handler.getId(), handler, user);
+                    service.update(handler.getId(), handler);
                 }
 
             }catch(ValidationException e) {

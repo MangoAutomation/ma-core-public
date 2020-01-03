@@ -109,14 +109,6 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public List<DataSourceVO<?>> getDataSources() {
-        if(useDatabase)
-            return DataSourceDao.getInstance().getAll();
-        else 
-            return null;
-    }
-
-    @Override
     public DataSourceVO<?> getDataSource(int dataSourceId) {
         if(useDatabase)
             return DataSourceDao.getInstance().get(dataSourceId);

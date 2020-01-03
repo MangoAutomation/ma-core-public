@@ -31,8 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -52,7 +50,9 @@ import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.github.zafarkhaja.semver.Version;
@@ -74,7 +74,6 @@ import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.maint.BackgroundProcessing;
 import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
-import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.InstanceLicense;
 import com.serotonin.m2m2.util.license.LicenseFeature;
@@ -481,56 +480,33 @@ public class Common {
      *  in which case this method will return null and you should use @see Common.getBackgroundContextPermissionHolder()
      * @return
      */
-    public static User getUser() {
-        User user = getHttpUser();
-        if (user == null) {
-            user = getBackgroundContextUser();
-        }
-        return user;
-    }
-
-    @Deprecated
-    public static User getUser(HttpServletRequest request) {
-        return getUser();
-    }
-
-    public static User getHttpUser() {
-        // Check for the User via Spring Security, this will exist for every HTTP request
+    public static PermissionHolder getUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             Object principle = auth.getPrincipal();
             // auth could be some token which does not have a User as its principle such as AnonymousAuthenticationToken
-            if (principle instanceof User) {
-                return (User) principle;
+            if(principle instanceof PermissionHolder) {
+                return (PermissionHolder)principle;
             }
         }
         return null;
     }
-
-    public static User getBackgroundContextUser() {
-        BackgroundContext backgroundContext = BackgroundContext.get();
-        if (backgroundContext != null) {
-            //Safe get background context User in case its a permission holder
-            PermissionHolder holder = backgroundContext.getPermissionHolder();
-            if(holder instanceof User) {
-                return (User)holder;
-            }
+    
+    public static void setUser(PermissionHolder user) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            throw new ShouldNeverHappenException("Security context already contains a permission holder");
         }
-        return null;
+        SecurityContextImpl context = new SecurityContextImpl();
+        context.setAuthentication(new PreAuthenticatedAuthenticationToken(user, null));
+        SecurityContextHolder.setContext(context);
     }
-
+    
     /**
-     * The background context can hold a User (which is a permission holder)
-     *   but it may also hold a system permission holder which is not a user.
-     * @return
+     * Clear the security context
      */
-    public static PermissionHolder getBackgroundContextPermissionHolder() {
-        BackgroundContext backgroundContext = BackgroundContext.get();
-        if (backgroundContext != null) {
-            //Safe get background context User in case its a permission holder
-            return backgroundContext.getPermissionHolder();
-        }
-        return null;
+    public static void removeUser() {
+        SecurityContextHolder.clearContext();
     }
 
     public static TimeZone getUserTimeZone(User user) {
@@ -543,16 +519,6 @@ public class Common {
         if (user != null)
             return user.getDateTimeZoneInstance();
         return DateTimeZone.forID(TimeZone.getDefault().getID());
-    }
-
-    //
-    // Background process description. Used for audit logs when the system automatically makes changes to data, such as
-    // safe mode disabling stuff.
-    public static String getBackgroundProcessDescription() {
-        BackgroundContext backgroundContext = BackgroundContext.get();
-        if (backgroundContext == null)
-            return null;
-        return backgroundContext.getProcessDescriptionKey();
     }
 
     private static String lazyFiledataPath = null;

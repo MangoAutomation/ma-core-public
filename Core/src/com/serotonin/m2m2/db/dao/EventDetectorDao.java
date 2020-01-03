@@ -16,11 +16,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -60,12 +65,15 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     /* Map of Source Type to Source ID Column Names */
     private LinkedHashMap<String, String> sourceTypeToColumnNameMap;
     
-    private EventDetectorDao(){
+    @Autowired
+    private EventDetectorDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_EVENT_DETECTOR, 
                 "edt",
                 new String[0],
                 false,
-                new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"));
+                new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
+                mapper, publisher);
     }
     
     /**

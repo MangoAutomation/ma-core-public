@@ -16,13 +16,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -48,10 +53,13 @@ public class RoleDao extends AbstractDao<RoleVO> {
         return (RoleDao)o;
     });
     
-    private RoleDao() {
+    @Autowired
+    private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_ROLE, "r",
                 new String[0], false,
-                new TranslatableMessage("internal.monitor.ROLE_COUNT"));
+                new TranslatableMessage("internal.monitor.ROLE_COUNT"),
+                mapper, publisher);
     }
     
     private final String SELECT_ROLE = "SELECT id,xid FROM roles AS r ";

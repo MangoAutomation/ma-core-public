@@ -12,7 +12,6 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PublisherDefinition;
 import com.serotonin.m2m2.rt.RuntimeManager;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -20,8 +19,8 @@ public class PublisherImporter<PUB extends PublishedPointVO> extends Importer {
     
     private final PublisherService<PUB> service;
     
-    public PublisherImporter(JsonObject json, PublisherService<PUB> service, PermissionHolder user) {
-        super(json, user);
+    public PublisherImporter(JsonObject json, PublisherService<PUB> service) {
+        super(json);
         this.service = service;
     }
 
@@ -34,7 +33,7 @@ public class PublisherImporter<PUB extends PublishedPointVO> extends Importer {
             xid = service.getDao().generateUniqueXid();
         }else {
             try{
-                vo = service.get(xid, user);
+                vo = service.get(xid);
             }catch(NotFoundException e) {
                 
             }

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 
 /**
@@ -80,56 +81,53 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
      * @param user
      */
     public void userUpdated(HttpServletRequest request, User user) {
-        User currentUser = Common.getHttpUser();
-        if (currentUser == null || currentUser.getId() != user.getId()) {
-            return;
-        }
+        PermissionHolder currentUser = Common.getUser();
+        if(currentUser instanceof User && (((User)currentUser).getId() == user.getId())) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                SessionInformation info = this.getSessionInformation(session.getId());
+                if (info == null) {
+                    if (logger.isWarnEnabled()) {
+                        logger.warn("Unknown session " + session.getId());
+                    }
+                } else if (info.isExpired() && !user.isDisabled()) {
+                    // Session was set to expire via a call to exireSessionsForUser() from the DAO.
+                    // Invalidate the current session and register a new one right now so the user can continue working.
 
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            SessionInformation info = this.getSessionInformation(session.getId());
-            if (info == null) {
-                if (logger.isWarnEnabled()) {
-                    logger.warn("Unknown session " + session.getId());
+                    // Copy all attributes as per SessionFixationProtectionStrategy
+                    Enumeration<String> names = session.getAttributeNames();
+                    Map<String, Object> attributes = new HashMap<>();
+                    while (names.hasMoreElements()) {
+                        String name = names.nextElement();
+                        attributes.put(name, session.getAttribute(name));
+                    }
+
+                    this.removeSessionInformation(session.getId());
+
+                    session.setAttribute(USER_MIGRATED_TO_NEW_SESSION_ATTRIBUTE, Boolean.TRUE);
+                    session.invalidate();
+
+                    HttpSession newSession = request.getSession(true);
+
+
+                    this.registerNewSession(newSession.getId(), user);
+
+                    for (Entry<String, Object> entry : attributes.entrySet()) {
+                        newSession.setAttribute(entry.getKey(), entry.getValue());
+                    }
+
+                    session = newSession;
                 }
-            } else if (info.isExpired() && !user.isDisabled()) {
-                // Session was set to expire via a call to exireSessionsForUser() from the DAO.
-                // Invalidate the current session and register a new one right now so the user can continue working.
+            }
 
-                // Copy all attributes as per SessionFixationProtectionStrategy
-                Enumeration<String> names = session.getAttributeNames();
-                Map<String, Object> attributes = new HashMap<>();
-                while (names.hasMoreElements()) {
-                    String name = names.nextElement();
-                    attributes.put(name, session.getAttribute(name));
-                }
-
-                this.removeSessionInformation(session.getId());
-
-                session.setAttribute(USER_MIGRATED_TO_NEW_SESSION_ATTRIBUTE, Boolean.TRUE);
-                session.invalidate();
-
-                HttpSession newSession = request.getSession(true);
-
-
-                this.registerNewSession(newSession.getId(), user);
-
-                for (Entry<String, Object> entry : attributes.entrySet()) {
-                    newSession.setAttribute(entry.getKey(), entry.getValue());
-                }
-
-                session = newSession;
+            // Set the spring security context (thread local) to a new Authentication with the updated user and authorities.
+            // Updates the SPRING_SECURITY_CONTEXT session attribute as well.
+            // Should always be a UsernamePasswordAuthenticationToken a user cannot update themselves via a JWT.
+            Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+            if (currentAuthentication instanceof UsernamePasswordAuthenticationToken) {
+                UsernamePasswordAuthenticationToken newAuthentication = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
+                SecurityContextHolder.getContext().setAuthentication(newAuthentication);
             }
         }
-
-        // Set the spring security context (thread local) to a new Authentication with the updated user and authorities.
-        // Updates the SPRING_SECURITY_CONTEXT session attribute as well.
-        // Should always be a UsernamePasswordAuthenticationToken a user cannot update themselves via a JWT.
-        Authentication currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
-        if (currentAuthentication instanceof UsernamePasswordAuthenticationToken) {
-            UsernamePasswordAuthenticationToken newAuthentication = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
-            SecurityContextHolder.getContext().setAuthentication(newAuthentication);
-        }
-
     }
 }

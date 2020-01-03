@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +22,8 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -46,8 +51,14 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 	 * @param handler
 	 * @param typeName
 	 */
-	private JsonDataDao() {
-		super(AuditEventType.TYPE_JSON_DATA, new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"));
+    @Autowired
+	private JsonDataDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
+		super(AuditEventType.TYPE_JSON_DATA, "jd",
+		        null,
+		        false,
+		        new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"),
+		        mapper, publisher);
 	}
 
     /**

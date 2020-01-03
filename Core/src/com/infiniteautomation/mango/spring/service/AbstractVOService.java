@@ -63,16 +63,16 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     /**
      * 
      * @param xid
-     * @param user
      * @return
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public T get(String xid, PermissionHolder user) throws NotFoundException, PermissionException {
+    public T get(String xid) throws NotFoundException, PermissionException {
         T vo = dao.getByXid(xid);
            
         if(vo == null)
             throw new NotFoundException();
+        PermissionHolder user = Common.getUser();
         ensureReadPermission(user, vo);
         return vo;
     }
@@ -80,13 +80,13 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     /**
      * 
      * @param vo
-     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
     @Override
-    public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
+    public T insert(T vo) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         //Ensure they can create
         ensureCreatePermission(user, vo);
         
@@ -110,28 +110,26 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      * Update a vo 
      * @param existingXid
      * @param vo
-     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      * @throws NotFoundException
      */
-    public T update(String existingXid, T vo, PermissionHolder user) throws PermissionException, ValidationException, NotFoundException {
-        return update(get(existingXid, user), vo, user);
+    public T update(String existingXid, T vo) throws PermissionException, ValidationException, NotFoundException {
+        return update(get(existingXid), vo);
     }
    
     
     /**
      * Delete a VO and its relational data
      * @param xid
-     * @param user
      * @return
      * @throws PermissionException
      * @throws NotFoundException
      */
-    public T delete(String xid, PermissionHolder user) throws PermissionException, NotFoundException {
-        T vo = get(xid, user);
-        return delete(vo, user);
+    public T delete(String xid) throws PermissionException, NotFoundException {
+        T vo = get(xid);
+        return delete(vo);
     }
     
 }

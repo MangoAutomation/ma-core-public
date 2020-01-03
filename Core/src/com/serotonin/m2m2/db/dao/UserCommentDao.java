@@ -13,10 +13,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.JoinClause;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -41,9 +46,12 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
         return (UserCommentDao)o;
     });
 
-	private UserCommentDao(){
+    @Autowired
+	private UserCommentDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher){
 		super(AuditEventType.TYPE_USER_COMMENT, "uc", 
-				new String[]{ "u.username" }, false, null);
+				new String[]{ "u.username" }, false, null,
+				mapper, publisher);
 	}
 
     /**

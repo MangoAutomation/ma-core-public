@@ -48,6 +48,7 @@ import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -131,7 +132,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
         
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
-        List<DataSourceVO<?>> configs = DataSourceDao.getInstance().getAll();
+        List<DataSourceVO<?>> configs = null;
+        Common.setUser(PermissionHolder.SYSTEM_SUPERADMIN);
+        try {
+            configs = DataSourceDao.getInstance().getAll();
+        }finally {
+            Common.removeUser();
+        }
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
         for (DataSourceVO<?> config : configs) {
             if (config.isEnabled()) {
@@ -300,11 +307,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public boolean isDataSourceRunning(int dataSourceId) {
         return getRunningDataSource(dataSourceId) != null;
-    }
-
-    @Override
-    public List<DataSourceVO<?>> getDataSources() {
-        return DataSourceDao.getInstance().getAll();
     }
 
     @Override

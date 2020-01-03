@@ -7,11 +7,9 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 abstract public class Importer {
     protected final JsonObject json;
-    protected final PermissionHolder user;
     protected ImportContext ctx;
     private List<Importer> importers;
 
@@ -21,9 +19,8 @@ abstract public class Importer {
     private String key;
     private String xid;
 
-    public Importer(JsonObject json, PermissionHolder user) {
+    public Importer(JsonObject json) {
         this.json = json;
-        this.user = user;
     }
 
     public void setImportContext(ImportContext ctx) {

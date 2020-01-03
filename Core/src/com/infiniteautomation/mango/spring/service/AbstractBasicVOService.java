@@ -158,15 +158,15 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * 
      * @param id
-     * @param user
      * @return
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public T get(int id, PermissionHolder user) throws NotFoundException, PermissionException {
+    public T get(int id) throws NotFoundException, PermissionException {
         T vo = dao.get(id);
         if(vo == null)
             throw new NotFoundException();
+        PermissionHolder user = Common.getUser();
         ensureReadPermission(user, vo);
         return vo;
     }
@@ -174,12 +174,12 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * 
      * @param vo
-     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insert(T vo, PermissionHolder user) throws PermissionException, ValidationException {
+    public T insert(T vo) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         //Ensure they can create
         ensureCreatePermission(user, vo);
         
@@ -199,26 +199,25 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      * 
      * @param existingId
      * @param vo
-     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(int existingId, T vo, PermissionHolder user) throws PermissionException, ValidationException {
-        return update(get(existingId, user), vo, user);
+    public T update(int existingId, T vo) throws PermissionException, ValidationException {
+        return update(get(existingId), vo);
     }
     
     /**
      * 
      * @param existing
      * @param vo
-     * @param user
      * 
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T update(T existing, T vo, PermissionHolder user) throws PermissionException, ValidationException {
+    public T update(T existing, T vo) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
@@ -229,25 +228,24 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
     /**
      * 
      * @param id
-     * @param user
      * @return
      * @throws PermissionException
      * @throws NotFoundException
      */
-    public T delete(int id, PermissionHolder user) throws PermissionException, NotFoundException {
-        T vo = get(id, user);
-        return delete(vo, user);
+    public T delete(int id) throws PermissionException, NotFoundException {
+        T vo = get(id);
+        return delete(vo);
     }
     
     /**
      * 
      * @param vo
-     * @param user
      * @return
      * @throws PermissionException
      * @throws NotFoundException
      */
-    public T delete(T vo, PermissionHolder user) throws PermissionException, NotFoundException {
+    public T delete(T vo) throws PermissionException, NotFoundException {
+        PermissionHolder user = Common.getUser();
         ensureDeletePermission(user, vo);
         dao.delete(vo.getId());
         return vo;

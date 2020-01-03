@@ -90,8 +90,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
     
     @Override
-    public DataPointVO insert(DataPointVO vo, PermissionHolder user)
+    public DataPointVO insert(DataPointVO vo)
             throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         //Ensure they can create
         ensureCreatePermission(user, vo);
 
@@ -112,8 +113,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
     
     @Override
-    public DataPointVO update(DataPointVO existing, DataPointVO vo,
-           PermissionHolder user) throws PermissionException, ValidationException {
+    public DataPointVO update(DataPointVO existing, DataPointVO vo) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
         
         vo.setId(existing.getId());
@@ -123,8 +124,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
     
     @Override
-    public DataPointVO delete(DataPointVO vo, PermissionHolder user)
+    public DataPointVO delete(DataPointVO vo)
             throws PermissionException, NotFoundException {
+        PermissionHolder user = Common.getUser();
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataPoint(vo);
         return vo;
@@ -140,8 +142,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public void enableDisable(String xid, boolean enabled, boolean restart, PermissionHolder user) throws NotFoundException, PermissionException {
-        DataPointVO vo = get(xid, user);
+    public void enableDisable(String xid, boolean enabled, boolean restart) throws NotFoundException, PermissionException {
+        PermissionHolder user = Common.getUser();
+        DataPointVO vo = get(xid);
         permissionService.ensureDataSourcePermission(user, vo.getDataSourceId());
         if (enabled && restart) {
             Common.runtimeManager.restartDataPoint(vo);
@@ -378,10 +381,11 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
      * @param holder
      * @return
      */
-    public List<DataPointVO> getDataPoints(int dataSourceId, boolean full, PermissionHolder holder) {
-        List<DataPointVO> points = dao.getDataPoints(dataSourceId, full);
+    public List<DataPointVO> getDataPoints(int dataSourceId) {
+        List<DataPointVO> points = dao.getDataPoints(dataSourceId);
+        PermissionHolder user = Common.getUser();
         for(DataPointVO point : points) {
-            ensureReadPermission(holder, point);
+            ensureReadPermission(user, point);
         }
         return points;
     }

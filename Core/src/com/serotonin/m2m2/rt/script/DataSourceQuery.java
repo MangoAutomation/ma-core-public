@@ -89,7 +89,7 @@ public class DataSourceQuery extends ScriptUtility {
 	private List<DataPointWrapper> getPointsForSource(DataSourceVO<?> ds) {
 		List<DataPointWrapper> points = new ArrayList<DataPointWrapper>();
 		
-		List<DataPointVO> dataPoints = DataPointDao.getInstance().getDataPoints(ds.getId(), true);
+		List<DataPointVO> dataPoints = DataPointDao.getInstance().getDataPoints(ds.getId());
 		
 		for(DataPointVO vo : dataPoints){
 			DataPointRT rt = Common.runtimeManager.getDataPoint(vo.getId());

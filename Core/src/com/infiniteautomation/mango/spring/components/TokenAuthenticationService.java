@@ -16,6 +16,7 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.AuthTokensRevokedEvent;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
@@ -110,13 +111,18 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
             throw new NotFoundException();
         }
 
-        User user = this.usersService.get(username, this.systemSuperadmin);
-        Integer userId = user.getId();
-        this.verifyClaim(token, USER_ID_CLAIM, userId);
-
-        Integer tokenVersion = user.getTokenVersion();
-        this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, tokenVersion);
-
-        return user;
+        Common.setUser(this.systemSuperadmin);
+        try {
+            User user = this.usersService.get(username);
+            Integer userId = user.getId();
+            this.verifyClaim(token, USER_ID_CLAIM, userId);
+    
+            Integer tokenVersion = user.getTokenVersion();
+            this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, tokenVersion);
+    
+            return user;
+        }finally {
+            Common.removeUser();
+        }
     }
 }

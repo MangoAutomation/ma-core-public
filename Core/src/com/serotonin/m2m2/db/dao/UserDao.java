@@ -25,7 +25,9 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -36,6 +38,8 @@ import org.springframework.transaction.support.TransactionCallback;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -76,17 +80,14 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     private final RoleDao roleDao;
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
-    /**
-     * @param typeName
-     * @param tablePrefix
-     * @param extraProperties
-     * @param extraSQL
-     */
     @Autowired
-    private UserDao(RoleDao roleDao) {
+    private UserDao(RoleDao roleDao,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_USER, "u",
                 new String[0], false,
-                new TranslatableMessage("internal.monitor.USER_COUNT"));
+                new TranslatableMessage("internal.monitor.USER_COUNT"),
+                mapper, publisher);
         this.roleDao = roleDao;
     }
 
@@ -105,10 +106,14 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      * @return
      */
     public boolean isUsernameUnique(String username, int excludeId) {
-        if(username == null)
+        if(username == null) {
             return false;
+        }else {
+//            this.create.selectCount().from(table).where(DSL.)
+//        }
         return ejt.queryForInt("select count(*) from " + tableName + " where username=? and id<>?", new Object[] { username,
                 excludeId }, 0) == 0;
+        }
     }
 
     /**

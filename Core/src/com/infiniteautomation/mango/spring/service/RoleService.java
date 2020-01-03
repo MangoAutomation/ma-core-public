@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -45,15 +46,17 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
     }
 
     @Override
-    public RoleVO delete(String xid, PermissionHolder user)
+    public RoleVO delete(String xid)
             throws PermissionException, NotFoundException {
         //Cannot delete the 'user' or 'superadmin' roles
         if(StringUtils.equalsIgnoreCase(xid, getSuperadminRole().getXid())) {
+            PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterSuperadminRole"), user);
         }else if(StringUtils.equalsIgnoreCase(xid, getUserRole().getXid())) {
+            PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterUserRole"), user);
         }
-        return super.delete(xid, user);
+        return super.delete(xid);
     }
     
     @Override

@@ -48,7 +48,6 @@ import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -281,8 +280,9 @@ public class MangoTestBase {
         user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(roles))));
         user.setDisabled(false);
         UsersService service = Common.getBean(UsersService.class);
-        service.insert(user, PermissionHolder.SYSTEM_SUPERADMIN);
-        return service.get(user.getId(), PermissionHolder.SYSTEM_SUPERADMIN);
+
+        service.insert(user);
+        return service.get(user.getId());
     }
     
     /**

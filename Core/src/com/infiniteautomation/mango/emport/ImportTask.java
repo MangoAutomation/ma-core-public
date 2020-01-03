@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,7 +32,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -51,7 +49,6 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
 	private static Log LOG = LogFactory.getLog(ImportTask.class);
 	
     protected final ImportContext importContext;
-    protected final PermissionHolder user;
     protected float progress = 0f;
     protected float progressChunk;
     
@@ -60,6 +57,8 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
     protected final Map<String, DataPointVO> eventDetectorPoints = new HashMap<String, DataPointVO>();
     
     protected final DataPointService dataPointService;
+    
+    protected PermissionHolder user;
     /**
      * Create an Import task with a listener to be scheduled now
      * @param root
@@ -68,7 +67,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
      * @param listener
      */
     public ImportTask(JsonObject root, 
-            Translations translations, 
+            Translations translations,
             PermissionHolder user,
             UsersService usersService,
             MailingListService mailingListService,
@@ -79,40 +78,38 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             JsonDataService jsonDataService,
             ProgressiveTaskListener listener, boolean schedule) {
     	super("JSON import task", "JsonImport", 10, listener);
+    	this.user = user;
     	this.dataPointService = dataPointService;
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
-        
-        Objects.requireNonNull(user);
-        this.user = user;
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
             addImporter(new UserImporter(jv.toJsonObject(), usersService, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
-            addImporter(new DataSourceImporter<DS>(jv.toJsonObject(), dataSourceService, user));
+            addImporter(new DataSourceImporter<DS>(jv.toJsonObject(), dataSourceService));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
-            addImporter(new DataPointImporter<DS>(jv.toJsonObject(), dataPointService, dataSourceService, user));
+            addImporter(new DataPointImporter<DS>(jv.toJsonObject(), dataPointService, dataSourceService));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
-            addImporter(new MailingListImporter(jv.toJsonObject(), mailingListService, user));
+            addImporter(new MailingListImporter(jv.toJsonObject(), mailingListService));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
-            addImporter(new PublisherImporter<PUB>(jv.toJsonObject(), publisherService, user));
+            addImporter(new PublisherImporter<PUB>(jv.toJsonObject(), publisherService));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
-            addImporter(new EventHandlerImporter<EH>(jv.toJsonObject(), eventHandlerService, user));
+            addImporter(new EventHandlerImporter<EH>(jv.toJsonObject(), eventHandlerService));
         
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
             addImporter(new SystemSettingsImporter(obj, user));
         
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
-            addImporter(new VirtualSerialPortImporter(jv.toJsonObject(), user));
+            addImporter(new VirtualSerialPortImporter(jv.toJsonObject()));
         
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
-        	addImporter(new JsonDataImporter(jv.toJsonObject(), jsonDataService, user));
+        	addImporter(new JsonDataImporter(jv.toJsonObject(), jsonDataService));
         
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
@@ -120,7 +117,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
         }
         
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS)) 
-        	addImporter(new EventDetectorImporter(jv.toJsonObject(), user, eventDetectorPoints));
+        	addImporter(new EventDetectorImporter(jv.toJsonObject(), eventDetectorPoints));
 
         //Quick hack to ensure the Global Scripts are imported first in case they are used in scripts that will be loaded during this import
         final String globalScriptId = "sstGlobalScripts";
@@ -129,7 +126,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             ImportItem item = it.next();
             if(globalScriptId.equals(item.getEmportDefinition().getElementId())) {
                 it.remove();
-                Importer importer = new Importer(root, user) {
+                Importer importer = new Importer(root) {
                     
                     private ImportItem gsImporter = item;
                     
@@ -179,9 +176,8 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
 
     @Override
     protected void runImpl() {
+        Common.setUser(user);
         try {
-            BackgroundContext.set(user);
-
             if (!importers.isEmpty()) {
                 if (importerIndex >= importers.size()) {
                     // A run through the importers has been completed.
@@ -258,7 +254,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             }
         }
         finally {
-            BackgroundContext.remove();
+            Common.removeUser();
             //Compute progress, but only declare if we are < 100 since we will declare 100 when done
             //Our progress is 100 - chunk*importersLeft
             int importItemsLeft = 1;
@@ -296,7 +292,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             }
             
             //Save the data point
-            dataPointService.update(saved.getId(), saved, user);
+            dataPointService.update(saved.getId(), saved);
             for(AbstractPointEventDetectorVO<?> modified : dpvo.getEventDetectors())
                 importContext.addSuccessMessage(isNew, "emport.eventDetector.prefix", modified.getXid());
         }

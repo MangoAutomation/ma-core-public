@@ -41,14 +41,13 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
      * 
      * @param vo
      * @param restartSource
-     * @param user
      * @return
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insertAndReload(T vo, boolean restartSource, PermissionHolder user)
+    public T insertAndReload(T vo, boolean restartSource)
             throws PermissionException, ValidationException {
-        vo = super.insert(vo, user);
+        vo = super.insert(vo);
         
         if(restartSource)
             vo.getDefinition().restartSource(vo);
@@ -63,11 +62,10 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
      * @param existing
      * @param vo
      * @param restartSource
-     * @param user
      * @return
      */
-    public T updateAndReload(String existing, T vo, boolean restartSource, PermissionHolder user) {
-        T updated = update(get(existing, user), vo, user);
+    public T updateAndReload(String existing, T vo, boolean restartSource) {
+        T updated = update(get(existing), vo);
         if(restartSource)
             updated.getDefinition().restartSource(updated);
         return updated;
@@ -75,9 +73,9 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
 
     
     @Override
-    public T delete(String xid, PermissionHolder user)
+    public T delete(String xid)
             throws PermissionException, NotFoundException {
-        T vo = super.delete(xid, user);
+        T vo = super.delete(xid);
         vo.getDefinition().restartSource(vo);
         return vo;
     }

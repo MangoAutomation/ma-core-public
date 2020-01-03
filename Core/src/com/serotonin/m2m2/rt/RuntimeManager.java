@@ -53,8 +53,6 @@ public interface RuntimeManager extends ILifecycle {
     
     boolean isDataSourceRunning(int dataSourceId);
 
-    List<DataSourceVO<?>> getDataSources();
-
     DataSourceVO<?> getDataSource(int dataSourceId);
 
     void deleteDataSource(int dataSourceId);

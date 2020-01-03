@@ -35,7 +35,6 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
-import com.serotonin.m2m2.util.BackgroundContext;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -264,21 +263,22 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
         int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
 
-        User existing = this.usersService.get(userId, this.systemSuperadmin);
-        this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
-
-        User updated = existing.copy();
-        updated.setEmail(verifiedEmail);
-        updated.setEmailVerified(token.getBody().getIssuedAt());
-
-        // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
-        // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
-        // generating the token.
-        BackgroundContext.set(this.systemSuperadmin);
+        Common.setUser(this.systemSuperadmin);
         try {
-            return this.usersService.update(existing, updated, this.systemSuperadmin);
+            User existing = this.usersService.get(userId);
+            this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
+    
+    
+            User updated = existing.copy();
+            updated.setEmail(verifiedEmail);
+            updated.setEmailVerified(token.getBody().getIssuedAt());
+    
+            // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
+            // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
+            // generating the token.
+            return this.usersService.update(existing, updated);
         }finally {
-            BackgroundContext.remove();
+            Common.removeUser();
         }
     }
 
@@ -305,11 +305,11 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         newUser.setDisabled(true); //Ensure we are disabled
         newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
         
-        BackgroundContext.set(this.systemSuperadmin);
+        Common.setUser(this.systemSuperadmin);
         try {
-            newUser = this.usersService.insert(newUser, this.systemSuperadmin);
+            newUser = this.usersService.insert(newUser);
         }finally {
-            BackgroundContext.remove();
+            Common.removeUser();
         }
         //Raise an event upon successful insertion
         SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_NEW_USER_REGISTERED);

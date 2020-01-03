@@ -35,12 +35,13 @@ public class EmportService {
         this.permissionService = permissionService;
     }
     
-    public String createExportData(int prettyIndent, String[] exportElements, PermissionHolder user) throws PermissionException {
+    public String createExportData(int prettyIndent, String[] exportElements) throws PermissionException {
         Map<String, Object> data = ConfigurationExportData.createExportDataMap(exportElements);
-        return export(data, prettyIndent, user);
+        return export(data, prettyIndent);
     }
 
-    public String export(Map<String, Object> data, int prettyIndent, PermissionHolder user) throws PermissionException {
+    public String export(Map<String, Object> data, int prettyIndent) throws PermissionException {
+        PermissionHolder user = Common.getUser();
         permissionService.ensureAdminRole(user);
         JsonTypeWriter typeWriter = new JsonTypeWriter(Common.JSON_CONTEXT);
         StringWriter stringWriter = new StringWriter();

@@ -14,6 +14,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Jared Wiltshire
@@ -23,10 +24,10 @@ import com.serotonin.m2m2.vo.User;
 public class MangoLogoutHandler implements LogoutHandler {
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        User user = Common.getHttpUser();
-        if (user != null) {
+        PermissionHolder user = Common.getUser();
+        if (user instanceof User) {
             for (AuthenticationDefinition def : ModuleRegistry.getDefinitions(AuthenticationDefinition.class)) {
-                def.logout(user);
+                def.logout((User)user);
             }
         }
     }

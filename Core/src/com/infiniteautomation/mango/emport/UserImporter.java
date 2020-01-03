@@ -22,10 +22,12 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class UserImporter extends Importer {
 
     private final UsersService usersService;
+    private final PermissionHolder user;
     
     public UserImporter(JsonObject json, UsersService usersService, PermissionHolder user) {
-        super(json, user);
+        super(json);
         this.usersService = usersService;
+        this.user = user;
     }
 
     @Override
@@ -38,7 +40,7 @@ public class UserImporter extends Importer {
         }else {
             User existing = null;
             try {
-                existing = usersService.get(username, user);
+                existing = usersService.get(username);
             }catch(NotFoundException e) {
                 existing = null;
             }
@@ -64,10 +66,10 @@ public class UserImporter extends Importer {
 
                 try {
                     if(existing == null) {
-                        usersService.insert(imported, user);
+                        usersService.insert(imported);
                         addSuccessMessage(true, "emport.user.prefix", username);
                     }else {
-                        usersService.update(existing, imported, user);
+                        usersService.update(existing, imported);
                         addSuccessMessage(false, "emport.user.prefix", username);
                     }
                 }catch(ValidationException e) {

@@ -13,8 +13,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.util.BackgroundContext;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -23,16 +21,16 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 public class SystemSettingsImporter extends Importer {
 
+    private final PermissionHolder user;
+    
 	/**
 	 * @param json
 	 */
 	public SystemSettingsImporter(JsonObject json, PermissionHolder user) {
-		super(json, user);
+		super(json);
+		this.user = user;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.web.dwr.emport.Importer#importImpl()
-	 */
+	
 	@Override
 	protected void importImpl() {
 		

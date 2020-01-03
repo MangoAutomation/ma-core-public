@@ -153,7 +153,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids, User user) throws NotFoundException, PermissionException {
         Map<Integer, DataPointEventLevelSummary> map = new HashMap<>();
         for(String xid : dataPointXids) {
-            DataPointVO point = dataPointService.get(xid, user);
+            DataPointVO point = dataPointService.get(xid);
             map.put(point.getId(), new DataPointEventLevelSummary(xid));
         }
         
@@ -175,7 +175,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * @param message
      */
     public EventInstanceVO acknowledgeEventById(Integer id, User user, TranslatableMessage message) throws NotFoundException, PermissionException {
-        EventInstanceVO vo = get(id, user);
+        EventInstanceVO vo = get(id);
         ensureEditPermission(user, vo);
         Common.eventManager.acknowledgeEventById(id, System.currentTimeMillis(), user, message);
         return vo;

@@ -17,12 +17,17 @@ import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -56,16 +61,16 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (EventInstanceDao)o;
     });
-
-    /**
-     * @param typeName
-     */
-    private EventInstanceDao() {
+    
+    @Autowired
+    private EventInstanceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+            ApplicationEventPublisher publisher) {
         super(null,"evt",
                 new String[]{
                         "u.username",
                         "(select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
-        "ue.silenced"}, false, null);
+                        "ue.silenced"}, 
+                false, null, mapper, publisher);
     }
 
     /**
