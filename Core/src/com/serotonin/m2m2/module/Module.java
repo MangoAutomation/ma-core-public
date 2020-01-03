@@ -84,7 +84,6 @@ public class Module {
     private final List<ModuleElementDefinition> definitions = new ArrayList<>();
 
     private final Set<String> locales = new HashSet<>();
-    private String graphics;
     private List<String> emailTemplateDirs;
     private final boolean signed;
 
@@ -364,14 +363,6 @@ public class Module {
 
     public Set<String> getLocales() {
         return locales;
-    }
-
-    public void setGraphicsDir(String dir) {
-        graphics = dir;
-    }
-
-    public String getGraphicsDir() {
-        return graphics;
     }
 
     public List<String> getEmailTemplateDirs() {

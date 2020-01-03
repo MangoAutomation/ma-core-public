@@ -34,12 +34,12 @@ import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
 import org.springframework.web.accept.PathExtensionContentNegotiationStrategy;
 
+import com.infiniteautomation.mango.webapp.servlets.StatusServlet;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.web.OverridingFileResource;
-import com.serotonin.m2m2.web.servlet.StatusServlet;
 import com.serotonin.provider.Providers;
 
 /**

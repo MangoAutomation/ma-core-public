@@ -2,12 +2,13 @@
     Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
     @author Matthew Lohbihler
  */
-package com.serotonin.m2m2.web.servlet;
+package com.infiniteautomation.mango.webapp.servlets;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -17,7 +18,6 @@ import org.apache.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.m2m2.rt.dataImage.PointValueFacade;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.types.ImageValue;
@@ -27,9 +27,8 @@ import com.serotonin.util.image.JpegImageFormat;
 import com.serotonin.util.image.PercentScaledImage;
 
 @Component
-@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/imageValue/*"})
-public class ImageValueServlet extends BaseInfoServlet {
+public class ImageValueServlet extends HttpServlet {
     private static final long serialVersionUID = -1;
 
     public static final String servletPath = "imageValue/";
@@ -134,5 +133,17 @@ public class ImageValueServlet extends BaseInfoServlet {
         catch (IllegalArgumentException e) {
             LOG.warn("", e);
         }
+    }
+
+    protected int getIntRequestParameter(HttpServletRequest request, String paramName, int defaultValue) {
+        String value = request.getParameter(paramName);
+        try {
+            if (value != null)
+                return Integer.parseInt(value);
+        }
+        catch (NumberFormatException e) {
+            // no op
+        }
+        return defaultValue;
     }
 }

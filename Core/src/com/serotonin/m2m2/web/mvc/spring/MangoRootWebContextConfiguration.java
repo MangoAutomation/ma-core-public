@@ -18,7 +18,6 @@ import com.infiniteautomation.mango.spring.MangoCommonConfiguration;
 import com.infiniteautomation.mango.webapp.WebAppPackage;
 import com.serotonin.m2m2.i18n.TranslatedMessageSource;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSecurityConfiguration;
-import com.serotonin.m2m2.web.servlet.LegacyServletsPackage;
 
 /**
  * Core Application Configuration
@@ -41,7 +40,7 @@ public class MangoRootWebContextConfiguration {
     }
 
     @Bean
-    public CommonsMultipartResolver multipartResolver(@Value("${web.fileUpload.maxSize:50000000}") long fileUploadMaxSize){
+    public CommonsMultipartResolver multipartResolver(@Value("${web.fileUpload.maxSize:50000000}") long fileUploadMaxSize) {
         CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
         commonsMultipartResolver.setResolveLazily(true); //So we can optionally stream the results
         commonsMultipartResolver.setDefaultEncoding(StandardCharsets.UTF_8.name());

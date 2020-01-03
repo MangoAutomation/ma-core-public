@@ -2,7 +2,7 @@
  * Copyright (C) 2014 Infinite Automation Software. All rights reserved.
  * @author Terry Packer
  */
-package com.serotonin.m2m2.web.servlet;
+package com.infiniteautomation.mango.webapp.servlets;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -19,7 +19,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
 
-import com.infiniteautomation.mango.spring.ConditionalOnProperty;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.m2m2.Common;
@@ -36,9 +35,8 @@ import com.serotonin.provider.Providers;
  *
  */
 @Component
-@ConditionalOnProperty("${web.legacyServlets.enabled:true}")
 @WebServlet(urlPatterns = {"/status/*"})
-public class StatusServlet extends HttpServlet{
+public class StatusServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private final Log LOG = LogFactory.getLog(StatusServlet.class);
@@ -153,8 +151,6 @@ public class StatusServlet extends HttpServlet{
                     return new TranslatableMessage("startup.state.runtimeManagerInitialize").translate(this.translations);
             case IMangoLifecycle.MAINTENANCE_INITIALIZE:
                 return this.translations.translate("startup.state.maintenanceInitialize");
-            case IMangoLifecycle.IMAGE_SET_INITIALIZE:
-                return this.translations.translate("startup.state.imageSetInitialize");
             case IMangoLifecycle.WEB_SERVER_FINALIZE:
                 return this.translations.translate("startup.state.webServerFinalize");
             case IMangoLifecycle.POST_INITIALIZE:

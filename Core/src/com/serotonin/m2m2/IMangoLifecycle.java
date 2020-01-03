@@ -100,7 +100,6 @@ public interface IMangoLifecycle extends Provider {
     public static final int EVENT_MANAGER_INITIALIZE = 110;
     public static final int RUNTIME_MANAGER_INITIALIZE = 150;
     public static final int MAINTENANCE_INITIALIZE = 160;
-    public static final int IMAGE_SET_INITIALIZE = 170;
     public static final int WEB_SERVER_FINALIZE = 175;
     public static final int POST_INITIALIZE = 180;
     public static final int STARTUP_TASKS_RUNNING = 190;
