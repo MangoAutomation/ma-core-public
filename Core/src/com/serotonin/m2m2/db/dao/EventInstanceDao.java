@@ -17,8 +17,10 @@ import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,6 +59,9 @@ import net.jazdw.rql.parser.ASTNode;
 @Repository()
 public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
 
+    public static final Name ALIAS = DSL.name("evt");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.EVENTS_TABLE);
+
     private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventInstanceDao.class);
         if(o == null)
@@ -67,7 +72,8 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     @Autowired
     private EventInstanceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(null,"evt",
+        super(null,
+                TABLE, ALIAS,
                 new Field<?>[]{
                         DSL.field(DSL.name("U").append("username")),
                         DSL.field(DSL.name("UE").append("silenced"))}, 
@@ -80,11 +86,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      */
     public static EventInstanceDao getInstance() {
         return springInstance.get();
-    }
-
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.EVENTS_TABLE;
     }
 
     @Override

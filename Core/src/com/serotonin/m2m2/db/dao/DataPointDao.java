@@ -92,7 +92,7 @@ import net.jazdw.rql.parser.ASTNode;
  *
  */
 @Repository()
-public class DataPointDao extends AbstractDao<DataPointVO>{
+public class DataPointDao extends AbstractDao<DataPointVO> {
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
@@ -102,18 +102,25 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         return (DataPointDao)o;
     });
 
+    //TODO Clean up/remove
     public static final Name DATA_POINTS_ALIAS = DSL.name("dp");
     public static final Table<Record> DATA_POINTS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTS_TABLE)).as(DATA_POINTS_ALIAS);
     public static final Field<Integer> ID = DSL.field(DATA_POINTS_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
     public static final Field<Integer> DATA_SOURCE_ID = DSL.field(DATA_POINTS_ALIAS.append("dataSourceId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<String> READ_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("readPermission"), SQLDataType.VARCHAR(255).nullable(true));
     public static final Field<String> SET_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("setPermission"), SQLDataType.VARCHAR(255).nullable(true));
-
+    
+    public static final Name ALIAS = DSL.name("dp");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.DATAPOINTS_TABLE);
+    
     @Autowired
     private DataPointDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(EventType.EventTypeNames.DATA_POINT, "dp",
-                new Field<?>[] {DSL.field(DSL.name("DS").append("name")), DSL.field(DSL.name("DS").append("xid")), DSL.field(DSL.name("DS").append("dataSourceType"))}, //Extra Properties not in table
+        super(EventType.EventTypeNames.DATA_POINT, TABLE, ALIAS,
+                new Field<?>[] {
+                    DSL.field(DSL.name("DS").append("name")),
+                    DSL.field(DSL.name("DS").append("xid")),
+                    DSL.field(DSL.name("DS").append("dataSourceType"))},
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
     }
@@ -518,11 +525,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     @Override
-    protected String getTableName() {
-        return SchemaDefinition.DATAPOINTS_TABLE;
-    }
-
-    @Override
     protected String getXidPrefix() {
         return DataPointVO.XID_PREFIX;
     }
@@ -760,7 +762,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         if (!user.hasAdminRole()) {
             //condition = this.userHasPermission(user);
         }
-        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.tableAsAlias);
         this.customizedQuery(select, condition, sort, limit, offset, callback);
     }
 
@@ -816,7 +818,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
-        SelectOnConditionStep<Record> select = this.create.select(this.fields).from(this.joinedTable).leftJoin(pivotTable)
+        SelectOnConditionStep<Record> select = this.create.select(this.fields).from(this.tableAsAlias).leftJoin(pivotTable)
                 .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
 
         this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
@@ -869,7 +871,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-        return select.join(SchemaDefinition.DATASOURCES_TABLE).on(DSL.field(DSL.name("DS").append("id")).eq(this.propertyToField.get("dataSourceId")));
+        return select.join(DataSourceDao.TABLE.as(DataSourceDao.ALIAS)).on(DSL.field(DataSourceDao.ALIAS.append("id")).eq(this.propertyToField.get("dataSourceId")));
     }
     
     @Override

@@ -12,8 +12,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -40,6 +42,9 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 @Repository()
 public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 
+    public static final Name ALIAS = DSL.name("uc");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.USER_COMMENTS_TABLE);
+    
     private static final LazyInitSupplier<UserCommentDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(UserCommentDao.class);
         if(o == null)
@@ -50,8 +55,9 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
     @Autowired
 	private UserCommentDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
-		super(AuditEventType.TYPE_USER_COMMENT, "uc", 
-				new Field<?>[]{ DSL.field(DSL.name("U").append("username")) }, null,
+		super(AuditEventType.TYPE_USER_COMMENT,
+		        TABLE, ALIAS,
+				new Field<?>[]{ DSL.field(UserDao.ALIAS.append("username")) }, null,
 				mapper, publisher);
 	}
 
@@ -123,11 +129,6 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
     }
 
 	@Override
-	protected String getTableName() {
-		return SchemaDefinition.USER_COMMENTS_TABLE;
-	}
-
-	@Override
 	protected String getXidPrefix() {
 		return "UC_";
 	}
@@ -160,13 +161,9 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	
 	@Override
 	public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-	    return select.join(SchemaDefinition.USERS_TABLE).on(DSL.field(DSL.name("U").append("id")).eq(this.propertyToField.get("userId")));
+	    return select.join(UserDao.TABLE.as(UserDao.ALIAS)).on(DSL.field(UserDao.ALIAS.append("id")).eq(this.propertyToField.get("userId")));
 	}
 	
-	@Override
-	public String getPkColumnName() {
-		return "id";
-	}
 
 	@Override
 	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {

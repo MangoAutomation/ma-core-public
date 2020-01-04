@@ -47,6 +47,7 @@ import com.serotonin.util.SerializationHelper;
 @Repository()
 public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
+    //TODO Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
     public static final Table<Record> DATA_SOURCES = DSL.table(DSL.name(SchemaDefinition.DATASOURCES_TABLE)).as(DATA_SOURCES_ALIAS);
     public static final Field<Integer> ID = DSL.field(DATA_SOURCES_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
@@ -64,10 +65,13 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return (DataSourceDao<DataSourceVO<?>>)o;
     });
 
+    public static final Name ALIAS = DSL.name("ds");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.DATASOURCES_TABLE);
+    
     @Autowired
     private DataSourceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_DATA_SOURCE, "ds", 
+        super(AuditEventType.TYPE_DATA_SOURCE, TABLE, ALIAS, 
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
     }
@@ -197,11 +201,6 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 LOG.error(e.getMessage(), e);
             }
         }); 
-    }
-    
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.DATASOURCES_TABLE;
     }
 
     @Override

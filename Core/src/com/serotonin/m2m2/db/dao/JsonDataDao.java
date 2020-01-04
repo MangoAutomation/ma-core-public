@@ -12,6 +12,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,6 +44,9 @@ import com.serotonin.m2m2.vo.json.JsonDataVO;
 @Repository()
 public class JsonDataDao extends AbstractDao<JsonDataVO>{
 
+    public static final Name ALIAS = DSL.name("jd");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.JSON_DATA_TABLE);
+
     private static final LazyInitSupplier<JsonDataDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(JsonDataDao.class);
         if(o == null)
@@ -54,7 +61,8 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
     @Autowired
 	private JsonDataDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-		super(AuditEventType.TYPE_JSON_DATA, "jd",
+		super(AuditEventType.TYPE_JSON_DATA,
+		        TABLE, ALIAS,
 		        new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"),
 		        mapper, publisher);
 	}
@@ -71,12 +79,7 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 	protected String getXidPrefix() {
 		return JsonDataVO.XID_PREFIX;
 	}
-
-	@Override
-	protected String getTableName() {
-		return SchemaDefinition.JSON_DATA_TABLE;
-	}
-
+	
 	@Override
 	protected Object[] voToObjectArray(JsonDataVO vo) {
 		String jsonData = null;

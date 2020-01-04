@@ -8,9 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -42,49 +45,48 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * Audit event type name
      */
     protected final String typeName; //Type name for Audit Events
+    
+    /**
+     * Field for xid column
+     */
+    protected final Field<String> xidField;
     /**
      * tablePrefix.xid
      */
     protected final Field<String> xidAlias;
     
-    /**
-     * 
-     * @param typeName
-     * @param tablePrefix
-     * @param countMonitorName
-     * @param mapper
-     * @param publisher
-     */
-    protected AbstractDao(String typeName, String tablePrefix, 
+    
+    protected AbstractDao(String typeName, Table<? extends Record> table, Name tableAlias,  
             TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(typeName, tablePrefix, null, countMonitorName, mapper, publisher);
+        this(typeName, table, tableAlias, null, countMonitorName, mapper, publisher);
+    }
+    
+    protected AbstractDao(String typeName, Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(typeName, table, tableAlias, extraProperties, null, mapper, publisher);
     }
     
     /**
-     * @param typeName - Type name for Audit events
-     * @param tablePrefix - Table prefix for Selects/Joins
-     * @param extraProperties - Any extra SQL for queries
-     * @param useSubQuery - Compute queries as sub-queries
+     * 
+     * @param typeName
+     * @param table
+     * @param tableAlias
+     * @param extraProperties
      * @param countMonitorName - If not null create a monitor to track table row count
+     * @param mapper
+     * @param publisher
      */
-    protected AbstractDao(String typeName, String tablePrefix, Field<?>[] extraProperties, 
+    protected AbstractDao(String typeName, Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, 
             TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        super(tablePrefix, extraProperties, countMonitorName, mapper, publisher);
+        super(table, tableAlias, extraProperties, countMonitorName, mapper, publisher);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
-        xidAlias = DSL.field(DSL.name(tablePrefix, getXidColumnName()), String.class);
+        this.xidField = getXidField();
+        this.xidAlias = getXidFieldAlias();
     }
 
-    /**
-     * @param typeName - Type name for Audit events
-     * @param tablePrefix - Table prefix for Selects/Joins
-     * @param extraProperties - Any extra SQL for queries
-     */
-    protected AbstractDao(String typeName, String tablePrefix, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(typeName, tablePrefix, extraProperties, null, mapper, publisher);
-    }
+
 
     /**
      * Gets the XID prefix for XID generation
@@ -93,17 +95,58 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      */
     protected abstract String getXidPrefix();
 
+    /**
+     * tableAlias.id
+     * @return
+     */
+    public Field<String> getXidFieldAlias() {
+        return DSL.field(this.tableAlias.append(getXidFieldName()), SQLDataType.VARCHAR(100).nullable(false));
+    }
+    
+    /**
+     * Override as necessary Can be null if no Pk Exists
+     *
+     * @return String name of Pk Column
+     */
+    public Field<String> getXidField() {
+        return DSL.field(getXidFieldName(), SQLDataType.VARCHAR(getXidFieldLength()).nullable(false));
+    }
+    
+    /**
+     * Optionally override the name of the Xid column
+     * @return
+     */
+    protected Name getXidFieldName() {
+        return DSL.name("xid");
+    }
+    
+    /**
+     * Optionally override the length of the XID field
+     * @return
+     */
+    protected int getXidFieldLength() {
+        return 100;
+    }
+    
+    /**
+     * Override as necessary
+     * @return
+     */
+    public Field<String> getXidColumn() {
+        return DSL.field(this.tableAlias.append(getXidFieldName()), SQLDataType.VARCHAR(getXidFieldLength()).nullable(false));
+    }
+    
     @Override
     public String generateUniqueXid() {
         if (xidPrefix == null) {
             return null;
         }
-        return generateUniqueXid(xidPrefix, tableName);
+        return generateUniqueXid(xidPrefix, this.table.getName());
     }
 
     @Override
     public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, tableName);
+        return isXidUnique(xid, excludeId, this.table.getName());
     }
 
     @Override

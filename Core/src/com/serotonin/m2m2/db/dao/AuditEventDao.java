@@ -13,6 +13,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -40,6 +44,9 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
     private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
 
+    public static final Name ALIAS = DSL.name("aud");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.AUDIT_TABLE);
+    
     /**
      * @param tablePrefix
      * @param extraProperties
@@ -48,7 +55,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
     @Autowired
     private AuditEventDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super("aud", mapper, publisher);
+        super(TABLE, ALIAS , mapper, publisher);
     }
 
     /**
@@ -62,11 +69,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
                 throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
             return (AuditEventDao)o;
         });
-    }
-
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.AUDIT_TABLE;
     }
 
     @Override

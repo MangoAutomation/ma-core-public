@@ -20,6 +20,10 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,6 +61,9 @@ import com.serotonin.util.SerializationHelper;
 @Repository()
 public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<PublisherVO<T>> {
 	
+    public static final Name ALIAS = DSL.name("pub");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.PUBLISHERS_TABLE);
+    
     private static final LazyInitSupplier<PublisherDao<?>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(PublisherDao.class);
         if(o == null)
@@ -69,7 +76,8 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
     @Autowired
     private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
-    	super(AuditEventType.TYPE_PUBLISHER, "pub",
+    	super(AuditEventType.TYPE_PUBLISHER,
+    	        TABLE, ALIAS,
     	        new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
     	        mapper, publisher);
     }
@@ -268,11 +276,6 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
 	@Override
 	protected String getXidPrefix() {
 		return PublisherVO.XID_PREFIX;
-	}
-
-	@Override
-	protected String getTableName() {
-		return SchemaDefinition.PUBLISHERS_TABLE;
 	}
 
 	@Override

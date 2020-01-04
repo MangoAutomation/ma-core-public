@@ -40,6 +40,7 @@ import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.UpdateConditionStep;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
@@ -103,57 +104,49 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected final List<Index> indexes;
 
     /**
-     * tablePrefix.id
-     */
-    protected final Field<Integer> idAlias;
-    /**
      * id
      */
     protected final Field<Integer> idField;
+    /**
+     * tablePrefix.id
+     */
+    protected final Field<Integer> idAlias;
     
     protected final List<Field<Object>> insertFields;
     protected final List<Field<Object>> updateFields;
-
-    public final String tableName;
 
     protected int[] updateStatementPropertyTypes; // Required for Derby LOBs
     protected int[] insertStatementPropertyTypes; // Required for Derby LOBs
 
     protected TableModel tableModel;
 
-    protected final String pkColumn;
 
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
 
+    /**
+     * Full table name
+     */
     protected final Table<? extends Record> table;
+    /**
+     * The short name for the table used in selects
+     */
     protected final Name tableAlias;
-    protected final Table<? extends Record> joinedTable;
+    /**
+     * Used in selects and Joins to select table as alias
+     */
+    protected final Table<? extends Record> tableAsAlias;
     protected final List<Field<?>> fields;
     protected final Map<String, Field<Object>> propertyToField;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
     protected final RQLToCondition rqlToCondition;
 
-    /**
-     * 
-     * @param tablePrefix
-     * @param mapper
-     * @param publisher
-     */
-    public AbstractBasicDao(String tablePrefix, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(tablePrefix, null, mapper, publisher);
+    public AbstractBasicDao(Table<? extends Record> table, Name tableAlias, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(table, tableAlias, null, mapper, publisher);
     }
-    
-    /**
-     * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
-     * @param extraProperties - Other SQL for use in Queries
-     * @param tablePrefix
-     * @param extraProperties
-     * @param mapper
-     * @param publisher
-     */
-    public AbstractBasicDao(String tablePrefix, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(tablePrefix, extraProperties, null, mapper, publisher);
+
+    public AbstractBasicDao(Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(table, tableAlias, extraProperties, null, mapper, publisher);
     }
 
     /**
@@ -164,15 +157,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @param mapper
      * @param publisher
      */
-    public AbstractBasicDao(String tablePrefix, Field<?>[] extraProperties, 
+    public AbstractBasicDao(Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, 
             TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
 
-        this.tableName = getTableName();
-
-        this.table = DSL.table(DSL.name(this.tableName));
-        this.tableAlias = DSL.name(tablePrefix);
-
+        this.table = table;
+        this.tableAlias = tableAlias;
+        this.tableAsAlias = this.table.as(this.tableAlias);
+        
         Map<String, IntStringPair> propMap = getPropertiesMap();
         if (propMap == null)
             this.propertiesMap = new HashMap<String, IntStringPair>();
@@ -193,24 +185,19 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
         fields = new ArrayList<>();
 
-        Set<String> properties = this.propertyTypeMap.keySet();
         // don't the first property - "id", in the insert statements
-        this.pkColumn = getPkColumnName();
-        if (StringUtils.isEmpty(pkColumn)) {
-            idAlias = DSL.field(DSL.name(tablePrefix, "id"), Integer.class);
-            idField = DSL.field("id", Integer.class);
-        }else {
-            idAlias = DSL.field(DSL.name(tablePrefix, getPkColumnName()), Integer.class);
-            idField = DSL.field(getPkColumnName(), Integer.class);
-        }
-        //TODO Build this in a getter()
+        this.idField = getIdField();
+        this.idAlias = getIdFieldAlias();
+        
+        Set<String> properties = this.propertyTypeMap.keySet();
         this.insertFields = new ArrayList<>(properties.size() - 1);
         this.updateFields = new ArrayList<>(properties.size());
         int i = 0;
         for (String prop : properties) {
             // Add this attribute
             QueryAttribute attribute = new QueryAttribute();
-            attribute.setColumnName(tablePrefix + prop);
+            String[] columnParts = this.tableAlias.append(prop).getName();
+            attribute.setColumnName(columnParts[0] + "." + columnParts[1]);
             attribute.addAlias(prop);
             attribute.setSqlType(this.propertyTypeMap.get(prop));
             attributeMap.put(prop, attribute);
@@ -221,7 +208,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             }
             i++;
 
-            fields.add(DSL.field(DSL.name(tablePrefix, prop)));
+            fields.add(DSL.field(this.tableAlias.append(prop)));
         }
         
         if (extraProperties != null) {
@@ -234,10 +221,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         this.valueConverterMap = this.createValueConverterMap();
         this.rqlToCondition = this.createRqlToCondition();
 
-        this.joinedTable = DSL.table(this.tableName + " AS " + tablePrefix);
-
         // Create the Update and Insert property types lists
-        if ((getPkColumnName() != null) && (this.propertyTypeMap.get(getPkColumnName()) != null)) {
+        if ((getIdField() != null) && (this.propertyTypeMap.get(getIdField().getName()) != null)) {
             this.updateStatementPropertyTypes = new int[this.propertyTypeMap.size()];
             this.insertStatementPropertyTypes = new int[this.propertyTypeMap.size() - 1];
         } else {
@@ -245,22 +230,24 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
             this.insertStatementPropertyTypes = new int[this.propertyTypeMap.size()];
         }
 
-        Iterator<String> it = this.propertyTypeMap.keySet().iterator();
-        int j = 0;
-        while (it.hasNext()) {
-            String property = it.next();
-            if (!property.equals(getPkColumnName())) {
-                Integer type = this.propertyTypeMap.get(property);
-                this.updateStatementPropertyTypes[j] = type;
-                this.insertStatementPropertyTypes[j] = type;
-                j++;
+        if(getIdField() != null) {
+            Iterator<String> it = this.propertyTypeMap.keySet().iterator();
+            int j = 0;
+            while (it.hasNext()) {
+                String property = it.next();
+                if (!property.equals(getIdField().getName())) {
+                    Integer type = this.propertyTypeMap.get(property);
+                    this.updateStatementPropertyTypes[j] = type;
+                    this.insertStatementPropertyTypes[j] = type;
+                    j++;
+                }
             }
-        }
-
-        if ((getPkColumnName() != null) && (this.propertyTypeMap.get(getPkColumnName()) != null)) {
-            Integer pkType = this.propertyTypeMap.get(getPkColumnName());
-            this.updateStatementPropertyTypes[j] = pkType;
-            attributeMap.put(getPkColumnName(), new QueryAttribute(getPkColumnName(), new HashSet<String>(), pkType));
+    
+            if (this.propertyTypeMap.get(getIdField().getName()) != null) {
+                Integer pkType = this.propertyTypeMap.get(getIdField().getName());
+                this.updateStatementPropertyTypes[j] = pkType;
+                attributeMap.put(getIdField().getName(), new QueryAttribute(getIdField().getName(), new HashSet<String>(), pkType));
+            }
         }
 
         Iterator<String> propertyMapIterator = this.propertiesMap.keySet().iterator();
@@ -284,7 +271,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         this.indexes = getIndexes();
 
         // Create the model
-        this.tableModel = new TableModel(this.getTableName(), new ArrayList<QueryAttribute>(attributeMap.values()));
+        this.tableModel = new TableModel(this.table.getName(), new ArrayList<QueryAttribute>(attributeMap.values()));
 
         //Setup Monitors
         if(countMonitorName != null) {
@@ -299,28 +286,25 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     /**
+     * tableAlias.id
+     * @return
+     */
+    public Field<Integer> getIdFieldAlias() {
+        return DSL.field(this.tableAlias.append(getIdFieldName()), SQLDataType.INTEGER.nullable(false));
+    }
+    
+    /**
      * Override as necessary Can be null if no Pk Exists
      *
      * @return String name of Pk Column
      */
-    public String getPkColumnName() {
-        return "id";
+    public Field<Integer> getIdField() {
+        return DSL.field(getIdFieldName(), SQLDataType.INTEGER.nullable(false));
     }
     
-    /**
-     * Override as necessary
-     * @return
-     */
-    public String getXidColumnName() {
-        return "xid";
+    protected Name getIdFieldName() {
+        return DSL.name("id");
     }
-
-    /**
-     * Gets the table name that the Dao operates on
-     *
-     * @return table name
-     */
-    protected abstract String getTableName();
 
     /**
      * Converts a VO object into an array of objects for insertion or updating
@@ -390,7 +374,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (vo != null) {
             Integer deleted = (Integer) getTransactionTemplate().execute(status -> {
                 deleteRelationalData(vo);
-                return this.create.deleteFrom(this.table.as(tableAlias)).where(idAlias.eq(vo.getId())).execute();
+                return this.create.deleteFrom(this.table).where(idField.eq(vo.getId())).execute();
             });
             
             if(this.countMonitor != null)
@@ -504,7 +488,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      */
     public SelectJoinStep<Record> getSelectQuery() {
         SelectJoinStep<Record> query = this.create.select(this.fields)
-                .from(this.table.as(tableAlias));
+                .from(tableAsAlias);
         return joinTables(query);
     }
     
@@ -513,18 +497,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     
     @Override
     public int count() {
-        return getCountQuery().fetchOneInto(Integer.class);
+        return getCountQuery().from(tableAsAlias).fetchOneInto(Integer.class);
     }
     
     /**
      * Get the base Count query
      * @return
      */
-    public SelectJoinStep<Record1<Integer>> getCountQuery() {
-        if (StringUtils.isEmpty(pkColumn)) {
-            return this.create.selectCount().from(table.as(tableAlias));
-        }else {
-            return this.create.select(DSL.countDistinct(idAlias)).from(table.as(tableAlias));
+    public SelectSelectStep<Record1<Integer>> getCountQuery() {
+        if (this.idAlias == null) {
+            return this.create.selectCount();
+        } else {
+            return this.create.select(DSL.countDistinct(this.idAlias));
         }
     }
 
@@ -598,18 +582,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     @Override
     public int customizedCount(ConditionSortLimit conditions) {
         Condition condition = conditions.getCondition();
-        SelectSelectStep<Record1<Integer>> count;
-        if (StringUtils.isNotEmpty(this.pkColumn)) {
-            count = this.create.select(DSL.countDistinct(DSL.field(tableAlias.append(this.pkColumn))));
-        } else {
-            count = this.create.selectCount();
-        }
+        SelectSelectStep<Record1<Integer>> count = getCountQuery();
 
         SelectJoinStep<Record1<Integer>> select;
         if (condition == null) {
-            select = count.from(this.table.as(tableAlias));
+            select = count.from(this.tableAsAlias);
         } else {
-            select = count.from(this.joinedTable);
+            select = count.from(this.tableAsAlias);
             select = joinTables(select, conditions);
         }
         return customizedCount(select, condition);
@@ -641,7 +620,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     @Override
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
-        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.joinedTable);
+        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.tableAsAlias);
         select = joinTables(select, conditions);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }

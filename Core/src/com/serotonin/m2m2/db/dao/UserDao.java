@@ -24,8 +24,11 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -68,6 +71,9 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 public class UserDao extends AbstractDao<User> implements SystemSettingsListener {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
+    public static final Name ALIAS = DSL.name("u");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.USERS_TABLE);
+    
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(UserDao.class);
         if(o == null)
@@ -86,7 +92,8 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     private UserDao(RoleDao roleDao,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_USER, "u",
+        super(AuditEventType.TYPE_USER,
+                TABLE, ALIAS,
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
                 mapper, publisher);
         this.roleDao = roleDao;
@@ -110,7 +117,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if(username == null) {
             return false;
         }else {
-            return this.getCountQuery().where(
+            return this.getCountQuery().from(this.tableAsAlias).where(
                     this.propertyToField.get("username").eq(username),
                     this.propertyToField.get("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
         }
@@ -126,7 +133,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if(email == null) {
             return false;
         }else {
-            return this.getCountQuery().where(
+            return this.getCountQuery().from(this.tableAsAlias).where(
                     this.propertyToField.get("email").eq(email),
                     this.propertyToField.get("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
         }
@@ -504,11 +511,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     @Override
-    protected String getTableName() {
-        return SchemaDefinition.USERS_TABLE;
-    }
-
-    @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         return new HashMap<>();
     }
@@ -519,8 +521,13 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
     
     @Override
-    public String getXidColumnName() {
-        return "username";
+    protected Name getXidFieldName() {
+        return DSL.name("username");
+    }
+    
+    @Override
+    protected int getXidFieldLength() {
+        return 40;
     }
 
     @Override

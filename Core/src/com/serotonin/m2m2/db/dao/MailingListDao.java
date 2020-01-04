@@ -17,6 +17,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.DateTime;
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -46,6 +50,10 @@ import com.serotonin.m2m2.vo.mailingList.UserEntry;
 @Repository
 public class MailingListDao extends AbstractDao<MailingList> {
 
+    public static final Name ALIAS = DSL.name("ml");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.MAILING_LISTS_TABLE);
+
+    
     private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(MailingListDao.class);
         if(o == null)
@@ -56,7 +64,8 @@ public class MailingListDao extends AbstractDao<MailingList> {
     @Autowired
     private MailingListDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
-        super(AuditEventType.TYPE_MAILING_LIST, "ml", 
+        super(AuditEventType.TYPE_MAILING_LIST,
+                TABLE, ALIAS,
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
     }
@@ -197,11 +206,6 @@ public class MailingListDao extends AbstractDao<MailingList> {
     @Override
     protected String getXidPrefix() {
         return MailingList.XID_PREFIX;
-    }
-
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.MAILING_LISTS_TABLE;
     }
 
     @Override

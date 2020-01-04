@@ -16,6 +16,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
@@ -46,6 +50,9 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 @Repository
 public class RoleDao extends AbstractDao<RoleVO> {
 
+    public static final Name ALIAS = DSL.name("r");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.ROLES_TABLE);
+    
     private static final LazyInitSupplier<RoleDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(RoleDao.class);
         if(o == null)
@@ -56,7 +63,8 @@ public class RoleDao extends AbstractDao<RoleVO> {
     @Autowired
     private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_ROLE, "r",
+        super(AuditEventType.TYPE_ROLE, 
+                TABLE, ALIAS,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
     }
@@ -261,11 +269,6 @@ public class RoleDao extends AbstractDao<RoleVO> {
     @Override
     protected String getXidPrefix() {
         return RoleVO.XID_PREFIX;
-    }
-
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.ROLES_TABLE;
     }
 
     @Override

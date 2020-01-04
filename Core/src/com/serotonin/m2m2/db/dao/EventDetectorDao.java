@@ -17,8 +17,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,6 +59,9 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 @Repository()
 public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends AbstractDao<T> {
 
+    public static final Name ALIAS = DSL.name("edt");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.EVENT_DETECTOR_TABLE);
+
 
     @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<EventDetectorDao<AbstractEventDetectorVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
@@ -73,7 +78,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     private EventDetectorDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_EVENT_DETECTOR, 
-                "edt",
+                TABLE, ALIAS,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
                 mapper, publisher);
     }
@@ -84,11 +89,6 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      */
     public static EventDetectorDao<AbstractEventDetectorVO<?>> getInstance() {
         return springInstance.get();
-    }
-
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.EVENT_DETECTOR_TABLE;
     }
 
     @Override
@@ -215,7 +215,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      * @return
      */
     public String getXid(int id) {
-        return queryForObject("SELECT xid from " + this.tableName + " WHERE id=?", new Object[]{id}, String.class, null);
+        return queryForObject("SELECT xid from " + this.table.getName() + " WHERE id=?", new Object[]{id}, String.class, null);
     }
 
     /**
@@ -224,7 +224,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      * @return
      */
     public int getId(String xid, int dpId) {
-        return queryForObject("SELECT id from " + this.tableName + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
+        return queryForObject("SELECT id from " + this.table.getName() + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
     }
 
     /**

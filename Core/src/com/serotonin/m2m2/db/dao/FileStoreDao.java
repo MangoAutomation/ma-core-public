@@ -12,6 +12,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -35,6 +39,9 @@ import com.serotonin.m2m2.vo.FileStore;
 @Repository
 public class FileStoreDao extends AbstractBasicDao<FileStore> {
 
+    public static final Name ALIAS = DSL.name("fs");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.FILE_STORES_TABLE);
+
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> {
         FileStoreDao dao = Common.getRuntimeContext().getBean(FileStoreDao.class);
         if (dao == null)
@@ -45,7 +52,7 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
     @Autowired
     private FileStoreDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super("fs", mapper, publisher);
+        super(TABLE, ALIAS, mapper, publisher);
     }
 
     public static FileStoreDao getInstance() {
@@ -83,11 +90,6 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
             return result;
         }
 
-    }
-
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.FILE_STORES_TABLE;
     }
 
     @Override

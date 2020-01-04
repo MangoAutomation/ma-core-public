@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,6 +46,9 @@ import com.serotonin.util.SerializationHelper;
 @Repository()
 public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends AbstractDao<T>{
 
+    public static final Name ALIAS = DSL.name("eh");
+    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.EVENT_HANDLER_TABLE);
+    
     @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<EventHandlerDao<AbstractEventHandlerVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventHandlerDao.class);
@@ -68,7 +75,8 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     @Autowired
     private EventHandlerDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_EVENT_HANDLER, "eh", 
+        super(AuditEventType.TYPE_EVENT_HANDLER,
+                TABLE, ALIAS,
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher);
     }
@@ -84,11 +92,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     @Override
     protected String getXidPrefix() {
         return AbstractEventHandlerVO.XID_PREFIX;
-    }
-
-    @Override
-    protected String getTableName() {
-        return SchemaDefinition.EVENT_HANDLER_TABLE;
     }
 
     @Override
