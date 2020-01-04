@@ -48,7 +48,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
     @Autowired
     private AuditEventDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super("aud", new String[0], mapper, publisher);
+        super("aud", mapper, publisher);
     }
 
     /**
@@ -161,7 +161,8 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
      * @return
      */
     public List<AuditEventInstanceVO> getAllForObject(String typeName, int id) {
-        return query(SELECT_ALL + " WHERE typeName=? AND objectId=? ORDER BY ts ASC", new Object[]{typeName, id}, getRowMapper());
+        String selectAll = this.getSelectQuery().getSQL();
+        return query(selectAll + " WHERE typeName=? AND objectId=? ORDER BY ts ASC", new Object[]{typeName, id}, getRowMapper());
     }
 
     /**

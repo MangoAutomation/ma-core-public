@@ -68,7 +68,6 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     private DataSourceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_DATA_SOURCE, "ds", 
-                new String[0], false, 
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
     }
@@ -216,7 +215,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 vo.getXid(), 
                 vo.getName(), 
                 vo.getDefinition().getDataSourceTypeName(),
-                SerializationHelper.writeObject(vo)};
+                SerializationHelper.writeObjectToArray(vo)};
+                //SerializationHelper.writeObject(vo)};
     }
 
     @Override

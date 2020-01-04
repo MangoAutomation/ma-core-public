@@ -87,7 +87,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_USER, "u",
-                new String[0], false,
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
                 mapper, publisher);
         this.roleDao = roleDao;

@@ -16,6 +16,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -63,15 +67,13 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     });
 
     /* Map of Source Type to Source ID Column Names */
-    private LinkedHashMap<String, String> sourceTypeToColumnNameMap;
+    private LinkedHashMap<String, Field<Integer>> sourceTypeToColumnNameMap;
     
     @Autowired
     private EventDetectorDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_EVENT_DETECTOR, 
                 "edt",
-                new String[0],
-                false,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
                 mapper, publisher);
     }
@@ -121,9 +123,9 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
         
         //Build our ordered column set from the Module Registry
         List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
-        this.sourceTypeToColumnNameMap = new LinkedHashMap<String, String>(defs.size());
-        for(EventDetectorDefinition<?> def : defs){
-            this.sourceTypeToColumnNameMap.put(def.getSourceTypeName(), this.TABLE_PREFIX + "." + def.getSourceIdColumnName());
+        this.sourceTypeToColumnNameMap = new LinkedHashMap<>(defs.size());
+        for(EventDetectorDefinition<?> def : defs) {
+            this.sourceTypeToColumnNameMap.put(def.getSourceTypeName(), DSL.field(tableAlias.append(def.getSourceIdColumnName()), Integer.class));
             map.put(def.getSourceIdColumnName(), Types.INTEGER);
         }
 
@@ -133,9 +135,9 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
-        map.put("detectorSourceType", new IntStringPair(Types.VARCHAR, this.TABLE_PREFIX + "." + "sourceTypeName"));
+        map.put("detectorSourceType", new IntStringPair(Types.VARCHAR, this.tableAlias + "." + "sourceTypeName"));
         //TODO This will break if we add new detector types and keep the same table structure, we should break this out into a mapping table
-        map.put("sourceId", new IntStringPair(Types.VARCHAR, this.TABLE_PREFIX + "." + "dataPointId"));
+        map.put("sourceId", new IntStringPair(Types.VARCHAR, this.tableAlias + "." + "dataPointId"));
         return map;
     }
 
@@ -199,8 +201,11 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      * @return
      */
     public List<AbstractPointEventDetectorVO<?>> getWithSource(int sourceId, DataPointVO dp){
-        String sourceIdColumnName = getSourceIdColumnName(EventType.EventTypeNames.DATA_POINT);
-        return query(SELECT_ALL + " WHERE " + sourceIdColumnName +  "=? ORDER BY id", new Object[]{sourceId}, new PointEventDetectorRowMapper(dp));
+        Field<Integer> sourceIdColumnName = getSourceIdColumnName(EventType.EventTypeNames.DATA_POINT);
+        Select<Record> query = getSelectQuery().where(sourceIdColumnName.eq(sourceId)).orderBy(this.propertyToField.get("id"));
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
+        return query(sql, args.toArray(new Object[args.size()]), new PointEventDetectorRowMapper(dp));
     }
 
     /**
@@ -223,24 +228,12 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     }
 
     /**
-     * Return only the source id from the table for a given row
-     * @param pedid
-     * @return
-     */
-    public int getSourceId(int id, String sourceType) {
-        String sourceIdColumn = getSourceIdColumnName(sourceType);
-        return queryForObject("SELECT " + sourceIdColumn + " from " + this.tableName + "AS " + this.tablePrefix + " WHERE id=?", new Object[]{id}, Integer.class, -1);
-    }
-    
-
-    
-    /**
      * Get the column name for the source id using the source type
      * @param sourceType
      * @return
      */
-    public String getSourceIdColumnName(String sourceType){
-        String columnName = this.sourceTypeToColumnNameMap.get(sourceType);
+    public Field<Integer> getSourceIdColumnName(String sourceType){
+        Field<Integer> columnName = this.sourceTypeToColumnNameMap.get(sourceType);
         if(columnName == null)
             throw new ShouldNeverHappenException("Unknown Detector Source Type: " + sourceType);
         else
@@ -300,7 +293,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
                 query(EventDetectorWithDataPointResultSetExtractor.POINT_EVENT_DETECTOR_WITH_DATA_POINT_SELECT, new Object[] { },
                         new EventDetectorWithDataPointResultSetExtractor());
             default:
-                return query(SELECT_ALL + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>());
+                return query(getSelectQuery().getSQL() + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>());
         }
     }
 }

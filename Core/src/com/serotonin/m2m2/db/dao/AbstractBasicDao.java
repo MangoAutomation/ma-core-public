@@ -51,10 +51,8 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.Index;
-import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
-import com.infiniteautomation.mango.db.query.SQLQueryColumn;
 import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
@@ -100,39 +98,21 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected final LinkedHashMap<String, Integer> propertyTypeMap;
 
     /**
-     * List of our Joins
-     */
-    protected final List<JoinClause> joins;
-
-    /**
      * List of our Indexes
      */
     protected final List<Index> indexes;
 
-    /*
-     * SQL templates
+    /**
+     * tablePrefix.id
      */
-    protected final Field<Object> PK_COLUMN;
+    protected final Field<Integer> idAlias;
+    /**
+     * id
+     */
+    protected final Field<Integer> idField;
+    
     protected final List<Field<Object>> insertFields;
     protected final List<Field<Object>> updateFields;
-
-    
-    protected final String TABLE_PREFIX; // Without ending .
-    protected final String SELECT_ALL_BASE; // Without location of FROM
-    protected final String SELECT_ALL;
-    protected final String SELECT_ALL_SORT;
-    protected final String SELECT_ALL_FIXED_SORT;
-    protected final String SELECT_BY_ID;
-    protected final String SELECT_BY_XID;
-    protected final String SELECT_BY_NAME;
-    protected final String SELECT_XID_BY_ID;
-    protected final String SELECT_ID_BY_XID;
-    protected final String INSERT;
-    protected final String UPDATE;
-    protected final String DELETE;
-    protected final String COUNT_BASE;
-    protected final String COUNT;
-    // protected final String EXTRA_SQL;
 
     public final String tableName;
 
@@ -140,8 +120,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected int[] insertStatementPropertyTypes; // Required for Derby LOBs
 
     protected TableModel tableModel;
-
-    public final String tablePrefix; // Prefix with dot table.
 
     protected final String pkColumn;
 
@@ -157,6 +135,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     protected final RQLToCondition rqlToCondition;
 
     /**
+     * 
+     * @param tablePrefix
+     * @param mapper
+     * @param publisher
+     */
+    public AbstractBasicDao(String tablePrefix, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(tablePrefix, null, mapper, publisher);
+    }
+    
+    /**
      * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
      * @param extraProperties - Other SQL for use in Queries
      * @param tablePrefix
@@ -164,8 +152,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @param mapper
      * @param publisher
      */
-    public AbstractBasicDao(String tablePrefix, String[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(tablePrefix, extraProperties, false, null, mapper, publisher);
+    public AbstractBasicDao(String tablePrefix, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(tablePrefix, extraProperties, null, mapper, publisher);
     }
 
     /**
@@ -176,21 +164,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @param mapper
      * @param publisher
      */
-    public AbstractBasicDao(String tablePrefix, String[] extraProperties,boolean useSubQuery, 
+    public AbstractBasicDao(String tablePrefix, Field<?>[] extraProperties, 
             TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        
-        TABLE_PREFIX = tablePrefix;
-        
-        if (tablePrefix != null)
-            this.tablePrefix = tablePrefix + ".";
-        else
-            this.tablePrefix = "";
 
         this.tableName = getTableName();
 
         this.table = DSL.table(DSL.name(this.tableName));
-        this.tableAlias = DSL.name(TABLE_PREFIX);
+        this.tableAlias = DSL.name(tablePrefix);
 
         Map<String, IntStringPair> propMap = getPropertiesMap();
         if (propMap == null)
@@ -207,12 +188,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         this.mapper = mapper;
         this.eventPublisher = publisher;
 
-        // generate SQL statements
-        String selectAll = "SELECT ";
-        String insert = "INSERT INTO " + tableName + " (";
-        String insertValues = "";
-        String update = "UPDATE " + tableName + " SET ";
-
         // Map of properties to their QueryAttribute
         Map<String, QueryAttribute> attributeMap = new HashMap<String, QueryAttribute>();
 
@@ -222,9 +197,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         // don't the first property - "id", in the insert statements
         this.pkColumn = getPkColumnName();
         if (StringUtils.isEmpty(pkColumn)) {
-            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, "id"));
+            idAlias = DSL.field(DSL.name(tablePrefix, "id"), Integer.class);
+            idField = DSL.field("id", Integer.class);
         }else {
-            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, getPkColumnName()));
+            idAlias = DSL.field(DSL.name(tablePrefix, getPkColumnName()), Integer.class);
+            idField = DSL.field(getPkColumnName(), Integer.class);
         }
         //TODO Build this in a getter()
         this.insertFields = new ArrayList<>(properties.size() - 1);
@@ -233,32 +210,23 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         for (String prop : properties) {
             // Add this attribute
             QueryAttribute attribute = new QueryAttribute();
-            attribute.setColumnName(this.tablePrefix + prop);
+            attribute.setColumnName(tablePrefix + prop);
             attribute.addAlias(prop);
             attribute.setSqlType(this.propertyTypeMap.get(prop));
             attributeMap.put(prop, attribute);
 
-            String selectPrefix = (i == 0) ? this.tablePrefix : "," + this.tablePrefix;
-            selectAll += selectPrefix + prop;
-
-            String insertPrefix = (i == 1) ? "" : ",";
             if (i >= 1) {
                 this.insertFields.add(DSL.field(DSL.name(prop)));
                 this.updateFields.add(DSL.field(DSL.name(prop)));
-                insert += insertPrefix + prop;
-                insertValues += insertPrefix + "?";
-                update += insertPrefix + prop + "=?";
             }
             i++;
 
-            fields.add(DSL.field(DSL.name(TABLE_PREFIX, prop)));
+            fields.add(DSL.field(DSL.name(tablePrefix, prop)));
         }
         
         if (extraProperties != null) {
-            for (String prop : extraProperties) {
-                selectAll += "," + prop;
-                String[] split = prop.split("\\.");
-                fields.add(DSL.field(DSL.name(split)));
+            for (Field<?> prop : extraProperties) {
+                fields.add(prop);
             }
         }
 
@@ -266,107 +234,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         this.valueConverterMap = this.createValueConverterMap();
         this.rqlToCondition = this.createRqlToCondition();
 
-        // Setup the Joins
-        this.joins = getJoins();
-
-        String joinedTableSql = this.tableName + " AS " + TABLE_PREFIX;
-        String joinSql = null;
-
-        if (!this.joins.isEmpty()) {
-            StringBuilder joinSqlBuilder = new StringBuilder();
-            for (JoinClause join : this.joins) {
-                joinSqlBuilder.append(join.toString());
-            }
-            joinSql = joinSqlBuilder.toString();
-            joinedTableSql += joinSql;
-        }
-
-        this.joinedTable = DSL.table(joinedTableSql);
-
-        // Add the table prefix to the queries if necessary
-        SELECT_ALL_BASE = selectAll + " FROM ";
-        if (this.tablePrefix.equals("")) {
-            if (StringUtils.isEmpty(pkColumn)) {
-                COUNT_BASE = "SELECT COUNT(*) FROM ";
-            }else {
-                COUNT_BASE = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM ";
-            }
-
-            if (joinSql != null)
-                SELECT_ALL = selectAll + " FROM " + tableName + joinSql;
-            else
-                SELECT_ALL = selectAll + " FROM " + tableName;
-
-            SELECT_ALL_SORT = SELECT_ALL + " ORDER BY ";
-            if (properties.contains("name")) {
-                SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY name ASC";
-            } else {
-                SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY id ASC";
-            }
-
-            SELECT_BY_ID = SELECT_ALL + " WHERE id=?";
-            SELECT_BY_XID = SELECT_ALL + " WHERE " + getXidColumnName() + "=?";
-            SELECT_BY_NAME = SELECT_ALL + " WHERE name=?";
-            SELECT_XID_BY_ID = "SELECT " + getXidColumnName() + " FROM " + tableName + " WHERE id=?";
-            SELECT_ID_BY_XID = "SELECT id FROM " + tableName + " WHERE " + getXidColumnName() + "=?";
-            INSERT = insert + ") VALUES (" + insertValues + ")";
-            UPDATE = update + " WHERE id=?";
-            DELETE = "DELETE FROM " + tableName + " WHERE id=?";
-
-            if (joinSql != null) {
-                if (StringUtils.isEmpty(pkColumn))
-                    COUNT = "SELECT COUNT(*) FROM " + tableName + joinSql;
-                else
-                    COUNT = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM " + tableName + joins;
-            } else {
-                if (StringUtils.isEmpty(pkColumn))
-                    COUNT = "SELECT COUNT(*) FROM " + tableName;
-                else
-                    COUNT = "SELECT COUNT(DISTINCT " + pkColumn + ") FROM " + tableName;
-            }
-
-        } else {
-            // this.tablePrefix will end in a . where the local tablePrefix
-            // shouldn't
-            if (StringUtils.isEmpty(pkColumn))
-                COUNT_BASE = "SELECT COUNT(*) FROM ";
-            else
-                COUNT_BASE = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM ";
-
-            if (joinSql != null)
-                SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix + joinSql;
-            else
-                SELECT_ALL = selectAll + " FROM " + tableName + " AS " + tablePrefix;
-
-            SELECT_ALL_SORT = SELECT_ALL + " ORDER BY ";
-            if (properties.contains("name")) {
-                SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY " + this.tablePrefix + "name ASC";
-            } else {
-                SELECT_ALL_FIXED_SORT = SELECT_ALL + " ORDER BY " + this.tablePrefix + "id ASC";
-            }
-
-            SELECT_BY_ID = SELECT_ALL + " WHERE " + this.tablePrefix + "id=?";
-            SELECT_BY_XID = SELECT_ALL + " WHERE " + this.tablePrefix + getXidColumnName() + "=?";
-            SELECT_BY_NAME = SELECT_ALL + " WHERE " + this.tablePrefix + "name=?";
-            SELECT_XID_BY_ID = "SELECT " + this.tablePrefix + getXidColumnName() + " FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + "id=?";
-            SELECT_ID_BY_XID = "SELECT " + this.tablePrefix + "id FROM " + tableName + " " + tablePrefix + " WHERE " + this.tablePrefix + getXidColumnName() + "=?";
-            INSERT = insert + ") VALUES (" + insertValues + ")";
-            UPDATE = update + " WHERE id=?";
-            DELETE = "DELETE FROM " + tableName + " WHERE id=?";
-            if (joinSql != null) {
-                if (StringUtils.isEmpty(pkColumn))
-                    COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix + joinSql;
-                else
-                    COUNT = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM " + tableName + " AS "
-                            + tablePrefix + joinSql;
-            } else {
-                if (StringUtils.isEmpty(pkColumn))
-                    COUNT = "SELECT COUNT(*) FROM " + tableName + " AS " + tablePrefix;
-                else
-                    COUNT = "SELECT COUNT(DISTINCT " + this.tablePrefix + pkColumn + ") FROM " + tableName + " AS "
-                            + tablePrefix;
-            }
-        }
+        this.joinedTable = DSL.table(this.tableName + " AS " + tablePrefix);
 
         // Create the Update and Insert property types lists
         if ((getPkColumnName() != null) && (this.propertyTypeMap.get(getPkColumnName()) != null)) {
@@ -500,16 +368,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public abstract RowMapper<T> getRowMapper();
 
     /**
-     * Get a map of the Joined tables with table prefix --> Join SQL To be
-     * overridden as necessary
-     *
-     * @return
-     */
-    protected List<JoinClause> getJoins() {
-        return new ArrayList<JoinClause>();
-    }
-
-    /**
      * Optionally return a list of Indexes for this table for Query optimization
      *
      * @return
@@ -532,7 +390,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (vo != null) {
             Integer deleted = (Integer) getTransactionTemplate().execute(status -> {
                 deleteRelationalData(vo);
-                return this.create.deleteFrom(this.table.as(tableAlias)).where(PK_COLUMN.eq(vo.getId())).execute();
+                return this.create.deleteFrom(this.table.as(tableAlias)).where(idAlias.eq(vo.getId())).execute();
             });
             
             if(this.countMonitor != null)
@@ -590,13 +448,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 values.put(f, list.get(i));
                 i++;
             }
-            UpdateConditionStep<?> update = this.create.update(table).set(values).where(PK_COLUMN.eq(vo.getId()));
+            UpdateConditionStep<?> update = this.create.update(table).set(values).where(idField.eq(vo.getId()));
             String sql = update.getSQL();
             List<Object> args = update.getBindValues();
             if (updateStatementPropertyTypes == null) {
                 ejt.update(sql, args.toArray(new Object[args.size()]));
             }else {
-                ejt.update(UPDATE, args.toArray(new Object[args.size()]), updateStatementPropertyTypes);
+                ejt.update(sql, args.toArray(new Object[args.size()]), updateStatementPropertyTypes);
             }
             saveRelationalData(vo, false);
             return null;
@@ -607,11 +465,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     @Override
     public T get(int id) {
         Select<Record> query = this.getSelectQuery()
-                .where(PK_COLUMN.eq(id))
+                .where(idAlias.eq(id))
                 .limit(1);
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        T item = this.queryForObject(sql, args.toArray(new Object[args.size()]), getRowMapper(), null);
+        T item = ejt.query(sql, args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
         if (item != null) {
             loadRelationalData(item);
         }
@@ -647,11 +505,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public SelectJoinStep<Record> getSelectQuery() {
         SelectJoinStep<Record> query = this.create.select(this.fields)
                 .from(this.table.as(tableAlias));
-        return addJoins(query);
-    }
-    
-    protected SelectJoinStep<Record> addJoins(SelectJoinStep<Record> query) {
-        return query;
+        return joinTables(query);
     }
     
     @Override
@@ -670,7 +524,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (StringUtils.isEmpty(pkColumn)) {
             return this.create.selectCount().from(table.as(tableAlias));
         }else {
-            return this.create.select(DSL.countDistinct(PK_COLUMN)).from(table.as(tableAlias));
+            return this.create.select(DSL.countDistinct(idAlias)).from(table.as(tableAlias));
         }
     }
 
@@ -679,37 +533,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      */
     public TableModel getTableModel() {
         return tableModel;
-    }
-
-    /**
-     * @param argument
-     * @return
-     */
-    public SQLQueryColumn getQueryColumn(String prop) {
-        boolean mapped = false;
-
-        Set<String> properties = this.propertyTypeMap.keySet();
-        String dbCol = prop;
-
-        Integer sqlType;
-        if (propertiesMap.containsKey(prop)) {
-            IntStringPair pair = propertiesMap.get(prop);
-            dbCol = pair.getValue();
-            sqlType = pair.getKey();
-            mapped = true;
-        } else {
-            sqlType = this.propertyTypeMap.get(dbCol);
-        }
-
-        if (mapped || properties.contains(dbCol)) {
-            if (mapped)
-                return new SQLQueryColumn(dbCol, sqlType);
-            else
-                return new SQLQueryColumn(this.tablePrefix + dbCol, sqlType);
-        }
-
-        // No Column matches...
-        throw new ShouldNeverHappenException("No column found for: " + prop);
     }
 
     /**
@@ -752,54 +575,23 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     /**
-     * Get the Select statement up to just before the FROM 'table'
+     * Add any joins regardless of conditions
+     *  Override as necessary
+     * @param select
      * @return
      */
-    public String getSelectBaseSql(){
-        return SELECT_ALL_BASE;
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        return select;
     }
-
+    
     /**
-     * Get the Select All Statment to be used with row mapper
+     * Add Joins based on conditions
+     * @param select
+     * @param conditions
      * @return
      */
-    public String getSelectAllSql(){
-        return SELECT_ALL;
-    }
-
-    /**
-     * Get the Insert SQL Statement
-     * @return
-     */
-    public String getInsertSql(){
-        return INSERT;
-    }
-
-    /**
-     * Get the Update SQL Statement
-     * @return
-     */
-    public String getUpdateSql(){
-        return UPDATE;
-    }
-
-    public String getDeleteSql(){
-        return DELETE;
-    }
-
-    public String getCountBaseSql(){
-        return COUNT_BASE;
-    }
-
-    /**
-     * Get the count statment
-     * @return
-     */
-    public String getCountSql(){
-        return COUNT;
-    }
-
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        select = joinTables(select);
         return select;
     }
 

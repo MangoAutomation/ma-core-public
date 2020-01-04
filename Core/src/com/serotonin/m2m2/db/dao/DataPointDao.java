@@ -46,7 +46,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.Index;
-import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
@@ -114,8 +113,8 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     private DataPointDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(EventType.EventTypeNames.DATA_POINT, "dp",
-                new String[] { "ds.name", "ds.xid", "ds.dataSourceType" }, //Extra Properties not in table
-                false, new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
+                new Field<?>[] {DSL.field(DSL.name("DS").append("name")), DSL.field(DSL.name("DS").append("xid")), DSL.field(DSL.name("DS").append("dataSourceType"))}, //Extra Properties not in table
+                new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
     }
 
@@ -138,7 +137,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
      * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
-        List<DataPointVO> dps = query(SELECT_ALL + " where dp.dataSourceId=?", new Object[] { dataSourceId },
+        List<DataPointVO> dps = query(getSelectQuery().getSQL() + " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
             loadPartialRelationalData(dps);
         return dps;
@@ -439,7 +438,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         //For now we will do this the slow way
-        List<DataPointVO> points = query(SELECT_ALL + " ORDER BY deviceName, name", getListResultSetExtractor());
+        List<DataPointVO> points = query(getSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
         List<PointHistoryCount> counts = new ArrayList<>();
         for (DataPointVO point : points) {
             PointHistoryCount phc = new PointHistoryCount();
@@ -478,7 +477,7 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
                     }
                 });
 
-        List<DataPointVO> points = query(SELECT_ALL + " ORDER BY deviceName, name", getListResultSetExtractor());
+        List<DataPointVO> points = query(getSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
 
         // Collate in the point names.
         for (PointHistoryCount c : counts) {
@@ -530,13 +529,16 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
 
     @Override
     protected Object[] voToObjectArray(DataPointVO vo) {
-        return new Object[] { SerializationHelper.writeObject(vo), vo.getXid(), vo.getDataSourceId(), vo.getName(),
+        return new Object[] { 
+                SerializationHelper.writeObjectToArray(vo), 
+                vo.getXid(), vo.getDataSourceId(), vo.getName(),
                 vo.getDeviceName(), boolToChar(vo.isEnabled()), vo.getLoggingType(),
                 vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
                 vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
                 vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
                 vo.getRollup(),
-                vo.getPointLocator().getDataTypeId(), boolToChar(vo.getPointLocator().isSettable())};
+                vo.getPointLocator().getDataTypeId(), 
+                boolToChar(vo.getPointLocator().isSettable())};
     }
 
     @Override
@@ -564,13 +566,6 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
         map.put("dataTypeId", Types.INTEGER);
         map.put("settable", Types.CHAR);
         return map;
-    }
-
-    @Override
-    protected List<JoinClause> getJoins() {
-        List<JoinClause> joins = new ArrayList<JoinClause>();
-        joins.add(new JoinClause(JOIN, SchemaDefinition.DATASOURCES_TABLE, "ds", "ds.id = dp.dataSourceId"));
-        return joins;
     }
 
     @Override
@@ -873,7 +868,13 @@ public class DataPointDao extends AbstractDao<DataPointVO>{
     }
 
     @Override
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        return select.join(SchemaDefinition.DATASOURCES_TABLE).on(DSL.field(DSL.name("DS").append("id")).eq(this.propertyToField.get("dataSourceId")));
+    }
+    
+    @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        select = joinTables(select);
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {

@@ -7,6 +7,10 @@ package com.serotonin.m2m2.db.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.impl.DSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -30,9 +34,33 @@ import com.serotonin.m2m2.vo.AbstractVO;
  */
 public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasicDao<T> implements AbstractVOAccess<T> {
 
+    /**
+     * For generating XIDs this is prepended to any XIDs generated
+     */
     protected final String xidPrefix;
+    /**
+     * Audit event type name
+     */
     protected final String typeName; //Type name for Audit Events
-
+    /**
+     * tablePrefix.xid
+     */
+    protected final Field<String> xidAlias;
+    
+    /**
+     * 
+     * @param typeName
+     * @param tablePrefix
+     * @param countMonitorName
+     * @param mapper
+     * @param publisher
+     */
+    protected AbstractDao(String typeName, String tablePrefix, 
+            TranslatableMessage countMonitorName,
+            ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(typeName, tablePrefix, null, countMonitorName, mapper, publisher);
+    }
+    
     /**
      * @param typeName - Type name for Audit events
      * @param tablePrefix - Table prefix for Selects/Joins
@@ -40,12 +68,13 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param useSubQuery - Compute queries as sub-queries
      * @param countMonitorName - If not null create a monitor to track table row count
      */
-    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, 
-            boolean useSubQuery, TranslatableMessage countMonitorName,
+    protected AbstractDao(String typeName, String tablePrefix, Field<?>[] extraProperties, 
+            TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        super(tablePrefix, extraProperties, useSubQuery, countMonitorName, mapper, publisher);
+        super(tablePrefix, extraProperties, countMonitorName, mapper, publisher);
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
+        xidAlias = DSL.field(DSL.name(tablePrefix, getXidColumnName()), String.class);
     }
 
     /**
@@ -53,8 +82,8 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param tablePrefix - Table prefix for Selects/Joins
      * @param extraProperties - Any extra SQL for queries
      */
-    protected AbstractDao(String typeName, String tablePrefix, String[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(typeName, tablePrefix, extraProperties, false, null, mapper, publisher);
+    protected AbstractDao(String typeName, String tablePrefix, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(typeName, tablePrefix, extraProperties, null, mapper, publisher);
     }
 
     /**
@@ -82,8 +111,12 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         if (xid == null || !this.propertyTypeMap.keySet().contains("xid")) {
             return null;
         }
-
-        T vo = queryForObject(SELECT_BY_XID, new Object[] { xid }, getRowMapper(), null);
+        Select<Record> query = this.getSelectQuery()
+                .where(xidAlias.eq(xid))
+                .limit(1);
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
+        T vo = ejt.query(sql, args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
         if(vo != null) {
             loadRelationalData(vo);
         }
@@ -95,8 +128,12 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         if (name == null || !this.propertyTypeMap.keySet().contains("name")) {
             return null;
         }
+        Select<Record> query = this.getSelectQuery()
+                .where(this.propertyToField.get("name").eq(name));
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
         List<T> items = new ArrayList<>();
-        query(SELECT_BY_NAME, new Object[] { name }, getCallbackResultSetExtractor((item, index)->{
+        query(sql, args.toArray(new Object[args.size()]), getCallbackResultSetExtractor((item, index)->{
             loadRelationalData(item);
             items.add(item);
         }));
@@ -105,12 +142,16 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 
     @Override
     public Integer getIdByXid(String xid) {
-        return this.queryForObject(SELECT_ID_BY_XID, new Object[] { xid }, Integer.class, null);
+        return this.create.select(idAlias).from(this.table.as(tableAlias))
+                .where(xidAlias.eq(xid))
+                .limit(1).fetchOneInto(Integer.class);
     }
 
     @Override
     public String getXidById(int id) {
-        return this.queryForObject(SELECT_XID_BY_ID, new Object[] { id }, String.class, null);
+        return this.create.select(idAlias).from(this.table.as(tableAlias))
+                .where(idAlias.eq(id))
+                .limit(1).fetchOneInto(String.class);
     }
 
     @Override

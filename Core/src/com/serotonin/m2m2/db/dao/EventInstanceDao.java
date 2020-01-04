@@ -17,6 +17,9 @@ import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.SelectJoinStep;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,7 +28,6 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -66,11 +68,10 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     private EventInstanceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(null,"evt",
-                new String[]{
-                        "u.username",
-                        "(select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT +" and typeKey=evt.id) as cnt ",
-                        "ue.silenced"}, 
-                false, null, mapper, publisher);
+                new Field<?>[]{
+                        DSL.field(DSL.name("U").append("username")),
+                        DSL.field(DSL.name("UE").append("silenced"))}, 
+                null, mapper, publisher);
     }
 
     /**
@@ -157,13 +158,22 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         map.put("userId", new IntStringPair(Types.INTEGER, "ue.userId")); //Mapping for user
         return map;
     }
-
+    
     @Override
-    protected List<JoinClause> getJoins() {
-        List<JoinClause> joins = new ArrayList<JoinClause>();
-        joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.USERS_TABLE, "u", "evt.ackUserId = u.id"));
-        joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.USER_EVENTS_TABLE, "ue", "evt.id=ue.eventId"));
-        return joins;
+    public SelectJoinStep<Record> getSelectQuery() {
+        Field<?> hasComments = this.create.selectCount().from(SchemaDefinition.USER_COMMENTS_TABLE)
+                .where(DSL.field("commentType").eq(UserCommentVO.TYPE_EVENT), DSL.field("typeKey").eq(this.propertyToField.get("id"))).asField("cnt");
+        List<Field<?>> fields = new ArrayList<>(this.fields);
+        fields.add(hasComments);
+        SelectJoinStep<Record> query = this.create.select(fields)
+                .from(this.table.as(tableAlias));
+        return joinTables(query);
+    }
+    
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        select = select.join(SchemaDefinition.USERS_TABLE).on(DSL.field(DSL.name("U").append("id")).eq(this.propertyToField.get("ackUserId")));
+        return select.join(SchemaDefinition.USER_EVENTS_TABLE).on(DSL.field(DSL.name("UE").append("eventId")).eq(this.propertyToField.get("id")));
     }
 
     @Override
@@ -260,7 +270,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @return
      */
     public EventInstanceVO getHighestUnsilencedEvent(int userId, AlarmLevels level) {
-        return ejt.queryForObject(SELECT_ALL
+        return ejt.queryForObject(getSelectQuery().getSQL()
                 + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level.value() },getRowMapper(), null);
     }
 
@@ -269,7 +279,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @return
      */
     public List<EventInstanceVO> getUnsilencedEvents(int userId) {
-        return ejt.query(SELECT_ALL
+        return ejt.query(getSelectQuery().getSQL()
                 + "where ue.silenced=? and ue.userId=?", new Object[] { boolToChar(false), userId },getRowMapper());
 
     }
@@ -309,7 +319,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @return
      */
     public int countUnsilencedEvents(int userId, AlarmLevels level) {
-        return ejt.queryForInt(COUNT + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level.value() }, 0);
+        return ejt.queryForInt(getCountQuery().getSQL() + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level.value() }, 0);
     }
     
     @Override

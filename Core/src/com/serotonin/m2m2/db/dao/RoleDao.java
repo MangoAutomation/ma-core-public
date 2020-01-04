@@ -57,7 +57,6 @@ public class RoleDao extends AbstractDao<RoleVO> {
     private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_ROLE, "r",
-                new String[0], false,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
     }
@@ -105,7 +104,8 @@ public class RoleDao extends AbstractDao<RoleVO> {
      * @return
      */
     public Set<RoleVO> getRoleVOs(String permissionType) {
-        return query(SELECT_ALL + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.permissionType=?", 
+        String selectAll = getSelectQuery().getSQL();
+        return query(selectAll + " JOIN roleMappings rm ON rm.roleId=r.id WHERE rm.permissionType=?", 
                 new Object[] {permissionType}, 
                 new RoleVoSetResultSetExtractor());
     }

@@ -7,7 +7,6 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,7 +22,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -71,7 +69,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     private EventHandlerDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_HANDLER, "eh", 
-                new String[0], false, 
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher);
     }
@@ -123,14 +120,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         map.put("eventTypeRef1", new IntStringPair(Types.INTEGER, "ehm.eventTypeRef1"));
         map.put("eventTypeRef2", new IntStringPair(Types.INTEGER, "ehm.eventTypeRef2"));
         return map;
-    }
-
-    @Override
-    protected List<JoinClause> getJoins() {
-        List<JoinClause> joins = new ArrayList<JoinClause>();
-        //This causes multiple rows per ID if there are > 1 detector to a handler
-        //joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE, "ehm", "ehm.eventHandlerId=eh.id"));
-        return joins;
     }
 
     @Override

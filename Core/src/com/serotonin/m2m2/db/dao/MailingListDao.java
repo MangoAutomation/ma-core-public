@@ -57,7 +57,6 @@ public class MailingListDao extends AbstractDao<MailingList> {
     private MailingListDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST, "ml", 
-                new String[] {}, false, 
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
     }
@@ -74,7 +73,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
     public List<MailingList> getAlarmMailingLists(AlarmLevels alarmLevel) {
         return getTransactionTemplate().execute(status -> {
             List<MailingList> result = new ArrayList<>();
-            query(SELECT_ALL + " where receiveAlarmEmails>=0 and receiveAlarmEmails<=?", new Object[] {alarmLevel.value()}, new MailingListRowMapper(), (list, index) -> {
+            query(getSelectQuery().getSQL() + " where receiveAlarmEmails>=0 and receiveAlarmEmails<=?", new Object[] {alarmLevel.value()}, new MailingListRowMapper(), (list, index) -> {
                 try{
                     loadRelationalData(list);
                     result.add(list);

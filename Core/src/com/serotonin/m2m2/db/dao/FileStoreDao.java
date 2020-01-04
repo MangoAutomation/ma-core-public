@@ -24,7 +24,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.FileStore;
@@ -46,10 +45,7 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
     @Autowired
     private FileStoreDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super("fs", new String[] {}, 
-                false,  
-                new TranslatableMessage("internal.monitor.filestoreCount"),
-                mapper, publisher);
+        super("fs", mapper, publisher);
     }
 
     public static FileStoreDao getInstance() {
@@ -68,7 +64,7 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
     public FileStoreDefinition getFileStoreDefinition(String storeName) {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(storeName);
         if(fsd == null) {
-            FileStore fs = ejt.queryForObject(SELECT_ALL + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
+            FileStore fs = ejt.queryForObject(getSelectQuery().getSQL() + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
             if(fs == null)
                 return null;
             return fs.toDefinition();

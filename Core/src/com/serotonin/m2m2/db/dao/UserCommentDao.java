@@ -7,12 +7,14 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.SelectJoinStep;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,7 +22,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.db.query.JoinClause;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -50,7 +51,7 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	private UserCommentDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
 		super(AuditEventType.TYPE_USER_COMMENT, "uc", 
-				new String[]{ "u.username" }, false, null,
+				new Field<?>[]{ DSL.field(DSL.name("U").append("username")) }, null,
 				mapper, publisher);
 	}
 
@@ -156,12 +157,10 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	public RowMapper<UserCommentVO> getRowMapper() {
 		return new UserCommentVORowMapper();
 	}
-
+	
 	@Override
-	protected List<JoinClause> getJoins() {
-    	List<JoinClause> joins = new ArrayList<JoinClause>();
-    	joins.add(new JoinClause(LEFT_JOIN, SchemaDefinition.USERS_TABLE, "u", "uc.userId = u.id"));
-    	return joins;
+	public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+	    return select.join(SchemaDefinition.USERS_TABLE).on(DSL.field(DSL.name("U").append("id")).eq(this.propertyToField.get("userId")));
 	}
 	
 	@Override
