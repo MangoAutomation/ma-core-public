@@ -24,6 +24,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Record;
+import org.jooq.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -90,7 +92,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 mapper, publisher);
         this.roleDao = roleDao;
     }
-
+    
     /**
      * Get cached instance from Spring Context
      * @return
@@ -109,10 +111,9 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if(username == null) {
             return false;
         }else {
-//            this.create.selectCount().from(table).where(DSL.)
-//        }
-        return ejt.queryForInt("select count(*) from " + tableName + " where username=? and id<>?", new Object[] { username,
-                excludeId }, 0) == 0;
+            return this.getCountQuery().where(
+                    this.propertyToField.get("username").eq(username),
+                    this.propertyToField.get("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
         }
     }
 
@@ -123,10 +124,13 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      * @return
      */
     public boolean isEmailUnique(String email, int excludeId) {
-        if(email == null)
+        if(email == null) {
             return false;
-        return ejt.queryForInt("select count(*) from " + tableName + " where email=? and id<>?", new Object[] { email,
-                excludeId }, 0) == 0;
+        }else {
+            return this.getCountQuery().where(
+                    this.propertyToField.get("email").eq(email),
+                    this.propertyToField.get("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
+        }
     }
 
     /**
@@ -139,9 +143,13 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if (username == null) return null;
 
         return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
-            User user = queryForObject(SELECT_ALL + " WHERE LOWER(username)=LOWER(?)", new Object[] { u },
-                    new UserRowMapper(), null);
-            loadRelationalData(user);
+            Select<Record> query = getSelectQuery().where(this.propertyToField.get("username").equalIgnoreCase(username));
+            List<Object> args = query.getBindValues();
+            User user = ejt.query(query.getSQL(), args.toArray(new Object[args.size()]),
+                    getObjectResultSetExtractor());
+            if(user != null) {
+                loadRelationalData(user);
+            }
             return user;
         });
     }
@@ -190,12 +198,10 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      */
     public User getUserByEmail(String emailAddress) {
         if (emailAddress == null) return null;
-        return queryForObject(SELECT_ALL + " WHERE email=?", new Object[] { emailAddress },
-                new UserRowMapper(), null);
-    }
-
-    public boolean userExists(int id) {
-        return ejt.queryForInt("SELECT count(id) FROM users WHERE id=?", new Object[] {id}, 0) == 1;
+        Select<Record> query = getSelectQuery().where(this.propertyToField.get("email").eq(emailAddress));
+        List<Object> args = query.getBindValues();
+        System.out.println(query.getSQL());
+        return ejt.query(query.getSQL(), args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
     }
 
     class UserRowMapper implements RowMapper<User> {
@@ -245,14 +251,10 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         }
     }
 
-    @Override
-    public List<User> getAll() {
-        return query(SELECT_ALL + " ORDER BY username", new Object[0], new UserRowMapper());
-    }
-
     public List<User> getActiveUsers() {
-        return query(SELECT_ALL + " WHERE disabled=? ORDER BY username", new Object[] { boolToChar(false) },
-                new UserRowMapper());
+        Select<Record> query = getSelectQuery().where(this.propertyToField.get("disabled").eq("N"));
+        List<Object> args = query.getBindValues();
+        return query(query.getSQL(), args.toArray(new Object[args.size()]), getListResultSetExtractor());
     }
 
     private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";

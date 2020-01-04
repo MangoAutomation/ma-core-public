@@ -110,11 +110,11 @@ public class UsersService extends AbstractVOService<User, UserDao> {
      * @param emailAddress
      * @return
      */
-    public User getUserByEmail(String emailAddress, PermissionHolder holder) throws NotFoundException, PermissionException {
+    public User getUserByEmail(String emailAddress) throws NotFoundException, PermissionException {
         User vo =  dao.getUserByEmail(emailAddress);
         if(vo == null)
             throw new NotFoundException();
-        ensureReadPermission(holder, vo);
+        ensureReadPermission(Common.getUser(), vo);
         return vo;
     }
     

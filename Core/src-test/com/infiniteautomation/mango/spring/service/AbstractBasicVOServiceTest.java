@@ -4,9 +4,12 @@
 package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -141,6 +144,56 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
                 service.get(vo.getId());
+            }finally {
+                Common.removeUser();
+            }
+        });
+    }
+    
+    @Test
+    public void testCount() {
+        runTest(() -> {
+            Common.setUser(systemSuperadmin);
+            List<VO> all = service.dao.getAll();
+            for(VO vo : all) {
+                service.delete(vo.getId());
+            }
+            try {
+                List<VO> vos = new ArrayList<>();
+                for(int i=0; i<5; i++) {
+                    vos.add(insertNewVO());
+                }
+                assertEquals(5, service.dao.count());
+            }finally {
+                Common.removeUser();
+            }
+        });
+    }
+    
+    @Test
+    public void testGetAll() {
+        runTest(() -> {
+            Common.setUser(systemSuperadmin);
+            List<VO> all = service.dao.getAll();
+            for(VO vo : all) {
+                service.delete(vo.getId());
+            }
+            try {
+                List<VO> vos = new ArrayList<>();
+                for(int i=0; i<5; i++) {
+                    vos.add(insertNewVO());
+                }
+                all = service.dao.getAll();
+                for(VO vo : all) {
+                    VO expected = null;
+                    for(VO e : vos) {
+                        if(e.getId() == vo.getId()) {
+                            expected = e;
+                        }
+                    }
+                    assertNotNull("Didn't find expected VO", expected);
+                    assertVoEqual(expected, vo);
+                }
             }finally {
                 Common.removeUser();
             }

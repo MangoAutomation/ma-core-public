@@ -214,14 +214,17 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             expirationDate = new Date(verificationTime + expiryDuration * 1000);
         }
 
+        Common.setUser(this.systemSuperadmin);
         try {
             // see if a different user is already using this address
-            User existingUser = this.usersService.getUserByEmail(emailAddress, this.systemSuperadmin);
+            User existingUser = this.usersService.getUserByEmail(emailAddress);
             if (userToUpdate == null || existingUser.getId() != userToUpdate.getId()) {
                 throw new EmailAddressInUseException(existingUser);
             }
         } catch(NotFoundException e) {
             // no existing user using this email address, proceed
+        }finally {
+            Common.removeUser();
         }
 
         JwtBuilder builder = this.newToken(emailAddress, expirationDate);

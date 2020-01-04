@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.InsertValuesStepN;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Record1;
@@ -37,9 +38,11 @@ import org.jooq.SelectLimitStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.jooq.Table;
+import org.jooq.UpdateConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -82,11 +85,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     public static final int DEFAULT_LIMIT = 100;
 
-    public static final String WHERE = " WHERE ";
-    public static final String OR = " OR ";
-    public static final String AND = " AND ";
-    public static final String LIMIT = " LIMIT ";
-
     private final ObjectMapper mapper;
     protected final ApplicationEventPublisher eventPublisher;
 
@@ -115,6 +113,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * SQL templates
      */
     protected final Field<Object> PK_COLUMN;
+    protected final List<Field<Object>> insertFields;
+    protected final List<Field<Object>> updateFields;
 
     
     protected final String TABLE_PREFIX; // Without ending .
@@ -220,6 +220,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
         Set<String> properties = this.propertyTypeMap.keySet();
         // don't the first property - "id", in the insert statements
+        this.pkColumn = getPkColumnName();
+        if (StringUtils.isEmpty(pkColumn)) {
+            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, "id"));
+        }else {
+            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, getPkColumnName()));
+        }
+        //TODO Build this in a getter()
+        this.insertFields = new ArrayList<>(properties.size() - 1);
+        this.updateFields = new ArrayList<>(properties.size());
         int i = 0;
         for (String prop : properties) {
             // Add this attribute
@@ -234,6 +243,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
             String insertPrefix = (i == 1) ? "" : ",";
             if (i >= 1) {
+                this.insertFields.add(DSL.field(DSL.name(prop)));
+                this.updateFields.add(DSL.field(DSL.name(prop)));
                 insert += insertPrefix + prop;
                 insertValues += insertPrefix + "?";
                 update += insertPrefix + prop + "=?";
@@ -242,7 +253,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
             fields.add(DSL.field(DSL.name(TABLE_PREFIX, prop)));
         }
-
+        
         if (extraProperties != null) {
             for (String prop : extraProperties) {
                 selectAll += "," + prop;
@@ -271,13 +282,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         }
 
         this.joinedTable = DSL.table(joinedTableSql);
-
-        this.pkColumn = getPkColumnName();
-        if (StringUtils.isEmpty(pkColumn)) {
-            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, "id"));
-        }else {
-            PK_COLUMN = DSL.field(DSL.name(TABLE_PREFIX, getPkColumnName()));
-        }
 
         // Add the table prefix to the queries if necessary
         SELECT_ALL_BASE = selectAll + " FROM ";
@@ -514,6 +518,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return new ArrayList<Index>();
     }
 
+    public <K> Field<K> getField(String name) {
+        return (Field<K>) this.propertyToField.get(name);
+    }
+    
     @Override
     public boolean delete(int id) {
         return delete(get(id));
@@ -524,7 +532,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (vo != null) {
             Integer deleted = (Integer) getTransactionTemplate().execute(status -> {
                 deleteRelationalData(vo);
-                return ejt.update(DELETE, vo.getId());
+                return this.create.deleteFrom(this.table.as(tableAlias)).where(PK_COLUMN.eq(vo.getId())).execute();
             });
             
             if(this.countMonitor != null)
@@ -536,7 +544,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         }
         return false;
     }
-
+    
     @Override
     public void deleteRelationalData(T vo) { }
     
@@ -544,10 +552,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public void insert(T vo) {
         getTransactionTemplate().execute(status -> {
             int id = -1;
-            if (insertStatementPropertyTypes == null)
-                id = ejt.doInsert(INSERT, voToObjectArray(vo));
-            else
-                id = ejt.doInsert(INSERT, voToObjectArray(vo), insertStatementPropertyTypes);
+            InsertValuesStepN<?> insert = this.create.insertInto(this.table).columns(this.insertFields).values(voToObjectArray(vo));
+            String sql = insert.getSQL();
+            List<Object> args = insert.getBindValues();
+            if (insertStatementPropertyTypes == null) {
+                id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
+            }else {
+                id = ejt.doInsert(sql, args.toArray(new Object[args.size()]), insertStatementPropertyTypes);
+            }
             vo.setId(id);
             saveRelationalData(vo, true);
             return null;
@@ -558,7 +570,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (this.countMonitor != null)
             this.countMonitor.increment();
     }
-
+    
     @Override
     public void saveRelationalData(T vo, boolean insert) { }
 
@@ -572,12 +584,20 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         getTransactionTemplate().execute(status -> {
             List<Object> list = new ArrayList<>();
             list.addAll(Arrays.asList(voToObjectArray(vo)));
-            list.add(vo.getId());
-    
-            if (updateStatementPropertyTypes == null)
-                ejt.update(UPDATE, list.toArray());
-            else
-                ejt.update(UPDATE, list.toArray(), updateStatementPropertyTypes);
+            Map<Field<Object>, Object> values = new LinkedHashMap<>();
+            int i = 0;
+            for(Field<Object> f : this.updateFields) {
+                values.put(f, list.get(i));
+                i++;
+            }
+            UpdateConditionStep<?> update = this.create.update(table).set(values).where(PK_COLUMN.eq(vo.getId()));
+            String sql = update.getSQL();
+            List<Object> args = update.getBindValues();
+            if (updateStatementPropertyTypes == null) {
+                ejt.update(sql, args.toArray(new Object[args.size()]));
+            }else {
+                ejt.update(UPDATE, args.toArray(new Object[args.size()]), updateStatementPropertyTypes);
+            }
             saveRelationalData(vo, false);
             return null;
         });
@@ -586,8 +606,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     
     @Override
     public T get(int id) {
-        Select<Record> query = this.create.select(this.fields)
-                .from(this.joinedTable)
+        Select<Record> query = this.getSelectQuery()
                 .where(PK_COLUMN.eq(id))
                 .limit(1);
         String sql = query.getSQL();
@@ -602,8 +621,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     @Override
     public void getAll(MappedRowCallback<T> callback) {
         PermissionHolder user = Common.getUser();
-        Select<Record> query = this.create.select(this.fields)
-                .from(this.joinedTable)
+        Select<Record> query = this.getSelectQuery()
                 .where(this.hasReadPermission(user));
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
@@ -622,15 +640,37 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         return items;
     }
 
+    /**
+     * Get the base select query
+     * @return
+     */
+    public SelectJoinStep<Record> getSelectQuery() {
+        SelectJoinStep<Record> query = this.create.select(this.fields)
+                .from(this.table.as(tableAlias));
+        return addJoins(query);
+    }
+    
+    protected SelectJoinStep<Record> addJoins(SelectJoinStep<Record> query) {
+        return query;
+    }
+    
     @Override
     public void loadRelationalData(T vo) { }
     
     @Override
     public int count() {
+        return getCountQuery().fetchOneInto(Integer.class);
+    }
+    
+    /**
+     * Get the base Count query
+     * @return
+     */
+    public SelectJoinStep<Record1<Integer>> getCountQuery() {
         if (StringUtils.isEmpty(pkColumn)) {
-            return this.create.fetchCount(table);
+            return this.create.selectCount().from(table.as(tableAlias));
         }else {
-            return this.create.select(DSL.countDistinct(PK_COLUMN)).from(this.tableName + " AS " + TABLE_PREFIX).fetchOneInto(Integer.class);
+            return this.create.select(DSL.countDistinct(PK_COLUMN)).from(table.as(tableAlias));
         }
     }
 
@@ -915,6 +955,50 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @param callback
      * @return
      */
+    protected ResultSetExtractor<T> getObjectResultSetExtractor() {
+        return getObjectResultSetExtractor((e,rs) -> {
+            if(e.getCause() instanceof ModuleNotLoadedException)
+                LOG.error(e.getCause().getMessage(), e.getCause());
+            else
+                LOG.error(e.getMessage(), e);
+        });
+    }
+    
+    /**
+     * 
+     * @param error
+     * @return
+     */
+    protected ResultSetExtractor<T> getObjectResultSetExtractor(BiConsumer<Exception, ResultSet> error) {
+        return new ResultSetExtractor<T>() {
+
+            @Override
+            public T extractData(ResultSet rs) throws SQLException, DataAccessException {
+                RowMapper<T> rowMapper = getRowMapper();
+                List<T> results = new ArrayList<>();
+                int rowNum = 0;
+                while (rs.next()) {
+                    try {
+                        T row = rowMapper.mapRow(rs, rowNum);
+                        loadRelationalData(row);
+                        results.add(row);
+                    }catch (Exception e) {
+                        error.accept(e, rs);
+                    }finally {
+                        rowNum++;
+                    }
+                    return DataAccessUtils.uniqueResult(results);
+                }
+                return null;
+            }
+        };
+    }
+    
+    /**
+     * Available to overload the result set extractor for list queries
+     * @param callback
+     * @return
+     */
     protected ResultSetExtractor<List<T>> getListResultSetExtractor() {
         return getListResultSetExtractor((e,rs) -> {
             if(e.getCause() instanceof ModuleNotLoadedException)
@@ -939,7 +1023,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                 int rowNum = 0;
                 while (rs.next()) {
                     try {
-                        results.add(rowMapper.mapRow(rs, rowNum));
+                        T row = rowMapper.mapRow(rs, rowNum);
+                        loadRelationalData(row);
+                        results.add(row);
                     }catch (Exception e) {
                         error.accept(e, rs);
                     }finally {
@@ -981,7 +1067,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
                  int rowNum = 0;
                  while (rs.next()) {
                      try {
-                         callback.row(rowMapper.mapRow(rs, rowNum), rowNum);
+                         T row = rowMapper.mapRow(rs, rowNum);
+                         loadRelationalData(row);
+                         callback.row(row, rowNum);
                      }catch (Exception e) {
                          error.accept(e, rs);
                      }finally {

@@ -4,10 +4,13 @@
 package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -370,6 +373,58 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUserCanDelete() {
         //Nothing as you cannot delete another user unless you are superadmin
     }
+    
+    @Test
+    public void testUsernameUnique() {
+        Common.setUser(systemSuperadmin);
+        try {
+            User user = insertNewVO();
+            assertFalse(service.getDao().isUsernameUnique(user.getUsername(), Common.NEW_ID));
+            assertTrue(service.getDao().isUsernameUnique(user.getUsername(), user.getId()));
+        }finally {
+            Common.removeUser();
+        }
+    }
+    
+    @Test
+    public void testEmailUnique() {
+        Common.setUser(systemSuperadmin);
+        try {
+            User user = insertNewVO();
+            assertFalse(service.getDao().isEmailUnique(user.getEmail(), Common.NEW_ID));
+            assertTrue(service.getDao().isEmailUnique(user.getEmail(), user.getId()));
+        }finally {
+            Common.removeUser();
+        }
+    }
+    
+    @Test
+    public void getUserByEmail() {
+        Common.setUser(systemSuperadmin);
+        try {
+            User user = insertNewVO();
+            User dbUser = service.getUserByEmail(user.getEmail());
+            assertVoEqual(user, dbUser);
+        }finally {
+            Common.removeUser();
+        }
+    }
+    
+    @Test
+    public void getDisabledUsers() {
+        Common.setUser(systemSuperadmin);
+        try {
+            User user = insertNewVO();
+            user.setDisabled(true);
+            service.update(user.getId(), user);
+            List<User> active = service.getDao().getActiveUsers();
+            List<User> all = service.getDao().getAll();
+            assertEquals(all.size() - 1, active.size());
+        }finally {
+            Common.removeUser();
+        }
+    }
+    
     
     @Override
     protected MockMangoLifecycle getLifecycle() {
