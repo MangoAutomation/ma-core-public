@@ -19,7 +19,7 @@ abstract public class AbstractProperties implements MangoProperties {
     private static final Pattern PATTERN_BS = Pattern.compile("\\\\");
     private static final Pattern PATTERN_DOL = Pattern.compile("\\$");
 
-    private final Log LOG = LogFactory.getLog(this.getClass());
+    protected Log log = LogFactory.getLog(this.getClass());
 
     private final String description;
 
@@ -31,17 +31,11 @@ abstract public class AbstractProperties implements MangoProperties {
         this.description = description;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getDescription()
-     */
     @Override
     public String getDescription() {
         return description;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getString(java.lang.String)
-     */
     @Override
     public String getString(String key) {
         String s = getStringImpl(key);
@@ -89,9 +83,6 @@ abstract public class AbstractProperties implements MangoProperties {
     //        return result;
     //    }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getString(java.lang.String, java.lang.String)
-     */
     @Override
     public String getString(String key, String defaultValue) {
         String value = getString(key);
@@ -121,17 +112,11 @@ abstract public class AbstractProperties implements MangoProperties {
         return value.split(delimiter);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getInt(java.lang.String)
-     */
     @Override
     public int getInt(String key) {
         return Integer.parseInt(getString(key));
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getInt(java.lang.String, int)
-     */
     @Override
     public int getInt(String key, int defaultValue) {
         String value = getString(key);
@@ -142,22 +127,18 @@ abstract public class AbstractProperties implements MangoProperties {
             return Integer.parseInt(value);
         }
         catch (NumberFormatException e) {
-            LOG.warn("(" + description + ") Can't parse int from properties key: " + key + ", value=" + value);
+            if (log.isWarnEnabled()) {
+                log.warn("(" + description + ") Can't parse int from properties key: " + key + ", value=" + value);
+            }
         }
         return defaultValue;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getLong(java.lang.String)
-     */
     @Override
     public long getLong(String key) {
         return Long.parseLong(getString(key));
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getLong(java.lang.String, long)
-     */
     @Override
     public long getLong(String key, long defaultValue) {
         String value = getString(key);
@@ -168,22 +149,18 @@ abstract public class AbstractProperties implements MangoProperties {
             return Long.parseLong(value);
         }
         catch (NumberFormatException e) {
-            LOG.warn("(" + description + ") Can't parse long from properties key: " + key + ", value=" + value);
+            if (log.isWarnEnabled()) {
+                log.warn("(" + description + ") Can't parse long from properties key: " + key + ", value=" + value);
+            }
         }
         return defaultValue;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getBoolean(java.lang.String)
-     */
     @Override
     public boolean getBoolean(String key) {
         return "true".equalsIgnoreCase(getString(key));
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getBoolean(java.lang.String, boolean)
-     */
     @Override
     public boolean getBoolean(String key, boolean defaultValue) {
         String value = getString(key);
@@ -193,21 +170,17 @@ abstract public class AbstractProperties implements MangoProperties {
             return true;
         if ("false".equalsIgnoreCase(value))
             return false;
-        LOG.warn("(" + description + ") Can't parse boolean from properties key: " + key + ", value=" + value);
+        if (log.isWarnEnabled()) {
+            log.warn("(" + description + ") Can't parse boolean from properties key: " + key + ", value=" + value);
+        }
         return defaultValue;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getDouble(java.lang.String)
-     */
     @Override
     public double getDouble(String key) {
         return Double.parseDouble(getString(key));
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.util.properties.IProperties#getDouble(java.lang.String, double)
-     */
     @Override
     public double getDouble(String key, double defaultValue) {
         String value = getString(key);
@@ -218,7 +191,9 @@ abstract public class AbstractProperties implements MangoProperties {
             return Double.parseDouble(value);
         }
         catch (NumberFormatException e) {
-            LOG.warn("(" + description + ") Can't parse double from properties key: " + key + ", value=" + value);
+            if (log.isWarnEnabled()) {
+                log.warn("(" + description + ") Can't parse double from properties key: " + key + ", value=" + value);
+            }
         }
         return defaultValue;
     }

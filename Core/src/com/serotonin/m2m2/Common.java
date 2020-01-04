@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -118,6 +120,42 @@ public class Common {
         MA_HOME_PATH = Paths.get(maHome).toAbsolutePath().normalize();
         System.setProperty("ma.home", MA_HOME_PATH.toString());
         MA_HOME = MA_HOME_PATH.toString();
+    }
+
+    private static final Path LOGS_PATH;
+    static {
+        // ma.logs needs to be set before calling org.apache.commons.logging.LogFactory.getLog(Class)
+        // We cannot use Common.envProps as the ReloadingProperties instance creates logs too.
+
+        String logsValue = null;
+        try {
+            Enumeration<URL> envProps = Common.class.getClassLoader().getResources("env.properties");
+            while (envProps.hasMoreElements()) {
+                URL env = envProps.nextElement();
+                try (InputStream is = env.openStream()) {
+                    Properties properties = new Properties();
+                    properties.load(is);
+                    logsValue = properties.getProperty("paths.logs");
+                } catch (IOException e) {
+                    // ignore, try next resource
+                }
+            }
+        } catch (IOException e) {
+            // ignore
+        }
+
+        if (logsValue == null || logsValue.isEmpty()) {
+            logsValue = "logs";
+        }
+
+        LOGS_PATH = MA_HOME_PATH.resolve(logsValue);
+        try {
+            Files.createDirectories(LOGS_PATH);
+        } catch (IOException e) {
+            // ignore
+        }
+
+        System.setProperty("ma.logs", LOGS_PATH.toString());
     }
 
     public static MangoProperties envProps;
@@ -290,14 +328,7 @@ public class Common {
     }
 
     public static File getLogsDir() {
-        File file = new File(MA_HOME, "logs");
-        file.mkdirs();
-        return file;
-    }
-
-    public interface ContextKeys {
-        String IMAGE_SETS = "IMAGE_SETS";
-        String DYNAMIC_IMAGES = "DYNAMIC_IMAGES";
+        return LOGS_PATH.toFile();
     }
 
     public interface TimePeriods {

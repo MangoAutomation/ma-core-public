@@ -20,15 +20,11 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Matthew Lohbihler
  */
 public class ReloadingProperties extends AbstractProperties {
-    private final Log LOG = LogFactory.getLog(this.getClass());
-
     private ClassLoader classLoader;
 
     private Properties properties = new Properties();
@@ -112,15 +108,17 @@ public class ReloadingProperties extends AbstractProperties {
 
     private void checkForReload() {
         if (lastRecheck + recheckDeadbandPeriod > System.currentTimeMillis()) {
-            if (LOG.isDebugEnabled())
-                LOG.debug("(" + getDescription() + ") In do not check period. Not rechecking");
+            if (log.isDebugEnabled()) {
+                log.debug("(" + getDescription() + ") In do not check period. Not rechecking");
+            }
             // Still in the do not check period.
             return;
         }
         lastRecheck = System.currentTimeMillis();
 
-        if (LOG.isDebugEnabled())
-            LOG.debug("(" + getDescription() + ") Checking for updated files");
+        if (log.isDebugEnabled()) {
+            log.debug("(" + getDescription() + ") Checking for updated files");
+        }
 
         findFiles();
         if (sourceFiles == null)
@@ -129,19 +127,22 @@ public class ReloadingProperties extends AbstractProperties {
         // Determine the latest time stamp of all of the source files.
         long latestTimestamp = -1;
         for (File sourceFile : sourceFiles) {
-            if (!sourceFile.exists())
-                LOG.error("(" + getDescription() + ") Property file " + sourceFile + " does not exist");
-            else {
-                if (latestTimestamp < sourceFile.lastModified())
+            if (!sourceFile.exists()) {
+                if (log.isErrorEnabled()) {
+                    log.error("(" + getDescription() + ") Property file " + sourceFile + " does not exist");
+                }
+            } else {
+                if (latestTimestamp < sourceFile.lastModified()) {
                     latestTimestamp = sourceFile.lastModified();
+                }
             }
         }
 
         // Check if we need to reload.
         if (latestTimestamp > lastTimestamp) {
-            if (LOG.isInfoEnabled())
-                LOG.info("(" + getDescription() + ") Found updated file(s) at " + Arrays.toString(sourceFiles)
-                        + ". Reloading properties");
+            if (log.isInfoEnabled()) {
+                log.info("(" + getDescription() + ") Found updated file(s) at " + Arrays.toString(sourceFiles) + ". Reloading properties");
+            }
 
             // Time to reload. Create the new backing properties file.
             Properties newProps = new Properties();
@@ -160,7 +161,9 @@ public class ReloadingProperties extends AbstractProperties {
                         newProps.put(entry.getKey(), entry.getValue());
                 }
                 catch (IOException e) {
-                    LOG.error("(" + getDescription() + ") Exception while loading property file " + sourceFile, e);
+                    if (log.isErrorEnabled()) {
+                        log.error("(" + getDescription() + ") Exception while loading property file " + sourceFile, e);
+                    }
                 }
                 finally {
                     try {
@@ -215,7 +218,9 @@ public class ReloadingProperties extends AbstractProperties {
                                 files.add(new File(new URI(uri)));
                             }
                             catch (URISyntaxException e) {
-                                LOG.error("(" + getDescription() + ") ", e);
+                                if (log.isErrorEnabled()) {
+                                    log.error("(" + getDescription() + ") ", e);
+                                }
                             }
                         }
                     }
@@ -224,7 +229,9 @@ public class ReloadingProperties extends AbstractProperties {
                 }
             }
             catch (IOException e) {
-                LOG.error("(" + getDescription() + ") Error while finding properties files", e);
+                if (log.isErrorEnabled()) {
+                    log.error("(" + getDescription() + ") Error while finding properties files", e);
+                }
             }
         }
     }
