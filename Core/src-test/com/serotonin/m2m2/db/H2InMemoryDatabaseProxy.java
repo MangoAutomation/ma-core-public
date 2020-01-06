@@ -16,6 +16,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.sql.DataSource;
 
@@ -68,8 +69,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     private Server web; //web UI
     protected DataSourceTransactionManager transactionManager;
     protected boolean useMetrics = false;
-    protected String altCreateScript = null;
-    protected String defaultDataScript = null;
+    protected Supplier<InputStream> altCreateScript = null;
+    protected Supplier<InputStream> defaultDataScript = null;
 
     public H2InMemoryDatabaseProxy() {
         mockPointValueDao = new MockPointValueDao();
@@ -84,7 +85,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         this(initWebConsole, webPort, useMetrics, null, null);
     }
 
-    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics, String altCreateScript, String defaultDataScript) {
+    public H2InMemoryDatabaseProxy(boolean initWebConsole, Integer webPort, boolean useMetrics, Supplier<InputStream> altCreateScript, Supplier<InputStream> defaultDataScript) {
         this.mockPointValueDao = new MockPointValueDao();
         this.initWebConsole = initWebConsole;
         this.webPort = webPort;
@@ -133,16 +134,18 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
 
-        if(altCreateScript != null)
-            runScript(this.getClass().getResourceAsStream(altCreateScript), System.out);
-        if(defaultDataScript != null)
-            runScript(this.getClass().getResourceAsStream(defaultDataScript), System.out);
+        if (altCreateScript != null) {
+            runScript(altCreateScript.get(), System.out);
+        }
+        if (defaultDataScript != null) {
+            runScript(defaultDataScript.get(), System.out);
+        }
 
         //Create the empty database
         if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
             // Create the tables
-            runScript(this.getClass().getResourceAsStream("createTables-" + getType().name() + ".sql"), System.out);
+            runScript(H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql"), System.out);
 
             for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
                 def.newInstallationCheck(ejt);
@@ -443,7 +446,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         ejt.setDataSource(getDataSource());
 
         runScript(new String[] {"DROP ALL OBJECTS;"}, null);
-        runScript(this.getClass().getResourceAsStream("createTables-" + getType().name() + ".sql"), null);
+        runScript(H2InMemoryDatabaseProxy.class.getResourceAsStream("createTables-" + getType().name() + ".sql"), null);
 
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             def.newInstallationCheck(ejt);
