@@ -9,12 +9,15 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.ApplicationContext;
@@ -75,13 +78,17 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     //Members to use for non defaults
     protected TimerProvider<AbstractTimer> timer;
-    protected MangoProperties properties;
     protected EventManager eventManager;
     protected H2InMemoryDatabaseProxy db;
     protected RuntimeManager runtimeManager;
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
 
+    Path tempPath;
+    Path filedataPath;
+    Path logsPath;
+    Path filestorePath;
+    Path moduleDataPath;
 
     /**
      * Create a default lifecycle with an H2 web console on port 9001
@@ -102,6 +109,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
      * Startup a dummy Mango with a basic infrastructure
      * @throws ExecutionException
      * @throws InterruptedException
+     * @throws IOException
      */
     public void initialize() throws InterruptedException, ExecutionException {
         Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
@@ -118,6 +126,17 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
         //Startup a simulation timer provider
         Providers.add(TimerProvider.class, getSimulationTimerProvider());
+
+        // create temporary paths for data
+        try {
+            tempPath = Files.createTempDirectory("mango-mock-temp-").toAbsolutePath();
+            filedataPath = Files.createTempDirectory("mango-mock-filedata-").toAbsolutePath();
+            logsPath = Files.createTempDirectory("mango-mock-logs-").toAbsolutePath();
+            filestorePath = Files.createTempDirectory("mango-mock-filestore-").toAbsolutePath();
+            moduleDataPath = Files.createTempDirectory("mango-mock-moduleData-").toAbsolutePath();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         //Make sure that Common and other classes are properly loaded
         Common.envProps = getEnvProps();
@@ -274,6 +293,46 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             }
             Common.serialPortManager.joinTermination();
         }
+
+        Exception failed = null;
+        if (tempPath != null) {
+            try {
+                FileUtils.deleteDirectory(tempPath.toFile());
+            } catch (IOException e) {
+                failed = e;
+            }
+        }
+        if (filedataPath != null) {
+            try {
+                FileUtils.deleteDirectory(filedataPath.toFile());
+            } catch (IOException e) {
+                failed = e;
+            }
+        }
+        if (logsPath != null) {
+            try {
+                FileUtils.deleteDirectory(logsPath.toFile());
+            } catch (IOException e) {
+                failed = e;
+            }
+        }
+        if (filestorePath != null) {
+            try {
+                FileUtils.deleteDirectory(filestorePath.toFile());
+            } catch (IOException e) {
+                failed = e;
+            }
+        }
+        if (moduleDataPath != null) {
+            try {
+                FileUtils.deleteDirectory(moduleDataPath.toFile());
+            } catch (IOException e) {
+                failed = e;
+            }
+        }
+        if (failed != null) {
+            throw new RuntimeException(failed);
+        }
     }
 
     @Override
@@ -338,10 +397,13 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     protected MangoProperties getEnvProps() {
-        if(this.properties == null)
-            return new MockMangoProperties();
-        else
-            return this.properties;
+        MockMangoProperties props = new MockMangoProperties();
+        props.setDefaultValue("paths.temp", tempPath.toString());
+        props.setDefaultValue("paths.filedata", filedataPath.toString());
+        props.setDefaultValue("filestore.location", filestorePath.toString());
+        props.setDefaultValue("moduleData.location", moduleDataPath.toString());
+        props.setDefaultValue("paths.logs", logsPath.toString());
+        return props;
     }
 
     protected EventManager getEventManager() {
@@ -393,10 +455,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     public void setTimer(TimerProvider<AbstractTimer> timer) {
         this.timer = timer;
-    }
-
-    public void setProperties(MangoProperties properties) {
-        this.properties = properties;
     }
 
     public void setEventManager(EventManager eventManager) {
