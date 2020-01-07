@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +18,6 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -119,31 +117,12 @@ public class Common {
         MA_HOME = MA_HOME_PATH.toString();
     }
 
+    public static final MangoProperties envProps = Providers.get(MangoProperties.class);
+
     private static final Path LOGS_PATH;
     static {
         // ma.logs needs to be set before calling org.apache.commons.logging.LogFactory.getLog(Class)
-        // We cannot use Common.envProps as the ReloadingProperties instance creates logs too.
-
-        String logsValue = null;
-        try {
-            Enumeration<URL> envProps = Common.class.getClassLoader().getResources("env.properties");
-            while (envProps.hasMoreElements()) {
-                URL env = envProps.nextElement();
-                try (InputStream is = env.openStream()) {
-                    Properties properties = new Properties();
-                    properties.load(is);
-                    logsValue = properties.getProperty("paths.logs");
-                } catch (IOException e) {
-                    // ignore, try next resource
-                }
-            }
-        } catch (IOException e) {
-            // ignore
-        }
-
-        if (logsValue == null || logsValue.isEmpty()) {
-            logsValue = "logs";
-        }
+        String logsValue = envProps.getString("paths.logs", "logs");
 
         LOGS_PATH = MA_HOME_PATH.resolve(logsValue);
         try {
@@ -154,8 +133,6 @@ public class Common {
 
         System.setProperty("ma.logs", LOGS_PATH.toString());
     }
-
-    public static MangoProperties envProps;
 
     public static final Path OVERRIDES = MA_HOME_PATH.resolve(Constants.DIR_OVERRIDES);
     public static final Path OVERRIDES_WEB = OVERRIDES.resolve(Constants.DIR_WEB);

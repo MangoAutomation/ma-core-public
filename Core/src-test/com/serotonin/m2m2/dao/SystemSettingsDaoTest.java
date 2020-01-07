@@ -21,6 +21,7 @@ import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.db.MySQLProxy;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.provider.Providers;
+import com.serotonin.util.properties.MangoProperties;
 
 /**
  * Test to prove there is a deadlock issue with MySQL and the SystemSettingsDao.
@@ -38,10 +39,13 @@ public class SystemSettingsDaoTest {
 
     @BeforeClass
     public static void setupDatabaseProxy() {
-        Common.envProps = new MockMangoProperties();
-        Common.envProps.setDefaultValue("db.url", dbUrl);
-        Common.envProps.setDefaultValue("db.username", dbUser);
-        Common.envProps.setDefaultValue("db.password", dbPass);
+        MockMangoProperties properties = new MockMangoProperties();
+        properties.setProperty("db.url", dbUrl);
+        properties.setProperty("db.username", dbUser);
+        properties.setProperty("db.password", dbPass);
+
+        Providers.add(MangoProperties.class, properties);
+
         Common.databaseProxy = new MySQLProxy();
         Common.databaseProxy.initialize(SystemSettingsDaoTest.class.getClassLoader());
 

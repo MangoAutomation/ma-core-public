@@ -110,6 +110,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
      * @throws IOException
      */
     public void initialize() throws InterruptedException, ExecutionException {
+        Providers.add(MangoProperties.class, getEnvProps());
         Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
 
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
@@ -128,9 +129,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        //Make sure that Common and other classes are properly loaded
-        Common.envProps = getEnvProps();
 
         //Add in modules
         for(Module module : modules)
@@ -395,11 +393,11 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     protected MangoProperties getEnvProps() {
         MockMangoProperties props = new MockMangoProperties();
-        props.setDefaultValue("paths.temp", tempPath.toString());
-        props.setDefaultValue("paths.filedata", filedataPath.toString());
-        props.setDefaultValue("filestore.location", filestorePath.toString());
-        props.setDefaultValue("moduleData.location", moduleDataPath.toString());
-        props.setDefaultValue("paths.logs", logsPath.toString());
+        props.setProperty("paths.temp", tempPath.toString());
+        props.setProperty("paths.filedata", filedataPath.toString());
+        props.setProperty("filestore.location", filestorePath.toString());
+        props.setProperty("moduleData.location", moduleDataPath.toString());
+        props.setProperty("paths.logs", logsPath.toString());
         return props;
     }
 

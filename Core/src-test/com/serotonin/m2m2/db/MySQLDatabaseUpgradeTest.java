@@ -23,6 +23,7 @@ import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.provider.Providers;
+import com.serotonin.util.properties.MangoProperties;
 
 /**
  *
@@ -47,11 +48,13 @@ public class MySQLDatabaseUpgradeTest {
         Providers.add(IMangoLifecycle.class, new MockMangoLifecycle(null, false, 0));
 
         //Setup MySQL db properties
-        Common.envProps = new MockMangoProperties();
-        Common.envProps.setDefaultValue("db.type", "mysql");
-        Common.envProps.setDefaultValue("db.url", props.getProperty("db.url") + props.getProperty("db.name"));
-        Common.envProps.setDefaultValue("db.username", props.getProperty("db.username"));
-        Common.envProps.setDefaultValue("db.password", props.getProperty("db.password"));
+
+        MockMangoProperties properties = new MockMangoProperties();
+        properties.setProperty("db.type", "mysql");
+        properties.setProperty("db.url", props.getProperty("db.url") + props.getProperty("db.name"));
+        properties.setProperty("db.username", props.getProperty("db.username"));
+        properties.setProperty("db.password", props.getProperty("db.password"));
+        Providers.add(MangoProperties.class, properties);
 
         //Load the driver
         Class.forName("com.mysql.jdbc.Driver");

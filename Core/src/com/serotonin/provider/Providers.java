@@ -1,34 +1,28 @@
 package com.serotonin.provider;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * @author Jared Wiltshire
+ */
 public class Providers {
-    private static final Map<String, Provider> PROVIDERS = new HashMap<String, Provider>();
+    private static final Map<Class<?>, Object> PROVIDERS = new ConcurrentHashMap<>();
 
-    public static void add(Class<? extends Provider> clazz, Provider o) {
-        add(clazz.getName(), o);
-    }
-
-    public static void add(String providerId, Provider o) {
-        if (PROVIDERS.containsKey(providerId))
-            throw new RuntimeException("Provider id already exists, cannot replace");
-        PROVIDERS.put(providerId, o);
-    }
-
-    public static <T extends Provider> T get(Class<T> clazz) throws ProviderNotFoundException {
-        return Providers.<T> get(clazz.getName());
+    public static <T> void add(Class<T> providerId, T o) {
+        Object prev = PROVIDERS.putIfAbsent(providerId, o);
+        if (prev != null) {
+            throw new RuntimeException("Provider already exists, cannot replace");
+        }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Provider> T get(String providerId) throws ProviderNotFoundException {
+    public static <T> T get(Class<T> providerId) {
         T provider = (T) PROVIDERS.get(providerId);
-
-        // Throw a descriptive runtime exception here, since this will typically otherwise result in an
-        // undescriptive NPE.
-        if (provider == null)
-            throw new ProviderNotFoundException(providerId);
-
+        // Throw a descriptive runtime exception here instead of NPE
+        if (provider == null) {
+            throw new ProviderNotFoundException(providerId.getName());
+        }
         return provider;
     }
 }

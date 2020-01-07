@@ -12,8 +12,6 @@ import java.util.concurrent.TimeUnit;
  */
 public interface MangoProperties {
 
-    String getDescription();
-
     String getString(String key);
 
     String getString(String key, String defaultValue);
@@ -61,8 +59,6 @@ public interface MangoProperties {
     double getDouble(String key);
 
     double getDouble(String key, double defaultValue);
-
-    void setDefaultValue(String key, String value);
 
     default TimeUnit getTimeUnitValue(String key, TimeUnit defaultValue) {
         String value = this.getString(key);

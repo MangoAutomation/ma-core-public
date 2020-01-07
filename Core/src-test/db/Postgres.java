@@ -8,11 +8,10 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.PostgresProxy;
 import com.serotonin.m2m2.db.dao.BaseDao;
-import com.serotonin.util.properties.ReloadingProperties;
 
 public class Postgres {
     public static void main(String[] args) {
-        Common.envProps = new ReloadingProperties("test-env");
+        //Common.envProps = new ReloadingProperties("test-env");
 
         //        DerbyProxy proxy = new DerbyProxy();
         //        MySQLProxy proxy = new MySQLProxy();
