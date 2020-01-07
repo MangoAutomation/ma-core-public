@@ -19,8 +19,6 @@ import org.junit.Test;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
@@ -33,26 +31,26 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UserDao, UsersService> {
-    
+
     /**
-     * 
+     *
      */
     public UsersServiceTest() {
         super(true, 9000);
     }
-    
+
     @Test
     @Override
     public void testUpdateViaXid() {
         //We don't have an xid
     }
-    
+
     @Test()
     @Override
     public void testDeleteViaXid() {
         //We don't have an xid
     }
-    
+
     /**
      * Test that we can read ourself
      */
@@ -76,8 +74,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             }
         });
     }
-    
-    /** 
+
+    /**
      * Test edit self permission
      */
     @Override
@@ -103,8 +101,8 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             }
         });
     }
-    
-    /** 
+
+    /**
      * Test edit self permission
      */
     @Test
@@ -128,7 +126,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             }
         });
     }
-    
+
     @Override
     @Test(expected = PermissionException.class)
     public void testUserEditRoleFails() {
@@ -153,31 +151,31 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testCannotRemoveEditAccess() {
         //skipped as not possible
     }
-    
+
     @Test
     @Override
     public void testAddReadRoleUserDoesNotHave() {
         //cannot edit another user as non-admin so skipped
     }
-    
+
     @Test
     @Override
     public void testReadRolesCannotBeNull() {
         //skipped as no read roles on a user
     }
-    
+
     @Test
     @Override
     public void testCannotRemoveReadAccess() {
-      //skipped as no read roles on a user
+        //skipped as no read roles on a user
     }
-    
+
     @Test
     @Override
     public void testEditRolesCannotBeNull() {
         //skipped as no edit roles
     }
-    
+
     @Test(expected = ValidationException.class)
     @Override
     public void testAddEditRoleUserDoesNotHave() {
@@ -188,17 +186,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             service.insert(vo);
             vo = service.get(vo.getId());
         }finally {
-            Common.removeUser(); 
+            Common.removeUser();
         }
         Common.setUser(vo);
         try {
             vo.setRoles(Collections.singleton(editRole));
-            service.update(vo.getUsername(), vo);   
+            service.update(vo.getUsername(), vo);
         }finally {
-            Common.removeUser(); 
+            Common.removeUser();
         }
     }
-    
+
     @Test
     @Override
     public void testDeleteRoleUpdateVO() {
@@ -219,11 +217,11 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
                 updated = service.get(fromDb.getUsername());
                 assertVoEqual(fromDb, updated);
             }finally {
-                Common.removeUser(); 
+                Common.removeUser();
             }
         });
     }
-    
+
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
@@ -236,17 +234,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
                 User fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
-                
+
                 //Ensure the mappings are gone
                 assertEquals(0, service.getDao().getUserRoles(vo).size());
-                
+
                 service.get(vo.getId());
             }finally {
-                Common.removeUser(); 
+                Common.removeUser();
             }
         });
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testRemoveRolesFails() {
         User vo = newVO();
@@ -256,17 +254,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             service.insert(vo);
             vo = service.get(vo.getId());
         }finally {
-            Common.removeUser(); 
+            Common.removeUser();
         }
         Common.setUser(vo);
         try {
             vo.setRoles(Collections.emptySet());
             service.update(vo.getUsername(), vo);
         }finally {
-            Common.removeUser(); 
+            Common.removeUser();
         }
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testChangeUsername() {
         User vo = newVO();
@@ -277,17 +275,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             vo.setUsername(UUID.randomUUID().toString());
             service.insert(vo);
         }finally {
-            Common.removeUser(); 
+            Common.removeUser();
         }
     }
-    
+
     void addRoleToEditSelfPermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
             roleService.addRoleToPermission(vo, UserEditSelfPermission.PERMISSION, systemSuperadmin);
         }
     }
-    
+
     @Override
     String getCreatePermissionType() {
         return UserCreatePermission.PERMISSION;
@@ -295,12 +293,12 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Override
     void setReadRoles(Set<Role> roles, User vo) {
-        
+
     }
 
     @Override
     void setEditRoles(Set<Role> roles, User vo) {
-        
+
     }
 
     @Override
@@ -366,14 +364,14 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         existing.setDisabled(false);
         return existing;
     }
-    
-    
+
+
     @Test
     @Override
     public void testUserCanDelete() {
         //Nothing as you cannot delete another user unless you are superadmin
     }
-    
+
     @Test
     public void testUsernameUnique() {
         Common.setUser(systemSuperadmin);
@@ -385,7 +383,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             Common.removeUser();
         }
     }
-    
+
     @Test
     public void testEmailUnique() {
         Common.setUser(systemSuperadmin);
@@ -397,7 +395,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             Common.removeUser();
         }
     }
-    
+
     @Test
     public void getUserByEmail() {
         Common.setUser(systemSuperadmin);
@@ -409,7 +407,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             Common.removeUser();
         }
     }
-    
+
     @Test
     public void getDisabledUsers() {
         Common.setUser(systemSuperadmin);
@@ -423,15 +421,5 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         }finally {
             Common.removeUser();
         }
-    }
-    
-    
-    @Override
-    protected MockMangoLifecycle getLifecycle() {
-        MockMangoLifecycle lifecycle = super.getLifecycle();
-        MockMangoProperties properties = new MockMangoProperties();
-        properties.setDefaultValue("security.hashAlgorithm", User.BCRYPT_ALGORITHM);
-        lifecycle.setProperties(properties);
-        return lifecycle;
     }
 }

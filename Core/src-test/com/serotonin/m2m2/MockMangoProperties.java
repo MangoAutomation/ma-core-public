@@ -18,12 +18,12 @@ import com.serotonin.util.properties.AbstractProperties;
 public class MockMangoProperties extends AbstractProperties{
 
     protected Map<String, String> properties = new HashMap<>();
-    
+
     public MockMangoProperties() {
         //Fill in all default values for properties
         properties.put("db.update.log.dir", Common.MA_HOME + "/logs/");
-        properties.put("security.hashAlgorithm", User.NONE_ALGORITHM);
-        
+        properties.put("security.hashAlgorithm", User.BCRYPT_ALGORITHM);
+
         //Test injection property types
         properties.put("test.injectedStringArray", "ONE,TWO,THREE");
         properties.put("test.injectedIntegerArray", "1,2,3");
@@ -31,20 +31,20 @@ public class MockMangoProperties extends AbstractProperties{
         properties.put("test.injectedString","Testing String");
         properties.put("test.injectedInteger", "1");
         properties.put("test.injectedEmptyStringArray", "");
-        
+
         //To avoid long delays when testing serial ports
         properties.put("serial.port.linux.regex", "null");
         properties.put("serial.port.linux.path", "/dev/");
         properties.put("serial.port.osx.regex", "null");
         properties.put("serial.port.osx.path", "/dev/");
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.util.properties.MangoProperties#setDefaultValue(java.lang.String, java.lang.String)
      */
     @Override
     public void setDefaultValue(String key, String value) {
-        properties.put(key, value);   
+        properties.put(key, value);
     }
 
     /* (non-Javadoc)
@@ -54,9 +54,9 @@ public class MockMangoProperties extends AbstractProperties{
     protected String getStringImpl(String key) {
         return properties.get(key);
     }
-    
-    
-    
-  
+
+
+
+
 
 }

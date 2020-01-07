@@ -15,13 +15,11 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
@@ -31,17 +29,14 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEventHandlerVO, EventHandlerDao<EmailEventHandlerVO>, EventHandlerService<EmailEventHandlerVO>> {
-    
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
         lifecycle.setRuntimeManager(new MockRuntimeManager(true));
-        MockMangoProperties properties = new MockMangoProperties();
-        properties.setDefaultValue("security.hashAlgorithm", User.BCRYPT_ALGORITHM);
-        lifecycle.setProperties(properties);
         return lifecycle;
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         EmailEventHandlerVO vo = newVO();
@@ -68,7 +63,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             }
         });
     }
-    
+
     @Test
     public void testDeleteRoleUpdateVO() {
         runTest(() -> {
@@ -90,7 +85,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             }
         });
     }
-    
+
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
@@ -104,17 +99,17 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
                 EmailEventHandlerVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
-                
+
                 //Ensure the mappings are gone
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
-                
+
                 service.get(vo.getId());
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     EventHandlerService<EmailEventHandlerVO> getService() {
@@ -152,7 +147,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
         existing.setName("new name");
         return existing;
     }
-    
+
     void addRoleToCreatePermission(Role vo) {
         roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION, systemSuperadmin);
     }

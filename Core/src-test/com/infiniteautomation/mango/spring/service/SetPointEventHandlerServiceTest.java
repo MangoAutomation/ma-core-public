@@ -18,14 +18,12 @@ import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.MockMangoProperties;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
@@ -38,26 +36,26 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPointEventHandlerVO, EventHandlerDao<SetPointEventHandlerVO>, EventHandlerService<SetPointEventHandlerVO>> {
-    
+
     private DataPointVO activeDataPoint;
     private DataPointVO inactiveDataPoint;
     private DataPointService dataPointService;
     protected DataSourceService<MockDataSourceVO> dataSourceService;
-    
+
     public SetPointEventHandlerServiceTest() {
         super(true, 9000);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Before
     public void beforeSetPointEventHandlerServiceTest() {
         dataSourceService = Common.getBean(DataSourceService.class);
-        dataPointService = Common.getBean(DataPointService.class);  
+        dataPointService = Common.getBean(DataPointService.class);
         MockDataSourceVO dsVo = createDataSource(Collections.emptySet());
         activeDataPoint = createDataPoint(dsVo, Collections.singleton(readRole), Collections.singleton(readRole));
         inactiveDataPoint = createDataPoint(dsVo, Collections.singleton(readRole), Collections.singleton(readRole));
     }
-    
+
     MockDataSourceVO createDataSource(Set<Role> editRoles) {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
@@ -69,7 +67,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             Common.removeUser();
         }
     }
-    
+
     DataPointVO createDataPoint(DataSourceVO<?> dsVo, Set<Role> readRoles, Set<Role> setRoles) {
         DataPointVO point = new DataPointVO();
         point.setDataSourceId(dsVo.getId());
@@ -85,17 +83,14 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             Common.removeUser();
         }
     }
-    
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
         lifecycle.setRuntimeManager(new MockRuntimeManager(true));
-        MockMangoProperties properties = new MockMangoProperties();
-        properties.setDefaultValue("security.hashAlgorithm", User.BCRYPT_ALGORITHM);
-        lifecycle.setProperties(properties);
         return lifecycle;
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         SetPointEventHandlerVO vo = newVO();
@@ -122,7 +117,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             }
         });
     }
-    
+
     @Test
     public void testDeleteRoleUpdateVO() {
         runTest(() -> {
@@ -144,7 +139,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             }
         });
     }
-    
+
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
@@ -158,17 +153,17 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
                 SetPointEventHandlerVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
-                
+
                 //Ensure the mappings are gone
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
-                
+
                 service.get(vo.getId());
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     EventHandlerService<SetPointEventHandlerVO> getService() {
@@ -212,7 +207,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
     SetPointEventHandlerVO updateVO(SetPointEventHandlerVO existing) {
         return existing;
     }
-    
+
     void addRoleToCreatePermission(Role vo) {
         roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION, systemSuperadmin);
     }

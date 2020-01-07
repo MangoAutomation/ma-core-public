@@ -6,6 +6,8 @@ package com.serotonin.m2m2.module;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -18,9 +20,6 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.timer.OneTimeTrigger;
-import com.serotonin.timer.TimerTask;
-import com.serotonin.timer.TimerTrigger;
 
 /**
  * Define a file storage area within the filestore directory of the core

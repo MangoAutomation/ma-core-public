@@ -491,7 +491,7 @@ public class Common {
         }
         return null;
     }
-    
+
     public static void setUser(PermissionHolder user) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
@@ -501,7 +501,7 @@ public class Common {
         context.setAuthentication(new PreAuthenticatedAuthenticationToken(user, null));
         SecurityContextHolder.setContext(context);
     }
-    
+
     /**
      * Clear the security context
      */
@@ -521,21 +521,12 @@ public class Common {
         return DateTimeZone.forID(TimeZone.getDefault().getID());
     }
 
-    private static String lazyFiledataPath = null;
+    public static Path getFiledataPath() {
+        return FILEDATA_PATH.get();
+    }
 
-    public static String getFiledataPath() {
-        if (lazyFiledataPath == null) {
-            String name = SystemSettingsDao.instance.getValue(SystemSettingsDao.FILEDATA_PATH);
-            if (name.startsWith("~"))
-                name = getWebPath(name.substring(1));
-
-            File file = new File(name);
-            if (!file.exists())
-                file.mkdirs();
-
-            lazyFiledataPath = name;
-        }
-        return lazyFiledataPath;
+    public static Path getTempPath() {
+        return TEMP.get();
     }
 
     public static CronTimerTrigger getCronTrigger(int periodType, int delaySeconds) {
