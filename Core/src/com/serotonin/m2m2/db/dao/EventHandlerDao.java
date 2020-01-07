@@ -8,15 +8,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +22,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -45,9 +41,6 @@ import com.serotonin.util.SerializationHelper;
  */
 @Repository()
 public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends AbstractDao<T>{
-
-    public static final Name ALIAS = DSL.name("eh");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.EVENT_HANDLER_TABLE);
     
     @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<EventHandlerDao<AbstractEventHandlerVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
@@ -73,10 +66,11 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     }
 
     @Autowired
-    private EventHandlerDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private EventHandlerDao(EventHandlerTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_EVENT_HANDLER,
-                TABLE, ALIAS,
+                table,
                 new TranslatableMessage("internal.monitor.EVENT_HANDLER_COUNT"),
                 mapper, publisher);
     }
@@ -100,19 +94,8 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                 vo.getXid(),
                 vo.getName(),
                 vo.getDefinition().getEventHandlerTypeName(),
-                SerializationHelper.writeObject(vo)
+                SerializationHelper.writeObjectToArray(vo)
         };
-    }
-
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("xid", Types.VARCHAR);
-        map.put("alias", Types.VARCHAR);
-        map.put("eventHandlerType", Types.VARCHAR);
-        map.put("data", Types.BLOB);
-        return map;
     }
 
     @Override
@@ -176,10 +159,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         return queryForList(EVENT_HANDLER_XID_SELECT_SUB, new Object[] { type.getEventType(), type.getEventSubtype(),
                 type.getReferenceId1(), type.getReferenceId2()}, String.class);
     }
-
-    //    public List<String> getEventHandlerXids(EventTypeVO type) {
-    //        return this.getEventHandlerXids(type.getEventType());
-    //    }
 
     private List<T> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
         if (subtypeName == null)

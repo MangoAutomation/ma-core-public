@@ -8,14 +8,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
-import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +23,8 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
+import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -42,23 +42,22 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 @Repository()
 public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 
-    public static final Name ALIAS = DSL.name("uc");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.USER_COMMENTS_TABLE);
-    
     private static final LazyInitSupplier<UserCommentDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(UserCommentDao.class);
         if(o == null)
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (UserCommentDao)o;
     });
+    
+    private final UserTableDefinition userTable;
 
     @Autowired
-	private UserCommentDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+	private UserCommentDao(UserCommentTableDefinition table,
+	        UserTableDefinition userTable,
+	        @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
-		super(AuditEventType.TYPE_USER_COMMENT,
-		        TABLE, ALIAS,
-				new Field<?>[]{ DSL.field(UserDao.ALIAS.append("username")) }, null,
-				mapper, publisher);
+		super(AuditEventType.TYPE_USER_COMMENT, table, null, mapper, publisher);
+		this.userTable = userTable;
 	}
 
     /**
@@ -161,20 +160,13 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
 	
 	@Override
 	public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-	    return select.join(UserDao.TABLE.as(UserDao.ALIAS)).on(DSL.field(UserDao.ALIAS.append("id")).eq(this.propertyToField.get("userId")));
+	    return select.join(this.userTable.getTableAsAlias()).on(DSL.field(userTable.getAlias("id")).eq(this.table.getAlias("userId")));
 	}
 	
-
 	@Override
-	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-		map.put("id", Types.INTEGER);
-		map.put("xid", Types.VARCHAR);
-		map.put("userId", Types.INTEGER);
-		map.put("ts", Types.BIGINT);
-		map.put("commentText", Types.VARCHAR);
-		map.put("commentType", Types.INTEGER);
-		map.put("typeKey", Types.INTEGER);
-		return map;
+	public List<Field<?>> getSelectFields() {
+	    List<Field<?>> fields = super.getSelectFields();
+	    fields.add(userTable.getAlias("username"));
+	    return fields;
 	}
 }

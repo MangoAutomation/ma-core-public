@@ -8,15 +8,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,6 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -43,9 +38,6 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 @Repository()
 public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
     private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
-
-    public static final Name ALIAS = DSL.name("aud");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.AUDIT_TABLE);
     
     /**
      * @param tablePrefix
@@ -53,9 +45,11 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
      * @param extraSQL
      */
     @Autowired
-    private AuditEventDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private AuditEventDao(
+            AuditEventTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(TABLE, ALIAS , mapper, publisher);
+        super(table, mapper, publisher);
     }
 
     /**
@@ -91,21 +85,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
                 jsonData,
                 writeTranslatableMessage(vo.getMessage())
         };
-    }
-
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("typeName", Types.VARCHAR);
-        map.put("alarmLevel", Types.INTEGER);
-        map.put("userId", Types.INTEGER);
-        map.put("changeType", Types.INTEGER);
-        map.put("objectId", Types.INTEGER);
-        map.put("ts", Types.BIGINT);
-        map.put("context", Types.CLOB);
-        map.put("message", Types.VARCHAR);
-        return map;
     }
 
     @Override

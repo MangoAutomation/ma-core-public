@@ -9,7 +9,6 @@ import java.io.Serializable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -30,6 +29,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
@@ -65,13 +65,12 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         return (DataSourceDao<DataSourceVO<?>>)o;
     });
 
-    public static final Name ALIAS = DSL.name("ds");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.DATASOURCES_TABLE);
-    
     @Autowired
-    private DataSourceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private DataSourceDao(
+            DataSourceTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_DATA_SOURCE, TABLE, ALIAS, 
+        super(AuditEventType.TYPE_DATA_SOURCE, table, 
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
     }
@@ -215,18 +214,6 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 vo.getName(), 
                 vo.getDefinition().getDataSourceTypeName(),
                 SerializationHelper.writeObjectToArray(vo)};
-                //SerializationHelper.writeObject(vo)};
-    }
-
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("xid", Types.VARCHAR);
-        map.put("name", Types.VARCHAR);
-        map.put("dataSourceType", Types.VARCHAR);
-        map.put("data", Types.BINARY);
-        return map;
     }
 
     @Override

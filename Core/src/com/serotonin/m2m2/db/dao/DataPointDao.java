@@ -15,7 +15,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +27,10 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectConnectByStep;
 import org.jooq.SelectJoinStep;
+import org.jooq.SelectLimitStep;
 import org.jooq.SelectOnConditionStep;
 import org.jooq.SortField;
 import org.jooq.Table;
@@ -43,13 +45,14 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -60,6 +63,7 @@ import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
+import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
@@ -95,6 +99,8 @@ import net.jazdw.rql.parser.ASTNode;
 public class DataPointDao extends AbstractDao<DataPointVO> {
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
+    private final DataSourceTableDefinition dataSourceTable;
+    
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataPointDao.class);
         if(o == null)
@@ -110,19 +116,15 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public static final Field<String> READ_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("readPermission"), SQLDataType.VARCHAR(255).nullable(true));
     public static final Field<String> SET_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("setPermission"), SQLDataType.VARCHAR(255).nullable(true));
     
-    public static final Name ALIAS = DSL.name("dp");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.DATAPOINTS_TABLE);
-    
     @Autowired
-    private DataPointDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private DataPointDao(DataPointTableDefinition table,
+            DataSourceTableDefinition dataSourceTable,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(EventType.EventTypeNames.DATA_POINT, TABLE, ALIAS,
-                new Field<?>[] {
-                    DSL.field(DSL.name("DS").append("name")),
-                    DSL.field(DSL.name("DS").append("xid")),
-                    DSL.field(DSL.name("DS").append("dataSourceType"))},
+        super(EventType.EventTypeNames.DATA_POINT, table,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
+        this.dataSourceTable = dataSourceTable;
     }
 
     /**
@@ -531,46 +533,30 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
     @Override
     protected Object[] voToObjectArray(DataPointVO vo) {
-        return new Object[] { 
+        return new Object[] {
+                vo.getXid(),
+                vo.getName(),
                 SerializationHelper.writeObjectToArray(vo), 
-                vo.getXid(), vo.getDataSourceId(), vo.getName(),
-                vo.getDeviceName(), boolToChar(vo.isEnabled()), vo.getLoggingType(),
-                vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod(), vo.getIntervalLoggingType(),
-                vo.getTolerance(), boolToChar(vo.isPurgeOverride()), vo.getPurgeType(), vo.getPurgePeriod(),
-                vo.getDefaultCacheSize(), boolToChar(vo.isDiscardExtremeValues()), vo.getEngineeringUnits(),
+                vo.getDataSourceId(), 
+                vo.getDeviceName(), 
+                boolToChar(vo.isEnabled()), 
+                vo.getLoggingType(),
+                vo.getIntervalLoggingPeriodType(), 
+                vo.getIntervalLoggingPeriod(), 
+                vo.getIntervalLoggingType(),
+                vo.getTolerance(), 
+                boolToChar(vo.isPurgeOverride()), 
+                vo.getPurgeType(), 
+                vo.getPurgePeriod(),
+                vo.getDefaultCacheSize(), 
+                boolToChar(vo.isDiscardExtremeValues()), 
+                vo.getEngineeringUnits(),
                 vo.getRollup(),
                 vo.getPointLocator().getDataTypeId(), 
                 boolToChar(vo.getPointLocator().isSettable())};
     }
 
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("data", Types.BINARY); //Locator
-        map.put("xid", Types.VARCHAR); //Xid
-        map.put("dataSourceId",Types.INTEGER); //Dsid
-        map.put("name", Types.VARCHAR); //Name
-        map.put("deviceName", Types.VARCHAR); //Device Name
-        map.put("enabled", Types.CHAR); //Enabled
-        map.put("loggingType", Types.INTEGER); //Logging Type
-        map.put("intervalLoggingPeriodType", Types.INTEGER); //Interval Logging Period Type
-        map.put("intervalLoggingPeriod", Types.INTEGER); //Interval Logging Period
-        map.put("intervalLoggingType", Types.INTEGER); //Interval Logging Type
-        map.put("tolerance", Types.DOUBLE); //Tolerance
-        map.put("purgeOverride", Types.CHAR); //Purge Override
-        map.put("purgeType", Types.INTEGER); //Purge Type
-        map.put("purgePeriod", Types.INTEGER); //Purge Period
-        map.put("defaultCacheSize", Types.INTEGER); //Default Cache Size
-        map.put("discardExtremeValues", Types.CHAR); //Discard Extremem Values
-        map.put("engineeringUnits", Types.INTEGER); //get Engineering Units
-        map.put("rollup", Types.INTEGER); //Common.Rollups type
-        map.put("dataTypeId", Types.INTEGER);
-        map.put("settable", Types.CHAR);
-        return map;
-    }
-
-    @Override
+    //TODO Mango 4.0 should we re-add this?
     protected List<Index> getIndexes() {
         List<Index> indexes = new ArrayList<Index>();
         List<QueryAttribute> columns = new ArrayList<QueryAttribute>();
@@ -617,13 +603,15 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
             int id = (rs.getInt(++i));
-
+            String xid = rs.getString(++i);
+            String name = rs.getString(++i);
+            
             DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
 
             dp.setId(id);
-            dp.setXid(rs.getString(++i));
+            dp.setXid(xid);
+            dp.setName(name);
             dp.setDataSourceId(rs.getInt(++i));
-            dp.setName(rs.getString(++i));
             dp.setDeviceName(rs.getString(++i));
             dp.setEnabled(charToBool(rs.getString(++i)));
             dp.setLoggingType(rs.getInt(++i));
@@ -637,13 +625,14 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setDefaultCacheSize(rs.getInt(++i));
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
-
+            dp.setRollup(rs.getInt(++i));
+            
             // read and discard dataTypeId
             rs.getInt(++i);
             // read and discard settable boolean
             rs.getString(++i);
 
-            // Data source information from Extra Joins set in Constructor
+            // Data source information from join
             dp.setDataSourceName(rs.getString(++i));
             dp.setDataSourceXid(rs.getString(++i));
             dp.setDataSourceTypeName(rs.getString(++i));
@@ -762,7 +751,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         if (!user.hasAdminRole()) {
             //condition = this.userHasPermission(user);
         }
-        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.tableAsAlias);
+        SelectJoinStep<Record> select = this.create.select(getSelectFields()).from(this.table.getTableAsAlias());
         this.customizedQuery(select, condition, sort, limit, offset, callback);
     }
 
@@ -818,7 +807,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
         Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
-        SelectOnConditionStep<Record> select = this.create.select(this.fields).from(this.tableAsAlias).leftJoin(pivotTable)
+        SelectOnConditionStep<Record> select = this.create.select(getSelectFields()).from(this.table.getTableAsAlias()).leftJoin(pivotTable)
                 .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
 
         this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
@@ -870,29 +859,66 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-        return select.join(DataSourceDao.TABLE.as(DataSourceDao.ALIAS)).on(DSL.field(DataSourceDao.ALIAS.append("id")).eq(this.propertyToField.get("dataSourceId")));
+    public List<Field<?>> getSelectFields() {
+        List<Field<?>> fields = this.table.getSelectFields();
+        fields.add(dataSourceTable.getAlias("name"));
+        fields.add(dataSourceTable.getAlias("xid"));
+        fields.add(dataSourceTable.getAlias("dataSourceType"));
+        return fields;
     }
     
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        select = joinTables(select);
-        if (conditions instanceof ConditionSortLimitWithTagKeys) {
-            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        return select.join(dataSourceTable.getTableAsAlias())
+                .on(DSL.field(dataSourceTable.getAlias("id"))
+                        .eq(this.table.getAlias("dataSourceId")));
+    }
+    
+    @Override
+    protected void customizedQuery(SelectJoinStep<Record> select, Condition condition,
+            List<SortField<Object>> sort, Integer limit, Integer offset,
+            MappedRowCallback<DataPointVO> callback) {
+        if (condition instanceof ConditionSortLimitWithTagKeys) {
+            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) condition).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
                 Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
 
-                return select.leftJoin(pivotTable)
+                select = select.leftJoin(pivotTable)
                         .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
             }
         }
-        return select;
+        SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
+        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
+
+        Select<Record> offsetStep = afterSort;
+        if (limit != null) {
+            if (offset != null) {
+                offsetStep = afterSort.limit(offset, limit);
+            } else {
+                offsetStep = afterSort.limit(limit);
+            }
+        }
+
+        String sql = offsetStep.getSQL();
+        List<Object> arguments = offsetStep.getBindValues();
+        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
+
+        LogStopWatch stopWatch = null;
+        if (useMetrics) {
+            stopWatch = new LogStopWatch();
+        }
+
+        this.query(sql, argumentsArray, getCallbackResultSetExtractor(callback));
+
+        if (stopWatch != null) {
+            stopWatch.stop("customizedQuery(): " + this.create.renderInlined(offsetStep), metricsThreshold);
+        }
     }
 
     @Override
     public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
-        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.propertyToField, this.valueConverterMap);
+        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.table.getFieldMap(), this.valueConverterMap);
         return rqlToSelect.visit(rql);
     }
 
@@ -923,13 +949,6 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             }
             return value;
         });
-        return map;
-    }
-
-    @Override
-    protected Map<String, Field<Object>> createPropertyToField() {
-        Map<String, Field<Object>> map = super.createPropertyToField();
-        map.put("dataType", map.get("dataTypeId"));
         return map;
     }
     

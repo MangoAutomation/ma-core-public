@@ -32,14 +32,14 @@ public class RQLToCondition {
         return value;
     };
 
-    protected final Map<String, Field<Object>> fieldMapping;
+    protected final Map<String, Field<?>> fieldMapping;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
 
     protected List<SortField<Object>> sortFields = null;
     protected Integer limit = null;
     protected Integer offset = null;
 
-    public RQLToCondition(Map<String, Field<Object>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
+    public RQLToCondition(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
         this.fieldMapping = fieldMapping;
         this.valueConverterMap = valueConverterMap;
     }
@@ -167,9 +167,9 @@ public class RQLToCondition {
         return conditions;
     }
 
-    protected Field<Object> getField(String property) {
+    protected <T> Field<T> getField(String property) {
         if (this.fieldMapping.containsKey(property)) {
-            return this.fieldMapping.get(property);
+            return (Field<T>) this.fieldMapping.get(property);
         }
         throw new RQLVisitException(String.format("Unknown property '%s', valid properties are %s", property, fieldMapping.keySet().toString()));
     }

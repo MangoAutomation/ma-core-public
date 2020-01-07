@@ -44,7 +44,7 @@ public class RQLToConditionWithTagKeys extends RQLToCondition {
      * @param fieldMapping
      * @param valueConverterMap
      */
-    public RQLToConditionWithTagKeys(Map<String, Field<Object>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
+    public RQLToConditionWithTagKeys(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
         super(fieldMapping, valueConverterMap);
         this.allPropertiesAreTags = false;
     }

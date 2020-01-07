@@ -12,18 +12,11 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -36,6 +29,7 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -44,7 +38,6 @@ import com.infiniteautomation.mango.util.usage.PublisherPointsUsageStatistics;
 import com.infiniteautomation.mango.util.usage.PublisherUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -60,9 +53,6 @@ import com.serotonin.util.SerializationHelper;
  */
 @Repository()
 public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<PublisherVO<T>> {
-	
-    public static final Name ALIAS = DSL.name("pub");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.PUBLISHERS_TABLE);
     
     private static final LazyInitSupplier<PublisherDao<?>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(PublisherDao.class);
@@ -74,10 +64,11 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
     static final Log LOG = LogFactory.getLog(PublisherDao.class);
 
     @Autowired
-    private PublisherDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private PublisherDao(PublisherTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
     	super(AuditEventType.TYPE_PUBLISHER,
-    	        TABLE, ALIAS,
+    	        table,
     	        new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
     	        mapper, publisher);
     }
@@ -284,21 +275,6 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
 				vo.getXid(), 
 				vo.getDefinition().getPublisherTypeName(),
                 SerializationHelper.writeObjectToArray(vo)};
-	}
-
-	@Override
-	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-    	LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-    	map.put("id", Types.INTEGER);
-    	map.put("xid", Types.VARCHAR);
-    	map.put("publisherType", Types.VARCHAR);
-    	map.put("data", Types.BINARY);
-    	return map;
-	}
-
-	@Override
-	protected Map<String, IntStringPair> getPropertiesMap() {
-		return new HashMap<>();
 	}
 
 	@Override

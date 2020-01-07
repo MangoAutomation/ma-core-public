@@ -8,20 +8,14 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,9 +26,9 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
@@ -59,10 +53,6 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 @Repository()
 public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends AbstractDao<T> {
 
-    public static final Name ALIAS = DSL.name("edt");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.EVENT_DETECTOR_TABLE);
-
-
     @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<EventDetectorDao<AbstractEventDetectorVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventDetectorDao.class);
@@ -75,12 +65,20 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     private LinkedHashMap<String, Field<Integer>> sourceTypeToColumnNameMap;
     
     @Autowired
-    private EventDetectorDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private EventDetectorDao(EventDetectorTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_EVENT_DETECTOR, 
-                TABLE, ALIAS,
+                table,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
                 mapper, publisher);
+        
+        //Build our ordered column set from the Module Registry
+        List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
+        this.sourceTypeToColumnNameMap = new LinkedHashMap<>(defs.size());
+        for(EventDetectorDefinition<?> def : defs) {
+            this.sourceTypeToColumnNameMap.put(def.getSourceTypeName(), this.table.getField(def.getSourceIdColumnName()));
+        }
     }
     
     /**
@@ -110,35 +108,6 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
         o[3] = jsonData;
         o[4 + sourceIdIndex] = vo.getSourceId();
         return o;
-    }
-
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("xid", Types.VARCHAR);
-        map.put("sourceTypeName", Types.VARCHAR);
-        map.put("typeName", Types.VARCHAR);
-        map.put("data", Types.CLOB);
-        
-        //Build our ordered column set from the Module Registry
-        List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
-        this.sourceTypeToColumnNameMap = new LinkedHashMap<>(defs.size());
-        for(EventDetectorDefinition<?> def : defs) {
-            this.sourceTypeToColumnNameMap.put(def.getSourceTypeName(), DSL.field(tableAlias.append(def.getSourceIdColumnName()), Integer.class));
-            map.put(def.getSourceIdColumnName(), Types.INTEGER);
-        }
-
-        return map;
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
-        map.put("detectorSourceType", new IntStringPair(Types.VARCHAR, this.tableAlias + "." + "sourceTypeName"));
-        //TODO This will break if we add new detector types and keep the same table structure, we should break this out into a mapping table
-        map.put("sourceId", new IntStringPair(Types.VARCHAR, this.tableAlias + "." + "dataPointId"));
-        return map;
     }
 
     @Override
@@ -202,20 +171,10 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      */
     public List<AbstractPointEventDetectorVO<?>> getWithSource(int sourceId, DataPointVO dp){
         Field<Integer> sourceIdColumnName = getSourceIdColumnName(EventType.EventTypeNames.DATA_POINT);
-        Select<Record> query = getSelectQuery().where(sourceIdColumnName.eq(sourceId)).orderBy(this.propertyToField.get("id"));
+        Select<Record> query = getSelectQuery().where(sourceIdColumnName.eq(sourceId)).orderBy(this.table.getIdAlias());
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
         return query(sql, args.toArray(new Object[args.size()]), new PointEventDetectorRowMapper(dp));
-    }
-
-    /**
-     * Get the XID for a given row
-     * 
-     * @param id
-     * @return
-     */
-    public String getXid(int id) {
-        return queryForObject("SELECT xid from " + this.table.getName() + " WHERE id=?", new Object[]{id}, String.class, null);
     }
 
     /**
@@ -224,7 +183,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      * @return
      */
     public int getId(String xid, int dpId) {
-        return queryForObject("SELECT id from " + this.table.getName() + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
+        return queryForObject("SELECT id from " + this.table.getTable().getName() + " WHERE xid=? AND dataPointId=?", new Object[]{xid, dpId}, Integer.class, -1);
     }
 
     /**

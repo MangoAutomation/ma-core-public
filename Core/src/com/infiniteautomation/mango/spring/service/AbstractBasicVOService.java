@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
@@ -166,7 +167,10 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
         T vo = dao.get(id);
         if(vo == null)
             throw new NotFoundException();
+        
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        
         ensureReadPermission(user, vo);
         return vo;
     }
@@ -180,6 +184,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      */
     public T insert(T vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         //Ensure they can create
         ensureCreatePermission(user, vo);
         
@@ -218,7 +224,10 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      */
     public T update(T existing, T vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        
         ensureEditPermission(user, existing);
+        
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
         dao.update(existing, vo);
@@ -246,6 +255,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
      */
     public T delete(T vo) throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        
         ensureDeletePermission(user, vo);
         dao.delete(vo.getId());
         return vo;

@@ -128,7 +128,7 @@ public class DataPointEventType extends EventType {
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
         writer.writeEntry("dataPointXID", DataPointDao.getInstance().getXidById(dataPointId));
-        writer.writeEntry("detectorXID", EventDetectorDao.getInstance().getXid(pointEventDetectorId));
+        writer.writeEntry("detectorXID", EventDetectorDao.getInstance().getXidById(pointEventDetectorId));
     }
 
     @Override

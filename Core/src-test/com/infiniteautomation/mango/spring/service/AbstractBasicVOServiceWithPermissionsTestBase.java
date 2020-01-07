@@ -379,11 +379,11 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     @Override
     public void testDelete() {
         runTest(() -> {
-            VO vo = insertNewVO();
-            setReadRoles(Collections.singleton(readRole), vo);
-            setEditRoles(Collections.singleton(editRole), vo);
             Common.setUser(systemSuperadmin);
             try {
+                VO vo = insertNewVO();
+                setReadRoles(Collections.singleton(readRole), vo);
+                setEditRoles(Collections.singleton(editRole), vo);
                 service.update(vo.getId(), vo);
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);

@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.service;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Set;
+import java.util.UUID;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
@@ -41,7 +42,7 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     @Override
     public FileStore newVO() {
         FileStore vo = new FileStore();
-        vo.setStoreName("test store");
+        vo.setStoreName(UUID.randomUUID().toString());
         return vo;
     }
 

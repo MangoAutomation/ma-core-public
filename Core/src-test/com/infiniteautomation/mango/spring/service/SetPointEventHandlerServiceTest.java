@@ -44,6 +44,10 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
     private DataPointService dataPointService;
     protected DataSourceService<MockDataSourceVO> dataSourceService;
     
+    public SetPointEventHandlerServiceTest() {
+        super(true, 9000);
+    }
+    
     @SuppressWarnings("unchecked")
     @Before
     public void beforeSetPointEventHandlerServiceTest() {

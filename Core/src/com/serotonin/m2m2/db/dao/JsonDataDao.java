@@ -7,15 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -28,10 +20,10 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -43,10 +35,7 @@ import com.serotonin.m2m2.vo.json.JsonDataVO;
  */
 @Repository()
 public class JsonDataDao extends AbstractDao<JsonDataVO>{
-
-    public static final Name ALIAS = DSL.name("jd");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.JSON_DATA_TABLE);
-
+    
     private static final LazyInitSupplier<JsonDataDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(JsonDataDao.class);
         if(o == null)
@@ -59,10 +48,11 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 	 * @param typeName
 	 */
     @Autowired
-	private JsonDataDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+	private JsonDataDao(JsonDataTableDefinition table,
+	        @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
 		super(AuditEventType.TYPE_JSON_DATA,
-		        TABLE, ALIAS,
+		        table,
 		        new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"),
 		        mapper, publisher);
 	}
@@ -95,22 +85,6 @@ public class JsonDataDao extends AbstractDao<JsonDataVO>{
 			boolToChar(vo.isPublicData()),
 			jsonData
 		};
-	}
-
-	@Override
-	protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-		LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-		map.put("id", Types.INTEGER);
-		map.put("xid", Types.VARCHAR);
-		map.put("name", Types.VARCHAR);
-		map.put("publicData", Types.CHAR);
-		map.put("data", Types.CLOB);
-		return map;
-	}
-
-	@Override
-	protected Map<String, IntStringPair> getPropertiesMap() {
-		return new HashMap<String, IntStringPair>();
 	}
 
 	@Override

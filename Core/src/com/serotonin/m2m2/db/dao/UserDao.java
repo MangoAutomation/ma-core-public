@@ -8,12 +8,10 @@ import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -24,11 +22,8 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
@@ -45,6 +40,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -71,9 +67,6 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 public class UserDao extends AbstractDao<User> implements SystemSettingsListener {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
-    public static final Name ALIAS = DSL.name("u");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.USERS_TABLE);
-    
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(UserDao.class);
         if(o == null)
@@ -90,10 +83,11 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
 
     @Autowired
     private UserDao(RoleDao roleDao,
+            UserTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_USER,
-                TABLE, ALIAS,
+                table,
                 new TranslatableMessage("internal.monitor.USER_COUNT"),
                 mapper, publisher);
         this.roleDao = roleDao;
@@ -117,9 +111,9 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if(username == null) {
             return false;
         }else {
-            return this.getCountQuery().from(this.tableAsAlias).where(
-                    this.propertyToField.get("username").eq(username),
-                    this.propertyToField.get("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
+            return this.getCountQuery().from(this.table.getTableAsAlias()).where(
+                    this.table.getField("username").eq(username),
+                    this.table.getField("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
         }
     }
 
@@ -133,9 +127,9 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if(email == null) {
             return false;
         }else {
-            return this.getCountQuery().from(this.tableAsAlias).where(
-                    this.propertyToField.get("email").eq(email),
-                    this.propertyToField.get("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
+            return this.getCountQuery().from(this.table.getTableAsAlias()).where(
+                    this.table.getField("email").eq(email),
+                    this.table.getField("id").notEqual(excludeId)).fetchOneInto(Integer.class) == 0;
         }
     }
 
@@ -149,7 +143,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if (username == null) return null;
 
         return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
-            Select<Record> query = getSelectQuery().where(this.propertyToField.get("username").equalIgnoreCase(username));
+            Select<Record> query = getSelectQuery().where(this.table.getField("username").equalIgnoreCase(username));
             List<Object> args = query.getBindValues();
             User user = ejt.query(query.getSQL(), args.toArray(new Object[args.size()]),
                     getObjectResultSetExtractor());
@@ -204,7 +198,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      */
     public User getUserByEmail(String emailAddress) {
         if (emailAddress == null) return null;
-        Select<Record> query = getSelectQuery().where(this.propertyToField.get("email").eq(emailAddress));
+        Select<Record> query = getSelectQuery().where(this.table.getField("email").eq(emailAddress));
         List<Object> args = query.getBindValues();
         System.out.println(query.getSQL());
         return ejt.query(query.getSQL(), args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
@@ -217,17 +211,17 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             int i = 0;
             user.setId(rs.getInt(++i));
             user.setUsername(rs.getString(++i));
+            user.setName(rs.getString(++i));
             user.setPassword(rs.getString(++i));
             user.setEmail(rs.getString(++i));
             user.setPhone(rs.getString(++i));
             user.setDisabled(charToBool(rs.getString(++i)));
-            user.setHomeUrl(rs.getString(++i));
             user.setLastLogin(rs.getLong(++i));
+            user.setHomeUrl(rs.getString(++i));
             user.setReceiveAlarmEmails(AlarmLevels.fromValue(rs.getInt(++i)));
             user.setReceiveOwnAuditEvents(charToBool(rs.getString(++i)));
             user.setTimezone(rs.getString(++i));
             user.setMuted(charToBool(rs.getString(++i)));
-            user.setName(rs.getString(++i));
             user.setLocale(rs.getString(++i));
             user.setTokenVersion(rs.getInt(++i));
             user.setPasswordVersion(rs.getInt(++i));
@@ -258,7 +252,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     public List<User> getActiveUsers() {
-        Select<Record> query = getSelectQuery().where(this.propertyToField.get("disabled").eq("N"));
+        Select<Record> query = getSelectQuery().where(this.table.getField("disabled").eq("N"));
         List<Object> args = query.getBindValues();
         return query(query.getSQL(), args.toArray(new Object[args.size()]), getListResultSetExtractor());
     }
@@ -448,17 +442,17 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     protected Object[] voToObjectArray(User vo) {
         return new Object[]{
                 vo.getUsername(),
+                vo.getName(),
                 vo.getPassword(),
                 vo.getEmail(),
                 vo.getPhone(),
                 boolToChar(vo.isDisabled()),
-                vo.getHomeUrl(),
                 vo.getLastLogin(),
+                vo.getHomeUrl(),
                 vo.getReceiveAlarmEmails().value(),
                 boolToChar(vo.isReceiveOwnAuditEvents()),
                 vo.getTimezone(),
                 boolToChar(vo.isMuted()),
-                vo.getName(),
                 vo.getLocale(),
                 vo.getTokenVersion(),
                 vo.getPasswordVersion(),
@@ -480,37 +474,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("username", Types.VARCHAR);
-        map.put("password", Types.VARCHAR);
-        map.put("email", Types.VARCHAR);
-        map.put("phone", Types.VARCHAR);
-        map.put("disabled", Types.CHAR);
-        map.put("homeUrl", Types.VARCHAR);
-        map.put("lastLogin", Types.BIGINT);
-        map.put("receiveAlarmEmails", Types.INTEGER);
-        map.put("receiveOwnAuditEvents", Types.CHAR);
-        map.put("timezone", Types.VARCHAR);
-        map.put("muted", Types.CHAR);
-        map.put("name", Types.VARCHAR);
-        map.put("locale", Types.VARCHAR);
-        map.put("tokenVersion", Types.INTEGER);
-        map.put("passwordVersion", Types.INTEGER);
-        map.put("passwordChangeTimestamp", Types.BIGINT);
-        map.put("sessionExpirationOverride", Types.CHAR);
-        map.put("sessionExpirationPeriods", Types.INTEGER);
-        map.put("sessionExpirationPeriodType", Types.VARCHAR);
-        map.put("organization", Types.VARCHAR);
-        map.put("organizationalRole", Types.VARCHAR);
-        map.put("createdTs", Types.BIGINT);
-        map.put("emailVerifiedTs", Types.BIGINT);
-        map.put("data", Types.CLOB);
-        return map;
-    }
-
-    @Override
     protected Map<String, IntStringPair> getPropertiesMap() {
         return new HashMap<>();
     }
@@ -518,16 +481,6 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     @Override
     protected String getXidPrefix() {
         return "";
-    }
-    
-    @Override
-    protected Name getXidFieldName() {
-        return DSL.name("username");
-    }
-    
-    @Override
-    protected int getXidFieldLength() {
-        return 40;
     }
 
     @Override

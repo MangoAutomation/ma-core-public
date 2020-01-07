@@ -7,28 +7,20 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.InsertValuesStepN;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
@@ -37,7 +29,6 @@ import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
-import org.jooq.Table;
 import org.jooq.UpdateConditionStep;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -51,15 +42,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
-import com.infiniteautomation.mango.db.query.Index;
-import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
-import com.infiniteautomation.mango.db.query.TableModel;
 import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
+import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ModuleNotLoadedException;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.log.LogStopWatch;
@@ -84,194 +72,40 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     public static final int DEFAULT_LIMIT = 100;
 
-    private final ObjectMapper mapper;
+    protected final AbstractBasicTableDefinition table;
+    protected final ObjectMapper mapper;
     protected final ApplicationEventPublisher eventPublisher;
-
-    /**
-     * Map UI or Model member names to the Database Column Names. They will get
-     * translated when the query is generated
-     */
-    protected final Map<String, IntStringPair> propertiesMap;
-
-    /**
-     * Map of Database Column Names to Column SQL Type
-     */
-    protected final LinkedHashMap<String, Integer> propertyTypeMap;
-
-    /**
-     * List of our Indexes
-     */
-    protected final List<Index> indexes;
-
-    /**
-     * id
-     */
-    protected final Field<Integer> idField;
-    /**
-     * tablePrefix.id
-     */
-    protected final Field<Integer> idAlias;
-    
-    protected final List<Field<Object>> insertFields;
-    protected final List<Field<Object>> updateFields;
-
-    protected int[] updateStatementPropertyTypes; // Required for Derby LOBs
-    protected int[] insertStatementPropertyTypes; // Required for Derby LOBs
-
-    protected TableModel tableModel;
-
 
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
 
     /**
-     * Full table name
-     */
-    protected final Table<? extends Record> table;
-    /**
-     * The short name for the table used in selects
-     */
-    protected final Name tableAlias;
-    /**
      * Used in selects and Joins to select table as alias
      */
-    protected final Table<? extends Record> tableAsAlias;
-    protected final List<Field<?>> fields;
-    protected final Map<String, Field<Object>> propertyToField;
     protected final Map<String, Function<Object, Object>> valueConverterMap;
     protected final RQLToCondition rqlToCondition;
 
-    public AbstractBasicDao(Table<? extends Record> table, Name tableAlias, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(table, tableAlias, null, mapper, publisher);
-    }
-
-    public AbstractBasicDao(Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(table, tableAlias, extraProperties, null, mapper, publisher);
+    public AbstractBasicDao(AbstractBasicTableDefinition table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(table, null, mapper, publisher);
     }
 
     /**
-     * @param tablePrefix -  Provide a table prefix to use for complex queries. Ie. Joins Do not include the . at the end of the prefix
-     * @param extraProperties - Other SQL for use in Queries
-     * @param useSubQuery - Compute and use subqueries for performance
+     * @param table - table definition 
      * @param countMonitorName - If not null create a monitor to track table row count
      * @param mapper
      * @param publisher
      */
-    public AbstractBasicDao(Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, 
+    public AbstractBasicDao(AbstractBasicTableDefinition table, 
             TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
-
+        
         this.table = table;
-        this.tableAlias = tableAlias;
-        this.tableAsAlias = this.table.as(this.tableAlias);
-        
-        Map<String, IntStringPair> propMap = getPropertiesMap();
-        if (propMap == null)
-            this.propertiesMap = new HashMap<String, IntStringPair>();
-        else
-            this.propertiesMap = propMap;
-
-        LinkedHashMap<String, Integer> propTypeMap = getPropertyTypeMap();
-        if (propTypeMap == null)
-            throw new ShouldNeverHappenException("Property Type Map is required!");
-        else
-            this.propertyTypeMap = propTypeMap;
-        
         this.mapper = mapper;
         this.eventPublisher = publisher;
 
         // Map of properties to their QueryAttribute
-        Map<String, QueryAttribute> attributeMap = new HashMap<String, QueryAttribute>();
-
-        fields = new ArrayList<>();
-
-        // don't the first property - "id", in the insert statements
-        this.idField = getIdField();
-        this.idAlias = getIdFieldAlias();
-        
-        Set<String> properties = this.propertyTypeMap.keySet();
-        this.insertFields = new ArrayList<>(properties.size() - 1);
-        this.updateFields = new ArrayList<>(properties.size());
-        int i = 0;
-        for (String prop : properties) {
-            // Add this attribute
-            QueryAttribute attribute = new QueryAttribute();
-            String[] columnParts = this.tableAlias.append(prop).getName();
-            attribute.setColumnName(columnParts[0] + "." + columnParts[1]);
-            attribute.addAlias(prop);
-            attribute.setSqlType(this.propertyTypeMap.get(prop));
-            attributeMap.put(prop, attribute);
-
-            if (i >= 1) {
-                this.insertFields.add(DSL.field(DSL.name(prop)));
-                this.updateFields.add(DSL.field(DSL.name(prop)));
-            }
-            i++;
-
-            fields.add(DSL.field(this.tableAlias.append(prop)));
-        }
-        
-        if (extraProperties != null) {
-            for (Field<?> prop : extraProperties) {
-                fields.add(prop);
-            }
-        }
-
-        this.propertyToField = this.createPropertyToField();
         this.valueConverterMap = this.createValueConverterMap();
         this.rqlToCondition = this.createRqlToCondition();
-
-        // Create the Update and Insert property types lists
-        if ((getIdField() != null) && (this.propertyTypeMap.get(getIdField().getName()) != null)) {
-            this.updateStatementPropertyTypes = new int[this.propertyTypeMap.size()];
-            this.insertStatementPropertyTypes = new int[this.propertyTypeMap.size() - 1];
-        } else {
-            this.updateStatementPropertyTypes = new int[this.propertyTypeMap.size()];
-            this.insertStatementPropertyTypes = new int[this.propertyTypeMap.size()];
-        }
-
-        if(getIdField() != null) {
-            Iterator<String> it = this.propertyTypeMap.keySet().iterator();
-            int j = 0;
-            while (it.hasNext()) {
-                String property = it.next();
-                if (!property.equals(getIdField().getName())) {
-                    Integer type = this.propertyTypeMap.get(property);
-                    this.updateStatementPropertyTypes[j] = type;
-                    this.insertStatementPropertyTypes[j] = type;
-                    j++;
-                }
-            }
-    
-            if (this.propertyTypeMap.get(getIdField().getName()) != null) {
-                Integer pkType = this.propertyTypeMap.get(getIdField().getName());
-                this.updateStatementPropertyTypes[j] = pkType;
-                attributeMap.put(getIdField().getName(), new QueryAttribute(getIdField().getName(), new HashSet<String>(), pkType));
-            }
-        }
-
-        Iterator<String> propertyMapIterator = this.propertiesMap.keySet().iterator();
-        while (propertyMapIterator.hasNext()) {
-            String propertyName = propertyMapIterator.next();
-            IntStringPair pair = this.propertiesMap.get(propertyName);
-
-            QueryAttribute attribute = attributeMap.get(pair.getValue());
-            if (attribute != null) {
-                attribute.addAlias(propertyName);
-            } else {
-                QueryAttribute newAttribute = new QueryAttribute();
-                newAttribute.setColumnName(pair.getValue());
-                newAttribute.setSqlType(pair.getKey());
-                newAttribute.addAlias(propertyName);
-                attributeMap.put(propertyName, newAttribute);
-            }
-        }
-
-        // Collect the indexes
-        this.indexes = getIndexes();
-
-        // Create the model
-        this.tableModel = new TableModel(this.table.getName(), new ArrayList<QueryAttribute>(attributeMap.values()));
 
         //Setup Monitors
         if(countMonitorName != null) {
@@ -286,27 +120,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     /**
-     * tableAlias.id
-     * @return
-     */
-    public Field<Integer> getIdFieldAlias() {
-        return DSL.field(this.tableAlias.append(getIdFieldName()), SQLDataType.INTEGER.nullable(false));
-    }
-    
-    /**
-     * Override as necessary Can be null if no Pk Exists
-     *
-     * @return String name of Pk Column
-     */
-    public Field<Integer> getIdField() {
-        return DSL.field(getIdFieldName(), SQLDataType.INTEGER.nullable(false));
-    }
-    
-    protected Name getIdFieldName() {
-        return DSL.name("id");
-    }
-
-    /**
      * Converts a VO object into an array of objects for insertion or updating
      * of database
      *
@@ -315,13 +128,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @return object array
      */
     protected abstract Object[] voToObjectArray(T vo);
-
-    /**
-     * Both the properties and the type maps must be setup
-     *
-     * @return
-     */
-    protected abstract LinkedHashMap<String, Integer> getPropertyTypeMap();
 
     /**
      * Condition required for user to have read permission.  Override as required, note 
@@ -350,19 +156,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @return row mapper
      */
     public abstract RowMapper<T> getRowMapper();
-
-    /**
-     * Optionally return a list of Indexes for this table for Query optimization
-     *
-     * @return
-     */
-    protected List<Index> getIndexes() {
-        return new ArrayList<Index>();
-    }
-
-    public <K> Field<K> getField(String name) {
-        return (Field<K>) this.propertyToField.get(name);
-    }
     
     @Override
     public boolean delete(int id) {
@@ -374,7 +167,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         if (vo != null) {
             Integer deleted = (Integer) getTransactionTemplate().execute(status -> {
                 deleteRelationalData(vo);
-                return this.create.deleteFrom(this.table).where(idField.eq(vo.getId())).execute();
+                return this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
             });
             
             if(this.countMonitor != null)
@@ -394,14 +187,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public void insert(T vo) {
         getTransactionTemplate().execute(status -> {
             int id = -1;
-            InsertValuesStepN<?> insert = this.create.insertInto(this.table).columns(this.insertFields).values(voToObjectArray(vo));
+            InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
             String sql = insert.getSQL();
             List<Object> args = insert.getBindValues();
-            if (insertStatementPropertyTypes == null) {
-                id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
-            }else {
-                id = ejt.doInsert(sql, args.toArray(new Object[args.size()]), insertStatementPropertyTypes);
-            }
+            id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
             vo.setId(id);
             saveRelationalData(vo, true);
             return null;
@@ -426,20 +215,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         getTransactionTemplate().execute(status -> {
             List<Object> list = new ArrayList<>();
             list.addAll(Arrays.asList(voToObjectArray(vo)));
-            Map<Field<Object>, Object> values = new LinkedHashMap<>();
+            Map<Field<?>, Object> values = new LinkedHashMap<>();
             int i = 0;
-            for(Field<Object> f : this.updateFields) {
+            for(Field<?> f : this.table.getUpdateFields()) {
                 values.put(f, list.get(i));
                 i++;
             }
-            UpdateConditionStep<?> update = this.create.update(table).set(values).where(idField.eq(vo.getId()));
+            UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getIdField().eq(vo.getId()));
             String sql = update.getSQL();
             List<Object> args = update.getBindValues();
-            if (updateStatementPropertyTypes == null) {
-                ejt.update(sql, args.toArray(new Object[args.size()]));
-            }else {
-                ejt.update(sql, args.toArray(new Object[args.size()]), updateStatementPropertyTypes);
-            }
+            ejt.update(sql, args.toArray(new Object[args.size()]));
             saveRelationalData(vo, false);
             return null;
         });
@@ -449,7 +234,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     @Override
     public T get(int id) {
         Select<Record> query = this.getSelectQuery()
-                .where(idAlias.eq(id))
+                .where(this.table.getIdAlias().eq(id))
                 .limit(1);
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
@@ -487,8 +272,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @return
      */
     public SelectJoinStep<Record> getSelectQuery() {
-        SelectJoinStep<Record> query = this.create.select(this.fields)
-                .from(tableAsAlias);
+        SelectJoinStep<Record> query = this.create.select(getSelectFields())
+                .from(this.table.getTableAsAlias());
         return joinTables(query);
     }
     
@@ -497,7 +282,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     
     @Override
     public int count() {
-        return getCountQuery().from(tableAsAlias).fetchOneInto(Integer.class);
+        return getCountQuery().from(this.table.getTableAsAlias()).fetchOneInto(Integer.class);
     }
     
     /**
@@ -505,20 +290,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
      * @return
      */
     public SelectSelectStep<Record1<Integer>> getCountQuery() {
-        if (this.idAlias == null) {
+        if (this.table.getIdAlias() == null) {
             return this.create.selectCount();
         } else {
-            return this.create.select(DSL.countDistinct(this.idAlias));
+            return this.create.select(DSL.countDistinct(this.table.getIdAlias()));
         }
     }
-
-    /**
-     * @return
-     */
-    public TableModel getTableModel() {
-        return tableModel;
-    }
-
+    
     /**
      * Helper to prepare a statement
      *
@@ -559,6 +337,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     }
 
     /**
+     * Get the select columns, override as necessary
+     * @return
+     */
+    public List<Field<?>> getSelectFields() {
+        return this.table.getSelectFields();
+    }
+    
+    /**
      * Add any joins regardless of conditions
      *  Override as necessary
      * @param select
@@ -567,30 +353,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
         return select;
     }
-    
-    /**
-     * Add Joins based on conditions
-     * @param select
-     * @param conditions
-     * @return
-     */
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        select = joinTables(select);
-        return select;
-    }
 
     @Override
     public int customizedCount(ConditionSortLimit conditions) {
         Condition condition = conditions.getCondition();
         SelectSelectStep<Record1<Integer>> count = getCountQuery();
 
-        SelectJoinStep<Record1<Integer>> select;
-        if (condition == null) {
-            select = count.from(this.tableAsAlias);
-        } else {
-            select = count.from(this.tableAsAlias);
-            select = joinTables(select, conditions);
-        }
+        SelectJoinStep<Record1<Integer>> select = count.from(this.table.getTableAsAlias());
+        select = joinTables(select);
         return customizedCount(select, condition);
     }
 
@@ -620,8 +390,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
 
     @Override
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
-        SelectJoinStep<Record> select = this.create.select(this.fields).from(this.tableAsAlias);
-        select = joinTables(select, conditions);
+        SelectJoinStep<Record> select = this.create.select(getSelectFields()).from(this.table.getTableAsAlias());
+        select = joinTables(select);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 
@@ -654,30 +424,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO> extends BaseDa
         }
     }
 
-    protected Map<String, Field<Object>> createPropertyToField() {
-        Map<String, Field<Object>> propertyToField = new HashMap<>(propertyTypeMap.size() + propertiesMap.size());
-
-        for (Entry<String, Integer> e : propertyTypeMap.entrySet()) {
-            String property = e.getKey();
-            propertyToField.put(property, DSL.field(this.tableAlias.append(property)));
-        }
-
-        for (Entry<String, IntStringPair> e : propertiesMap.entrySet()) {
-            String name = e.getValue().getValue();
-            propertyToField.put(e.getKey(), DSL.field(DSL.name(name.split("\\."))));
-        }
-
-        return propertyToField;
-    }
-
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
-        return this.getPropertyTypeMap().entrySet().stream()
-                .filter(e -> e.getValue() == Types.CHAR)
+        return this.table.getFieldMap().entrySet().stream()
+                .filter(e -> e.getValue().getDataType() == SQLDataType.CHAR)
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER));
     }
 
     protected RQLToCondition createRqlToCondition() {
-        return new RQLToCondition(this.propertyToField, this.valueConverterMap);
+        return new RQLToCondition(this.table.getFieldMap(), this.valueConverterMap);
     }
 
     @Override

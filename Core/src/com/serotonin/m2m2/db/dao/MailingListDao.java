@@ -7,20 +7,12 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.joda.time.DateTime;
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,10 +22,10 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -50,10 +42,6 @@ import com.serotonin.m2m2.vo.mailingList.UserEntry;
 @Repository
 public class MailingListDao extends AbstractDao<MailingList> {
 
-    public static final Name ALIAS = DSL.name("ml");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.MAILING_LISTS_TABLE);
-
-    
     private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(MailingListDao.class);
         if(o == null)
@@ -62,10 +50,11 @@ public class MailingListDao extends AbstractDao<MailingList> {
     });
 
     @Autowired
-    private MailingListDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private MailingListDao(MailingListTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST,
-                TABLE, ALIAS,
+                table,
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
     }
@@ -215,22 +204,6 @@ public class MailingListDao extends AbstractDao<MailingList> {
                 vo.getName(),
                 vo.getReceiveAlarmEmails().value()
         };
-    }
-
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("xid", Types.VARCHAR);
-        map.put("name", Types.VARCHAR);
-        map.put("receiveAlarmEmails", Types.INTEGER);
-        return map;
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
-        return map;
     }
 
     @Override

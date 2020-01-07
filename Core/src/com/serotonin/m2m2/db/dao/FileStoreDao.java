@@ -8,14 +8,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,6 +19,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.db.pair.IntStringPair;
@@ -39,9 +35,6 @@ import com.serotonin.m2m2.vo.FileStore;
 @Repository
 public class FileStoreDao extends AbstractBasicDao<FileStore> {
 
-    public static final Name ALIAS = DSL.name("fs");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.FILE_STORES_TABLE);
-
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> {
         FileStoreDao dao = Common.getRuntimeContext().getBean(FileStoreDao.class);
         if (dao == null)
@@ -50,9 +43,10 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
     });
 
     @Autowired
-    private FileStoreDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private FileStoreDao(FileStoreTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(TABLE, ALIAS, mapper, publisher);
+        super(table, mapper, publisher);
     }
 
     public static FileStoreDao getInstance() {
@@ -97,14 +91,6 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
         return new Object[] {
                 vo.getStoreName(),
         };
-    }
-
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("storeName", Types.VARCHAR);
-        return map;
     }
 
     @Override

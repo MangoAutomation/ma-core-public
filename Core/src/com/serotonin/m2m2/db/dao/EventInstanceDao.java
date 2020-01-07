@@ -7,10 +7,8 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -32,6 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
+import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
+import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.pair.IntStringPair;
@@ -58,10 +59,10 @@ import net.jazdw.rql.parser.ASTNode;
  */
 @Repository()
 public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
-
-    public static final Name ALIAS = DSL.name("evt");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.EVENTS_TABLE);
-
+    
+    public static final Table<? extends Record> USER_EVENTS_TABLE = DSL.table("userEvents");
+    public static final Name USER_EVENTS_ALIAS = DSL.name("ue");
+    
     private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventInstanceDao.class);
         if(o == null)
@@ -69,15 +70,18 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         return (EventInstanceDao)o;
     });
     
+    private final UserTableDefinition userTable;
+    private final UserCommentTableDefinition userCommentTable;
+    
     @Autowired
-    private EventInstanceDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private EventInstanceDao(EventInstanceTableDefinition table,
+            UserTableDefinition userTable,
+            UserCommentTableDefinition userCommentTable,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(null,
-                TABLE, ALIAS,
-                new Field<?>[]{
-                        DSL.field(DSL.name("U").append("username")),
-                        DSL.field(DSL.name("UE").append("silenced"))}, 
-                null, mapper, publisher);
+        super(null, table, null, mapper, publisher);
+        this.userTable = userTable;
+        this.userCommentTable = userCommentTable;
     }
 
     /**
@@ -99,27 +103,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
                 vo.getId(),
 
         };
-    }
-    
-    @Override
-    protected LinkedHashMap<String,Integer> getPropertyTypeMap(){
-        LinkedHashMap<String,Integer> map = new LinkedHashMap<String,Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("typeName", Types.VARCHAR);
-        map.put("subtypeName", Types.VARCHAR);
-        map.put("typeRef1", Types.INTEGER);
-        map.put("typeRef2", Types.INTEGER);
-        map.put("activeTs", Types.BIGINT);
-        map.put("rtnApplicable", Types.CHAR);
-        map.put("rtnTs", Types.BIGINT);
-        map.put("rtnCause", Types.INTEGER);
-        map.put("alarmLevel", Types.INTEGER);
-        map.put("message", Types.LONGVARCHAR);
-        map.put("ackTs", Types.BIGINT);
-        map.put("ackUserId", Types.INTEGER);
-        map.put("alternateAckSource", Types.LONGVARCHAR);
-
-        return map;
     }
 
     @Override
@@ -161,20 +144,20 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     }
     
     @Override
-    public SelectJoinStep<Record> getSelectQuery() {
-        Field<?> hasComments = this.create.selectCount().from(SchemaDefinition.USER_COMMENTS_TABLE)
-                .where(DSL.field("commentType").eq(UserCommentVO.TYPE_EVENT), DSL.field("typeKey").eq(this.propertyToField.get("id"))).asField("cnt");
-        List<Field<?>> fields = new ArrayList<>(this.fields);
-        fields.add(hasComments);
-        SelectJoinStep<Record> query = this.create.select(fields)
-                .from(this.table.as(tableAlias));
-        return joinTables(query);
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        select = select.join(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(this.table.getAlias("ackUserId")));
+        return select.join(USER_EVENTS_TABLE.as(USER_EVENTS_ALIAS)).on(DSL.field(USER_EVENTS_ALIAS.append("eventId")).eq(this.table.getAlias("id")));
     }
     
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-        select = select.join(SchemaDefinition.USERS_TABLE).on(DSL.field(DSL.name("U").append("id")).eq(this.propertyToField.get("ackUserId")));
-        return select.join(SchemaDefinition.USER_EVENTS_TABLE).on(DSL.field(DSL.name("UE").append("eventId")).eq(this.propertyToField.get("id")));
+    public List<Field<?>> getSelectFields() {
+        List<Field<?>> fields = super.getSelectFields();
+        fields.add(userTable.getAlias("username"));
+        fields.add(DSL.field(DSL.name(USER_EVENTS_ALIAS).append("silenced")));
+        Field<?> hasComments = this.create.selectCount().from(userCommentTable.getTableAsAlias())
+                .where(userCommentTable.getAlias("commentType").eq(UserCommentVO.TYPE_EVENT), userCommentTable.getAlias("typeKey").eq(this.table.getAlias("id"))).asField("cnt");
+        fields.add(hasComments);
+        return fields;
     }
 
     @Override
@@ -325,7 +308,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql) {
-        RQLToEventInstanceConditions rqlToSelect = new RQLToEventInstanceConditions(this.propertyToField, this.valueConverterMap);
+        RQLToEventInstanceConditions rqlToSelect = new RQLToEventInstanceConditions(this.table.getAliasMap(), this.valueConverterMap);
         return rqlToSelect.visit(rql);
     }
     
@@ -342,22 +325,10 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         });
         return map;
     }
-
-    @Override
-    protected Map<String, Field<Object>> createPropertyToField() {
-        Map<String, Field<Object>> map = super.createPropertyToField();
-        map.put("eventType", map.get("typeName"));
-        map.put("referenceId1", map.get("typeRef1"));
-        map.put("referenceId2", map.get("typeRef1"));
-        map.put("activeTimestamp", map.get("activeTs"));
-        map.put("acknowledged", map.get("ackTs"));
-        map.put("active", map.get("rtnTs"));
-        return map;
-    }
     
     public static class RQLToEventInstanceConditions extends RQLToCondition {
         
-        public RQLToEventInstanceConditions(Map<String, Field<Object>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
+        public RQLToEventInstanceConditions(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
             super(fieldMapping, valueConverterMap);
         }
         

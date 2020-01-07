@@ -7,18 +7,14 @@ package com.serotonin.m2m2.db.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ShouldNeverHappenException;
@@ -45,25 +41,14 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * Audit event type name
      */
     protected final String typeName; //Type name for Audit Events
-    
+
     /**
-     * Field for xid column
+     * 
      */
-    protected final Field<String> xidField;
-    /**
-     * tablePrefix.xid
-     */
-    protected final Field<String> xidAlias;
+    protected final AbstractTableDefinition table;
     
-    
-    protected AbstractDao(String typeName, Table<? extends Record> table, Name tableAlias,  
-            TranslatableMessage countMonitorName,
-            ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(typeName, table, tableAlias, null, countMonitorName, mapper, publisher);
-    }
-    
-    protected AbstractDao(String typeName, Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        this(typeName, table, tableAlias, extraProperties, null, mapper, publisher);
+    protected AbstractDao(String typeName, AbstractTableDefinition table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+        this(typeName, table, null, mapper, publisher);
     }
     
     /**
@@ -76,14 +61,13 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param mapper
      * @param publisher
      */
-    protected AbstractDao(String typeName, Table<? extends Record> table, Name tableAlias, Field<?>[] extraProperties, 
+    protected AbstractDao(String typeName, AbstractTableDefinition table,
             TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
-        super(table, tableAlias, extraProperties, countMonitorName, mapper, publisher);
+        super(table, countMonitorName, mapper, publisher);
+        this.table = table;
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
-        this.xidField = getXidField();
-        this.xidAlias = getXidFieldAlias();
     }
 
 
@@ -94,68 +78,27 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @return XID prefix, null if XIDs not supported
      */
     protected abstract String getXidPrefix();
-
-    /**
-     * tableAlias.id
-     * @return
-     */
-    public Field<String> getXidFieldAlias() {
-        return DSL.field(this.tableAlias.append(getXidFieldName()), SQLDataType.VARCHAR(100).nullable(false));
-    }
-    
-    /**
-     * Override as necessary Can be null if no Pk Exists
-     *
-     * @return String name of Pk Column
-     */
-    public Field<String> getXidField() {
-        return DSL.field(getXidFieldName(), SQLDataType.VARCHAR(getXidFieldLength()).nullable(false));
-    }
-    
-    /**
-     * Optionally override the name of the Xid column
-     * @return
-     */
-    protected Name getXidFieldName() {
-        return DSL.name("xid");
-    }
-    
-    /**
-     * Optionally override the length of the XID field
-     * @return
-     */
-    protected int getXidFieldLength() {
-        return 100;
-    }
-    
-    /**
-     * Override as necessary
-     * @return
-     */
-    public Field<String> getXidColumn() {
-        return DSL.field(this.tableAlias.append(getXidFieldName()), SQLDataType.VARCHAR(getXidFieldLength()).nullable(false));
-    }
     
     @Override
     public String generateUniqueXid() {
         if (xidPrefix == null) {
             return null;
         }
-        return generateUniqueXid(xidPrefix, this.table.getName());
+        return generateUniqueXid(xidPrefix, this.table.getTable().getName());
     }
 
     @Override
     public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, this.table.getName());
+        return isXidUnique(xid, excludeId, this.table.getTable().getName());
     }
 
     @Override
     public T getByXid(String xid) {
-        if (xid == null || !this.propertyTypeMap.keySet().contains("xid")) {
+        if (xid == null || this.table.getField("xid") == null) {
             return null;
         }
         Select<Record> query = this.getSelectQuery()
-                .where(xidAlias.eq(xid))
+                .where(table.getXidAlias().eq(xid))
                 .limit(1);
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
@@ -168,11 +111,11 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 
     @Override
     public List<T> getByName(String name) {
-        if (name == null || !this.propertyTypeMap.keySet().contains("name")) {
+        if (name == null || this.table.getField("name") == null) {
             return null;
         }
         Select<Record> query = this.getSelectQuery()
-                .where(this.propertyToField.get("name").eq(name));
+                .where(this.table.getField("name").eq(name));
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
         List<T> items = new ArrayList<>();
@@ -185,15 +128,15 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 
     @Override
     public Integer getIdByXid(String xid) {
-        return this.create.select(idAlias).from(this.table.as(tableAlias))
-                .where(xidAlias.eq(xid))
+        return this.create.select(this.table.getIdAlias()).from(this.table.getTableAsAlias())
+                .where(this.table.getXidAlias().eq(xid))
                 .limit(1).fetchOneInto(Integer.class);
     }
 
     @Override
     public String getXidById(int id) {
-        return this.create.select(idAlias).from(this.table.as(tableAlias))
-                .where(idAlias.eq(id))
+        return this.create.select(this.table.getIdAlias()).from(this.table.getTableAsAlias())
+                .where(this.table.getIdAlias().eq(id))
                 .limit(1).fetchOneInto(String.class);
     }
 

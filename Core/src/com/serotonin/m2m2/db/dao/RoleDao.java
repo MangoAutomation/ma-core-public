@@ -6,20 +6,14 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
@@ -32,6 +26,7 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -50,9 +45,6 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 @Repository
 public class RoleDao extends AbstractDao<RoleVO> {
 
-    public static final Name ALIAS = DSL.name("r");
-    public static final Table<? extends Record> TABLE = DSL.table(SchemaDefinition.ROLES_TABLE);
-    
     private static final LazyInitSupplier<RoleDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(RoleDao.class);
         if(o == null)
@@ -61,10 +53,11 @@ public class RoleDao extends AbstractDao<RoleVO> {
     });
     
     @Autowired
-    private RoleDao(@Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private RoleDao(RoleTableDefinition table,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_ROLE, 
-                TABLE, ALIAS,
+                table,
                 new TranslatableMessage("internal.monitor.ROLE_COUNT"),
                 mapper, publisher);
     }
@@ -277,15 +270,6 @@ public class RoleDao extends AbstractDao<RoleVO> {
                 vo.getXid(),
                 vo.getName()
         };
-    }
-
-    @Override
-    protected LinkedHashMap<String, Integer> getPropertyTypeMap() {
-        LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-        map.put("id", Types.INTEGER);
-        map.put("xid", Types.VARCHAR);
-        map.put("name", Types.VARCHAR);
-        return map;
     }
 
     @Override

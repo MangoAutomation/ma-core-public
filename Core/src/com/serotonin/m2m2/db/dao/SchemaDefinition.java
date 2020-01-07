@@ -8,7 +8,10 @@ package com.serotonin.m2m2.db.dao;
  * Schema Tables for use in Dao Classes
  * @author Terry Packer
  *
+ * TODO Remove Mango 4.0
+ *
  */
+@Deprecated
 public class SchemaDefinition {
 	
 	public static final String DATASOURCES_TABLE = "dataSources";
