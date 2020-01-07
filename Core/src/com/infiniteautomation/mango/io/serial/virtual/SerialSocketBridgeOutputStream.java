@@ -18,7 +18,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortOutputStream;
  * @author Terry Packer
  *
  */
-public class SerialSocketBridgeOutputStream extends SerialPortOutputStream{
+public class SerialSocketBridgeOutputStream extends SerialPortOutputStream {
 
 	private final static Log LOG = LogFactory.getLog(SerialSocketBridgeOutputStream.class);
 	

@@ -13,9 +13,6 @@ import java.io.OutputStream;
  */
 public abstract class SerialPortOutputStream  extends OutputStream {
 
-	/* (non-Javadoc)
-	 * @see java.io.OutputStream#write(int)
-	 */
 	@Override
 	public abstract void write(int arg0) throws IOException;
 

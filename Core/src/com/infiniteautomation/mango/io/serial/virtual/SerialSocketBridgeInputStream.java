@@ -16,11 +16,11 @@ import com.serotonin.ShouldNeverHappenException;
  * @author Terry Packer
  *
  */
-public class SerialSocketBridgeInputStream extends SerialPortInputStream{
+public class SerialSocketBridgeInputStream extends SerialPortInputStream {
 
 	private InputStream stream;
 	
-	public SerialSocketBridgeInputStream(InputStream is){
+	public SerialSocketBridgeInputStream(InputStream is) {
 		this.stream = is;
 	}
 	
