@@ -100,7 +100,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
     private final DataSourceTableDefinition dataSourceTable;
-    
+
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataPointDao.class);
         if(o == null)
@@ -115,7 +115,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public static final Field<Integer> DATA_SOURCE_ID = DSL.field(DATA_POINTS_ALIAS.append("dataSourceId"), SQLDataType.INTEGER.nullable(false));
     public static final Field<String> READ_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("readPermission"), SQLDataType.VARCHAR(255).nullable(true));
     public static final Field<String> SET_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("setPermission"), SQLDataType.VARCHAR(255).nullable(true));
-    
+
     @Autowired
     private DataPointDao(DataPointTableDefinition table,
             DataSourceTableDefinition dataSourceTable,
@@ -148,7 +148,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     public List<DataPointVO> getDataPoints(int dataSourceId) {
         List<DataPointVO> dps = query(getSelectQuery().getSQL() + " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
-            loadPartialRelationalData(dps);
+        loadPartialRelationalData(dps);
         return dps;
     }
 
@@ -251,7 +251,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             return dp;
         }
     }
-    
+
     /**
      * Check licensing before adding a point
      */
@@ -277,28 +277,28 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         // Create a default text renderer
         if (vo.getTextRenderer() == null)
             vo.defaultTextRenderer();
-        
+
         super.insert(vo);
-        
+
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.afterInsert(vo);
     }
-    
+
     @Override
     public void update(DataPointVO existing, DataPointVO vo) {
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.beforeUpdate(vo);
-        
+
         //If have a new data type we will wipe our history
         if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId())
             Common.databaseProxy.newPointValueDao().deletePointValues(vo.getId());
 
         super.update(existing, vo);
-        
+
         for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
             def.afterUpdate(vo);
     }
-    
+
     /**
      * Update the enabled column, should only be done via the runtime manager
      * @param dp
@@ -340,7 +340,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         }
         return deleted;
     }
-    
+
     @Override
     public void deleteRelationalData(DataPointVO vo) {
         ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1 = " + vo.getId(),
@@ -368,7 +368,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     //
 
     /**
-     * 
+     *
      * Loads the event detectors from the database and sets them on the data point.
      *
      * @param dp
@@ -536,23 +536,23 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         return new Object[] {
                 vo.getXid(),
                 vo.getName(),
-                SerializationHelper.writeObjectToArray(vo), 
-                vo.getDataSourceId(), 
-                vo.getDeviceName(), 
-                boolToChar(vo.isEnabled()), 
+                SerializationHelper.writeObjectToArray(vo),
+                vo.getDataSourceId(),
+                vo.getDeviceName(),
+                boolToChar(vo.isEnabled()),
                 vo.getLoggingType(),
-                vo.getIntervalLoggingPeriodType(), 
-                vo.getIntervalLoggingPeriod(), 
+                vo.getIntervalLoggingPeriodType(),
+                vo.getIntervalLoggingPeriod(),
                 vo.getIntervalLoggingType(),
-                vo.getTolerance(), 
-                boolToChar(vo.isPurgeOverride()), 
-                vo.getPurgeType(), 
+                vo.getTolerance(),
+                boolToChar(vo.isPurgeOverride()),
+                vo.getPurgeType(),
                 vo.getPurgePeriod(),
-                vo.getDefaultCacheSize(), 
-                boolToChar(vo.isDiscardExtremeValues()), 
+                vo.getDefaultCacheSize(),
+                boolToChar(vo.isDiscardExtremeValues()),
                 vo.getEngineeringUnits(),
                 vo.getRollup(),
-                vo.getPointLocator().getDataTypeId(), 
+                vo.getPointLocator().getDataTypeId(),
                 boolToChar(vo.getPointLocator().isSettable())};
     }
 
@@ -605,7 +605,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             int id = (rs.getInt(++i));
             String xid = rs.getString(++i);
             String name = rs.getString(++i);
-            
+
             DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
 
             dp.setId(id);
@@ -626,7 +626,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
             dp.setEngineeringUnits(rs.getInt(++i));
             dp.setRollup(rs.getInt(++i));
-            
+
             // read and discard dataTypeId
             rs.getInt(++i);
             // read and discard settable boolean
@@ -670,6 +670,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         //Populate permissions
         vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
         vo.setSetRoles(RoleDao.getInstance().getRoles(vo, PermissionService.SET));
+        vo.setDataSourceEditRoles(RoleDao.getInstance().getRoles(vo.getDataSourceId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
     }
 
     @Override
@@ -812,7 +813,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
         this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
     }
-    
+
     //TODO  Mango 4.0 fix this
     public Condition userHasPermission(User user) {
         Set<String> userPermissions = new HashSet<>();
@@ -826,7 +827,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
         return DSL.or(conditions);
     }
-    
+
     //TODO Mango 4.0 fix this
     public Condition userHasSetPermission(User user) {
         Set<String> userPermissions = new HashSet<>();
@@ -866,14 +867,14 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         fields.add(dataSourceTable.getAlias("dataSourceType"));
         return fields;
     }
-    
+
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
         return select.join(dataSourceTable.getTableAsAlias())
                 .on(DSL.field(dataSourceTable.getAlias("id"))
                         .eq(this.table.getAlias("dataSourceId")));
     }
-    
+
     @Override
     protected void customizedQuery(SelectJoinStep<Record> select, Condition condition,
             List<SortField<Object>> sort, Integer limit, Integer offset,
@@ -951,7 +952,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
         });
         return map;
     }
-    
+
     @Override
     protected ResultSetExtractor<List<DataPointVO>> getListResultSetExtractor() {
         return getListResultSetExtractor((e, rs) -> {
@@ -965,9 +966,9 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             }else {
                 LOG.error(e.getMessage(), e);
             }
-        }); 
+        });
     }
-    
+
     @Override
     protected ResultSetExtractor<Void> getCallbackResultSetExtractor(
             MappedRowCallback<DataPointVO> callback) {
@@ -982,7 +983,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
             }else {
                 LOG.error(e.getMessage(), e);
             }
-        }); 
+        });
     }
 
 }

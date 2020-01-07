@@ -52,7 +52,6 @@ import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.util.SerializationHelper;
 
 public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataPoint {
@@ -226,7 +225,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     //
     private String dataSourceTypeName;
     private String dataSourceName;
-    private Set<RoleVO> dataSourceEditRoles;
+    private Set<Role> dataSourceEditRoles;
 
     //
     //
@@ -725,14 +724,14 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
      * Roles joined from database (not saved into point)
      * @return the dataSourceEditRoles
      */
-    public Set<RoleVO> getDataSourceEditRoles() {
+    public Set<Role> getDataSourceEditRoles() {
         return dataSourceEditRoles;
     }
     /**
      * Roles joined from database (not saved into point)
      * @param dataSourceEditRoles the dataSourceEditRoles to set
      */
-    public void setDataSourceEditRoles(Set<RoleVO> dataSourceEditRoles) {
+    public void setDataSourceEditRoles(Set<Role> dataSourceEditRoles) {
         this.dataSourceEditRoles = dataSourceEditRoles;
     }
     /* ############################## */
@@ -1343,7 +1342,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         }
         //Units no longer stored with text renderer
         setUnitsOnTextRenderer();
-        
+
         // Check the purge type. Weird how this could have been set to 0.
         if (purgeType == 0)
             purgeType = Common.TimePeriods.YEARS;
@@ -1554,7 +1553,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         double simplifyTolerance = jsonObject.getDouble("simplifyTolerance", Double.NaN);
         if (simplifyTolerance != Double.NaN)
             this.simplifyTolerance = simplifyTolerance;
-        
+
         //Legacy permissions support
         this.readRoles = readLegacyPermissions("readPermissions", this.readRoles, jsonObject);
         this.setRoles = readLegacyPermissions("setPermissions", this.setRoles, jsonObject);
