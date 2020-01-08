@@ -123,14 +123,7 @@ public class Common {
     static {
         // ma.logs needs to be set before calling org.apache.commons.logging.LogFactory.getLog(Class)
         String logsValue = envProps.getString("paths.logs", "logs");
-
-        LOGS_PATH = MA_HOME_PATH.resolve(logsValue);
-        try {
-            Files.createDirectories(LOGS_PATH);
-        } catch (IOException e) {
-            // ignore
-        }
-
+        LOGS_PATH = createDirectories(MA_HOME_PATH.resolve(logsValue));
         System.setProperty("ma.logs", LOGS_PATH.toString());
     }
 
@@ -139,21 +132,8 @@ public class Common {
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
 
-    private static final LazyInitSupplier<Path> TEMP = new LazyInitSupplier<>(() -> {
-        try {
-            return Files.createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")));
-        } catch (IOException e) {
-            return null;
-        }
-    });
-
-    private static final LazyInitSupplier<Path> FILEDATA_PATH = new LazyInitSupplier<>(() -> {
-        try {
-            return Files.createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")));
-        } catch (IOException e) {
-            return null;
-        }
-    });
+    private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")));
+    private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")));
 
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
@@ -480,11 +460,11 @@ public class Common {
     }
 
     public static Path getFiledataPath() {
-        return FILEDATA_PATH.get();
+        return FILEDATA_PATH;
     }
 
     public static Path getTempPath() {
-        return TEMP.get();
+        return TEMP_PATH;
     }
 
     public static CronTimerTrigger getCronTrigger(int periodType, int delaySeconds) {
@@ -839,5 +819,13 @@ public class Common {
      */
     public static <T> T getBean(Class<T> clazz, String name) {
         return getRuntimeContext().getBean(name, clazz);
+    }
+
+    private static Path createDirectories(Path input) {
+        try {
+            return Files.createDirectories(input);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
