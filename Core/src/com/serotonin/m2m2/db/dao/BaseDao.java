@@ -13,7 +13,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 
-public class BaseDao extends DaoUtils implements SQLConstants{
+public class BaseDao extends DaoUtils implements SQLConstants {
 
     /**
      * Public constructor for code that needs to get stuff from the database.

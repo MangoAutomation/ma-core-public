@@ -161,7 +161,7 @@ public class DaoUtils {
         }
         return sb.toString();
     }
-    
+
     protected int[] batchUpdate(String sql, final Object[][] args) {
         final List<ArgPreparedStatementSetter> apsss = new ArrayList<ArgPreparedStatementSetter>(args.length);
         for (int i = 0; i < args.length; i++)
