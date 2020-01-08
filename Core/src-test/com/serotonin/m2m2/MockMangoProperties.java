@@ -26,7 +26,7 @@ public class MockMangoProperties extends ReloadingProperties {
         setProperty("web.openBrowserOnStartup", "false");
 
         //Fill in all default values for properties
-        setProperty("db.update.log.dir", Common.MA_HOME + "/logs/");
+        setProperty("db.update.log.dir", "");
         setProperty("security.hashAlgorithm", User.BCRYPT_ALGORITHM);
 
         //Test injection property types

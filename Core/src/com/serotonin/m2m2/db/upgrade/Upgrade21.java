@@ -23,15 +23,14 @@ import com.serotonin.m2m2.db.DatabaseProxy;
 public class Upgrade21 extends DBUpgrade {
 
     private final Log LOG = LogFactory.getLog(Upgrade21.class);
-    
+
     @Override
     protected void upgrade() throws Exception {
-        OutputStream out = createUpdateLogOutputStream();
         //Update User table to make Unique usernames only
         //First remove duplicate users
-        try {
+        try (OutputStream out = createUpdateLogOutputStream()) {
             Map<Integer, String> toRemove = query("SELECT id,username FROM users ORDER BY id asc", new ResultSetExtractor<Map<Integer,String>>(){
-    
+
                 @Override
                 public Map<Integer, String> extractData(ResultSet rs)
                         throws SQLException, DataAccessException {
@@ -44,9 +43,9 @@ public class Upgrade21 extends DBUpgrade {
                     }
                     return remove;
                 }
-                
+
             });
-            
+
             Map<String, String[]> scripts = new HashMap<>();
             if(toRemove.keySet().size() > 0) {
                 toRemove.keySet().stream().forEach((key) -> {
@@ -59,8 +58,8 @@ public class Upgrade21 extends DBUpgrade {
             } else {
                 LOG.info("No duplicate users to remove.");
             }
-            
-    
+
+
             //Finally update the users table with new columns
             scripts.clear();
             scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
@@ -68,18 +67,14 @@ public class Upgrade21 extends DBUpgrade {
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssql);
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), postgres);
             runScript(scripts, out);
-        } finally {
-            out.flush();
-            out.close();
         }
-
     }
 
     @Override
     protected String getNewSchemaVersion() {
         return "22";
     }
-    
+
     private final String[] mysql = new String[] {
             "ALTER TABLE users ADD COLUMN tokenVersion INT;",
             "ALTER TABLE users ADD COLUMN passwordVersion INT;",
@@ -89,7 +84,7 @@ public class Upgrade21 extends DBUpgrade {
             "ALTER TABLE users MODIFY COLUMN passwordVersion INT NOT NULL;",
             "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);"
     };
-    
+
     private final String[] h2 = new String[] {
             "ALTER TABLE users ADD COLUMN tokenVersion INT;",
             "ALTER TABLE users ADD COLUMN passwordVersion INT;",
@@ -99,7 +94,7 @@ public class Upgrade21 extends DBUpgrade {
             "ALTER TABLE users ALTER COLUMN passwordVersion INT NOT NULL;",
             "ALTER TABLE users ADD CONSTRAINT username_unique UNIQUE(username);"
     };
-    
+
     private final String[] mssql = new String[] {
             "ALTER TABLE users ADD COLUMN tokenVersion INT;",
             "ALTER TABLE users ADD COLUMN passwordVersion INT;",
@@ -109,7 +104,7 @@ public class Upgrade21 extends DBUpgrade {
             "ALTER TABLE users ALTER COLUMN passwordVersion INT NOT NULL;",
             "alter table users add constraint username_unique unique (username);"
     };
-    
+
     private final String[] postgres = new String[] {
             "ALTER TABLE users ADD COLUMN tokenVersion INT;",
             "ALTER TABLE users ADD COLUMN passwordVersion INT;",

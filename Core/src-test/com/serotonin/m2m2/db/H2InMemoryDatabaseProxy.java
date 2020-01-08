@@ -6,8 +6,6 @@ package com.serotonin.m2m2.db;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,6 +26,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
@@ -242,7 +241,7 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    public void runScript(String[] script, OutputStream out) throws Exception {
+    public void runScript(String[] script, OutputStream out) {
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
 
@@ -264,7 +263,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
                 statement.delete(0, statement.length() - 1);
             }
         }
-
     }
 
     @Override
@@ -299,16 +297,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public String getTableListQuery() {
         return "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE table_schema='PUBLIC'";
-    }
-
-    @Override
-    public void runScriptFile(File scriptFile, OutputStream out) {
-        try {
-            runScript(new FileInputStream(scriptFile), out);
-        }
-        catch (FileNotFoundException e) {
-            throw new ShouldNeverHappenException(e);
-        }
     }
 
     @Override
@@ -449,6 +437,11 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
     @Override
     public PlatformTransactionManager getTransactionManager() {
         return transactionManager;
+    }
+
+    @Override
+    public OutputStream createLogOutputStream(Class<?> clazz) {
+        return new NullOutputStream();
     }
 
 }

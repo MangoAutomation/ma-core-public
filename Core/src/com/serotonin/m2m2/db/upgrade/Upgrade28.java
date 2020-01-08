@@ -39,10 +39,9 @@ public class Upgrade28 extends DBUpgrade {
 
     @Override
     protected void upgrade() throws Exception {
-        OutputStream out = createUpdateLogOutputStream();
         //Update User table to have unique email addresses
         //First update duplicate email addresses
-        try {
+        try (OutputStream out = createUpdateLogOutputStream()) {
             List<UsernameEmail> duplicates = query("SELECT id,username,email FROM users ORDER BY id asc", rs -> {
                 List<UsernameEmail> dupes = new ArrayList<>();
                 Set<String> existing = new HashSet<>();
@@ -110,9 +109,6 @@ public class Upgrade28 extends DBUpgrade {
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sqlUniqueEmail);
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sqlUniqueEmail);
             runScript(scripts, out);
-        } finally {
-            out.flush();
-            out.close();
         }
     }
 

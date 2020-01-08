@@ -231,51 +231,51 @@ public class Upgrade12 extends DBUpgrade {
         };
 
         // Run the script.
-        OutputStream os = createUpdateLogOutputStream();
-        Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Script);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mysqlScript);
-        runScript(scripts, os);
+        try (OutputStream os = createUpdateLogOutputStream()) {
+            Map<String, String[]> scripts = new HashMap<>();
+            scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyScript);
+            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysqlScript);
+            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), mssqlScript);
+            scripts.put(DatabaseProxy.DatabaseType.H2.name(), h2Script);
+            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mysqlScript);
+            runScript(scripts, os);
 
-        int upgradedEventHandlerCount = upgradeEventHandlers(os);
-        String upgradedString = new String("Upgraded " + upgradedEventHandlerCount + " event handlers.\n");
-        os.write(upgradedString.getBytes(Common.UTF8_CS));
+            int upgradedEventHandlerCount = upgradeEventHandlers(os);
+            String upgradedString = new String("Upgraded " + upgradedEventHandlerCount + " event handlers.\n");
+            os.write(upgradedString.getBytes(Common.UTF8_CS));
 
-        //Now make column not null
-        scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), new String[] {
-                "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType NOT NULL;",
-        });
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {
-                "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
-        });
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {
-                "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType nvarchar(40) NOT NULL;",
-        });
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {
-                "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
-        });
-        runScript(scripts, os);
+            //Now make column not null
+            scripts = new HashMap<>();
+            scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), new String[] {
+                    "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType NOT NULL;",
+            });
+            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[] {
+                    "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
+            });
+            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), new String[] {
+                    "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType nvarchar(40) NOT NULL;",
+            });
+            scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {
+                    "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
+            });
+            runScript(scripts, os);
 
-        //Dump Audit Events into SQL File in Backup folder
-        backupAuditEvents(os);
+            //Dump Audit Events into SQL File in Backup folder
+            backupAuditEvents(os);
 
-        //Remove audit events
-        int removed = this.ejt.update("DELETE FROM events WHERE typeName=?", new Object[]{EventType.EventTypeNames.AUDIT});
-        String removedString = new String("Deleted " + removed + " AUDIT events from the events table.\n");
-        os.write(removedString.getBytes(Common.UTF8_CS));
+            //Remove audit events
+            int removed = this.ejt.update("DELETE FROM events WHERE typeName=?", new Object[]{EventType.EventTypeNames.AUDIT});
+            String removedString = new String("Deleted " + removed + " AUDIT events from the events table.\n");
+            os.write(removedString.getBytes(Common.UTF8_CS));
 
-        //Upgrade the Event Detectors
-        int upgradedEventDetectorCount = upgradeEventDetectors(os);
-        String upgradedED = new String("Upgraded " + upgradedEventDetectorCount + " event detectors.\n");
-        os.write(upgradedED.getBytes(Common.UTF8_CS));
+            //Upgrade the Event Detectors
+            int upgradedEventDetectorCount = upgradeEventDetectors(os);
+            String upgradedED = new String("Upgraded " + upgradedEventDetectorCount + " event detectors.\n");
+            os.write(upgradedED.getBytes(Common.UTF8_CS));
 
-        //Drop the pointEventDetectors table.
-        this.ejt.update("DROP TABLE pointEventDetectors");
-
+            //Drop the pointEventDetectors table.
+            this.ejt.update("DROP TABLE pointEventDetectors");
+        }
     }
 
     private static final String EVENT_HANDLER_SELECT = "select id, xid, alias, data from eventHandlers ";

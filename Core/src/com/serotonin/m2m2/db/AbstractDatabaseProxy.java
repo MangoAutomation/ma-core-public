@@ -5,12 +5,13 @@
 package com.serotonin.m2m2.db;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -30,6 +31,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.infiniteautomation.mango.util.NullOutputStream;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
@@ -118,12 +120,12 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 else {
 
                     // Record the current version.
-                	SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                    SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                             Integer.toString(Common.getDatabaseSchemaVersion()));
 
                     // Add the settings flag that this is a new instance. This flag is removed when an administrator
                     // logs in.
-                	SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+                    SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
 
                     /**
                      * Add a startup task to run after the Audit system is ready
@@ -187,9 +189,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     }
 
     @Override
-    abstract public DatabaseType getType();
-
-    @Override
     public void terminate(boolean terminateNoSql) {
         terminateImpl();
         // Check if we are using NoSQL
@@ -199,56 +198,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         }
     }
 
-    @Override
-    abstract public void terminateImpl();
-
-    @Override
-    abstract public DataSource getDataSource();
-
-    @Override
-    abstract public double applyBounds(double value);
-
-    @Override
-    abstract public File getDataDirectory();
-
-    @Override
-    abstract public Long getDatabaseSizeInBytes();
-
-    @Override
-    abstract public void executeCompress(ExtendedJdbcTemplate ejt);
-
     abstract protected void initializeImpl(String propertyPrefix);
-
-    @Override
-    abstract public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName);
-
-    @Override
-    abstract public int getActiveConnections();
-
-    @Override
-    abstract public int getIdleConnections();
 
     protected void postInitialize(ExtendedJdbcTemplate ejt, String propertyPrefix, boolean newDatabase) {
         // no op - override as necessary
-    }
-
-    @Override
-    abstract public void runScript(String[] script, final OutputStream out) throws Exception;
-
-    @Override
-    abstract public void runScript(InputStream in, final OutputStream out);
-
-    @Override
-    abstract public String getTableListQuery();
-
-    @Override
-    public void runScriptFile(File scriptFile, OutputStream out) {
-        try {
-            runScript(new FileInputStream(scriptFile), out);
-        }
-        catch (FileNotFoundException e) {
-            throw new ShouldNeverHappenException(e);
-        }
     }
 
     @Override
@@ -368,6 +321,23 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         user.setDisabled(false);
         user.setHomeUrl("/ui/administration/home");
         UserDao.getInstance().insert(user);
-
     };
+
+    @Override
+    public OutputStream createLogOutputStream(Class<?> clazz) {
+        String dir = Common.envProps.getString("db.update.log.dir", "");
+        Path logPath = Common.getLogsPath().resolve(dir).toAbsolutePath();
+        Path logFile = logPath.resolve(clazz.getName() + ".log");
+
+        try {
+            Files.createDirectories(logPath);
+            log.info("Writing upgrade log to " + logFile.toString());
+            return Files.newOutputStream(logFile, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (Exception e) {
+            log.error("Failed to create database upgrade log file.", e);
+        }
+
+        log.warn("Failing over to null output stream, database upgrade messages will be lost");
+        return new NullOutputStream();
+    }
 }

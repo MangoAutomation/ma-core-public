@@ -62,7 +62,7 @@ public interface DatabaseProxy {
 
         abstract AbstractDatabaseProxy getImpl();
     }
-    
+
     void initialize(ClassLoader classLoader);
 
     DatabaseType getType();
@@ -72,7 +72,7 @@ public interface DatabaseProxy {
     void terminateImpl();
 
     DataSource getDataSource();
-    
+
     PlatformTransactionManager getTransactionManager();
 
     double applyBounds(double value);
@@ -80,7 +80,7 @@ public interface DatabaseProxy {
     File getDataDirectory();
 
     /**
-     * 
+     *
      * @return size of Database in bytes or null if don't know
      */
     Long getDatabaseSizeInBytes();
@@ -93,13 +93,13 @@ public interface DatabaseProxy {
 
     int getIdleConnections();
 
-    void runScript(String[] script, OutputStream out) throws Exception;
+    OutputStream createLogOutputStream(Class<?> clazz);
+
+    void runScript(String[] script, OutputStream out);
 
     void runScript(InputStream in, OutputStream out);
 
     String getTableListQuery();
-
-    void runScriptFile(File scriptFile, OutputStream out);
 
     void doInConnection(ConnectionCallbackVoid callback);
 
@@ -117,7 +117,7 @@ public interface DatabaseProxy {
 
     /**
      * Allow access to the NoSQL Proxy
-     * 
+     *
      * @return
      */
     NoSQLProxy getNoSQLProxy();

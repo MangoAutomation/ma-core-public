@@ -3,7 +3,6 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,7 +23,7 @@ import com.serotonin.util.SerializationHelper;
 public class Upgrade19 extends DBUpgrade {
 
     private final Log LOG = LogFactory.getLog(Upgrade19.class);
-    
+
     @Override
     protected void upgrade() throws Exception {
         //Add the data type column into the database.
@@ -34,17 +33,17 @@ public class Upgrade19 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), addColumn);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), addColumn);
         runScript(scripts);
-        
+
         //not using data type id to deserialize, so we don't need a legacy row mapper here
         this.ejt.query(UPGRADE_19_DATA_POINT_SELECT, new Upgrade19ResultSetExtractor());
-        
+
         scripts.clear();
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), alterColumn);
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), modifyColumn);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterColumn);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), alterColumn);
         runScript(scripts);
-        
+
         scripts.clear();
         String[] empty = new String[0];
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), empty);
@@ -57,14 +56,14 @@ public class Upgrade19 extends DBUpgrade {
         } catch(Exception e) {
             //It may already have existed.
         }
-        
+
     }
-    
+
     @Override
     protected String getNewSchemaVersion() {
         return "20";
     }
-    
+
     private static final String[] addColumn = {
             "ALTER TABLE dataPoints ADD COLUMN dataTypeId INT;",
     };
@@ -74,43 +73,42 @@ public class Upgrade19 extends DBUpgrade {
     private static final String[] modifyColumn = {
             "ALTER TABLE dataPoints MODIFY COLUMN dataTypeId INT NOT NULL;"
     };
-    
+
     private static final String UPGRADE_19_DATA_POINT_SELECT = //
-    "select dp.id, ds.dataSourceType, dp.data " //
+            "select dp.id, ds.dataSourceType, dp.data " //
             + "from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId ";
-    
+
     class RawDataPoint {
         int id;
         Integer dataTypeId;
         String dataSourceTypeName;
     }
-    
+
     class Upgrade19DataPointRowMapper implements RowMapper<RawDataPoint> {
         @Override
         public RawDataPoint mapRow(ResultSet rs, int rowNum) throws SQLException {
-            
+
             RawDataPoint dp = new RawDataPoint();
             try{
-                  dp.id = rs.getInt(1);
-                  dp.dataSourceTypeName = rs.getString(2);
-                  DataPointVO dpVo = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(3));
-                  dp.dataTypeId = dpVo.getPointLocator().getDataTypeId();
+                dp.id = rs.getInt(1);
+                dp.dataSourceTypeName = rs.getString(2);
+                DataPointVO dpVo = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(3));
+                dp.dataTypeId = dpVo.getPointLocator().getDataTypeId();
             }catch(Exception e) {
                 //Munchy munch, we will handle this later when we see the dataTypeId is null
             }
-            
+
             return dp;
         }
     }
 
     class Upgrade19ResultSetExtractor implements ResultSetExtractor<Void> {
-    
+
         @Override
         public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
             Upgrade19DataPointRowMapper dprw = new Upgrade19DataPointRowMapper();
-            OutputStream out = createUpdateLogOutputStream();
-            
-            try(PrintWriter pw = new PrintWriter(out)) {
+
+            try(PrintWriter pw = new PrintWriter(createUpdateLogOutputStream())) {
                 while(rs.next()) {
                     RawDataPoint rdp = dprw.mapRow(rs, rs.getRow());
                     if(rdp.dataTypeId != null) {
@@ -119,20 +117,20 @@ public class Upgrade19 extends DBUpgrade {
                             LOG.debug(message);
                         pw.write(message + "\n");
                         ejt.update("update dataPoints set dataTypeId=? where id=?",
-                                new Object[]{rdp.dataTypeId, rdp.id}, 
+                                new Object[]{rdp.dataTypeId, rdp.id},
                                 new int[] {Types.INTEGER, Types.INTEGER});
                     }else {
-                        String message = "Data source module " + rdp.dataSourceTypeName + " is missing.  Data point with id " + rdp.id + " not upgraded yet."; 
+                        String message = "Data source module " + rdp.dataSourceTypeName + " is missing.  Data point with id " + rdp.id + " not upgraded yet.";
                         LOG.info(message);
                         pw.write(message + "\n");
                         ejt.update("update dataPoints set dataTypeId=? where id=?",
-                                new Object[]{-1, rdp.id}, 
+                                new Object[]{-1, rdp.id},
                                 new int[] {Types.INTEGER, Types.INTEGER});
                     }
                 }
             }
             return null;
         }
-        
+
     }
 }

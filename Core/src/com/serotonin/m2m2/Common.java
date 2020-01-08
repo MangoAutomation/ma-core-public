@@ -286,6 +286,10 @@ public class Common {
         return LOGS_PATH.toFile();
     }
 
+    public static Path getLogsPath() {
+        return LOGS_PATH;
+    }
+
     public interface TimePeriods {
         int MILLISECONDS = 8;
         int SECONDS = 1;

@@ -4,8 +4,7 @@
  */
 package com.serotonin.m2m2.db.upgrade;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Map;
@@ -19,7 +18,6 @@ import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.util.StringUtils;
 
 /**
  * Base class for instances that perform database upgrades. The naming of subclasses follows the convention
@@ -31,7 +29,6 @@ import com.serotonin.util.StringUtils;
 abstract public class DBUpgrade extends BaseDao {
     private static final Log LOG = LogFactory.getLog(DBUpgrade.class);
     protected static final String DEFAULT_DATABASE_TYPE = "*";
-    protected boolean firstScriptRun = true;
 
     public static void checkUpgrade() {
         checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
@@ -121,21 +118,16 @@ abstract public class DBUpgrade extends BaseDao {
      * @throws Exception
      *             if something bad happens
      */
-    protected void runScript(String[] script) throws Exception {
-        OutputStream out = createUpdateLogOutputStream();
-        firstScriptRun = false;
-        try {
+    protected void runScript(String[] script) throws IOException {
+        try (OutputStream out = createUpdateLogOutputStream()) {
             runScript(script, out);
-        } finally {
-            out.flush();
-            out.close();
         }
     }
 
-    protected void runScript(String[] script, OutputStream out) throws Exception {
+    protected void runScript(String[] script, OutputStream out) {
         try {
             Common.databaseProxy.runScript(script, out);
-        } catch(Exception e) {
+        } catch (Exception e) {
             PrintWriter pw = new PrintWriter(out);
             e.printStackTrace(pw);
             pw.flush();
@@ -143,18 +135,13 @@ abstract public class DBUpgrade extends BaseDao {
         }
     }
 
-    protected void runScript(Map<String, String[]> scripts) throws Exception {
-        OutputStream out = createUpdateLogOutputStream();
-        firstScriptRun = false;
-        try {
+    protected void runScript(Map<String, String[]> scripts) throws IOException {
+        try (OutputStream out = createUpdateLogOutputStream()) {
             runScript(scripts, out);
-        } finally {
-            out.flush();
-            out.close();
         }
     }
 
-    protected void runScript(Map<String, String[]> scripts, final OutputStream out) throws Exception {
+    protected void runScript(Map<String, String[]> scripts, OutputStream out) {
         String[] script = scripts.get(Common.databaseProxy.getType().name());
         if (script == null)
             script = scripts.get(DEFAULT_DATABASE_TYPE);
@@ -162,22 +149,7 @@ abstract public class DBUpgrade extends BaseDao {
     }
 
     protected OutputStream createUpdateLogOutputStream() {
-        String dir = Common.envProps.getString("db.update.log.dir", "");
-        dir = StringUtils.replaceMacros(dir, System.getProperties());
-
-        File logDir = new File(dir);
-        File logFile = new File(logDir, getClass().getName() + ".log");
-        LOG.info("Writing upgrade log to " + logFile.getAbsolutePath());
-
-        try {
-            if (logDir.isDirectory() && logDir.canWrite())
-                return new FileOutputStream(logFile, !firstScriptRun);
-        }
-        catch (Exception e) {
-            LOG.error("Failed to create database upgrade log file.", e);
-        }
-
-        LOG.warn("Failing over to console for printing database upgrade messages");
-        return System.out;
+        return Common.databaseProxy.createLogOutputStream(this.getClass());
     }
+
 }
