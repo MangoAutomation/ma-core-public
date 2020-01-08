@@ -6,22 +6,39 @@ package com.serotonin.util.properties;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  *
  * @author Terry Packer
  */
 public interface MangoProperties {
 
-    String getString(String key);
+    public String getString(String key);
 
-    String getString(String key, String defaultValue);
-
-    default String getStringAllowEmpty(String key, String defaultValue) {
+    public default String getString(String key, String defaultValue) {
         String value = getString(key);
-        if (value == null) {
+        if (StringUtils.isBlank(value)) {
             return defaultValue;
         }
         return value;
+    }
+
+    /**
+     * Splits on comma and trims results, does not remove empty entries.
+     * Returns an empty array if the property is not defined or if it is set to an empty string.
+     */
+    public default String[] getStringArray(String key) {
+        return this.getStringArray(key, "\\s*,\\s*", new String[] {});
+    }
+
+    /**
+     * Splits on comma and trims results, does not remove empty entries.
+     * Default is only returned if the property is not defined at all (i.e. commented out).
+     * A property defined as an empty string will return an empty array.
+     */
+    public default String[] getStringArray(String key, String[] defaultValue) {
+        return this.getStringArray(key, "\\s*,\\s*", defaultValue);
     }
 
     /**
@@ -29,38 +46,73 @@ public interface MangoProperties {
      * Default is only returned if the property is not defined at all (i.e. commented out).
      * A property defined as an empty string will return an empty array.
      */
-    String[] getStringArray(String key, String delimiter, String[] defaultValue);
+    public default String[] getStringArray(String key, String delimiter, String[] defaultValue) {
+        String value = getString(key);
+        if (value == null)
+            return defaultValue;
+        if (value.isEmpty()) {
+            return new String[] {};
+        }
+        return value.split(delimiter);
+    }
 
-    /**
-     * Splits on comma and trims results, does not remove empty entries.
-     * Returns an empty array if the property is not defined or if it is set to an empty string.
-     */
-    String[] getStringArray(String key);
+    public default int getInt(String key) {
+        return Integer.parseInt(getString(key));
+    }
 
-    /**
-     * Splits on comma and trims results, does not remove empty entries.
-     * Default is only returned if the property is not defined at all (i.e. commented out).
-     * A property defined as an empty string will return an empty array.
-     */
-    String[] getStringArray(String key, String[] defaultValue);
+    public default int getInt(String key, int defaultValue) {
+        String value = getString(key);
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return Integer.parseInt(value);
+    }
 
-    int getInt(String key);
+    public default long getLong(String key) {
+        return Long.parseLong(getString(key));
+    }
 
-    int getInt(String key, int defaultValue);
+    public default long getLong(String key, long defaultValue) {
+        String value = getString(key);
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return Long.parseLong(value);
+    }
 
-    long getLong(String key);
+    public default boolean getBoolean(String key) {
+        return "true".equalsIgnoreCase(getString(key));
+    }
 
-    long getLong(String key, long defaultValue);
+    public default boolean getBoolean(String key, boolean defaultValue) {
+        String value = getString(key);
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return "true".equalsIgnoreCase(value);
+    }
 
-    boolean getBoolean(String key);
+    public default double getDouble(String key) {
+        return Double.parseDouble(getString(key));
+    }
 
-    boolean getBoolean(String key, boolean defaultValue);
+    public default double getDouble(String key, double defaultValue) {
+        String value = getString(key);
+        if (StringUtils.isBlank(value)) {
+            return defaultValue;
+        }
+        return Double.parseDouble(value);
+    }
 
-    double getDouble(String key);
+    public default String getStringAllowEmpty(String key, String defaultValue) {
+        String value = getString(key);
+        if (value == null) {
+            return defaultValue;
+        }
+        return value;
+    }
 
-    double getDouble(String key, double defaultValue);
-
-    default TimeUnit getTimeUnitValue(String key, TimeUnit defaultValue) {
+    public default TimeUnit getTimeUnitValue(String key, TimeUnit defaultValue) {
         String value = this.getString(key);
         if (value == null) {
             return defaultValue;

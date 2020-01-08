@@ -13,7 +13,7 @@ import java.util.Properties;
 /**
  * @author Jared Wiltshire
  */
-public class ReloadingProperties extends AbstractProperties {
+public class ReloadingProperties implements MangoProperties {
 
     protected final Properties properties;
 
@@ -22,7 +22,7 @@ public class ReloadingProperties extends AbstractProperties {
     }
 
     @Override
-    protected String getStringImpl(String key) {
+    public String getString(String key) {
         return properties.getProperty(key);
     }
 
