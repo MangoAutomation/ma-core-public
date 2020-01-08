@@ -9,6 +9,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -18,10 +22,12 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.io.Files;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.FileStore;
@@ -46,12 +52,12 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
     public FileStoreService(FileStoreDao dao, PermissionService permissionService) {
         super(dao, permissionService);
     }
-    
+
     @Override
     public Set<Role> getCreatePermissionRoles() {
         return ModuleRegistry.getPermissionDefinition(UserFileStoreCreatePermissionDefinition.TYPE_NAME).getRoles();
     }
-    
+
     @Override
     public ProcessResult validate(FileStore vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
@@ -59,7 +65,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         permissionService.validateVoRoles(result, "writeRoles", user, false, null, vo.getWriteRoles());
         return result;
     }
-    
+
     @Override
     public ProcessResult validate(FileStore existing, FileStore vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
@@ -67,7 +73,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         permissionService.validateVoRoles(result, "writeRoles", user, false, existing.getWriteRoles(), vo.getWriteRoles());
         return result;
     }
-    
+
     protected ProcessResult commonValidation(FileStore vo, PermissionHolder holder) {
         ProcessResult result = new ProcessResult();
         if (StringUtils.isBlank(vo.getStoreName()))
@@ -79,19 +85,135 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, FileStore vo) {
-        return permissionService.hasAnyRole(user, vo.getWriteRoles());
+        //Since file stores can be accessed publicly and some of the definitions allow this
+        // we must check for a potentially null user.
+        if(user == null) {
+            return  false;
+        }else {
+            return permissionService.hasAnyRole(user, vo.getWriteRoles());
+        }
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, FileStore vo) {
-        return permissionService.hasAnyRole(user, vo.getReadRoles());
+        //Since file stores can be accessed publicly and some of the definitions allow this
+        // we must check for a potentially null user.
+        if(user == null) {
+            return  false;
+        }else {
+            return permissionService.hasAnyRole(user, vo.getReadRoles());
+        }
     }
 
+    /**
+     * List all filestore names that the user has read permission for
+     *
+     * @return
+     * @throws PermissionException
+     */
+    public List<String> getStoreNames() throws PermissionException {
+        List<FileStore> fileStores = getAll();
+        Collection<FileStoreDefinition> moduleDefs = ModuleRegistry.getFileStoreDefinitions().values();
+
+        PermissionHolder user = Common.getUser();
+
+        List<String> names = new ArrayList<>(fileStores.size() + moduleDefs.size());
+        for(FileStore fs : fileStores) {
+            names.add(fs.getStoreName());
+        }
+        for(FileStoreDefinition def : moduleDefs) {
+            if(def.hasStoreReadPermission(user)) {
+                names.add(def.getStoreName());
+            }
+        }
+        return names;
+    }
+
+    /**
+     * Get a user file store from the database
+     *  this does not check the module defined stores.
+     *
+     * @param name
+     * @return
+     */
+    public FileStore getByName(String name) {
+        return getByName(name, false);
+    }
+
+    /**
+     * Helper to get stores based on permission
+     * @param name
+     * @param write
+     * @return
+     */
+    protected FileStore getByName(String name, boolean write) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        FileStore store = dao.getByName(name);
+        if(store == null) {
+            throw new NotFoundException();
+        }
+        if(write) {
+            ensureEditPermission(user, store);
+        }else {
+            ensureReadPermission(user, store);
+        }
+        return store;
+    }
+
+    /**
+     * Get root path and ensure write access
+     *
+     * @param name
+     * @return
+     * @throws PermissionException
+     */
+    public Path getFileStoreRootForWrite(String name) throws PermissionException {
+        FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(name);
+        //This user can be null
+        PermissionHolder user = Common.getUser();
+        if(fsd != null) {
+            fsd.ensureStoreWritePermission(user);
+            return fsd.getRootPath();
+        }else {
+            return getByName(name, true).getRootPath();
+        }
+    }
+
+    /**
+     * Get root path and ensure read access
+     *
+     * @param name
+     * @return
+     * @throws PermissionException
+     */
+    public Path getFileStoreRootForRead(String name) throws PermissionException {
+        FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(name);
+        //This user can be null
+        PermissionHolder user = Common.getUser();
+        if(fsd != null) {
+            fsd.ensureStoreReadPermission(user);
+            return fsd.getRootPath();
+        }else {
+            return getByName(name, false).getRootPath();
+        }
+    }
+
+
+
+    /**
+     *
+     * @param fs
+     * @param purgeFiles
+     * @throws IOException
+     * @throws PermissionException
+     * @throws NotFoundException
+     */
     public void deleteFileStore(FileStore fs, boolean purgeFiles) throws IOException, PermissionException, NotFoundException {
         fs = delete(fs.getId());
         if(purgeFiles) {
-            File root = fs.toDefinition().getRoot();
-            FileUtils.deleteDirectory(root);
+            FileUtils.deleteDirectory(fs.getRootPath().toFile());
         }
     }
 

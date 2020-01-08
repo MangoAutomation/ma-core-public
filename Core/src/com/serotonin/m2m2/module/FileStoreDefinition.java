@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,9 +16,8 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Define a file storage area within the filestore directory of the core
@@ -50,21 +48,12 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      */
     abstract public String getStoreName();
 
-
     /**
      * Get the TypeName of the read permission definition, return null to allow access to all (including unauthenticated / public users)
      * @return
      */
     abstract protected String getReadPermissionTypeName();
 
-    /**
-     * Prefer getting permissions directly if available
-     * Return null to use getReadPermissionTypeName instead
-     * @return
-     */
-    protected Set<Role> getReadRoles() {
-        return null;
-    }
 
     /**
      * Get the TypeName of the write permission definition, return null to allow access to all (including unauthenticated / public users)
@@ -73,26 +62,42 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     abstract protected String getWritePermissionTypeName();
 
     /**
-     * Prefer getting permissions directly if available
-     * Return null to use getWritePermissionTypeName instead
+     * Does this permission holder have read permission?
+     *  Override as necessary
+     * @param holder
      * @return
      */
-    protected Set<Role> getWriteRoles() {
-        return null;
+    public boolean hasStoreReadPermission(PermissionHolder holder) {
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
+        if(permission == null) {
+            return true;
+        }else {
+            return permissionService.get().hasAnyRole(holder, permission.getRoles());
+        }
     }
 
     /**
      * Ensure that a User has read permission
      * @throws PermissionException
      */
-    public void ensureStoreReadPermission(User user) {
-        Set<Role> roles = getReadRoles();
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
+    public void ensureStoreReadPermission(PermissionHolder user) {
+        if(!hasStoreReadPermission(user)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+        }
+    }
 
-        if (roles != null) {
-            permissionService.get().ensureHasAnyRole(user, roles);
-        } else if (permission != null) {
-            permissionService.get().ensureHasAnyRole(user, permission.getRoles());
+    /**
+     * Does this permission holder have write permission?
+     *  Override as necessary
+     * @param holder
+     * @return
+     */
+    public boolean hasStoreWritePermission(PermissionHolder holder) {
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
+        if(permission == null) {
+            return true;
+        }else {
+            return permissionService.get().hasAnyRole(holder, permission.getRoles());
         }
     }
 
@@ -100,14 +105,9 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * Ensure that a User has write permission
      * @throws PermissionException
      */
-    public void ensureStoreWritePermission(User user) {
-        Set<Role> roles = getWriteRoles();
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
-
-        if (roles != null) {
-            permissionService.get().ensureHasAnyRole(user, roles);
-        } else if (permission != null) {
-            permissionService.get().ensureHasAnyRole(user, permission.getRoles());
+    public void ensureStoreWritePermission(PermissionHolder user) {
+        if(!hasStoreWritePermission(user)) {
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
         }
     }
 

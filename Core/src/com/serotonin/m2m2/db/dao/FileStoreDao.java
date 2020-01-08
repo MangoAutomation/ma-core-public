@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +23,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.FileStoreDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.FileStore;
 
 /**
@@ -53,24 +50,13 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
         return springInstance.get();
     }
 
-    public Map<String, FileStoreDefinition> getFileStoreMap() {
-        List<FileStore> fileStores = getAll();
-        Map<String, FileStoreDefinition> definitionsMap = new HashMap<String, FileStoreDefinition>();
-        for(FileStore fs : fileStores)
-            definitionsMap.put(fs.getStoreName(), fs.toDefinition());
-        definitionsMap.putAll(ModuleRegistry.getFileStoreDefinitions());
-        return definitionsMap;
-    }
-
-    public FileStoreDefinition getFileStoreDefinition(String storeName) {
-        FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(storeName);
-        if(fsd == null) {
-            FileStore fs = ejt.queryForObject(getSelectQuery().getSQL() + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
-            if(fs == null)
-                return null;
-            return fs.toDefinition();
-        }
-        return fsd;
+    /**
+     * Get a store by name
+     * @param storeName
+     * @return
+     */
+    public FileStore getByName(String storeName) {
+        return ejt.queryForObject(getSelectQuery().getSQL() + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
     }
 
     private class FileStoreRowMapper implements RowMapper<FileStore> {
@@ -102,22 +88,22 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
     public RowMapper<FileStore> getRowMapper() {
         return new FileStoreRowMapper();
     }
-    
+
     @Override
     public void saveRelationalData(FileStore vo, boolean insert) {
         //Replace the role mappings
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getWriteRoles(), vo, PermissionService.WRITE, insert);
- 
+
     }
-    
+
     @Override
     public void loadRelationalData(FileStore vo) {
         //Populate permissions
         vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
         vo.setWriteRoles(RoleDao.getInstance().getRoles(vo, PermissionService.WRITE));
     }
-    
+
     @Override
     public void deleteRelationalData(FileStore vo) {
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);

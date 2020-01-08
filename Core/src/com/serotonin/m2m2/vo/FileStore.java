@@ -1,13 +1,15 @@
 /**
- * Copyright (C) 2018 Infinite Automation Software. All rights reserved. 
+ * Copyright (C) 2018 Infinite Automation Software. All rights reserved.
  *
  */
 package com.serotonin.m2m2.vo;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
 
-import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -26,7 +28,7 @@ public class FileStore extends AbstractBasicVO {
     public void setStoreName(String storeName) {
         this.storeName = storeName;
     }
-    
+
     public Set<Role> getReadRoles() {
         return readRoles;
     }
@@ -39,38 +41,15 @@ public class FileStore extends AbstractBasicVO {
     public void setWriteRoles(Set<Role> writeRoles) {
         this.writeRoles = writeRoles;
     }
-    public FileStoreDefinition toDefinition() {
-        return new UserFileStoreDefinition(this);
+
+    /**
+     * Get the root of this filestore
+     * @return
+     * @throws IOException
+     */
+    public Path getRootPath() {
+        String location = Common.envProps.getString(FileStoreDefinition.FILE_STORE_LOCATION_ENV_PROPERTY, FileStoreDefinition.ROOT);
+        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName());
     }
-    
-    private class UserFileStoreDefinition extends FileStoreDefinition {
-        final FileStore fs;
-        UserFileStoreDefinition(FileStore fs) {
-            this.fs = fs;
-        }
-        @Override
-        public TranslatableMessage getStoreDescription() {
-            return new TranslatableMessage("filestore.user.description", fs.getStoreName());
-        }
-        @Override
-        public String getStoreName() {
-            return fs.getStoreName();
-        }
-        @Override
-        protected String getReadPermissionTypeName() {
-            return null;
-        }
-        @Override
-        protected Set<Role> getReadRoles() {
-            return fs.getReadRoles();
-        }
-        @Override
-        protected String getWritePermissionTypeName() {
-            return null;
-        }
-        @Override
-        protected Set<Role> getWriteRoles() {
-            return fs.getWriteRoles();
-        }
-    }
+
 }
