@@ -12,11 +12,10 @@ import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDao;
 import com.serotonin.m2m2.db.dao.nosql.NoSQLDataSerializer;
 import com.serotonin.util.DirectoryUtils;
-import com.serotonin.util.StringUtils;
 
 /**
  * Base class for NoSQL Databases
- * 
+ *
  * @author Terry Packer
  */
 abstract public class NoSQLProxy {
@@ -24,35 +23,36 @@ abstract public class NoSQLProxy {
     public abstract void shutdown();
 
     public abstract PointValueDao createPointValueDao();
-    
+
     public PointValueDao createPointValueDaoMetrics(){
-    	return new PointValueDaoMetrics(this.createPointValueDao());
+        return new PointValueDaoMetrics(this.createPointValueDao());
     }
-    
-    
-	/**
-	 * Helper to get the database directory
-	 * 
-	 * @return Absolute path to databases directory ending in a slash
-	 */
-	public static String getDatabasePath() {
-		return StringUtils.replaceMacros(Common.envProps.getString("db.nosql.location", Common.MA_HOME+ "/databases/"), System.getProperties());
-	}
-	
-	/**
-	 * Create a Dao for general NoSQL Storage
-	 * 
-	 * @return
-	 */
-	public abstract NoSQLDao createNoSQLDao(NoSQLDataSerializer serializer, String storeName);
-	
-	
-	/**
-	 * return this size of the database(s) in bytes
-	 * @return
-	 */
-	public long getDatabaseSizeInBytes(String storeName){
-		return DirectoryUtils.getSize(new File(getDatabasePath())).getSize();
-	}
+
+
+    /**
+     * Helper to get the database directory
+     *
+     * @return Absolute path to databases directory ending in a slash
+     */
+    public static String getDatabasePath() {
+        String location = Common.envProps.getString("db.nosql.location", "databases");
+        return Common.MA_HOME_PATH.resolve(location).normalize().toString();
+    }
+
+    /**
+     * Create a Dao for general NoSQL Storage
+     *
+     * @return
+     */
+    public abstract NoSQLDao createNoSQLDao(NoSQLDataSerializer serializer, String storeName);
+
+
+    /**
+     * return this size of the database(s) in bytes
+     * @return
+     */
+    public long getDatabaseSizeInBytes(String storeName){
+        return DirectoryUtils.getSize(new File(getDatabasePath())).getSize();
+    }
 
 }

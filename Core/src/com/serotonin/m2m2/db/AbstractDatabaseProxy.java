@@ -326,7 +326,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     @Override
     public OutputStream createLogOutputStream(Class<?> clazz) {
         String dir = Common.envProps.getString("db.update.log.dir", "");
-        Path logPath = Common.getLogsPath().resolve(dir).toAbsolutePath();
+        Path logPath = Common.getLogsPath().resolve(dir).toAbsolutePath().normalize();
         Path logFile = logPath.resolve(clazz.getName() + ".log");
 
         try {

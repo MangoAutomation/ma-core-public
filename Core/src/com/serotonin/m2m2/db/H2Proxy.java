@@ -45,26 +45,25 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
-import com.serotonin.util.StringUtils;
 
 public class H2Proxy extends AbstractDatabaseProxy {
     private static final Log LOG = LogFactory.getLog(H2Proxy.class);
 
     //The version of h2 at which we upgrade the page store could also do this each time h2 is upgraded via Constants.getVersion()
     public static final int H2_PAGE_STORE_UPGRADE_VERSION = 196;
-    
+
     //Select the version of H2 that created this database.
     public static final String H2_CREATE_VERSION_SELECT = "SELECT value FROM information_schema.settings WHERE name='CREATE_BUILD' LIMIT 1";
-    
+
     private JdbcConnectionPool dataSource;
     private Server web; //web UI
-    
+
     @Override
     protected void initializeImpl(String propertyPrefix) {
         LOG.info("Initializing H2 connection manager");
 
         upgradePageStore(propertyPrefix);
-        
+
         JdbcDataSource jds = new JdbcDataSource();
         jds.setURL(getUrl(propertyPrefix));
         jds.setDescription("maDataSource");
@@ -81,7 +80,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         dataSource.setMaxConnections(
                 Common.envProps.getInt(propertyPrefix + "db.pool.maxActive", 100));
 
-        
+
         if (Common.envProps.getBoolean(propertyPrefix + "db.web.start", false)) {
             LOG.info("Initializing H2 web server");
             String webArgs[] = new String[4];
@@ -97,47 +96,46 @@ public class H2Proxy extends AbstractDatabaseProxy {
             }
         }
     }
-    
+
     public static Path getDbPathFromUrl(String url) {
-        url = StringUtils.replaceMacros(url, System.getProperties());
         String [] jdbcParts = url.split("jdbc:h2:");
         String [] commandParts = jdbcParts[1].split(";");
         return Paths.get(commandParts[0]);
     }
-    
+
     /**
-     * Potentially upgrade the h2 pagestore database from v196 
+     * Potentially upgrade the h2 pagestore database from v196
      * @param propertyPrefix
      */
     private void upgradePageStore(String propertyPrefix) {
-        
+
         //Parse out the useful sections of the url
         String dbUrl = Common.envProps.getString(propertyPrefix + "db.url");
         Path dbPath = getDbPathFromUrl(dbUrl);
-        
+
         //Check to see if we are a legacy database
         Path legacy = dbPath.getParent().resolve(dbPath.getFileName().toString() + ".h2.db");
         if(legacy.toFile().exists()) {
             LOG.info("Converting legacy h2 database...");
-            //We will need to convert it. 
+            //We will need to convert it.
             //Create a reference for the dump file
             String dumpFileName = "mah2.h2.196.sql.zip";
             Path dumpPath = Common.MA_HOME_PATH.resolve("backup").resolve(dumpFileName);
-            
+
             //Check dump file existence, if so abort startup
             if(dumpPath.toFile().exists())
                 throw new ShouldNeverHappenException("Found upgrade database backup, aborting startup.  Likely corrupt database, a clean backup can be found here: " + dumpPath.toString());
-            
+
             try {
                 LOG.info("Dumping legacy database to file " + dumpPath.toString());
                 dump(legacy, dumpPath);
-                
+
                 //Delete existing so we can re-create it using the dump script
                 Files.delete(legacy);
 
                 String user = Common.envProps.getString(propertyPrefix + "db.username", null);
                 String password = Common.envProps.getString(propertyPrefix + "db.password", null);
-                
+
                 String url = getUrl(propertyPrefix);
                 //Open a connection and import the dump script
                 LOG.info("Importing existing H2 database...");
@@ -148,14 +146,14 @@ public class H2Proxy extends AbstractDatabaseProxy {
                     stat.execute("SHUTDOWN COMPACT");
                     stat.close();
                 }
-                
+
                 try {
                     LOG.info("Cleaning up H2 initializataion tests...");
                     Files.deleteIfExists(dumpPath);
                 } catch (IOException e) {
                     LOG.warn("Unable to delete un-necessary H2 dump file " + dumpPath.toString(), e);
                 }
-                
+
             } catch(Exception e) {
                 if(e.getCause() instanceof JdbcSQLIntegrityConstraintViolationException) {
                     //This is very likely a db that failed to open due to it being a legacy DB that was already opened 1x by a later H2 driver
@@ -171,21 +169,20 @@ public class H2Proxy extends AbstractDatabaseProxy {
 
     private String getUrl(String propertyPrefix) {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
-        url = StringUtils.replaceMacros(url, System.getProperties());
         String [] jdbcParts = url.split("jdbc:h2:");
         String [] commandParts = jdbcParts[1].split(";");
         Path dbPath = Paths.get(commandParts[0]);
-        
+
         //Determine the version info
         Path dbFolder = dbPath.getParent();
-        
+
         //Make sure we have a db folder, create if not
         if(!dbFolder.toFile().exists()) {
             if(!dbFolder.toFile().mkdirs()) {
                 throw new ShouldNeverHappenException("Could not create databases directory at " + dbFolder.toString());
             }
         }
-        
+
         String[] matchingDbs = dbFolder.toFile().list((dir, filename) -> {
             File possibleDb = new File(dir, filename);
             if(possibleDb.isFile() && filename.endsWith(".db") && filename.startsWith(dbPath.getFileName().toString()))
@@ -193,7 +190,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             else
                 return false;
         });
-        
+
         //Check to see if we have an existing db with a version number in it
         // if there are more than 1, select the latest version number in the list
         int version = 0;
@@ -206,20 +203,20 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 //Ignore
             }
         }
-        
+
         //If version is 0 then there is not an existing database we can open,
         // create a new one with our current version.
         if(version == 0)
             version = getCurrentVersion();
-        
+
         //Rebuild URL
         StringBuilder builder = new StringBuilder();
         builder.append("jdbc:h2:");
-        
+
         //Put in the db path
         builder.append(commandParts[0]);
         builder.append("." + version);
-        
+
         //Add back on any command parts
         for(int i=1; i<commandParts.length; i++) {
             builder.append(";");
@@ -239,7 +236,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         }
         return url;
     }
-    
+
     @Override
     public DataSource getDataSource() {
         return dataSource;
@@ -363,7 +360,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             return new File(dataDir + ".mv.db");
         }
     }
-    
+
     @Override
     public Long getDatabaseSizeInBytes(){
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
@@ -373,7 +370,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         if (dataDir == null) {
             return null;
         }
-        
+
         File dbData;
         //Detect page store or mv store
         String url = getUrl("");
@@ -381,7 +378,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             dbData = new File(dataDir + ".h2.db"); // Good until we change to MVStore
         else
             dbData = new File(dataDir + ".mv.db");
-        
+
         if (dbData.exists()) {
             DirectoryInfo dbInfo = DirectoryUtils.getSize(dbData);
             return dbInfo.getSize();
@@ -408,7 +405,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             }
             dataSource.dispose();
         }
-        
+
 
     }
 
@@ -417,9 +414,9 @@ public class H2Proxy extends AbstractDatabaseProxy {
         return ejt.queryForObject(
                 "SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
                         + tableName.toUpperCase() + "' AND table_schema='PUBLIC'",
-                new Object[] {}, Integer.class, 0) > 0;
+                        new Object[] {}, Integer.class, 0) > 0;
     }
-    
+
     /**
      * Get the current version of the database.
      * @return
@@ -435,7 +432,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     public String getDatabaseFileSuffix() {
         return Constants.BUILD_ID + ".h2.db";
     }
-    
+
     /**
      * Parse the version out of a database name, the format should be
      * *.[version].h2.db
@@ -452,17 +449,17 @@ public class H2Proxy extends AbstractDatabaseProxy {
             throw new IOException("Invalid h2 database name format: " + databaseName);
         }
     }
-    
+
     private static int getVersion(String[] parts) throws NumberFormatException {
         return Integer.parseInt(parts[parts.length - 3]);
     }
-    
+
     /**
      * Check the name of the database file to see if it is a legacy db.
-     * 
+     *
      * *.h2.db = legacy
      * *.[version].h2.db = current
-     * 
+     *
      * @return
      */
     public static boolean isLegacy(String databaseName) throws IOException {
@@ -479,7 +476,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             }
         }
     }
-    
+
     /**
      * Dump a database to SQL using a legacy driver
      * @param legacy
@@ -487,18 +484,17 @@ public class H2Proxy extends AbstractDatabaseProxy {
      * @throws Exception
      */
     public void dump(Path legacy, Path dumpPath) throws Exception {
-        
+
         //First load in the 196 Driver
         Path tempDirectory = Paths.get(System.getProperty("java.io.tmpdir"), H2Proxy.class.getName());
         File tempDirectoryFile = tempDirectory.toFile();
         tempDirectoryFile.mkdirs();
         tempDirectoryFile.deleteOnExit();
-        
+
         ClassLoader jarLoader = loadLegacyJar();
         Class<?> driverManager = Class.forName("org.h2.Driver", false, jarLoader);
-        
+
         String url = Common.envProps.getString("db.url");
-        url = StringUtils.replaceMacros(url, System.getProperties());
         if (!url.contains(";DB_CLOSE_ON_EXIT=")) {
             url += ";DB_CLOSE_ON_EXIT=FALSE";
         }
@@ -517,12 +513,12 @@ public class H2Proxy extends AbstractDatabaseProxy {
         if(password != null) {
             connectionProperties.put("password", password);
         }
-        
+
         Method connect = driverManager.getMethod("connect", String.class, Properties.class);
         //Get the INSTANCE to work on
         Field instance = driverManager.getDeclaredField("INSTANCE");
         instance.setAccessible(true);
-        
+
         try(Connection conn = (Connection)connect.invoke(instance.get(driverManager), url, connectionProperties)){
             Statement stat = conn.createStatement();
             ResultSet rs = stat.executeQuery(H2_CREATE_VERSION_SELECT);
@@ -535,7 +531,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
             stat.close();
         }
     }
-    
+
     /**
      * Load the legacy H2 Driver into an isolated class loader
      * @return
@@ -548,7 +544,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
     /**
      * A parent-last classloader that will try the child classloader first and then the parent.
      * This takes a fair bit of doing because java really prefers parent-first.
-     * 
+     *
      * For those not familiar with class loading trickery, be wary
      */
     public static class ParentLastURLClassLoader extends URLClassLoader {

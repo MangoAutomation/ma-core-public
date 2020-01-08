@@ -9,13 +9,23 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
+ * <p>We can potentially replace the regex code with {@linkplain org.springframework.util.PropertyPlaceholderHelper} or
+ * {@linkplain org.apache.commons.text.StringSubstitutor}.</p>
+ *
+ * <p>{@linkplain com.infiniteautomation.mango.spring.MangoPropertySource} is used to supply these properties to Spring.
+ * Note: The Spring property resolver attempts interpolation again when getting properties from Environment.</p>
+ *
  * @author Jared Wiltshire
  */
 public class ReloadingProperties implements MangoProperties {
 
     protected final Properties properties;
+
+    private static final Pattern INTERPOLATION_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
 
     public ReloadingProperties(Properties properties) {
         this.properties = properties;
@@ -23,7 +33,28 @@ public class ReloadingProperties implements MangoProperties {
 
     @Override
     public String getString(String key) {
-        return properties.getProperty(key);
+        String value = System.getProperty(key);
+        if (value == null) {
+            value = properties.getProperty(key);
+        }
+        return interpolateProperty(value);
+    }
+
+    private String interpolateProperty(String value) {
+        if (value == null) return value;
+
+        Matcher matcher = INTERPOLATION_PATTERN.matcher(value);
+        StringBuffer result = new StringBuffer();
+        while (matcher.find()) {
+            String interpolatedKey = matcher.group(1);
+            String interpolatedValue = getString(interpolatedKey);
+            if (interpolatedValue == null) {
+                interpolatedValue = "";
+            }
+            matcher.appendReplacement(result, Matcher.quoteReplacement(interpolatedValue));
+        }
+        matcher.appendTail(result);
+        return result.toString();
     }
 
     public static Properties loadFromResources(String resourceName, ClassLoader cl) throws IOException {

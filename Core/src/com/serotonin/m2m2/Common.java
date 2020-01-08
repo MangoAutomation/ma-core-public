@@ -123,7 +123,7 @@ public class Common {
     static {
         // ma.logs needs to be set before calling org.apache.commons.logging.LogFactory.getLog(Class)
         String logsValue = envProps.getString("paths.logs", "logs");
-        LOGS_PATH = createDirectories(MA_HOME_PATH.resolve(logsValue));
+        LOGS_PATH = createDirectories(MA_HOME_PATH.resolve(logsValue).normalize());
         System.setProperty("ma.logs", LOGS_PATH.toString());
     }
 
@@ -132,8 +132,8 @@ public class Common {
     public static final Path WEB = MA_HOME_PATH.resolve(Constants.DIR_WEB);
     public static final Path MODULES = WEB.resolve(Constants.DIR_MODULES);
 
-    private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")));
-    private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")));
+    private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")).normalize());
+    private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
 
     public static final String UTF8 = "UTF-8";
     public static final Charset UTF8_CS = Charset.forName(UTF8);
