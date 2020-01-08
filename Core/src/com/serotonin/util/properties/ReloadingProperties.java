@@ -16,6 +16,13 @@ import java.util.regex.Pattern;
  * <p>We can potentially replace the regex code with {@linkplain org.springframework.util.PropertyPlaceholderHelper} or
  * {@linkplain org.apache.commons.text.StringSubstitutor}.</p>
  *
+ * <p>Limitations of this class include:</p>
+ * <ul>
+ *   <li>No protection against infinite recursion when interpolating</li>
+ *   <li>No way to specify default in interpolation expression</li>
+ *   <li>No way escape interpolation expressions</li>
+ * </ul>
+ *
  * <p>{@linkplain com.infiniteautomation.mango.spring.MangoPropertySource} is used to supply these properties to Spring.
  * Note: The Spring property resolver attempts interpolation again when getting properties from Environment.</p>
  *
@@ -49,7 +56,7 @@ public class ReloadingProperties implements MangoProperties {
             String interpolatedKey = matcher.group(1);
             String interpolatedValue = getString(interpolatedKey);
             if (interpolatedValue == null) {
-                interpolatedValue = "";
+                throw new IllegalStateException("Property has no value: " + interpolatedKey);
             }
             matcher.appendReplacement(result, Matcher.quoteReplacement(interpolatedValue));
         }
