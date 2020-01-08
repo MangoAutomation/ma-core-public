@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
- * 
+ *
  * @author Terry Packer
  */
 package com.infiniteautomation.mango.io.serial;
@@ -144,10 +144,10 @@ public class SerialPortManagerImpl implements SerialPortManager {
                 break;
         }
 
-        for (SerialPortIdentifier port : ownedPorts) 
-                portOwnership.put(port.getName(), true);
-        
-        for (String portName : portNames) {                
+        for (SerialPortIdentifier port : ownedPorts)
+            portOwnership.put(port.getName(), true);
+
+        for (String portName : portNames) {
             if (!portOwnership.containsKey(portName)) {
                 freePorts.add(new SerialPortIdentifier(portName, SerialPortTypes.JSSC));
                 portOwnership.put(portName, false);
@@ -164,15 +164,25 @@ public class SerialPortManagerImpl implements SerialPortManager {
                     portOwnership.put(config.getPortName(), false);
                 } else if(LOG.isWarnEnabled()) {
                     LOG.warn("Virtual serial port config " + config.getXid() + " named " + config.getPortName() +
-                        " not available due to name conflict with other serial port or it was open during refresh.");
+                            " not available due to name conflict with other serial port or it was open during refresh.");
                 }
             }
         }
     }
-    
+
     @Override
     public boolean portOwned(String commPortId) {
-
+        if (!portsLoaded) {
+            this.lock.writeLock().lock();
+            try {
+                if(!portsLoaded) {
+                    refreshPorts();
+                    portsLoaded = true;
+                }
+            } finally {
+                this.lock.writeLock().unlock();
+            }
+        }
         // Check to see if the port is currently in use.
         for (SerialPortIdentifier id : ownedPorts) {
             if (id.getName().equalsIgnoreCase(commPortId)) {
@@ -185,7 +195,17 @@ public class SerialPortManagerImpl implements SerialPortManager {
 
     @Override
     public String getPortOwner(String commPortId) {
-
+        if (!portsLoaded) {
+            this.lock.writeLock().lock();
+            try {
+                if(!portsLoaded) {
+                    refreshPorts();
+                    portsLoaded = true;
+                }
+            } finally {
+                this.lock.writeLock().unlock();
+            }
+        }
         // Get serial port owner
         for (SerialPortIdentifier id : ownedPorts) {
             if (id.getName().equalsIgnoreCase(commPortId))
@@ -217,13 +237,17 @@ public class SerialPortManagerImpl implements SerialPortManager {
     @Override
     public SerialPortProxy open(String ownerName, String commPortId, int baudRate,
             FlowControl flowControlIn, FlowControl flowControlOut, DataBits dataBits, StopBits stopBits, Parity parity)
-            throws SerialPortException {
+                    throws SerialPortException {
 
         this.lock.writeLock().lock();
         try {
-            if (!initialized)
+            if (!initialized) {
                 initialize(false);
-
+            }
+            if(!portsLoaded) {
+                refreshPorts();
+                portsLoaded = true;
+            }
             // Check to see if the port is currently in use.
             for (SerialPortIdentifier id : ownedPorts) {
                 if (id.getName().equalsIgnoreCase(commPortId)) {
@@ -292,6 +316,11 @@ public class SerialPortManagerImpl implements SerialPortManager {
             if (!initialized)
                 initialize(false);
 
+            if(!portsLoaded) {
+                refreshPorts();
+                portsLoaded = true;
+            }
+
             // Close the port
             if (port == null)
                 return; // Can't close a non existent port
@@ -337,7 +366,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
             }
 
             ownedPorts.clear();
-            
+
             //Shutdown JSSC Manager
             JsscSerialPortManager.instance.terminate();
             initialized = false;
