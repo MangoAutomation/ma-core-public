@@ -171,24 +171,21 @@ public class H2Proxy extends AbstractDatabaseProxy {
         String url = Common.envProps.getString(propertyPrefix + "db.url");
         String [] jdbcParts = url.split("jdbc:h2:");
         String [] commandParts = jdbcParts[1].split(";");
-        Path dbPath = Paths.get(commandParts[0]);
+        Path dbPath = Common.MA_HOME_PATH.resolve(commandParts[0]).toAbsolutePath().normalize();
 
         //Determine the version info
         Path dbFolder = dbPath.getParent();
 
         //Make sure we have a db folder, create if not
-        if(!dbFolder.toFile().exists()) {
-            if(!dbFolder.toFile().mkdirs()) {
-                throw new ShouldNeverHappenException("Could not create databases directory at " + dbFolder.toString());
-            }
+        try {
+            Files.createDirectories(dbFolder);
+        } catch (IOException e) {
+            throw new ShouldNeverHappenException("Could not create databases directory at " + dbFolder.toString());
         }
 
         String[] matchingDbs = dbFolder.toFile().list((dir, filename) -> {
             File possibleDb = new File(dir, filename);
-            if(possibleDb.isFile() && filename.endsWith(".db") && filename.startsWith(dbPath.getFileName().toString()))
-                return true;
-            else
-                return false;
+            return possibleDb.isFile() && filename.endsWith(".db") && filename.startsWith(dbPath.getFileName().toString());
         });
 
         //Check to see if we have an existing db with a version number in it
@@ -214,7 +211,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
         builder.append("jdbc:h2:");
 
         //Put in the db path
-        builder.append(commandParts[0]);
+        builder.append(dbPath.toString());
         builder.append("." + version);
 
         //Add back on any command parts
