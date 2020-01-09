@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -589,6 +591,41 @@ public class PermissionService {
             }
         }
         return;
+    }
+
+    /**
+     * Provides detailed information on the permission held by a user for a given query string.
+     *
+     * Also filters out any permissions that are not held by currentUser,
+     * so not all permissions or users are viewable.
+     *
+     * If the currentUser is an admin then everything is visible
+     *
+     * @param currentUser - user to limit details of view to their permissions groups
+     * @param query - Any permissions to show as already added in the UI
+     * @param user - PermissionHolder for whom to check permissions
+     * @return Null if no permissions align else the permissions details with only the viewable groups
+     */
+    public UserRolesDetails getPermissionDetails(PermissionHolder currentUser, Collection<String> query, PermissionHolder user) {
+        UserRolesDetails d = new UserRolesDetails(user.getPermissionHolderName(), user.hasAdminRole());
+
+        boolean currentUserAdmin = currentUser.hasAdminRole();
+
+        // Add any matching groups
+        for (Role role : user.getRoles()) {
+            if (currentUserAdmin || hasSingleRole(currentUser, role)) {
+                d.getAllRoles().add(role);
+
+                if (query.contains(role.getXid())) {
+                    d.getMatchingRoles().add(role);
+                }
+            }
+        }
+
+        if (d.getAllRoles().size() == 0)
+            return null;
+
+        return d;
     }
 
     /**
