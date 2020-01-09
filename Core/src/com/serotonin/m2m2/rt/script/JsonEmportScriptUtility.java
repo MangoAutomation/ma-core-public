@@ -1,5 +1,6 @@
 package com.serotonin.m2m2.rt.script;
 
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -59,9 +60,9 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     public String getContextKey() {
         return CONTEXT_KEY;
     }
-    
+
     @Override
-    public void takeContext(ScriptEngine engine, Bindings engineScope, 
+    public void takeContext(ScriptEngine engine, Bindings engineScope,
             ScriptPointValueSetter setter, List<JsonImportExclusion> importExclusions, boolean testRun) {
         this.importExclusions = importExclusions;
     }
@@ -71,10 +72,12 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getFullConfiguration(int prettyIndent) {
-        EmportService service = Common.getBean(EmportService.class);
+        EmportService<?,?,?> service = Common.getBean(EmportService.class);
         Common.setUser(permissions);
         try{
-            return service.export(ConfigurationExportData.createExportDataMap(null), prettyIndent);
+            StringWriter stringWriter = new StringWriter();
+            service.export(ConfigurationExportData.createExportDataMap(null), stringWriter, prettyIndent);
+            return stringWriter.toString();
         }catch(PermissionException e) {
             return "{}";
         }finally {
@@ -90,7 +93,10 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         Common.setUser(permissions);
         try {
             Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
-            return Common.getBean(EmportService.class).export(data, prettyIndent);
+            StringWriter stringWriter = new StringWriter();
+            EmportService<?,?,?> service = Common.getBean(EmportService.class);
+            service.export(data, stringWriter, prettyIndent);
+            return stringWriter.toString();
         }catch(PermissionException e) {
             return "{}";
         }finally {
@@ -119,7 +125,10 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         }
         Common.setUser(permissions);
         try{
-            return Common.getBean(EmportService.class).export(data, prettyIndent);
+            StringWriter stringWriter = new StringWriter();
+            EmportService<?,?,?> service = Common.getBean(EmportService.class);
+            service.export(data, stringWriter, prettyIndent);
+            return stringWriter.toString();
         }catch(PermissionException e) {
             return "{}";
         }finally {
@@ -143,7 +152,10 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         }
         Common.setUser(permissions);
         try{
-            return Common.getBean(EmportService.class).export(data, prettyIndent);
+            StringWriter stringWriter = new StringWriter();
+            EmportService<?,?,?> service = Common.getBean(EmportService.class);
+            service.export(data, stringWriter, prettyIndent);
+            return stringWriter.toString();
         }catch(PermissionException e) {
             return "{}";
         }finally {
@@ -193,7 +205,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             }
         }
     }
-    
+
     public void setImportDuringValidation(boolean importDuringValidation) {
         this.importDuringValidation = importDuringValidation;
     }
@@ -202,7 +214,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
         @SuppressWarnings("unchecked")
         public ScriptImportTask(JsonObject jo, PermissionHolder holder) {
-            super(jo, Common.getTranslations(), holder, 
+            super(jo, Common.getTranslations(), holder,
                     Common.getBean(UsersService.class),
                     Common.getBean(MailingListService.class),
                     Common.getBean(DataSourceService.class),
