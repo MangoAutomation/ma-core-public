@@ -114,6 +114,7 @@ import com.serotonin.m2m2.rt.event.type.definition.SystemStartupEventTypeDefinit
 import com.serotonin.m2m2.rt.event.type.definition.UpgradeCheckEventTypeDefinition;
 import com.serotonin.m2m2.rt.event.type.definition.UserLoginEventTypeDefinition;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.provider.Providers;
 
@@ -238,7 +239,7 @@ public class ModuleRegistry {
     //
     // Data source special handling
     //
-    public static DataSourceDefinition getDataSourceDefinition(String type) {
+    public static <T extends DataSourceVO<T>> DataSourceDefinition<T> getDataSourceDefinition(String type) {
         ensureDataSourceDefinitions();
         return DATA_SOURCE_DEFINITIONS.get(type);
     }
