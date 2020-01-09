@@ -4,12 +4,13 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +48,6 @@ import com.serotonin.json.type.JsonString;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.UpgradeVersionState;
@@ -348,14 +348,11 @@ public class ModulesService implements ModuleNotificationListener {
                 SystemSettingsDao.instance.getIntValue(SystemSettingsDao.UPGRADE_VERSION_STATE));
 
         Properties props = new Properties();
-        File propFile = new File(Common.MA_HOME + File.separator + "release.properties");
+        Path propFile = Common.MA_HOME_PATH.resolve("release.properties");
         int versionState = UpgradeVersionState.DEVELOPMENT;
-        if (propFile.exists()) {
-            InputStream in = new FileInputStream(propFile);
-            try {
+        if (Files.isRegularFile(propFile)) {
+            try (InputStream in = Files.newInputStream(propFile)) {
                 props.load(in);
-            } finally {
-                in.close();
             }
             String currentVersionState = props.getProperty("versionState");
             try {
@@ -429,8 +426,8 @@ public class ModulesService implements ModuleNotificationListener {
         private final List<StringStringPair> modules;
         private final boolean backup;
         private final boolean restart;
-        private final File coreDir = new File(Common.MA_HOME);
-        private final File moduleDir = new File(coreDir, Constants.DIR_WEB + "/" + Constants.DIR_MODULES);
+        private final File coreDir = Common.MA_HOME_PATH.toFile();
+        private final File moduleDir = Common.MODULES.toFile();
         private volatile boolean cancelled = false;
         private PermissionHolder user;
 
@@ -596,10 +593,8 @@ public class ModulesService implements ModuleNotificationListener {
                 }
 
                 for (File file : files) {
-                    File targetDir =
-                            file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + ModuleRegistry.CORE_MODULE_NAME)
-                            ? coreDir
-                                    : moduleDir;
+                    File targetDir = file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + ModuleRegistry.CORE_MODULE_NAME) ? coreDir : moduleDir;
+
                     try {
                         FileUtils.moveFileToDirectory(file, targetDir, false);
                     } catch (IOException e) {
