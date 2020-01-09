@@ -6,11 +6,14 @@ package com.serotonin.m2m2.db.dao;
 import java.util.List;
 
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
+import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
@@ -137,16 +140,8 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      */
     public int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition);
 
-
     /**
-     * Create a custom query with callback for each row
-     * @param conditions
-     * @param callback
-     */
-    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback);
-
-    /**
-     * Create a custom query with callback for each row.
+     * Explicit convenience method for verbose custom queries
      * @param select
      * @param condition
      * @param sort
@@ -157,10 +152,33 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback);
 
     /**
-     * Get the select query without any joins
+     * Create a custom query with callback for each row
+     * @param conditions
+     * @param callback
+     */
+    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback);
+
+    /**
+     * Execute a custom query and extract results
+     * @param select
+     * @param callback
+     */
+    public void customizedQuery(Select<Record>  select, ResultSetExtractor<Void> callback);
+
+    /**
+     * Execute a query for these VOs based on the conditions
+     *
+     * @param conditions
+     * @param callback
+     */
+    public void customizedQuery(Condition conditions, MappedRowCallback<T> callback);
+
+    /**
+     * Get the select query for the supplied fields without any joins
+     * @param fields
      * @return
      */
-    //public SelectJoinStep<Record> getSelectQuery();
+    public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields);
 
     /**
      * Get the select query with default joins

@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -10,9 +11,13 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.Select;
 import org.jooq.SelectJoinStep;
-import org.jooq.SortField;
+import org.jooq.SelectSelectStep;
+import org.springframework.jdbc.core.ResultSetExtractor;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
@@ -319,16 +324,28 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
-     * Create a custom query with callback for each row.
+     * Execute arbitrary queries on the database
      * @param select
-     * @param condition
-     * @param sort
-     * @param limit
-     * @param offset
      * @param callback
      */
-    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
-        this.dao.customizedQuery(select, condition, sort, limit, offset, callback);
+    public void customizedQuery(Select<Record> select, ResultSetExtractor<Void> callback) {
+        this.dao.customizedQuery(select, callback);
+    }
+
+    /**
+     * Get all matching items that calling use has read permission for
+     * @param conditions
+     * @param callback
+     */
+    public void customizedQuery(Condition conditions, MappedRowCallback<T> callback) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        dao.customizedQuery(conditions, (vo, index) -> {
+            if(hasReadPermission(user, vo)) {
+                callback.row(vo, index);
+            }
+        });
     }
 
     /**
@@ -340,6 +357,13 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         return this.dao.joinTables(select);
     }
 
+    /**
+     * Get the select query for the supplied fields without any joins
+     * @return
+     */
+    public SelectJoinStep<Record> getSelectQuery(Field<?>... fields) {
+        return dao.getSelectQuery(Arrays.asList(fields));
+    }
 
     /**
      * Count VOs
@@ -357,6 +381,14 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public int customizedCount(ASTNode conditions) {
         return dao.customizedCount(dao.rqlToCondition(conditions));
+    }
+
+    /**
+     * Get the count query for this table
+     * @return
+     */
+    public SelectSelectStep<Record1<Integer>> getCountQuery() {
+        return dao.getCountQuery();
     }
 
     /**

@@ -267,11 +267,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         return items;
     }
 
+    @Override
+    public SelectJoinStep<Record> getSelectQuery(List<Field<?>> fields) {
+        return this.create.select(fields)
+                .from(this.table.getTableAsAlias());
+    }
 
     @Override
     public SelectJoinStep<Record> getJoinedSelectQuery() {
-        SelectJoinStep<Record> query = this.create.select(getSelectFields())
-                .from(this.table.getTableAsAlias());
+        SelectJoinStep<Record> query = getSelectQuery(getSelectFields());
         return joinTables(query);
     }
 
@@ -402,6 +406,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
+    public void customizedQuery(Condition conditions, MappedRowCallback<T> callback) {
+        customizedQuery(getSelectQuery(getSelectFields()), conditions, null, null, null, callback);
+    }
+
+    @Override
     public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
         SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
@@ -415,8 +424,15 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             }
         }
 
-        String sql = offsetStep.getSQL();
-        List<Object> arguments = offsetStep.getBindValues();
+        customizedQuery(offsetStep, getCallbackResultSetExtractor(callback));
+    }
+
+    @Override
+    public void customizedQuery(Select<Record> select,
+            ResultSetExtractor<Void> callback) {
+
+        String sql = select.getSQL();
+        List<Object> arguments = select.getBindValues();
         Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
 
         LogStopWatch stopWatch = null;
@@ -424,10 +440,10 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             stopWatch = new LogStopWatch();
         }
 
-        this.query(sql, argumentsArray, getCallbackResultSetExtractor(callback));
+        this.query(sql, argumentsArray, callback);
 
         if (stopWatch != null) {
-            stopWatch.stop("customizedQuery(): " + this.create.renderInlined(offsetStep), metricsThreshold);
+            stopWatch.stop("customizedQuery(): " + this.create.renderInlined(select), metricsThreshold);
         }
     }
 
