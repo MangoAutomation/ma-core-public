@@ -16,7 +16,7 @@ import com.serotonin.m2m2.vo.AbstractBasicVO;
  * @author Terry Packer
  *
  */
-public class AuditEventInstanceVO extends AbstractBasicVO{
+public class AuditEventInstanceVO extends AbstractBasicVO {
 
     public static final int CHANGE_TYPE_CREATE = 1;
     public static final int CHANGE_TYPE_MODIFY = 2;
