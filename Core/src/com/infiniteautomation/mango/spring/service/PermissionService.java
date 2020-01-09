@@ -634,8 +634,21 @@ public class PermissionService {
      * @param groups
      * @return
      */
-    public Set<Role> explodeLegacyPermissionGroupsToRoles(String groups){
+    public Set<Role> explodeLegacyPermissionGroupsToRoles(String groups) {
         Set<String> permissions = explodeLegacyPermissionGroups(groups);
+        return explodeLegacyPermissionGroupsToRoles(permissions);
+    }
+
+    /**
+     * Explode a set of strings (role xids) into a set of Role objects
+     *  if the Role doesn't exist it is still added but with an ID of -1
+     * @param permissions
+     * @return
+     */
+    public Set<Role> explodeLegacyPermissionGroupsToRoles(Set<String> permissions) {
+        if(permissions == null) {
+            return Collections.emptySet();
+        }
         Set<Role> roles = new HashSet<>(permissions.size());
         for(String permission : permissions) {
             RoleVO vo = roleDao.getByXid(permission);
