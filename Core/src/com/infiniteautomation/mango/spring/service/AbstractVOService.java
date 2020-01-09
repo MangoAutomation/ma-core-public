@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.service;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -18,21 +19,21 @@ import com.serotonin.validation.StringValidation;
 
 /**
  * Base Service
- * 
+ *
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends AbstractVOAccess<T>> extends AbstractBasicVOService<T,DAO> {
-        
+public abstract class AbstractVOService<T extends AbstractVO<?>, TABLE extends AbstractTableDefinition, DAO extends AbstractVOAccess<T, TABLE>> extends AbstractBasicVOService<T,TABLE,DAO> {
+
     /**
-     * 
+     *
      * @param dao
      * @param permissionService
      */
     public AbstractVOService(DAO dao, PermissionService permissionService) {
         super(dao, permissionService);
     }
-    
+
     /**
      * Validate a VO
      * @param vo
@@ -61,7 +62,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     }
 
     /**
-     * 
+     *
      * @param xid
      * @return
      * @throws NotFoundException
@@ -69,7 +70,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
      */
     public T get(String xid) throws NotFoundException, PermissionException {
         T vo = dao.getByXid(xid);
-           
+
         if(vo == null)
             throw new NotFoundException();
         PermissionHolder user = Common.getUser();
@@ -78,7 +79,7 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     }
 
     /**
-     * 
+     *
      * @param vo
      * @return
      * @throws PermissionException
@@ -89,25 +90,25 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
         PermissionHolder user = Common.getUser();
         //Ensure they can create
         ensureCreatePermission(user, vo);
-        
+
         //Ensure id is not set
         if(vo.getId() != Common.NEW_ID) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("id", "validate.invalidValue");
             throw new ValidationException(result);
         }
-        
+
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
-        
+
         ensureValid(vo, user);
         dao.insert(vo);
         return vo;
     }
 
     /**
-     * Update a vo 
+     * Update a vo
      * @param existingXid
      * @param vo
      * @return
@@ -118,8 +119,8 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
     public T update(String existingXid, T vo) throws PermissionException, ValidationException, NotFoundException {
         return update(get(existingXid), vo);
     }
-   
-    
+
+
     /**
      * Delete a VO and its relational data
      * @param xid
@@ -131,5 +132,5 @@ public abstract class AbstractVOService<T extends AbstractVO<?>, DAO extends Abs
         T vo = get(xid);
         return delete(vo);
     }
-    
+
 }

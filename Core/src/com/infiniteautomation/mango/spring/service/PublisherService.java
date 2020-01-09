@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -28,9 +29,9 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  *
  */
 @Service
-public class PublisherService<T extends PublishedPointVO> extends AbstractVOService<PublisherVO<T>, PublisherDao<T>> {
+public class PublisherService<T extends PublishedPointVO> extends AbstractVOService<PublisherVO<T>, PublisherTableDefinition, PublisherDao<T>> {
 
-    @Autowired 
+    @Autowired
     public PublisherService(PublisherDao<T> dao, PermissionService permissionService) {
         super(dao, permissionService);
     }
@@ -56,42 +57,42 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
         PermissionHolder user = Common.getUser();
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
-        
+
         //Ensure we don't presume to exist
         if(vo.getId() != Common.NEW_ID) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("id", "validate.invalidValue");
             throw new ValidationException(result);
         }
-        
+
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
-        
+
         ensureValid(vo, user);
         Common.runtimeManager.savePublisher(vo);
-        
+
         return vo;
     }
-    
+
     @Override
     public PublisherVO<T> update(PublisherVO<T> existing, PublisherVO<T> vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
-        
+
         //Ensure matching data source types
         if(!StringUtils.equals(existing.getDefinition().getPublisherTypeName(), vo.getDefinition().getPublisherTypeName())) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("definition.publisherTypeName", "validate.publisher.incompatiblePublisherType");
             throw new ValidationException(result);
         }
-        
+
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
         Common.runtimeManager.savePublisher(vo);
         return vo;
     }
-    
+
     @Override
     public PublisherVO<T> delete(String xid)
             throws PermissionException, NotFoundException {
@@ -101,7 +102,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
         Common.runtimeManager.deletePublisher(vo.getId());
         return vo;
     }
-    
+
     /**
      * @param xid
      * @param enabled
@@ -117,16 +118,16 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
         } else if(vo.isEnabled() != enabled) {
             vo.setEnabled(enabled);
             Common.runtimeManager.savePublisher(vo);
-        }        
+        }
     }
-    
+
     @Override
     public ProcessResult validate(PublisherVO<T> vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
         vo.getDefinition().validate(response, vo, user);
         return response;
     }
-    
+
     @Override
     public ProcessResult validate(PublisherVO<T> existing, PublisherVO<T> vo,
             PermissionHolder user) {
@@ -134,7 +135,7 @@ public class PublisherService<T extends PublishedPointVO> extends AbstractVOServ
         vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
-    
+
     private ProcessResult commonValidation(PublisherVO<T> vo, PermissionHolder user) {
         ProcessResult response = super.validate(vo, user);
         if (vo.isSendSnapshot()) {

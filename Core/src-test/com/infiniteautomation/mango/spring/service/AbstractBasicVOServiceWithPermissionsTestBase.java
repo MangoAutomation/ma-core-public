@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -22,16 +23,16 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends AbstractBasicVO, DAO extends AbstractBasicDao<VO>, SERVICE extends AbstractBasicVOService<VO,DAO>> extends AbstractBasicVOServiceTest<VO, DAO, SERVICE> {
+public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition, DAO extends AbstractBasicDao<VO, TABLE>, SERVICE extends AbstractBasicVOService<VO, TABLE, DAO>> extends AbstractBasicVOServiceTest<VO, TABLE, DAO, SERVICE> {
 
     public AbstractBasicVOServiceWithPermissionsTestBase() {
-        
+
     }
-    
+
     public AbstractBasicVOServiceWithPermissionsTestBase(boolean enableWebDb, int webDbPort) {
         super(enableWebDb, webDbPort);
     }
-    
+
     /**
      * The type name for the create permission of the VO
      * @return
@@ -39,7 +40,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     abstract String getCreatePermissionType();
     abstract void setReadRoles(Set<Role> roles, VO vo);
     abstract void setEditRoles(Set<Role> roles, VO vo);
-    
+
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
         VO vo = newVO();
@@ -66,7 +67,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }
         });
     }
-    
+
     @Test
     public void testUserReadRole() {
         runTest(() -> {
@@ -87,7 +88,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }
         });
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testUserReadRoleFails() {
         runTest(() -> {
@@ -108,7 +109,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }
         });
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testReadRolesCannotBeNull() {
         VO vo = newVO();
@@ -120,7 +121,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             Common.removeUser();
         }
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testCannotRemoveReadAccess() {
         VO vo = newVO();
@@ -142,7 +143,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             Common.removeUser();
         }
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testAddReadRoleUserDoesNotHave() {
         VO vo = newVO();
@@ -164,7 +165,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             Common.removeUser();
         }
     }
-    
+
     @Test
     public void testUserEditRole() {
         runTest(() -> {
@@ -189,7 +190,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }
         });
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testUserEditRoleFails() {
         runTest(() -> {
@@ -214,7 +215,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }
         });
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testEditRolesCannotBeNull() {
         VO vo = newVO();
@@ -226,7 +227,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             Common.removeUser();
         }
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testCannotRemoveEditAccess() {
         VO vo = newVO();
@@ -247,9 +248,9 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         }finally {
             Common.removeUser();
         }
-    
+
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testAddEditRoleUserDoesNotHave() {
         VO vo = newVO();
@@ -271,7 +272,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             Common.removeUser();
         }
     }
-    
+
     @Test
     public void testUserCanDelete() {
         runTest(() -> {
@@ -286,10 +287,10 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }finally {
                 Common.removeUser();
             }
-        
+
         });
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testUserDeleteFails() {
         runTest(() -> {
@@ -308,7 +309,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }
         });
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testSuperadminReadRole() {
         runTest(() -> {
@@ -328,7 +329,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             }
         });
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testSuperadminEditRole() {
         runTest(() -> {
@@ -345,13 +346,13 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
             try {
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
-                service.update(fromDb.getId(), fromDb);     
+                service.update(fromDb.getId(), fromDb);
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     @Test
     public void testDeleteRoleUpdateVO() {
         runTest(() -> {
@@ -388,18 +389,18 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
-                
+
                 //Ensure the mappings are gone
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.READ).size());
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.EDIT).size());
-                
+
                 service.get(vo.getId());
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     void addRoleToCreatePermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {

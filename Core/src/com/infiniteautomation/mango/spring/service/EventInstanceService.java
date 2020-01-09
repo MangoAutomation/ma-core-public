@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.EventInstanceDao;
@@ -32,10 +33,10 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  */
 @Service
-public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceDao> {
+public class EventInstanceService extends AbstractVOService<EventInstanceVO, EventInstanceTableDefinition, EventInstanceDao> {
 
     private final DataPointService dataPointService;
-    
+
     @Autowired
     public EventInstanceService(EventInstanceDao dao, PermissionService permissionService, DataPointService dataPointService) {
         super(dao, permissionService);
@@ -60,10 +61,10 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             return permissionService.hasEventTypePermission(user, vo.getEventType());
         }
     }
-    
+
     /**
      * Get the active summary of events for a user
-     * 
+     *
      * @param user
      * @return
      * @throws NotFoundException
@@ -74,28 +75,28 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
         //This query is slow the first time as it must fill the UserEventCache
         List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user.getId());
-        
+
         UserEventLevelSummary lifeSafety = new UserEventLevelSummary(AlarmLevels.LIFE_SAFETY);
         list.add(lifeSafety);
-        
+
         UserEventLevelSummary critical = new UserEventLevelSummary(AlarmLevels.CRITICAL);
         list.add(critical);
-        
+
         UserEventLevelSummary urgent = new UserEventLevelSummary(AlarmLevels.URGENT);
         list.add(urgent);
-        
+
         UserEventLevelSummary warning = new UserEventLevelSummary(AlarmLevels.WARNING);
         list.add(warning);
-        
+
         UserEventLevelSummary important = new UserEventLevelSummary(AlarmLevels.IMPORTANT);
         list.add(important);
-        
+
         UserEventLevelSummary information = new UserEventLevelSummary(AlarmLevels.INFORMATION);
         list.add(information);
-        
+
         UserEventLevelSummary none = new UserEventLevelSummary(AlarmLevels.NONE);
         list.add(none);
-        
+
         UserEventLevelSummary doNotLog = new UserEventLevelSummary(AlarmLevels.DO_NOT_LOG);
         list.add(doNotLog);
 
@@ -156,7 +157,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             DataPointVO point = dataPointService.get(xid);
             map.put(point.getId(), new DataPointEventLevelSummary(xid));
         }
-        
+
         List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user.getId());
         for(EventInstance event : events) {
             if(EventType.EventTypeNames.DATA_POINT.equals(event.getEventType().getEventType())) {
@@ -180,5 +181,5 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         Common.eventManager.acknowledgeEventById(id, System.currentTimeMillis(), user, message);
         return vo;
     }
-    
+
 }

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import com.google.common.base.Objects;
 import com.infiniteautomation.mango.permission.UserRolesDetails;
+import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.spring.service.PasswordService.PasswordInvalidException;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -63,7 +64,7 @@ import freemarker.template.TemplateException;
  *
  */
 @Service
-public class UsersService extends AbstractVOService<User, UserDao> {
+public class UsersService extends AbstractVOService<User, UserTableDefinition, UserDao> {
 
     private final RoleDao roleDao;
     private final SystemSettingsDao systemSettings;

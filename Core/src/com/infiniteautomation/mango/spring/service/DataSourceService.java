@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -36,18 +37,20 @@ import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
- * 
+ *
  * @author Terry Packer
  *
  */
 @Service
-public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOService<T, DataSourceDao<T>> {
+public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOService<T, DataSourceTableDefinition, DataSourceDao<T>> {
 
     private final DataPointService dataPointService;
     private final DataSourcePermissionDefinition createPermission;
-    
+
     @Autowired
-    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService, DataPointService dataPointService, DataSourcePermissionDefinition createPermission) {
+    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService,
+            DataPointService dataPointService,
+            DataSourcePermissionDefinition createPermission) {
         super(dao, permissionService);
         this.dataPointService = dataPointService;
         this.createPermission = createPermission;
@@ -57,7 +60,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     public Set<Role> getCreatePermissionRoles() {
         return createPermission.getRoles();
     }
-    
+
     @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
@@ -70,7 +73,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             }
         }
     }
-    
+
     @Override
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
         return permissionService.hasDataSourcePermission(user);
@@ -92,43 +95,43 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         PermissionHolder user = Common.getUser();
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
-        
+
         //Ensure we don't presume to exist
         if(vo.getId() != Common.NEW_ID) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("id", "validate.invalidValue");
             throw new ValidationException(result);
         }
-        
+
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
-        
+
         ensureValid(vo, user);
         Common.runtimeManager.insertDataSource(vo);
-        
+
         return vo;
     }
-    
-    
+
+
     @Override
     public T update(T existing, T vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
-        
+
         //Ensure matching data source types
         if(!StringUtils.equals(existing.getDefinition().getDataSourceTypeName(), vo.getDefinition().getDataSourceTypeName())) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("definition.dataSourceTypeName", "validate.incompatibleDataSourceType");
             throw new ValidationException(result);
         }
-        
+
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
         Common.runtimeManager.updateDataSource(existing, vo);
         return vo;
     }
-    
+
     @Override
     public T delete(String xid)
             throws PermissionException, NotFoundException {
@@ -138,7 +141,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         Common.runtimeManager.deleteDataSource(vo.getId());
         return vo;
     }
-    
+
     /**
      * Get a definition for a data source
      * @param dataSourceType
@@ -147,13 +150,12 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      */
     public DataSourceDefinition<T> getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
         permissionService.ensureDataSourcePermission(user);
-        @SuppressWarnings("unchecked")
         DataSourceDefinition<T> def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
             throw new NotFoundException();
         return def;
     }
-    
+
     /**
      * Enable/disable/restart a data source
      * @param xid
@@ -205,7 +207,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         }else {
             newXid = copyXid;
         }
-        
+
         String newDeviceName;
         if(StringUtils.isEmpty(copyDeviceName)) {
             newDeviceName = existing.getName();
@@ -218,25 +220,25 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             result.addMessage("deviceName", new TranslatableMessage("validate.notLongerThan", 255));
             throw new ValidationException(result);
         }
-        
+
         T copy = existing.copy();
         copy.setId(Common.NEW_ID);
         copy.setName(newName);
         copy.setXid(newXid);
         copy.setEnabled(enabled);
         ensureValid(copy, user);
-        
+
         //Save it
         Common.runtimeManager.insertDataSource(copy);
-        
+
         if(copyPoints) {
             copyDataSourcePoints(existing.getId(), copy, newDeviceName);
         }
         return get(newXid);
     }
-   
+
     /**
-     * 
+     *
      * @param dataSourceId - original id to get points from
      * @param dataSourceCopy
      * @param newDeviceName - if null will use data source copy's name
@@ -252,7 +254,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             dataPointCopy.setDeviceName(newDeviceName != null ? newDeviceName : dataSourceCopy.getName());
             dataPointCopy.setDataSourceId(dataSourceCopy.getId());
             dataPointCopy.setEnabled(dataPoint.isEnabled());
-            
+
             //Copy Tags
             dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
             //Copy event detectors and simulate them being new
@@ -274,7 +276,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         vo.getDefinition().validate(response, vo, user);
         return response;
     }
-    
+
     @Override
     public ProcessResult validate(T existing, T vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
@@ -285,7 +287,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
-    
+
     protected ProcessResult commonValidation(T vo, PermissionHolder user) {
         ProcessResult response = super.validate(vo, user);
         if (vo.isPurgeOverride()) {
@@ -295,8 +297,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             if (vo.getPurgePeriod() <= 0)
                 response.addContextualMessage("purgePeriod", "validate.greaterThanZero");
         }
-        
+
         return response;
     }
-    
+
 }

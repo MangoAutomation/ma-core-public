@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.io.Files;
+import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
@@ -41,7 +42,7 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class FileStoreService extends AbstractBasicVOService<FileStore, FileStoreDao> {
+public class FileStoreService extends AbstractBasicVOService<FileStore, FileStoreTableDefinition, FileStoreDao> {
 
     /**
      * @param dao

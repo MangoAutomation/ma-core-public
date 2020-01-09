@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
@@ -20,7 +21,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<JsonDataVO, JsonDataDao, JsonDataService>{
+public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<JsonDataVO, JsonDataTableDefinition, JsonDataDao, JsonDataService>{
 
     @Override
     String getCreatePermissionType() {
@@ -34,7 +35,7 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
 
     @Override
     void setEditRoles(Set<Role> roles, JsonDataVO vo) {
-        vo.setEditRoles(roles);        
+        vo.setEditRoles(roles);
     }
 
     @Override
@@ -52,7 +53,7 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
-        
+
         //TODO assert json value
     }
 

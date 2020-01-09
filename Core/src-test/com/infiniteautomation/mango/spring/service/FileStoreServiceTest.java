@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Set;
 import java.util.UUID;
 
+import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
 import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
@@ -18,8 +19,8 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsTestBase<FileStore, FileStoreDao, FileStoreService> {
-    
+public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsTestBase<FileStore, FileStoreTableDefinition, FileStoreDao, FileStoreService> {
+
     @Override
     public FileStoreService getService() {
         return Common.getBean(FileStoreService.class);

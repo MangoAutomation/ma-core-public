@@ -40,7 +40,7 @@ import com.serotonin.m2m2.vo.mailingList.UserEntry;
  * @author Matthew Lohbihler
  */
 @Repository
-public class MailingListDao extends AbstractDao<MailingList> {
+public class MailingListDao extends AbstractDao<MailingList, MailingListTableDefinition> {
 
     private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(MailingListDao.class);
@@ -71,7 +71,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
     public List<MailingList> getAlarmMailingLists(AlarmLevels alarmLevel) {
         return getTransactionTemplate().execute(status -> {
             List<MailingList> result = new ArrayList<>();
-            query(getSelectQuery().getSQL() + " where receiveAlarmEmails>=0 and receiveAlarmEmails<=?", new Object[] {alarmLevel.value()}, new MailingListRowMapper(), (list, index) -> {
+            query(getJoinedSelectQuery().getSQL() + " where receiveAlarmEmails>=0 and receiveAlarmEmails<=?", new Object[] {alarmLevel.value()}, new MailingListRowMapper(), (list, index) -> {
                 try{
                     loadRelationalData(list);
                     result.add(list);
@@ -147,7 +147,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
                 ps.setString(4, e.getReferenceAddress());
             }
         });
-        
+
         //Replace the role mappings
         RoleDao.getInstance().replaceRolesOnVoPermission(ml.getReadRoles(), ml, PermissionService.READ, insert);
         RoleDao.getInstance().replaceRolesOnVoPermission(ml.getEditRoles(), ml, PermissionService.EDIT, insert);
@@ -167,7 +167,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
 
         // Update the user type entries with their respective user objects.
         populateEntrySubclasses(ml.getEntries());
-        
+
         //Populate permissions
         ml.setReadRoles(RoleDao.getInstance().getRoles(ml, PermissionService.READ));
         ml.setEditRoles(RoleDao.getInstance().getRoles(ml, PermissionService.EDIT));
@@ -185,7 +185,7 @@ public class MailingListDao extends AbstractDao<MailingList> {
             }
         }
     }
-    
+
     @Override
     public void deleteRelationalData(MailingList vo) {
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);

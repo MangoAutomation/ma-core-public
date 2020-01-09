@@ -58,21 +58,21 @@ import net.jazdw.rql.parser.ASTNode;
  *
  */
 @Repository()
-public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
-    
+public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstanceTableDefinition> {
+
     public static final Table<? extends Record> USER_EVENTS_TABLE = DSL.table("userEvents");
     public static final Name USER_EVENTS_ALIAS = DSL.name("ue");
-    
+
     private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventInstanceDao.class);
         if(o == null)
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (EventInstanceDao)o;
     });
-    
+
     private final UserTableDefinition userTable;
     private final UserCommentTableDefinition userCommentTable;
-    
+
     @Autowired
     private EventInstanceDao(EventInstanceTableDefinition table,
             UserTableDefinition userTable,
@@ -142,13 +142,13 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         map.put("userId", new IntStringPair(Types.INTEGER, "ue.userId")); //Mapping for user
         return map;
     }
-    
+
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
         select = select.join(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(this.table.getAlias("ackUserId")));
         return select.join(USER_EVENTS_TABLE.as(USER_EVENTS_ALIAS)).on(DSL.field(USER_EVENTS_ALIAS.append("eventId")).eq(this.table.getAlias("id")));
     }
-    
+
     @Override
     public List<Field<?>> getSelectFields() {
         List<Field<?>> fields = super.getSelectFields();
@@ -254,7 +254,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @return
      */
     public EventInstanceVO getHighestUnsilencedEvent(int userId, AlarmLevels level) {
-        return ejt.queryForObject(getSelectQuery().getSQL()
+        return ejt.queryForObject(getJoinedSelectQuery().getSQL()
                 + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level.value() },getRowMapper(), null);
     }
 
@@ -263,7 +263,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
      * @return
      */
     public List<EventInstanceVO> getUnsilencedEvents(int userId) {
-        return ejt.query(getSelectQuery().getSQL()
+        return ejt.query(getJoinedSelectQuery().getSQL()
                 + "where ue.silenced=? and ue.userId=?", new Object[] { boolToChar(false), userId },getRowMapper());
 
     }
@@ -305,13 +305,13 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
     public int countUnsilencedEvents(int userId, AlarmLevels level) {
         return ejt.queryForInt(getCountQuery().getSQL() + " where ue.silenced=? and ue.userId=? and evt.alarmLevel=?", new Object[] { boolToChar(false), userId, level.value() }, 0);
     }
-    
+
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql) {
         RQLToEventInstanceConditions rqlToSelect = new RQLToEventInstanceConditions(this.table.getAliasMap(), this.valueConverterMap);
         return rqlToSelect.visit(rql);
     }
-    
+
     @Override
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
         Map<String, Function<Object, Object>> map = new HashMap<>(super.createValueConverterMap());
@@ -325,13 +325,13 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO> {
         });
         return map;
     }
-    
+
     public static class RQLToEventInstanceConditions extends RQLToCondition {
-        
+
         public RQLToEventInstanceConditions(Map<String, Field<?>> fieldMapping, Map<String, Function<Object, Object>> valueConverterMap) {
             super(fieldMapping, valueConverterMap);
         }
-        
+
         @Override
         protected Condition visitConditionNode(ASTNode node) {
             String property = (String) node.getArgument(0);

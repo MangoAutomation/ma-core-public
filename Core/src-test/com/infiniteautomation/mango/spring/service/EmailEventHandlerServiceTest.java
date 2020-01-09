@@ -11,6 +11,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.m2m2.Common;
@@ -28,7 +29,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEventHandlerVO, EventHandlerDao<EmailEventHandlerVO>, EventHandlerService<EmailEventHandlerVO>> {
+public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEventHandlerVO, EventHandlerTableDefinition, EventHandlerDao<EmailEventHandlerVO>, EventHandlerService<EmailEventHandlerVO>> {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {

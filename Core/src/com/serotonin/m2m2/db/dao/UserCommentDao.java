@@ -35,12 +35,12 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 
 /**
  * We don't use XIDs for comments yet.
- * 
+ *
  * @author Terry Packer
  *
  */
 @Repository()
-public class UserCommentDao  extends AbstractDao<UserCommentVO>{
+public class UserCommentDao  extends AbstractDao<UserCommentVO, UserCommentTableDefinition>{
 
     private static final LazyInitSupplier<UserCommentDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(UserCommentDao.class);
@@ -48,17 +48,17 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (UserCommentDao)o;
     });
-    
+
     private final UserTableDefinition userTable;
 
     @Autowired
-	private UserCommentDao(UserCommentTableDefinition table,
-	        UserTableDefinition userTable,
-	        @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
+    private UserCommentDao(UserCommentTableDefinition table,
+            UserTableDefinition userTable,
+            @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
-		super(AuditEventType.TYPE_USER_COMMENT, table, null, mapper, publisher);
-		this.userTable = userTable;
-	}
+        super(AuditEventType.TYPE_USER_COMMENT, table, null, mapper, publisher);
+        this.userTable = userTable;
+    }
 
     /**
      * Get cached instance from Spring Context
@@ -67,51 +67,52 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
     public static UserCommentDao getInstance() {
         return springInstance.get();
     }
-    
-	public static final String USER_COMMENT_SELECT = "select uc.id, uc.xid, uc.userId, uc.ts, uc.commentText, uc.commentType, uc.typeKey, u.username "
+
+    public static final String USER_COMMENT_SELECT = "select uc.id, uc.xid, uc.userId, uc.ts, uc.commentText, uc.commentType, uc.typeKey, u.username "
             + "from userComments uc left join users u on uc.userId = u.id ";
 
     private static final String POINT_COMMENT_SELECT = USER_COMMENT_SELECT
             + "where uc.commentType= " + UserCommentVO.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
-    
+
     private static final String EVENT_COMMENT_SELECT = USER_COMMENT_SELECT //
             + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
             + " and uc.typeKey=? " //
             + "order by uc.ts";
 
     private static final String JSON_DATA_COMMENT_SELECT = USER_COMMENT_SELECT
-    		+ "where uc.commentType=" + UserCommentVO.TYPE_JSON_DATA 
-    		+ " and uc.typeKey=?"
-    		+ "order by uc.ts";
+            + "where uc.commentType=" + UserCommentVO.TYPE_JSON_DATA
+            + " and uc.typeKey=?"
+            + "order by uc.ts";
     /**
      * Return all comments for a given event
      * @param id
      * @return
      */
     public void getEventComments(int id, MappedRowCallback<UserCommentVO> callback) {
-    	query(EVENT_COMMENT_SELECT, new Object[] { id }, new UserCommentVORowMapper(), callback);
+        query(EVENT_COMMENT_SELECT, new Object[] { id }, new UserCommentVORowMapper(), callback);
     }
-    
+
     /**
      * Return all comments for a given point
      * @param dpId
      * @return
      */
     public void getPointComments(int dpId, MappedRowCallback<UserCommentVO> callback){
-    	query(POINT_COMMENT_SELECT, new Object[] { dpId }, new UserCommentVORowMapper(), callback);
+        query(POINT_COMMENT_SELECT, new Object[] { dpId }, new UserCommentVORowMapper(), callback);
     }
-    
+
     /**
      * Return all comments for a given JsonData Store Entry
      * @param jsonDataId
      * @param callback
      */
     public void getJsonDataComments(int jsonDataId, MappedRowCallback<UserCommentVO> callback){
-    	query(JSON_DATA_COMMENT_SELECT, new Object[] { jsonDataId }, new UserCommentVORowMapper(), callback);
+        query(JSON_DATA_COMMENT_SELECT, new Object[] { jsonDataId }, new UserCommentVORowMapper(), callback);
     }
-    
+
     public  class UserCommentVORowMapper implements RowMapper<UserCommentVO> {
 
+        @Override
         public UserCommentVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             UserCommentVO c = new UserCommentVO();
             int i=0;
@@ -127,46 +128,46 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO>{
         }
     }
 
-	@Override
-	protected String getXidPrefix() {
-		return "UC_";
-	}
+    @Override
+    protected String getXidPrefix() {
+        return "UC_";
+    }
 
-	@Override
-	protected Object[] voToObjectArray(UserCommentVO vo) {
-		return new Object[]{
-				vo.getXid(),
-				vo.getUserId(),
-				vo.getTs(),
-				vo.getComment(),
-				vo.getCommentType(),
-				vo.getReferenceId()
-		};
-	}
+    @Override
+    protected Object[] voToObjectArray(UserCommentVO vo) {
+        return new Object[]{
+                vo.getXid(),
+                vo.getUserId(),
+                vo.getTs(),
+                vo.getComment(),
+                vo.getCommentType(),
+                vo.getReferenceId()
+        };
+    }
 
-	@Override
-	protected Map<String, IntStringPair> getPropertiesMap() {
-		Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
-		map.put("username", new IntStringPair(Types.VARCHAR, "u.username"));
-		map.put("referenceId", new IntStringPair(Types.INTEGER, "typeKey"));
-		map.put("timestamp", new IntStringPair(Types.BIGINT, "ts"));
-		return map;
-	}
+    @Override
+    protected Map<String, IntStringPair> getPropertiesMap() {
+        Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
+        map.put("username", new IntStringPair(Types.VARCHAR, "u.username"));
+        map.put("referenceId", new IntStringPair(Types.INTEGER, "typeKey"));
+        map.put("timestamp", new IntStringPair(Types.BIGINT, "ts"));
+        return map;
+    }
 
-	@Override
-	public RowMapper<UserCommentVO> getRowMapper() {
-		return new UserCommentVORowMapper();
-	}
-	
-	@Override
-	public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-	    return select.join(this.userTable.getTableAsAlias()).on(DSL.field(userTable.getAlias("id")).eq(this.table.getAlias("userId")));
-	}
-	
-	@Override
-	public List<Field<?>> getSelectFields() {
-	    List<Field<?>> fields = super.getSelectFields();
-	    fields.add(userTable.getAlias("username"));
-	    return fields;
-	}
+    @Override
+    public RowMapper<UserCommentVO> getRowMapper() {
+        return new UserCommentVORowMapper();
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        return select.join(this.userTable.getTableAsAlias()).on(DSL.field(userTable.getAlias("id")).eq(this.table.getAlias("userId")));
+    }
+
+    @Override
+    public List<Field<?>> getSelectFields() {
+        List<Field<?>> fields = super.getSelectFields();
+        fields.add(userTable.getAlias("username"));
+        return fields;
+    }
 }

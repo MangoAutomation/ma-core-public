@@ -52,8 +52,8 @@ import com.serotonin.util.SerializationHelper;
  * @author Matthew Lohbihler
  */
 @Repository()
-public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<PublisherVO<T>> {
-    
+public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<PublisherVO<T>, PublisherTableDefinition> {
+
     private static final LazyInitSupplier<PublisherDao<?>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(PublisherDao.class);
         if(o == null)
@@ -67,12 +67,12 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
     private PublisherDao(PublisherTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
-    	super(AuditEventType.TYPE_PUBLISHER,
-    	        table,
-    	        new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
-    	        mapper, publisher);
+        super(AuditEventType.TYPE_PUBLISHER,
+                table,
+                new TranslatableMessage("internal.monitor.PUBLISHER_COUNT"),
+                mapper, publisher);
     }
-    
+
     /**
      * Get cached instance from Spring Context
      * @return
@@ -80,11 +80,13 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
     public static PublisherDao<? extends PublishedPointVO> getInstance() {
         return springInstance.get();
     }
-    
+
+    @Override
     public String generateUniqueXid() {
         return generateUniqueXid(PublisherVO.XID_PREFIX, SchemaDefinition.PUBLISHERS_TABLE);
     }
 
+    @Override
     public boolean isXidUnique(String xid, int excludeId) {
         return isXidUnique(xid, excludeId, SchemaDefinition.PUBLISHERS_TABLE);
     }
@@ -121,7 +123,7 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
     class PublisherExtractor implements ResultSetExtractor<List<PublisherVO<? extends PublishedPointVO>>> {
         @Override
         public List<PublisherVO<? extends PublishedPointVO>> extractData(ResultSet rs) throws SQLException,
-                DataAccessException {
+        DataAccessException {
             PublisherRowMapper rowMapper = new PublisherRowMapper();
             List<PublisherVO<? extends PublishedPointVO>> results = new ArrayList<PublisherVO<? extends PublishedPointVO>>();
             int rowNum = 0;
@@ -166,23 +168,23 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
                     "insert into publishers (xid, publisherType, data) values (?,?,?)",
                     new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
                             SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
-                    		Types.BINARY}));
+                                    Types.BINARY}));
             this.publishEvent(new DaoEvent(this, DaoEventType.CREATE, vo, null, null));
             AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
-        	this.countMonitor.increment();
+            this.countMonitor.increment();
         }else{
             PublisherVO<?> old = getPublisher(vo.getId());
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
                     SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
-                    Types.INTEGER });
+                            Types.INTEGER });
             this.publishEvent(new DaoEvent(this, DaoEventType.UPDATE, vo, null, null));
-        	AuditEventType.raiseChangedEvent(AuditEventType.TYPE_PUBLISHER, old, vo);
+            AuditEventType.raiseChangedEvent(AuditEventType.TYPE_PUBLISHER, old, vo);
         }
-                    
+
     }
 
     public void deletePublisher(final int publisherId) {
-    	PublisherVO<T> vo = getPublisher(publisherId);
+        PublisherVO<T> vo = getPublisher(publisherId);
         final ExtendedJdbcTemplate ejt2 = ejt;
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override
@@ -192,7 +194,7 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
                 ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
             }
         });
-        publishEvent(new DaoEvent<PublisherVO<T>>(this, DaoEventType.DELETE, vo, null, null));
+        publishEvent(new DaoEvent<PublisherVO<T>, PublisherTableDefinition>(this, DaoEventType.DELETE, vo, null, null));
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
         countMonitor.decrement();
     }
@@ -207,18 +209,18 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
     public Object getPersistentData(int id) {
         return query("select rtdata from publishers where id=?", new Object[] { id },
                 new ResultSetExtractor<Serializable>() {
-                    @Override
-                    public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
-                        if (!rs.next())
-                            return null;
+            @Override
+            public Serializable extractData(ResultSet rs) throws SQLException, DataAccessException {
+                if (!rs.next())
+                    return null;
 
-                        InputStream in = rs.getBinaryStream(1);
-                        if (in == null)
-                            return null;
+                InputStream in = rs.getBinaryStream(1);
+                if (in == null)
+                    return null;
 
-                        return (Serializable) SerializationHelper.readObjectInContext(in);
-                    }
-                });
+                return (Serializable) SerializationHelper.readObjectInContext(in);
+            }
+        });
     }
 
     public void savePersistentData(int id, Object data) {
@@ -264,21 +266,21 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
         return usage;
     }
 
-	@Override
-	protected String getXidPrefix() {
-		return PublisherVO.XID_PREFIX;
-	}
+    @Override
+    protected String getXidPrefix() {
+        return PublisherVO.XID_PREFIX;
+    }
 
-	@Override
-	protected Object[] voToObjectArray(PublisherVO<T> vo) {
-		return new Object[] { 
-				vo.getXid(), 
-				vo.getDefinition().getPublisherTypeName(),
+    @Override
+    protected Object[] voToObjectArray(PublisherVO<T> vo) {
+        return new Object[] {
+                vo.getXid(),
+                vo.getDefinition().getPublisherTypeName(),
                 SerializationHelper.writeObjectToArray(vo)};
-	}
+    }
 
-	@Override
-	public RowMapper<PublisherVO<T>> getRowMapper() {
-		return new PublisherRowMapper();
-	}
+    @Override
+    public RowMapper<PublisherVO<T>> getRowMapper() {
+        return new PublisherRowMapper();
+    }
 }

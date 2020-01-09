@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.InvalidArgumentException;
@@ -50,7 +51,7 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class DataPointService extends AbstractVOService<DataPointVO, DataPointDao> {
+public class DataPointService extends AbstractVOService<DataPointVO, DataPointTableDefinition, DataPointDao> {
 
     @Autowired
     public DataPointService(DataPointDao dao, PermissionService permissionService) {
@@ -88,7 +89,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             }
         }
     }
-    
+
     @Override
     public DataPointVO insert(DataPointVO vo)
             throws PermissionException, ValidationException {
@@ -102,7 +103,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             result.addContextualMessage("id", "validate.invalidValue");
             throw new ValidationException(result);
         }
-        
+
         //Generate an Xid if necessary
         if(StringUtils.isEmpty(vo.getXid()))
             vo.setXid(dao.generateUniqueXid());
@@ -111,18 +112,18 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         Common.runtimeManager.insertDataPoint(vo);
         return vo;
     }
-    
+
     @Override
     public DataPointVO update(DataPointVO existing, DataPointVO vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
-        
+
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
         Common.runtimeManager.updateDataPoint(existing, vo);
         return vo;
     }
-    
+
     @Override
     public DataPointVO delete(DataPointVO vo)
             throws PermissionException, NotFoundException {
@@ -131,14 +132,14 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         Common.runtimeManager.deleteDataPoint(vo);
         return vo;
     }
-    
+
     /**
      * Enable/Disable/Restart a data point
      * @param xid - xid of point to restart
      * @param enabled - Enable or disable the data point
      * @param restart - Restart the data point, enabled must equal true
      * @param user
-     * 
+     *
      * @throws NotFoundException
      * @throws PermissionException
      */
@@ -152,7 +153,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             Common.runtimeManager.enableDataPoint(vo, enabled);
         }
     }
-    
+
     @Override
     public ProcessResult validate(DataPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
@@ -160,22 +161,22 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         permissionService.validateVoRoles(result, "setPermission", user, false, null, vo.getSetRoles());
         return result;
     }
-    
+
     @Override
     public ProcessResult validate(DataPointVO existing, DataPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        
+
         //Don't allow moving to new data source
         if(existing.getDataSourceId() != vo.getDataSourceId()) {
             result.addContextualMessage("dataSourceId", "validate.dataPoint.pointChangeDataSource");
         }
-        
+
         //Validate permissions
         permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadRoles(), vo.getReadRoles());
         permissionService.validateVoRoles(result, "setPermission", user, false, existing.getSetRoles(), vo.getSetRoles());
         return result;
     }
-    
+
     /**
      * Common validation logic
      * @param vo
@@ -211,8 +212,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             if(vo.getLoggingType() == LoggingTypes.INTERVAL && vo.getIntervalLoggingType() != IntervalLoggingTypes.INSTANT)
                 response.addContextualMessage("intervalLoggingType", "validate.intervalType.incompatible",
                         DataPointVO.INTERVAL_LOGGING_TYPE_CODES.getCode(vo.getIntervalLoggingType()), DataTypes.CODES.getCode(vo.getPointLocator().getDataTypeId()));
-        }   
-        
+        }
+
         if(vo.isPurgeOverride()) {
             if (!Common.TIME_PERIOD_CODES.isValidId(vo.getPurgeType(), TimePeriods.MILLISECONDS, TimePeriods.SECONDS, TimePeriods.MINUTES, TimePeriods.HOURS))
                 response.addContextualMessage("purgeType", "validate.invalidValue");
@@ -298,7 +299,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
             vo.setUnit(Unit.ONE);
             response.addContextualMessage("unit", "validate.required");
         }
-        
+
         if (!vo.isUseIntegralUnit()) {
             vo.setIntegralUnit(vo.getUnit().times(SI.SECOND));
         }else {
@@ -343,10 +344,10 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
                 }
             }
         }
-        
+
         return response;
     }
-    
+
     /**
      * Is a rollup valid based on data type?
      * @param vo
@@ -375,7 +376,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
     }
 
     /**
-     * 
+     *
      * @param dataSourceId
      * @param full
      * @param holder
@@ -389,5 +390,5 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointDa
         }
         return points;
     }
-    
+
 }

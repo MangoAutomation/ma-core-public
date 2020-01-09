@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -30,7 +31,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UserDao, UsersService> {
+public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UserTableDefinition, UserDao, UsersService> {
 
     /**
      *

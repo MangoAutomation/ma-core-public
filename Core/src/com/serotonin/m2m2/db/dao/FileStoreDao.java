@@ -30,7 +30,7 @@ import com.serotonin.m2m2.vo.FileStore;
  * @author Phillip Dunlap
  */
 @Repository
-public class FileStoreDao extends AbstractBasicDao<FileStore> {
+public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefinition> {
 
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> {
         FileStoreDao dao = Common.getRuntimeContext().getBean(FileStoreDao.class);
@@ -56,7 +56,7 @@ public class FileStoreDao extends AbstractBasicDao<FileStore> {
      * @return
      */
     public FileStore getByName(String storeName) {
-        return ejt.queryForObject(getSelectQuery().getSQL() + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
+        return ejt.queryForObject(getJoinedSelectQuery().getSQL() + " WHERE storeName=?", new Object[] {storeName}, new int[] {Types.VARCHAR}, new FileStoreRowMapper(), null);
     }
 
     private class FileStoreRowMapper implements RowMapper<FileStore> {

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
@@ -21,24 +22,24 @@ import com.serotonin.validation.StringValidation;
 
 /**
  * A way to manage only data point event detectors.
- * 
- * This service does NOT reload the source in the runtime manager.  That 
+ *
+ * This service does NOT reload the source in the runtime manager.  That
  * must be accomplished elsewhere
- * 
+ *
  * @author Terry Packer
  *
  */
 @Service
-public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends AbstractVOService<T, EventDetectorDao<T>>{
+public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends AbstractVOService<T, EventDetectorTableDefinition, EventDetectorDao<T>>{
 
     @Autowired
     public EventDetectorsService(EventDetectorDao<T> dao, PermissionService permissionService) {
         super(dao, permissionService);
     }
-    
+
     /**
      * Save a detector an optionally reload its source
-     * 
+     *
      * @param vo
      * @param restartSource
      * @return
@@ -48,17 +49,17 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
     public T insertAndReload(T vo, boolean restartSource)
             throws PermissionException, ValidationException {
         vo = super.insert(vo);
-        
+
         if(restartSource)
             vo.getDefinition().restartSource(vo);
-        
+
         return vo;
     }
-    
+
     /**
      * Update and optionally restart the source
-     * 
-     * 
+     *
+     *
      * @param existing
      * @param vo
      * @param restartSource
@@ -71,7 +72,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
         return updated;
     }
 
-    
+
     @Override
     public T delete(String xid)
             throws PermissionException, NotFoundException {
@@ -100,7 +101,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
             return true;
         return vo.getDefinition().hasReadPermission(user, vo);
     }
-    
+
     @Override
     public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
@@ -114,7 +115,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
         vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
-    
+
     private ProcessResult commonValidation(T vo, PermissionHolder user) {
         ProcessResult response = new ProcessResult();
         if (StringUtils.isBlank(vo.getXid()))
@@ -129,7 +130,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
             if (StringValidation.isLengthGreaterThan(vo.getName(), 255))
                 response.addMessage("name", new TranslatableMessage("validate.notLongerThan", 255));
         }
-        
+
         //Verify that they each exist as we will create a mapping when we save
         if(vo.getAddedEventHandlers() != null)
             for(AbstractEventHandlerVO<?> eh : vo.getAddedEventHandlers()) {

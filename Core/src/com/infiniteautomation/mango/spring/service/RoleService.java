@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -28,8 +29,8 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  */
 @Service
-public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
-    
+public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, RoleDao> {
+
     @Autowired
     public RoleService(RoleDao dao, PermissionService permissionService) {
         super(dao, permissionService);
@@ -58,11 +59,11 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         }
         return super.delete(xid);
     }
-    
+
     @Override
     public ProcessResult validate(RoleVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
-        
+
         //Don't allow the use of role 'user' or 'superadmin'
         if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterSuperadminRole");
@@ -70,7 +71,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterUserRole");
         }
-        
+
         //Don't allow spaces in the XID
         Matcher matcher = Functions.WHITESPACE_PATTERN.matcher(vo.getXid());
         if(matcher.find()) {
@@ -78,7 +79,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         }
         return result;
     }
-    
+
     @Override
     public ProcessResult validate(RoleVO existing, RoleVO vo, PermissionHolder user) {
         ProcessResult result = this.validate(vo, user);
@@ -87,8 +88,8 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
         }
         return result;
     }
-    
-    
+
+
     /**
      * Add a role to a permission type
      * @param role
@@ -103,10 +104,10 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
             result.addGenericMessage("roleAlreadyAssignedToPermission", role.getXid(), permissionType);
             throw new ValidationException(result);
         }
-        
+
         dao.addRoleToPermission(role, permissionType);
     }
-    
+
     /**
      * Add a role to a permission
      * @param voId
@@ -127,8 +128,8 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
             throw new ValidationException(result);
         }
         this.dao.addRoleToVoPermission(role, vo, permissionType);
-    }    
-    
+    }
+
     /**
      * Get the superadmin role
      * @return
@@ -136,7 +137,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleDao> {
     public Role getSuperadminRole() {
         return PermissionHolder.SUPERADMIN_ROLE.get();
     }
-    
+
     /**
      * Get the default user role
      * @return

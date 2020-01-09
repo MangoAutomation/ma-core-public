@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -21,12 +22,12 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 @Service
-public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> {
+public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTableDefinition, JsonDataDao> {
 
     public JsonDataService(JsonDataDao dao, PermissionService permissionService) {
         super(dao, permissionService);
     }
-    
+
     @Override
     public Set<Role> getCreatePermissionRoles() {
         return ModuleRegistry.getPermissionDefinition(JsonDataCreatePermissionDefinition.TYPE_NAME).getRoles();
@@ -45,13 +46,13 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
     @Override
     public ProcessResult validate(JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        
+
         permissionService.validateVoRoles(result, "readRoles", user, false, null, vo.getReadRoles());
         permissionService.validateVoRoles(result, "editRoles", user, false, null, vo.getEditRoles());
-        
+
         return result;
     }
-    
+
     @Override
     public ProcessResult validate(JsonDataVO existing, JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
@@ -61,7 +62,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
 
         return result;
     }
-    
+
     private ProcessResult commonValidation(JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         try{
@@ -71,5 +72,5 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataDao> 
         }
         return result;
     }
-    
+
 }

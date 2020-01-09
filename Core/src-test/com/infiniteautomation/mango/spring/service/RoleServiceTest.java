@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -25,7 +26,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Terry Packer
  *
  */
-public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, RoleService> {
+public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefinition, RoleDao, RoleService> {
 
     /**
      * Test the mapping table
@@ -39,20 +40,20 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
             ds.setXid("DS_TEST1");
             ds.setName("TEST");
             DataSourceDao.getInstance().insert(ds);
-            
+
             DataPointVO dp = new DataPointVO();
             dp.setXid("DP_PERM_TEST");
             dp.setName("test name");
             dp.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
             dp.setDataSourceId(ds.getId());
             DataPointDao.getInstance().insert(dp);
-            
+
             //TODO Wire into data point service?
             //Mock up the insert into the mapping table for now
             RoleService roleService = Common.getBean(RoleService.class);
             roleService.addRoleToVoPermission(readRole, dp, PermissionService.READ, PermissionHolder.SYSTEM_SUPERADMIN);
             roleService.addRoleToVoPermission(editRole, dp, PermissionService.EDIT, PermissionHolder.SYSTEM_SUPERADMIN);
-            
+
             PermissionService service = Common.getBean(PermissionService.class);
 
             assertTrue(service.hasPermission(readUser, dp, PermissionService.READ));
@@ -84,7 +85,7 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
             Common.removeUser();
         }
     }
-    
+
     @Test(expected = ValidationException.class)
     public void cannotModifyUserRole() {
         Common.setUser(systemSuperadmin);
@@ -108,12 +109,12 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleDao, Role
             Common.removeUser();
         }
     }
-    
+
     @Override
     RoleService getService() {
         return Common.getBean(RoleService.class);
     }
-    
+
     @Override
     RoleDao getDao() {
         return RoleDao.getInstance();

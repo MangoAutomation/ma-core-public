@@ -45,7 +45,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.util.SerializationHelper;
 
 @Repository()
-public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
+public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,DataSourceTableDefinition> {
 
     //TODO Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
@@ -70,7 +70,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             DataSourceTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
-        super(AuditEventType.TYPE_DATA_SOURCE, table, 
+        super(AuditEventType.TYPE_DATA_SOURCE, table,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
     }
@@ -91,7 +91,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public List<T> getDataSourcesForType(String type) {
         return query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, getListResultSetExtractor());
     }
-    
+
     /**
      * Delete all data source for a given type
      *  used during module uninstall
@@ -103,7 +103,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             delete(ds);
         }
     }
-    
+
     /**
      * Get runtime data
      * @param id
@@ -125,7 +125,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             }
         });
     }
-    
+
     /**
      * Save runtime data
      * @param id
@@ -135,7 +135,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
         ejt.update("UPDATE dataSources SET rtdata=? WHERE id=?", new Object[] { SerializationHelper.writeObject(data),
                 id }, new int[] { Types.BINARY, Types.INTEGER });
     }
-    
+
     /**
      * Get the count of data sources per type
      * @return
@@ -171,18 +171,18 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             if (e.getCause() instanceof ModuleNotLoadedException) {
                 try {
                     LOG.error( "Data source with type '" +
-                        rs.getString("dataSourceType") +
-                        "' and xid '" + rs.getString("xid") +
-                        "' could not be loaded. Is its module missing?", e.getCause());
+                            rs.getString("dataSourceType") +
+                            "' and xid '" + rs.getString("xid") +
+                            "' could not be loaded. Is its module missing?", e.getCause());
                 }catch(SQLException e1) {
                     LOG.error(e.getMessage(), e);
                 }
             }else {
                 LOG.error(e.getMessage(), e);
             }
-        }); 
+        });
     }
-    
+
     @Override
     protected ResultSetExtractor<Void> getCallbackResultSetExtractor(
             MappedRowCallback<T> callback) {
@@ -190,16 +190,16 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
             if (e.getCause() instanceof ModuleNotLoadedException) {
                 try {
                     LOG.error( "Data source with type '" +
-                        rs.getString("dataSourceType") +
-                        "' and xid '" + rs.getString("xid") +
-                        "' could not be loaded. Is its module missing?", e.getCause());
+                            rs.getString("dataSourceType") +
+                            "' and xid '" + rs.getString("xid") +
+                            "' could not be loaded. Is its module missing?", e.getCause());
                 }catch(SQLException e1) {
                     LOG.error(e.getMessage(), e);
                 }
             }else {
                 LOG.error(e.getMessage(), e);
             }
-        }); 
+        });
     }
 
     @Override
@@ -209,9 +209,9 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
 
     @Override
     protected Object[] voToObjectArray(T vo) {
-        return new Object[] { 
-                vo.getXid(), 
-                vo.getName(), 
+        return new Object[] {
+                vo.getXid(),
+                vo.getName(),
                 vo.getDefinition().getDataSourceTypeName(),
                 SerializationHelper.writeObjectToArray(vo)};
     }
@@ -220,12 +220,12 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
     public RowMapper<T> getRowMapper() {
         return new DataSourceRowMapper();
     }
-    
+
     @Override
     public void loadRelationalData(T vo) {
         vo.setEditRoles(RoleDao.getInstance().getRoles(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
     }
-    
+
     @Override
     public void saveRelationalData(T vo, boolean insert) {
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
@@ -237,5 +237,5 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T> {
                 EventType.EventTypeNames.DATA_SOURCE, vo.getId()});
         RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
     }
-    
+
 }

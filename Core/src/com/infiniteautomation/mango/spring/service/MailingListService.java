@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -23,30 +24,30 @@ import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Mailing list service
- * 
- * NOTE: This VO has a join table for the entries so if you desire 
- *    the entries with the VO you must use the getFull and insertFull etc 
+ *
+ * NOTE: This VO has a join table for the entries so if you desire
+ *    the entries with the VO you must use the getFull and insertFull etc
  *    endpoints.
- *    
+ *
  * @author Terry Packer
  *
  */
 @Service
-public class MailingListService extends AbstractVOService<MailingList, MailingListDao> {
-    
-    @Autowired 
+public class MailingListService extends AbstractVOService<MailingList, MailingListTableDefinition, MailingListDao> {
+
+    @Autowired
     public MailingListService(MailingListDao dao, PermissionService permissionService) {
         super(dao, permissionService);
     }
-    
+
     @Override
     public Set<Role> getCreatePermissionRoles() {
         return ModuleRegistry.getPermissionDefinition(MailingListCreatePermission.PERMISSION).getRoles();
     }
-    
+
     /**
      * Can this user edit this mailing list
-     * 
+     *
      * @param user
      * @param item
      * @return
@@ -55,10 +56,10 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     public boolean hasEditPermission(PermissionHolder user, MailingList item) {
         return permissionService.hasAnyRole(user, item.getEditRoles());
     }
-    
+
     /**
      * All users can read mailing lists, however you must have READ permission to view the addresses
-     * 
+     *
      * @param user
      * @param item
      * @return
@@ -67,7 +68,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
     public boolean hasReadPermission(PermissionHolder user, MailingList item) {
         return permissionService.hasAnyRole(user, item.getReadRoles());
     }
-    
+
     /**
      * Can this user view the recipients on this list?
      * @param user
@@ -83,7 +84,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
             return false;
         }
     }
-    
+
     @Override
     public ProcessResult validate(MailingList vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
@@ -91,17 +92,17 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
         permissionService.validateVoRoles(result, "editRoles", user, false, null, vo.getEditRoles());
         return result;
     }
-    
+
     @Override
     public ProcessResult validate(MailingList existing, MailingList vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        
+
         //Additional checks for existing list
         permissionService.validateVoRoles(result, "readRoles", user, false, existing.getReadRoles(), vo.getReadRoles());
         permissionService.validateVoRoles(result, "editRoles", user, false, existing.getEditRoles(), vo.getEditRoles());
         return result;
     }
-    
+
     /**
      * Common validation logic for insert/update of Mailing lists
      * @param vo
@@ -110,7 +111,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
      */
     protected ProcessResult commonValidation(MailingList vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
-        
+
         if(vo.getReceiveAlarmEmails() == null) {
             result.addContextualMessage("receiveAlarmEmails", "validate.invalidValue");
         }
@@ -140,7 +141,7 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                 index++;
             }
         }
-        
+
         if(vo.getInactiveIntervals() != null) {
             if(vo.getInactiveIntervals().size() > 672)
                 result.addContextualMessage("inactiveSchedule", "validate.invalidValue");

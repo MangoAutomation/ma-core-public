@@ -19,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -35,7 +36,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO extends AbstractBasicDao<VO>, SERVICE extends AbstractBasicVOService<VO,DAO>> extends MangoTestBase {
+public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition, DAO extends AbstractBasicDao<VO, TABLE>, SERVICE extends AbstractBasicVOService<VO,TABLE,DAO>> extends MangoTestBase {
 
     protected SERVICE service;
     protected DAO dao;
@@ -43,23 +44,23 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     abstract SERVICE getService();
     abstract DAO getDao();
     abstract void assertVoEqual(VO expected, VO actual);
-    
+
     protected RoleService roleService;
-    
+
     protected PermissionHolder systemSuperadmin;
     protected PermissionHolder systemUser;
-    
+
     protected User readUser;
     protected User editUser;
     protected User setUser;
     protected User deleteUser;
     protected User allUser;
-    
+
     protected Role readRole;
     protected Role editRole;
     protected Role deleteRole;
     protected Role setRole;
-    
+
     /**
      * Create a new VO with all fields populated except any roles
      * @return
@@ -71,28 +72,28 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
      * @return
      */
     abstract VO updateVO(VO existing);
-    
+
     @Before
     public void setupServiceTest() {
         setupRoles();
         service = getService();
         dao = getDao();
     }
-    
+
     public AbstractBasicVOServiceTest() {
-        
+
     }
-    
+
     public AbstractBasicVOServiceTest(boolean enableWebDb, int webDbPort) {
         super(enableWebDb, webDbPort);
     }
-    
+
     public User getEditUser() {
         return editUser;
     }
-    
+
     /**
-     * 
+     *
      * @param holder
      */
     public void setContextUser(PermissionHolder holder) {
@@ -100,7 +101,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
         sc.setAuthentication(new PreAuthenticatedAuthenticationToken(holder, holder.getRoles()));
         SecurityContextHolder.setContext(sc);
     }
-    
+
     @Test
     public void testCreate() {
         runTest(() -> {
@@ -108,13 +109,13 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             try {
                 VO vo = insertNewVO();
                 VO fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);     
+                assertVoEqual(vo, fromDb);
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     @Test
     public void testUpdate() {
         runTest(() -> {
@@ -123,7 +124,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
                 VO vo = insertNewVO();
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
-                
+
                 VO updated = updateVO(vo);
                 service.update(vo.getId(), updated);
                 fromDb = service.get(vo.getId());
@@ -133,7 +134,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             }
         });
     }
-    
+
     @Test(expected = NotFoundException.class)
     public void testDelete() {
         runTest(() -> {
@@ -149,7 +150,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             }
         });
     }
-    
+
     @Test
     public void testCount() {
         runTest(() -> {
@@ -169,7 +170,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             }
         });
     }
-    
+
     @Test
     public void testGetAll() {
         runTest(() -> {
@@ -199,12 +200,12 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             }
         });
     }
-    
+
     VO insertNewVO() {
         VO vo = newVO();
         return service.insert(vo);
     }
-    
+
     void assertRoles(Set<Role> expected, Set<Role> actual) {
         assertEquals(expected.size(), actual.size());
         Set<Role> missing = new HashSet<>();
@@ -231,7 +232,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
 
     void setupRoles() {
         roleService = Common.getBean(RoleService.class);
-        
+
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
         Common.setUser(systemSuperadmin);
         try {
@@ -239,34 +240,34 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
             RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
             roleService.insert(temp);
             readRole = new Role(temp);
-            
+
             temp = new RoleVO(Common.NEW_ID, "edit-role", "Role to allow editing.");
             roleService.insert(temp);
             editRole = new Role(temp);
-            
+
             temp = new RoleVO(Common.NEW_ID, "set-role", "Role to allow setting.");
             roleService.insert(temp);
             setRole = new Role(temp);
-            
+
             temp = new RoleVO(Common.NEW_ID, "delete-role", "Role to allow deleting.");
             roleService.insert(temp);
             deleteRole = new Role(temp);
-    
+
             readUser = createUser("readUser", "readUser", "password", "readUser@example.com", readRole);
             editUser = createUser("editUser", "editUser", "password", "editUser@example.com", editRole);
             setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
             deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
-            allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);  
+            allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);
         }finally {
             Common.removeUser();
         }
     }
-    
+
     @FunctionalInterface
     public static interface ServiceLayerTest {
         void test();
     }
-    
+
     /**
      * Run a test and provide nice validation failure messages
      * @param test
@@ -289,5 +290,5 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, DAO
     public RoleService getRoleService() {
         return roleService;
     }
-    
+
 }

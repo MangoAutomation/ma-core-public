@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -29,21 +30,21 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<DataPointVO, DataPointDao, DataPointService> {
+public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<DataPointVO, DataPointTableDefinition, DataPointDao, DataPointService> {
 
     private DataSourceService<T> dataSourceService;
-    
+
     public DataPointServiceTest() {
         super(true, 9000);
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public void before() {
         super.before();
         dataSourceService = Common.getBean(DataSourceService.class);
     }
-    
+
     @Test
     @Override
     public void testCreatePrivilegeSuccess() {
@@ -67,7 +68,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             }
         });
     }
-    
+
     @Test
     @Override
     public void testUserCanDelete() {
@@ -86,7 +87,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             }
         });
     }
-    
+
     @Test
     @Override
     public void testUserEditRole() {
@@ -114,7 +115,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             }
         });
     }
-    
+
     @Test(expected = PermissionException.class)
     @Override
     public void testUserEditRoleFails() {
@@ -148,13 +149,13 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     public void testCannotRemoveEditAccess() {
         //No-op will be tested in the data source service test
     }
-    
+
     @Test()
     @Override
     public void testAddEditRoleUserDoesNotHave() {
         //No-op will be tested in the data source service test
     }
-    
+
     @Test(expected = NotFoundException.class)
     @Override
     public void testDelete() {
@@ -169,18 +170,18 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
-                
+
                 //Ensure the mappings are gone
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.READ).size());
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SET).size());
-                
+
                 service.get(vo.getId());
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testCannotRemoveSetAccess() {
         DataPointVO vo = newVO();
@@ -204,7 +205,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             Common.removeUser();
         }
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testAddSetRoleUserDoesNotHave() {
         DataPointVO vo = newVO();
@@ -228,7 +229,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             Common.removeUser();
         }
     }
-    
+
     @Override
     String getCreatePermissionType() {
         return null;
@@ -276,7 +277,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
 
         assertEquals(expected.getDataSourceId(), actual.getDataSourceId());
         assertEquals(expected.getPointLocator().getDataTypeId(), actual.getPointLocator().getDataTypeId());
-        
+
         assertRoles(expected.getReadRoles(), actual.getReadRoles());
         assertRoles(expected.getSetRoles(), actual.getSetRoles());
     }
@@ -298,7 +299,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
             vo.setDataSourceId(mock.getId());
             vo.setPointLocator(new MockPointLocatorVO());
             //TODO Flesh out all fields
-            
+
             return vo;
         }finally {
             Common.removeUser();
@@ -311,7 +312,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     DataPointVO updateVO(DataPointVO existing) {
         DataPointVO copy = existing.copy();
-        
+
         return copy;
     }
 
@@ -321,12 +322,12 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
         dsVo.setName("permissions_test_datasource");
         return (T) dsVo;
     }
-    
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();
         lifecycle.setRuntimeManager(new MockRuntimeManager(true));
         return lifecycle;
     }
-    
+
 }

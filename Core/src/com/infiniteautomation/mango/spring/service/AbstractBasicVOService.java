@@ -9,7 +9,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.jooq.Condition;
+import org.jooq.Record;
+import org.jooq.SelectJoinStep;
+import org.jooq.SortField;
+
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
+import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
@@ -30,7 +36,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO extends AbstractBasicVOAccess<T>> {
+public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition, DAO extends AbstractBasicVOAccess<T, TABLE>> {
 
     protected final DAO dao;
     protected final PermissionService permissionService;
@@ -285,6 +291,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
         return vo;
     }
 
+
+
     /**
      * Query for VOs and optionally load the relational info
      * @param conditions
@@ -309,6 +317,29 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, DAO exte
             callback.row(item, index);
         });
     }
+
+    /**
+     * Create a custom query with callback for each row.
+     * @param select
+     * @param condition
+     * @param sort
+     * @param limit
+     * @param offset
+     * @param callback
+     */
+    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+        this.dao.customizedQuery(select, condition, sort, limit, offset, callback);
+    }
+
+    /**
+     * Join default tables for DAO
+     * @param select
+     * @return
+     */
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        return this.dao.joinTables(select);
+    }
+
 
     /**
      * Count VOs

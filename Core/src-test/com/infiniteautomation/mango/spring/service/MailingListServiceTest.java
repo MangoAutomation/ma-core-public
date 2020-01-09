@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
@@ -28,27 +29,27 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest<MailingList, MailingListDao, MailingListService> {
+public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest<MailingList, MailingListTableDefinition, MailingListDao, MailingListService> {
 
     @Override
     MailingListService getService() {
         return Common.getBean(MailingListService.class);
     }
-    
+
     @Override
     MailingListDao getDao() {
         return MailingListDao.getInstance();
     }
-    
+
     @Test(expected = PermissionException.class)
     public void testInvalidPermission() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<Role> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
             Common.setUser(readUser);
             try {
-                service.insert(vo);  
+                service.insert(vo);
             }finally {
                 Common.removeUser();
             }
@@ -59,7 +60,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     public void testAddOverprivledgedEditRole() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<Role> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
             Common.setUser(systemSuperadmin);
             try {
@@ -83,7 +84,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     public void testRemoveOverprivledgedEditRole() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<Role> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
             Common.setUser(systemSuperadmin);
             try {
@@ -97,32 +98,32 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             Common.setUser(readUser);
             try {
                 vo.setEditRoles(Collections.emptySet());
-                service.update(vo.getXid(), vo);            
+                service.update(vo.getXid(), vo);
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     @Test(expected = ValidationException.class)
     public void testAddMissingEditRole() {
         MailingList vo = newVO();
         Role role = new Role(10000, "new-role");
-        Set<Role> editRoles = Collections.singleton(role); 
+        Set<Role> editRoles = Collections.singleton(role);
         vo.setEditRoles(editRoles);
         Common.setUser(systemSuperadmin);
         try {
-            service.insert(vo);  
+            service.insert(vo);
         }finally {
             Common.removeUser();
         }
     }
-    
+
     @Test
     public void testRemoveRole() {
         runTest(() -> {
             MailingList vo = newVO();
-            Set<Role> editRoles = Collections.singleton(editRole); 
+            Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
             Common.setUser(systemSuperadmin);
             try {
@@ -130,13 +131,13 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
                 roleService.delete(editRole.getXid());
                 vo.setEditRoles(Collections.emptySet());
                 MailingList fromDb = service.get(vo.getId());
-                assertVoEqual(vo, fromDb);   
+                assertVoEqual(vo, fromDb);
             }finally {
                 Common.removeUser();
             }
         });
     }
-    
+
     @Override
     void assertVoEqual(MailingList expected, MailingList actual) {
         assertEquals(expected.getId(), actual.getId());
@@ -163,22 +164,22 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         assertRoles(expected.getReadRoles(), actual.getReadRoles());
         assertRoles(expected.getEditRoles(), actual.getEditRoles());
     }
-    
+
     @Override
     String getCreatePermissionType() {
         return MailingListCreatePermission.PERMISSION;
     }
-    
+
     @Override
     void setReadRoles(Set<Role> roles, MailingList vo) {
         vo.setReadRoles(roles);
     }
-    
+
     @Override
     void setEditRoles(Set<Role> roles, MailingList vo) {
         vo.setEditRoles(roles);
     }
-    
+
     @Override
     MailingList updateVO(MailingList existing) {
         MailingList updated = existing.copy();
@@ -187,21 +188,21 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         updated.setReadRoles(Collections.singleton(readRole));
         return updated;
     }
-    
+
     @Override
     MailingList newVO() {
         MailingList vo = new MailingList();
         vo.setXid(MailingListDao.getInstance().generateUniqueXid());
         vo.setName("MailingList");
         vo.setReceiveAlarmEmails(AlarmLevels.NONE);
-        
+
         List<EmailRecipient> entries = new ArrayList<>();
         AddressEntry entry = new AddressEntry();
         entry.setAddress("entry1@example.com");
         entries.add(entry);
         vo.setEntries(entries);
-        
+
         return vo;
     }
-    
+
 }

@@ -40,8 +40,8 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 @Repository()
-public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends AbstractDao<T>{
-    
+public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends AbstractDao<T, EventHandlerTableDefinition>{
+
     @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<EventHandlerDao<AbstractEventHandlerVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventHandlerDao.class);
@@ -177,8 +177,8 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         return queryForObject(EVENT_HANDLER_SELECT + "where xid=?", new Object[] { xid }, new EventHandlerRowMapper(),
                 null);
     }
-    
-    
+
+
 
     class EventHandlerRowMapper implements RowMapper<T> {
         @Override
@@ -218,24 +218,24 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                                     type.getReferenceId1(), type.getReferenceId2()},
                             new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
                                     Types.INTEGER});
-    
+
                 }
             }
             vo.getDefinition().saveRelationalData(vo, insert);
         }
     }
-    
+
     @Override
     public void loadRelationalData(T vo) {
         vo.getDefinition().loadRelationalData(vo);
     }
-    
+
     @Override
     public void deleteRelationalData(T vo) {
         deleteEventHandlerMappings(vo.getId());
         vo.getDefinition().deleteRelationalData(vo);
     }
-    
+
     public void addEventHandlerMappingIfMissing(int handlerId, EventType type) {
         if(H2_SYNTAX) {
             if(type.getEventSubtype() == null)
@@ -284,19 +284,19 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
         Integer id = getIdByXid(eventHandlerXid);
         Objects.requireNonNull(id, "Event Handler with xid: " + eventHandlerXid + " does not exist, can't create mapping.");
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-                @Override
-                protected void doInTransactionWithoutResult(TransactionStatus arg0) {
-                    deleteEventHandlerMapping(id, type);
-                    ejt.doInsert(
-                            "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
-                            new Object[] {id, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
-                                    type.getReferenceId1(), type.getReferenceId2()},
-                            new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
-                                    Types.INTEGER});
-                }
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus arg0) {
+                deleteEventHandlerMapping(id, type);
+                ejt.doInsert(
+                        "INSERT INTO eventHandlersMapping (eventHandlerId, eventTypeName, eventSubtypeName, eventTypeRef1, eventTypeRef2) values (?, ?, ?, ?, ?)",
+                        new Object[] {id, type.getEventType(), type.getEventSubtype() != null ? type.getEventSubtype() : "",
+                                type.getReferenceId1(), type.getReferenceId2()},
+                        new int[] {Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.INTEGER,
+                                Types.INTEGER});
+            }
         });
     }
-    
+
     /**
      * Delete all mappings for this event type
      * @param type
@@ -312,7 +312,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                     new int[] {Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.INTEGER});
 
     }
-    
+
     public void deleteEventHandlerMapping(int eventHandlerId, EventType type) {
         if(type.getEventSubtype() == null)
             ejt.update("DELETE FROM eventHandlersMapping WHERE eventHandlerId=? AND eventTypeName=? AND eventSubtypeName='' AND eventTypeRef1=? AND eventTypeRef2=?",

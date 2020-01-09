@@ -31,7 +31,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  *
  * @author Jared Wiltshire
  */
-public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasicDao<T> implements AbstractVOAccess<T> {
+public abstract class AbstractDao<T extends AbstractVO<?>, TABLE extends AbstractTableDefinition> extends AbstractBasicDao<T, TABLE> implements AbstractVOAccess<T, TABLE> {
 
     /**
      * For generating XIDs this is prepended to any XIDs generated
@@ -43,16 +43,18 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
     protected final String typeName; //Type name for Audit Events
 
     /**
-     * 
+     *
+     * @param typeName
+     * @param table
+     * @param mapper
+     * @param publisher
      */
-    protected final AbstractTableDefinition table;
-    
-    protected AbstractDao(String typeName, AbstractTableDefinition table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
+    protected AbstractDao(String typeName, TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
         this(typeName, table, null, mapper, publisher);
     }
-    
+
     /**
-     * 
+     *
      * @param typeName
      * @param table
      * @param tableAlias
@@ -61,11 +63,10 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @param mapper
      * @param publisher
      */
-    protected AbstractDao(String typeName, AbstractTableDefinition table,
+    protected AbstractDao(String typeName, TABLE table,
             TranslatableMessage countMonitorName,
             ObjectMapper mapper, ApplicationEventPublisher publisher) {
         super(table, countMonitorName, mapper, publisher);
-        this.table = table;
         this.xidPrefix = getXidPrefix();
         this.typeName = typeName;
     }
@@ -78,7 +79,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
      * @return XID prefix, null if XIDs not supported
      */
     protected abstract String getXidPrefix();
-    
+
     @Override
     public String generateUniqueXid() {
         if (xidPrefix == null) {
@@ -97,7 +98,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         if (xid == null || this.table.getField("xid") == null) {
             return null;
         }
-        Select<Record> query = this.getSelectQuery()
+        Select<Record> query = this.getJoinedSelectQuery()
                 .where(table.getXidAlias().eq(xid))
                 .limit(1);
         String sql = query.getSQL();
@@ -114,7 +115,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         if (name == null || this.table.getField("name") == null) {
             return null;
         }
-        Select<Record> query = this.getSelectQuery()
+        Select<Record> query = this.getJoinedSelectQuery()
                 .where(this.table.getField("name").eq(name));
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
@@ -149,7 +150,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
             return false;
         }
     }
-    
+
     @Override
     public void insert(T vo) {
         if (vo.getXid() == null) {
@@ -158,7 +159,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         super.insert(vo);
         AuditEventType.raiseAddedEvent(this.typeName, vo);
     }
-    
+
     @Override
     public void update(T existing, T vo) {
         if (vo.getXid() == null) {
@@ -167,7 +168,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
         super.update(existing, vo);
         AuditEventType.raiseChangedEvent(this.typeName, existing, vo);
     }
-    
+
     /**
      * Creates a new vo by copying an existing one
      *
@@ -194,7 +195,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
                 copy.setXid(newXid);
                 copy.setName(newName);
                 insert(copy);
-                
+
                 // Copy permissions.
                 return copy.getId();
             }
@@ -202,20 +203,20 @@ public abstract class AbstractDao<T extends AbstractVO<?>> extends AbstractBasic
 
         return getTransactionTemplate().execute(callback);
     }
-    
+
     @Override
-    protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
+    protected DaoEvent<T,TABLE> createDaoEvent(DaoEventType type, T vo, T existing) {
         switch(type) {
             case CREATE:
-                return new DaoEvent<T>(this, type, vo, null);
+                return new DaoEvent<T,TABLE>(this, type, vo, null);
             case UPDATE:
-                return new DaoEvent<T>(this, type, vo, existing.getXid());
+                return new DaoEvent<T,TABLE>(this, type, vo, existing.getXid());
             case DELETE:
-                return new DaoEvent<T>(this, type, vo, existing.getXid());
+                return new DaoEvent<T,TABLE>(this, type, vo, existing.getXid());
             default:
                 throw new ShouldNeverHappenException("Uknown dao event type: " + type);
         }
-        
+
     }
 
 }

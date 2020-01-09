@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -22,15 +23,15 @@ import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Service for access to event handlers
- * 
+ *
  * @author Terry Packer
  *
  */
 @Service
-public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends AbstractVOService<T, EventHandlerDao<T>> {
+public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends AbstractVOService<T, EventHandlerTableDefinition, EventHandlerDao<T>> {
 
     private final EventHandlerCreatePermission createPermission;
-    
+
     @Autowired
     public EventHandlerService(EventHandlerDao<T> dao, PermissionService permissionService, EventHandlerCreatePermission createPermission) {
         super(dao, permissionService);
@@ -41,7 +42,7 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
     public Set<Role> getCreatePermissionRoles() {
         return createPermission.getRoles();
     }
-    
+
     @Override
     public boolean hasEditPermission(PermissionHolder user, T vo) {
         return user.hasAdminRole();
@@ -60,27 +61,27 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
             eh.getDefinition().handleRoleDeletedEvent(eh, event);
         });
     }
-    
+
     @Override
     public ProcessResult validate(T vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, vo, user);
         return result;
     }
-    
+
     @Override
     public ProcessResult validate(T existing, T vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, existing, vo, user);
         return result;
     }
-    
+
     private ProcessResult commonValidation(T vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
-        //TODO is this true? 
-        //eventTypes are not validated because it assumed they 
+        //TODO is this true?
+        //eventTypes are not validated because it assumed they
         // must be valid to be created and make it into this list
-        
+
         //Ensure that no 2 are the same
         if(vo.getEventTypes() != null) {
             Set<EventType> types = new HashSet<>(vo.getEventTypes());

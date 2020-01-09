@@ -8,6 +8,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.Set;
 import java.util.UUID;
 
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
@@ -21,7 +22,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<T, DataSourceDao<T>, DataSourceService<T>> {
+public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<T, DataSourceTableDefinition, DataSourceDao<T>, DataSourceService<T>> {
 
     @Override
     String getCreatePermissionType() {
@@ -56,7 +57,7 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
         assertEquals(expected.getDefinition().getDataSourceTypeName(), actual.getDefinition().getDataSourceTypeName());
-        
+
         assertRoles(expected.getEditRoles(), actual.getEditRoles());
         //TODO Flesh out all fields
     }
@@ -75,10 +76,10 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
     T updateVO(T existing) {
         T copy = existing.copy();
         copy.setName("new name");
-        
+
         return copy;
     }
-    
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         MockMangoLifecycle lifecycle = super.getLifecycle();

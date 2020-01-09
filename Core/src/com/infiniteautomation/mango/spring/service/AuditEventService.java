@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
@@ -15,7 +16,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  * @author Terry Packer
  */
-public class AuditEventService extends AbstractBasicVOService<AuditEventInstanceVO, AuditEventDao> {
+public class AuditEventService extends AbstractBasicVOService<AuditEventInstanceVO, AuditEventTableDefinition, AuditEventDao> {
 
     @Autowired
     public AuditEventService(AuditEventDao dao, PermissionService permissionService) {

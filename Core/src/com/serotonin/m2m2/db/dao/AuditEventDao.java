@@ -36,9 +36,9 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
  *
  */
 @Repository()
-public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
+public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditEventTableDefinition>{
     private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
-    
+
     /**
      * @param tablePrefix
      * @param extraProperties
@@ -142,7 +142,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
      * @return
      */
     public List<AuditEventInstanceVO> getAllForObject(String typeName, int id) {
-        String selectAll = this.getSelectQuery().getSQL();
+        String selectAll = this.getJoinedSelectQuery().getSQL();
         return query(selectAll + " WHERE typeName=? AND objectId=? ORDER BY ts ASC", new Object[]{typeName, id}, getRowMapper());
     }
 
@@ -154,7 +154,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
         return ejt.update("delete from audit");
 
     }
-    
+
     /**
      * Purge Audit Events Before a given time
      * @param time
@@ -164,7 +164,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO>{
     public int purgeEventsBefore(final long time) {
         return ejt.update("delete from audit where ts<?", new Object[] {time});
     }
-    
+
     /**
      * Purge Audit Events Before a given time with a given alarmLevel
      * @param time

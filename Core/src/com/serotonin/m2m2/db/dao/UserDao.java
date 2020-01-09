@@ -64,7 +64,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
  *
  */
 @Repository
-public class UserDao extends AbstractDao<User> implements SystemSettingsListener {
+public class UserDao extends AbstractDao<User, UserTableDefinition> implements SystemSettingsListener {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {
@@ -92,7 +92,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
                 mapper, publisher);
         this.roleDao = roleDao;
     }
-    
+
     /**
      * Get cached instance from Spring Context
      * @return
@@ -143,7 +143,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         if (username == null) return null;
 
         return userCache.computeIfAbsent(username.toLowerCase(Locale.ROOT), u -> {
-            Select<Record> query = getSelectQuery().where(this.table.getField("username").equalIgnoreCase(username));
+            Select<Record> query = getJoinedSelectQuery().where(this.table.getField("username").equalIgnoreCase(username));
             List<Object> args = query.getBindValues();
             User user = ejt.query(query.getSQL(), args.toArray(new Object[args.size()]),
                     getObjectResultSetExtractor());
@@ -162,7 +162,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     public Set<Role> getUserRoles(User vo) {
         return query(USER_ROLES_SELECT, new Object[] {vo.getId()}, roleDao.getRoleSetResultSetExtractor());
     }
-    
+
     @Override
     public void loadRelationalData(User vo) {
         vo.setRoles(getUserRoles(vo));
@@ -190,7 +190,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
             }
         });
     }
-    
+
     /**
      * Get a user by their email address
      * @param emailAddress
@@ -198,7 +198,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
      */
     public User getUserByEmail(String emailAddress) {
         if (emailAddress == null) return null;
-        Select<Record> query = getSelectQuery().where(this.table.getField("email").eq(emailAddress));
+        Select<Record> query = getJoinedSelectQuery().where(this.table.getField("email").eq(emailAddress));
         List<Object> args = query.getBindValues();
         System.out.println(query.getSQL());
         return ejt.query(query.getSQL(), args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
@@ -252,7 +252,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
     }
 
     public List<User> getActiveUsers() {
-        Select<Record> query = getSelectQuery().where(this.table.getField("disabled").eq("N"));
+        Select<Record> query = getJoinedSelectQuery().where(this.table.getField("disabled").eq("N"));
         List<Object> args = query.getBindValues();
         return query(query.getSQL(), args.toArray(new Object[args.size()]), getListResultSetExtractor());
     }
@@ -346,7 +346,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         }
         return deleted;
     }
-    
+
     @Override
     public void deleteRelationalData(User vo) {
         Object[] args = new Object[] { vo.getId() };
@@ -375,7 +375,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         user.setTokenVersion(newTokenVersion);
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.AUTH_TOKEN)));
+        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.AUTH_TOKEN)));
     }
 
     public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
@@ -409,7 +409,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         // expire the user's sessions
         exireSessionsForUser(user);
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.PASSWORD)));
+        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.PASSWORD)));
     }
 
     public void recordLogin(User user) {
@@ -417,7 +417,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         user.setLastLogin(loginTime);
         ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
+        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
@@ -426,7 +426,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
+        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -435,7 +435,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
+        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
     }
 
     @Override
@@ -506,7 +506,7 @@ public class UserDao extends AbstractDao<User> implements SystemSettingsListener
         }
         return keys;
     }
-    
+
     private String convertData(JsonNode data) {
         try {
             if(data == null) {

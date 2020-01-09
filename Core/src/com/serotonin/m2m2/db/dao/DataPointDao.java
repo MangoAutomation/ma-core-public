@@ -96,7 +96,7 @@ import net.jazdw.rql.parser.ASTNode;
  *
  */
 @Repository()
-public class DataPointDao extends AbstractDao<DataPointVO> {
+public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinition> {
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
     private final DataSourceTableDefinition dataSourceTable;
@@ -146,7 +146,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
      * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
-        List<DataPointVO> dps = query(getSelectQuery().getSQL() + " where dp.dataSourceId=?", new Object[] { dataSourceId },
+        List<DataPointVO> dps = query(getJoinedSelectQuery().getSQL() + " where dp.dataSourceId=?", new Object[] { dataSourceId },
                 new DataPointRowMapper());
         loadPartialRelationalData(dps);
         return dps;
@@ -305,7 +305,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
      */
     public void saveEnabledColumn(DataPointVO dp) {
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
-        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null));
+        this.publishEvent(new DaoEvent<DataPointVO, DataPointTableDefinition>(this, DaoEventType.UPDATE, dp, null));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
 
@@ -447,7 +447,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
 
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         //For now we will do this the slow way
-        List<DataPointVO> points = query(getSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
+        List<DataPointVO> points = query(getJoinedSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
         List<PointHistoryCount> counts = new ArrayList<>();
         for (DataPointVO point : points) {
             PointHistoryCount phc = new PointHistoryCount();
@@ -486,7 +486,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
                     }
                 });
 
-        List<DataPointVO> points = query(getSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
+        List<DataPointVO> points = query(getJoinedSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
 
         // Collate in the point names.
         for (PointHistoryCount c : counts) {
@@ -876,7 +876,7 @@ public class DataPointDao extends AbstractDao<DataPointVO> {
     }
 
     @Override
-    protected void customizedQuery(SelectJoinStep<Record> select, Condition condition,
+    public void customizedQuery(SelectJoinStep<Record> select, Condition condition,
             List<SortField<Object>> sort, Integer limit, Integer offset,
             MappedRowCallback<DataPointVO> callback) {
         if (condition instanceof ConditionSortLimitWithTagKeys) {
