@@ -487,7 +487,8 @@ public class ModulesService implements ModuleNotificationListener {
                 HttpClient httpClient = Common.getHttpClient();
 
                 // Create the temp directory into which to download, if necessary.
-                File tempDir = new File(Common.MA_HOME, ModuleUtils.DOWNLOAD_DIR);
+                Path tempDirPath = Common.getTempPath().resolve(ModuleUtils.DOWNLOAD_DIR);
+                File tempDir = tempDirPath.toFile();
                 if (!tempDir.exists())
                     tempDir.mkdirs();
 
