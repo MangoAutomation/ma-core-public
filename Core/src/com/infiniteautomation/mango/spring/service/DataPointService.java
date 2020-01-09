@@ -73,6 +73,16 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         return permissionService.hasDataPointReadPermission(user, vo);
     }
 
+    /**
+     * Can this user set this data point?
+     * @param user
+     * @param vo
+     * @return
+     */
+    public boolean hasSetPermission(PermissionHolder user, DataPointVO vo) {
+        return permissionService.hasDataPointSetPermission(user, vo);
+    }
+
     @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
