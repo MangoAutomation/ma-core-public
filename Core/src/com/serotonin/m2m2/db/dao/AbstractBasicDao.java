@@ -426,8 +426,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public void customizedQuery(Select<Record> select,
-            ResultSetExtractor<Void> callback) {
+    public void customizedQuery(Select<Record> select, MappedRowCallback<T> callback) {
+        customizedQuery(select, getCallbackResultSetExtractor(callback));
+    }
+
+    @Override
+    public <TYPE> TYPE customizedQuery(Select<Record> select,
+            ResultSetExtractor<TYPE> callback) {
 
         String sql = select.getSQL();
         List<Object> arguments = select.getBindValues();
@@ -437,11 +442,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         if (useMetrics) {
             stopWatch = new LogStopWatch();
         }
-
-        this.query(sql, argumentsArray, callback);
-
-        if (stopWatch != null) {
-            stopWatch.stop("customizedQuery(): " + this.create.renderInlined(select), metricsThreshold);
+        try {
+            return this.query(sql, argumentsArray, callback);
+        }finally {
+            if (stopWatch != null) {
+                stopWatch.stop("customizedQuery(): " + this.create.renderInlined(select), metricsThreshold);
+            }
         }
     }
 

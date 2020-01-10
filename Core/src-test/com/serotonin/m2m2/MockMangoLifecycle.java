@@ -404,7 +404,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     protected EventManager getEventManager() {
         if(this.eventManager == null)
-            return new MockEventManager();
+            return new MockEventManager(true);
         else
             return this.eventManager;
     }
@@ -418,7 +418,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     protected RuntimeManager getRuntimeManager() {
         if(this.runtimeManager == null)
-            return new MockRuntimeManager();
+            return new MockRuntimeManager(true);
         else
             return this.runtimeManager;
     }

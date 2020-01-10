@@ -296,10 +296,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         return vo;
     }
 
-
-
     /**
-     * Query for VOs and optionally load the relational info
+     * Query for VOs with a callback for each row
      * @param conditions
      * @param callback
      */
@@ -311,7 +309,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
-     * Query for VOs and optionally load the relational info
+     * Query for VOs using RQL
      * @param conditions
      * @param full - load relational data
      * @param callback
@@ -330,6 +328,18 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public void customizedQuery(Select<Record> select, ResultSetExtractor<Void> callback) {
         this.dao.customizedQuery(select, callback);
+    }
+
+    /**
+     * Execute custom query for VOs with a callback per row
+     * @param select
+     * @param callback
+     */
+    public void customizedQuery(Select<Record> select, MappedRowCallback<T> callback) {
+        dao.customizedQuery(select, (item, index) ->{
+            dao.loadRelationalData(item);
+            callback.row(item, index);
+        });
     }
 
     /**
@@ -363,6 +373,14 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public SelectJoinStep<Record> getSelectQuery(Field<?>... fields) {
         return dao.getSelectQuery(Arrays.asList(fields));
+    }
+
+    /**
+     * Get a select query to return full VOs using a row callback
+     * @return
+     */
+    public SelectJoinStep<Record> getJoinedSelectQuery() {
+        return dao.getJoinedSelectQuery();
     }
 
     /**

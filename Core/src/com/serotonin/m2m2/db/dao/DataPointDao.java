@@ -53,6 +53,7 @@ import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
+import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -100,6 +101,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     static final Log LOG = LogFactory.getLog(DataPointDao.class);
 
     private final DataSourceTableDefinition dataSourceTable;
+    private final EventDetectorTableDefinition eventDetectorTable;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -119,12 +121,14 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     @Autowired
     private DataPointDao(DataPointTableDefinition table,
             DataSourceTableDefinition dataSourceTable,
+            EventDetectorTableDefinition eventDetectorTable,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(EventType.EventTypeNames.DATA_POINT, table,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
         this.dataSourceTable = dataSourceTable;
+        this.eventDetectorTable = eventDetectorTable;
     }
 
     /**
@@ -153,10 +157,14 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     public List<DataPointVO> getDataPointsForDataSourceStart(int dataSourceId) {
-        List<DataPointVO> dps = query(DataPointStartupResultSetExtractor.DATA_POINT_SELECT_STARTUP, new Object[] { dataSourceId },
-                new DataPointStartupResultSetExtractor());
+        List<Field<?>> fields = new ArrayList<>(this.getSelectFields());
+        fields.addAll(this.eventDetectorTable.getSelectFields());
 
-        return dps;
+        Select<Record> select = this.joinTables(this.getSelectQuery(fields)).leftOuterJoin(this.eventDetectorTable.getTableAsAlias())
+                .on(this.table.getIdAlias().eq(this.eventDetectorTable.getField("dataPointId")))
+                .where(this.table.getAlias("dataSourceId").eq(dataSourceId));
+
+        return this.customizedQuery(select, new DataPointStartupResultSetExtractor());
     }
 
     /**
@@ -167,17 +175,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         return queryForList("SELECT id FROM dataPoints" , Integer.class);
     }
 
+
+
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
         private static final int EVENT_DETECTOR_FIRST_COLUMN = 28;
         private final EventDetectorRowMapper<?> eventRowMapper = new EventDetectorRowMapper<>(EVENT_DETECTOR_FIRST_COLUMN, 5);
-        static final String DATA_POINT_SELECT_STARTUP = //
-                "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, " //
-                + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
-                + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
-                + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.rollup, ds.name, " //
-                + "  ds.xid, ds.dataSourceType, ds.editPermission, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
-                + "  from dataPoints dp join dataSources ds on ds.id = dp.dataSourceId " //
-                + "  left outer join eventDetectors ped on dp.id = ped.dataPointId where dp.dataSourceId=?";
 
         @Override
         public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {

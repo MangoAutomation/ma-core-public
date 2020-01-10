@@ -9,7 +9,7 @@ import java.util.Map;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
-import com.serotonin.m2m2.rt.EventManager;
+import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.ReturnCause;
@@ -21,206 +21,194 @@ import com.serotonin.m2m2.vo.User;
  *
  * @author Terry Packer
  */
-public class MockEventManager implements EventManager{
+public class MockEventManager extends EventManagerImpl {
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getState()
+    /**
+     * Use database to save events
      */
+    protected boolean useDatabase;
+
+    public MockEventManager() {
+
+    }
+
+    public MockEventManager(boolean useDatabase) {
+        this.useDatabase = useDatabase;
+
+    }
+
     @Override
     public int getState() {
 
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#raiseEvent(com.serotonin.m2m2.rt.event.type.EventType, long, boolean, int, com.serotonin.m2m2.i18n.TranslatableMessage, java.util.Map)
-     */
     @Override
     public void raiseEvent(EventType type, long time, boolean rtnApplicable, AlarmLevels alarmLevel,
             TranslatableMessage message, Map<String, Object> context) {
-
-
+        if(useDatabase) {
+            super.raiseEvent(type, time, rtnApplicable, alarmLevel, message, context);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#returnToNormal(com.serotonin.m2m2.rt.event.type.EventType, long)
-     */
     @Override
     public void returnToNormal(EventType type, long time) {
-
-
+        if(useDatabase) {
+            super.returnToNormal(type, time);
+        }
     }
 
     @Override
     public void returnToNormal(EventType type, long time, ReturnCause cause) {
+        if(useDatabase) {
+            super.returnToNormal(type, time, cause);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#acknowledgeEventById(int, long, int, com.serotonin.m2m2.i18n.TranslatableMessage)
-     */
     @Override
     public EventInstance acknowledgeEventById(int eventId, long time, User user,
             TranslatableMessage alternateAckSource) {
-
-        return null;
+        if(useDatabase) {
+            return super.acknowledgeEventById(eventId, time, user, alternateAckSource);
+        }else {
+            return null;
+        }
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#toggleSilence(int, int)
-     */
     @Override
     public boolean toggleSilence(int eventId, int userId) {
-        return false;
+        if(useDatabase) {
+            return super.toggleSilence(eventId, userId);
+        }else {
+            return false;
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getLastAlarmTimestamp()
-     */
     @Override
     public long getLastAlarmTimestamp() {
-
-        return 0;
+        if(useDatabase) {
+            return super.getLastAlarmTimestamp();
+        }else {
+            return 0;
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeAllEvents()
-     */
     @Override
     public int purgeAllEvents() {
-
-        return 0;
+        if(useDatabase) {
+            return super.purgeAllEvents();
+        }else {
+            return 0;
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeEventsBefore(long)
-     */
     @Override
     public int purgeEventsBefore(long time) {
-
+        if(useDatabase) {
+            return super.purgeEventsBefore(time);
+        }
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#purgeEventsBefore(long, java.lang.String)
-     */
     @Override
     public int purgeEventsBefore(long time, String typeName) {
-
+        if(useDatabase) {
+            return super.purgeEventsBefore(time, typeName);
+        }
         return 0;
     }
 
     @Override
     public int purgeEventsBefore(long time, AlarmLevels alarmLevel) {
-
+        if(useDatabase) {
+            return super.purgeEventsBefore(time, alarmLevel);
+        }
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#cancelEventsForDataPoint(int)
-     */
     @Override
     public void cancelEventsForDataPoint(int dataPointId) {
-
-
+        if(useDatabase) {
+            super.cancelEventsForDataPoint(dataPointId);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#cancelEventsForDataSource(int)
-     */
     @Override
     public void cancelEventsForDataSource(int dataSourceId) {
-
-
+        if(useDatabase) {
+            super.cancelEventsForDataSource(dataSourceId);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#cancelEventsForPublisher(int)
-     */
     @Override
     public void cancelEventsForPublisher(int publisherId) {
-
-
+        if(useDatabase) {
+            super.cancelEventsForPublisher(publisherId);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#initialize(boolean)
-     */
     @Override
     public void initialize(boolean safe) {
-
-
+        if(useDatabase) {
+            super.initialize(safe);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#terminate()
-     */
     @Override
     public void terminate() {
-
-
+        if(useDatabase) {
+            super.terminate();
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#joinTermination()
-     */
     @Override
     public void joinTermination() {
-
-
+        if(useDatabase) {
+            super.joinTermination();
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#addListener(com.serotonin.m2m2.module.EventManagerListenerDefinition)
-     */
     @Override
     public void addListener(EventManagerListenerDefinition l) {
-
-
+        if(useDatabase) {
+            super.addListener(l);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#removeListener(com.serotonin.m2m2.module.EventManagerListenerDefinition)
-     */
     @Override
     public void removeListener(EventManagerListenerDefinition l) {
-
-
+        if(useDatabase) {
+            super.removeListener(l);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#addUserEventListener(com.serotonin.m2m2.rt.event.UserEventListener)
-     */
     @Override
     public void addUserEventListener(UserEventListener l) {
-
-
+        if(useDatabase) {
+            super.addUserEventListener(l);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#removeUserEventListener(com.serotonin.m2m2.rt.event.UserEventListener)
-     */
     @Override
     public void removeUserEventListener(UserEventListener l) {
-
-
+        if(useDatabase) {
+            super.removeUserEventListener(l);
+        }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getAllActiveUserEvents(int)
-     */
     @Override
     public List<EventInstance> getAllActiveUserEvents(int userId) {
-
+        if(useDatabase) {
+            super.getAllActiveUserEvents(userId);
+        }
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#getAllActive()
-     */
     @Override
     public List<EventInstance> getAllActive() {
-
+        if(useDatabase) {
+            super.getAllActive();
+        }
         return null;
     }
 

@@ -161,11 +161,18 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback);
 
     /**
+     * Execute a query for VOs with a callback per row
+     * @param select
+     * @param callback
+     */
+    public void customizedQuery(Select<Record> select, MappedRowCallback<T> callback);
+
+    /**
      * Execute a custom query and extract results
      * @param select
      * @param callback
      */
-    public void customizedQuery(Select<Record>  select, ResultSetExtractor<Void> callback);
+    public <TYPE> TYPE customizedQuery(Select<Record> select, ResultSetExtractor<TYPE> callback);
 
     /**
      * Execute a query for these VOs based on the conditions

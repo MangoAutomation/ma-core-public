@@ -3,7 +3,6 @@
  */
 package com.serotonin.m2m2.rt;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -18,13 +17,15 @@ import org.junit.Test;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
+import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 
 /**
  *
@@ -36,12 +37,11 @@ public class DataPointEventsTest extends MangoTestBase {
     public void testListenerAddRemoveSyncrhonization()
             throws InterruptedException, JsonException, IOException, URISyntaxException {
 
-        File jsonFile =
-                new File(MangoTestBase.class.getResource("/oneSourceOnePoint.json").toURI());
-        loadConfiguration(jsonFile);
+        MockDataSourceVO ds = createMockDataSource(true);
+        DataPointVO point = createMockDataPoint(ds, new MockPointLocatorVO(DataTypes.NUMERIC, true), true);
+
 
         int inserted = 1000;
-        DataPointVO point = DataPointDao.getInstance().getByXid("DP_TEST");
         ExecutorService executor = Executors.newFixedThreadPool(3);
         SynchronousQueue<TestDataPointListener> queue = new SynchronousQueue<>();
 
@@ -90,8 +90,8 @@ public class DataPointEventsTest extends MangoTestBase {
         executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
         executor.shutdown();
     }
-    
-    
+
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         RuntimeManagerMockMangoLifecycle lifecycle =
