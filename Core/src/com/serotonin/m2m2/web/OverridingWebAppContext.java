@@ -34,7 +34,7 @@ public class OverridingWebAppContext extends WebAppContext {
 
         // Copy of Jetty webdefault.xml with JSP and default servlet removed so we can configure them programmatically
         // see https://github.com/eclipse/jetty.project/blob/jetty-9.4.x/jetty-webapp/src/main/config/etc/webdefault.xml
-        Path webdefault = Common.WEB.resolve("WEB-INF/webdefault.xml");
+        Path webdefault = Common.WEB.resolve("WEB-INF").resolve("webdefault.xml");
         if (Files.isRegularFile(webdefault)) {
             this.setDefaultsDescriptor(webdefault.toFile().getAbsolutePath());
         } else {

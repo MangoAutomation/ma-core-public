@@ -346,9 +346,8 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     @Override
-    public int getLifecycleState() {
-        // TODO Auto-generated method stub
-        return 0;
+    public LifecycleState getLifecycleState() {
+        return LifecycleState.RUNNING;
     }
 
     @Override

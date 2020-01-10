@@ -1,0 +1,67 @@
+/*
+ * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
+ */
+
+/* Styles to match the default theme from angular-material */
+
+body {
+	background-color: #303030;
+	color: rgba(255, 255, 255, 0.87);
+	font-family: Roboto, sans-serif;
+}
+
+.ma-startup-container {
+	text-align: center;
+	width: 100%;
+	padding-top: 50px;
+}
+
+.ma-startup-text {
+	margin-top: 16px;
+	font-size: 20px;
+}
+.ma-startup-progress {
+	margin-top: 8px;
+	font-size: 14px;
+}
+
+.ma-startup-error {
+	color: rgb(221,44,0);
+}
+
+/* Loading spinner */
+
+svg.ma-startup-spinner {
+  animation: ma-startup-spinner-rotator 1.6s linear infinite;
+}
+
+@keyframes ma-startup-spinner-rotator {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(270deg);
+  }
+}
+
+svg.ma-startup-spinner circle {
+  stroke: #FF8500;
+  stroke-dasharray: 187;
+  stroke-dashoffset: 0;
+  transform-origin: center;
+  animation: ma-startup-spinner-dash 1.6s ease-in-out infinite;
+}
+
+@keyframes ma-startup-spinner-dash {
+  0% {
+    stroke-dashoffset: 187;
+  }
+  50% {
+    stroke-dashoffset: 46.75;
+    transform: rotate(135deg);
+  }
+  100% {
+    stroke-dashoffset: 187;
+    transform: rotate(450deg);
+  }
+}
