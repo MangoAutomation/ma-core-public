@@ -76,7 +76,7 @@ public class DaoEvent<T extends AbstractBasicVO, TABLE extends AbstractBasicTabl
      */
     @Override
     public ResolvableType getResolvableType() {
-        return ResolvableType.forClassWithGenerics(this.getClass(), ResolvableType.forClass(this.vo.getClass()));
+        return ResolvableType.forClassWithGenerics(this.getClass(), ResolvableType.forClass(this.vo.getClass()), ResolvableType.forClass(AbstractBasicTableDefinition.class));
     }
 
     public Set<?> getUpdatedFields() {

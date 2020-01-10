@@ -478,11 +478,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         return this.customizedCount(result);
     }
 
-    protected DaoEvent<T,TABLE> createDaoEvent(DaoEventType type, T vo, T existing) {
-        return new DaoEvent<T,TABLE>(this, type, vo, null);
+    protected DaoEvent<T, TABLE> createDaoEvent(DaoEventType type, T vo, T existing) {
+        return new DaoEvent<T, TABLE>(this, type, vo, null);
     }
 
-    protected void publishEvent(DaoEvent<T,TABLE> event) {
+    protected void publishEvent(DaoEvent<T, TABLE> event) {
         if (this.eventPublisher != null) {
             this.eventPublisher.publishEvent(event);
         }

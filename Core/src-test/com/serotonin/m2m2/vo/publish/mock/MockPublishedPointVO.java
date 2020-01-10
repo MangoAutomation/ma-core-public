@@ -10,6 +10,6 @@ import com.serotonin.m2m2.vo.publish.PublishedPointVO;
  *
  * @author Terry Packer
  */
-public class MockPublishedPointVO extends PublishedPointVO{
+public class MockPublishedPointVO extends PublishedPointVO {
 
 }

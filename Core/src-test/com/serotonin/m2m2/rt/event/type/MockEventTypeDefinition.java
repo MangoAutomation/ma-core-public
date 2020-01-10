@@ -31,9 +31,9 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
 
     @Override
     public EventType createEventType(String subtype, int ref1, int ref2) {
-        return new MockEventType(DuplicateHandling.ALLOW, subtype, ref1, ref2);
+        return new MockEventType(DuplicateHandling.ALLOW, subtype, ref1, ref2, null);
     }
-    
+
     @Override
     public boolean hasCreatePermission(PermissionHolder user) {
         // TODO Auto-generated method stub

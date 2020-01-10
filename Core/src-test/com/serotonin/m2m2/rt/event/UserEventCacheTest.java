@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
- * 
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.rt.event;
@@ -31,12 +31,12 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * A benchmarking test to validate changes to the UserEventCache
- * 
- * TODO Mango 4.0 Test multiple inserters 
- * TODO Mango 4.0 Test ack times 
- * TODO Mango 4.0 Test rnt times 
+ *
+ * TODO Mango 4.0 Test multiple inserters
+ * TODO Mango 4.0 Test ack times
+ * TODO Mango 4.0 Test rnt times
  * TODO Mango 4.0 Test removeUser
- * 
+ *
  * @author Terry Packer
  *
  */
@@ -53,23 +53,23 @@ public class UserEventCacheTest extends MangoTestBase {
         Set<Integer> userIds = new HashSet<>();
         for(User user : users)
             userIds.add(user.getId());
-        
+
         int cleanerPeriod = 10000;
         int timeToLive = cleanerPeriod * 4;
         int eventCount = 100;
         this.cache = new UserEventCache(timeToLive, cleanerPeriod);
-        
+
         //Preload cache for users
         for(User user : users)
             cache.getAllEvents(user.getId());
-        
+
         EventType eventTypeOne = new DataPointEventType(1, 1);
         EventType eventTypeTwo = new DataPointEventType(1, 2);
         TranslatableMessage message = new TranslatableMessage("common.default", "not a real alarm");
         Map<String,Object> context = new HashMap<>();
         List<EventInstance> allEventOnes = new ArrayList<EventInstance>();
         List<EventInstance> allEventTwos = new ArrayList<EventInstance>();
-        
+
         for (int i = 0; i < eventCount; i++) {
             timer.fastForwardTo(timer.currentTimeMillis() + 1);
             EventInstance e = new EventInstance(eventTypeOne, Common.timer.currentTimeMillis(),
@@ -79,7 +79,7 @@ public class UserEventCacheTest extends MangoTestBase {
             EventDao.getInstance().insertUserEvents(e.getId(), new ArrayList<>(userIds), true);
             allEventOnes.add(e);
             cache.addEvent(userIds, e);
-            
+
             EventInstance e2 = new EventInstance(eventTypeTwo, Common.timer.currentTimeMillis(),
                     true, AlarmLevels.CRITICAL, message, context);
             // Important
@@ -88,10 +88,10 @@ public class UserEventCacheTest extends MangoTestBase {
             allEventTwos.add(e2);
             cache.addEvent(userIds, e2);
         }
-        
+
         //Confirm that the cache size is still eventCount
-        assertEquals(eventCount, cache.getCache().size());        
-        
+        assertEquals(eventCount, cache.getCache().size());
+
         //Test Remove 10, 20, 30, 40 for Both event types
         cache.removeEvent(allEventOnes.get(10));
         cache.removeEvent(allEventOnes.get(20));
@@ -102,39 +102,39 @@ public class UserEventCacheTest extends MangoTestBase {
         cache.removeEvent(allEventTwos.get(20));
         cache.removeEvent(allEventTwos.get(30));
         cache.removeEvent(allEventTwos.get(40));
-        
+
         assertEquals(eventCount - 4, cache.getCache().size());
-        
+
         //Test Remove only event 1, cache size should not change
         cache.removeEvent(allEventOnes.get(11));
         cache.removeEvent(allEventOnes.get(21));
         cache.removeEvent(allEventOnes.get(31));
         cache.removeEvent(allEventOnes.get(41));
         assertEquals(eventCount - 4, cache.getCache().size());
-        
-        
+
+
         //Test remove user from only 1 event at that time
         cache.removeUser(users.get(0).getId(), allEventOnes.get(1).getId());
         cache.removeUser(users.get(0).getId(), allEventOnes.get(2).getId());
-        
+
         // Give the cleaner time to clean up and remove dead events
         this.timer.fastForwardTo(this.timer.currentTimeMillis() + (cleanerPeriod * 2));
-        
+
         //No size change should occur
         assertEquals(eventCount - 4, cache.getCache().size());
-        
+
         //Remove the user from the other event at that time and should see size change
         cache.removeUser(users.get(0).getId(), allEventTwos.get(1).getId());
         cache.removeUser(users.get(0).getId(), allEventTwos.get(2).getId());
-        
+
         // Give the cleaner time to clean up and remove dead events
         this.timer.fastForwardTo(this.timer.currentTimeMillis() + (cleanerPeriod * 2));
-        
+
         //No size change should occur
         assertEquals(eventCount - 4 - 2, cache.getCache().size());
     }
-    
-    
+
+
 
     @Test
     public void testRemoveEvents() throws InterruptedException {
@@ -204,7 +204,7 @@ public class UserEventCacheTest extends MangoTestBase {
 
     @Test
     public void testRemoveEventsForUsers() throws InterruptedException {
-        List<User> users = createUsers(1, PermissionHolder.SUPERADMIN_ROLE.get());
+        List<User> users = createUsers(2, PermissionHolder.SUPERADMIN_ROLE.get());
         int cleanerPeriod = 10000;
         int timeToLive = cleanerPeriod * 4;
         int eventCount = 100;
@@ -295,8 +295,8 @@ public class UserEventCacheTest extends MangoTestBase {
                 EventInstance evt = events.get(j);
                 if (latest.getActiveTimestamp() < evt.getActiveTimestamp())
                     fail("Events (" + latest.getId() + "," + evt.getId()
-                            + ") Timestamps out of order for user " + user.getId() + ": "
-                            + latest.getActiveTimestamp() + " --> " + evt.getActiveTimestamp());
+                    + ") Timestamps out of order for user " + user.getId() + ": "
+                    + latest.getActiveTimestamp() + " --> " + evt.getActiveTimestamp());
                 assertEquals(egt.allEvents.get(j).getActiveTimestamp(), evt.getActiveTimestamp());
                 latest = evt;
             }
@@ -446,7 +446,7 @@ public class UserEventCacheTest extends MangoTestBase {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see java.lang.Thread#run()
          */
         @Override
@@ -525,7 +525,7 @@ public class UserEventCacheTest extends MangoTestBase {
 
         /*
          * (non-Javadoc)
-         * 
+         *
          * @see java.lang.Thread#run()
          */
         @Override
@@ -543,15 +543,15 @@ public class UserEventCacheTest extends MangoTestBase {
                         EventInstance evt = events.get(i);
                         if (latest.getActiveTimestamp() < evt.getActiveTimestamp())
                             LOG.warn("Events (" + latest.getId() + "," + evt.getId()
-                                    + ") Timestamps out of order for user " + userId + ": "
-                                    + latest.getActiveTimestamp() + " --> "
-                                    + evt.getActiveTimestamp());
+                            + ") Timestamps out of order for user " + userId + ": "
+                            + latest.getActiveTimestamp() + " --> "
+                            + evt.getActiveTimestamp());
                         if (purgeBeforeMs == null
                                 && latest.getActiveTimestamp() - evt.getActiveTimestamp() > 1)
                             LOG.warn("Events (" + latest.getId() + "," + evt.getId()
-                                    + ") Timestamps not 1ms between for user " + userId + ": "
-                                    + latest.getActiveTimestamp() + " --> "
-                                    + evt.getActiveTimestamp());
+                            + ") Timestamps not 1ms between for user " + userId + ": "
+                            + latest.getActiveTimestamp() + " --> "
+                            + evt.getActiveTimestamp());
                         latest = evt;
                     }
                 }
@@ -572,7 +572,7 @@ public class UserEventCacheTest extends MangoTestBase {
                 List<EventInstance> events = parent.cache.getAllEvents(userId);
                 if ((events.size() > 0) && (events.get(0).getActiveTimestamp() > purgeBeforeMs)) {
                     parent.cache
-                            .purgeEventsBefore(events.get(0).getActiveTimestamp() - purgeBeforeMs);
+                    .purgeEventsBefore(events.get(0).getActiveTimestamp() - purgeBeforeMs);
                 }
             }
 

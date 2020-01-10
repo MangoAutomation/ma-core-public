@@ -43,7 +43,7 @@ public class UserEventsTest extends MangoTestBase {
     @Test
     public void testListenerAddRemoveSyncrhonization() throws InterruptedException {
         List<User> users = createUsers(1, PermissionHolder.SUPERADMIN_ROLE.get());
-        
+
         ExecutorService executor = Executors.newFixedThreadPool(3);
         SynchronousQueue<MockUserEventListener> queue = new SynchronousQueue<>();
         MockUserEventListener l = new MockUserEventListener(users.get(0));
@@ -71,17 +71,17 @@ public class UserEventsTest extends MangoTestBase {
             }
             removerRunning.set(false);
         };
-        
+
         //Event Generator Thread
         Runnable generator = () -> {
 
             //Raise some events
             List<MockEventTypeTime> raised = new ArrayList<>();
             for(int i=0; i<1000; i++) {
-                MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId);
+                MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId, null);
                 raised.add(new MockEventTypeTime(event, timer.currentTimeMillis()));
-                Common.eventManager.raiseEvent(event, 
-                        timer.currentTimeMillis(), true, AlarmLevels.URGENT, 
+                Common.eventManager.raiseEvent(event,
+                        timer.currentTimeMillis(), true, AlarmLevels.URGENT,
                         new TranslatableMessage("common.default", "Mock Event"), null);
                 timer.fastForwardTo(timer.currentTimeMillis() + 1);
             }
@@ -93,32 +93,32 @@ public class UserEventsTest extends MangoTestBase {
         executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
         executor.shutdown();
     }
-    
+
     @Test
     public void testRaiseEvents() throws InterruptedException {
-        
+
         //Create some users
         List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
-        
+
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {
             MockUserEventListener l = new MockUserEventListener(u, MockEventType.class);
             listeners.add(l);
             Common.eventManager.addUserEventListener(l);
         }
-        
+
         //Raise some events
         List<MockEventTypeTime> raised = new ArrayList<>();
         for(int i=0; i<eventCount; i++) {
-            MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId);
+            MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId, null);
             raised.add(new MockEventTypeTime(event, this.timer.currentTimeMillis()));
-            Common.eventManager.raiseEvent(event, 
-                    this.timer.currentTimeMillis(), true, AlarmLevels.URGENT, 
+            Common.eventManager.raiseEvent(event,
+                    this.timer.currentTimeMillis(), true, AlarmLevels.URGENT,
                     new TranslatableMessage("common.default", "Mock Event"), null);
             timer.fastForwardTo(timer.currentTimeMillis() + 1);
         }
         assertEvents(listeners, EventAction.RAISED, raised);
-        
+
         //Acknowledge
         List<MockEventTypeTime> acknowledged = new ArrayList<>();
         List<EventInstance> instances = EventDao.getInstance().getActiveEvents();
@@ -129,7 +129,7 @@ public class UserEventsTest extends MangoTestBase {
             timer.fastForwardTo(timer.currentTimeMillis() + 1);
         }
         assertEvents(listeners, EventAction.ACKNOWLEDGED, acknowledged);
-        
+
         //Return to normal
         List<MockEventTypeTime> returned = new ArrayList<>();
         for(MockEventTypeTime event : raised) {
@@ -138,36 +138,36 @@ public class UserEventsTest extends MangoTestBase {
             Common.eventManager.returnToNormal(rtn.type, rtn.time);
             timer.fastForwardTo(timer.currentTimeMillis() + 1);
         }
-        
+
         assertEvents(listeners, EventAction.RETURNED, returned);
     }
-    
+
     @Test
     public void testDeactivateEvents() throws InterruptedException {
-        
+
         //Create some users
         List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
-        
+
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {
             MockUserEventListener l = new MockUserEventListener(u, MockEventType.class);
             listeners.add(l);
             Common.eventManager.addUserEventListener(l);
         }
-        
+
         //Raise some events
         List<MockEventTypeTime> raised = new ArrayList<>();
         for(int i=0; i<eventCount; i++) {
-            MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId);
+            MockEventType event = new MockEventType(DuplicateHandling.ALLOW, null, i, dataPointId, null);
             raised.add(new MockEventTypeTime(event, this.timer.currentTimeMillis()));
-            Common.eventManager.raiseEvent(event, 
-                    this.timer.currentTimeMillis(), true, AlarmLevels.URGENT, 
+            Common.eventManager.raiseEvent(event,
+                    this.timer.currentTimeMillis(), true, AlarmLevels.URGENT,
                     new TranslatableMessage("common.default", "Mock Event"), null);
             timer.fastForwardTo(timer.currentTimeMillis() + 1);
         }
         assertEvents(listeners, EventAction.RAISED, raised);
 
-        
+
         //Deactivate
         long deactivatedTime = Common.timer.currentTimeMillis();
         //Simulate the events here so we can verify them, they should be at time now
@@ -183,16 +183,16 @@ public class UserEventsTest extends MangoTestBase {
         }
 
     }
-    
+
     /**
      * Check the number raised and if there are duplicates
      * @param listeners
      * @param action
      * @param events
-     * @throws InterruptedException 
+     * @throws InterruptedException
      */
     private void assertEvents(List<MockUserEventListener> listeners, EventAction action, List<MockEventTypeTime> events) throws InterruptedException {
-        
+
         for(int i=0; i<30; i++) {
             int waitingFor = listeners.size();
             for(MockUserEventListener l : listeners) {
@@ -215,12 +215,12 @@ public class UserEventsTest extends MangoTestBase {
                         break;
                 }
             }
-            
+
             if(waitingFor == 0)
                 break;
             Thread.sleep(500);
         }
-        
+
         //Check size of list and wait some time before failing for the other threads to finish
         StringBuilder b = new StringBuilder();
         for(MockUserEventListener l : listeners) {
@@ -261,7 +261,7 @@ public class UserEventsTest extends MangoTestBase {
                                 EventInstance e = it.next();
                                 if(m.time == e.getAcknowledgedTimestamp())
                                     listenedEvents.add(e);
-                            }      
+                            }
                             break;
                         case RAISED:
                             it  = l.getRaised().listIterator();
@@ -277,7 +277,7 @@ public class UserEventsTest extends MangoTestBase {
                                 EventInstance e = it.next();
                                 if(m.time == e.getRtnTimestamp())
                                     listenedEvents.add(e);
-                            }      
+                            }
                             break;
                         default:
                             fail("No case for " + action);
@@ -289,7 +289,7 @@ public class UserEventsTest extends MangoTestBase {
             }
         }
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.MangoTestBase#before()
      */
@@ -298,7 +298,7 @@ public class UserEventsTest extends MangoTestBase {
         super.before();
         Common.eventManager.purgeAllEvents();
     }
-    
+
     /* (non-Javadoc)
      * @see com.serotonin.m2m2.MangoTestBase#getLifecycle()
      */
@@ -307,7 +307,7 @@ public class UserEventsTest extends MangoTestBase {
         EventManagerMockMangoLifecycle lifecycle = new EventManagerMockMangoLifecycle(modules, enableH2Web, h2WebPort);
         return lifecycle;
     }
-    
+
     enum EventAction {
         RAISED,
         RETURNED,
@@ -317,7 +317,7 @@ public class UserEventsTest extends MangoTestBase {
     class MockEventTypeTime {
         MockEventType type;
         long time;
-        
+
         /**
          * @param type
          * @param time
@@ -327,7 +327,7 @@ public class UserEventsTest extends MangoTestBase {
             this.time = time;
         }
     }
-    
+
     class EventManagerMockMangoLifecycle extends MockMangoLifecycle {
 
         /**
@@ -339,7 +339,7 @@ public class UserEventsTest extends MangoTestBase {
                 int webPort) {
             super(modules, enableWebConsole, webPort);
         }
-        
+
         /* (non-Javadoc)
          * @see com.serotonin.m2m2.MockMangoLifecycle#getEventManager()
          */

@@ -30,22 +30,28 @@ public class MockEventType extends EventType {
     }
 
     /**
-     * default subtype of null
+     * default subtype of null and no role
      * @param duplicateHandling
      */
     public MockEventType(DuplicateHandling duplicateHandling) {
         this(duplicateHandling, null);
     }
 
+    /**
+     * No role applied (admin only)
+     * @param duplicateHandling
+     * @param eventSubType
+     */
     public MockEventType(DuplicateHandling duplicateHandling, String eventSubType) {
-        this(duplicateHandling, eventSubType, -1, -1);
+        this(duplicateHandling, eventSubType, -1, -1, null);
     }
 
-    public MockEventType(DuplicateHandling duplicateHandling, String eventSubType, int ref1, int ref2) {
+    public MockEventType(DuplicateHandling duplicateHandling, String eventSubType, int ref1, int ref2, Role required) {
         this.duplicateHandling = duplicateHandling;
         this.eventSubtype = null;
         this.ref1 = ref1;
         this.ref2 = ref2;
+        this.required = required;
     }
 
     @Override

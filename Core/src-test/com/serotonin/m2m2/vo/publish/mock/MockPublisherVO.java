@@ -16,10 +16,10 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  *
  * @author Terry Packer
  */
-public class MockPublisherVO extends PublisherVO<MockPublishedPointVO>{
+public class MockPublisherVO extends PublisherVO<MockPublishedPointVO> {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = -1L;
 
@@ -44,7 +44,7 @@ public class MockPublisherVO extends PublisherVO<MockPublishedPointVO>{
     @Override
     protected void getEventTypesImpl(List<EventTypeVO> eventTypes) {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override

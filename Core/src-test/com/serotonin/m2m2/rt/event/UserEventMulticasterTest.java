@@ -30,51 +30,55 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class UserEventMulticasterTest extends MangoTestBase {
 
     protected RoleService roleService;
-    
+
     protected PermissionHolder systemSuperadmin;
     protected RoleVO mockRole;
-    
+
+    public UserEventMulticasterTest() {
+        super(true, 9000);
+    }
+
     @Before
     public void setupRoles() {
         roleService = Common.getBean(RoleService.class);
-        
+
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
 
         //Add some roles
         mockRole = new RoleVO(Common.NEW_ID, "MOCK", "Mock test role.");
         Common.setUser(systemSuperadmin);
         try {
-            roleService.insert(mockRole);
+            mockRole = roleService.insert(mockRole);
         }finally {
             Common.removeUser();
         }
-        
+
     }
-    
+
     @Test
     public void testAddRemoveListeners() {
         int userCount = 3;
         List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         List<MockUserEventListener> listenerSet1 = new ArrayList<>();
         UserEventListener multicaster = null;
-        
+
         //Add 3 listeners
         for(User u : users) {
             MockUserEventListener l = new MockUserEventListener(u);
             listenerSet1.add(l);
             multicaster = UserEventMulticaster.add(multicaster, l);
         }
-        
+
         //Ensure 3 listeners
         assertEquals(3, UserEventMulticaster.getListenerCount(multicaster));
-        
+
         //Remove 3 listeners
         for(MockUserEventListener l : listenerSet1)
             multicaster = UserEventMulticaster.remove(multicaster, l);
-        
+
         //Ensure 0 listeners
         assertNull(multicaster);
-                
+
         //Add 3 listeners
         List<MockUserEventListener> listenerSet2 = new ArrayList<>();
         for(User u : users) {
@@ -82,18 +86,18 @@ public class UserEventMulticasterTest extends MangoTestBase {
             listenerSet2.add(l);
             multicaster = UserEventMulticaster.add(multicaster, l);
         }
-        
+
         //Confirm 3 listeners
         assertEquals(3, UserEventMulticaster.getListenerCount(multicaster));
     }
-    
+
     @Test
     public void testMulticastOddNumberEventsForUser() {
-        
+
         int dataPointId = 1;
         int eventCount = 13;
         int userCount = 13;
-        
+
         List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
@@ -102,7 +106,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
             listeners.add(l);
             multicaster = UserEventMulticaster.add(multicaster, l);
         }
-        
+
 
         List<EventInstance> events = new ArrayList<>();
         long time = 0;
@@ -116,31 +120,31 @@ public class UserEventMulticasterTest extends MangoTestBase {
         //Ack
         for(EventInstance e : events)
             multicaster.acknowledged(e);
-        
+
         //Rtn
         for(EventInstance e : events)
             multicaster.returnToNormal(e);
-        
+
         //Confirm all 100 saw 10000 were raised
         for(MockUserEventListener l : listeners)
             assertEquals(eventCount, l.getRaised().size());
-        
+
         //Confirm all 100 saw 10000 were acked
         for(MockUserEventListener l : listeners)
             assertEquals(eventCount, l.getAcknowledged().size());
-        
+
         //Confirm all 100 saw 10000 were rtned
         for(MockUserEventListener l : listeners)
             assertEquals(eventCount, l.getReturned().size());
     }
-    
+
     @Test
     public void testMulticastEventsForUser() {
-        
+
         int dataPointId = 1;
         int eventCount = 10000;
         int userCount = 100;
-        
+
         List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
@@ -149,7 +153,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
             listeners.add(l);
             multicaster = UserEventMulticaster.add(multicaster, l);
         }
-        
+
 
         List<EventInstance> events = new ArrayList<>();
         long time = 0;
@@ -163,43 +167,91 @@ public class UserEventMulticasterTest extends MangoTestBase {
         //Ack
         for(EventInstance e : events)
             multicaster.acknowledged(e);
-        
+
         //Rtn
         for(EventInstance e : events)
             multicaster.returnToNormal(e);
-        
+
         //Confirm all 100 saw 10000 were raised
         for(MockUserEventListener l : listeners)
             assertEquals(eventCount, l.getRaised().size());
-        
+
         //Confirm all 100 saw 10000 were acked
         for(MockUserEventListener l : listeners)
             assertEquals(eventCount, l.getAcknowledged().size());
-        
+
         //Confirm all 100 saw 10000 were rtned
         for(MockUserEventListener l : listeners)
             assertEquals(eventCount, l.getReturned().size());
     }
-    
+
     @Test
     public void testMulticastEventsForUsersWithPermissions() {
-        
+
         PermissionService service = Common.getBean(PermissionService.class);
         int dataPointId = 1;
         int eventCount = 10000;
         int userCount = 5*6;
-        
+
         //Add them out of order so the tree is jumbled with permissions hither and yon
-        List<User> users = createUsers(userCount/6, PermissionHolder.SUPERADMIN_ROLE.get());
-        users.addAll(createUsers(userCount/6, mockRole.getRole()));
-        users.addAll(createUsers(userCount/6));
-        users.addAll(createUsers(userCount/6, PermissionHolder.SUPERADMIN_ROLE.get()));
-        users.addAll(createUsers(userCount/6, mockRole.getRole()));
-        users.addAll(createUsers(userCount/6));
+        List<User> users = new ArrayList<>();
+        int added = 0;
+        for(int i = 0; i < (userCount/6); i++) {
+            users.add(createUser("User" + added,
+                    "user" + added,
+                    "password",
+                    "user" + added + "@yourMangoDomain.com",
+                    PermissionHolder.SUPERADMIN_ROLE.get()));
+            added++;
+        }
+
+        for(int i = 0; i < (userCount/6); i++) {
+            users.add(createUser("User" + added,
+                    "user" + added,
+                    "password",
+                    "user" + added + "@yourMangoDomain.com",
+                    mockRole.getRole()));
+            added++;
+        }
+
+        for(int i = 0; i < (userCount/6); i++) {
+            users.add(createUser("User" + added,
+                    "user" + added,
+                    "password",
+                    "user" + added + "@yourMangoDomain.com"));
+            added++;
+        }
+
+        for(int i = 0; i < (userCount/6); i++) {
+            users.add(createUser("User" + added,
+                    "user" + added,
+                    "password",
+                    "user" + added + "@yourMangoDomain.com",
+                    PermissionHolder.SUPERADMIN_ROLE.get()));
+            added++;
+        }
+
+        for(int i = 0; i < (userCount/6); i++) {
+            users.add(createUser("User" + added,
+                    "user" + added,
+                    "password",
+                    "user" + added + "@yourMangoDomain.com",
+                    mockRole.getRole()));
+            added++;
+        }
+
+        for(int i = 0; i < (userCount/6); i++) {
+            users.add(createUser("User" + added,
+                    "user" + added,
+                    "password",
+                    "user" + added + "@yourMangoDomain.com"));
+            added++;
+        }
+
         List<Integer> idsToNotify = new ArrayList<>();
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
-        MockEventType mockEventType =  new MockEventType(DuplicateHandling.ALLOW, null, 0, dataPointId);
+        MockEventType mockEventType =  new MockEventType(DuplicateHandling.ALLOW, null, 0, dataPointId, this.mockRole.getRole());
         for(User u : users) {
             MockUserEventListener l = new MockUserEventListener(u);
             if(mockEventType.hasPermission(u, service)) //This work is normally done by the event manager handling the raiseEvent calls
@@ -207,7 +259,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
             listeners.add(l);
             multicaster = UserEventMulticaster.add(multicaster, l);
         }
-        
+
 
         List<EventInstance> events = new ArrayList<>();
         long time = 0;
@@ -222,11 +274,11 @@ public class UserEventMulticasterTest extends MangoTestBase {
         //Ack
         for(EventInstance e : events)
             multicaster.acknowledged(e);
-        
+
         //Rtn
         for(EventInstance e : events)
             multicaster.returnToNormal(e);
-        
+
         //Confirm those with permissions saw all 10000 raised
         for(MockUserEventListener l : listeners) {
             if(l.getUser().getRoles().isEmpty()) {
@@ -235,7 +287,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
                 assertEquals(eventCount, l.getRaised().size());
             }
         }
-        
+
         //Confirm those with permissions saw all 10000 acked
         for(MockUserEventListener l : listeners) {
             if(l.getUser().getRoles().isEmpty()) {
@@ -244,7 +296,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
                 assertEquals(eventCount, l.getAcknowledged().size());
             }
         }
-        
+
         //Confirm those with permissions saw all 10000 rtned
         for(MockUserEventListener l : listeners) {
             if(l.getUser().getRoles().isEmpty()) {
@@ -254,10 +306,10 @@ public class UserEventMulticasterTest extends MangoTestBase {
             }
         }
     }
-    
+
     public EventInstance createMockEventInstance(int id, int dataPointId, long time) {
-        MockEventType type = new MockEventType(DuplicateHandling.ALLOW, null, id, dataPointId);
-        return new EventInstance(type, time, true, AlarmLevels.URGENT, 
+        MockEventType type = new MockEventType(DuplicateHandling.ALLOW, null, id, dataPointId, null);
+        return new EventInstance(type, time, true, AlarmLevels.URGENT,
                 new TranslatableMessage("common.default", "Mock Event " + id), null);
     }
 }
