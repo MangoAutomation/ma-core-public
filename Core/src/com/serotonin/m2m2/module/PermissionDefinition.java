@@ -5,6 +5,7 @@ Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
 package com.serotonin.m2m2.module;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -24,7 +25,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  */
 abstract public class PermissionDefinition extends ModuleElementDefinition {
     /**
-     * A  human readable and translatable brief description of the permission. 
+     * A  human readable and translatable brief description of the permission.
      *  Descriptions are used in the system settings permission section and so should be as brief
      *  as possible.
      *
@@ -50,7 +51,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     protected Set<Role> getDefaultRoles(){
         return Collections.emptySet();
     }
-    
+
     /**
      * Get the current set of Role objects for this permission
      * @return
@@ -71,10 +72,11 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     public MangoPermission getPermission() {
         Set<RoleVO> roles = RoleDao.getInstance().getRoleVOs(getPermissionTypeName());
         if(roles.isEmpty()) {
+            Set<RoleVO> defaultRoles = new HashSet<>();
             for(Role role : getDefaultRoles()) {
-                roles.add(RoleDao.getInstance().getByXid(role.getXid()));
+                defaultRoles.add(RoleDao.getInstance().getByXid(role.getXid()));
             }
-            return new MangoPermission(getPermissionTypeName(), roles);
+            return new MangoPermission(getPermissionTypeName(), defaultRoles);
         }else {
             return new MangoPermission(getPermissionTypeName(), roles);
         }
