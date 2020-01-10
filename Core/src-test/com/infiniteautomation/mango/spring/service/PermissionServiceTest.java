@@ -367,7 +367,7 @@ public class PermissionServiceTest extends MangoTestBase {
         permSet.add(perm1);
         permSet.add(perm2);
 
-        String joinedPerms = permissionService.implodeRoles(permSet);
+        String joinedPerms = PermissionService.implodeRoles(permSet);
 
         assertTrue(joinedPerms.contains(perm1.getXid()));
         assertTrue(joinedPerms.contains(perm2.getXid()));

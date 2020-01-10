@@ -156,6 +156,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         return dps;
     }
 
+    /**
+     * Get points for runtime in an efficient manner
+     * @param dataSourceId
+     * @return
+     */
     public List<DataPointVO> getDataPointsForDataSourceStart(int dataSourceId) {
         List<Field<?>> fields = new ArrayList<>(this.getSelectFields());
         fields.addAll(this.eventDetectorTable.getSelectFields());

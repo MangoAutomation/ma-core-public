@@ -78,12 +78,12 @@ public class EventManagerImpl implements EventManager {
      */
     private int state = PRE_INITIALIZE;
 
-    private final PermissionService permissionService;
-    
+    private PermissionService permissionService;
+
     public EventManagerImpl() {
-        permissionService = Common.getBean(PermissionService.class);
+
     }
-    
+
     /**
      * Check the state of the EventManager
      *  useful if you are a task that may run before/after the RUNNING state
@@ -95,7 +95,7 @@ public class EventManagerImpl implements EventManager {
     }
 
     //Cache for all active events for a logged in user, allow entries to remain un-accessed for 15 minutes and cleanup cache every minute
-    private final UserEventCache userEventCache = new UserEventCache(15 * 60000,  1000); //60000);
+    private UserEventCache userEventCache;
 
     //
     //
@@ -119,14 +119,14 @@ public class EventManagerImpl implements EventManager {
 
         long nowTimestamp = Common.timer.currentTimeMillis();
         if(time > nowTimestamp) {
-            log.warn("Raising event in the future! type=" + type + 
+            log.warn("Raising event in the future! type=" + type +
                     ", message='" + message.translate(Common.getTranslations()) +
-                    "' now=" + new Date(nowTimestamp) + 
+                    "' now=" + new Date(nowTimestamp) +
                     " event=" + new Date(time) +
                     " deltaMs=" + (time - nowTimestamp)
                     );
         }
-        
+
         if(alarmLevel == AlarmLevels.IGNORE)
             return;
 
@@ -315,17 +315,17 @@ public class EventManagerImpl implements EventManager {
         EventInstance evt = remove(type);
         if(evt == null)
             return;
-        
+
         long nowTimestamp = Common.timer.currentTimeMillis();
         if(time > nowTimestamp) {
-            log.warn("Returning event to normal in future! type=" + type + 
+            log.warn("Returning event to normal in future! type=" + type +
                     ", message='" + evt.getMessage().translate(Common.getTranslations()) +
-                    "' now=" + new Date(nowTimestamp) + 
+                    "' now=" + new Date(nowTimestamp) +
                     " event=" + new Date(time) +
                     " deltaMs=" + (time - nowTimestamp)
                     );
         }
-        
+
         List<User> activeUsers = userDao.getActiveUsers();
         UserEventListener multicaster = userEventMulticaster;
 
@@ -647,7 +647,7 @@ public class EventManagerImpl implements EventManager {
         }
 
         userEventCache.purgeEventsBefore(time, typeName);
-        
+
         if(EventType.EventTypeNames.AUDIT.equals(typeName)) {
             return AuditEventDao.getInstance().purgeEventsBefore(time);
         }else {
@@ -689,7 +689,7 @@ public class EventManagerImpl implements EventManager {
         }
 
         userEventCache.purgeEventsBefore(time, alarmLevel);
-        
+
         int auditEventCount = AuditEventDao.getInstance().purgeEventsBefore(time, alarmLevel);
         return auditEventCount + eventDao.purgeEventsBefore(time, alarmLevel);
     }
@@ -862,8 +862,11 @@ public class EventManagerImpl implements EventManager {
             return;
         state = INITIALIZE;
 
+        permissionService = Common.getBean(PermissionService.class);
         eventDao = EventDao.getInstance();
         userDao = UserDao.getInstance();
+
+        this.userEventCache = new UserEventCache(15 * 60000,  1000);
 
         // Get all active events from the database.
         activeEventsLock.writeLock().lock();
@@ -1033,7 +1036,7 @@ public class EventManagerImpl implements EventManager {
     }
 
     private void setHandlers(EventInstance evt) {
-        List<AbstractEventHandlerVO<?>> vos = (List<AbstractEventHandlerVO<?>>) EventHandlerDao.getInstance().getEventHandlers(evt.getEventType());
+        List<AbstractEventHandlerVO<?>> vos = EventHandlerDao.getInstance().getEventHandlers(evt.getEventType());
         List<EventHandlerRT<?>> rts = null;
         for (AbstractEventHandlerVO<?> vo : vos) {
             if (!vo.isDisabled()) {

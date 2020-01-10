@@ -444,11 +444,6 @@ public class UserEventCacheTest extends MangoTestBase {
                 currentEventId++;
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.lang.Thread#run()
-         */
         @Override
         public void run() {
             // Wait for the user threads to start
@@ -523,11 +518,6 @@ public class UserEventCacheTest extends MangoTestBase {
             this.parent.runningThreads.incrementAndGet();
         }
 
-        /*
-         * (non-Javadoc)
-         *
-         * @see java.lang.Thread#run()
-         */
         @Override
         public void run() {
             running.set(true);

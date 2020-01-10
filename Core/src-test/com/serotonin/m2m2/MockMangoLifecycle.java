@@ -404,7 +404,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     protected EventManager getEventManager() {
         if(this.eventManager == null)
-            return new MockEventManager(true);
+            return new MockEventManager(false);
         else
             return this.eventManager;
     }

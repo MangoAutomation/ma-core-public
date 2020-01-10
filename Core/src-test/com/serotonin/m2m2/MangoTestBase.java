@@ -139,11 +139,13 @@ public class MangoTestBase {
 
     @After
     public void after() {
+        Common.eventManager.purgeAllEvents();
+
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
         provider.reset();
         Common.runtimeManager.terminate();
         Common.runtimeManager.joinTermination();
-        Common.eventManager.purgeAllEvents();
+
         H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
         try {
             proxy.clean();

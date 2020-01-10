@@ -19,12 +19,10 @@ import org.junit.Test;
 
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.MockEventManager;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.Module;
-import com.serotonin.m2m2.rt.EventManager;
-import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.MockEventType;
 import com.serotonin.m2m2.vo.User;
@@ -87,11 +85,20 @@ public class UserEventsTest extends MangoTestBase {
             }
             generatorRunning.set(false);
         };
+
         executor.execute(adder);
         executor.execute(remover);
         executor.execute(generator);
-        executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
+        int maxWaitSeconds = 30;
+        for(int i=maxWaitSeconds; i>0; i--) {
+            if(!generatorRunning.get()) {
+                break;
+            }
+            try {Thread.sleep(1000);} catch(Exception e) { }
+        }
         executor.shutdown();
+        executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
+        executor.shutdownNow();
     }
 
     @Test
@@ -290,22 +297,10 @@ public class UserEventsTest extends MangoTestBase {
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.MangoTestBase#before()
-     */
     @Override
     public void before() {
         super.before();
         Common.eventManager.purgeAllEvents();
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.MangoTestBase#getLifecycle()
-     */
-    @Override
-    protected MockMangoLifecycle getLifecycle() {
-        EventManagerMockMangoLifecycle lifecycle = new EventManagerMockMangoLifecycle(modules, enableH2Web, h2WebPort);
-        return lifecycle;
     }
 
     enum EventAction {
@@ -328,24 +323,10 @@ public class UserEventsTest extends MangoTestBase {
         }
     }
 
-    class EventManagerMockMangoLifecycle extends MockMangoLifecycle {
-
-        /**
-         * @param modules
-         * @param enableWebConsole
-         * @param webPort
-         */
-        public EventManagerMockMangoLifecycle(List<Module> modules, boolean enableWebConsole,
-                int webPort) {
-            super(modules, enableWebConsole, webPort);
-        }
-
-        /* (non-Javadoc)
-         * @see com.serotonin.m2m2.MockMangoLifecycle#getEventManager()
-         */
-        @Override
-        protected EventManager getEventManager() {
-            return new EventManagerImpl();
-        }
+    @Override
+    protected MockMangoLifecycle getLifecycle() {
+        MockMangoLifecycle lifecycle = super.getLifecycle();
+        lifecycle.setEventManager(new MockEventManager(true));
+        return lifecycle;
     }
 }

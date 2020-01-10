@@ -34,7 +34,6 @@ public class MockEventManager extends EventManagerImpl {
 
     public MockEventManager(boolean useDatabase) {
         this.useDatabase = useDatabase;
-
     }
 
     @Override

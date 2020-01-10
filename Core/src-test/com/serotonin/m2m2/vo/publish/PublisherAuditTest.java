@@ -19,6 +19,8 @@ import com.infiniteautomation.mango.spring.service.AuditEventService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
+import com.serotonin.m2m2.MockEventManager;
+import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -91,6 +93,13 @@ public class PublisherAuditTest extends MangoTestBase {
             points.add(vo);
         }
         return points;
+    }
+
+    @Override
+    protected MockMangoLifecycle getLifecycle() {
+        MockMangoLifecycle lifecycle = super.getLifecycle();
+        lifecycle.setEventManager(new MockEventManager(true));
+        return lifecycle;
     }
 
 }
