@@ -15,10 +15,8 @@ import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
-import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,9 +57,6 @@ import net.jazdw.rql.parser.ASTNode;
  */
 @Repository()
 public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstanceTableDefinition> {
-
-    public static final Table<? extends Record> USER_EVENTS_TABLE = DSL.table("userEvents");
-    public static final Name USER_EVENTS_ALIAS = DSL.name("ue");
 
     private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventInstanceDao.class);
@@ -145,15 +140,16 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
 
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-        select = select.join(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(this.table.getAlias("ackUserId")));
-        return select.join(USER_EVENTS_TABLE.as(USER_EVENTS_ALIAS)).on(DSL.field(USER_EVENTS_ALIAS.append("eventId")).eq(this.table.getAlias("id")));
+        select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
+        return select.leftJoin(EventInstanceTableDefinition.USER_EVENTS_TABLE.as(EventInstanceTableDefinition.USER_EVENTS_ALIAS))
+                .on(DSL.field(EventInstanceTableDefinition.USER_EVENTS_ALIAS.append("eventId")).eq(this.table.getAlias("id")));
     }
 
     @Override
     public List<Field<?>> getSelectFields() {
         List<Field<?>> fields = super.getSelectFields();
         fields.add(userTable.getAlias("username"));
-        fields.add(DSL.field(DSL.name(USER_EVENTS_ALIAS).append("silenced")));
+        fields.add(DSL.field(DSL.name(EventInstanceTableDefinition.USER_EVENTS_ALIAS).append("silenced")));
         Field<?> hasComments = this.create.selectCount().from(userCommentTable.getTableAsAlias())
                 .where(userCommentTable.getAlias("commentType").eq(UserCommentVO.TYPE_EVENT), userCommentTable.getAlias("typeKey").eq(this.table.getAlias("id"))).asField("cnt");
         fields.add(hasComments);
@@ -214,7 +210,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
                     event.setAcknowledgedByUsername(rs.getString(15));
                 event.setAlternateAckSource(BaseDao.readTranslatableMessage(rs, 14));
             }
-            event.setHasComments(rs.getInt(16) > 0);
+            event.setHasComments(rs.getInt(17) > 0);
 
             //This makes another query!
             this.attachRelationalInfo(event);

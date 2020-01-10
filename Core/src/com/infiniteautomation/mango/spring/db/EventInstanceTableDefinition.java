@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.jooq.Field;
 import org.jooq.Name;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Component;
@@ -18,9 +20,13 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventInstanceTableDefinition extends AbstractTableDefinition {
-    
+
+    public static final Table<? extends Record> USER_EVENTS_TABLE = DSL.table("userEvents");
+    public static final Name USER_EVENTS_ALIAS = DSL.name("ue");
+    public static final Field<Integer> USER_EVENTS_USERID_ALIAS = DSL.field(USER_EVENTS_ALIAS.append(DSL.name("userId")), SQLDataType.INTEGER);
+
     public static final String TABLE_NAME = "events";
-    
+
     public EventInstanceTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("evt"));
     }
@@ -42,7 +48,7 @@ public class EventInstanceTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("ackUserId"), SQLDataType.INTEGER));
         fields.add(DSL.field(DSL.name("alternateAckSource"), SQLDataType.CLOB));
     }
-    
+
     @Override
     protected void addFieldMappings(Map<String, Field<?>> map) {
         map.put("eventType", map.get("typeName"));
@@ -52,7 +58,7 @@ public class EventInstanceTableDefinition extends AbstractTableDefinition {
         map.put("acknowledged", map.get("ackTs"));
         map.put("active", map.get("rtnTs"));
     }
-    
+
     @Override
     protected Name getXidFieldName() {
         return null;
