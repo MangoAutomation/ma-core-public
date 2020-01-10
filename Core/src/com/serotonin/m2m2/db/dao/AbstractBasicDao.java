@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -79,9 +80,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     //Monitor for count of table
     protected final AtomicIntegerMonitor countMonitor;
 
-    /**
-     * Used in selects and Joins to select table as alias
-     */
     protected final Map<String, Function<Object, Object>> valueConverterMap;
     protected final RQLToCondition rqlToCondition;
 
@@ -460,6 +458,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql) {
         return this.rqlToCondition.visit(rql);
+    }
+
+    @Override
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Function<Object, Object>> valueConverters) {
+        Map<String, Function<Object, Object>> fullMap = new HashMap<>(this.valueConverterMap);
+        fullMap.putAll(valueConverters);
+        RQLToCondition rqlToCondition = new RQLToCondition(this.table.getFieldMap(), fullMap);
+        return rqlToCondition.visit(rql);
     }
 
     public void rqlQuery(ASTNode rql, MappedRowCallback<T> callback) {

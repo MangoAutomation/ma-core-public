@@ -4,6 +4,8 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -205,4 +207,13 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @return
      */
     public ConditionSortLimit rqlToCondition(ASTNode rql);
+
+    /**
+     * Create a ConditionSortLimit configuration and allow supplying value converters to translate the
+     *  RQL conditions into the values expected from the database
+     * @param rql
+     * @param valueConverterMap
+     * @return
+     */
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Function<Object, Object>> valueConverterMap);
 }
