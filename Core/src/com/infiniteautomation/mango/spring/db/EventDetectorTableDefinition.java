@@ -24,23 +24,23 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 public class EventDetectorTableDefinition extends AbstractTableDefinition {
 
     public static final String TABLE_NAME = "eventDetectors";
-    
+
     public EventDetectorTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("edt"));
     }
-    
+
     @Override
     protected Name getNameFieldName() {
         return null;
     }
-    
+
     @Override
     protected void addFields(List<Field<?>> fields) {
         super.addFields(fields);
         fields.add(DSL.field(DSL.name("sourceTypeName"), SQLDataType.VARCHAR(32)));
         fields.add(DSL.field(DSL.name("typeName"), SQLDataType.VARCHAR(32)));
         fields.add(DSL.field(DSL.name("data"), SQLDataType.CLOB));
-        
+
         Map<String, Field<?>> definitionFields = new LinkedHashMap<>();
         //Build our ordered column set from the Module Registry
         List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
@@ -49,7 +49,8 @@ public class EventDetectorTableDefinition extends AbstractTableDefinition {
         }
         fields.addAll(definitionFields.values());
     }
-    
+
+    //TODO Mango 4.0 Move to REST controller
     @Override
     protected void addFieldMappings(Map<String, Field<?>> map) {
         map.put("detectorSourceType", map.get("sourceTypeName"));

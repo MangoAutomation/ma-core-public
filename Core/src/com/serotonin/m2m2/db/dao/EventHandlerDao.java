@@ -7,9 +7,7 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +23,6 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -96,16 +93,6 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                 vo.getDefinition().getEventHandlerTypeName(),
                 SerializationHelper.writeObjectToArray(vo)
         };
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
-        map.put("eventTypeName", new IntStringPair(Types.VARCHAR, "ehm.eventTypeName"));
-        map.put("eventSubtypeName", new IntStringPair(Types.VARCHAR, "ehm.eventSubtypeName"));
-        map.put("eventTypeRef1", new IntStringPair(Types.INTEGER, "ehm.eventTypeRef1"));
-        map.put("eventTypeRef2", new IntStringPair(Types.INTEGER, "ehm.eventTypeRef2"));
-        return map;
     }
 
     @Override

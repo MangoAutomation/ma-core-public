@@ -8,10 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +28,6 @@ import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -270,12 +267,6 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
                 vo.getXid(),
                 vo.getName()
         };
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
-        return map;
     }
 
     @Override

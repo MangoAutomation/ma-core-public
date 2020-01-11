@@ -4,7 +4,6 @@
 package com.infiniteautomation.mango.spring.db;
 
 import java.util.List;
-import java.util.Map;
 
 import org.jooq.Field;
 import org.jooq.Name;
@@ -47,16 +46,6 @@ public class EventInstanceTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("ackTs"), SQLDataType.BIGINT));
         fields.add(DSL.field(DSL.name("ackUserId"), SQLDataType.INTEGER));
         fields.add(DSL.field(DSL.name("alternateAckSource"), SQLDataType.CLOB));
-    }
-
-    @Override
-    protected void addFieldMappings(Map<String, Field<?>> map) {
-        map.put("eventType", map.get("typeName"));
-        map.put("referenceId1", map.get("typeRef1"));
-        map.put("referenceId2", map.get("typeRef1"));
-        map.put("activeTimestamp", map.get("activeTs"));
-        map.put("acknowledged", map.get("ackTs"));
-        map.put("active", map.get("rtnTs"));
     }
 
     @Override

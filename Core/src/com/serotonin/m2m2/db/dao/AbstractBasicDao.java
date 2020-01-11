@@ -50,7 +50,6 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
@@ -135,16 +134,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      */
     protected Condition hasReadPermission(PermissionHolder user) {
         return DSL.trueCondition();
-    }
-
-    /**
-     * Returns a map which maps a virtual property to a real one used for
-     * sorting/filtering from the database e.g. dateFormatted -> timestamp
-     *
-     * @return map of properties
-     */
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        return null;
     }
 
     /**
@@ -458,7 +447,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     protected RQLToCondition createRqlToCondition() {
-        return new RQLToCondition(this.table.getFieldMap(), this.valueConverterMap);
+        return new RQLToCondition(this.table.getAliasMap(), this.valueConverterMap);
     }
 
     @Override
@@ -468,10 +457,40 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Function<Object, Object>> valueConverters) {
-        Map<String, Function<Object, Object>> fullMap = new HashMap<>(this.valueConverterMap);
-        fullMap.putAll(valueConverters);
-        RQLToCondition rqlToCondition = new RQLToCondition(this.table.getFieldMap(), fullMap);
+        return rqlToCondition(rql, null, valueConverters);
+    }
+
+    @Override
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
+
+        Map<String, Function<Object, Object>> fullMap;
+        if(valueConverterMap == null) {
+            fullMap = new HashMap<>(this.valueConverterMap);
+        }else {
+            fullMap = new HashMap<>(this.valueConverterMap);
+            fullMap.putAll(valueConverters);
+        }
+
+        Map<String, Field<?>> fullFields;
+        if(fieldMap == null) {
+            fullFields = new HashMap<>(this.table.getAliasMap());
+        }else {
+            fullFields = new HashMap<>(this.table.getAliasMap());
+            fullFields.putAll(fieldMap);
+        }
+
+        RQLToCondition rqlToCondition = createRqlToCondition(fullFields, fullMap);
         return rqlToCondition.visit(rql);
+    }
+
+    /**
+     * Create a stateful rql to condition (Override as necessary)
+     * @param fieldMap not null
+     * @param converterMap not null
+     * @return
+     */
+    protected RQLToCondition createRqlToCondition(Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> converterMap) {
+        return new RQLToCondition(fieldMap, converterMap);
     }
 
     public void rqlQuery(ASTNode rql, MappedRowCallback<T> callback) {

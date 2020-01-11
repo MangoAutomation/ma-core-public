@@ -11,10 +11,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,7 +44,6 @@ import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -471,11 +468,6 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
     @Override
     public RowMapper<User> getRowMapper() {
         return new UserRowMapper();
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        return new HashMap<>();
     }
 
     @Override

@@ -7,8 +7,6 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,7 +19,6 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.FileStore;
 
@@ -77,11 +74,6 @@ public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefi
         return new Object[] {
                 vo.getStoreName(),
         };
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        return new HashMap<String, IntStringPair>();
     }
 
     @Override

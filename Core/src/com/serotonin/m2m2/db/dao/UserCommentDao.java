@@ -6,10 +6,7 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.jooq.Field;
 import org.jooq.Record;
@@ -28,7 +25,6 @@ import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
@@ -143,15 +139,6 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO, UserCommentTable
                 vo.getCommentType(),
                 vo.getReferenceId()
         };
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
-        map.put("username", new IntStringPair(Types.VARCHAR, "u.username"));
-        map.put("referenceId", new IntStringPair(Types.INTEGER, "typeKey"));
-        map.put("timestamp", new IntStringPair(Types.BIGINT, "ts"));
-        return map;
     }
 
     @Override

@@ -6,7 +6,6 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +32,6 @@ import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventTypeDefinition;
@@ -98,44 +96,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
                 vo.getId(),
 
         };
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        Map<String,IntStringPair> map = new HashMap<String,IntStringPair>();
-        map.put("activeTimestamp", new IntStringPair(Types.BIGINT, "activeTs"));
-        map.put("activeTimestampString", new IntStringPair(Types.BIGINT, "activeTs"));
-        map.put("rtnTimestampString", new IntStringPair(Types.BIGINT, "rtnTs"));
-
-        /*
-         * IF(evt.rtnTs=null,
-         * 		IF(evt.rtnApplicable='Y',
-         * 			(NOW() - evt.activeTs),
-         * 			-1),
-         * 		IF(evt.rtnApplicable='Y',
-         * 			(evt.rtnTs - evt.activeTs),
-         * 			-1)
-         *  )
-         */
-        switch(Common.databaseProxy.getType()){
-            case MYSQL:
-            case MSSQL:
-                map.put("totalTimeString", new IntStringPair(Types.BIGINT, "IF(evt.rtnTs is null,IF(evt.rtnApplicable='Y',(? - evt.activeTs),-1),IF(evt.rtnApplicable='Y',(evt.rtnTs - evt.activeTs),-1))"));
-                break;
-            case H2:
-                map.put("totalTimeString", new IntStringPair(Types.BIGINT, "CASE WHEN evt.rtnTs IS NULL THEN "
-                        + "CASE WHEN evt.rtnApplicable='Y' THEN (? - evt.activeTs) ELSE -1 END "
-                        + "ELSE CASE WHEN evt.rtnApplicable='Y' THEN (evt.rtnTs - evt.activeTs) ELSE -1 END END"));
-                break;
-            default:
-                throw new ShouldNeverHappenException("Unsupported database for Alarms.");
-        }
-        map.put("messageString", new IntStringPair(Types.VARCHAR, "message"));
-        map.put("rtnTimestampString", new IntStringPair(Types.BIGINT, "rtnTs"));
-        map.put("userNotified", new IntStringPair(Types.CHAR, "silenced"));
-        map.put("acknowledged", new IntStringPair(Types.BIGINT, "ackTs"));
-        map.put("userId", new IntStringPair(Types.INTEGER, "ue.userId")); //Mapping for user
-        return map;
     }
 
     @Override

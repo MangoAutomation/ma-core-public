@@ -223,4 +223,16 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @return
      */
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Function<Object, Object>> valueConverterMap);
+
+    /**
+     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columsn
+     *  and value converters to translate the RQL conditions into the values expected from the database
+     *
+     * @param rql
+     * @param fieldMap
+     * @param valueConverters
+     * @return
+     */
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters);
+
 }

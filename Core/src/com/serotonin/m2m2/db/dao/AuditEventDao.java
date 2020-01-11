@@ -9,7 +9,6 @@ import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,7 +21,6 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
@@ -85,11 +83,6 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditE
                 jsonData,
                 writeTranslatableMessage(vo.getMessage())
         };
-    }
-
-    @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        return null;
     }
 
     @Override

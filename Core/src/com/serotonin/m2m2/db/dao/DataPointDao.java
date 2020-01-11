@@ -65,7 +65,6 @@ import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -152,10 +151,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
      * @return
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
-        List<DataPointVO> dps = query(getJoinedSelectQuery().getSQL() + " where dp.dataSourceId=?", new Object[] { dataSourceId },
-                new DataPointMapper());
-        loadPartialRelationalData(dps);
-        return dps;
+        return this.customizedQuery(getJoinedSelectQuery().where(this.table.getAlias("dataSourceId").eq(dataSourceId)),
+                getListResultSetExtractor());
     }
 
     /**
@@ -593,15 +590,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
-    protected Map<String, IntStringPair> getPropertiesMap() {
-        HashMap<String, IntStringPair> map = new HashMap<String, IntStringPair>();
-        map.put("dataSourceName", new IntStringPair(Types.VARCHAR, "ds.name"));
-        map.put("dataSourceTypeName", new IntStringPair(Types.VARCHAR, "ds.dataSourceType"));
-        map.put("dataSourceXid", new IntStringPair(Types.VARCHAR, "ds.xid"));
-        return map;
-    }
-
-    @Override
     public RowMapper<DataPointVO> getRowMapper() {
         return new DataPointMapper();
     }
@@ -862,12 +850,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
-    protected RQLToCondition createRqlToCondition() {
-        // we create one every time as they are stateful for this DAO
-        return null;
-    }
-
-    @Override
     public List<Field<?>> getSelectFields() {
         List<Field<?>> fields = new ArrayList<>(this.table.getSelectFields());
         fields.add(dataSourceTable.getAlias("name"));
@@ -925,10 +907,22 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
+    protected RQLToCondition createRqlToCondition() {
+        // we create one every time as they are stateful for this DAO
+        return null;
+    }
+
+    @Override
     public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
         RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.table.getAliasMap(), this.valueConverterMap);
         return rqlToSelect.visit(rql);
+    }
+
+    @Override
+    protected RQLToCondition createRqlToCondition(Map<String, Field<?>> fieldMap,
+            Map<String, Function<Object, Object>> converterMap) {
+        return new RQLToConditionWithTagKeys(fieldMap, converterMap);
     }
 
     public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
