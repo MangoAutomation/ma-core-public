@@ -43,6 +43,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
@@ -151,9 +153,17 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
      */
     public List<DataPointVO> getDataPoints(int dataSourceId) {
         List<DataPointVO> dps = query(getJoinedSelectQuery().getSQL() + " where dp.dataSourceId=?", new Object[] { dataSourceId },
-                new DataPointRowMapper());
+                new DataPointMapper());
         loadPartialRelationalData(dps);
         return dps;
+    }
+
+    /**
+     * Get all data point Ids in the table
+     * @return
+     */
+    public List<Integer> getDataPointIds(){
+        return queryForList("SELECT id FROM dataPoints" , Integer.class);
     }
 
     /**
@@ -172,26 +182,22 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         return this.customizedQuery(select, new DataPointStartupResultSetExtractor());
     }
 
-    /**
-     * Get all data point Ids in the table
-     * @return
-     */
-    public List<Integer> getDataPointIds(){
-        return queryForList("SELECT id FROM dataPoints" , Integer.class);
-    }
-
-
-
     class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
-        private static final int EVENT_DETECTOR_FIRST_COLUMN = 28;
-        private final EventDetectorRowMapper<?> eventRowMapper = new EventDetectorRowMapper<>(EVENT_DETECTOR_FIRST_COLUMN, 5);
+
+        private final int firstEventDetectorColumn;
+        private final EventDetectorRowMapper<?> eventRowMapper;
+
+        public DataPointStartupResultSetExtractor() {
+            this.firstEventDetectorColumn = getSelectFields().size() + 1;
+            this.eventRowMapper = new EventDetectorRowMapper<>(this.firstEventDetectorColumn, 5);
+        }
 
         @Override
         public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
             Map<Integer, DataPointVO> result = new HashMap<Integer, DataPointVO>();
-            DataPointRowMapper pointRowMapper = new DataPointRowMapper();
+            DataPointMapper pointRowMapper = new DataPointMapper();
             while(rs.next()) {
-                int id = rs.getInt(2); //dp.id column number
+                int id = rs.getInt(1); //dp.id column number
                 if(result.containsKey(id))
                     try{
                         addEventDetector(result.get(id), rs);
@@ -213,49 +219,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         }
 
         private void addEventDetector(DataPointVO dpvo, ResultSet rs) throws SQLException {
-            if(rs.getObject(EVENT_DETECTOR_FIRST_COLUMN) == null)
+            if(rs.getObject(firstEventDetectorColumn) == null)
                 return;
             AbstractEventDetectorVO<?> edvo = eventRowMapper.mapRow(rs, rs.getRow());
             AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) edvo;
             dpvo.getEventDetectors().add(ped);
-        }
-    }
-
-    public static class DataPointRowMapper implements RowMapper<DataPointVO> {
-        @Override
-        public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            int i = 0;
-
-            DataPointVO dp = (DataPointVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(++i));
-            dp.setId(rs.getInt(++i));
-            dp.setXid(rs.getString(++i));
-            dp.setDataSourceId(rs.getInt(++i));
-            dp.setName(rs.getString(++i));
-            dp.setDeviceName(rs.getString(++i));
-            dp.setEnabled(charToBool(rs.getString(++i)));
-            dp.setLoggingType(rs.getInt(++i));
-            dp.setIntervalLoggingPeriodType(rs.getInt(++i));
-            dp.setIntervalLoggingPeriod(rs.getInt(++i));
-            dp.setIntervalLoggingType(rs.getInt(++i));
-            dp.setTolerance(rs.getDouble(++i));
-            dp.setPurgeOverride(charToBool(rs.getString(++i)));
-            dp.setPurgeType(rs.getInt(++i));
-            dp.setPurgePeriod(rs.getInt(++i));
-            dp.setDefaultCacheSize(rs.getInt(++i));
-            dp.setDiscardExtremeValues(charToBool(rs.getString(++i)));
-            dp.setEngineeringUnits(rs.getInt(++i));
-            dp.setRollup(rs.getInt(++i));
-
-            // Data source information.
-            dp.setDataSourceName(rs.getString(++i));
-            dp.setDataSourceXid(rs.getString(++i));
-            dp.setDataSourceTypeName(rs.getString(++i));
-            String dsEditRoles = rs.getString(++i);
-            //TODO JOIN on roles table and set dsEditRoles
-
-            dp.ensureUnitsCorrect();
-
-            return dp;
         }
     }
 
@@ -312,7 +280,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
      */
     public void saveEnabledColumn(DataPointVO dp) {
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
-        this.publishEvent(new DaoEvent<DataPointVO, DataPointTableDefinition>(this, DaoEventType.UPDATE, dp, null));
+        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
 
@@ -335,6 +303,40 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         });
     }
 
+    public void deleteDataPoints(final int dataSourceId) {
+        List<DataPointVO> old = getDataPoints(dataSourceId);
+
+        for (DataPointVO dp : old) {
+            for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
+                def.beforeDelete(dp.getId());
+        }
+
+        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
+            @Override
+            protected void doInTransactionWithoutResult(TransactionStatus status) {
+                List<Integer> pointIds = queryForList("select id from dataPoints where dataSourceId=?",
+                        new Object[] { dataSourceId }, Integer.class);
+                if (pointIds.size() > 0) {
+                    String dataPointIdList = createDelimitedList(new HashSet<>(pointIds), ",", null);
+                    dataPointIdList = "(" + dataPointIdList + ")";
+                    ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1 in " + dataPointIdList,
+                            new Object[] { EventType.EventTypeNames.DATA_POINT });
+                    ejt.update("delete from userComments where commentType=2 and typeKey in " + dataPointIdList);
+                    ejt.update("delete from eventDetectors where dataPointId in " + dataPointIdList);
+                    ejt.update("delete from dataPoints where id in " + dataPointIdList);
+                }
+            }
+        });
+
+        for (DataPointVO dp : old) {
+            for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
+                def.afterDelete(dp.getId());
+            this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp, null));
+            AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
+            this.countMonitor.decrement();
+        }
+    }
+
     @Override
     public boolean delete(DataPointVO vo) {
         boolean deleted = false;
@@ -354,7 +356,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 new Object[] { EventType.EventTypeNames.DATA_POINT });
         ejt.update("delete from userComments where commentType=2 and typeKey = " + vo.getId());
         ejt.update("delete from eventDetectors where dataPointId = " + vo.getId());
-        ejt.update("delete from dataPoints where id = " + vo.getId());
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SET);
     }
@@ -605,7 +606,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         return new DataPointMapper();
     }
 
-    class DataPointMapper implements RowMapper<DataPointVO> {
+    public static class DataPointMapper implements RowMapper<DataPointVO> {
         @Override
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
@@ -868,7 +869,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
     @Override
     public List<Field<?>> getSelectFields() {
-        List<Field<?>> fields = this.table.getSelectFields();
+        List<Field<?>> fields = new ArrayList<>(this.table.getSelectFields());
         fields.add(dataSourceTable.getAlias("name"));
         fields.add(dataSourceTable.getAlias("xid"));
         fields.add(dataSourceTable.getAlias("dataSourceType"));
@@ -926,7 +927,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     @Override
     public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
-        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.table.getFieldMap(), this.valueConverterMap);
+        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.table.getAliasMap(), this.valueConverterMap);
         return rqlToSelect.visit(rql);
     }
 

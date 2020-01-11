@@ -16,6 +16,7 @@ import java.util.List;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -26,6 +27,8 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
+import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -34,7 +37,7 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao.DataPointRowMapper;
+import com.serotonin.m2m2.db.dao.DataPointDao.DataPointMapper;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -63,15 +66,21 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
 
     /* Map of Source Type to Source ID Column Names */
     private LinkedHashMap<String, Field<Integer>> sourceTypeToColumnNameMap;
+    private final DataPointTableDefinition dataPointTable;
+    private final DataSourceTableDefinition dataSourceTable;
 
     @Autowired
     private EventDetectorDao(EventDetectorTableDefinition table,
+            DataPointTableDefinition dataPointTable,
+            DataSourceTableDefinition dataSourceTable,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_EVENT_DETECTOR,
                 table,
                 new TranslatableMessage("internal.monitor.EVENT_DETECTOR_COUNT"),
                 mapper, publisher);
+        this.dataPointTable = dataPointTable;
+        this.dataSourceTable = dataSourceTable;
 
         //Build our ordered column set from the Module Registry
         List<EventDetectorDefinition<?>> defs = ModuleRegistry.getEventDetectorDefinitions();
@@ -217,23 +226,14 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     }
 
     class EventDetectorWithDataPointResultSetExtractor implements ResultSetExtractor<List<AbstractPointEventDetectorVO<?>>> {
-        private static final int EVENT_DETECTOR_FIRST_COLUMN = 27;
-        static final String POINT_EVENT_DETECTOR_WITH_DATA_POINT_SELECT = "select dp.data, dp.id, dp.xid, dp.dataSourceId, dp.name, dp.deviceName, dp.enabled, dp.pointFolderId, " //
-                + "  dp.loggingType, dp.intervalLoggingPeriodType, dp.intervalLoggingPeriod, dp.intervalLoggingType, " //
-                + "  dp.tolerance, dp.purgeOverride, dp.purgeType, dp.purgePeriod, dp.defaultCacheSize, " //
-                + "  dp.discardExtremeValues, dp.engineeringUnits, dp.readPermission, dp.setPermission, dp.templateId, dp.rollup, ds.name, " //
-                + "  ds.xid, ds.dataSourceType, ped.id, ped.xid, ped.sourceTypeName, ped.typeName, ped.data, ped.dataPointId " //
-                + "  from eventDetectors ped " //
-                + "  left outer join dataPoints dp on dp.id = ped.dataPointId"
-                + "  join dataSources ds on ds.id = dp.dataSourceId ";
 
         @Override
         public List<AbstractPointEventDetectorVO<?>> extractData(ResultSet rs) throws SQLException, DataAccessException {
             List<AbstractPointEventDetectorVO<?>> results = new ArrayList<>();
-            DataPointRowMapper pointRowMapper = new DataPointRowMapper();
+            DataPointMapper pointRowMapper = new DataPointMapper();
             while(rs.next()) {
                 DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-                PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(EVENT_DETECTOR_FIRST_COLUMN, 5, dpvo);
+                PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(dataPointTable.getSelectFields().size() + 3 + 1, 5, dpvo);
                 AbstractPointEventDetectorVO<?> ped = mapper.mapRow(rs, rs.getRow());
                 results.add(ped);
             }
@@ -249,8 +249,22 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     public <X extends AbstractEventDetectorVO<?>> List<X> getForSourceType(String sourceType){
         switch(sourceType) {
             case EventType.EventTypeNames.DATA_POINT:
-                query(EventDetectorWithDataPointResultSetExtractor.POINT_EVENT_DETECTOR_WITH_DATA_POINT_SELECT, new Object[] { },
-                        new EventDetectorWithDataPointResultSetExtractor());
+                List<Field<?>> fields = new ArrayList<>(this.dataPointTable.getSelectFields());
+                //Add data source fields
+                fields.add(dataSourceTable.getAlias("name"));
+                fields.add(dataSourceTable.getAlias("xid"));
+                fields.add(dataSourceTable.getAlias("dataSourceType"));
+
+                fields.addAll(getSelectFields());
+
+                Select<Record> select = this.joinTables(this.getSelectQuery(fields))
+                        .leftOuterJoin(this.dataPointTable.getTableAsAlias())
+                        .on(this.dataPointTable.getIdAlias().eq(this.table.getField("dataPointId")))
+                        .join(dataSourceTable.getTableAsAlias())
+                        .on(DSL.field(dataSourceTable.getAlias("id"))
+                                .eq(this.table.getAlias("dataSourceId")))
+                        .where(this.table.getAlias("sourceTypeName").eq(sourceType));
+                customizedQuery(select, new EventDetectorWithDataPointResultSetExtractor());
             default:
                 return query(getJoinedSelectQuery().getSQL() + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>());
         }

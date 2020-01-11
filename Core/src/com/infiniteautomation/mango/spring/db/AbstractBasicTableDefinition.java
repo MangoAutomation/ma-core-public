@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.spring.db;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,28 +27,34 @@ public abstract class AbstractBasicTableDefinition {
     protected final Table<? extends Record> table;
     protected final Name alias;
     protected final Table<? extends Record> tableAsAlias;
-    
-    protected final LinkedHashMap<String, Field<?>> fieldMap;
-    protected final LinkedHashMap<String, Field<?>> aliasMap;
-    
+
+    /**
+     * Insertion ordered
+     */
+    protected Map<String, Field<?>> fieldMap;
+    /**
+     * Insertion ordered
+     */
+    protected Map<String, Field<?>> aliasMap;
+
     protected final Field<Integer> idField;
     protected final Field<Integer> idAlias;
-    
-    protected final List<Field<?>> insertFields;
-    protected final List<Field<?>> updateFields;
-    protected final List<Field<?>> selectFields;
-    
+
+    protected List<Field<?>> insertFields;
+    protected List<Field<?>> updateFields;
+    protected List<Field<?>> selectFields;
+
     public AbstractBasicTableDefinition(Table<? extends Record> table, Name alias) {
         this.table = table;
         this.alias = alias;
         this.tableAsAlias = this.table.as(this.alias);
         this.idField = getIdField();
         this.idAlias = getIdAlias();
-        
+
         this.insertFields = new ArrayList<>();
         this.updateFields = new ArrayList<>();
         this.selectFields = new ArrayList<>();
-        
+
         this.fieldMap = new LinkedHashMap<>();
         this.aliasMap = new LinkedHashMap<>();
     }
@@ -58,10 +65,10 @@ public abstract class AbstractBasicTableDefinition {
             this.fieldMap.put(idField.getName(), idField);
             this.selectFields.add(DSL.field(this.alias.append(idField.getName()), idField.getDataType()));
         }
-        
+
         List<Field<?>> fields = new ArrayList<>();
         addFields(fields);
-        
+
         //Fill in the fields for the queries
         for (Field<?> field : fields) {
             this.selectFields.add(DSL.field(this.alias.append(field.getName()), field.getDataType()));
@@ -70,21 +77,28 @@ public abstract class AbstractBasicTableDefinition {
             this.fieldMap.put(field.getName(), field);
         }
         addFieldMappings(this.fieldMap);
-        
+
         //Generate the aliases
         for(Field<?> field : this.fieldMap.values()) {
             this.aliasMap.put(field.getName(), DSL.field(this.alias.append(field.getName()), field.getDataType()));
         }
-        
+
+        //Make all unmodifiable
+        this.selectFields = Collections.unmodifiableList(this.selectFields);
+        this.insertFields = Collections.unmodifiableList(this.insertFields);
+        this.updateFields = Collections.unmodifiableList(this.updateFields);
+
+        this.fieldMap = Collections.unmodifiableMap(this.fieldMap);
+        this.aliasMap = Collections.unmodifiableMap(this.aliasMap);
     }
-    
+
     /**
      * populate a list of fields in order that they should appear in the
-     * they query 
+     * they query
      * @return
      */
     abstract protected void addFields(List<Field<?>> fields);
-    
+
     /**
      * Add in mappings for alternate names to be used in queries for existing fields.
      *  i.e.  query for dataTypeId based on the alias of 'dataType'
@@ -102,11 +116,11 @@ public abstract class AbstractBasicTableDefinition {
     public Field<Integer> getIdField() {
         return DSL.field(DSL.name(getIdFieldName()), SQLDataType.INTEGER.nullable(false));
     }
-    
+
     public Field<Integer> getIdAlias() {
         return DSL.field(this.alias.append(getIdFieldName()), SQLDataType.INTEGER.nullable(false));
     }
-    
+
     /**
      * Optionally override the name of the id column
      * @return
@@ -114,29 +128,29 @@ public abstract class AbstractBasicTableDefinition {
     protected Name getIdFieldName() {
         return DSL.name("id");
     }
-    
+
     public Table<? extends Record> getTable() {
-        return table; 
+        return table;
     }
-    
+
     /**
      * Return the map of fields that can be iterated in insertion order
      *  for use in queries etc these ARE NOT prepended with the table alias
      * @return
      */
-    public LinkedHashMap<String, Field<?>> getFieldMap() {
+    public Map<String, Field<?>> getFieldMap() {
         return fieldMap;
     }
-    
+
     /**
      * Return the map of field aliases that can be iterated in insertion order
      *  for use in queries etc these ARE prepended with the table alias
      * @return
      */
-    public LinkedHashMap<String, Field<?>> getAliasMap() {
+    public Map<String, Field<?>> getAliasMap() {
         return aliasMap;
     }
-    
+
     /**
      * Get the Field for the column
      * @param columnName
@@ -146,7 +160,7 @@ public abstract class AbstractBasicTableDefinition {
     public <T> Field<T> getField(String columnName) {
         return (Field<T>) fieldMap.get(columnName);
     }
-    
+
     /**
      * Get the field prepended with the table alias
      * @param columnName

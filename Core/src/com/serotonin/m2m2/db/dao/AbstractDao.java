@@ -205,14 +205,14 @@ public abstract class AbstractDao<T extends AbstractVO<?>, TABLE extends Abstrac
     }
 
     @Override
-    protected DaoEvent<T,TABLE> createDaoEvent(DaoEventType type, T vo, T existing) {
+    protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
         switch(type) {
             case CREATE:
-                return new DaoEvent<T,TABLE>(this, type, vo, null);
+                return new DaoEvent<T>(this, type, vo, null);
             case UPDATE:
-                return new DaoEvent<T,TABLE>(this, type, vo, existing.getXid());
+                return new DaoEvent<T>(this, type, vo, existing.getXid());
             case DELETE:
-                return new DaoEvent<T,TABLE>(this, type, vo, existing.getXid());
+                return new DaoEvent<T>(this, type, vo, existing.getXid());
             default:
                 throw new ShouldNeverHappenException("Uknown dao event type: " + type);
         }

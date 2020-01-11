@@ -11,7 +11,6 @@ import org.springframework.context.ApplicationEvent;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.ResolvableTypeProvider;
 
-import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
@@ -19,7 +18,7 @@ import com.serotonin.m2m2.vo.AbstractBasicVO;
 /**
  * @author Jared Wiltshire
  */
-public class DaoEvent<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition> extends ApplicationEvent implements ResolvableTypeProvider, PropagatingEvent {
+public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implements ResolvableTypeProvider, PropagatingEvent {
     private static final long serialVersionUID = 1L;
 
     private final DaoEventType type;
@@ -34,7 +33,7 @@ public class DaoEvent<T extends AbstractBasicVO, TABLE extends AbstractBasicTabl
      * @param vo
      * @param originalXid
      */
-    public DaoEvent(AbstractBasicDao<T,TABLE> source, DaoEventType type, T vo, String originalXid) {
+    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo, String originalXid) {
         super(source);
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);
@@ -50,7 +49,7 @@ public class DaoEvent<T extends AbstractBasicVO, TABLE extends AbstractBasicTabl
      * @param originalXid
      * @param updatedFields
      */
-    public DaoEvent(AbstractBasicDao<T, TABLE> source, DaoEventType type, T vo, String originalXid, Set<?> updatedFields) {
+    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo, String originalXid, Set<?> updatedFields) {
         super(source);
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);
@@ -76,7 +75,7 @@ public class DaoEvent<T extends AbstractBasicVO, TABLE extends AbstractBasicTabl
      */
     @Override
     public ResolvableType getResolvableType() {
-        return ResolvableType.forClassWithGenerics(this.getClass(), ResolvableType.forClass(this.vo.getClass()), ResolvableType.forClass(AbstractBasicTableDefinition.class));
+        return ResolvableType.forClassWithGenerics(this.getClass(), ResolvableType.forClass(this.vo.getClass()));
     }
 
     public Set<?> getUpdatedFields() {

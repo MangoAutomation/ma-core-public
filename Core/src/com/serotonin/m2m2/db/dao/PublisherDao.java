@@ -194,7 +194,7 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
                 ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
             }
         });
-        publishEvent(new DaoEvent<PublisherVO<T>, PublisherTableDefinition>(this, DaoEventType.DELETE, vo, null, null));
+        publishEvent(new DaoEvent<PublisherVO<T>>(this, DaoEventType.DELETE, vo, null, null));
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
         countMonitor.decrement();
     }

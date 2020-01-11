@@ -375,7 +375,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         user.setTokenVersion(newTokenVersion);
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.AUTH_TOKEN)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.AUTH_TOKEN)));
     }
 
     public static final String LOCKED_PASSWORD = "{" + User.LOCKED_ALGORITHM + "}";
@@ -409,7 +409,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         // expire the user's sessions
         exireSessionsForUser(user);
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.PASSWORD)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, username, EnumSet.of(UpdatedFields.PASSWORD)));
     }
 
     public void recordLogin(User user) {
@@ -417,7 +417,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         user.setLastLogin(loginTime);
         ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.LAST_LOGIN)));
     }
 
     public void saveHomeUrl(int userId, String homeUrl) {
@@ -426,7 +426,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.HOME_URL)));
     }
 
     public void saveMuted(int userId, boolean muted) {
@@ -435,7 +435,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         User user = get(userId);
         AuditEventType.raiseChangedEvent(AuditEventType.TYPE_USER, old, user);
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        eventPublisher.publishEvent(new DaoEvent<User, UserTableDefinition>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
+        eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, user.getUsername(), EnumSet.of(UpdatedFields.MUTED)));
     }
 
     @Override
