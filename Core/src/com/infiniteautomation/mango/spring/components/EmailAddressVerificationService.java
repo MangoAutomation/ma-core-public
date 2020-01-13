@@ -15,12 +15,10 @@ import java.util.Map;
 import javax.mail.internet.AddressException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.FeatureDisabledException;
@@ -36,7 +34,6 @@ import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
@@ -64,7 +61,6 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
     public static final String USER_ID_CLAIM = "id";
     public static final String USERNAME_CLAIM = "u";
 
-    private final PermissionHolder systemSuperadmin;
     private final UsersService usersService;
     private final PublicUrlService publicUrlService;
     private final SystemSettingsDao systemSettings;
@@ -72,13 +68,10 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
 
     @Autowired
     public EmailAddressVerificationService(
-            @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-            PermissionHolder systemSuperadmin,
             UsersService usersService,
             PublicUrlService publicUrlService,
             SystemSettingsDao systemSettings,
             PermissionService permissionService) {
-        this.systemSuperadmin = systemSuperadmin;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
         this.systemSettings = systemSettings;
@@ -133,13 +126,13 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      * @throws IOException
      * @throws AddressException
      */
-    public String sendVerificationEmail(String emailAddress, User userToUpdate, Date expirationDate, PermissionHolder permissionHolder) throws TemplateException, IOException, AddressException {
+    public String sendVerificationEmail(String emailAddress, User userToUpdate, Date expirationDate) throws TemplateException, IOException, AddressException {
         try {
-            String token = this.generateToken(emailAddress, userToUpdate, expirationDate, permissionHolder);
+            String token = this.generateToken(emailAddress, userToUpdate, expirationDate);
             this.doSendVerificationEmail(token, userToUpdate);
             return token;
         } catch (EmailAddressInUseException e) {
-            if (permissionService.hasAdminRole(permissionHolder)) {
+            if (permissionService.hasAdminRole(Common.getUser())) {
                 // rethrow the exception and notify the administrator
                 throw e;
             } else {
@@ -202,7 +195,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
      * @throws TemplateException
      * @throws AddressException
      */
-    public String generateToken(String emailAddress, User userToUpdate, Date expirationDate, PermissionHolder permissionHolder) {
+    public String generateToken(String emailAddress, User userToUpdate, Date expirationDate) {
         if (userToUpdate == null) {
             this.ensurePublicRegistrationEnabled();
         }
@@ -214,7 +207,6 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             expirationDate = new Date(verificationTime + expiryDuration * 1000);
         }
 
-        Common.setUser(this.systemSuperadmin);
         try {
             // see if a different user is already using this address
             User existingUser = this.usersService.getUserByEmail(emailAddress);
@@ -223,14 +215,12 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
             }
         } catch(NotFoundException e) {
             // no existing user using this email address, proceed
-        }finally {
-            Common.removeUser();
         }
 
         JwtBuilder builder = this.newToken(emailAddress, expirationDate);
         builder.setIssuedAt(new Date(verificationTime));
         if (userToUpdate != null) {
-            this.usersService.ensureEditPermission(permissionHolder, userToUpdate);
+            this.usersService.ensureEditPermission(Common.getUser(), userToUpdate);
             builder.claim(USER_ID_CLAIM, userToUpdate.getId());
             builder.claim(USERNAME_CLAIM, userToUpdate.getUsername());
         }
@@ -265,24 +255,18 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         String verifiedEmail = this.verify(token);
 
         int userId = this.verifyClaimType(token, USER_ID_CLAIM, Number.class).intValue();
+        User existing = this.usersService.get(userId);
+        this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
 
-        Common.setUser(this.systemSuperadmin);
-        try {
-            User existing = this.usersService.get(userId);
-            this.verifyClaim(token, USERNAME_CLAIM, existing.getUsername());
-    
-    
-            User updated = existing.copy();
-            updated.setEmail(verifiedEmail);
-            updated.setEmailVerified(token.getBody().getIssuedAt());
-    
-            // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
-            // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
-            // generating the token.
-            return this.usersService.update(existing, updated);
-        }finally {
-            Common.removeUser();
-        }
+
+        User updated = existing.copy();
+        updated.setEmail(verifiedEmail);
+        updated.setEmailVerified(token.getBody().getIssuedAt());
+
+        // we could use existing user instead of system superadmin here, but if the admin generates the token we want the user to still
+        // be able to change/verify their password from the link/token. The service checks if the user is allowed to edit themselves when
+        // generating the token.
+        return this.usersService.update(existing, updated);
     }
 
     /**
@@ -307,13 +291,8 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         newUser.setEmail(verifiedEmail);
         newUser.setDisabled(true); //Ensure we are disabled
         newUser.setEmailVerified(new Date(Common.timer.currentTimeMillis()));
-        
-        Common.setUser(this.systemSuperadmin);
-        try {
-            newUser = this.usersService.insert(newUser);
-        }finally {
-            Common.removeUser();
-        }
+        newUser = this.usersService.insert(newUser);
+
         //Raise an event upon successful insertion
         SystemEventType eventType = new SystemEventType(SystemEventType.TYPE_NEW_USER_REGISTERED);
         TranslatableMessage message = new TranslatableMessage("event.newUserRegistered", newUser.getUsername(), newUser.getEmail());
