@@ -24,62 +24,70 @@ import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 
 /**
  * Mock Point Locator, useful for testing.
- * 
- * 
+ *
+ *
  * @author Terry Packer
  *
  */
 public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorVO> implements JsonSerializable {
 
-	private int dataTypeId = DataTypes.NUMERIC;
-	private boolean settable = false;
-	
-	public MockPointLocatorVO(int dataTypeId, boolean settable){
-		this.dataTypeId = dataTypeId;
-		this.settable = settable;
-	}
-	
-	public MockPointLocatorVO() {}
+    private int dataTypeId = DataTypes.NUMERIC;
+    private boolean settable = false;
 
-	@Override
-	public int getDataTypeId() {
-		return this.dataTypeId;
-	}
+    public MockPointLocatorVO(int dataTypeId, boolean settable){
+        this.dataTypeId = dataTypeId;
+        this.settable = settable;
+    }
 
-	@Override
-	public TranslatableMessage getConfigurationDescription() {
-		return new TranslatableMessage("common.default", "Mock Point Locator");
-	}
+    public MockPointLocatorVO() {}
 
-	@Override
-	public boolean isSettable() {
-		return this.settable;
-	}
+    @Override
+    public int getDataTypeId() {
+        return this.dataTypeId;
+    }
 
-	@Override
-	public MockPointLocatorRT createRuntime() {
-		return new MockPointLocatorRT(this);
-	}
+    public void setDataTypeId(int type) {
+        this.dataTypeId = type;
+    }
 
-	@Override
-	public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-	    Integer value = readDataType(jsonObject, DataTypes.IMAGE);
+    @Override
+    public TranslatableMessage getConfigurationDescription() {
+        return new TranslatableMessage("common.default", "Mock Point Locator");
+    }
+
+    @Override
+    public boolean isSettable() {
+        return this.settable;
+    }
+
+    public void setSettable(boolean settable) {
+        this.settable = settable;
+    }
+
+    @Override
+    public MockPointLocatorRT createRuntime() {
+        return new MockPointLocatorRT(this);
+    }
+
+    @Override
+    public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
+        Integer value = readDataType(jsonObject, DataTypes.IMAGE);
         if (value != null)
             dataTypeId = value;
-		
-	}
 
-	@Override
-	public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-	    writeDataType(writer);
-	}
+    }
+
+    @Override
+    public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
+        writeDataType(writer);
+    }
 
     @Override
     public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO<?> dsvo) {
         if(!(dsvo instanceof MockDataSourceVO))
             response.addContextualMessage("dataSourceId", "dpEdit.validate.invalidDataSourceType");
     }
-    
+
     private static final long serialVersionUID = -1;
     private static final int version = 2;
 
@@ -88,11 +96,11 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
         out.writeInt(dataTypeId);
         out.writeBoolean(settable);
     }
-    
+
     private void readObject(ObjectInputStream in) throws IOException {
         int version = in.readInt();
         if(version == 1) {
-            
+
         }else if(version == 2) {
             dataTypeId = in.readInt();
             settable = in.readBoolean();

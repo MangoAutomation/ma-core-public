@@ -35,6 +35,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.ColorUtils;
+import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.DataPointVO.IntervalLoggingTypes;
 import com.serotonin.m2m2.vo.DataPointVO.LoggingTypes;
@@ -399,6 +400,22 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             ensureReadPermission(user, point);
         }
         return points;
+    }
+
+    /**
+     * Get a summary for a data point.
+     *  A summary is a subset of a data point configuration.
+     * @param xid
+     * @return
+     */
+    public DataPointSummary getSummary(String xid) {
+        DataPointSummary vo = dao.getSummary(xid);
+        if(vo == null) {
+            throw new NotFoundException();
+        }
+        PermissionHolder user = Common.getUser();
+        this.permissionService.ensureDataPointReadPermission(user, vo);
+        return vo;
     }
 
 }

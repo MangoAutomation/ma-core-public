@@ -7,20 +7,17 @@ import java.security.KeyPair;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.AuthTokensRevokedEvent;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -40,17 +37,16 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
 
     private static final int DEFAULT_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
-    private final PermissionHolder systemSuperadmin;
+    private final PermissionService permissionService;
     private final UsersService usersService;
     private final ApplicationContext context;
 
     @Autowired
     public TokenAuthenticationService(
-            @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-            PermissionHolder systemSuperadmin, 
-            UsersService usersService, 
+            PermissionService permissionService,
+            UsersService usersService,
             ApplicationContext context) {
-        this.systemSuperadmin = systemSuperadmin;
+        this.permissionService = permissionService;
         this.usersService = usersService;
         this.context = context;
     }
@@ -110,19 +106,15 @@ public final class TokenAuthenticationService extends JwtSignerVerifier<User> {
         if (username == null) {
             throw new NotFoundException();
         }
-
-        Common.setUser(this.systemSuperadmin);
-        try {
+        return this.permissionService.runAsSystemAdmin(() -> {
             User user = this.usersService.get(username);
             Integer userId = user.getId();
             this.verifyClaim(token, USER_ID_CLAIM, userId);
-    
+
             Integer tokenVersion = user.getTokenVersion();
             this.verifyClaim(token, USER_TOKEN_VERSION_CLAIM, tokenVersion);
-    
+
             return user;
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 }

@@ -46,12 +46,9 @@ public class UserEventMulticasterTest extends MangoTestBase {
 
         //Add some roles
         mockRole = new RoleVO(Common.NEW_ID, "MOCK", "Mock test role.");
-        Common.setUser(systemSuperadmin);
-        try {
+        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
             mockRole = roleService.insert(mockRole);
-        }finally {
-            Common.removeUser();
-        }
+        });
 
     }
 

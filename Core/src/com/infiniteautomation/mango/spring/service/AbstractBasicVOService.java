@@ -483,4 +483,12 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         return dao;
     }
 
+    /**
+     * get the permission service that was wired in
+     * @return
+     */
+    public PermissionService getPermissionService() {
+        return permissionService;
+    }
+
 }

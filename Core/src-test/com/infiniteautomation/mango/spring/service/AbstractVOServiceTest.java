@@ -7,7 +7,6 @@ import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractDao;
 import com.serotonin.m2m2.vo.AbstractVO;
 
@@ -30,9 +29,8 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO<?>, TABLE exte
     @Test
     public void testUpdateViaXid() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            try {
-                VO vo = insertNewVO();
+            getService().permissionService.runAsSystemAdmin(() -> {
+                VO vo = insertNewVO(editUser);
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
 
@@ -40,25 +38,20 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO<?>, TABLE exte
                 service.update(vo.getXid(), updated);
                 fromDb = service.get(updated.getXid());
                 assertVoEqual(updated, fromDb);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test(expected = NotFoundException.class)
     public void testDeleteViaXid() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            try {
-                VO vo = insertNewVO();
+            getService().permissionService.runAsSystemAdmin(() -> {
+                VO vo = insertNewVO(editUser);
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getXid());
                 service.get(vo.getXid());
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 

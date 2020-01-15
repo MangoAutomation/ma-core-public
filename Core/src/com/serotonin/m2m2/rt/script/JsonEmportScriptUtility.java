@@ -73,16 +73,15 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String getFullConfiguration(int prettyIndent) {
         EmportService<?,?,?> service = Common.getBean(EmportService.class);
-        Common.setUser(permissions);
-        try{
-            StringWriter stringWriter = new StringWriter();
-            service.export(ConfigurationExportData.createExportDataMap(null), stringWriter, prettyIndent);
-            return stringWriter.toString();
-        }catch(PermissionException e) {
-            return "{}";
-        }finally {
-            Common.removeUser();
-        }
+        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+            try{
+                StringWriter stringWriter = new StringWriter();
+                service.export(ConfigurationExportData.createExportDataMap(null), stringWriter, prettyIndent);
+                return stringWriter.toString();
+            }catch(PermissionException e) {
+                return "{}";
+            }
+        });
     }
 
     public String getConfiguration(String type) {
@@ -90,18 +89,17 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getConfiguration(String type, int prettyIndent) {
-        Common.setUser(permissions);
-        try {
-            Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
-            StringWriter stringWriter = new StringWriter();
-            EmportService<?,?,?> service = Common.getBean(EmportService.class);
-            service.export(data, stringWriter, prettyIndent);
-            return stringWriter.toString();
-        }catch(PermissionException e) {
-            return "{}";
-        }finally {
-            Common.removeUser();
-        }
+        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+            try {
+                Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
+                StringWriter stringWriter = new StringWriter();
+                EmportService<?,?,?> service = Common.getBean(EmportService.class);
+                service.export(data, stringWriter, prettyIndent);
+                return stringWriter.toString();
+            }catch(PermissionException e) {
+                return "{}";
+            }
+        });
     }
 
     public String dataPointQuery(String query) {
@@ -123,17 +121,16 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
             data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
         }
-        Common.setUser(permissions);
-        try{
-            StringWriter stringWriter = new StringWriter();
-            EmportService<?,?,?> service = Common.getBean(EmportService.class);
-            service.export(data, stringWriter, prettyIndent);
-            return stringWriter.toString();
-        }catch(PermissionException e) {
-            return "{}";
-        }finally {
-            Common.removeUser();
-        }
+        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+            try{
+                StringWriter stringWriter = new StringWriter();
+                EmportService<?,?,?> service = Common.getBean(EmportService.class);
+                service.export(data, stringWriter, prettyIndent);
+                return stringWriter.toString();
+            }catch(PermissionException e) {
+                return "{}";
+            }
+        });
     }
 
     public String dataSourceQuery(String query) {
@@ -150,17 +147,16 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             });
             data.put(ConfigurationExportData.DATA_SOURCES, dataSources);
         }
-        Common.setUser(permissions);
-        try{
-            StringWriter stringWriter = new StringWriter();
-            EmportService<?,?,?> service = Common.getBean(EmportService.class);
-            service.export(data, stringWriter, prettyIndent);
-            return stringWriter.toString();
-        }catch(PermissionException e) {
-            return "{}";
-        }finally {
-            Common.removeUser();
-        }
+        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+            try{
+                StringWriter stringWriter = new StringWriter();
+                EmportService<?,?,?> service = Common.getBean(EmportService.class);
+                service.export(data, stringWriter, prettyIndent);
+                return stringWriter.toString();
+            }catch(PermissionException e) {
+                return "{}";
+            }
+        });
     }
 
     public void doImport(String json) throws Exception {

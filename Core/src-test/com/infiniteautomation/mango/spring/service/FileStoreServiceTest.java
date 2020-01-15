@@ -13,6 +13,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
 import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.FileStore;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -41,7 +42,7 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     }
 
     @Override
-    public FileStore newVO() {
+    public FileStore newVO(User owner) {
         FileStore vo = new FileStore();
         vo.setStoreName(UUID.randomUUID().toString());
         return vo;

@@ -160,7 +160,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             if(this.countMonitor != null)
                 this.countMonitor.addValue(-deleted);
             if(deleted > 0) {
-                this.publishEvent(createDaoEvent(DaoEventType.DELETE, vo, vo));
+                this.publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
             }
             return deleted > 0;
         }

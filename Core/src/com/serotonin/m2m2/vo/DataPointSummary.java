@@ -91,11 +91,11 @@ public class DataPointSummary implements IDataPoint {
         return setRoles;
     }
 
-    public void setSetPermission(Set<Role> setRoles) {
+    public void setSetRoles(Set<Role> setRoles) {
         this.setRoles = setRoles;
     }
 
-	@Override
+    @Override
     public String toString() {
         return "XID: " + this.xid;
     }

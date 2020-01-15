@@ -19,6 +19,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
 import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
@@ -44,97 +45,76 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     @Test(expected = PermissionException.class)
     public void testInvalidPermission() {
         runTest(() -> {
-            MailingList vo = newVO();
+            MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
-            Common.setUser(readUser);
-            try {
+            getService().permissionService.runAs(readUser, () -> {
                 service.insert(vo);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test(expected = PermissionException.class)
     public void testAddOverprivledgedEditRole() {
         runTest(() -> {
-            MailingList vo = newVO();
+            MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
-            Common.setUser(systemSuperadmin);
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
                 MailingList fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
-            }finally {
-                Common.removeUser();
-            }
+            });
 
-            Common.setUser(readUser);
-            try {
+            getService().permissionService.runAs(readUser, () -> {
                 service.update(vo.getXid(), vo);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test(expected = PermissionException.class)
     public void testRemoveOverprivledgedEditRole() {
         runTest(() -> {
-            MailingList vo = newVO();
+            MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
-            Common.setUser(systemSuperadmin);
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
                 MailingList fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
-            }finally {
-                Common.removeUser();
-            }
+            });
 
-            Common.setUser(readUser);
-            try {
+            getService().permissionService.runAs(readUser, () -> {
                 vo.setEditRoles(Collections.emptySet());
                 service.update(vo.getXid(), vo);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test(expected = ValidationException.class)
     public void testAddMissingEditRole() {
-        MailingList vo = newVO();
+        MailingList vo = newVO(readUser);
         Role role = new Role(10000, "new-role");
         Set<Role> editRoles = Collections.singleton(role);
         vo.setEditRoles(editRoles);
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             service.insert(vo);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Test
     public void testRemoveRole() {
         runTest(() -> {
-            MailingList vo = newVO();
+            MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
             vo.setEditRoles(editRoles);
-            Common.setUser(systemSuperadmin);
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
                 roleService.delete(editRole.getXid());
                 vo.setEditRoles(Collections.emptySet());
                 MailingList fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
@@ -190,7 +170,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     }
 
     @Override
-    MailingList newVO() {
+    MailingList newVO(User owner) {
         MailingList vo = new MailingList();
         vo.setXid(MailingListDao.getInstance().generateUniqueXid());
         vo.setName("MailingList");

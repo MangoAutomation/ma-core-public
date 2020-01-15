@@ -48,7 +48,6 @@ import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -72,9 +71,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * Store of enabled publishers
      */
     private final List<PublisherRT<?>> runningPublishers = new CopyOnWriteArrayList<PublisherRT<?>>();
-    
+
     private TranslatableMessage stateMessage = new TranslatableMessage("startup.state.runtimeManagerInitialize");
-    
+
     /**
      * State machine allowed order:
      * PRE_INITIALIZE
@@ -83,15 +82,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * TERMINATE
      * POST_TERMINATE
      * TERMINATED
-     * 
+     *
      */
     private int state = PRE_INITIALIZE;
 
     @Override
     public int getState(){
-    	return state;
+        return state;
     }
-    
+
     @Override
     public TranslatableMessage getStateMessage() {
         switch(state) {
@@ -107,7 +106,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 return new TranslatableMessage("shutdown.state.preTerminate");
         }
     }
-    
+
     //
     // Lifecycle
 
@@ -118,7 +117,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Set the started indicator to true.
         state = INITIALIZE;
-        
+
         //Get the RTM defs from modules
         List<RuntimeManagerDefinition> defs = ModuleRegistry.getDefinitions(RuntimeManagerDefinition.class);
         Collections.sort(defs, new Comparator<RuntimeManagerDefinition>() {
@@ -130,15 +129,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Start everything with priority up to and including 4.
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
-        
+
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
         List<DataSourceVO<?>> configs = null;
-        Common.setUser(PermissionHolder.SYSTEM_SUPERADMIN);
-        try {
-            configs = DataSourceDao.getInstance().getAll();
-        }finally {
-            Common.removeUser();
-        }
+        configs = DataSourceDao.getInstance().getAll();
         Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
         for (DataSourceVO<?> config : configs) {
             if (config.isEnabled()) {
@@ -164,8 +158,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
             List<DataSourceVO<?>> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
-            	DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList, useMetrics, dataSourceStartupThreads);
-            	pollingRound.addAll(initializer.initialize());
+                DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList, useMetrics, dataSourceStartupThreads);
+                pollingRound.addAll(initializer.initialize());
             }
         }
 
@@ -182,7 +176,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         List<PublisherVO<? extends PublishedPointVO>> publishers = PublisherDao.getInstance().getPublishers();
         LOG.info("Starting " + publishers.size() + " Publishers...");
         for (PublisherVO<? extends PublishedPointVO> vo : publishers) {
-        	LOG.info("Starting publisher: " + vo.getName());
+            LOG.info("Starting publisher: " + vo.getName());
             if (vo.isEnabled()) {
                 if (safe) {
                     vo.setEnabled(false);
@@ -193,15 +187,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
             }
         }
         LOG.info(publishers.size() + " Publisher's started in " +  (Common.timer.currentTimeMillis() - pubStart) + "ms");
-        
+
         //Schedule the Backup Tasks if necessary
         if(!safe){
-	        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED)){
-	       		BackupWorkItem.schedule();
-	        }
-	        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED)){
-	       		DatabaseBackupWorkItem.schedule();
-	        }
+            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.BACKUP_ENABLED)){
+                BackupWorkItem.schedule();
+            }
+            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.DATABASE_BACKUP_ENABLED)){
+                DatabaseBackupWorkItem.schedule();
+            }
 
         }
         //This is a bit of a misnomer since we startup the data sources in separate threads and don't callback when running.
@@ -213,7 +207,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         if (state != RUNNING)
             return;
         state = TERMINATE;
-        
+
         for (PublisherRT<? extends PublishedPointVO> publisher : runningPublishers)
             stopPublisher(publisher.getId());
 
@@ -247,22 +241,22 @@ public class RuntimeManagerImpl implements RuntimeManager {
         for (int i = priorities.length - 1; i >= 0; i--) {
             List<DataSourceRT<? extends DataSourceVO<?>>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
-            	DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorities[i], priorityList, useMetrics, dataSourceStartupThreads);
+                DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorities[i], priorityList, useMetrics, dataSourceStartupThreads);
                 initializer.terminate();
             }
         }
 
         // Run everything else.
         rtmdIndex = stopRTMDefs(defs, rtmdIndex, Integer.MIN_VALUE);
-        
+
     }
 
     @Override
     public void joinTermination() {
-    	if(state != TERMINATE)
-    		return;
-    	state = POST_TERMINATE;
-    	
+        if(state != TERMINATE)
+            return;
+        state = POST_TERMINATE;
+
         for (Entry<Integer, DataSourceRT<? extends DataSourceVO<?>>> entry : runningDataSources.entrySet()) {
             DataSourceRT<? extends DataSourceVO<?>> dataSource = entry.getValue();
             try {
@@ -303,7 +297,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public List<? extends DataSourceRT<?>> getRunningDataSources() {
         return new ArrayList<>(runningDataSources.values());
     }
-    
+
     @Override
     public boolean isDataSourceRunning(int dataSourceId) {
         return getRunningDataSource(dataSourceId) != null;
@@ -333,7 +327,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 startDataSourcePolling(vo);
         }
     }
-    
+
     @Override
     public void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo) {
         // If the data source is running, stop it.
@@ -348,7 +342,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 startDataSourcePolling(vo);
         }
     }
-    
+
 
     private boolean initializeDataSource(DataSourceVO<?> vo) {
         synchronized (runningDataSources) {
@@ -362,8 +356,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * @return
      */
     @Override
-    public boolean initializeDataSourceStartup(DataSourceVO<?> vo) {    	
-    	long startTime = System.nanoTime();
+    public boolean initializeDataSourceStartup(DataSourceVO<?> vo) {
+        long startTime = System.nanoTime();
 
         // If the data source is already running, just quit.
         if (isDataSourceRunning(vo.getId()))
@@ -378,16 +372,16 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Add it to the list of running data sources.
         synchronized(runningDataSources) {
-        	runningDataSources.put(dataSource.getId(), dataSource);
+            runningDataSources.put(dataSource.getId(), dataSource);
         }
 
         // Add the enabled points to the data source.
         List<DataPointVO> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
-        
+
         Map<Integer, List<PointValueTime>> latestValuesMap = null;
         PointValueDao pvDao = Common.databaseProxy.newPointValueDao();
         if (pvDao instanceof EnhancedPointValueDao) {
-            
+
             // Find the maximum cache size for all point in the datasource
             // This number of values will be retrieved for all points in the datasource
             // If even one point has a high cache size this *may* cause issues
@@ -396,14 +390,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 if (dataPoint.getDefaultCacheSize() > maxCacheSize)
                     maxCacheSize = dataPoint.getDefaultCacheSize();
             }
-            
+
             try {
                 latestValuesMap = ((EnhancedPointValueDao)pvDao).getLatestPointValuesForDataSource(vo, maxCacheSize);
             } catch (Exception e) {
                 LOG.error("Failed to get latest point values for datasource " + vo.getXid() + ". Mango will try to retrieve latest point values per point which will take longer.", e);
             }
         }
-        
+
         for (DataPointVO dataPoint : dataSourcePoints) {
             if (dataPoint.isEnabled()) {
                 List<PointValueTime> latestValuesForPoint = null;
@@ -421,16 +415,16 @@ public class RuntimeManagerImpl implements RuntimeManager {
             }
         }
 
-    	long endTime = System.nanoTime();
+        long endTime = System.nanoTime();
 
-    	long duration = endTime - startTime;
+        long duration = endTime - startTime;
         int took = (int)((double)duration/(double)1000000);
-    	stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), took);
+        stateMessage = new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), took);
         LOG.info(new TranslatableMessage("runtimeManager.initialize.dataSource", vo.getName(), took).translate(Common.getTranslations()));
-    	
-    	return true;
+
+        return true;
     }
-    
+
     private void startDataSourcePolling(DataSourceVO<?> vo) {
         DataSourceRT<? extends DataSourceVO<?>> dataSource = getRunningDataSource(vo.getId());
         if (dataSource != null)
@@ -439,36 +433,36 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     private void stopDataSource(int id) {
         synchronized (runningDataSources) {
-        	stopDataSourceShutdown(id);
+            stopDataSourceShutdown(id);
         }
     }
-    
+
     /**
      * Should only be called at Shutdown as synchronization has been reduced for performance
      */
-    @Override 
+    @Override
     public void stopDataSourceShutdown(int id) {
-    	
+
         DataSourceRT<? extends DataSourceVO<?>> dataSource = getRunningDataSource(id);
         if (dataSource == null)
             return;
-        try{	
+        try{
             // Stop the data points.
             for (DataPointRT p : dataPoints.values()) {
                 if (p.getDataSourceId() == id)
                     stopDataPointShutdown(p.getVO());
             }
             synchronized (runningDataSources) {
-            	runningDataSources.remove(dataSource.getId());
+                runningDataSources.remove(dataSource.getId());
             }
-            
+
             dataSource.terminate();
 
             dataSource.joinTermination();
             LOG.info("Data source '" + dataSource.getName() + "' stopped");
-    	}catch(Exception e){
-    		LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
-    	}
+        }catch(Exception e){
+            LOG.error("Data source '" + dataSource.getName() + "' failed proper termination.", e);
+        }
     }
 
     //
@@ -494,9 +488,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
         if (vo.isEnabled())
             startDataPoint(vo, null);
     }
-    
+
     @Override
-    public void updateDataPoint(DataPointVO existing, DataPointVO vo) {    	
+    public void updateDataPoint(DataPointVO existing, DataPointVO vo) {
         stopDataPoint(existing);
 
         //TODO Mango 4.0 shouldn't the validation catch all this?
@@ -512,7 +506,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         // Event detectors
         Iterator<AbstractPointEventDetectorVO<?>> peds = vo.getEventDetectors().iterator();
         while (peds.hasNext()) {
-        	AbstractPointEventDetectorVO<?> ped = peds.next();
+            AbstractPointEventDetectorVO<?> ped = peds.next();
             if (!ped.supports(dataType))
                 // Remove the detector.
                 peds.remove();
@@ -528,7 +522,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public void enableDataPoint(DataPointVO dp, boolean enabled) {
         boolean running = isDataPointRunning(dp.getId());
         dp.setEnabled(enabled);
-        
+
         if (running && !enabled) {
             stopDataPoint(dp);
         } else if (!running && enabled) {
@@ -536,7 +530,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             DataPointDao.getInstance().loadEventDetectors(dp);
             startDataPoint(dp, null);
         }
-        
+
         //to restart, else if(running && enabled) { stopDataPoint(dp.getId()); startDataPoint(dp, null); }
         // or pass a restart flag?
         DataPointDao.getInstance().saveEnabledColumn(dp);
@@ -559,7 +553,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     /**
      * Only to be used at startup as synchronization has been reduced for performance
      * @param vo
-     * @param latestValue 
+     * @param latestValue
      */
     private void startDataPointStartup(DataPointVO vo, List<PointValueTime> initialCache) {
         Assert.isTrue(vo.isEnabled(), "Data point not enabled");
@@ -578,8 +572,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
                             getRunningDataSource(rt.getDataSourceId()).removeDataPoint(rt);
                         }catch(Exception e){
                             LOG.error("Failed to stop point RT with ID: " + vo.getId()
-                                    + " stopping point."
-                                    , e);
+                            + " stopping point."
+                            , e);
                         }
                         DataPointListener l = getDataPointListeners(vo.getId());
                         if (l != null)
@@ -600,15 +594,15 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
             // Initialize it.
             dataPoint.initialize();
-            
+
             //If we are a polling data source then we need to wait to start our interval logging
             // until the first poll due to quantization
             boolean isPolling = ds instanceof PollingDataSource;
-            
+
             //If we are not polling go ahead and start the interval logging, otherwise we will let the data source do it on the first poll
             if(!isPolling)
-            	dataPoint.initializeIntervalLogging(0l, false);
-            
+                dataPoint.initializeIntervalLogging(0l, false);
+
             DataPointListener l = getDataPointListeners(vo.getId());
             if (l != null)
                 try {
@@ -623,21 +617,21 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
             // Add/update it in the data source.
             try{
-            	ds.addDataPoint(dataPoint);
+                ds.addDataPoint(dataPoint);
             }catch(Exception e){
-            	//This can happen if there is a corrupt DB with a point for a different 
-            	// data source type linked to this data source...
-            	LOG.error("Failed to start point with xid: " + dataPoint.getVO().getXid()
-            			+ " disabling point."
-            			, e);
-            	//TODO Fire Alarm to warn user.
-            	DataPointVO copy = dataPoint.getVO().copy();
-            	dataPoint.getVO().setEnabled(false);
-            	updateDataPoint(copy, dataPoint.getVO()); //Stop it
+                //This can happen if there is a corrupt DB with a point for a different
+                // data source type linked to this data source...
+                LOG.error("Failed to start point with xid: " + dataPoint.getVO().getXid()
+                        + " disabling point."
+                        , e);
+                //TODO Fire Alarm to warn user.
+                DataPointVO copy = dataPoint.getVO().copy();
+                dataPoint.getVO().setEnabled(false);
+                updateDataPoint(copy, dataPoint.getVO()); //Stop it
             }
         }
     }
-    
+
     private void stopDataPoint(DataPointVO dp) {
         synchronized (dataPoints) {
             // Remove this point from the data image if it is there. If not, just quit.
@@ -645,14 +639,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
             // Remove it from the data source, and terminate it.
             if (p != null) {
-            	try{
-            		getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
-            	}catch(Exception e){
-            		LOG.error("Failed to stop point RT with ID: " + dp.getId()
-                			+ " stopping point."
-                			, e);
-            	}
-            	
+                try{
+                    getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+                }catch(Exception e){
+                    LOG.error("Failed to stop point RT with ID: " + dp.getId()
+                    + " stopping point."
+                    , e);
+                }
+
                 DataPointListener l = getDataPointListeners(dp.getId());
                 if (l != null)
                     try {
@@ -671,21 +665,21 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * Only to be used at shutdown as synchronization has been reduced for performance
      */
     private void stopDataPointShutdown(DataPointVO dp) {
-        
-    	DataPointRT p = null;
-    	synchronized (dataPoints) {
+
+        DataPointRT p = null;
+        synchronized (dataPoints) {
             // Remove this point from the data image if it is there. If not, just quit.
             p = dataPoints.remove(dp.getId());
-    	}
+        }
         // Remove it from the data source, and terminate it.
         if (p != null) {
-        	try{
-        		getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
-        	}catch(Exception e){
-        		LOG.error("Failed to stop point RT with ID: " + dp.getId()
-            			+ " stopping point."
-            			, e);
-        	}
+            try{
+                getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+            }catch(Exception e){
+                LOG.error("Failed to stop point RT with ID: " + dp.getId()
+                + " stopping point."
+                , e);
+            }
             DataPointListener l = getDataPointListeners(dp.getId());
             if (l != null)
                 try {
@@ -699,7 +693,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
     }
-    
+
     @Override
     public void restartDataPoint(DataPointVO vo){
         boolean restarted = false;
@@ -713,8 +707,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
                     getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
                 }catch(Exception e){
                     LOG.error("Failed to stop point RT with ID: " + vo.getId()
-                            + " stopping point."
-                            , e);
+                    + " stopping point."
+                    , e);
                 }
                 DataPointListener l = getDataPointListeners(vo.getId());
                 if (l != null)
@@ -739,7 +733,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             DataPointDao.getInstance().saveEnabledColumn(vo);
         }
     }
-    
+
     @Override
     public boolean isDataPointRunning(int dataPointId) {
         return dataPoints.get(dataPointId) != null;
@@ -749,7 +743,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     public DataPointRT getDataPoint(int dataPointId) {
         return dataPoints.get(dataPointId);
     }
-    
+
     @Override
     public List<DataPointRT> getRunningDataPoints() {
         return new ArrayList<>(dataPoints.values());
@@ -757,16 +751,16 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void addDataPointListener(int dataPointId, DataPointListener l) {
-    	dataPointListeners.compute(dataPointId, (k, v) -> {
-	        return DataPointEventMulticaster.add(v, l);
-    	});
+        dataPointListeners.compute(dataPointId, (k, v) -> {
+            return DataPointEventMulticaster.add(v, l);
+        });
     }
 
     @Override
     public void removeDataPointListener(int dataPointId, DataPointListener l) {
-    	dataPointListeners.compute(dataPointId, (k, v) -> {
-    		return DataPointEventMulticaster.remove(v, l);
-    	});
+        dataPointListeners.compute(dataPointId, (k, v) -> {
+            return DataPointEventMulticaster.remove(v, l);
+        });
     }
 
     @Override
@@ -827,13 +821,13 @@ public class RuntimeManagerImpl implements RuntimeManager {
             // The data source may have been disabled. Just make sure.
             ds.forcePointRead(dataPoint);
     }
-    
+
     @Override
     public void forceDataSourcePoll(int dataSourceId) {
         DataSourceRT<? extends DataSourceVO<?>> dataSource = runningDataSources.get(dataSourceId);
         if(dataSource == null)
             throw new RTException("Source is not enabled");
-        
+
         dataSource.forcePoll();
     }
 
@@ -852,7 +846,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             updateDataPointValuesRT(id, Long.MAX_VALUE);
         return;
     }
-    
+
     @Override
     public long purgeDataPointValues(int dataPointId, int periodType, int periodCount) {
         long before = DateUtils.minus(Common.timer.currentTimeMillis(), periodType, periodCount);
@@ -866,27 +860,27 @@ public class RuntimeManagerImpl implements RuntimeManager {
         return count;
     }
 
-	@Override
+    @Override
     public boolean purgeDataPointValuesWithoutCount(int dataPointId) {
-		if(Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(dataPointId)){
-			updateDataPointValuesRT(dataPointId, Long.MAX_VALUE);
-			return true;
-		}else
-			return false;
-	}
+        if(Common.databaseProxy.newPointValueDao().deletePointValuesWithoutCount(dataPointId)){
+            updateDataPointValuesRT(dataPointId, Long.MAX_VALUE);
+            return true;
+        }else
+            return false;
+    }
 
     @Override
     public long purgeDataPointValue(int dataPointId, long ts, PointValueDao dao){
-    	long count = dao.deletePointValue(dataPointId, ts);
-    	if(count > 0)
-    		updateDataPointValuesRT(dataPointId);
-    	return count;
-    	
+        long count = dao.deletePointValue(dataPointId, ts);
+        if(count > 0)
+            updateDataPointValuesRT(dataPointId);
+        return count;
+
     }
 
     @Override
     public long purgeDataPointValues(int dataPointId, long before) {
-       long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
+        long count = Common.databaseProxy.newPointValueDao().deletePointValuesBefore(dataPointId, before);
         if (count > 0)
             updateDataPointValuesRT(dataPointId, before);
         return count;
@@ -903,20 +897,20 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public boolean purgeDataPointValuesWithoutCount(int dataPointId, long before) {
         if(Common.databaseProxy.newPointValueDao().deletePointValuesBeforeWithoutCount(dataPointId, before)){
-             updateDataPointValuesRT(dataPointId, before);
-             return true;
+            updateDataPointValuesRT(dataPointId, before);
+            return true;
         }else
-         return false;
-     }
+            return false;
+    }
 
-    
+
     private void updateDataPointValuesRT(int dataPointId) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
         if (dataPoint != null)
             // Enabled. Reset the point's cache.
             dataPoint.resetValues();
     }
-    
+
     private void updateDataPointValuesRT(int dataPointId, long before) {
         DataPointRT dataPoint = dataPoints.get(dataPointId);
         if (dataPoint != null)
@@ -984,7 +978,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             // Add it to the list of running publishers.
             runningPublishers.add(publisher);
         }
-        
+
         long endTime = System.nanoTime();
 
         long duration = endTime - startTime;

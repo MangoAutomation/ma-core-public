@@ -18,6 +18,7 @@ import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
@@ -45,19 +46,19 @@ import com.serotonin.util.ProgressiveTaskListener;
  * @author Matthew Lohbihler
  */
 public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointVO, EH extends AbstractEventHandlerVO<EH>> extends ProgressiveTask {
-	
-	private static Log LOG = LogFactory.getLog(ImportTask.class);
-	
+
+    private static Log LOG = LogFactory.getLog(ImportTask.class);
+
     protected final ImportContext importContext;
     protected float progress = 0f;
     protected float progressChunk;
-    
+
     protected final List<Importer> importers = new ArrayList<Importer>();
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
     protected final Map<String, DataPointVO> eventDetectorPoints = new HashMap<String, DataPointVO>();
-    
+
     protected final DataPointService dataPointService;
-    
+
     protected PermissionHolder user;
     /**
      * Create an Import task with a listener to be scheduled now
@@ -66,7 +67,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
      * @param user
      * @param listener
      */
-    public ImportTask(JsonObject root, 
+    public ImportTask(JsonObject root,
             Translations translations,
             PermissionHolder user,
             UsersService usersService,
@@ -77,47 +78,47 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             EventHandlerService<EH> eventHandlerService,
             JsonDataService jsonDataService,
             ProgressiveTaskListener listener, boolean schedule) {
-    	super("JSON import task", "JsonImport", 10, listener);
-    	this.user = user;
-    	this.dataPointService = dataPointService;
+        super("JSON import task", "JsonImport", 10, listener);
+        this.user = user;
+        this.dataPointService = dataPointService;
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
             addImporter(new UserImporter(jv.toJsonObject(), usersService, user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
             addImporter(new DataSourceImporter<DS>(jv.toJsonObject(), dataSourceService));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
             addImporter(new DataPointImporter<DS>(jv.toJsonObject(), dataPointService, dataSourceService));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
             addImporter(new MailingListImporter(jv.toJsonObject(), mailingListService));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
             addImporter(new PublisherImporter<PUB>(jv.toJsonObject(), publisherService));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
             addImporter(new EventHandlerImporter<EH>(jv.toJsonObject(), eventHandlerService));
-        
+
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
             addImporter(new SystemSettingsImporter(obj, user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject()));
-        
+
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
-        	addImporter(new JsonDataImporter(jv.toJsonObject(), jsonDataService));
-        
+            addImporter(new JsonDataImporter(jv.toJsonObject(), jsonDataService));
+
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
             importItems.add(importItem);
         }
-        
-        for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS)) 
-        	addImporter(new EventDetectorImporter(jv.toJsonObject(), eventDetectorPoints));
+
+        for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS))
+            addImporter(new EventDetectorImporter(jv.toJsonObject(), eventDetectorPoints));
 
         //Quick hack to ensure the Global Scripts are imported first in case they are used in scripts that will be loaded during this import
         final String globalScriptId = "sstGlobalScripts";
@@ -127,9 +128,9 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             if(globalScriptId.equals(item.getEmportDefinition().getElementId())) {
                 it.remove();
                 Importer importer = new Importer(root) {
-                    
+
                     private ImportItem gsImporter = item;
-                    
+
                     @Override
                     protected void importImpl() {
                         try {
@@ -146,10 +147,10 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
                 break;
             }
         }
-        
-        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths 
 
-        if(schedule)    
+        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths
+
+        if(schedule)
             Common.backgroundProcessing.execute(this);
     }
 
@@ -176,99 +177,99 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
 
     @Override
     protected void runImpl() {
-        Common.setUser(user);
-        try {
-            if (!importers.isEmpty()) {
-                if (importerIndex >= importers.size()) {
-                    // A run through the importers has been completed.
-                    if (importerSuccess) {
-                        // If there were successes with the importers and there are still more to do, run through 
-                        // them again.
-                        importerIndex = 0;
-                        importerSuccess = false;
-                    } else if(!importedItems) {
-        	            try {
-                            for (ImportItem importItem : importItems) {
-                                if (!importItem.isComplete()) {
-                                    importItem.importNext(importContext, user);
-                                    return;
-                                }
-                            }
-                            importedItems = true;   // We may have imported a dependency in a module
+        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
+            try {
+                if (!importers.isEmpty()) {
+                    if (importerIndex >= importers.size()) {
+                        // A run through the importers has been completed.
+                        if (importerSuccess) {
+                            // If there were successes with the importers and there are still more to do, run through
+                            // them again.
                             importerIndex = 0;
+                            importerSuccess = false;
+                        } else if(!importedItems) {
+                            try {
+                                for (ImportItem importItem : importItems) {
+                                    if (!importItem.isComplete()) {
+                                        importItem.importNext(importContext, user);
+                                        return;
+                                    }
+                                }
+                                importedItems = true;   // We may have imported a dependency in a module
+                                importerIndex = 0;
+                            }
+                            catch (Exception e) {
+                                addException(e);
+                            }
+                        } else {
+                            // There are importers left in the list, but there were no successful imports in the last run
+                            // of the set. So, all that is left is stuff that will always fail. Copy the validation
+                            // messages to the context for each.
+                            // Run the import items.
+                            for (Importer importer : importers)
+                                importer.copyMessages();
+                            importers.clear();
+                            completed = true;
+                            return;
                         }
-                        catch (Exception e) {
-                            addException(e);
-                        }
-                    } else {
-                        // There are importers left in the list, but there were no successful imports in the last run
-                        // of the set. So, all that is left is stuff that will always fail. Copy the validation 
-                        // messages to the context for each.
-                    	    // Run the import items.
-                        for (Importer importer : importers)
-                            importer.copyMessages();
-                        importers.clear();
-                        completed = true;
-                        return;
                     }
-                }
 
-                // Run the next importer
-                Importer importer = importers.get(importerIndex);
-                try {
-                    importer.doImport();
-                    if (importer.success()) {
-                        // The import was successful. Note the success and remove the importer from the list.
-                        importerSuccess = true;
+                    // Run the next importer
+                    Importer importer = importers.get(importerIndex);
+                    try {
+                        importer.doImport();
+                        if (importer.success()) {
+                            // The import was successful. Note the success and remove the importer from the list.
+                            importerSuccess = true;
+                            importers.remove(importerIndex);
+                        }
+                        else{
+                            // The import failed. Leave it in the list since the run of another importer
+                            // may resolved the problem.
+                            importerIndex++;
+                        }
+                    }
+                    catch (Exception e) {
+                        // Uh oh...
+                        LOG.error(e.getMessage(),e);
+                        addException(e);
                         importers.remove(importerIndex);
                     }
-                    else{
-                        // The import failed. Leave it in the list since the run of another importer
-                        // may resolved the problem.
-                        importerIndex++;
+
+                    return;
+                }
+
+                // Run the import items.
+                try {
+                    for (ImportItem importItem : importItems) {
+                        if (!importItem.isComplete()) {
+                            importItem.importNext(importContext, user);
+                            return;
+                        }
                     }
+                    processUpdatedDetectors(eventDetectorPoints);
+                    completed = true;
                 }
                 catch (Exception e) {
-                    // Uh oh...
-                	LOG.error(e.getMessage(),e);
                     addException(e);
-                    importers.remove(importerIndex);
                 }
-
-                return;
             }
-
-            // Run the import items.
-            try {
-                for (ImportItem importItem : importItems) {
-                    if (!importItem.isComplete()) {
-                        importItem.importNext(importContext, user);
-                        return;
-                    }
-                }
-                processUpdatedDetectors(eventDetectorPoints);
-                completed = true;
+            finally {
+                //Compute progress, but only declare if we are < 100 since we will declare 100 when done
+                //Our progress is 100 - chunk*importersLeft
+                int importItemsLeft = 1;
+                if(completed)
+                    importItemsLeft = 0; //Since we know we ran the processDataPointPaths method
+                for(ImportItem item : importItems)
+                    if(!item.isComplete())
+                        importItemsLeft++;
+                this.progress = 100f - progressChunk*((float)importers.size() + (float)importItemsLeft);
+                if(progress < 100f)
+                    declareProgress(this.progress);
             }
-            catch (Exception e) {
-                addException(e);
-            }
-        }
-        finally {
-            Common.removeUser();
-            //Compute progress, but only declare if we are < 100 since we will declare 100 when done
-            //Our progress is 100 - chunk*importersLeft
-            int importItemsLeft = 1;
-            if(completed)
-                importItemsLeft = 0; //Since we know we ran the processDataPointPaths method
-            for(ImportItem item : importItems)
-                if(!item.isComplete())
-                    importItemsLeft++;
-            this.progress = 100f - progressChunk*((float)importers.size() + (float)importItemsLeft);
-            if(progress < 100f)
-                declareProgress(this.progress);
-        }
+        });
     }
-    
+
     private void processUpdatedDetectors(Map<String, DataPointVO> eventDetectorMap) {
         for(DataPointVO dpvo : eventDetectorMap.values()) {
             //We can't really guarantee that the import didn't also contain event detectors on the point or that the
@@ -290,7 +291,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
                 //Having removed the old versions, add the new.
                 saved.getEventDetectors().add(eventDetector);
             }
-            
+
             //Save the data point
             dataPointService.update(saved.getId(), saved);
             for(AbstractPointEventDetectorVO<?> modified : dpvo.getEventDetectors())
@@ -305,7 +306,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             msg += ", " + importContext.getTranslations().translate("emport.causedBy") + " '" + t.getMessage() + "'";
         //We were missing NPE and others without a msg
         if(msg == null)
-        	msg = e.getClass().getCanonicalName();
+            msg = e.getClass().getCanonicalName();
         importContext.getResult().addGenericMessage("common.default", msg);
     }
 }

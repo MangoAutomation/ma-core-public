@@ -14,6 +14,7 @@ import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -58,7 +59,7 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     }
 
     @Override
-    JsonDataVO newVO() {
+    JsonDataVO newVO(User owner) {
         JsonDataVO vo = new JsonDataVO();
         vo.setXid(UUID.randomUUID().toString());
         vo.setName(UUID.randomUUID().toString());

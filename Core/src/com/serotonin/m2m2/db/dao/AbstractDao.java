@@ -212,7 +212,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>, TABLE extends Abstrac
             case UPDATE:
                 return new DaoEvent<T>(this, type, vo, existing.getXid());
             case DELETE:
-                return new DaoEvent<T>(this, type, vo, existing.getXid());
+                return new DaoEvent<T>(this, type, vo, null);
             default:
                 throw new ShouldNeverHappenException("Uknown dao event type: " + type);
         }

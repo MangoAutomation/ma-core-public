@@ -15,10 +15,9 @@ import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.MockMangoLifecycle;
-import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
@@ -49,23 +48,17 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
-            DataPointVO vo = newVO();
-            Common.setUser(systemSuperadmin);
-            try {
+            DataPointVO vo = newVO(editUser);
+            getService().permissionService.runAsSystemAdmin(() -> {
                 T ds = dataSourceService.get(vo.getDataSourceId());
                 ds.setEditRoles(Collections.singleton(editRole));
                 dataSourceService.update(ds.getXid(), ds);
                 setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
                 vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-            }finally {
-                Common.removeUser();
-            }
-            Common.setUser(editUser);
-            try {
+            });
+            getService().permissionService.runAs(editUser, () -> {
                 service.insert(vo);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
@@ -73,18 +66,15 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     public void testUserCanDelete() {
         runTest(() -> {
-            DataPointVO vo = newVO();
-            addRoleToCreatePermission(editRole);
-            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
-            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-            vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-            Common.setUser(editUser);
-            try {
+            getService().permissionService.runAs(editUser, () -> {
+                DataPointVO vo = newVO(readUser);
+                addRoleToCreatePermission(editRole);
+                setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+                setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+                vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
                 vo = service.insert(vo);
                 service.delete(vo.getId());
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
@@ -92,27 +82,21 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     public void testUserEditRole() {
         runTest(() -> {
-            DataPointVO vo = newVO();
+            DataPointVO vo = newVO(editUser);
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
             vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()));
-            Common.setUser(systemSuperadmin);
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
-            }finally {
-                Common.removeUser();
-            }
-            Common.setUser(readUser);
-            try {
+            });
+            getService().permissionService.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 fromDb.setName("read user edited me");
                 service.update(fromDb.getXid(), fromDb);
                 DataPointVO updated = service.get(fromDb.getId());
                 assertVoEqual(fromDb, updated);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
@@ -120,27 +104,21 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     public void testUserEditRoleFails() {
         runTest(() -> {
-            DataPointVO vo = newVO();
+            DataPointVO vo = newVO(editUser);
             setReadRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()), vo);
             setEditRoles(Collections.emptySet(), vo);
             vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()));
-            Common.setUser(systemSuperadmin);
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
-            }finally {
-                Common.removeUser();
-            }
-            Common.setUser(readUser);
-            try {
+            });
+            getService().permissionService.runAs(readUser, () -> {
                 DataPointVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 fromDb.setName("read user edited me");
                 service.update(fromDb.getXid(), fromDb);
                 DataPointVO updated = service.get(fromDb.getId());
                 assertVoEqual(fromDb, updated);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
@@ -160,9 +138,8 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     public void testDelete() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            try {
-                DataPointVO vo = insertNewVO();
+            getService().permissionService.runAsSystemAdmin(() -> {
+                DataPointVO vo = insertNewVO(editUser);
                 setReadRoles(Collections.singleton(readRole), vo);
                 setEditRoles(Collections.singleton(editRole), vo);
                 vo.setSetRoles(Collections.singleton(readRole));
@@ -176,58 +153,44 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SET).size());
 
                 service.get(vo.getId());
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test(expected = ValidationException.class)
     public void testCannotRemoveSetAccess() {
-        DataPointVO vo = newVO();
+        DataPointVO vo = newVO(editUser);
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
         vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             service.insert(vo);
-        }finally {
-            Common.removeUser();
-        }
-        Common.setUser(readUser);
-        try {
+        });
+        getService().permissionService.runAs(readUser, () -> {
             DataPointVO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
             fromDb.setName("read user edited me");
             fromDb.setSetRoles(Collections.emptySet());
             service.update(fromDb.getXid(), fromDb);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Test(expected = ValidationException.class)
     public void testAddSetRoleUserDoesNotHave() {
-        DataPointVO vo = newVO();
+        DataPointVO vo = newVO(editUser);
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
         vo.setSetRoles(Collections.singleton(roleService.getUserRole()));
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             service.insert(vo);
-        }finally {
-            Common.removeUser();
-        }
-        Common.setUser(readUser);
-        try {
+        });
+        getService().permissionService.runAs(readUser, () -> {
             DataPointVO fromDb = service.get(vo.getId());
             assertVoEqual(vo, fromDb);
             fromDb.setName("read user edited me");
             fromDb.setSetRoles(Collections.singleton(roleService.getSuperadminRole()));
             service.update(fromDb.getXid(), fromDb);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Override
@@ -242,21 +205,11 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
 
     @Override
     void setEditRoles(Set<Role> roles, DataPointVO vo) {
-        PermissionHolder current = Common.getUser();
-        if(current != null) {
-            Common.removeUser();
-        }
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             T ds = dataSourceService.get(vo.getDataSourceId());
             ds.setEditRoles(roles);
             dataSourceService.update(ds.getXid(), ds);
-        }finally {
-            Common.removeUser();
-            if(current != null) {
-                Common.setUser(current);
-            }
-        }
+        });
     }
 
     @Override
@@ -283,30 +236,19 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     }
 
     @Override
-    DataPointVO newVO() {
-        PermissionHolder current = Common.getUser();
-        if(current != null) {
-            Common.removeUser();
-        }
-        //Create a source for this point
-        Common.setUser(systemSuperadmin);
-        try {
-            T mock = dataSourceService.insert(createDataSource());
-            //Create the point
-            DataPointVO vo = new DataPointVO();
-            vo.setXid(UUID.randomUUID().toString());
-            vo.setName(UUID.randomUUID().toString());
-            vo.setDataSourceId(mock.getId());
-            vo.setPointLocator(new MockPointLocatorVO());
-            //TODO Flesh out all fields
+    DataPointVO newVO(User user) {
+        return getService().permissionService.runAsSystemAdmin(() -> {;
+        T mock = dataSourceService.insert(createDataSource());
+        //Create the point
+        DataPointVO vo = new DataPointVO();
+        vo.setXid(UUID.randomUUID().toString());
+        vo.setName(UUID.randomUUID().toString());
+        vo.setDataSourceId(mock.getId());
+        vo.setPointLocator(new MockPointLocatorVO());
+        //TODO Flesh out all fields
 
-            return vo;
-        }finally {
-            Common.removeUser();
-            if(current != null) {
-                Common.setUser(current);
-            }
-        }
+        return vo;
+        });
     }
 
     @Override
@@ -322,12 +264,4 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
         dsVo.setName("permissions_test_datasource");
         return (T) dsVo;
     }
-
-    @Override
-    protected MockMangoLifecycle getLifecycle() {
-        MockMangoLifecycle lifecycle = super.getLifecycle();
-        lifecycle.setRuntimeManager(new MockRuntimeManager(true));
-        return lifecycle;
-    }
-
 }

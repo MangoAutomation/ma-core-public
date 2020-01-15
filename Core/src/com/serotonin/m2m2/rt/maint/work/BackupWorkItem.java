@@ -17,6 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
 import com.infiniteautomation.mango.spring.service.EmportService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -24,7 +25,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.util.DateUtils;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
@@ -192,15 +192,12 @@ public class BackupWorkItem implements WorkItem {
      */
     @SuppressWarnings("unchecked")
     public String getBackup(){
-        Common.setUser(PermissionHolder.SYSTEM_SUPERADMIN);
-        try {
+        return Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
             Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);
             StringWriter stringWriter = new StringWriter();
             Common.getBean(EmportService.class).export(data, stringWriter, 3);
             return stringWriter.toString();
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     /**
@@ -246,32 +243,21 @@ public class BackupWorkItem implements WorkItem {
         }//end run
     }// end backup settings task
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
-     */
     @Override
     public String getDescription() {
         return "Backing up system configuration to: " + this.backupLocation;
     }
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-     */
+
     @Override
     public String getTaskId() {
         return TASK_ID;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-     */
     @Override
     public int getQueueSize() {
         return 0;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-     */
     @Override
     public void rejected(RejectedTaskReason reason) { }
 

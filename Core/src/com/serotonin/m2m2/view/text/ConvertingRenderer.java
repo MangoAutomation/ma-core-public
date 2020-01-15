@@ -15,7 +15,6 @@ import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.vo.AbstractVO;
@@ -26,21 +25,21 @@ import com.serotonin.util.SerializationHelper;
  * @author Jared Wiltshire
  */
 public abstract class ConvertingRenderer extends BaseTextRenderer {
-    
+
     protected boolean useUnitAsSuffix;
     protected Unit<?> unit;
     protected Unit<?> renderedUnit;
-    
+
     public ConvertingRenderer() {
         setDefaults();
     }
-    
+
     /**
      * Sets fields to defaults, called from serialization readObject()
      * and constructor
      */
     protected void setDefaults() {
-        useUnitAsSuffix = false; 
+        useUnitAsSuffix = false;
         unit = Unit.ONE;
         renderedUnit = Unit.ONE;
     }
@@ -60,7 +59,7 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
     public void setRenderedUnit(Unit<?> renderedUnit) {
         this.renderedUnit = renderedUnit;
     }
-    
+
     public boolean isUseUnitAsSuffix() {
         return useUnitAsSuffix;
     }
@@ -83,18 +82,18 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
         if(ver == 2){
             useUnitAsSuffix = in.readBoolean();
             try{
-            	unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                unit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
-            	unit = Unit.ONE;
+                unit = Unit.ONE;
             }
             try{
-            	renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
+                renderedUnit = UnitUtil.parseUcum(SerializationHelper.readSafeUTF(in));
             }catch(Exception e){
-            	renderedUnit = Unit.ONE;
+                renderedUnit = Unit.ONE;
             }
-       }else if(ver == 3) {
-           useUnitAsSuffix = in.readBoolean();
-       }
+        }else if(ver == 3) {
+            useUnitAsSuffix = in.readBoolean();
+        }
     }
 
     @Override
@@ -102,17 +101,17 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
         super.jsonWrite(writer);
         writer.writeEntry("useUnitAsSuffix", useUnitAsSuffix);
     }
-    
+
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        
+
         //To ensure we have this property as it is a new one
         if(jsonObject.containsKey("useUnitAsSuffix")){
-        	useUnitAsSuffix = AbstractVO.getBoolean(jsonObject, "useUnitAsSuffix");
-        }      
+            useUnitAsSuffix = AbstractVO.getBoolean(jsonObject, "useUnitAsSuffix");
+        }
     }
-    
+
     @Override
     public void validate(ProcessResult result, int sourcePointDataTypeId) {
         super.validate(result, sourcePointDataTypeId);

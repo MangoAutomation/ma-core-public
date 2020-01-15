@@ -21,41 +21,41 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
     /**
      * Field for xid column
      */
-    protected final Field<String> xidField;
+    public final Field<String> XID;
+
     /**
      * tablePrefix.xid
      */
-    protected final Field<String> xidAlias;
+    public final Field<String> XID_ALIAS;
 
     /**
      * Field for name column
      */
-    protected final Field<String> nameField;
+    public final Field<String> NAME;
     /**
      * tablePrefix.name
      */
-    protected final Field<String> nameAlias;
-    
-    
+    public final Field<String> NAME_ALIAS;
+
     public AbstractTableDefinition(Table<? extends Record> table, Name alias) {
         super(table, alias);
-        this.xidField = getXidField();
-        this.xidAlias = getXidAlias();
-        this.nameField = getNameField();
-        this.nameAlias = getNameAlias();
+        this.XID = getXidField();
+        this.XID_ALIAS = getXidAlias();
+        this.NAME = getNameField();
+        this.NAME_ALIAS = getNameAlias();
     }
 
 
     @Override
     protected void addFields(List<Field<?>> fields) {
-        if(this.xidField != null) {
-            fields.add(xidField);
+        if(this.XID != null) {
+            fields.add(XID);
         }
-        if(this.nameField != null) {
-            fields.add(nameField);
+        if(this.NAME != null) {
+            fields.add(NAME);
         }
     }
-    
+
     /**
      * tableAlias.xid
      * @return
@@ -68,7 +68,7 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
             return DSL.field(this.alias.append(fieldName), SQLDataType.VARCHAR(getXidFieldLength()).nullable(false));
         }
     }
-    
+
     /**
      * Override as necessary Can be null if no xid column Exists
      *
@@ -82,7 +82,7 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
             return DSL.field(getXidFieldName(), SQLDataType.VARCHAR(getXidFieldLength()).nullable(false));
         }
     }
-    
+
     /**
      * Optionally override the name of the Xid column.
      * @return Name of xid column or null if there is not one
@@ -90,7 +90,7 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
     protected Name getXidFieldName() {
         return DSL.name("xid");
     }
-    
+
     /**
      * Optionally override the length of the XID field
      * @return
@@ -98,7 +98,7 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
     protected int getXidFieldLength() {
         return 100;
     }
-    
+
     /**
      * tableAlias.id
      * @return
@@ -111,7 +111,7 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
             return DSL.field(this.alias.append(getNameFieldName()), SQLDataType.VARCHAR(getNameFieldLength()).nullable(false));
         }
     }
-    
+
     /**
      * Override as necessary Can be null if no name Exists
      *
@@ -125,7 +125,7 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
             return DSL.field(getNameFieldName(), SQLDataType.VARCHAR(getNameFieldLength()).nullable(false));
         }
     }
-    
+
     /**
      * Optionally override the name of the Xid column
      * @return Name of name column or null if there is not one
@@ -133,7 +133,7 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
     protected Name getNameFieldName() {
         return DSL.name("name");
     }
-    
+
     /**
      * Optionally override the length of the name column
      * @return
@@ -141,5 +141,5 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
     protected int getNameFieldLength() {
         return 255;
     }
-    
+
 }

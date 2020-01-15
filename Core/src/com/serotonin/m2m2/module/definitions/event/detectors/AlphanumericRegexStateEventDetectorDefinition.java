@@ -21,41 +21,43 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 public class AlphanumericRegexStateEventDetectorDefinition extends TimeoutDetectorDefinition<AlphanumericRegexStateDetectorVO>{
 
-	public static final String TYPE_NAME = "ALPHANUMERIC_REGEX_STATE";
-		
+    public static final String TYPE_NAME = "ALPHANUMERIC_REGEX_STATE";
 
-	@Override
-	public String getEventDetectorTypeName() {
-		return TYPE_NAME;
-	}
 
-	@Override
-	public String getDescriptionKey() {
-		return "pointEdit.detectors.regexState";
-	}
+    @Override
+    public String getEventDetectorTypeName() {
+        return TYPE_NAME;
+    }
 
-	@Override
-	protected AlphanumericRegexStateDetectorVO createEventDetectorVO(DataPointVO dp) {
-		return new AlphanumericRegexStateDetectorVO(dp);
-	}
-	
-	@Override
-	protected AlphanumericRegexStateDetectorVO createEventDetectorVO(int sourceId) {
-	    return new AlphanumericRegexStateDetectorVO(DataPointDao.getInstance().get(sourceId));
-	}
-	
+    @Override
+    public String getDescriptionKey() {
+        return "pointEdit.detectors.regexState";
+    }
+
+    @Override
+    protected AlphanumericRegexStateDetectorVO createEventDetectorVO(DataPointVO dp) {
+        return new AlphanumericRegexStateDetectorVO(dp);
+    }
+
+    @Override
+    protected AlphanumericRegexStateDetectorVO createEventDetectorVO(int sourceId) {
+        return new AlphanumericRegexStateDetectorVO(DataPointDao.getInstance().get(sourceId));
+    }
+
     @Override
     public void validate(ProcessResult response, AlphanumericRegexStateDetectorVO vo, PermissionHolder user) {
         super.validate(response, vo, user);
-        
+
         if(StringUtils.isEmpty(vo.getState()))
             response.addContextualMessage("state", "validate.cannotContainEmptyString");
-        try {
-            Pattern.compile(vo.getState());
-        } catch(PatternSyntaxException e) {
-            response.addContextualMessage("state", "validate.invalidRegex", e.getMessage());
+        else{
+            try {
+                Pattern.compile(vo.getState());
+            } catch(PatternSyntaxException e) {
+                response.addContextualMessage("state", "validate.invalidRegex", e.getMessage());
+            }
         }
-    }	
-	
-	
+    }
+
+
 }

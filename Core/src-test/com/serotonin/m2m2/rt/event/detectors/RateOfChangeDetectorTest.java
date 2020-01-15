@@ -19,6 +19,7 @@ import org.junit.Test;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
@@ -27,7 +28,6 @@ import com.serotonin.m2m2.MockEventManager;
 import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
@@ -44,7 +44,6 @@ import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -60,13 +59,13 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class RateOfChangeDetectorTest extends MangoTestBase {
 
     private EventDetectorEventListener listener;
-        
+
     @Before
     public void configure() {
         this.listener = new EventDetectorEventListener();
         Common.eventManager.addUserEventListener(this.listener);
     }
-    
+
     @After
     public void tearDown() {
         Common.eventManager.removeUserEventListener(this.listener);
@@ -82,56 +81,56 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      *   calculationMode: INSTANTANEOUS
      *   comparisonMode: GREATER_THAN
      *   duration: 0 Seconds
-     *   
+     *
      * Initial value(s): none
-     * 
+     *
      * Test: Set value to 10 at time 0 advance 5s
-     * 
+     *
      * Result: No events raised
      */
     @Test
     public void test1() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(10.0, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
 
     @Test
     public void testOneSecondPeriodSingleValueInRange() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
-        
+
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoValuesOutOfRange() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
         timer.fastForwardTo(500);
         ensureSetPointValue(rt, new PointValueTime(1.1, timer.currentTimeMillis()));
-        
+
         timer.fastForwardTo(1000);
         assertEquals(1, listener.raised.size());
         assertEquals(500, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
-        
+
         //Our event will RTN instantaneously when we set a value
         timer.fastForwardTo(5000);
         assertEquals(1, listener.raised.size());
         assertEquals(0, listener.rtn.size());
-        
+
         ensureSetPointValue(rt, new PointValueTime(1.2, timer.currentTimeMillis()));
         timer.fastForwardTo(5001);
         assertEquals(1, listener.raised.size());
@@ -141,43 +140,43 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
     @Test
     public void testOneSecondPeriodTwoValuesInRange() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
-        
+
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
         ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 4500);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     @Test
     public void testLessThanChange() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 1, TimePeriods.SECONDS);
-        
+
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
         ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 4500);
-        
+
         assertEquals(1, listener.raised.size());
         assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesInRange() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.001, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0003, 100), null);
         timer.fastForwardTo(timer.currentTimeMillis() + 200);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
@@ -187,21 +186,21 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
         ensureSetPointValue(rt, new PointValueTime(0.0009, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 4500);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeForOneSecond() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN_OR_EQUALS, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.101, 100), null);
         timer.fastForwardTo(200);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
@@ -213,7 +212,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         timer.fastForwardTo(1100); //1s after the change of grater than 1
         assertEquals(1, listener.raised.size());
         assertEquals(200, listener.raised.get(0).getActiveTimestamp());
-        assertEquals(0, listener.rtn.size());        
+        assertEquals(0, listener.rtn.size());
 
         ensureSetPointValue(rt, new PointValueTime(2.2, timer.currentTimeMillis()));
         timer.fastForwardTo(4500); //Well after we have had no changes and our RoC has dropped to RTN the event
@@ -221,26 +220,26 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(1, listener.rtn.size());
         assertEquals(1100, listener.rtn.get(0).getRtnTimestamp());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeReset() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, 0.9, TimePeriods.SECONDS, false,  CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN,  0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.1, 100), null);
         timer.fastForwardTo(1000);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
-        
+
         timer.fastForwardTo(1500);
         ensureSetPointValue(rt, new PointValueTime(2.1, timer.currentTimeMillis()));
         timer.fastForwardTo(1501);
@@ -253,15 +252,15 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(1, listener.raised.size());
         assertEquals(1600, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
-        
+
         timer.fastForwardTo(2000);
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(2001);
         assertEquals(1, listener.raised.size());
         assertEquals(1, listener.rtn.size());
         assertEquals(2000, listener.rtn.get(0).getRtnTimestamp());
-        
-        
+
+
         //See RoC Return to 0
         timer.fastForwardTo(4500);
         ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
@@ -270,13 +269,13 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(1, listener.rtn.size());
 
     }
-    
+
     /**
      * Two initial values before point starts, no values set during test
      */
     @Test
     public void testNoValuesSetTwoInitialValues() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, 1.1, TimePeriods.SECONDS, false, CalculationMode.INSTANTANEOUS, 0, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
@@ -287,7 +286,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
         //An event will not be active as the RoC is uncomputable with no value at the period start
@@ -308,35 +307,35 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(1, listener.rtn.size());
         assertEquals(1200, listener.rtn.get(0).getRtnTimestamp());
     }
-    
+
     //Average Mode Tests
     @Test
     public void testOneSecondPeriodSingleValueOutOfRangeAverage() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(10.0, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
 
     @Test
     public void testOneSecondPeriodSingleValueInRangeAverage() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
-        
+
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 5000);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoValuesOutOfRangeAverage() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
 
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
@@ -344,77 +343,77 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         // if we ff to 1000 the task will fire before we set the point value and the RoC will be too small
         timer.fastForwardTo(1000);
         ensureSetPointValue(rt, new PointValueTime(1.1, timer.currentTimeMillis()));
-        
+
         timer.fastForwardTo(1500);
         assertEquals(1, listener.raised.size());
         assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
-        
+
         //Our event will RTN as the period slides along and our RoC returns to 0
         timer.fastForwardTo(3000);
         assertEquals(1, listener.raised.size());
         assertEquals(1, listener.rtn.size());
         assertEquals(2000, listener.rtn.get(0).getRtnTimestamp());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoValuesInRangeAverage() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
-        
+
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
         ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 4500);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     @Test
     public void testLessThanChangeAverage() {
-        
+
         DataPointRT rt = createRunningPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 1, TimePeriods.SECONDS);
-        
+
         ensureSetPointValue(rt, new PointValueTime(0.0, timer.currentTimeMillis()));
         timer.fastForwardTo(1000);
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
-    
+
         ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
         timer.fastForwardTo(4500);
-    
+
         //The event should be raised 1s after the set to 0.9
         assertEquals(1, listener.raised.size());
         assertEquals(2000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesInRangeAverage() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.001, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0003, 100), null);
         timer.fastForwardTo(timer.currentTimeMillis() + 200);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
         ensureSetPointValue(rt, new PointValueTime(0.0005, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 500);
         ensureSetPointValue(rt, new PointValueTime(0.0009, timer.currentTimeMillis()));
         timer.fastForwardTo(timer.currentTimeMillis() + 4500);
-        
+
         assertEquals(0, listener.raised.size());
         assertEquals(0, listener.rtn.size());
     }
-    
+
     /**
      * Settings:
      *   RoC Threshold: 1.0/Second
@@ -424,152 +423,152 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
      *   calculationMode: AVERAGE
      *   comparisonMode: GREATER_THAN
      *   duration: 1 Seconds
-     *   
+     *
      * Initial value(s): 0.1 at 0, 1.101 at 100
-     * 
+     *
      * Test:
      *   advance to 1000 and start point, ensure no events raised
      *   set value to 2.5 at 1000
      *   advance to 1001 ensure no events raised
      *   advance to 2000
-     *   
-     * 
+     *
+     *
      * Result: No events raised
      */
     @Test
     public void testOneSecondPeriodTwoInitialValuesOneValueOutOfRangeForOneSecondAverage() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.101, 100), null);
         timer.fastForwardTo(1000);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
         assertEquals(0, listener.raised.size());
-        
+
         ensureSetPointValue(rt, new PointValueTime(2.5, timer.currentTimeMillis()));
         timer.fastForwardTo(1001);
         assertEquals(0, listener.raised.size());
-        assertEquals(0, listener.rtn.size());   
-        
+        assertEquals(0, listener.rtn.size());
+
         timer.fastForwardTo(2000);
         assertEquals(1, listener.raised.size());
         assertEquals(2000, listener.raised.get(0).getActiveTimestamp());
-        assertEquals(1, listener.rtn.size());   
+        assertEquals(1, listener.rtn.size());
         assertEquals(2000, listener.rtn.get(0).getRtnTimestamp());
     }
-    
+
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeForOneSecondAverage() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, null, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 1, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.101, 100), null);
         timer.fastForwardTo(1000);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
         assertEquals(0, listener.raised.size());
-        
+
         ensureSetPointValue(rt, new PointValueTime(2.5, timer.currentTimeMillis()));
         timer.fastForwardTo(1500);
         assertEquals(0, listener.raised.size());
-        assertEquals(0, listener.rtn.size());   
+        assertEquals(0, listener.rtn.size());
 
         ensureSetPointValue(rt, new PointValueTime(3.6, timer.currentTimeMillis()));
         timer.fastForwardTo(2000);
         assertEquals(1, listener.raised.size());
         assertEquals(2000, listener.raised.get(0).getActiveTimestamp());
-        assertEquals(0, listener.rtn.size());   
+        assertEquals(0, listener.rtn.size());
 
         timer.fastForwardTo(3000);
         assertEquals(1, listener.raised.size());
-        assertEquals(1, listener.rtn.size());   
+        assertEquals(1, listener.rtn.size());
         assertEquals(2500, listener.rtn.get(0).getRtnTimestamp());
     }
 
-    
+
     @Test
     public void testOneSecondPeriodTwoInitialValuesTwoValuesOutOfRangeResetAverage() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, 0.9, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(1.1, 100), null);
         timer.fastForwardTo(1000);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
         timer.fastForwardTo(1500);
-        
+
         assertEquals(1, listener.raised.size());
         assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(1, listener.rtn.size());
         assertEquals(1100, listener.rtn.get(0).getRtnTimestamp());
-        
+
         ensureSetPointValue(rt, new PointValueTime(0.5, timer.currentTimeMillis()));
         timer.fastForwardTo(2000);
         ensureSetPointValue(rt, new PointValueTime(0.9, timer.currentTimeMillis()));
         timer.fastForwardTo(4500);
-        
+
         assertEquals(1, listener.rtn.size());
         assertEquals(1, listener.raised.size());
     }
-    
+
     @Test
     public void testNoValuesSetTwoInitialValuesAverage() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, 1.1, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 1, TimePeriods.SECONDS, ComparisonMode.LESS_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.0, 0), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.5, 500), null);
         timer.fastForwardTo(1000);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
 
         timer.fastForwardTo(1499);
-        
+
         assertEquals(1, listener.raised.size());
         assertEquals(1000, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
 
         ensureSetPointValue(rt, new PointValueTime(2.2, timer.currentTimeMillis()));
         timer.fastForwardTo(2000);
-        
+
         assertEquals(1, listener.raised.size());
         assertEquals(1, listener.rtn.size());
         assertEquals(1499, listener.rtn.get(0).getRtnTimestamp());
     }
-    
+
     /**
      * Change of 1.0/s in 10 seconds
      */
     @Test
     public void testDifferentThresholdPeriodToAverage() {
-        
+
         DataPointVO dpVo = createDisabledPoint(1.0, 0.5, TimePeriods.SECONDS, false, CalculationMode.AVERAGE, 10, TimePeriods.SECONDS, ComparisonMode.GREATER_THAN, 0, TimePeriods.SECONDS);
         //Save some values
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
@@ -577,13 +576,13 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.1, 1000), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.2, 2000), null);
         dao.savePointValueSync(dpVo.getId(), new PointValueTime(0.3, 3000), null);
-        
+
         timer.fastForwardTo(10000);
-        
+
         DataPointVO existing = dpVo.copy();
         dpVo.setEnabled(true);
         Common.runtimeManager.updateDataPoint(existing, dpVo);
-        
+
         DataPointRT rt = Common.runtimeManager.getDataPoint(dpVo.getId());
         timer.fastForwardTo(10999);
         assertEquals(0, listener.raised.size());
@@ -594,13 +593,13 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         assertEquals(1, listener.raised.size());
         assertEquals(10999, listener.raised.get(0).getActiveTimestamp());
         assertEquals(0, listener.rtn.size());
-        
+
         ensureSetPointValue(rt, new PointValueTime(11.3, timer.currentTimeMillis()));
         timer.fastForwardTo(13000);
         //Nothing raised as our change is only 1 in the last 10s
         assertEquals(1, listener.raised.size());
         assertEquals(0, listener.rtn.size());
-        
+
         ensureSetPointValue(rt, new PointValueTime(21.4, timer.currentTimeMillis()));
         timer.fastForwardTo(13999);
         assertEquals(1, listener.raised.size());
@@ -608,27 +607,27 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
 
         //Allow reset of alarm after 10s and no change
         timer.fastForwardTo(26000);
-        
+
         assertEquals(1, listener.rtn.size());
         assertEquals(23000, listener.rtn.get(0).getRtnTimestamp());
-        
+
         ensureSetPointValue(rt, new PointValueTime(41.4, timer.currentTimeMillis()));
         timer.fastForwardTo(33000);
         assertEquals(2, listener.raised.size());
         assertEquals(26000, listener.raised.get(1).getActiveTimestamp());
         assertEquals(1, listener.rtn.size());
-        
+
     }
-    
-    
+
+
     //TODO Test no values set, 1 initial value
     //TODO Test no values set, 0 initial values
-    
+
     /**
      * Create a running datapoint with no initial values
-     * 
+     *
      *  NOTE: The poll period is 1s for the data source
-     * 
+     *
      * @param rocThreshold
      * @param resetThreshold
      * @param rocThresholdPeriodType
@@ -648,12 +647,12 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         Common.runtimeManager.updateDataPoint(existing, dpVo);
         return Common.runtimeManager.getDataPoint(dpVo.getId());
     }
-    
+
     /**
      * Create a point in the database that is not running.
-     * 
+     *
      * NOTE: The poll period is 1s for the data source
-     * 
+     *
      * @param rocThreshold
      * @param resetThreshold
      * @param rocThresholdPeriods
@@ -672,17 +671,14 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dsVo.setEnabled(true);
         dsVo.setUpdatePeriods(1);
         dsVo.setUpdatePeriodType(TimePeriods.SECONDS);
-        User admin = UserDao.getInstance().getByXid("admin");
-        Common.setUser(admin);
-        try {
+        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
             validate(dsVo);
             Common.runtimeManager.insertDataSource(dsVo);
-        }finally {
-            Common.removeUser();
-        }
+        });
+
         //Create point locator
         MockPointLocatorVO plVo = new MockPointLocatorVO(DataTypes.NUMERIC, true);
-        
+
         //Setup Data Point VO
         DataPointVO dpVo = new DataPointVO();
         dpVo.setName("Test");
@@ -691,7 +687,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         dpVo.setLoggingType(DataPointVO.LoggingTypes.ALL);
         dpVo.setPointLocator(plVo);
         dpVo.setDataSourceId(dsVo.getId());
-        
+
         //Setup our ROC Detector
         RateOfChangeDetectorVO rocVo = new RateOfChangeDetectorVO(dpVo);
         rocVo.setXid(EventDetectorDao.getInstance().generateUniqueXid());
@@ -710,21 +706,19 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         rocVo.setDuration(durationPeriods);
         rocVo.setDurationType(durationPeriodType);
         validate(rocVo);
-        
+
         List<AbstractPointEventDetectorVO<?>> eventDetectors = new ArrayList<>();
         eventDetectors.add(rocVo);
         dpVo.setEventDetectors(eventDetectors);
-        
-        Common.setUser(admin);
-        try {
+
+        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
             validate(dpVo);
             Common.runtimeManager.insertDataPoint(dpVo);
-        }finally {
-            Common.removeUser();
-        }
+        });
+
         return dpVo;
     }
-    
+
     /**
      * Save a value and ensure the event detector has received the event
      * @param id
@@ -746,21 +740,21 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         if(retries == 0)
             fail("did not recieved changed event");
     }
-    
+
     @SuppressWarnings("unchecked")
     private void validate(MockDataSourceVO ds) {
         Common.getBean(DataSourceService.class).validate(ds, PermissionHolder.SYSTEM_SUPERADMIN);
     }
-    
+
     private void validate(DataPointVO dp) {
         Common.getBean(DataPointService.class).validate(dp, PermissionHolder.SYSTEM_SUPERADMIN);
     }
-    
+
     @SuppressWarnings("unchecked")
     private void validate(RateOfChangeDetectorVO vo) {
         Common.getBean(EventDetectorsService.class).validate(vo, PermissionHolder.SYSTEM_SUPERADMIN);
     }
-    
+
     @Override
     protected MockMangoLifecycle getLifecycle() {
         RuntimeManagerMockMangoLifecycle lifecycle =
@@ -784,18 +778,18 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         protected RuntimeManager getRuntimeManager() {
             return new RuntimeManagerImpl();
         }
-        
+
         @Override
         protected EventManager getEventManager() {
             return new SimpleEventManager();
         }
     }
-    
+
     class SimpleEventManager extends MockEventManager {
-        
+
         private List<EventDetectorEventListener> listeners = new ArrayList<>();
         private List<EventInstance> events = new ArrayList<>();
-        
+
         @Override
         public void raiseEvent(EventType type, long time, boolean rtnApplicable,
                 AlarmLevels alarmLevel, TranslatableMessage message, Map<String, Object> context) {
@@ -805,14 +799,14 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
                     alarmLevel, message, context);
             events.add(evt);
             for(EventDetectorEventListener l : listeners)
-               l.raised(evt);
+                l.raised(evt);
         }
-        
+
         @Override
         public void returnToNormal(EventType type, long time) {
             returnToNormal(type, time, ReturnCause.RETURN_TO_NORMAL);
         }
-        
+
         @Override
         public void returnToNormal(EventType type, long time, ReturnCause cause) {
             if(!(type instanceof DataPointEventType))
@@ -824,7 +818,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
             for(EventDetectorEventListener l : listeners)
                 l.returnToNormal(evt);
         }
-        
+
         private EventInstance remove(EventType type) {
             ListIterator<EventInstance> it = events.listIterator();
             while(it.hasNext()){
@@ -836,23 +830,23 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
             }
             return null;
         }
-        
+
         @Override
         public void addUserEventListener(UserEventListener l) {
             this.listeners.add((EventDetectorEventListener) l);
         }
-        
+
         @Override
         public void removeUserEventListener(UserEventListener l) {
             this.listeners.remove(l);
         }
-        
+
     }
-    
+
     class ConfirmedDataPointListener implements DataPointListener {
 
         AtomicBoolean changed = new AtomicBoolean();
-        
+
         @Override
         public String getListenerName() {
             return "TEST";
@@ -861,13 +855,13 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         @Override
         public void pointInitialized() {
             // TODO Auto-generated method stub
-            
+
         }
 
         @Override
         public void pointUpdated(PointValueTime newValue) {
             // TODO Auto-generated method stub
-            
+
         }
 
         @Override
@@ -878,34 +872,34 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         @Override
         public void pointSet(PointValueTime oldValue, PointValueTime newValue) {
             // TODO Auto-generated method stub
-            
+
         }
 
         @Override
         public void pointBackdated(PointValueTime value) {
             // TODO Auto-generated method stub
-            
+
         }
 
         @Override
         public void pointTerminated(DataPointVO vo) {
             // TODO Auto-generated method stub
-            
+
         }
 
         @Override
         public void pointLogged(PointValueTime value) {
             // TODO Auto-generated method stub
-            
+
         }
-        
+
     }
-    
+
     class EventDetectorEventListener implements UserEventListener {
-        
+
         List<EventInstance> raised = new ArrayList<>();
         List<EventInstance> rtn = new ArrayList<>();
-        
+
         @Override
         public int getUserId() {
             return 1;

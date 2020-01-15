@@ -14,12 +14,11 @@ import java.util.Map;
 import javax.mail.internet.AddressException;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -29,7 +28,6 @@ import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.DefaultPagesDefinition;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import freemarker.template.TemplateException;
 import io.jsonwebtoken.Claims;
@@ -53,17 +51,16 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public static final String USER_ID_CLAIM = "id";
     public static final String USER_PASSWORD_VERSION_CLAIM = "v";
 
-    private final PermissionHolder systemSuperadmin;
+    private final PermissionService permissionService;
     private final UsersService usersService;
     private final PublicUrlService publicUrlService;
 
     @Autowired
     public PasswordResetService(
-            @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-            PermissionHolder systemSuperadmin,
+            PermissionService permissionService,
             UsersService usersService,
             PublicUrlService publicUrlService) {
-        this.systemSuperadmin = systemSuperadmin;
+        this.permissionService = permissionService;
         this.usersService = usersService;
         this.publicUrlService = publicUrlService;
     }
@@ -80,20 +77,17 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         Claims claims = token.getBody();
 
         String username = claims.getSubject();
-        Common.setUser(this.systemSuperadmin);
-        try {
+        return permissionService.runAsSystemAdmin(() -> {
             User user = this.usersService.get(username);
-    
+
             Integer userId = user.getId();
             this.verifyClaim(token, USER_ID_CLAIM, userId);
-    
+
             Integer pwVersion = user.getPasswordVersion();
             this.verifyClaim(token, USER_PASSWORD_VERSION_CLAIM, pwVersion);
-    
+
             return user;
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Override
@@ -150,13 +144,10 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         // we copy the user so that when we set the new password it doesn't modify the cached instance
         User updated = existing.copy();
         updated.setPlainTextPassword(newPassword);
-        Common.setUser(this.systemSuperadmin);
-        try {
+        return permissionService.runAsSystemAdmin(() -> {
             this.usersService.update(existing, updated);
             return updated;
-        }finally {
-           Common.removeUser(); 
-        }
+        });
     }
 
     public void sendEmail(User user) throws TemplateException, IOException, AddressException {

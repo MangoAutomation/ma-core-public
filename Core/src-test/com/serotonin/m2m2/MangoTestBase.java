@@ -49,11 +49,11 @@ import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -279,10 +279,6 @@ public class MangoTestBase {
      * @return
      */
     protected User createUser(int id, String name, String username, String password, String email, Role... roles) {
-        PermissionHolder current = Common.getUser();
-        if(current != null) {
-            Common.removeUser();
-        }
         User user = new User();
         user.setId(id);
         user.setName(name);
@@ -294,15 +290,9 @@ public class MangoTestBase {
         user.setDisabled(false);
         UsersService service = Common.getBean(UsersService.class);
 
-        Common.setUser(PermissionHolder.SYSTEM_SUPERADMIN);
-        try {
+        return service.getPermissionService().runAsSystemAdmin(() -> {
             return service.insert(user);
-        }finally {
-            Common.removeUser();
-            if(current != null) {
-                Common.setUser(current);
-            }
-        }
+        });
     }
 
     protected MockDataSourceVO createMockDataSource() {
@@ -314,11 +304,6 @@ public class MangoTestBase {
     }
 
     protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled) {
-        PermissionHolder current = Common.getUser();
-        if(current != null) {
-            Common.removeUser();
-        }
-
         @SuppressWarnings("unchecked")
         DataSourceService<MockDataSourceVO> service = Common.getBean(DataSourceService.class);
         MockDataSourceVO vo = new MockDataSourceVO();
@@ -326,23 +311,28 @@ public class MangoTestBase {
         vo.setName(xid);
         vo.setEnabled(enabled);
 
-        Common.setUser(PermissionHolder.SYSTEM_SUPERADMIN);
-        try {
-            return service.insert(vo);
-        }catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
+        return service.getPermissionService().runAsSystemAdmin(() -> {
+            try {
+                return service.insert(vo);
+            }catch(ValidationException e) {
+                String failureMessage = "";
+                for(ProcessMessage m : e.getValidationResult().getMessages()){
+                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                    failureMessage += messagePart;
+                }
+                fail(failureMessage);
+                return null;
             }
-            fail(failureMessage);
-            return null;
-        }finally {
-            Common.removeUser();
-            if(current != null) {
-                Common.setUser(current);
-            }
+        });
+    }
+
+    protected List<IDataPoint> createMockDataPoints(int count) {
+        List<IDataPoint> points = new ArrayList<>();
+        MockDataSourceVO ds = createMockDataSource();
+        for(int i=0; i<count; i++) {
+            points.add(createMockDataPoint(ds, new MockPointLocatorVO()));
         }
+        return points;
     }
 
     protected DataPointVO createMockDataPoint(MockDataSourceVO ds, MockPointLocatorVO vo) {
@@ -361,10 +351,6 @@ public class MangoTestBase {
     }
 
     protected DataPointVO createMockDataPoint(int id, String xid, String name, String deviceName, boolean enabled, int dataSourceId, MockPointLocatorVO vo) {
-        PermissionHolder current = Common.getUser();
-        if(current != null) {
-            Common.removeUser();
-        }
 
         DataPointService service = Common.getBean(DataPointService.class);
         DataPointVO dp = new DataPointVO();
@@ -376,23 +362,19 @@ public class MangoTestBase {
         dp.setPointLocator(vo);
         dp.setDataSourceId(dataSourceId);
 
-        Common.setUser(PermissionHolder.SYSTEM_SUPERADMIN);
-        try {
-            return service.insert(dp);
-        } catch(ValidationException e) {
-            String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
+        return service.getPermissionService().runAsSystemAdmin(() -> {
+            try {
+                return service.insert(dp);
+            } catch(ValidationException e) {
+                String failureMessage = "";
+                for(ProcessMessage m : e.getValidationResult().getMessages()){
+                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                    failureMessage += messagePart;
+                }
+                fail(failureMessage);
+                return null;
             }
-            fail(failureMessage);
-            return null;
-        }finally {
-            Common.removeUser();
-            if(current != null) {
-                Common.setUser(current);
-            }
-        }
+        });
     }
 
     /**

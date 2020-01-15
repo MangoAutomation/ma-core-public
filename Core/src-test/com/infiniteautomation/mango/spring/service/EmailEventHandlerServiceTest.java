@@ -21,6 +21,7 @@ import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
@@ -40,39 +41,32 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
 
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
-        EmailEventHandlerVO vo = newVO();
-        Common.setUser(editUser);
-        try {
+        EmailEventHandlerVO vo = newVO(editUser);
+        getService().permissionService.runAs(editUser, () -> {
             service.insert(vo);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Test
     public void testCreatePrivilegeSuccess() {
         runTest(() -> {
-            EmailEventHandlerVO vo = newVO();
+            EmailEventHandlerVO vo = newVO(editUser);
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
             addRoleToCreatePermission(editRole);
-            Common.setUser(editUser);
-            try {
+            getService().permissionService.runAs(editUser, () -> {
                 service.insert(vo);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test
     public void testDeleteRoleUpdateVO() {
         runTest(() -> {
-            EmailEventHandlerVO vo = newVO();
+            EmailEventHandlerVO vo = newVO(readUser);
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            Common.setUser(systemSuperadmin);
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
                 EmailEventHandlerVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
@@ -81,9 +75,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
                 EmailEventHandlerVO updated = service.get(fromDb.getId());
                 fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
                 assertVoEqual(fromDb, updated);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
@@ -91,11 +83,10 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
     @Override
     public void testDelete() {
         runTest(() -> {
-            EmailEventHandlerVO vo = newVO();
+            EmailEventHandlerVO vo = newVO(readUser);
             ScriptPermissions permissions = new ScriptPermissions(Sets.newHashSet(readRole, editRole));
             vo.setScriptRoles(permissions);
-            Common.setUser(systemSuperadmin);
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
                 service.update(vo.getXid(), vo);
                 EmailEventHandlerVO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
@@ -105,9 +96,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
                 assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
 
                 service.get(vo.getId());
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
@@ -134,7 +123,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
     }
 
     @Override
-    EmailEventHandlerVO newVO() {
+    EmailEventHandlerVO newVO(User user) {
         EmailEventHandlerVO vo = (EmailEventHandlerVO) ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME).baseCreateEventHandlerVO();
         vo.setXid(UUID.randomUUID().toString());
         vo.setName(UUID.randomUUID().toString());

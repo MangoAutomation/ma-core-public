@@ -75,6 +75,7 @@ import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
@@ -365,6 +366,38 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     public int countPointsForDataSourceType(String dataSourceType) {
         return ejt.queryForInt("SELECT count(DISTINCT dp.id) FROM dataPoints dp LEFT JOIN dataSources ds ON dp.dataSourceId=ds.id "
                 + "WHERE ds.dataSourceType=?", new Object[] { dataSourceType }, 0);
+    }
+
+    /**
+     * Get a summary of a data point
+     * @param xid
+     * @return
+     */
+    public DataPointSummary getSummary(String xid) {
+        Select<?> query = this.joinTables(this.create.select(this.table.getIdAlias(),
+                this.table.getXidAlias(),
+                this.table.getNameAlias(),
+                this.table.getAlias("dataSourceId"),
+                this.table.getAlias("deviceName"))
+                .from(this.table.getTableAsAlias())).where(this.table.getXidAlias().eq(xid)).limit(1);
+
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
+        DataPointSummary item = this.ejt.query(sql, args.toArray(new Object[args.size()]),
+                (rs) -> {
+                    DataPointSummary summary = new DataPointSummary();
+                    summary.setId(rs.getInt(1));
+                    summary.setXid(rs.getString(2));
+                    summary.setName(rs.getString(3));
+                    summary.setDataSourceId(rs.getInt(4));
+                    summary.setDeviceName(rs.getString(5));
+                    return summary;
+                });
+        if (item != null) {
+            item.setReadRoles(RoleDao.getInstance().getRoles(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.READ));
+            item.setSetRoles(RoleDao.getInstance().getRoles(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.SET));
+        }
+        return item;
     }
 
     //

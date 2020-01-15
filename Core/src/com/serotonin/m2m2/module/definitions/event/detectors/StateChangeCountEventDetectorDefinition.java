@@ -16,37 +16,34 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  */
 public class StateChangeCountEventDetectorDefinition extends TimeoutDetectorDefinition<StateChangeCountDetectorVO>{
 
-	public static final String TYPE_NAME = "STATE_CHANGE_COUNT";
-		
-	@Override
-	public String getEventDetectorTypeName() {
-		return TYPE_NAME;
-	}
-	
-	@Override
-	public String getDescriptionKey() {
-		return "pointEdit.detectors.changeCount";
-	}
+    public static final String TYPE_NAME = "STATE_CHANGE_COUNT";
 
-	@Override
-	protected  StateChangeCountDetectorVO createEventDetectorVO(DataPointVO vo) {
-		return new StateChangeCountDetectorVO(vo);
-	}
+    @Override
+    public String getEventDetectorTypeName() {
+        return TYPE_NAME;
+    }
 
-	@Override
-	protected StateChangeCountDetectorVO createEventDetectorVO(int sourceId) {
+    @Override
+    public String getDescriptionKey() {
+        return "pointEdit.detectors.changeCount";
+    }
+
+    @Override
+    protected  StateChangeCountDetectorVO createEventDetectorVO(DataPointVO vo) {
+        return new StateChangeCountDetectorVO(vo);
+    }
+
+    @Override
+    protected StateChangeCountDetectorVO createEventDetectorVO(int sourceId) {
         return new StateChangeCountDetectorVO(DataPointDao.getInstance().get(sourceId));
-	}
+    }
 
     @Override
     public void validate(ProcessResult response, StateChangeCountDetectorVO vo, PermissionHolder user) {
         super.validate(response, vo, user);
-        
+
         if(vo.getChangeCount() <= 1)
             response.addContextualMessage("changeCount", "pointEdit.detectors.invalidChangeCount");
+    }
 
-        if(vo.getDuration() <= 0)
-            response.addContextualMessage("duration", "validate.greaterThanZero");
-    }	
-	
 }

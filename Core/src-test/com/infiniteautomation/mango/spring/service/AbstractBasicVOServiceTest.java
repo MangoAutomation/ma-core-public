@@ -63,9 +63,11 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
 
     /**
      * Create a new VO with all fields populated except any roles
+     *
+     * @param owner - owner of VO if necessary
      * @return
      */
-    abstract VO newVO();
+    abstract VO newVO(User owner);
     /**
      * Update every field with a new value
      * @param existing
@@ -105,23 +107,19 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
     @Test
     public void testCreate() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            try {
-                VO vo = insertNewVO();
+            getService().permissionService.runAsSystemAdmin(() -> {
+                VO vo = insertNewVO(readUser);
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test
     public void testUpdate() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            try {
-                VO vo = insertNewVO();
+            getService().permissionService.runAsSystemAdmin(() -> {
+                VO vo = insertNewVO(readUser);
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
 
@@ -129,60 +127,52 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
                 service.update(vo.getId(), updated);
                 fromDb = service.get(vo.getId());
                 assertVoEqual(updated, fromDb);
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test(expected = NotFoundException.class)
     public void testDelete() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            try {
-                VO vo = insertNewVO();
+            getService().permissionService.runAsSystemAdmin(() -> {
+                VO vo = insertNewVO(readUser);
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
                 service.get(vo.getId());
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test
     public void testCount() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            List<VO> all = service.dao.getAll();
-            for(VO vo : all) {
-                service.delete(vo.getId());
-            }
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
+                List<VO> all = service.dao.getAll();
+                for(VO vo : all) {
+                    service.delete(vo.getId());
+                }
+
                 List<VO> vos = new ArrayList<>();
                 for(int i=0; i<5; i++) {
-                    vos.add(insertNewVO());
+                    vos.add(insertNewVO(readUser));
                 }
                 assertEquals(5, service.dao.count());
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
     @Test
     public void testGetAll() {
         runTest(() -> {
-            Common.setUser(systemSuperadmin);
-            List<VO> all = service.dao.getAll();
-            for(VO vo : all) {
-                service.delete(vo.getId());
-            }
-            try {
+            getService().permissionService.runAsSystemAdmin(() -> {
+                List<VO> all = service.dao.getAll();
+                for(VO vo : all) {
+                    service.delete(vo.getId());
+                }
                 List<VO> vos = new ArrayList<>();
                 for(int i=0; i<5; i++) {
-                    vos.add(insertNewVO());
+                    vos.add(insertNewVO(readUser));
                 }
                 all = service.dao.getAll();
                 for(VO vo : all) {
@@ -195,14 +185,12 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
                     assertNotNull("Didn't find expected VO", expected);
                     assertVoEqual(expected, vo);
                 }
-            }finally {
-                Common.removeUser();
-            }
+            });
         });
     }
 
-    VO insertNewVO() {
-        VO vo = newVO();
+    VO insertNewVO(User owner) {
+        VO vo = newVO(owner);
         return service.insert(vo);
     }
 
@@ -234,8 +222,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
         roleService = Common.getBean(RoleService.class);
 
         systemSuperadmin = PermissionHolder.SYSTEM_SUPERADMIN;
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             //Add some roles
             RoleVO temp = new RoleVO(Common.NEW_ID, "read-role", "Role to allow reading.");
             roleService.insert(temp);
@@ -258,9 +245,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
             setUser = createUser("setUser", "setUser", "password", "setUser@example.com", setRole);
             deleteUser = createUser("deleteUser", "deleteUser", "password", "deleteUser@example.com", deleteRole);
             allUser = createUser("allUser", "allUser", "password", "allUser@example.com", readRole, editRole, setRole, deleteRole);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @FunctionalInterface

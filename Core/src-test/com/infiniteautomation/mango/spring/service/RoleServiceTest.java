@@ -17,6 +17,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -67,47 +68,35 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
     @Test(expected = ValidationException.class)
     public void cannotInsertNewUserRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             service.insert(vo);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Test(expected = ValidationException.class)
     public void cannotInsertSuperadminRole() {
         RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             service.insert(vo);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Test(expected = ValidationException.class)
     public void cannotModifyUserRole() {
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID);
             RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
             service.update(vo.getXid(), updated);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Test(expected = ValidationException.class)
     public void cannotModifySuperadminRole() {
-        Common.setUser(systemSuperadmin);
-        try {
+        getService().permissionService.runAsSystemAdmin(() -> {
             RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID);
             RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
             service.update(vo.getXid(), updated);
-        }finally {
-            Common.removeUser();
-        }
+        });
     }
 
     @Override
@@ -128,7 +117,7 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
     }
 
     @Override
-    RoleVO newVO() {
+    RoleVO newVO(User owner) {
         RoleVO vo = new RoleVO(Common.NEW_ID, dao.generateUniqueXid(), "default test role");
         return vo;
     }

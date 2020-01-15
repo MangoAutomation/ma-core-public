@@ -114,11 +114,11 @@ public abstract class AbstractBasicTableDefinition {
      * @return String name of Pk Column
      */
     public Field<Integer> getIdField() {
-        return DSL.field(DSL.name(getIdFieldName()), SQLDataType.INTEGER.nullable(false));
+        return DSL.field(DSL.name(getIdFieldName()), SQLDataType.INTEGER.nullable(false).identity(true));
     }
 
     public Field<Integer> getIdAlias() {
-        return DSL.field(this.alias.append(getIdFieldName()), SQLDataType.INTEGER.nullable(false));
+        return DSL.field(this.alias.append(getIdFieldName()), SQLDataType.INTEGER.nullable(false).identity(true));
     }
 
     /**

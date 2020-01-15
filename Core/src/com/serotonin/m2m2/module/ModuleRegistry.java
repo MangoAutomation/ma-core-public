@@ -116,6 +116,7 @@ import com.serotonin.m2m2.rt.event.type.definition.UpgradeCheckEventTypeDefiniti
 import com.serotonin.m2m2.rt.event.type.definition.UserLoginEventTypeDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.provider.Providers;
 
@@ -134,8 +135,8 @@ public class ModuleRegistry {
     private static final Map<String, String> MISSING_DEPENDENCIES = new LinkedHashMap<>();
     private static final List<Module> UNLOADED_MODULES = new CopyOnWriteArrayList<>();
 
-    private static Map<String, DataSourceDefinition> DATA_SOURCE_DEFINITIONS;
-    private static Map<String, PublisherDefinition> PUBLISHER_DEFINITIONS;
+    private static Map<String, DataSourceDefinition<?>> DATA_SOURCE_DEFINITIONS;
+    private static Map<String, PublisherDefinition<?>> PUBLISHER_DEFINITIONS;
     private static Map<String, EventTypeDefinition> EVENT_TYPE_DEFINITIONS;
     private static Map<String, SystemEventTypeDefinition> SYSTEM_EVENT_TYPE_DEFINITIONS;
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
@@ -170,6 +171,11 @@ public class ModuleRegistry {
         else
             core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
+
+        /* Test Definitions */
+        if(Common.envProps.getBoolean("testing.enabled")) {
+            core.addDefinition(new MockDataSourceDefinition());
+        }
 
         return core;
     }
@@ -240,9 +246,10 @@ public class ModuleRegistry {
     //
     // Data source special handling
     //
+    @SuppressWarnings("unchecked")
     public static <T extends DataSourceVO<T>> DataSourceDefinition<T> getDataSourceDefinition(String type) {
         ensureDataSourceDefinitions();
-        return DATA_SOURCE_DEFINITIONS.get(type);
+        return (DataSourceDefinition<T>) DATA_SOURCE_DEFINITIONS.get(type);
     }
 
     public static Set<String> getDataSourceDefinitionTypes() {
@@ -254,9 +261,9 @@ public class ModuleRegistry {
         if (DATA_SOURCE_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (DATA_SOURCE_DEFINITIONS == null) {
-                    Map<String, DataSourceDefinition> map = new HashMap<String, DataSourceDefinition>();
+                    Map<String, DataSourceDefinition<?>> map = new HashMap<String, DataSourceDefinition<?>>();
                     for (Module module : MODULES.values()) {
-                        for (DataSourceDefinition def : module.getDefinitions(DataSourceDefinition.class))
+                        for (DataSourceDefinition<?> def : module.getDefinitions(DataSourceDefinition.class))
                             map.put(def.getDataSourceTypeName(), def);
                     }
                     DATA_SOURCE_DEFINITIONS = map;
@@ -283,9 +290,9 @@ public class ModuleRegistry {
         if (PUBLISHER_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (PUBLISHER_DEFINITIONS == null) {
-                    Map<String, PublisherDefinition> map = new HashMap<String, PublisherDefinition>();
+                    Map<String, PublisherDefinition<?>> map = new HashMap<String, PublisherDefinition<?>>();
                     for (Module module : MODULES.values()) {
-                        for (PublisherDefinition def : module.getDefinitions(PublisherDefinition.class))
+                        for (PublisherDefinition<?> def : module.getDefinitions(PublisherDefinition.class))
                             map.put(def.getPublisherTypeName(), def);
                     }
                     PUBLISHER_DEFINITIONS = map;
@@ -965,6 +972,11 @@ public class ModuleRegistry {
         preDefaults.add(new UpgradeCheckEventTypeDefinition());
         preDefaults.add(new UserLoginEventTypeDefinition());
         preDefaults.add(new NewUserRegisteredEventTypeDefinition());
+
+        /*
+         * Add a module for the core
+         */
+        addModule(getCoreModule());
 
     }
 

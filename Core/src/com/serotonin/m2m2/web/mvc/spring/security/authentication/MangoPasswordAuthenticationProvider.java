@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
@@ -48,12 +49,18 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
      */
     private final RateLimiter<String> usernameRateLimiter;
     private final UsersService usersService;
+    private final PermissionService permissionService;
 
     @Autowired
-    public MangoPasswordAuthenticationProvider(UserDetailsService userDetailsService, UserDetailsChecker userDetailsChecker, UsersService usersService) {
+    public MangoPasswordAuthenticationProvider(
+            UserDetailsService userDetailsService,
+            UserDetailsChecker userDetailsChecker,
+            UsersService usersService,
+            PermissionService permissionService) {
         this.userDetailsService = userDetailsService;
         this.userDetailsChecker = userDetailsChecker;
         this.usersService = usersService;
+        this.permissionService = permissionService;
 
         if (Common.envProps.getBoolean("rateLimit.authentication.ip.enabled", true)) {
             this.ipRateLimiter = new RateLimiter<>(
@@ -134,15 +141,15 @@ public class MangoPasswordAuthenticationProvider implements AuthenticationProvid
                 if (newPassword.equals(credentials)) {
                     throw new PasswordChangeException(new TranslatableMessage("rest.exception.samePassword"));
                 }
-
-                Common.setUser(user);
-                try {
-                    usersService.updatePassword(user, newPassword);
-                } catch (ValidationException e) {
-                    throw new PasswordChangeException(new TranslatableMessage("rest.exception.complexityRequirementsFailed"));
-                }finally {
-                    Common.removeUser();
-                }
+                final String password = newPassword;
+                permissionService.runAs(user, () -> {
+                    try {
+                        usersService.updatePassword(user, password);
+                    } catch (ValidationException e) {
+                        throw new PasswordChangeException(new TranslatableMessage("rest.exception.complexityRequirementsFailed"));
+                    }
+                    return null;
+                });
             }
 
             return new UsernamePasswordAuthenticationToken(user, user.getPassword(), Collections.unmodifiableCollection(user.getAuthorities()));

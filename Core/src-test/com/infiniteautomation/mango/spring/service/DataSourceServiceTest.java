@@ -14,6 +14,7 @@ import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
+import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.role.Role;
@@ -64,7 +65,7 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
 
     @SuppressWarnings("unchecked")
     @Override
-    T newVO() {
+    T newVO(User user) {
         MockDataSourceVO vo = new MockDataSourceVO();
         vo.setXid(UUID.randomUUID().toString());
         vo.setName(UUID.randomUUID().toString());

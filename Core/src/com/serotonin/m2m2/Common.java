@@ -50,9 +50,7 @@ import org.joda.time.Period;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.crypto.bcrypt.BCrypt;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.github.zafarkhaja.semver.Version;
@@ -490,23 +488,6 @@ public class Common {
             }
         }
         return null;
-    }
-
-    public static void setUser(PermissionHolder user) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            throw new ShouldNeverHappenException("Security context already contains a permission holder");
-        }
-        SecurityContextImpl context = new SecurityContextImpl();
-        context.setAuthentication(new PreAuthenticatedAuthenticationToken(user, null));
-        SecurityContextHolder.setContext(context);
-    }
-
-    /**
-     * Clear the security context
-     */
-    public static void removeUser() {
-        SecurityContextHolder.clearContext();
     }
 
     public static TimeZone getUserTimeZone(User user) {
