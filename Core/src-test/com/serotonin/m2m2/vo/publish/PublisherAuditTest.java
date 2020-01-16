@@ -58,6 +58,7 @@ public class PublisherAuditTest extends MangoTestBase {
         PublisherDao<MockPublishedPointVO> dao = (PublisherDao<MockPublishedPointVO>) PublisherDao.getInstance();
 
         MockPublisherVO vo = new MockPublisherVO();
+        vo.setName("Name");
         vo.setDefinition(new MockPublisherDefinition());
         vo.setXid("PUB_TEST1");
         vo.setPoints(createPoints());
@@ -65,7 +66,7 @@ public class PublisherAuditTest extends MangoTestBase {
         dao.insert(vo);
 
         //Modify and re-save
-        vo.setEnabled(true);
+        vo.setName("New Name");
         dao.update(vo.getId(), vo);
 
         List<AuditEventInstanceVO> events = new ArrayList<>();

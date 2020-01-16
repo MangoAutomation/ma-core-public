@@ -187,7 +187,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
 
         PermissionService service = Common.getBean(PermissionService.class);
         int dataPointId = 1;
-        int eventCount = 10000;
+        int eventCount = 100;
         int userCount = 5*6;
 
         //Add them out of order so the tree is jumbled with permissions hither and yon
@@ -276,27 +276,27 @@ public class UserEventMulticasterTest extends MangoTestBase {
         for(EventInstance e : events)
             multicaster.returnToNormal(e);
 
-        //Confirm those with permissions saw all 10000 raised
+        //Confirm those with correct permissions permissions saw all raised
         for(MockUserEventListener l : listeners) {
-            if(l.getUser().getRoles().isEmpty()) {
+            if(!(l.getUser().hasSingleRole(mockRole.getRole()) || l.getUser().hasAdminRole())) {
                 assertEquals(0, l.getRaised().size());
             }else {
                 assertEquals(eventCount, l.getRaised().size());
             }
         }
 
-        //Confirm those with permissions saw all 10000 acked
+        //Confirm those with permissions saw all acked
         for(MockUserEventListener l : listeners) {
-            if(l.getUser().getRoles().isEmpty()) {
+            if(!(l.getUser().hasSingleRole(mockRole.getRole()) || l.getUser().hasAdminRole())) {
                 assertEquals(0, l.getAcknowledged().size());
             }else {
                 assertEquals(eventCount, l.getAcknowledged().size());
             }
         }
 
-        //Confirm those with permissions saw all 10000 rtned
+        //Confirm those with permissions saw all rtned
         for(MockUserEventListener l : listeners) {
-            if(l.getUser().getRoles().isEmpty()) {
+            if(!(l.getUser().hasSingleRole(mockRole.getRole()) || l.getUser().hasAdminRole())) {
                 assertEquals(0, l.getReturned().size());
             }else {
                 assertEquals(eventCount, l.getReturned().size());
