@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -51,6 +52,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
@@ -266,6 +268,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         if(vo.getCreatedTs() == null) {
             vo.setCreated(new Date(Common.timer.currentTimeMillis()));
         }
+        enforceUserRole(vo);
         super.insert(vo);
     }
 
@@ -282,7 +285,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
                     if (old == null) {
                         return null;
                     }
-
+                    enforceUserRole(vo);
                     boolean passwordChanged = !old.getPassword().equals(vo.getPassword());
                     if (passwordChanged) {
                         vo.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
@@ -321,6 +324,15 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
             // Log some information about the user object.
             LOG.error("Error updating user: " + vo, e);
             throw e;
+        }
+    }
+
+    private void enforceUserRole(User vo) {
+        Role userRole = PermissionHolder.USER_ROLE.get();
+        if(!vo.getRoles().contains(userRole)) {
+            Set<Role> updated = new HashSet<>(vo.getRoles());
+            updated.add(userRole);
+            vo.setRoles(updated);
         }
     }
 
