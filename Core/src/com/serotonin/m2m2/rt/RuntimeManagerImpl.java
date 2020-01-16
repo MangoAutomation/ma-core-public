@@ -720,14 +720,12 @@ public class RuntimeManagerImpl implements RuntimeManager {
                             LOG.warn("Listener exception: " + e2.getMessage(), e2);
                     }
                 p.terminate();
-                DataPointDao.getInstance().loadEventDetectors(vo);
                 this.startDataPoint(vo, null);
                 restarted = true;
             }
         }
         if(!restarted) {
             //The data point wasn't really running. Ensure the event detectors and enable
-            DataPointDao.getInstance().loadEventDetectors(vo);
             vo.setEnabled(true);
             startDataPoint(vo, null);
             DataPointDao.getInstance().saveEnabledColumn(vo);

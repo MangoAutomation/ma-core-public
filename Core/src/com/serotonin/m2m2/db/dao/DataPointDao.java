@@ -165,6 +165,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     /**
+     * TODO Mango 4.0 ALWAYS use this JOIN, make the default query since
+     *  we are loading full VOs always now.  Likely need to review and optimize anyway.
      * Get points for runtime in an efficient manner
      * @param dataSourceId
      * @return
