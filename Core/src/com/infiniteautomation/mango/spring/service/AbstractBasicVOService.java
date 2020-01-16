@@ -153,7 +153,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     public void ensureValid(T vo, PermissionHolder user) throws ValidationException {
         ProcessResult result = validate(vo, user);
         if(!result.isValid())
-            throw new ValidationException(result);
+            throw new ValidationException(result, vo.getClass());
     }
 
     /**
@@ -165,8 +165,9 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public void ensureValid(T existing, T vo, PermissionHolder user) throws ValidationException {
         ProcessResult result = validate(existing, vo, user);
-        if(!result.isValid())
-            throw new ValidationException(result);
+        if(!result.isValid()) {
+            throw new ValidationException(result, vo.getClass());
+        }
     }
 
     /**
