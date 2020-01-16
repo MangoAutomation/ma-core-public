@@ -442,7 +442,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     protected Map<String, Function<Object, Object>> createValueConverterMap() {
         return this.table.getFieldMap().entrySet().stream()
-                .filter(e -> e.getValue().getDataType() == SQLDataType.CHAR)
+                .filter(e -> e.getValue().getDataType().getSQLDataType() == SQLDataType.CHAR)
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER));
     }
 
