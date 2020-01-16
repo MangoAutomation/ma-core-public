@@ -37,8 +37,32 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
      * @return
      */
     abstract String getCreatePermissionType();
+    /**
+     * replace the read roles with these
+     * @param roles
+     * @param vo
+     */
     abstract void setReadRoles(Set<Role> roles, VO vo);
+    /**
+     * Get the roles and attempt to add this to the roles, should fail
+     *
+     * @param role
+     * @param vo
+     */
+    abstract void addReadRoleToFail(Role role, VO vo);
+    /**
+     * Replace the edit roles with these
+     * @param roles
+     * @param vo
+     */
     abstract void setEditRoles(Set<Role> roles, VO vo);
+    /**
+     * Get the roles and attempt to add this to the roles, should fail
+     *
+     * @param role
+     * @param vo
+     */
+    abstract void addEditRoleToFail(Role role, VO vo);
 
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
@@ -310,6 +334,30 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
 
                 service.get(vo.getId());
             });
+        });
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testCannotModifyReadRoles() {
+        runTest(() -> {
+            VO vo = newVO(readUser);
+            setReadRoles(Collections.singleton(readRole), vo);
+            VO saved = getService().permissionService.runAsSystemAdmin(() -> {
+                return service.insert(vo);
+            });
+            addReadRoleToFail(editRole, saved);
+        });
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void testCannotModifySetRoles() {
+        runTest(() -> {
+            VO vo = newVO(readUser);
+            setReadRoles(Collections.singleton(roleService.getSuperadminRole()), vo);
+            VO saved = getService().permissionService.runAsSystemAdmin(() -> {
+                return service.insert(vo);
+            });
+            addEditRoleToFail(editRole, saved);
         });
     }
 

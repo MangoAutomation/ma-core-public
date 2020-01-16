@@ -33,9 +33,6 @@ import com.serotonin.m2m2.vo.role.Role;
  */
 public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UserTableDefinition, UserDao, UsersService> {
 
-    /**
-     *
-     */
     public UsersServiceTest() {
         super(true, 9000);
     }
@@ -183,7 +180,10 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
                 User fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 roleService.delete(readRole.getId());
-                fromDb.setRoles(Collections.emptySet());
+                //Remove the read role from the local copy
+                Set<Role> roles = new HashSet<>(fromDb.getRoles());
+                roles.remove(readRole);
+                fromDb.setRoles(roles);
                 //Check database
                 User updated = service.get(fromDb.getId());
                 assertVoEqual(fromDb, updated);
@@ -369,5 +369,15 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             List<User> all = service.getDao().getAll();
             assertEquals(all.size() - 1, active.size());
         });
+    }
+
+    @Override
+    void addReadRoleToFail(Role role, User vo) {
+        vo.getRoles().add(role);
+    }
+
+    @Override
+    void addEditRoleToFail(Role role, User vo) {
+        throw new UnsupportedOperationException();
     }
 }

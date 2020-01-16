@@ -264,4 +264,14 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
         dsVo.setName("permissions_test_datasource");
         return (T) dsVo;
     }
+
+    @Override
+    void addReadRoleToFail(Role role, DataPointVO vo) {
+        vo.getReadRoles().add(role);
+    }
+
+    @Override
+    void addEditRoleToFail(Role role, DataPointVO vo) {
+        vo.getSetRoles().add(role);
+    }
 }

@@ -78,4 +78,14 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
         return copy;
     }
 
+    @Override
+    void addReadRoleToFail(Role role, JsonDataVO vo) {
+        vo.getEditRoles().add(role);
+    }
+
+    @Override
+    void addEditRoleToFail(Role role, JsonDataVO vo) {
+        vo.getReadRoles().add(role);
+    }
+
 }

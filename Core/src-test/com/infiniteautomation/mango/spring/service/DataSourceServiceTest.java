@@ -88,4 +88,14 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
         return lifecycle;
     }
 
+    @Override
+    void addReadRoleToFail(Role role, T vo) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    void addEditRoleToFail(Role role, T vo) {
+        vo.getEditRoles().add(role);
+    }
+
 }

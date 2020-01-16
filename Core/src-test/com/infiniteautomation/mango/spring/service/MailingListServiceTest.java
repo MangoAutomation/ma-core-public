@@ -185,4 +185,14 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         return vo;
     }
 
+    @Override
+    void addReadRoleToFail(Role role, MailingList vo) {
+        vo.getReadRoles().add(role);
+    }
+
+    @Override
+    void addEditRoleToFail(Role role, MailingList vo) {
+        vo.getEditRoles().add(role);
+    }
+
 }
