@@ -18,13 +18,25 @@ public class ValidationException extends TranslatableRuntimeException {
     private static final long serialVersionUID = 1L;
 
     private final ProcessResult validationResult;
+    private final Class<?> validatedClass;
 
     public ValidationException(ProcessResult validationResult) {
         super(new TranslatableMessage("validate.validationFailed"));
         this.validationResult = validationResult;
+        this.validatedClass = null;
+    }
+
+    public ValidationException(ProcessResult validationResult, Class<?> validatedClass) {
+        super(new TranslatableMessage("validate.validationFailed"));
+        this.validationResult = validationResult;
+        this.validatedClass = validatedClass;
     }
 
     public ProcessResult getValidationResult() {
         return validationResult;
+    }
+
+    public Class<?> getValidatedClass() {
+        return validatedClass;
     }
 }
