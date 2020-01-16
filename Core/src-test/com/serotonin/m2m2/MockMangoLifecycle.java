@@ -112,18 +112,11 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     public void initialize() throws InterruptedException, ExecutionException {
         Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
 
-        //Add in modules
-        for(Module module : modules)
-            ModuleRegistry.addModule(module);
-
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
         Providers.add(IMangoLifecycle.class, this);
 
         //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
         Common.free = false;
-
-        //Startup a simulation timer provider
-        Providers.add(TimerProvider.class, getSimulationTimerProvider());
 
         // create temporary paths for data
         try {
@@ -138,6 +131,14 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
         //Make sure that Common and other classes are properly loaded
         Common.envProps = getEnvProps();
+
+        //Add in modules
+        for(Module module : modules)
+            ModuleRegistry.addModule(module);
+
+        //Startup a simulation timer provider
+        Providers.add(TimerProvider.class, getSimulationTimerProvider());
+
 
         Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
         Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
