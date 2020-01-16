@@ -311,6 +311,22 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             result.addContextualMessage("created", "validate.invalidValue");
         }
 
+        if (!StringUtils.isBlank(vo.getUsername()) && !UserDao.getInstance().isUsernameUnique(vo.getUsername(), vo.getId()))
+            result.addMessage("username", new TranslatableMessage("users.validate.usernameInUse"));
+
+        if(vo.isSessionExpirationOverride()) {
+            if(!holder.hasAdminRole()) {
+                result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
+            }else {
+                if (-1 == Common.TIME_PERIOD_CODES.getId(vo.getSessionExpirationPeriodType(), Common.TimePeriods.MILLISECONDS)) {
+                    result.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
+                }
+                if(vo.getSessionExpirationPeriods() <= 0) {
+                    result.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
+                }
+            }
+        }
+
         //Validate roles
         permissionService.validateVoRoles(result, "roles", holder, false, null, vo.getRoles());
         return result;
@@ -327,7 +343,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
-        //TODO Mango 4.0 review the role validation
         //Validate roles
         boolean savingSelf = false;
         if(holder instanceof User) {
@@ -400,8 +415,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         ProcessResult response = new ProcessResult();
         if (StringUtils.isBlank(vo.getUsername()))
             response.addMessage("username", new TranslatableMessage("validate.required"));
-        else if(!UserDao.getInstance().isUsernameUnique(vo.getUsername(), vo.getId()))
-            response.addMessage("username", new TranslatableMessage("users.validate.usernameInUse"));
 
         if (StringUtils.isBlank(vo.getEmail()))
             response.addMessage("email", new TranslatableMessage("validate.required"));
@@ -467,19 +480,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         //Can't set email verified
         if(vo.getEmailVerified() != null && !holder.hasAdminRole()) {
             response.addContextualMessage("emailVerified", "validate.invalidValue");
-        }
-
-        if(vo.isSessionExpirationOverride()) {
-            if(!holder.hasAdminRole()) {
-                response.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
-            }else {
-                if (-1 == Common.TIME_PERIOD_CODES.getId(vo.getSessionExpirationPeriodType(), Common.TimePeriods.MILLISECONDS)) {
-                    response.addContextualMessage("sessionExpirationPeriodType", "validate.invalidValueWithAcceptable", Common.TIME_PERIOD_CODES.getCodeList());
-                }
-                if(vo.getSessionExpirationPeriods() <= 0) {
-                    response.addContextualMessage("sessionExpirationPeriods", "validate.greaterThanZero");
-                }
-            }
         }
 
         if(StringUtils.isNotEmpty(vo.getOrganization())) {
