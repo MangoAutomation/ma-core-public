@@ -205,6 +205,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 else {
                     DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
                     dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
+                    loadRelationalData(dpvo);
                     result.put(id, dpvo);
                     try{
                         addEventDetector(dpvo, rs);
@@ -731,7 +732,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
      * @return
      */
     public void loadDataSource(DataPointVO vo) {
-
+        //TODO Mango 4.0 get the sourceTypeName in the JOIN, then remove this crap
         //Get the values from the datasource table
         //TODO Could speed this up if necessary...
         DataSourceVO<?> dsVo = DataSourceDao.getInstance().get(vo.getDataSourceId());

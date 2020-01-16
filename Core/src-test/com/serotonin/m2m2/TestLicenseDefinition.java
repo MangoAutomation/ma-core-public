@@ -3,28 +3,40 @@
  */
 package com.serotonin.m2m2;
 
+import java.util.List;
+
+import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.LicenseDefinition;
+
 /**
  * @author Terry Packer
  *
  */
-public class TestLicenseDefinition implements ICoreLicense {
+public class TestLicenseDefinition extends LicenseDefinition implements ICoreLicense {
 
     @Override
     public void licenseCheck(boolean initialization) {
-        // TODO Auto-generated method stub
-        
+
     }
 
     @Override
     public int getLicenseState() {
-        // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
     public String getGuid() {
-        // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public void addLicenseErrors(List<TranslatableMessage> errors) {
+
+    }
+
+    @Override
+    public void addLicenseWarnings(List<TranslatableMessage> warnings) {
+
     }
 
 }

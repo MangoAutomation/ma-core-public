@@ -5,8 +5,6 @@
 package com.serotonin.m2m2.module.definitions.settings;
 
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.module.Module;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemInfoDefinition;
 import com.serotonin.util.DirectoryInfo;
 import com.serotonin.util.DirectoryUtils;
@@ -19,29 +17,16 @@ import com.serotonin.util.DirectoryUtils;
 public class FiledataCountInfoDefinition extends SystemInfoDefinition<Integer>{
 
     public final String KEY = "filedataCount";
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getName()
-     */
+
     @Override
     public String getKey() {
         return KEY;
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.ReadOnlySettingDefinition#getValue()
-     */
     @Override
     public Integer getValue() {
         DirectoryInfo fileDatainfo = DirectoryUtils.getSize(Common.getFiledataPath().toFile());
         return fileDatainfo.getCount();
-    }
-
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.module.ModuleElementDefinition#getModule()
-     */
-    @Override
-    public Module getModule() {
-        return ModuleRegistry.getCoreModule();
     }
 
     @Override

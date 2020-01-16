@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -157,28 +158,6 @@ public class ModuleRegistry {
     private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
     private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();
 
-
-    /**
-     * Helper Method to create a Module with Core Information
-     * @return
-     */
-    public static Module getCoreModule(){
-        Module core = new Module("core", Common.getVersion(), new TranslatableMessage("modules.core.description"),
-                "Infinite Automation Systems, Inc.", "https://www.infiniteautomation.com", null, -1, Common.isCoreSigned());
-
-        if(Common.isInvalid())
-            core.setLicenseType("Invalid");
-        else
-            core.setLicenseType(Common.license() == null ? null : Common.license().getLicenseType());
-        core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
-
-        /* Test Definitions */
-        if(Common.envProps.getBoolean("testing.enabled")) {
-            core.addDefinition(new MockDataSourceDefinition());
-        }
-
-        return core;
-    }
 
     /**
      * @return a list of all available modules in the instance.
@@ -977,6 +956,48 @@ public class ModuleRegistry {
          * Add a module for the core
          */
         addModule(getCoreModule());
+
+    }
+
+    /**
+     * Helper Method to create a Module with Core Information
+     * @return
+     */
+    private static CoreModule getCoreModule(){
+        CoreModule core = new CoreModule("core", Common.getVersion(), new TranslatableMessage("modules.core.description"),
+                "Infinite Automation Systems, Inc.", "https://www.infiniteautomation.com", null, -1, Common.isCoreSigned());
+
+        core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
+
+        /* Test Definitions */
+        if(Common.envProps.getBoolean("testing.enabled")) {
+            core.addDefinition(new MockDataSourceDefinition());
+        }
+
+        return core;
+    }
+
+    /**
+     * Class marker for special core module
+     *
+     * @author Terry Packer
+     */
+    public static class CoreModule extends Module {
+
+        public CoreModule(String name, Version version, TranslatableMessage description,
+                String vendor, String vendorUrl, String dependencies, int loadOrder,
+                boolean signed) {
+            super(name, version, description, vendor, vendorUrl, dependencies, loadOrder, signed);
+        }
+
+        @Override
+        public String getLicenseType() {
+            if(Common.isInvalid()) {
+                return "Invalid";
+            }else {
+                return Common.license() == null ? null : Common.license().getLicenseType();
+            }
+        }
 
     }
 

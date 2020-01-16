@@ -25,6 +25,7 @@ import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
 import com.serotonin.m2m2.db.dao.InstalledModulesDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.ModuleRegistry.CoreModule;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.util.license.ModuleLicense;
@@ -55,7 +56,14 @@ public class Module {
         Collections.sort(modules, new Comparator<Module>() {
             @Override
             public int compare(Module m1, Module m2) {
-                return m1.getName().compareTo(m2.getName());
+                //Always put Core first
+                if(m1 instanceof CoreModule) {
+                    return 1;
+                }else if(m2 instanceof CoreModule) {
+                    return -1;
+                }else {
+                    return m1.getName().compareTo(m2.getName());
+                }
             }
         });
     }
