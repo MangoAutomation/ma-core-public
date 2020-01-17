@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -332,7 +333,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         if(!vo.getRoles().contains(userRole)) {
             Set<Role> updated = new HashSet<>(vo.getRoles());
             updated.add(userRole);
-            vo.setRoles(updated);
+            vo.setRoles(Collections.unmodifiableSet(updated));
         }
     }
 
