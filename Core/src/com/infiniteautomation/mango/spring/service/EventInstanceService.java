@@ -152,22 +152,25 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * @throws PermissionException
      */
     public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids, User user) throws NotFoundException, PermissionException {
-        Map<Integer, DataPointEventLevelSummary> map = new HashMap<>();
-        for(String xid : dataPointXids) {
-            DataPointVO point = dataPointService.get(xid);
-            map.put(point.getId(), new DataPointEventLevelSummary(xid));
-        }
+        return this.permissionService.runAs(user, () -> {
+            Map<Integer, DataPointEventLevelSummary> map = new HashMap<>();
+            for(String xid : dataPointXids) {
+                //TODO Mango 4.0 use permissions to create a getIdByXid variant.
+                DataPointVO point = dataPointService.get(xid);
+                map.put(point.getId(), new DataPointEventLevelSummary(xid));
+            }
 
-        List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user.getId());
-        for(EventInstance event : events) {
-            if(EventType.EventTypeNames.DATA_POINT.equals(event.getEventType().getEventType())) {
-                DataPointEventLevelSummary model = map.get(event.getEventType().getReferenceId1());
-                if(model != null) {
-                    model.update(event);
+            List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user.getId());
+            for(EventInstance event : events) {
+                if(EventType.EventTypeNames.DATA_POINT.equals(event.getEventType().getEventType())) {
+                    DataPointEventLevelSummary model = map.get(event.getEventType().getReferenceId1());
+                    if(model != null) {
+                        model.update(event);
+                    }
                 }
             }
-        }
-        return map.values();
+            return map.values();
+        });
     }
 
     /**

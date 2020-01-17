@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -107,7 +108,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
 
     @Override
     public List<Field<?>> getSelectFields() {
-        List<Field<?>> fields = super.getSelectFields();
+        List<Field<?>> fields = new ArrayList<>(super.getSelectFields());
         fields.add(userTable.getAlias("username"));
         fields.add(DSL.field(DSL.name(EventInstanceTableDefinition.USER_EVENTS_ALIAS).append("silenced")));
         Field<?> hasComments = this.create.selectCount().from(userCommentTable.getTableAsAlias())
