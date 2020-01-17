@@ -30,7 +30,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
-import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.AggregatePublisherUsageStatistics;
@@ -169,15 +168,15 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
                     new Object[] { vo.getXid(), vo.getDefinition().getPublisherTypeName(),
                             SerializationHelper.writeObject(vo) }, new int[] { Types.VARCHAR, Types.VARCHAR,
                                     Types.BINARY}));
-            this.publishEvent(new DaoEvent(this, DaoEventType.CREATE, vo, null, null));
+            this.publishEvent(createDaoEvent(DaoEventType.CREATE, (PublisherVO<T>) vo, null));
             AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
             this.countMonitor.increment();
         }else{
-            PublisherVO<?> old = getPublisher(vo.getId());
+            PublisherVO<T> old = getPublisher(vo.getId());
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
                     SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
                             Types.INTEGER });
-            this.publishEvent(new DaoEvent(this, DaoEventType.UPDATE, vo, null, null));
+            this.publishEvent(createDaoEvent(DaoEventType.UPDATE, (PublisherVO<T>) vo, old));
             AuditEventType.raiseChangedEvent(AuditEventType.TYPE_PUBLISHER, old, vo);
         }
 
@@ -194,7 +193,7 @@ public class PublisherDao<T extends PublishedPointVO> extends AbstractDao<Publis
                 ejt2.update("delete from publishers where id=?", new Object[] { publisherId });
             }
         });
-        publishEvent(new DaoEvent<PublisherVO<T>>(this, DaoEventType.DELETE, vo, null, null));
+        publishEvent(createDaoEvent(DaoEventType.DELETE, vo, vo));
         AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_PUBLISHER, vo);
         countMonitor.decrement();
     }
