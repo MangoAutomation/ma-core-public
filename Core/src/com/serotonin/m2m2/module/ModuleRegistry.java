@@ -119,6 +119,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
 import com.serotonin.provider.Providers;
 
 /**
@@ -972,6 +973,7 @@ public class ModuleRegistry {
         /* Test Definitions */
         if(Common.envProps.getBoolean("testing.enabled")) {
             core.addDefinition(new MockDataSourceDefinition());
+            core.addDefinition(new MockPublisherDefinition());
         }
 
         return core;

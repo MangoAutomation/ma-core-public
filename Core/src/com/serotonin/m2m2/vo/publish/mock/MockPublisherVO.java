@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
+import com.serotonin.m2m2.rt.publish.mock.MockPublisherRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -18,39 +19,36 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  */
 public class MockPublisherVO extends PublisherVO<MockPublishedPointVO> {
 
-    /**
-     *
-     */
     private static final long serialVersionUID = -1L;
+
+    private static final ExportCodes EVENT_CODES = new ExportCodes();
+    static {
+        PublisherVO.addDefaultEventCodes(EVENT_CODES);
+    }
 
     @Override
     public TranslatableMessage getConfigDescription() {
-        // TODO Auto-generated method stub
-        return null;
+        return new TranslatableMessage("event.audit.publisher");
     }
 
     @Override
     protected MockPublishedPointVO createPublishedPointInstance() {
-        // TODO Auto-generated method stub
-        return null;
+        return new MockPublishedPointVO();
     }
 
     @Override
     public PublisherRT<MockPublishedPointVO> createPublisherRT() {
-        // TODO Auto-generated method stub
-        return null;
+        return new MockPublisherRT(this);
     }
 
     @Override
     protected void getEventTypesImpl(List<EventTypeVO> eventTypes) {
-        // TODO Auto-generated method stub
 
     }
 
     @Override
     public ExportCodes getEventCodes() {
-        // TODO Auto-generated method stub
-        return null;
+        return EVENT_CODES;
     }
 
 }
