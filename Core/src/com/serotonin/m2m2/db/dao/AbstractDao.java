@@ -136,7 +136,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>, TABLE extends Abstrac
 
     @Override
     public String getXidById(int id) {
-        return this.create.select(this.table.getIdAlias()).from(this.table.getTableAsAlias())
+        return this.create.select(this.table.getXidAlias()).from(this.table.getTableAsAlias())
                 .where(this.table.getIdAlias().eq(id))
                 .limit(1).fetchOneInto(String.class);
     }
