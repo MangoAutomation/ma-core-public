@@ -488,7 +488,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
         PointValueDao dao = Common.databaseProxy.newPointValueDao();
         //For now we will do this the slow way
-        List<DataPointVO> points = query(getJoinedSelectQuery().getSQL() + " ORDER BY deviceName, name", getListResultSetExtractor());
+        List<DataPointVO> points = query(getJoinedSelectQuery().getSQL() + " ORDER BY dp.deviceName, dp.name", getListResultSetExtractor());
         List<PointHistoryCount> counts = new ArrayList<>();
         for (DataPointVO point : points) {
             PointHistoryCount phc = new PointHistoryCount();
