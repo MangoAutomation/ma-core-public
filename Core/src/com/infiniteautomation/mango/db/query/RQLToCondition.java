@@ -125,7 +125,6 @@ public class RQLToCondition {
                             .collect(Collectors.toList());
                 }
                 return field.in(inArray);
-            case "permissionscontainsany":
             case "csvcontainsany":
                 List<?> csvContainsAnyPermissionsArray;
                 if (firstArg instanceof List) {
@@ -137,7 +136,6 @@ public class RQLToCondition {
                             .collect(Collectors.toList());
                 }
                 return fieldMatchesAnyPermission(field, csvContainsAnyPermissionsArray);
-            case "permissionscontainsall":
             case "csvcontainsall":
                 List<?> csvContainsAllPermissionsArray;
                 if (firstArg instanceof List) {
