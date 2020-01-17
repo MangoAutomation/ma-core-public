@@ -311,9 +311,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             result.addContextualMessage("created", "validate.invalidValue");
         }
 
-        if (!StringUtils.isBlank(vo.getUsername()) && !UserDao.getInstance().isUsernameUnique(vo.getUsername(), vo.getId()))
-            result.addMessage("username", new TranslatableMessage("users.validate.usernameInUse"));
-
         if(vo.isSessionExpirationOverride()) {
             if(!holder.hasAdminRole()) {
                 result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
@@ -373,11 +370,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
-        //Cannot change username
-        if(!StringUtils.equals(vo.getUsername(), existing.getUsername())){
-            result.addContextualMessage("username", "users.validate.cannotChangeUsername");
-        }
-
         if(!Objects.equal(vo.getEmailVerified(), existing.getEmailVerified()) && !holder.hasAdminRole()) {
             result.addContextualMessage("emailVerified", "validate.invalidValue");
         }
@@ -415,6 +407,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         ProcessResult response = new ProcessResult();
         if (StringUtils.isBlank(vo.getUsername()))
             response.addMessage("username", new TranslatableMessage("validate.required"));
+        if (!UserDao.getInstance().isUsernameUnique(vo.getUsername(), vo.getId()))
+            response.addMessage("username", new TranslatableMessage("users.validate.usernameInUse"));
 
         if (StringUtils.isBlank(vo.getEmail()))
             response.addMessage("email", new TranslatableMessage("validate.required"));
