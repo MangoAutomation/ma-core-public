@@ -47,6 +47,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.Index;
 import com.infiniteautomation.mango.db.query.QueryAttribute;
@@ -175,7 +176,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         List<Field<?>> fields = new ArrayList<>(this.getSelectFields());
         fields.addAll(this.eventDetectorTable.getSelectFields());
 
-        Select<Record> select = this.joinTables(this.getSelectQuery(fields)).leftOuterJoin(this.eventDetectorTable.getTableAsAlias())
+        Select<Record> select = this.joinTables(this.getSelectQuery(fields), null).leftOuterJoin(this.eventDetectorTable.getTableAsAlias())
                 .on(this.table.getIdAlias().eq(this.eventDetectorTable.getField("dataPointId")))
                 .where(this.table.getAlias("dataSourceId").eq(dataSourceId));
 
@@ -382,7 +383,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 this.table.getNameAlias(),
                 this.table.getAlias("dataSourceId"),
                 this.table.getAlias("deviceName"))
-                .from(this.table.getTableAsAlias())).where(this.table.getXidAlias().eq(xid)).limit(1);
+                .from(this.table.getTableAsAlias()), null).where(this.table.getXidAlias().eq(xid)).limit(1);
 
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
@@ -895,10 +896,20 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-        return select.join(dataSourceTable.getTableAsAlias())
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        select = select.join(dataSourceTable.getTableAsAlias())
                 .on(DSL.field(dataSourceTable.getAlias("id"))
                         .eq(this.table.getAlias("dataSourceId")));
+        if (conditions instanceof ConditionSortLimitWithTagKeys) {
+            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
+            if (!tagKeyToColumn.isEmpty()) {
+                Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
+
+                return select.leftJoin(pivotTable)
+                        .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+            }
+        }
+        return select;
     }
 
     @Override

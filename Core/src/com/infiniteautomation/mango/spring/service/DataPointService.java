@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -354,6 +355,9 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
                     break;
                 }
             }
+        }else {
+            //ensure there is an empty map
+            vo.setTags(new HashMap<>());
         }
 
         return response;

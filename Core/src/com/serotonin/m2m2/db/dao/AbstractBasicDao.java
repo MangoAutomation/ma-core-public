@@ -263,7 +263,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public SelectJoinStep<Record> getJoinedSelectQuery() {
         SelectJoinStep<Record> query = getSelectQuery(getSelectFields());
-        return joinTables(query);
+        return joinTables(query, null);
     }
 
     @Override
@@ -346,7 +346,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      * @return
      */
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
         return select;
     }
 
@@ -356,7 +356,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         SelectSelectStep<Record1<Integer>> count = getCountQuery();
 
         SelectJoinStep<Record1<Integer>> select = count.from(this.table.getTableAsAlias());
-        select = joinTables(select);
+        select = joinTables(select, conditions);
         return customizedCount(select, condition);
     }
 
@@ -388,7 +388,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = this.create.select(getSelectFields()).from(this.table.getTableAsAlias());
-        select = joinTables(select);
+        select = joinTables(select, conditions);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 

@@ -200,7 +200,20 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param select
      * @return
      */
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select);
+    default public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+        return joinTables(select, null);
+    }
+
+    /**
+     * Join default tables for DAO
+     *
+     * @param <R>
+     * @param select
+     * @param conditions
+     * @return
+     */
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions);
+
 
     /**
      * Get the table model
