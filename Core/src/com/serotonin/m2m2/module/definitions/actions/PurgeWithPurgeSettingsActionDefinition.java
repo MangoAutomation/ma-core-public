@@ -14,67 +14,53 @@ import com.serotonin.m2m2.util.timeout.SystemActionTask;
 import com.serotonin.timer.OneTimeTrigger;
 
 /**
- * 
+ *
  * @author Terry Packer
  */
 public class PurgeWithPurgeSettingsActionDefinition extends SystemActionDefinition{
 
-	private final String KEY = "purgeUsingSettings";
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getKey()
-	 */
-	@Override
-	public String getKey() {
-		return KEY;
-	}
+    private final String KEY = "purgeUsingSettings";
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getWorkItem(com.fasterxml.jackson.databind.JsonNode)
-	 */
-	@Override
-	public SystemActionTask getTaskImpl(final JsonNode input) {
-		return new Action();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.SystemActionDefinition#getPermissionTypeName()
-	 */
-	@Override
-	protected String getPermissionTypeName() {
-		return PurgeWithPurgeSettingsActionPermissionDefinition.PERMISSION;
-	}
+    @Override
+    public String getKey() {
+        return KEY;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.module.SystemActionDefinition#validate(com.fasterxml.jackson.databind.JsonNode)
-	 */
-	@Override
-	protected void validate(JsonNode input) throws ValidationException {
+    @Override
+    public SystemActionTask getTaskImpl(final JsonNode input) {
+        return new Action();
+    }
 
-	}
-	
-	/**
-	 * Class to allow purging data in ordered tasks with a queue 
-	 * of up to 5 waiting purges
-	 * 
-	 * @author Terry Packer
-	 */
-	class Action extends SystemActionTask{
-		
-		public Action(){
-			super(new OneTimeTrigger(0l), "Purge Using Settings", "PURGE_USING_SETTINGS", 5);
-		}
+    @Override
+    protected String getPermissionTypeName() {
+        return PurgeWithPurgeSettingsActionPermissionDefinition.PERMISSION;
+    }
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.timer.Task#run(long)
-		 */
-		@Override
-		public void runImpl(long runtime) {
-	        DataPurge dataPurge = new DataPurge();
-	        dataPurge.execute(Common.timer.currentTimeMillis());
-			this.results.put("deletedPointValues", dataPurge.getDeletedSamples());
-			this.results.put("deletedFiles", dataPurge.getDeletedFiles());
-			this.results.put("deletedEvents", dataPurge.getDeletedEvents());
-			this.results.put("anyDeletedSamples", dataPurge.isAnyDeletedSamples());
-		}
-	}
+    @Override
+    protected void validate(JsonNode input) throws ValidationException {
+
+    }
+
+    /**
+     * Class to allow purging data in ordered tasks with a queue
+     * of up to 5 waiting purges
+     *
+     * @author Terry Packer
+     */
+    class Action extends SystemActionTask {
+
+        public Action() {
+            super(new OneTimeTrigger(0l), "Purge Using Settings", "PURGE_USING_SETTINGS", 5);
+        }
+
+        @Override
+        public void runImpl(long runtime) {
+            DataPurge dataPurge = new DataPurge();
+            dataPurge.execute(Common.timer.currentTimeMillis());
+            this.results.put("deletedPointValues", dataPurge.getDeletedSamples());
+            this.results.put("deletedFiles", dataPurge.getDeletedFiles());
+            this.results.put("deletedEvents", dataPurge.getDeletedEvents());
+            this.results.put("anyDeletedSamples", dataPurge.isAnyDeletedSamples());
+        }
+    }
 }
