@@ -16,11 +16,11 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
  * Useful for things like validation and testing
  */
 public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
-    
+
     public MockDataSourceVO(){
         this.setDefinition(new MockDataSourceDefinition());
     }
-    
+
     public MockDataSourceVO(String xid, String name) {
         this.xid = xid;
         this.name = name;
@@ -43,15 +43,10 @@ public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
     }
 
     @Override
-    public ExportCodes getEventCodes() {
-        return new ExportCodes();
-    }
-
-    @Override
     protected void addEventTypes(List<EventTypeVO> eventTypes) {
         super.addEventTypes(eventTypes);
     }
-    
+
     private static final long serialVersionUID = -1;
     private static final int version = 1;
 
@@ -63,8 +58,18 @@ public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
     }
 
 
+    private static final ExportCodes EVENT_CODES = new ExportCodes();
+    static {
+        EVENT_CODES.addElement(MockDataSourceRT.POLL_ABORTED_EVENT, POLL_ABORTED);
+    }
+
     @Override
     public int getPollAbortedExceptionEventId() {
-        return -1;
+        return MockDataSourceRT.POLL_ABORTED_EVENT;
+    }
+
+    @Override
+    public ExportCodes getEventCodes() {
+        return EVENT_CODES;
     }
 }
