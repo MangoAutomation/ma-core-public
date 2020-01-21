@@ -200,7 +200,6 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         if (emailAddress == null) return null;
         Select<Record> query = getJoinedSelectQuery().where(this.table.getField("email").eq(emailAddress));
         List<Object> args = query.getBindValues();
-        System.out.println(query.getSQL());
         return ejt.query(query.getSQL(), args.toArray(new Object[args.size()]), getObjectResultSetExtractor());
     }
 
