@@ -115,7 +115,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
     private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
     private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
-    
+
     //System permissions that we have one or more roles in
     private transient final LazyInitializer<Set<MangoPermission>> grantedPermissions = new LazyInitializer<>();
 
@@ -196,7 +196,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
     //
     // Properties
     //
-    
+
     public String getEmail() {
         return email;
     }
@@ -562,7 +562,6 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         if(name == null)
             name = username;
         this.roles = readLegacyPermissions("permissions", this.roles, jsonObject);
-
     }
 
     @Override
@@ -691,7 +690,7 @@ public class User extends AbstractVO<User> implements SetPointSource, JsonSerial
         this.roles = roles;
         this.authorities.reset();
     }
-    
+
     @Override
     public String getPermissionHolderName() {
         return this.username;
