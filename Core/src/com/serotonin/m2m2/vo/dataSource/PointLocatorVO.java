@@ -10,6 +10,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializable {
     /**
@@ -44,7 +45,12 @@ public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializa
 
     /**
      * Validate, with access to the parent data point and data source both guaranteed to be non-null
+     *
+     * @param response
+     * @param dpvo
+     * @param dsvo
+     * @param user - permission holder saving the point
      */
-    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo);
-    
+    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo, PermissionHolder user);
+
 }

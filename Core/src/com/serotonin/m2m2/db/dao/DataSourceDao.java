@@ -57,7 +57,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     private static final String DATA_SOURCE_SELECT = //
             "SELECT id, xid, name, dataSourceType, data FROM dataSources ";
 
-    @SuppressWarnings("unchecked")
     private static final LazyInitSupplier<DataSourceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataSourceDao.class);
         if(o == null)
@@ -155,7 +154,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     class DataSourceRowMapper implements RowMapper<DataSourceVO> {
         @Override
         public DataSourceVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            @SuppressWarnings("unchecked")
             DataSourceVO ds = (DataSourceVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             ds.setId(rs.getInt(1));
             ds.setXid(rs.getString(2));

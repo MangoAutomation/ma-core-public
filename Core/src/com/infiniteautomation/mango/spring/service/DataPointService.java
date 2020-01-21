@@ -276,7 +276,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             return response;
         }
         //Validate the point locator
-        vo.getPointLocator().validate(response, vo, dsvo);
+        vo.getPointLocator().validate(response, vo, dsvo, user);
 
         // Check text renderer type
         if (vo.getTextRenderer() != null) {
