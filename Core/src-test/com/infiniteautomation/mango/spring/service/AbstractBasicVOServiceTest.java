@@ -262,9 +262,13 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
             test.test();
         } catch(ValidationException e) {
             String failureMessage = "";
-            for(ProcessMessage m : e.getValidationResult().getMessages()){
-                String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
-                failureMessage += messagePart;
+            for(ProcessMessage m : e.getValidationResult().getMessages()) {
+                if(m.getContextKey() != null) {
+                    String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                    failureMessage += messagePart;
+                }else {
+                    failureMessage += m.getContextualMessage().translate(Common.getTranslations()) + "\n";
+                }
             }
             fail(failureMessage);
         }
