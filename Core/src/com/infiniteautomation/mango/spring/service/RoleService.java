@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -89,6 +90,18 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         return result;
     }
 
+    /**
+     * Get the roles for a permission
+     * @param permissionType
+     * @return
+     */
+    public Set<Role> getRoles(String permissionType) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        permissionService.ensureAdminRole(user);
+        return this.dao.getRoles(permissionType);
+    }
 
     /**
      * Add a role to a permission type
