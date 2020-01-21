@@ -104,7 +104,7 @@ public class AuditEventType extends EventType {
         SystemSettingsDao.instance.setIntValue(AUDIT_SETTINGS_PREFIX + subtype, alarmLevel.value());
     }
 
-    public static void raiseAddedEvent(String auditEventType, AbstractVO<?> o) {
+    public static void raiseAddedEvent(String auditEventType, AbstractVO o) {
         Map<String, Object> context = new HashMap<String, Object>();
         JsonSerializableUtility scanner = new JsonSerializableUtility();
         try {
@@ -116,7 +116,7 @@ public class AuditEventType extends EventType {
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_CREATE, auditEventType, o, "event.audit.extended.added", context);
     }
 
-    public static void raiseChangedEvent(String auditEventType, AbstractVO<?> from, AbstractVO<?> to) {
+    public static void raiseChangedEvent(String auditEventType, AbstractVO from, AbstractVO to) {
         Map<String, Object> context = new HashMap<String, Object>();
 
         //Find the annotated properties
@@ -134,13 +134,13 @@ public class AuditEventType extends EventType {
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, to, "event.audit.extended.changed", context);
     }
 
-    public static void raiseToggleEvent(String auditEventType, AbstractActionVO<?> toggled) {
+    public static void raiseToggleEvent(String auditEventType, AbstractActionVO toggled) {
         Map<String, Object> context = new HashMap<String, Object>();
         context.put(AbstractActionVO.ENABLED_KEY, toggled.isEnabled());
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_MODIFY, auditEventType, toggled, "event.audit.extended.toggled", context);
     }
 
-    public static void raiseDeletedEvent(String auditEventType, AbstractVO<?> o) {
+    public static void raiseDeletedEvent(String auditEventType, AbstractVO o) {
         Map<String, Object> context = new HashMap<String, Object>();
         JsonSerializableUtility scanner = new JsonSerializableUtility();
         try {
@@ -152,14 +152,14 @@ public class AuditEventType extends EventType {
         raiseEvent(AuditEventInstanceVO.CHANGE_TYPE_DELETE, auditEventType, o, "event.audit.extended.deleted", context);
     }
 
-    private static void raiseEvent(int changeType, String auditEventType, AbstractVO<?> to, String key, Map<String, Object> context) {
+    private static void raiseEvent(int changeType, String auditEventType, AbstractVO to, String key, Map<String, Object> context) {
         PermissionHolder user = Common.getUser();
         User raisingUser = null;
         Object username;
         if (user instanceof User) {
             raisingUser = (User)user;
             username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
-        
+
         }else if(user != null) {
             username = user.getPermissionHolderName();
         }else {

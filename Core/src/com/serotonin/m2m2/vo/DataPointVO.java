@@ -54,7 +54,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.util.SerializationHelper;
 
-public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataPoint {
+public class DataPointVO extends AbstractActionVO implements IDataPoint {
     private static final long serialVersionUID = -1;
     public static final String XID_PREFIX = "DP_";
 
@@ -166,7 +166,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     private int purgePeriod = 1;
     @JsonProperty
     private TextRenderer textRenderer;
-    private List<AbstractPointEventDetectorVO<?>> eventDetectors = new ArrayList<>();
+    private List<AbstractPointEventDetectorVO> eventDetectors = new ArrayList<>();
     private List<UserCommentVO> comments;
     @JsonProperty
     private int defaultCacheSize = 1;
@@ -255,7 +255,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
     public DataPointVO() {
     }
 
-    public DataPointVO(DataSourceVO<?> dataSource) {
+    public DataPointVO(DataSourceVO dataSource) {
         this.withDataSource(dataSource);
 
         // new data point will have empty relational data
@@ -264,7 +264,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         this.setTags(Collections.emptyMap());
     }
 
-    public void withDataSource(DataSourceVO<?> dataSource) {
+    public void withDataSource(DataSourceVO dataSource) {
         this.dataSourceId = dataSource.getId();
         this.dataSourceName = dataSource.getName();
         this.dataSourceXid = dataSource.getXid();
@@ -478,11 +478,11 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
         return renderer;
     }
 
-    public List<AbstractPointEventDetectorVO<?>> getEventDetectors() {
+    public List<AbstractPointEventDetectorVO> getEventDetectors() {
         return eventDetectors;
     }
 
-    public void setEventDetectors(List<AbstractPointEventDetectorVO<?>> eventDetectors) {
+    public void setEventDetectors(List<AbstractPointEventDetectorVO> eventDetectors) {
         this.eventDetectors = eventDetectors;
     }
 
@@ -1460,8 +1460,8 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                     throw new TranslatableJsonException("emport.error.ped.missingAttr", "xid");
 
                 // Use the ped xid to lookup an existing ped.
-                AbstractPointEventDetectorVO<?> ped = null;
-                for (AbstractPointEventDetectorVO<?> existing : eventDetectors) {
+                AbstractPointEventDetectorVO ped = null;
+                for (AbstractPointEventDetectorVO existing : eventDetectors) {
                     if (StringUtils.equals(pedXid, existing.getXid())) {
                         ped = existing;
                         break;
@@ -1491,7 +1491,7 @@ public class DataPointVO extends AbstractActionVO<DataPointVO> implements IDataP
                 JsonArray handlerXids = pedObject.getJsonArray("handlers");
                 if(handlerXids != null)
                     for(int k = 0; k < handlerXids.size(); k+=1) {
-                        AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
+                        AbstractEventHandlerVO eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
                         if(eh == null) {
                             throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
                         }else {

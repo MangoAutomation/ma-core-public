@@ -48,7 +48,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
-public class User extends AbstractVO<User> implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
+public class User extends AbstractVO implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
 
     public final static String PLAIN_TEXT_ALGORITHM = "PLAINTEXT";
     public final static String NONE_ALGORITHM = "NONE";

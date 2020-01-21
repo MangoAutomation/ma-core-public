@@ -38,12 +38,12 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  *
  * @author Matthew Lohbihler
  */
-abstract public class PublisherDefinition<T extends PublishedPointVO> extends ModuleElementDefinition {
+abstract public class PublisherDefinition<PUB extends PublisherVO<? extends PublishedPointVO>> extends ModuleElementDefinition {
     /**
      * Used by MA core code to create a new publisher instance as required. Should not be used by client code.
      */
-    public PublisherVO<T> baseCreatePublisherVO() {
-        PublisherVO<T> pub = createPublisherVO();
+    public PUB baseCreatePublisherVO() {
+        PUB pub = createPublisherVO();
         pub.setDefinition(this);
         return pub;
     }
@@ -69,7 +69,7 @@ abstract public class PublisherDefinition<T extends PublishedPointVO> extends Mo
      *
      * @return a new instance of the publisher.
      */
-    abstract protected PublisherVO<T> createPublisherVO();
+    abstract protected PUB createPublisherVO();
 
     /**
      * Validate a new publisher
@@ -77,8 +77,8 @@ abstract public class PublisherDefinition<T extends PublishedPointVO> extends Mo
      * @param pub
      * @param user
      */
-    abstract public void validate(ProcessResult response, PublisherVO<T> pub, PermissionHolder user);
-    
+    abstract public void validate(ProcessResult response, PUB pub, PermissionHolder user);
+
     /**
      * Validate a data source about to be updated
      *  override as necessary
@@ -87,7 +87,7 @@ abstract public class PublisherDefinition<T extends PublishedPointVO> extends Mo
      * @param ds
      * @param user
      */
-    public void validate(ProcessResult response, PublisherVO<T> existing, PublisherVO<T> vo, PermissionHolder user) {
+    public void validate(ProcessResult response, PUB existing, PUB vo, PermissionHolder user) {
         validate(response, vo, user);
     }
 

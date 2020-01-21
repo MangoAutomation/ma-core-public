@@ -45,6 +45,6 @@ public interface PointLocatorVO<VO extends PointLocatorVO<VO>> extends Serializa
     /**
      * Validate, with access to the parent data point and data source both guaranteed to be non-null
      */
-    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO<?> dsvo);
+    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo);
     
 }

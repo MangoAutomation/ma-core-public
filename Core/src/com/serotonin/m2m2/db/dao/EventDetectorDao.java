@@ -54,14 +54,13 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
  *
  */
 @Repository()
-public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends AbstractDao<T,EventDetectorTableDefinition> {
+public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, EventDetectorTableDefinition> {
 
-    @SuppressWarnings("unchecked")
-    private static final LazyInitSupplier<EventDetectorDao<AbstractEventDetectorVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
+    private static final LazyInitSupplier<EventDetectorDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventDetectorDao.class);
         if(o == null)
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (EventDetectorDao<AbstractEventDetectorVO<?>>)o;
+        return (EventDetectorDao)o;
     });
 
     /* Map of Source Type to Source ID Column Names */
@@ -94,12 +93,12 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      * Get cached instance from Spring Context
      * @return
      */
-    public static EventDetectorDao<AbstractEventDetectorVO<?>> getInstance() {
+    public static EventDetectorDao getInstance() {
         return springInstance.get();
     }
 
     @Override
-    protected Object[] voToObjectArray(T vo) {
+    protected Object[] voToObjectArray(AbstractEventDetectorVO vo) {
         String jsonData = null;
         try{
             jsonData = writeValueAsString(vo);
@@ -120,8 +119,8 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     }
 
     @Override
-    public RowMapper<T> getRowMapper() {
-        return new EventDetectorRowMapper<T>();
+    public RowMapper<AbstractEventDetectorVO> getRowMapper() {
+        return new EventDetectorRowMapper<AbstractEventDetectorVO>();
     }
 
     public JsonObject readValueFromString(String json) throws JsonException, IOException {
@@ -130,7 +129,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
         return (JsonObject)reader.read();
     }
 
-    public static String writeValueAsString(AbstractEventDetectorVO<?> value) throws JsonException, IOException {
+    public static String writeValueAsString(AbstractEventDetectorVO value) throws JsonException, IOException {
         StringWriter stringWriter = new StringWriter();
         JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
         writer.writeObject(value);
@@ -144,10 +143,10 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     }
 
     @Override
-    public void saveRelationalData(T vo, boolean insert) {
+    public void saveRelationalData(AbstractEventDetectorVO vo, boolean insert) {
         EventTypeVO et = vo.getEventType();
         if(vo.getAddedEventHandlers() != null) {
-            for(AbstractEventHandlerVO<?> ehVo : vo.getAddedEventHandlers())
+            for(AbstractEventHandlerVO ehVo : vo.getAddedEventHandlers())
                 EventHandlerDao.getInstance().addEventHandlerMappingIfMissing(ehVo.getId(), et.getEventType());
         }else if(vo.getEventHandlerXids() != null) {
             //Remove all mappings
@@ -160,12 +159,12 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
     }
 
     @Override
-    public void loadRelationalData(T vo) {
+    public void loadRelationalData(AbstractEventDetectorVO vo) {
         vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
     }
 
     @Override
-    public void deleteRelationalData(T vo) {
+    public void deleteRelationalData(AbstractEventDetectorVO vo) {
         //Also update the Event Handlers
         ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
                 new Object[] { vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId() });
@@ -178,7 +177,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      * @param sourceId
      * @return
      */
-    public List<AbstractPointEventDetectorVO<?>> getWithSource(int sourceId, DataPointVO dp){
+    public List<AbstractPointEventDetectorVO> getWithSource(int sourceId, DataPointVO dp){
         Field<Integer> sourceIdColumnName = getSourceIdColumnName(EventType.EventTypeNames.DATA_POINT);
         Select<Record> query = getJoinedSelectQuery().where(sourceIdColumnName.eq(sourceId)).orderBy(this.table.getIdAlias());
         String sql = query.getSQL();
@@ -225,16 +224,16 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
         return index;
     }
 
-    class EventDetectorWithDataPointResultSetExtractor implements ResultSetExtractor<List<AbstractPointEventDetectorVO<?>>> {
+    class EventDetectorWithDataPointResultSetExtractor implements ResultSetExtractor<List<AbstractPointEventDetectorVO>> {
 
         @Override
-        public List<AbstractPointEventDetectorVO<?>> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            List<AbstractPointEventDetectorVO<?>> results = new ArrayList<>();
+        public List<AbstractPointEventDetectorVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            List<AbstractPointEventDetectorVO> results = new ArrayList<>();
             DataPointMapper pointRowMapper = new DataPointMapper();
             while(rs.next()) {
                 DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
                 PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(dataPointTable.getSelectFields().size() + 3 + 1, 5, dpvo);
-                AbstractPointEventDetectorVO<?> ped = mapper.mapRow(rs, rs.getRow());
+                AbstractPointEventDetectorVO ped = mapper.mapRow(rs, rs.getRow());
                 results.add(ped);
             }
             return results;
@@ -246,7 +245,7 @@ public class EventDetectorDao<T extends AbstractEventDetectorVO<?>> extends Abst
      * @param sourceType
      * @return
      */
-    public <X extends AbstractEventDetectorVO<?>> List<X> getForSourceType(String sourceType){
+    public <X extends AbstractEventDetectorVO> List<X> getForSourceType(String sourceType){
         switch(sourceType) {
             case EventType.EventTypeNames.DATA_POINT:
                 List<Field<?>> fields = new ArrayList<>(this.dataPointTable.getSelectFields());

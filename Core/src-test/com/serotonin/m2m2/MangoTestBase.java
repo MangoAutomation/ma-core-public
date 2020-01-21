@@ -210,8 +210,7 @@ public class MangoTestBase {
 
         User admin = UserDao.getInstance().getByXid("admin");
 
-        @SuppressWarnings("unchecked")
-        ImportTask<?,?,?> task = new ImportTask<>(jo,
+        ImportTask task = new ImportTask(jo,
                 Common.getTranslations(),
                 admin,
                 Common.getBean(UsersService.class),
@@ -304,14 +303,13 @@ public class MangoTestBase {
     }
 
     protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled) {
-        @SuppressWarnings("unchecked")
-        DataSourceService<MockDataSourceVO> service = Common.getBean(DataSourceService.class);
+        DataSourceService service = Common.getBean(DataSourceService.class);
         MockDataSourceVO vo = new MockDataSourceVO();
         vo.setXid(name);
         vo.setName(xid);
         vo.setEnabled(enabled);
 
-        return service.getPermissionService().runAsSystemAdmin(() -> {
+        return (MockDataSourceVO) service.getPermissionService().runAsSystemAdmin(() -> {
             try {
                 return service.insert(vo);
             }catch(ValidationException e) {

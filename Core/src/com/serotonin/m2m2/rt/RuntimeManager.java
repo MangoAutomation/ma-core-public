@@ -47,13 +47,13 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Data sources
     //
-    DataSourceRT<? extends DataSourceVO<?>> getRunningDataSource(int dataSourceId);
+    DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId);
 
     List<? extends DataSourceRT<?>> getRunningDataSources();
     
     boolean isDataSourceRunning(int dataSourceId);
 
-    DataSourceVO<?> getDataSource(int dataSourceId);
+    DataSourceVO getDataSource(int dataSourceId);
 
     void deleteDataSource(int dataSourceId);
 
@@ -61,21 +61,21 @@ public interface RuntimeManager extends ILifecycle {
      * Insert a new data source
      * @param vo
      */
-    void insertDataSource(DataSourceVO<?> vo);
+    void insertDataSource(DataSourceVO vo);
     
     /**
      * Update a data source
      * @param existing
      * @param vo
      */
-    void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo);
+    void updateDataSource(DataSourceVO existing, DataSourceVO vo);
     
     /**
      * Initialize a data source (only to be used at system startup)
      * @param vo
      * @return
      */
-    boolean initializeDataSourceStartup(DataSourceVO<?> vo);
+    boolean initializeDataSourceStartup(DataSourceVO vo);
     
     /**
      * Stop a data source (only to be used at system shutdown)

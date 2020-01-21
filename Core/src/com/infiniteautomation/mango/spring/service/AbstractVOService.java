@@ -25,7 +25,7 @@ import com.serotonin.validation.StringValidation;
  * @author Terry Packer
  *
  */
-public abstract class AbstractVOService<T extends AbstractVO<?>, TABLE extends AbstractTableDefinition, DAO extends AbstractVOAccess<T, TABLE>> extends AbstractBasicVOService<T,TABLE,DAO> {
+public abstract class AbstractVOService<T extends AbstractVO, TABLE extends AbstractTableDefinition, DAO extends AbstractVOAccess<T, TABLE>> extends AbstractBasicVOService<T,TABLE,DAO> {
 
     /**
      *

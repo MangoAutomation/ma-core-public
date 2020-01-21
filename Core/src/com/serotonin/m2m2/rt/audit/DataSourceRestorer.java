@@ -20,20 +20,20 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
  * @author Terry Packer
  *
  */
-public class DataSourceRestorer extends Restorer<DataSourceVO<?>> {
+public class DataSourceRestorer extends Restorer<DataSourceVO> {
 
     public DataSourceRestorer(List<AuditEventInstanceVO> trail, ProcessResult result) {
         super(trail, result);
     }
 
     @Override
-    protected DataSourceVO<?> getExisting(int id){
+    protected DataSourceVO getExisting(int id){
         return DataSourceDao.getInstance().get(id);
     }
-    
+
     @Override
-    protected DataSourceVO<?> buildNewVO(JsonObject json){
-        DataSourceVO<?> vo = null;
+    protected DataSourceVO buildNewVO(JsonObject json){
+        DataSourceVO vo = null;
         String xid = json.getString("xid");
         String typeStr = json.getString("type");
         if (StringUtils.isBlank(typeStr))
@@ -49,5 +49,5 @@ public class DataSourceRestorer extends Restorer<DataSourceVO<?>> {
         }
         return vo;
     }
-    
+
 }

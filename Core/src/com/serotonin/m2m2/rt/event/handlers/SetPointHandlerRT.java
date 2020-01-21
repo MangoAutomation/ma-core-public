@@ -315,7 +315,7 @@ public class SetPointHandlerRT extends EventHandlerRT<SetPointEventHandlerVO> im
                 else
                 	source = new OneTimePointAnnotation(SetPointHandlerRT.this, annotation);
                 
-                DataSourceRT<? extends DataSourceVO<?>> dsrt = Common.runtimeManager.getRunningDataSource(dprt.getDataSourceId());
+                DataSourceRT<? extends DataSourceVO> dsrt = Common.runtimeManager.getRunningDataSource(dprt.getDataSourceId());
                 dsrt.setPointValue(dprt, newValue, source);
             }
             catch (ResultTypeException e) {

@@ -44,18 +44,20 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  *
  * <dt>Subclass of {@link PointLocatorRT}</dt>
  * <dd>A runtime implementation of the point locator</dd>
- * 
+ *
  * <dt>Optional</dt>
  * <dd>Online documentation files, translation files (strongly recommended), data source commissioning tools.</dd>
  * </dl>
  *
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceDefinition<T extends DataSourceVO<T>> extends ModuleElementDefinition {
+abstract public class DataSourceDefinition<T extends DataSourceVO> extends ModuleElementDefinition {
     /**
      * Used by MA core code to create a new data source instance as required. Should not be used by client code.
+     * TODO Mango 4.0 Review setting the definition in the constructor
+     * TODO Mango 4.0 Add abstract method getDataSourceClass() in DataSourceDefinition that returns the concrete Class of the DataSourceVO, add default method (which can be overridden) that creates a DataSourceVO by calling getDataSourceClass().newInstance()
      */
-    public final DataSourceVO<?> baseCreateDataSourceVO() {
+    public final T baseCreateDataSourceVO() {
         T ds = createDataSourceVO();
         ds.setDefinition(this);
         return ds;
@@ -98,7 +100,7 @@ abstract public class DataSourceDefinition<T extends DataSourceVO<T>> extends Mo
      * @param user
      */
     abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
-    
+
     /**
      * Validate a data source about to be updated
      *  override as necessary
@@ -132,4 +134,30 @@ abstract public class DataSourceDefinition<T extends DataSourceVO<T>> extends Mo
         if(uninstall)
             DataSourceDao.getInstance().deleteDataSourceType(getDataSourceTypeName());
     }
+
+    /**
+     * Save any relational data for this data source i.e. script roles
+     * @param vo
+     * @param insert
+     */
+    public void saveRelationalData(T vo, boolean insert) {
+
+    }
+
+    /**
+     * Delete any relational data
+     * @param vo
+     */
+    public void deleteRelationalData(T vo) {
+
+    }
+
+    /**
+     * Load in relational data
+     * @param vo
+     */
+    public void loadRelationalData(T vo) {
+
+    }
+
 }

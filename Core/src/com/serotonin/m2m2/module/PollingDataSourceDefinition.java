@@ -17,7 +17,7 @@ import com.serotonin.timer.CronTimerTrigger;
  * @author Terry Packer
  *
  */
-public abstract class PollingDataSourceDefinition<T extends PollingDataSourceVO<T>> extends DataSourceDefinition<T> {
+public abstract class PollingDataSourceDefinition<T extends PollingDataSourceVO> extends DataSourceDefinition<T> {
 
     @Override
     public void validate(ProcessResult response, T vo, PermissionHolder holder) {

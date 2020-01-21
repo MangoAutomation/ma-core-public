@@ -15,27 +15,26 @@ import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
-public class PublisherImporter<PUB extends PublishedPointVO> extends Importer {
-    
-    private final PublisherService<PUB> service;
-    
-    public PublisherImporter(JsonObject json, PublisherService<PUB> service) {
+public class PublisherImporter extends Importer {
+
+    private final PublisherService service;
+
+    public PublisherImporter(JsonObject json, PublisherService service) {
         super(json);
         this.service = service;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void importImpl() {
         String xid = json.getString("xid");
-        PublisherVO<PUB> vo = null;
+        PublisherVO<? extends PublishedPointVO> vo = null;
         if (StringUtils.isBlank(xid)) {
             xid = service.getDao().generateUniqueXid();
         }else {
             try{
                 vo = service.get(xid);
             }catch(NotFoundException e) {
-                
+
             }
         }
         if (vo == null) {
@@ -48,7 +47,7 @@ public class PublisherImporter<PUB extends PublishedPointVO> extends Importer {
                     addFailureMessage("emport.publisher.invalidType", xid, typeStr,
                             ModuleRegistry.getPublisherDefinitionTypes());
                 else {
-                    vo = (PublisherVO<PUB>)def.baseCreatePublisherVO();
+                    vo = def.baseCreatePublisherVO();
                     vo.setXid(xid);
                 }
             }

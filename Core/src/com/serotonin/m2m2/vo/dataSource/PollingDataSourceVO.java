@@ -27,7 +27,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public abstract class PollingDataSourceVO<T extends PollingDataSourceVO<T>> extends DataSourceVO<T> {
+public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends DataSourceVO {
     
     protected final static String POLL_ABORTED = "POLL_ABORTED";
     

@@ -38,7 +38,7 @@ public class PermissionServiceTest extends MangoTestBase {
 
     protected RoleService roleService;
     protected PermissionService permissionService;
-    protected DataSourceService<MockDataSourceVO> dataSourceService;
+    protected DataSourceService dataSourceService;
     protected DataPointService dataPointService;
     protected UsersService usersService;
 
@@ -48,7 +48,6 @@ public class PermissionServiceTest extends MangoTestBase {
         super(false, 9001);
     }
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setupRoles() {
         roleService = Common.getBean(RoleService.class);
@@ -71,7 +70,7 @@ public class PermissionServiceTest extends MangoTestBase {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditRoles(editRoles);
-        return permissionService.runAsSystemAdmin(() -> {
+        return (MockDataSourceVO) permissionService.runAsSystemAdmin(() -> {
             return dataSourceService.insert(dsVo);
         });
     }
@@ -80,7 +79,7 @@ public class PermissionServiceTest extends MangoTestBase {
         return createDataPoint(Collections.emptySet(), Collections.emptySet());
     }
 
-    DataPointVO createDataPoint(DataSourceVO<?> ds) {
+    DataPointVO createDataPoint(DataSourceVO ds) {
         return createDataPoint(ds, Collections.emptySet(), Collections.emptySet());
     }
 
@@ -89,7 +88,7 @@ public class PermissionServiceTest extends MangoTestBase {
         return createDataPoint(ds, readRoles, setRoles);
     }
 
-    DataPointVO createDataPoint(DataSourceVO<?> dsVo, Set<Role> readRoles, Set<Role> setRoles) {
+    DataPointVO createDataPoint(DataSourceVO dsVo, Set<Role> readRoles, Set<Role> setRoles) {
         DataPointVO point = new DataPointVO();
         point.setDataSourceId(dsVo.getId());
         point.setName("permissions_test_datasource");

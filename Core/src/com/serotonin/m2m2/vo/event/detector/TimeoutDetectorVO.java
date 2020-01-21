@@ -19,51 +19,51 @@ import com.serotonin.m2m2.vo.DataPointVO;
  * @author Terry Packer
  *
  */
-public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T>> extends AbstractPointEventDetectorVO<T> {
+public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO> extends AbstractPointEventDetectorVO {
 
-	/**
-	 * @param supportedDataTypes
-	 */
-	public TimeoutDetectorVO(DataPointVO vo, int[] supportedDataTypes) {
-		super(vo, supportedDataTypes);
-	}
+    /**
+     * @param supportedDataTypes
+     */
+    public TimeoutDetectorVO(DataPointVO vo, int[] supportedDataTypes) {
+        super(vo, supportedDataTypes);
+    }
 
-	private static final long serialVersionUID = 1L;
-	
-	protected int duration;
+    private static final long serialVersionUID = 1L;
+
+    protected int duration;
     protected int durationType = Common.TimePeriods.SECONDS;
-    
+
     public int getDuration() {
-		return duration;
-	}
-	public void setDuration(int duration) {
-		this.duration = duration;
-	}
-	public int getDurationType() {
-		return durationType;
-	}
-	public void setDurationType(int durationType) {
-		this.durationType = durationType;
-	}
-	
-	public TranslatableMessage getDurationDescription() {
+        return duration;
+    }
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+    public int getDurationType() {
+        return durationType;
+    }
+    public void setDurationType(int durationType) {
+        this.durationType = durationType;
+    }
+
+    public TranslatableMessage getDurationDescription() {
         if (duration == 0)
             return null;
         return Common.getPeriodDescription(durationType, duration);
     }
-	
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	super.jsonWrite(writer);
+        super.jsonWrite(writer);
         writer.writeEntry("durationType", Common.TIME_PERIOD_CODES.getCode(durationType));
         writer.writeEntry("duration", duration);
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	super.jsonRead(reader, jsonObject);
-        
-    	String text = jsonObject.getString("durationType");
+        super.jsonRead(reader, jsonObject);
+
+        String text = jsonObject.getString("durationType");
         if (text == null)
             throw new TranslatableJsonException("emport.error.ped.missing", "durationType",
                     Common.TIME_PERIOD_CODES.getCodeList());
@@ -76,5 +76,5 @@ public abstract class TimeoutDetectorVO<T extends AbstractPointEventDetectorVO<T
         duration = getInt(jsonObject, "duration");
 
     }
-	
+
 }

@@ -35,17 +35,14 @@ import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.util.timeout.ProgressiveTask;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.util.ProgressiveTaskListener;
 
 /**
  * @author Matthew Lohbihler
  */
-public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointVO, EH extends AbstractEventHandlerVO<EH>> extends ProgressiveTask {
+public class ImportTask extends ProgressiveTask {
 
     private static Log LOG = LogFactory.getLog(ImportTask.class);
 
@@ -72,10 +69,10 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             PermissionHolder user,
             UsersService usersService,
             MailingListService mailingListService,
-            DataSourceService<DS> dataSourceService,
+            DataSourceService dataSourceService,
             DataPointService dataPointService,
-            PublisherService<PUB> publisherService,
-            EventHandlerService<EH> eventHandlerService,
+            PublisherService publisherService,
+            EventHandlerService eventHandlerService,
             JsonDataService jsonDataService,
             ProgressiveTaskListener listener, boolean schedule) {
         super("JSON import task", "JsonImport", 10, listener);
@@ -88,19 +85,19 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             addImporter(new UserImporter(jv.toJsonObject(), usersService, user));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
-            addImporter(new DataSourceImporter<DS>(jv.toJsonObject(), dataSourceService));
+            addImporter(new DataSourceImporter(jv.toJsonObject(), dataSourceService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
-            addImporter(new DataPointImporter<DS>(jv.toJsonObject(), dataPointService, dataSourceService));
+            addImporter(new DataPointImporter(jv.toJsonObject(), dataPointService, dataSourceService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
             addImporter(new MailingListImporter(jv.toJsonObject(), mailingListService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
-            addImporter(new PublisherImporter<PUB>(jv.toJsonObject(), publisherService));
+            addImporter(new PublisherImporter(jv.toJsonObject(), publisherService));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
-            addImporter(new EventHandlerImporter<EH>(jv.toJsonObject(), eventHandlerService));
+            addImporter(new EventHandlerImporter(jv.toJsonObject(), eventHandlerService));
 
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
@@ -277,10 +274,10 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
             boolean isNew = true;
             DataPointVO saved = DataPointDao.getInstance().get(dpvo.getId());
             DataPointDao.getInstance().loadEventDetectors(saved);
-            for(AbstractPointEventDetectorVO<?> eventDetector : dpvo.getEventDetectors()) {
-                Iterator<AbstractPointEventDetectorVO<?>> iter = saved.getEventDetectors().iterator();
+            for(AbstractPointEventDetectorVO eventDetector : dpvo.getEventDetectors()) {
+                Iterator<AbstractPointEventDetectorVO> iter = saved.getEventDetectors().iterator();
                 while(iter.hasNext()) {
-                    AbstractPointEventDetectorVO<?> next = iter.next();
+                    AbstractPointEventDetectorVO next = iter.next();
                     if(eventDetector.getXid().equals(next.getXid())) { //Same detector, replace it
                         eventDetector.setId(next.getId());
                         isNew = false;
@@ -294,7 +291,7 @@ public class ImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointV
 
             //Save the data point
             dataPointService.update(saved.getId(), saved);
-            for(AbstractPointEventDetectorVO<?> modified : dpvo.getEventDetectors())
+            for(AbstractPointEventDetectorVO modified : dpvo.getEventDetectors())
                 importContext.addSuccessMessage(isNew, "emport.eventDetector.prefix", modified.getXid());
         }
     }

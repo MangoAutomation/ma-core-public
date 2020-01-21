@@ -22,6 +22,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
@@ -30,7 +31,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEventHandlerVO, EventHandlerTableDefinition, EventHandlerDao<EmailEventHandlerVO>, EventHandlerService<EmailEventHandlerVO>> {
+public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<AbstractEventHandlerVO, EventHandlerTableDefinition, EventHandlerDao, EventHandlerService> {
 
     @Override
     protected MockMangoLifecycle getLifecycle() {
@@ -68,11 +69,11 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             vo.setScriptRoles(permissions);
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
-                EmailEventHandlerVO fromDb = service.get(vo.getId());
+                EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 roleService.delete(editRole.getId());
                 roleService.delete(readRole.getId());
-                EmailEventHandlerVO updated = service.get(fromDb.getId());
+                EmailEventHandlerVO updated = (EmailEventHandlerVO) service.get(fromDb.getId());
                 fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
                 assertVoEqual(fromDb, updated);
             });
@@ -88,7 +89,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
             vo.setScriptRoles(permissions);
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.update(vo.getXid(), vo);
-                EmailEventHandlerVO fromDb = service.get(vo.getId());
+                EmailEventHandlerVO fromDb = (EmailEventHandlerVO) service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
 
@@ -100,24 +101,22 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
         });
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    EventHandlerService<EmailEventHandlerVO> getService() {
+    EventHandlerService getService() {
         return Common.getBean(EventHandlerService.class);
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     EventHandlerDao getDao() {
         return EventHandlerDao.getInstance();
     }
 
     @Override
-    void assertVoEqual(EmailEventHandlerVO expected, EmailEventHandlerVO actual) {
+    void assertVoEqual(AbstractEventHandlerVO expected, AbstractEventHandlerVO actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
-        assertRoles(expected.getScriptRoles().getRoles(), actual.getScriptRoles().getRoles());
+        assertRoles(((EmailEventHandlerVO)expected).getScriptRoles().getRoles(), ((EmailEventHandlerVO)actual).getScriptRoles().getRoles());
 
         //TODO assert remaining
     }
@@ -133,7 +132,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<EmailEve
     }
 
     @Override
-    EmailEventHandlerVO updateVO(EmailEventHandlerVO existing) {
+    AbstractEventHandlerVO updateVO(AbstractEventHandlerVO existing) {
         existing.setName("new name");
         return existing;
     }

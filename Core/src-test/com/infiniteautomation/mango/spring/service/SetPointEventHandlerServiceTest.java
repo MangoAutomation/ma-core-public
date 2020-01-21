@@ -29,6 +29,7 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
@@ -37,18 +38,17 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPointEventHandlerVO, EventHandlerTableDefinition, EventHandlerDao<SetPointEventHandlerVO>, EventHandlerService<SetPointEventHandlerVO>> {
+public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<AbstractEventHandlerVO, EventHandlerTableDefinition, EventHandlerDao, EventHandlerService> {
 
     private DataPointVO activeDataPoint;
     private DataPointVO inactiveDataPoint;
     private DataPointService dataPointService;
-    protected DataSourceService<MockDataSourceVO> dataSourceService;
+    protected DataSourceService dataSourceService;
 
     public SetPointEventHandlerServiceTest() {
         super(true, 9000);
     }
 
-    @SuppressWarnings("unchecked")
     @Before
     public void beforeSetPointEventHandlerServiceTest() {
         dataSourceService = Common.getBean(DataSourceService.class);
@@ -62,12 +62,12 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
         dsVo.setEditRoles(editRoles);
-        return getService().permissionService.runAsSystemAdmin(() -> {
+        return (MockDataSourceVO) getService().permissionService.runAsSystemAdmin(() -> {
             return dataSourceService.insert(dsVo);
         });
     }
 
-    DataPointVO createDataPoint(DataSourceVO<?> dsVo, Set<Role> readRoles, Set<Role> setRoles) {
+    DataPointVO createDataPoint(DataSourceVO dsVo, Set<Role> readRoles, Set<Role> setRoles) {
         return getService().permissionService.runAsSystemAdmin(() -> {
             DataPointVO point = new DataPointVO();
             point.setDataSourceId(dsVo.getId());
@@ -117,11 +117,11 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             vo.setScriptRoles(permissions);
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
-                SetPointEventHandlerVO fromDb = service.get(vo.getId());
+                SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO) service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 roleService.delete(editRole.getId());
                 roleService.delete(readRole.getId());
-                SetPointEventHandlerVO updated = service.get(fromDb.getId());
+                SetPointEventHandlerVO updated = (SetPointEventHandlerVO) service.get(fromDb.getId());
                 fromDb.setScriptRoles(new ScriptPermissions(Collections.emptySet()));
                 assertVoEqual(fromDb, updated);
             });
@@ -137,7 +137,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
             vo.setScriptRoles(permissions);
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.update(vo.getXid(), vo);
-                SetPointEventHandlerVO fromDb = service.get(vo.getId());
+                SetPointEventHandlerVO fromDb = (SetPointEventHandlerVO) service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
                 service.delete(vo.getId());
 
@@ -149,24 +149,22 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
         });
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    EventHandlerService<SetPointEventHandlerVO> getService() {
+    EventHandlerService getService() {
         return Common.getBean(EventHandlerService.class);
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     EventHandlerDao getDao() {
         return EventHandlerDao.getInstance();
     }
 
     @Override
-    void assertVoEqual(SetPointEventHandlerVO expected, SetPointEventHandlerVO actual) {
+    void assertVoEqual(AbstractEventHandlerVO expected, AbstractEventHandlerVO actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
-        assertRoles(expected.getScriptRoles().getRoles(), actual.getScriptRoles().getRoles());
+        assertRoles(((SetPointEventHandlerVO)expected).getScriptRoles().getRoles(), ((SetPointEventHandlerVO)actual).getScriptRoles().getRoles());
 
         //TODO assert remaining
     }
@@ -189,7 +187,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<SetPo
     }
 
     @Override
-    SetPointEventHandlerVO updateVO(SetPointEventHandlerVO existing) {
+    AbstractEventHandlerVO updateVO(AbstractEventHandlerVO existing) {
         return existing;
     }
 

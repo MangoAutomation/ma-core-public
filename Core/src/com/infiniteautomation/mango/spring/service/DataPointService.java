@@ -270,7 +270,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         else if(!validateRollup(vo))
             response.addContextualMessage("rollup", "validate.rollup.incompatible", vo.getRollup());
 
-        DataSourceVO<?> dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
+        DataSourceVO dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
         if(dsvo == null) {
             response.addContextualMessage("dataSourceId", "validate.invalidValue");
             return response;

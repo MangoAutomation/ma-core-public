@@ -12,7 +12,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * @author Terry Packer
  *
  */
-public class RoleVO extends AbstractVO<RoleVO> {
+public class RoleVO extends AbstractVO {
 
     private static final long serialVersionUID = 1L;
     public static final String XID_PREFIX = "ROLE_";

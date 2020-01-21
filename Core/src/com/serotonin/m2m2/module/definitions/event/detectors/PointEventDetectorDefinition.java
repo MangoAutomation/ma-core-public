@@ -14,7 +14,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -22,7 +21,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  *
  */
-public abstract class PointEventDetectorDefinition<T extends AbstractPointEventDetectorVO<T>> extends EventDetectorDefinition<T>{
+public abstract class PointEventDetectorDefinition<T extends AbstractPointEventDetectorVO> extends EventDetectorDefinition<T> {
 
     public static final String SOURCE_ID_COLUMN_NAME = "dataPointId";
 
@@ -45,7 +44,7 @@ public abstract class PointEventDetectorDefinition<T extends AbstractPointEventD
      * @param vo
      * @return
      */
-    public <X extends AbstractEventDetectorVO<X>> T baseCreateEventDetectorVO(DataPointVO dp) {
+    public T baseCreateEventDetectorVO(DataPointVO dp) {
         T detector = createEventDetectorVO(dp);
         detector.setDefinition(this);
         return detector;

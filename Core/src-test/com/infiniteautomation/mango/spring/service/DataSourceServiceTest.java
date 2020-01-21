@@ -23,7 +23,7 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<T, DataSourceTableDefinition, DataSourceDao<T>, DataSourceService<T>> {
+public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<DataSourceVO, DataSourceTableDefinition, DataSourceDao, DataSourceService> {
 
     @Override
     String getCreatePermissionType() {
@@ -31,29 +31,27 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
     }
 
     @Override
-    void setReadRoles(Set<Role> roles, T vo) {
+    void setReadRoles(Set<Role> roles, DataSourceVO vo) {
         vo.setEditRoles(roles);
     }
 
     @Override
-    void setEditRoles(Set<Role> roles, T vo) {
+    void setEditRoles(Set<Role> roles, DataSourceVO vo) {
         vo.setEditRoles(roles);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    DataSourceService<T> getService() {
+    DataSourceService getService() {
         return Common.getBean(DataSourceService.class);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    DataSourceDao<T> getDao() {
-        return (DataSourceDao<T>) DataSourceDao.getInstance();
+    DataSourceDao getDao() {
+        return DataSourceDao.getInstance();
     }
 
     @Override
-    void assertVoEqual(T expected, T actual) {
+    void assertVoEqual(DataSourceVO expected, DataSourceVO actual) {
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
@@ -63,19 +61,18 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
         //TODO Flesh out all fields
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    T newVO(User user) {
+    DataSourceVO newVO(User user) {
         MockDataSourceVO vo = new MockDataSourceVO();
         vo.setXid(UUID.randomUUID().toString());
         vo.setName(UUID.randomUUID().toString());
         //TODO Flesh out all fields
-        return (T) vo;
+        return vo;
     }
 
     @Override
-    T updateVO(T existing) {
-        T copy = existing.copy();
+    DataSourceVO updateVO(DataSourceVO existing) {
+        DataSourceVO copy = (DataSourceVO) existing.copy();
         copy.setName("new name");
 
         return copy;
@@ -89,12 +86,12 @@ public class DataSourceServiceTest<T extends DataSourceVO<T>> extends AbstractVO
     }
 
     @Override
-    void addReadRoleToFail(Role role, T vo) {
+    void addReadRoleToFail(Role role, DataSourceVO vo) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    void addEditRoleToFail(Role role, T vo) {
+    void addEditRoleToFail(Role role, DataSourceVO vo) {
         vo.getEditRoles().add(role);
     }
 

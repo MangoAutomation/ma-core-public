@@ -24,7 +24,7 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
  * @author Terry Packer
  *
  */
-public class EventInstanceVO extends AbstractVO<EventInstanceVO>{
+public class EventInstanceVO extends AbstractVO {
 
     /**
      *

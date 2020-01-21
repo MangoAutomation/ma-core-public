@@ -21,7 +21,7 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.role.Role;
 
-public class MailingList extends AbstractVO<MailingList> implements EmailRecipient {
+public class MailingList extends AbstractVO implements EmailRecipient {
 
     private static final long serialVersionUID = 1L;
 

@@ -12,7 +12,7 @@ import com.serotonin.m2m2.rt.dataImage.PointValueTime;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
-abstract public class EventDataSource<T extends DataSourceVO<?>> extends DataSourceRT<T> {
+abstract public class EventDataSource<T extends DataSourceVO> extends DataSourceRT<T> {
     protected List<DataPointRT> dataPoints = new ArrayList<>();
 
     public EventDataSource(T vo) {

@@ -28,12 +28,12 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 @Service
-public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends AbstractVOService<T, EventHandlerTableDefinition, EventHandlerDao<T>> {
+public class EventHandlerService extends AbstractVOService<AbstractEventHandlerVO, EventHandlerTableDefinition, EventHandlerDao> {
 
     private final EventHandlerCreatePermission createPermission;
 
     @Autowired
-    public EventHandlerService(EventHandlerDao<T> dao, PermissionService permissionService, EventHandlerCreatePermission createPermission) {
+    public EventHandlerService(EventHandlerDao dao, PermissionService permissionService, EventHandlerCreatePermission createPermission) {
         super(dao, permissionService);
         this.createPermission = createPermission;
     }
@@ -44,39 +44,39 @@ public class EventHandlerService<T extends AbstractEventHandlerVO<T>> extends Ab
     }
 
     @Override
-    public boolean hasEditPermission(PermissionHolder user, T vo) {
+    public boolean hasEditPermission(PermissionHolder user, AbstractEventHandlerVO vo) {
         return user.hasAdminRole();
     }
 
     @Override
-    public boolean hasReadPermission(PermissionHolder user, T vo) {
+    public boolean hasReadPermission(PermissionHolder user, AbstractEventHandlerVO vo) {
         return user.hasAdminRole();
     }
 
     @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        List<T> all = dao.getAll();
+        List<AbstractEventHandlerVO> all = dao.getAll();
         all.stream().forEach((eh) -> {
             eh.getDefinition().handleRoleDeletedEvent(eh, event);
         });
     }
 
     @Override
-    public ProcessResult validate(T vo, PermissionHolder user) {
+    public ProcessResult validate(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, vo, user);
         return result;
     }
 
     @Override
-    public ProcessResult validate(T existing, T vo, PermissionHolder user) {
+    public ProcessResult validate(AbstractEventHandlerVO existing, AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         vo.getDefinition().validate(result, existing, vo, user);
         return result;
     }
 
-    private ProcessResult commonValidation(T vo, PermissionHolder user) {
+    private ProcessResult commonValidation(AbstractEventHandlerVO vo, PermissionHolder user) {
         ProcessResult result = super.validate(vo, user);
         //TODO is this true?
         //eventTypes are not validated because it assumed they

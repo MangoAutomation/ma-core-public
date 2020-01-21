@@ -27,12 +27,12 @@ import com.serotonin.util.SerializationHelper;
  *
  * @author Jared Wiltshire
  */
-public abstract class AbstractVO<T extends AbstractVO<T>> extends AbstractBasicVO implements Serializable,
+public abstract class AbstractVO extends AbstractBasicVO implements Serializable,
 JsonSerializable, Cloneable {
 
     protected static final String DEFAULT_MISSING_IMPORT_KEY = "emport.error.missingValue";
     protected static final String DEFAULT_WRONG_DATA_TYPE_KEY = "emport.error.wrongDataType";
-    
+
     /**
      * Allows the conversion of VOs between code versions by providing access to properties that would otherwise have
      * been expunged by the version handling in the readObject method.
@@ -76,7 +76,7 @@ JsonSerializable, Cloneable {
             throw new TranslatableJsonException(DEFAULT_WRONG_DATA_TYPE_KEY, name, Boolean.class.getSimpleName());
         }
     }
-    
+
     /**
      * Helper to safely get a String during import
      * @param json
@@ -112,7 +112,7 @@ JsonSerializable, Cloneable {
         }catch(ClassCastException e) {
             throw new TranslatableJsonException(DEFAULT_WRONG_DATA_TYPE_KEY, name, Double.class.getSimpleName());
         }
-        
+
     }
 
     /**
@@ -133,7 +133,7 @@ JsonSerializable, Cloneable {
             throw new TranslatableJsonException(DEFAULT_WRONG_DATA_TYPE_KEY, name, Integer.class.getSimpleName());
         }
     }
-    
+
     /*
      * Serialization
      */
@@ -210,10 +210,9 @@ JsonSerializable, Cloneable {
      *
      * @return Copy of this vo
      */
-    @SuppressWarnings("unchecked")
-    public T copy() {
+    public AbstractVO copy() {
         try {
-            return (T) super.clone();
+            return (AbstractVO) super.clone();
         }
         catch (CloneNotSupportedException e) {
             throw new ShouldNeverHappenException(e);
@@ -237,7 +236,6 @@ JsonSerializable, Cloneable {
         return result;
     }
 
-    @SuppressWarnings("rawtypes")
     @Override
     public boolean equals(Object obj) {
         if (this == obj)

@@ -54,8 +54,7 @@ public class PublisherAuditTest extends MangoTestBase {
     @Test
     public void testPublisherAuditTrail() {
 
-        @SuppressWarnings("unchecked")
-        PublisherDao<MockPublishedPointVO> dao = (PublisherDao<MockPublishedPointVO>) PublisherDao.getInstance();
+        PublisherDao dao = PublisherDao.getInstance();
 
         MockPublisherVO vo = new MockPublisherVO();
         vo.setName("Name");

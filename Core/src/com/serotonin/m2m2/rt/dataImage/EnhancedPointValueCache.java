@@ -11,10 +11,10 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
 public class EnhancedPointValueCache extends PointValueCache {
     private final DataPointVO dataPoint;
-    private final DataSourceVO<?> dataSource;
+    private final DataSourceVO dataSource;
     private static final EnhancedPointValueDao enhancedDao = (EnhancedPointValueDao)PointValueCache.dao; //See PointValueCache.dao
 
-    public EnhancedPointValueCache(DataPointVO dataPoint, DataSourceVO<?> dataSource, int defaultSize, List<PointValueTime> cache) {
+    public EnhancedPointValueCache(DataPointVO dataPoint, DataSourceVO dataSource, int defaultSize, List<PointValueTime> cache) {
         super(dataPoint.getId(), defaultSize, cache);
         this.dataPoint = dataPoint;
         this.dataSource = dataSource;

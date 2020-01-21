@@ -14,31 +14,31 @@ import com.serotonin.m2m2.vo.DataPointVO;
  * @author Terry Packer
  *
  */
-public class PointChangeDetectorVO extends AbstractPointEventDetectorVO<PointChangeDetectorVO>{
+public class PointChangeDetectorVO extends AbstractPointEventDetectorVO {
 
-	private static final long serialVersionUID = 1L;
-	
-	public PointChangeDetectorVO(DataPointVO vo) {
-		super(vo, new int[] {
+    private static final long serialVersionUID = 1L;
+
+    public PointChangeDetectorVO(DataPointVO vo) {
+        super(vo, new int[] {
                 DataTypes.BINARY,
                 DataTypes.MULTISTATE,
                 DataTypes.NUMERIC,
                 DataTypes.ALPHANUMERIC });
-	}
+    }
 
-	@Override
-	public AbstractEventDetectorRT<PointChangeDetectorVO> createRuntime() {
-		return new PointChangeDetectorRT(this);
-	}
+    @Override
+    public AbstractEventDetectorRT<PointChangeDetectorVO> createRuntime() {
+        return new PointChangeDetectorRT(this);
+    }
 
-	@Override
-	protected TranslatableMessage getConfigurationDescription() {
-		return new TranslatableMessage("event.detectorVo.change");
-	}
-	
-	@Override
+    @Override
+    protected TranslatableMessage getConfigurationDescription() {
+        return new TranslatableMessage("event.detectorVo.change");
+    }
+
+    @Override
     public boolean isRtnApplicable() {
-    	return false;
+        return false;
     }
 
 }

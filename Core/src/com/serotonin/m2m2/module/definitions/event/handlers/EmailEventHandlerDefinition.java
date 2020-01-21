@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2016 Infinite Automation Software. All rights reserved.
- * 
+ *
  * @author Terry Packer
  */
 package com.serotonin.m2m2.module.definitions.event.handlers;
@@ -20,7 +20,6 @@ import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.script.ScriptError;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -37,10 +36,10 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     public static final String TYPE_NAME = "EMAIL";
     public static final String DESC_KEY = "eventHandlers.type.email";
     public static final int EMAIL_SCRIPT_TYPE = 2;
-    
+
     @Autowired
     PermissionService service;
-    
+
     @Override
     public String getEventHandlerTypeName() {
         return TYPE_NAME;
@@ -57,8 +56,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     }
 
     @Override
-    public void saveRelationalData(AbstractEventHandlerVO<?> vo, boolean insert) {
-        EmailEventHandlerVO eh = (EmailEventHandlerVO) vo;
+    public void saveRelationalData(EmailEventHandlerVO eh, boolean insert) {
         if (eh.getScriptRoles() != null) {
             RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getRoles(), eh,
                     PermissionService.SCRIPT, insert);
@@ -66,26 +64,25 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     }
 
     @Override
-    public void loadRelationalData(AbstractEventHandlerVO<?> vo) {
-        EmailEventHandlerVO eh = (EmailEventHandlerVO) vo;
+    public void loadRelationalData(EmailEventHandlerVO eh) {
         eh.setScriptRoles(new ScriptPermissions(
                 RoleDao.getInstance().getRoles(eh, PermissionService.SCRIPT)));
     }
-    
+
     @Override
-    public void deleteRelationalData(AbstractEventHandlerVO<?> vo) {
+    public void deleteRelationalData(EmailEventHandlerVO vo) {
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SCRIPT);
     }
-    
+
     @Override
     public void validate(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
         if(vo.getScriptRoles() != null) {
             service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getRoles());
         }
-        
+
     }
-    
+
     @Override
     public void validate(ProcessResult result, EmailEventHandlerVO existing,
             EmailEventHandlerVO vo, PermissionHolder savingUser) {
@@ -98,7 +95,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
                     existingRoles, vo.getScriptRoles().getRoles());
         }
     }
-    
+
     private void commonValidation(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
         if(vo.getActiveRecipients() != null) {
             int pos = 0;
@@ -107,7 +104,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
                 pos++;
             }
         }
-        
+
         if (vo.isSendEscalation()) {
             if (vo.getEscalationDelay() <= 0)
                 result.addContextualMessage("escalationDelay", "eventHandlers.escalDelayError");
@@ -123,7 +120,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
         } else if(vo.isRepeatEscalations()) {
             vo.setRepeatEscalations(false);
         }
-        
+
         if(StringUtils.isNotEmpty(vo.getCustomTemplate())) {
             try {
                 new Template("customTemplate", new StringReader(vo.getCustomTemplate()), Common.freemarkerConfiguration);
@@ -131,7 +128,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
                 result.addContextualMessage("customTemplate", "common.default", e.getMessage());
             }
         }
-        
+
         if(vo.getAdditionalContext() != null)
             validateScriptContext(vo.getAdditionalContext(), result);
         else {

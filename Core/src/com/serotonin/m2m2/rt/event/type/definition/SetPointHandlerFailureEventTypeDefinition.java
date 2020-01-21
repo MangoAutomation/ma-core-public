@@ -27,7 +27,7 @@ public class SetPointHandlerFailureEventTypeDefinition extends SystemEventTypeDe
 
     @Override
     public String getTypeName() {
-       return SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE;
+        return SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE;
     }
 
     @Override
@@ -49,15 +49,15 @@ public class SetPointHandlerFailureEventTypeDefinition extends SystemEventTypeDe
     public boolean supportsReferenceId2() {
         return false;
     }
-    
+
     @Override
     public List<EventTypeVO> generatePossibleEventTypesWithReferenceId1(PermissionHolder user,
             String subtype) {
         if(StringUtils.equals(subtype, SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE)) {
             EventTypeVO type = SystemEventType.getEventType(SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE);
             List<EventTypeVO> types = new ArrayList<EventTypeVO>();
-            List<AbstractEventHandlerVO<?>> handlers = EventHandlerDao.getInstance().getEventHandlersByType(SetPointEventHandlerDefinition.TYPE_NAME);
-            for(AbstractEventHandlerVO<?> handler : handlers) {
+            List<AbstractEventHandlerVO> handlers = EventHandlerDao.getInstance().getEventHandlersByType(SetPointEventHandlerDefinition.TYPE_NAME);
+            for(AbstractEventHandlerVO handler : handlers) {
                 types.add(new EventTypeVO(new SystemEventType(SystemEventType.TYPE_SET_POINT_HANDLER_FAILURE, handler.getId()),
                         new TranslatableMessage("event.system.setPointFailureName", handler.getName()),
                         type.getAlarmLevel()

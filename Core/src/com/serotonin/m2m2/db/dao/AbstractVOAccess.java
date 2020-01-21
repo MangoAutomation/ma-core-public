@@ -11,12 +11,12 @@ import com.serotonin.m2m2.vo.AbstractVO;
 /**
  * Interface to outline the DAO access methods for Abstract VOs and aid in mocks for testing.
  *
- * TODO Mango 4.0 Would really like the Generics to be T extends AbstractVO<T>
+ * TODO Mango 4.0 Would really like the Generics to be T extends AbstractVO
  *
  * @author Terry Packer
  *
  */
-public interface AbstractVOAccess<T extends AbstractVO<?>, TABLE extends AbstractTableDefinition> extends AbstractBasicVOAccess<T, TABLE> {
+public interface AbstractVOAccess<T extends AbstractVO, TABLE extends AbstractTableDefinition> extends AbstractBasicVOAccess<T, TABLE> {
 
     /**
      * Generates a unique XID

@@ -162,7 +162,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
 
     @Override
     MailingList updateVO(MailingList existing) {
-        MailingList updated = existing.copy();
+        MailingList updated = (MailingList) existing.copy();
         updated.setName("updated");
         updated.setXid("NEW_XID");
         updated.setReadRoles(Collections.singleton(readRole));

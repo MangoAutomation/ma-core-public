@@ -15,7 +15,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
  * @author Terry Packer
  *
  */
-public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventDetectorVO<T>> extends AbstractEventDetectorVO<T> {
+public abstract class AbstractPointEventDetectorVO extends AbstractEventDetectorVO {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,4 +58,5 @@ public abstract class AbstractPointEventDetectorVO<T extends AbstractPointEventD
         return new EventTypeVO(new DataPointEventType(sourceId, id), getDescription(),
                 alarmLevel);
     }
+
 }

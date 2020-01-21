@@ -207,7 +207,7 @@ public class PermissionService {
      * @param permissionType
      * @return
      */
-    public boolean hasPermission(PermissionHolder holder, AbstractVO<?> vo, String permissionType) {
+    public boolean hasPermission(PermissionHolder holder, AbstractVO vo, String permissionType) {
         Set<Role> roles = roleDao.getRoles(vo, permissionType);
         return hasAnyRole(holder, roles);
     }
@@ -256,7 +256,7 @@ public class PermissionService {
      * @param ds
      * @throws PermissionException
      */
-    public void ensureDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
+    public void ensureDataSourcePermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
         if (!hasDataSourcePermission(user, ds))
             throw new PermissionException(new TranslatableMessage("permission.exception.editDataSource", user.getPermissionHolderName()), user);
     }
@@ -268,7 +268,7 @@ public class PermissionService {
      * @return
      * @throws PermissionException
      */
-    public boolean hasDataSourcePermission(PermissionHolder user, DataSourceVO<?> ds) throws PermissionException {
+    public boolean hasDataSourcePermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
         return hasAnyRole(user, ds.getEditRoles());
     }
 

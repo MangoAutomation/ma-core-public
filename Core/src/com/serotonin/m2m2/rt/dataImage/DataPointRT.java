@@ -56,7 +56,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     // Configuration data.
     private final DataPointVO vo;
-    private final DataSourceVO<?> dsVo;
+    private final DataSourceVO dsVo;
     private final PointLocatorRT<?> pointLocator;
 
     // Runtime data.
@@ -74,7 +74,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     //Simulation Timer, or any timer implementation
     private AbstractTimer timer;
-    
+
     /**
      * This is the value around which tolerance decisions will be made when determining whether to log numeric values.
      */
@@ -86,7 +86,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param dsVo
      * @param initialCache
      */
-    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache) {
+    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache) {
         this.vo = vo;
         this.dsVo = dsVo;
         this.pointLocator = pointLocator;
@@ -96,7 +96,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             valueCache = new PointValueCache(vo.getId(), vo.getDefaultCacheSize(), initialCache);
         }
         if(vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE)
-        	averagingValues = new ArrayList<IValueTime>();
+            averagingValues = new ArrayList<IValueTime>();
     }
 
     /**
@@ -107,12 +107,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param initial cache
      * @param timer
      */
-    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO<?> dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
+    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
         this(vo, pointLocator, dsVo, initialCache);
         this.timer = timer;
     }
-    
-	//
+
+    //
     //
     // Single value
     //
@@ -138,29 +138,29 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     @Override
     public PointValueTime getPointValueAfter(long time) {
-    	
-    	//Get the value stored in the db
-    	PointValueTime after = Common.databaseProxy.newPointValueDao().getPointValueAfter(vo.getId(), time);
-        
-    	//Check it with the cache
-    	if(after != null){
-    		List<PointValueTime> pvts = valueCache.getCacheContents();
-    		//Check to see if we have a value closer in cache
-	        for (int i = pvts.size() - 1; i >= 0; i--) {
-	            PointValueTime pvt = pvts.get(i);
-	            //Must be after 'time' and before 'after'
-	            if (pvt.getTime() < after.getTime() && pvt.getTime() > time)
-	                return pvt;
-	        }
-    	}else{
-    		List<PointValueTime> pvts = valueCache.getCacheContents();
-	        for (int i = pvts.size() - 1; i >= 0; i--) {
-	            PointValueTime pvt = pvts.get(i);
-	            if (pvt.getTime() >= time)
-	                return pvt;
-	        }
-    	}
-    	
+
+        //Get the value stored in the db
+        PointValueTime after = Common.databaseProxy.newPointValueDao().getPointValueAfter(vo.getId(), time);
+
+        //Check it with the cache
+        if(after != null){
+            List<PointValueTime> pvts = valueCache.getCacheContents();
+            //Check to see if we have a value closer in cache
+            for (int i = pvts.size() - 1; i >= 0; i--) {
+                PointValueTime pvt = pvts.get(i);
+                //Must be after 'time' and before 'after'
+                if (pvt.getTime() < after.getTime() && pvt.getTime() > time)
+                    return pvt;
+            }
+        }else{
+            List<PointValueTime> pvts = valueCache.getCacheContents();
+            for (int i = pvts.size() - 1; i >= 0; i--) {
+                PointValueTime pvt = pvts.get(i);
+                if (pvt.getTime() >= time)
+                    return pvt;
+            }
+        }
+
         return after;
     }
 
@@ -172,7 +172,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     public List<PointValueTime> getLatestPointValues(int limit) {
         return valueCache.getLatestPointValues(limit);
     }
-    
+
     @Override
     public List<PointValueTime> getPointValues(long since) {
         List<PointValueTime> result = Common.databaseProxy.newPointValueDao().getPointValues(vo.getId(), since);
@@ -206,7 +206,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     /**
      * This method should only be called by the data source. Other types of point setting should include a set point
      * source object so that the annotation can be logged.
-     * 
+     *
      * @param newValue
      */
     @Override
@@ -218,15 +218,15 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     public void updatePointValue(PointValueTime newValue, boolean async) {
         savePointValue(newValue, null, async, true);
     }
-    
+
 
     public void updatePointValue(PointValueTime newValue, boolean async, boolean saveToDatabase) {
         savePointValue(newValue, null, async, saveToDatabase);
     }
-    
+
     /**
      * Use this method to update a data point for reasons other than just data source update.
-     * 
+     *
      * @param newValue
      *            the value to set
      * @param source
@@ -259,8 +259,8 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             double newd = newValue.getDoubleValue();
             //Discard if NaN
             if(Double.isNaN(newd))
-            	return;
-            
+                return;
+
             if (newd < vo.getDiscardLowLimit() || newd > vo.getDiscardHighLimit())
                 // Discard the value
                 return;
@@ -280,61 +280,61 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         // ... or even saving in the cache.
         boolean saveValue = true;
         switch (vo.getLoggingType()) {
-        case DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL:
-        case DataPointVO.LoggingTypes.ON_CHANGE:
-            if (pointValue == null)
+            case DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL:
+            case DataPointVO.LoggingTypes.ON_CHANGE:
+                if (pointValue == null)
+                    logValue = true;
+                else if (backdated)
+                    // Backdated. Ignore it
+                    logValue = false;
+                else {
+                    if (newValue.getValue() instanceof NumericValue) {
+                        // Get the new double
+                        double newd = newValue.getDoubleValue();
+
+                        // See if the new value is outside of the tolerance.
+                        double diff = toleranceOrigin - newd;
+                        if (diff < 0)
+                            diff = -diff;
+
+                        if (diff > vo.getTolerance()) {
+                            toleranceOrigin = newd;
+                            logValue = true;
+                        }
+                        else
+                            logValue = false;
+                    } else if(newValue.getValue() instanceof ImageValue) {
+                        logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.getValue()).getDigest());
+                    } else
+                        logValue = !Objects.equals(newValue.getValue(), pointValue.getValue());
+                }
+
+                saveValue = logValue;
+                break;
+            case DataPointVO.LoggingTypes.ALL:
                 logValue = true;
-            else if (backdated)
-                // Backdated. Ignore it
+                break;
+            case DataPointVO.LoggingTypes.ON_TS_CHANGE:
+                if (pointValue == null)
+                    logValue = true;
+                else if (backdated)
+                    // Backdated. Ignore it
+                    logValue = false;
+                else
+                    logValue = newValue.getTime() != pointValue.getTime();
+
+                saveValue = logValue;
+                break;
+            case DataPointVO.LoggingTypes.INTERVAL:
+                if (!backdated)
+                    intervalSave(newValue);
+            default:
                 logValue = false;
-            else {
-                if (newValue.getValue() instanceof NumericValue) {
-                    // Get the new double
-                    double newd = newValue.getDoubleValue();
-
-                    // See if the new value is outside of the tolerance.
-                    double diff = toleranceOrigin - newd;
-                    if (diff < 0)
-                        diff = -diff;
-
-                    if (diff > vo.getTolerance()) {
-                        toleranceOrigin = newd;
-                        logValue = true;
-                    }
-                    else
-                        logValue = false;
-                } else if(newValue.getValue() instanceof ImageValue) {
-                    logValue = !((ImageValue)newValue.getValue()).equalDigests(((ImageValue)pointValue.getValue()).getDigest());
-                } else
-                    logValue = !Objects.equals(newValue.getValue(), pointValue.getValue());
-            }
-
-            saveValue = logValue;
-            break;
-        case DataPointVO.LoggingTypes.ALL:
-            logValue = true;
-            break;
-        case DataPointVO.LoggingTypes.ON_TS_CHANGE:
-            if (pointValue == null)
-                logValue = true;
-            else if (backdated)
-                // Backdated. Ignore it
-                logValue = false;
-            else
-                logValue = newValue.getTime() != pointValue.getTime();
-
-            saveValue = logValue;
-            break;
-        case DataPointVO.LoggingTypes.INTERVAL:
-            if (!backdated)
-                intervalSave(newValue);
-        default:
-            logValue = false;
         }
-        
+
         if(!saveToDatabase)
-        	logValue = false;
-        
+            logValue = false;
+
         if (saveValue) {
             valueCache.savePointValue(newValue, source, logValue, async);
             if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)
@@ -347,7 +347,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             newValue = new AnnotatedPointValueTime(newValue.getValue(),
                     newValue.getTime(), source.getSetPointSourceMessage());
         }
-        
+
         // Ignore historical values.
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
@@ -363,16 +363,16 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         ON_CURRENT_VALUE_UPDATE,
         NEVER;
     }
-    
+
     /**
      * This method is called by modules that have the potential to generate a rapid flow of values and backdates
      *  for the purpose of circumventing the update method's various controls on logging behaviors. It can generate events
      *  if desired.
-     * 
+     *
      * @param newValue - the new value
      * @param source - for annotation
      * @param logValue - should the value be logged?
-     * @param async - should this be done asynchronously i.e. queued in a batch 
+     * @param async - should this be done asynchronously i.e. queued in a batch
      * @param fireEvents - how to fire events, 0=never, 1=if new value's ts is >= pointValue's ts, 2=always
      */
     public void savePointValueDirectToCache(PointValueTime newValue, SetPointSource source, boolean logValue,
@@ -395,7 +395,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             //Discard if NaN
             if(Double.isNaN(newd))
                 return;
-            
+
             if (newd < vo.getDiscardLowLimit() || newd > vo.getDiscardHighLimit())
                 // Discard the value
                 return;
@@ -407,7 +407,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     + ", type=" + vo.getPointLocator().getDataTypeId() + ", ts=" + newValue.getTime()));
             return;
         }
-        
+
         // add annotation to newValue before firing events so event detectors can
         // fetch the annotation
         if (source != null) {
@@ -416,7 +416,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         }
 
         valueCache.savePointValue(newValue, source, logValue, async);
-        
+
         //Update our value if it is newer
         if (pointValue == null || newValue.getTime() >= pointValue.getTime()) {
             PointValueTime oldValue = pointValue;
@@ -432,44 +432,44 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     // / Interval logging
     //
     /**
-     * 
+     *
      */
     public void initializeIntervalLogging(long nextPollTime, boolean quantize) {
         if(vo.getLoggingType() != DataPointVO.LoggingTypes.INTERVAL && vo.getLoggingType() != DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL)
             return;
-        
+
         synchronized (intervalLoggingLock) {
-            
+
             long loggingPeriodMillis = Common.getMillis(vo.getIntervalLoggingPeriodType(), vo.getIntervalLoggingPeriod());
             long delay = loggingPeriodMillis;
             if(quantize){
-                    // Quantize the start.
-                    //Compute delay only if we are offset from the next poll time
-                    long nextPollOffset = (nextPollTime % loggingPeriodMillis);
-                    if(nextPollOffset != 0)
-                        delay = loggingPeriodMillis - nextPollOffset;
-                    LOG.debug("First interval log should be at: " + (nextPollTime + delay));
+                // Quantize the start.
+                //Compute delay only if we are offset from the next poll time
+                long nextPollOffset = (nextPollTime % loggingPeriodMillis);
+                if(nextPollOffset != 0)
+                    delay = loggingPeriodMillis - nextPollOffset;
+                LOG.debug("First interval log should be at: " + (nextPollTime + delay));
             }
             Date startTime = new Date(nextPollTime + delay);
-            
+
             if (vo.getLoggingType() == DataPointVO.LoggingTypes.INTERVAL) {
                 intervalValue = pointValue;
                 if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
                     intervalStartTime = timer == null ? Common.timer.currentTimeMillis() : timer.currentTimeMillis();
                     if(averagingValues.size() > 0) {
-                            AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, null, averagingValues);
-                            PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
+                        AnalogStatistics stats = new AnalogStatistics(intervalStartTime-loggingPeriodMillis, intervalStartTime, null, averagingValues);
+                        PointValueTime newValue = new PointValueTime(stats.getAverage(), intervalStartTime);
                         valueCache.logPointValueAsync(newValue, null);
                         //Fire logged Events
                         fireEvents(null, newValue, null, false, false, true, false, false);
-                            averagingValues.clear();
+                        averagingValues.clear();
                     }
                 }
                 //Are we using a custom timer?
                 if(this.timer == null)
-    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(startTime, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
+                    intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(startTime, loggingPeriodMillis), createIntervalLoggingTimeoutClient());
                 else
-    	            intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(startTime, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
+                    intervalLoggingTask = new TimeoutTask(new FixedRateTrigger(startTime, loggingPeriodMillis), createIntervalLoggingTimeoutClient(), this.timer);
             } else if(vo.getLoggingType() == DataPointVO.LoggingTypes.ON_CHANGE_INTERVAL) {
                 if(this.timer == null)
                     intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(startTime), createIntervalLoggingTimeoutClient());
@@ -478,12 +478,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             }
         }
     }
-    
+
     private void rescheduleChangeInterval(long delay) {
         synchronized(intervalLoggingLock) {
             if(intervalLoggingTask != null)
                 intervalLoggingTask.cancel();
-            
+
             if(intervalStartTime != Long.MIN_VALUE) {
                 if(this.timer == null)
                     intervalLoggingTask = new TimeoutTask(new OneTimeTrigger(delay), createIntervalLoggingTimeoutClient());
@@ -492,34 +492,34 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             }
         }
     }
-    
+
     private TimeoutClient createIntervalLoggingTimeoutClient(){
         return  new TimeoutClient(){
 
-			@Override
-			public void scheduleTimeout(long fireTime) {
-				scheduleTimeoutImpl(fireTime);
-			}
+            @Override
+            public void scheduleTimeout(long fireTime) {
+                scheduleTimeoutImpl(fireTime);
+            }
 
-			@Override
-			public String getTaskId() {
-				return prefix + vo.getXid();
-			}
-			
-			
-			@Override
-			public String getThreadName() {
-				return "Interval logging: " + vo.getXid();
-			}
-        	
+            @Override
+            public String getTaskId() {
+                return prefix + vo.getXid();
+            }
+
+
+            @Override
+            public String getThreadName() {
+                return "Interval logging: " + vo.getXid();
+            }
+
         };
     }
 
     private void terminateIntervalLogging() {
         synchronized (intervalLoggingLock) {
-        	//Always check because we may have been an interval logging point and we need to stop this.
+            //Always check because we may have been an interval logging point and we need to stop this.
             if(intervalLoggingTask != null) //Bug from UI where we are switching types of a running point
-            	intervalLoggingTask.cancel();
+                intervalLoggingTask.cancel();
             intervalStartTime = Long.MIN_VALUE; //Signal to cancel ON_CHANGE_INTERVAL rescheduling
         }
     }
@@ -544,13 +544,13 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             }
             else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE){
                 //Using the averaging values, ensure we keep the most recent values and pop off the old ones
-            	if(vo.isOverrideIntervalLoggingSamples()){
-	                while(averagingValues.size() >= vo.getIntervalLoggingSampleWindowSize()){ 
-	                	averagingValues.remove(0); //Size -1 for the next item we are going to add
-	                }
-            	}
-            	
-            	averagingValues.add(pvt);
+                if(vo.isOverrideIntervalLoggingSamples()){
+                    while(averagingValues.size() >= vo.getIntervalLoggingSampleWindowSize()){
+                        averagingValues.remove(0); //Size -1 for the next item we are going to add
+                    }
+                }
+
+                averagingValues.add(pvt);
             }
         }
     }
@@ -567,12 +567,12 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     intervalValue = pointValue;
                 }
                 else if (vo.getIntervalLoggingType() == DataPointVO.IntervalLoggingTypes.AVERAGE) {
-                	
-                	//We won't allow logging values until we have a full average window
-                	//If we don't have enough averaging values then we will bail and wait for more
-                	if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
-                		return;
-                    
+
+                    //We won't allow logging values until we have a full average window
+                    //If we don't have enough averaging values then we will bail and wait for more
+                    if(vo.isOverrideIntervalLoggingSamples() && (averagingValues.size() != vo.getIntervalLoggingSampleWindowSize()))
+                        return;
+
                     if(vo.getPointLocator().getDataTypeId() == DataTypes.MULTISTATE) {
                         StartsAndRuntimeList stats = new StartsAndRuntimeList(intervalStartTime, fireTime, intervalValue, averagingValues);
                         double maxProportion = -1;
@@ -601,16 +601,16 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     //Compute the center point of our average data, starting by finding where our period started
                     long sampleWindowStartTime;
                     if(vo.isOverrideIntervalLoggingSamples())
-                    	sampleWindowStartTime = averagingValues.get(0).getTime();
+                        sampleWindowStartTime = averagingValues.get(0).getTime();
                     else
-                    	sampleWindowStartTime = intervalStartTime; 
-                    
+                        sampleWindowStartTime = intervalStartTime;
+
                     intervalStartTime = fireTime;
                     fireTime = sampleWindowStartTime + (fireTime - sampleWindowStartTime)/2L; //Fix to simulate center tapped filter (un-shift the average)
                     intervalValue = pointValue;
-                    
+
                     if(!vo.isOverrideIntervalLoggingSamples())
-                    	averagingValues.clear();
+                        averagingValues.clear();
                 }
                 else
                     throw new ShouldNeverHappenException("Unknown interval logging type: " + vo.getIntervalLoggingType());
@@ -633,14 +633,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                 value = null;
 
             if (value != null){
-            	PointValueTime newValue = new PointValueTime(value, fireTime);
+                PointValueTime newValue = new PointValueTime(value, fireTime);
                 valueCache.logPointValueAsync(newValue, null);
                 //Fire logged Events
                 fireEvents(null, newValue, null, false, false, true, false, false);
             }
         }
     }
-	
+
     //
     // / Purging
     //
@@ -649,7 +649,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE)
             pointValue = valueCache.getLatestPointValue();
     }
-    
+
     public void resetValues(long before) {
         valueCache.reset(before);
         if (vo.getLoggingType() != DataPointVO.LoggingTypes.NONE)
@@ -679,19 +679,19 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         return vo.getDataSourceId();
     }
 
-    public DataSourceVO<?> getDataSourceVO() {
+    public DataSourceVO getDataSourceVO() {
         return dsVo;
     }
-    
+
     @Override
     public DataPointVO getVO() {
         return vo;
     }
 
     public List<PointEventDetectorRT<?>> getEventDetectors(){
-    	return this.detectors;
+        return this.detectors;
     }
-    
+
     @Override
     public int getDataTypeId() {
         return vo.getPointLocator().getDataTypeId();
@@ -745,18 +745,18 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     // / Listeners
     // /
     //
-    protected void fireEvents(PointValueTime oldValue, PointValueTime newValue, Map<String, Object> attributes, boolean set, 
+    protected void fireEvents(PointValueTime oldValue, PointValueTime newValue, Map<String, Object> attributes, boolean set,
             boolean backdate, boolean logged, boolean updated, boolean attributesChanged) {
         DataPointListener l = Common.runtimeManager.getDataPointListeners(vo.getId());
         if (l != null)
-            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue, 
+            Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(vo.getXid(), l, oldValue, newValue,
                     attributes, set, backdate, logged, updated, attributesChanged));
     }
 
     class EventNotifyWorkItem implements WorkItem {
         private static final String descriptionPrefix = "Point event for: ";
-    	private static final String prefix = "EN-";
-    	private final String sourceXid;
+        private static final String prefix = "EN-";
+        private final String sourceXid;
         private final DataPointListener listener;
         private final PointValueTime oldValue;
         private final PointValueTime newValue;
@@ -788,22 +788,22 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
                     listener.attributeChanged(attributes);
                     return;
                 }
-    
+
                 if (backdate)
                     listener.pointBackdated(newValue);
                 else if (updated) {
                     // Updated
                     listener.pointUpdated(newValue);
-    
+
                     // Fire if the point has changed.
                     if (!PointValueTime.equalValues(oldValue, newValue))
                         listener.pointChanged(oldValue, newValue);
-    
+
                     // Fire if the point was set.
                     if (set)
                         listener.pointSet(oldValue, newValue);
                 }
-    
+
                 // Was this value actually logged
                 if (logged)
                     listener.pointLogged(newValue);
@@ -819,26 +819,26 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             return WorkItem.PRIORITY_MEDIUM;
         }
 
-		@Override
-		public String getDescription() {
-			return descriptionPrefix + sourceXid;
-		}
+        @Override
+        public String getDescription() {
+            return descriptionPrefix + sourceXid;
+        }
 
-		@Override
-		public String getTaskId() {
-			//So there is one task for each listener
-			return prefix + sourceXid + "-" + listener.hashCode();
-		}
+        @Override
+        public String getTaskId() {
+            //So there is one task for each listener
+            return prefix + sourceXid + "-" + listener.hashCode();
+        }
 
-		@Override
-		public int getQueueSize() {
-			return Task.UNLIMITED_QUEUE_SIZE;
-		}
+        @Override
+        public int getQueueSize() {
+            return Task.UNLIMITED_QUEUE_SIZE;
+        }
 
-		@Override
-		public void rejected(RejectedTaskReason reason) {
-			//No special handling, tracking/logging is handled by the WorkItemRunnable
-		}
+        @Override
+        public void rejected(RejectedTaskReason reason) {
+            //No special handling, tracking/logging is handled by the WorkItemRunnable
+        }
 
     }
 
@@ -849,13 +849,14 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
     /*
      * For future use if we want to allow data points to startup
      *  in safe mode, will require changes to RuntimeManager
-     * 
+     *
      */
+    @Override
     public void initialize(boolean safe){
-    	if(!safe)
-    		initialize();
+        if(!safe)
+            initialize();
     }
-    
+
     public void initialize() {
         // Get the latest value for the point from the database.
         pointValue = valueCache.getLatestPointValue();
@@ -865,7 +866,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             toleranceOrigin = pointValue.getDoubleValue();
 
         // Add point event listeners
-        for (AbstractPointEventDetectorVO<?> ped : vo.getEventDetectors()) {
+        for (AbstractPointEventDetectorVO ped : vo.getEventDetectors()) {
             if (detectors == null)
                 detectors = new ArrayList<PointEventDetectorRT<?>>();
 
@@ -912,32 +913,32 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
     /**
      * Update the value in the cache with the option to log to DB.
-     * 
+     *
      * This only updates an existing value
-     * 
+     *
      * Caution, this bypasses the Logging Settings
-     * 
+     *
      * @param newValue
      * @param source
      * @param logValue
      * @param async
      */
-	public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
+    public void updatePointValueInCache(PointValueTime newValue, SetPointSource source, boolean logValue, boolean async) {
         valueCache.updatePointValue(newValue, source, logValue, async);
-	}
-	
-	/**
-	 * Get a copy of the current cache
-	 * @return
-	 */
-	public List<PointValueTime> getCacheCopy(){
-		List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
-		for(PointValueTime pvt : this.valueCache.getCacheContents())
-			copy.add(pvt);
-		return copy;
-	}
-	
-	/**
+    }
+
+    /**
+     * Get a copy of the current cache
+     * @return
+     */
+    public List<PointValueTime> getCacheCopy(){
+        List<PointValueTime> copy = new ArrayList<PointValueTime>(this.valueCache.getCacheContents().size());
+        for(PointValueTime pvt : this.valueCache.getCacheContents())
+            copy.add(pvt);
+        return copy;
+    }
+
+    /**
      * Get a copy of the current cache, size limited
      * @return
      */
@@ -953,9 +954,9 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
         return copy;
     }
 
-	@Override
-	public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
-		return new DataPointWrapper(vo, rtWrapper);
-	}
+    @Override
+    public DataPointWrapper getDataPointWrapper(AbstractPointWrapper rtWrapper) {
+        return new DataPointWrapper(vo, rtWrapper);
+    }
 
 }

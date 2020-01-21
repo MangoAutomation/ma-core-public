@@ -21,69 +21,69 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Provides modules with the ability to register additional event handlers
- * 
+ *
  * @author Terry Packer
  *
  */
-public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>> extends ModuleElementDefinition{
+public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> extends ModuleElementDefinition{
 
     /**
      * An internal identifier for this type of Event Handler. Must be unique within an MA instance, and is recommended
      * to have the form "&lt;moduleType&gt;.&lt;modelName&gt;" so as to be unique across all modules.
-     * 
+     *
      * @return the model type name.
      */
     abstract public String getEventHandlerTypeName();
-	
+
     /**
      * A reference to a human readable and translatable brief description of the handler. Key reference values in
      * i18n.properties files. Descriptions are used in drop down select boxes, and so should be as brief as possible.
-     * 
+     *
      * @return the reference key to the handler's short description.
      */
     abstract public String getDescriptionKey();
-    
+
     /**
      * Create and return an instance of the event handler
-     * 
+     *
      * @return a new instance of the event handler.
      */
     abstract protected T createEventHandlerVO();
-    
+
     /**
      * Save any relational data to other tables
      * @param vo
      * @param insert (new VO or updating)
      */
-    public void saveRelationalData(AbstractEventHandlerVO<?> vo, boolean insert) {
-        
+    public void saveRelationalData(T vo, boolean insert) {
+
     }
 
     /**
      * Load the relational data
      * @param vo
      */
-    public void loadRelationalData(AbstractEventHandlerVO<?> vo) {
-        
+    public void loadRelationalData(T vo) {
+
     }
-    
+
     /**
      * Delete any relational data that is no ON DELETE CASCADE
      * @param vo
      */
-    public void deleteRelationalData(AbstractEventHandlerVO<?> vo) {
-        
+    public void deleteRelationalData(T vo) {
+
     }
-    
+
     /**
-     * Handle a role mapping being deleted 
+     * Handle a role mapping being deleted
      * @param vo
      * @param event
      */
-    public void handleRoleDeletedEvent(AbstractEventHandlerVO<?> vo, RoleDeletedDaoEvent event) {
-        
+    public void handleRoleDeletedEvent(T vo, RoleDeletedDaoEvent event) {
+
     }
-    
+
     /**
      * Validate a new event handler
      * @param response
@@ -91,7 +91,7 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
      * @param user
      */
     abstract public void validate(ProcessResult response, T ds, PermissionHolder user);
-    
+
     /**
      * Validate an event handler that is about to be updated
      *  override as necessary
@@ -103,7 +103,7 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
     public void validate(ProcessResult response, T existing, T ds, PermissionHolder user) {
         validate(response, ds, user);
     }
-    
+
     /**
      * Used by MA core code to create a new event handler instances as required. Should not be used by client code.
      */
@@ -116,12 +116,12 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
 
     protected void validateScriptContext(List<IntStringPair> additionalContext, ProcessResult response) {
         List<String> varNameSpace = new ArrayList<String>();
-        
+
         int pos = 0;
         for(IntStringPair cxt : additionalContext) {
             if(DataPointDao.getInstance().getXidById(cxt.getKey()) == null)
                 response.addContextualMessage("scriptContext[" + pos + "].id", "event.script.contextPointMissing", cxt.getValue(), cxt.getKey());
-            
+
             String varName = cxt.getValue();
             if (StringUtils.isBlank(varName)) {
                 response.addContextualMessage("scriptContext[" + pos + "].varaibleName", "validate.allVarNames");
@@ -142,7 +142,7 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
             pos++;
         }
     }
-    
+
     protected void validateRecipient(String prefix, RecipientListEntryBean b, ProcessResult response) {
         switch(b.getRecipientType()) {
             case EmailRecipient.TYPE_MAILING_LIST:
@@ -156,7 +156,7 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO<T>
             case EmailRecipient.TYPE_ADDRESS:
                 //TODO Validate email format?
                 break;
-        }        
+        }
     }
-    
+
 }

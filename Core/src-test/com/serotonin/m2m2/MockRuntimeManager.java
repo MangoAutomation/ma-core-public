@@ -92,7 +92,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public DataSourceRT<? extends DataSourceVO<?>> getRunningDataSource(int dataSourceId) {
+    public DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) {
 
         return null;
     }
@@ -109,7 +109,7 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public DataSourceVO<?> getDataSource(int dataSourceId) {
+    public DataSourceVO getDataSource(int dataSourceId) {
         if(useDatabase)
             return DataSourceDao.getInstance().get(dataSourceId);
         else 
@@ -123,21 +123,21 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void insertDataSource(DataSourceVO<?> vo) {
+    public void insertDataSource(DataSourceVO vo) {
         if(useDatabase) {
             DataSourceDao.getInstance().insert(vo);
         }
     }
 
     @Override
-    public void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo) {
+    public void updateDataSource(DataSourceVO existing, DataSourceVO vo) {
         if(useDatabase) {
             DataSourceDao.getInstance().update(existing, vo);
         }
     }
 
     @Override
-    public boolean initializeDataSourceStartup(DataSourceVO<?> vo) {
+    public boolean initializeDataSourceStartup(DataSourceVO vo) {
 
         return false;
     }

@@ -21,19 +21,18 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
-public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends Importer {
-    
-    private final EventHandlerService<EH> service;
-    
-    public EventHandlerImporter(JsonObject json, EventHandlerService<EH> service) {
+public class EventHandlerImporter extends Importer {
+
+    private final EventHandlerService service;
+
+    public EventHandlerImporter(JsonObject json, EventHandlerService service) {
         super(json);
         this.service = service;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void importImpl() {
-        EH handler = null;
+        AbstractEventHandlerVO handler = null;
         String xid = json.getString("xid");
         if (StringUtils.isBlank(xid)) {
             xid = service.getDao().generateUniqueXid();
@@ -42,7 +41,7 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
                 handler = service.get(xid);
             }catch(NotFoundException e) {
                 //Nothing, done below
-            }          
+            }
         }
 
         if (handler == null) {
@@ -55,7 +54,7 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
                     addFailureMessage("emport.eventHandler.invalidType", xid, typeStr,
                             ModuleRegistry.getEventHandlerDefinitionTypes());
                 else {
-                    handler = (EH)def.baseCreateEventHandlerVO();
+                    handler = def.baseCreateEventHandlerVO();
                     handler.setXid(xid);
                 }
             }
@@ -66,11 +65,11 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
 
         JsonObject et = json.getJsonObject("eventType");
         JsonArray ets = json.getJsonArray("eventTypes");
-        
+
         if(handler != null) {
             try {
                 ctx.getReader().readInto(handler, json);
-                
+
                 Set<EventType> eventTypes;
                 if(handler.getEventTypes() == null) {
                     eventTypes = new HashSet<>();
@@ -85,10 +84,10 @@ public class EventHandlerImporter<EH extends AbstractEventHandlerVO<EH>> extends
                     while(iter.hasNext())
                         eventTypes.add(ctx.getReader().read(EventType.class, iter.next()));
                 }
-                
+
                 if(eventTypes.size() > 0)
                     handler.setEventTypes(new ArrayList<>(eventTypes));
-    
+
                 boolean isnew = handler.getId() == Common.NEW_ID;
                 if(isnew) {
                     service.insert(handler);

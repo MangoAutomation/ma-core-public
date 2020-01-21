@@ -22,31 +22,31 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 public class EventDetectorImporter extends Importer {
 
     private Map<String, DataPointVO> dataPointMap;
-    
-	public EventDetectorImporter(JsonObject json, Map<String, DataPointVO> dataPointMap) {
-		super(json);
-		this.dataPointMap = dataPointMap;
-	}
 
-	@Override
-	protected void importImpl() {
-		String dataPointXid = json.getString("dataPointXid");
-		DataPointVO dpvo;
-		//Everyone is in the same thread so no synchronization on dataPointMap required.
-		if(dataPointMap.containsKey(dataPointXid))
-		    dpvo = dataPointMap.get(dataPointXid);
-		else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.getInstance().getByXid(dataPointXid)) == null) {
-			addFailureMessage("emport.error.missingPoint", dataPointXid);
-			return;
-		} else {
-		    dataPointMap.put(dataPointXid, dpvo);
-		    //We're only going to use this to house event detectors imported in the eventDetectors object.
-		    dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
-		}
-		
-    	String typeStr = json.getString("type");
-    	if(typeStr == null)
-    		addFailureMessage("emport.error.ped.missingAttr", "type");
+    public EventDetectorImporter(JsonObject json, Map<String, DataPointVO> dataPointMap) {
+        super(json);
+        this.dataPointMap = dataPointMap;
+    }
+
+    @Override
+    protected void importImpl() {
+        String dataPointXid = json.getString("dataPointXid");
+        DataPointVO dpvo;
+        //Everyone is in the same thread so no synchronization on dataPointMap required.
+        if(dataPointMap.containsKey(dataPointXid))
+            dpvo = dataPointMap.get(dataPointXid);
+        else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.getInstance().getByXid(dataPointXid)) == null) {
+            addFailureMessage("emport.error.missingPoint", dataPointXid);
+            return;
+        } else {
+            dataPointMap.put(dataPointXid, dpvo);
+            //We're only going to use this to house event detectors imported in the eventDetectors object.
+            dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO>());
+        }
+
+        String typeStr = json.getString("type");
+        if(typeStr == null)
+            addFailureMessage("emport.error.ped.missingAttr", "type");
         PointEventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
         if (def == null) {
             addFailureMessage("emport.error.ped.invalid", "type", typeStr,
@@ -54,13 +54,13 @@ public class EventDetectorImporter extends Importer {
             return;
         }
 
-        AbstractEventDetectorVO<?> importing = def.baseCreateEventDetectorVO(dpvo);
+        AbstractEventDetectorVO importing = def.baseCreateEventDetectorVO(dpvo);
         importing.setDefinition(def);
-        
+
         JsonArray handlerXids = json.getJsonArray("handlers");
         if(handlerXids != null)
             for(int k = 0; k < handlerXids.size(); k+=1) {
-                AbstractEventHandlerVO<?> eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
+                AbstractEventHandlerVO eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
                 if(eh == null) {
                     addFailureMessage("emport.eventHandler.missing", handlerXids.getString(k));
                     return;
@@ -68,35 +68,35 @@ public class EventDetectorImporter extends Importer {
                     importing.addAddedEventHandler(eh);
                 }
             }
-        
+
         String xid = json.getString("xid");
 
         // Create a new one
         importing.setId(Common.NEW_ID);
         importing.setXid(xid);
-        AbstractPointEventDetectorVO<?> dped = (AbstractPointEventDetectorVO<?>)importing;
+        AbstractPointEventDetectorVO dped = (AbstractPointEventDetectorVO)importing;
         dpvo.getEventDetectors().add(dped);
-	
-		try {
-			ctx.getReader().readInto(importing, json);
-			
-//			try {
-//				if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
-//            		Common.runtimeManager.saveDataPoint(dpvo);
-//            		addSuccessMessage(isNew, "emport.eventDetector.prefix", xid);
-//            	}else{
-//            		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));
-//            	}
-//            } catch(LicenseViolatedException e) {
-//            	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
-//			}
-			
-		}
-		catch (TranslatableJsonException e) {
+
+        try {
+            ctx.getReader().readInto(importing, json);
+
+            //			try {
+            //				if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
+            //            		Common.runtimeManager.saveDataPoint(dpvo);
+            //            		addSuccessMessage(isNew, "emport.eventDetector.prefix", xid);
+            //            	}else{
+            //            		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));
+            //            	}
+            //            } catch(LicenseViolatedException e) {
+            //            	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
+            //			}
+
+        }
+        catch (TranslatableJsonException e) {
             addFailureMessage("emport.eventDetector.prefix", xid, e.getMsg());
         }
-		catch (JsonException e) {
-			addFailureMessage("emport.eventDetector.prefix", xid, getJsonExceptionMessage(e));
-		}
-	}
+        catch (JsonException e) {
+            addFailureMessage("emport.eventDetector.prefix", xid, getJsonExceptionMessage(e));
+        }
+    }
 }

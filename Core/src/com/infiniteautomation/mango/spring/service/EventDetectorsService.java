@@ -30,10 +30,10 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends AbstractVOService<T, EventDetectorTableDefinition, EventDetectorDao<T>>{
+public class EventDetectorsService extends AbstractVOService<AbstractEventDetectorVO, EventDetectorTableDefinition, EventDetectorDao>{
 
     @Autowired
-    public EventDetectorsService(EventDetectorDao<T> dao, PermissionService permissionService) {
+    public EventDetectorsService(EventDetectorDao dao, PermissionService permissionService) {
         super(dao, permissionService);
     }
 
@@ -46,7 +46,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
      * @throws PermissionException
      * @throws ValidationException
      */
-    public T insertAndReload(T vo, boolean restartSource)
+    public AbstractEventDetectorVO insertAndReload(AbstractEventDetectorVO vo, boolean restartSource)
             throws PermissionException, ValidationException {
         vo = super.insert(vo);
 
@@ -65,8 +65,8 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
      * @param restartSource
      * @return
      */
-    public T updateAndReload(String existing, T vo, boolean restartSource) {
-        T updated = update(get(existing), vo);
+    public AbstractEventDetectorVO updateAndReload(String existing, AbstractEventDetectorVO vo, boolean restartSource) {
+        AbstractEventDetectorVO updated = update(get(existing), vo);
         if(restartSource)
             updated.getDefinition().restartSource(updated);
         return updated;
@@ -74,49 +74,49 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
 
 
     @Override
-    public T delete(String xid)
+    public AbstractEventDetectorVO delete(String xid)
             throws PermissionException, NotFoundException {
-        T vo = super.delete(xid);
+        AbstractEventDetectorVO vo = super.delete(xid);
         vo.getDefinition().restartSource(vo);
         return vo;
     }
 
     @Override
-    public boolean hasCreatePermission(PermissionHolder user, T vo) {
+    public boolean hasCreatePermission(PermissionHolder user, AbstractEventDetectorVO vo) {
         if(user.hasAdminRole())
             return true;
         return vo.getDefinition().hasCreatePermission(user, vo);
     }
 
     @Override
-    public boolean hasEditPermission(PermissionHolder user, T vo) {
+    public boolean hasEditPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
         if(user.hasAdminRole())
             return true;
         return vo.getDefinition().hasEditPermission(user, vo);
     }
 
     @Override
-    public boolean hasReadPermission(PermissionHolder user, T vo) {
+    public boolean hasReadPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
         if(user.hasAdminRole())
             return true;
         return vo.getDefinition().hasReadPermission(user, vo);
     }
 
     @Override
-    public ProcessResult validate(T vo, PermissionHolder user) {
+    public ProcessResult validate(AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
         vo.getDefinition().validate(response, vo, user);
         return response;
     }
 
     @Override
-    public ProcessResult validate(T existing, T vo, PermissionHolder user) {
+    public ProcessResult validate(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
         vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
 
-    private ProcessResult commonValidation(T vo, PermissionHolder user) {
+    private ProcessResult commonValidation(AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = new ProcessResult();
         if (StringUtils.isBlank(vo.getXid()))
             response.addContextualMessage("xid", "validate.required");
@@ -133,7 +133,7 @@ public class EventDetectorsService<T extends AbstractEventDetectorVO<T>> extends
 
         //Verify that they each exist as we will create a mapping when we save
         if(vo.getAddedEventHandlers() != null)
-            for(AbstractEventHandlerVO<?> eh : vo.getAddedEventHandlers()) {
+            for(AbstractEventHandlerVO eh : vo.getAddedEventHandlers()) {
                 if(EventHandlerDao.getInstance().getXidById(eh.getId()) == null)
                     response.addMessage("handlers", new TranslatableMessage("emport.eventHandler.missing", eh.getXid()));
             }

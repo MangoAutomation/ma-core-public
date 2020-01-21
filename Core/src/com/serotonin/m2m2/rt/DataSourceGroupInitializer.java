@@ -28,10 +28,10 @@ import com.serotonin.timer.RejectedTaskReason;
 public class DataSourceGroupInitializer {
 	private final Log LOG = LogFactory.getLog(DataSourceGroupInitializer.class);
 			
-	private List<DataSourceVO<?>> group;
+	private List<DataSourceVO> group;
 	private int threadPoolSize;
 	private List<DataSourceSubGroupInitializer> runningTasks;
-	private List<DataSourceVO<?>> polling;
+	private List<DataSourceVO> polling;
 	private boolean useMetrics;
 	private StartPriority startPriority;
 
@@ -41,19 +41,19 @@ public class DataSourceGroupInitializer {
 	 * @param logMetrics
 	 * @param threadPoolSize
 	 */
-	public DataSourceGroupInitializer(StartPriority startPriority, List<DataSourceVO<?>> group, boolean logMetrics, int threadPoolSize) {
+	public DataSourceGroupInitializer(StartPriority startPriority, List<DataSourceVO> group, boolean logMetrics, int threadPoolSize) {
 		this.startPriority = startPriority;
 		this.group = group;
 		this.useMetrics = logMetrics;
 		this.threadPoolSize = threadPoolSize;
-		this.polling = new ArrayList<DataSourceVO<?>>();
+		this.polling = new ArrayList<DataSourceVO>();
 	}
 
 	/**
 	 * Blocking method that will attempt to start all datasources in parallel using threadPoolSize number of threads at most.
 	 * @return List of all data sources that need to begin polling.
 	 */
-	public List<DataSourceVO<?>> initialize() {
+	public List<DataSourceVO> initialize() {
 		
 		long startTs = Common.timer.currentTimeMillis();
 		if(this.group == null){
@@ -111,7 +111,7 @@ public class DataSourceGroupInitializer {
 		return polling;
 	}
 
-	public void addPollingDataSources(List<DataSourceVO<?>> vos){
+	public void addPollingDataSources(List<DataSourceVO> vos){
 		synchronized(this.polling){
 			this.polling.addAll(vos);
 		}
@@ -131,10 +131,10 @@ public class DataSourceGroupInitializer {
 		
 		private final Log LOG = LogFactory.getLog(DataSourceSubGroupInitializer.class);
 		
-		private List<DataSourceVO<?>> subgroup;
+		private List<DataSourceVO> subgroup;
 		private DataSourceGroupInitializer parent;
 		
-		public DataSourceSubGroupInitializer(List<DataSourceVO<?>> subgroup, DataSourceGroupInitializer parent){
+		public DataSourceSubGroupInitializer(List<DataSourceVO> subgroup, DataSourceGroupInitializer parent){
 			super("Datasource subgroup initializer");
 			this.subgroup = subgroup;
 			this.parent = parent;
@@ -146,8 +146,8 @@ public class DataSourceGroupInitializer {
 		@Override
 		public void run(long runtime) {
 			try{
-				List<DataSourceVO<?>> polling = new ArrayList<DataSourceVO<?>>();
-				for(DataSourceVO<?> config : subgroup){
+				List<DataSourceVO> polling = new ArrayList<DataSourceVO>();
+				for(DataSourceVO config : subgroup){
 					try{
 						if(Common.runtimeManager.initializeDataSourceStartup(config))
 							polling.add(config);

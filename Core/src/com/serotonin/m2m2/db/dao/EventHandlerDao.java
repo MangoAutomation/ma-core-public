@@ -37,14 +37,13 @@ import com.serotonin.util.SerializationHelper;
  *
  */
 @Repository()
-public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends AbstractDao<T, EventHandlerTableDefinition>{
+public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO, EventHandlerTableDefinition>{
 
-    @SuppressWarnings("unchecked")
-    private static final LazyInitSupplier<EventHandlerDao<AbstractEventHandlerVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
+    private static final LazyInitSupplier<EventHandlerDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(EventHandlerDao.class);
         if(o == null)
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (EventHandlerDao<AbstractEventHandlerVO<?>>)o;
+        return (EventHandlerDao)o;
     });
 
     private static final boolean H2_SYNTAX;
@@ -76,7 +75,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
      * Get cached instance from Spring Context
      * @return
      */
-    public static EventHandlerDao<AbstractEventHandlerVO<?>> getInstance() {
+    public static EventHandlerDao getInstance() {
         return springInstance.get();
     }
 
@@ -86,7 +85,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     }
 
     @Override
-    protected Object[] voToObjectArray(T vo) {
+    protected Object[] voToObjectArray(AbstractEventHandlerVO vo) {
         return new Object[]{
                 vo.getXid(),
                 vo.getName(),
@@ -96,7 +95,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     }
 
     @Override
-    public RowMapper<T> getRowMapper() {
+    public RowMapper<AbstractEventHandlerVO> getRowMapper() {
         return new EventHandlerRowMapper();
     }
 
@@ -112,16 +111,16 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
             "FROM eventHandlersMapping ehm INNER JOIN eventHandlers eh ON eh.id=ehm.eventHandlerId WHERE ehm.eventTypeName=? AND " +
             "ehm.eventSubtypeName='' AND (ehm.eventTypeRef1=? OR ehm.eventTypeRef1=0) AND (ehm.eventTypeRef2=? OR ehm.eventTypeRef2=0)";
 
-    public List<T> getEventHandlers(EventType type) {
+    public List<AbstractEventHandlerVO> getEventHandlers(EventType type) {
         return getEventHandlers(type.getEventType(), type.getEventSubtype(), type.getReferenceId1(),
                 type.getReferenceId2());
     }
 
-    public List<T> getEventHandlersByType(String typeName) {
+    public List<AbstractEventHandlerVO> getEventHandlersByType(String typeName) {
         return query(EVENT_HANDLER_SELECT + " WHERE eventHandlerType=?", new Object[] {typeName}, new EventHandlerRowMapper());
     }
 
-    public List<T> getEventHandlers() {
+    public List<AbstractEventHandlerVO> getEventHandlers() {
         return query(EVENT_HANDLER_SELECT, new EventHandlerRowMapper());
     }
 
@@ -147,7 +146,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                 type.getReferenceId1(), type.getReferenceId2()}, String.class);
     }
 
-    private List<T> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
+    private List<AbstractEventHandlerVO> getEventHandlers(String typeName, String subtypeName, int ref1, int ref2) {
         if (subtypeName == null)
             return query(EVENT_HANDLER_SELECT_BY_TYPE_NULLSUB, new Object[] { typeName, ref1, ref2 },
                     new EventHandlerRowMapper());
@@ -155,23 +154,22 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
                 new EventHandlerRowMapper());
     }
 
-    public AbstractEventHandlerVO<?> getEventHandler(int eventHandlerId) {
+    public AbstractEventHandlerVO getEventHandler(int eventHandlerId) {
         return queryForObject(EVENT_HANDLER_SELECT + "where id=?", new Object[] { eventHandlerId },
                 new EventHandlerRowMapper());
     }
 
-    public T getEventHandler(String xid) {
+    public AbstractEventHandlerVO getEventHandler(String xid) {
         return queryForObject(EVENT_HANDLER_SELECT + "where xid=?", new Object[] { xid }, new EventHandlerRowMapper(),
                 null);
     }
 
 
 
-    class EventHandlerRowMapper implements RowMapper<T> {
+    class EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO> {
         @Override
-        public T mapRow(ResultSet rs, int rowNum) throws SQLException {
-            @SuppressWarnings("unchecked")
-            T h = (T) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
+        public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
+            AbstractEventHandlerVO h = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             h.setId(rs.getInt(1));
             h.setXid(rs.getString(2));
             h.setAlias(rs.getString(3));
@@ -181,7 +179,7 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     }
 
     @Override
-    public void saveRelationalData(T vo, boolean insert) {
+    public void saveRelationalData(AbstractEventHandlerVO vo, boolean insert) {
         if (insert) {
             if(vo.getEventTypes() != null) {
                 for (EventType type : vo.getEventTypes()) {
@@ -213,12 +211,12 @@ public class EventHandlerDao<T extends AbstractEventHandlerVO<?>> extends Abstra
     }
 
     @Override
-    public void loadRelationalData(T vo) {
+    public void loadRelationalData(AbstractEventHandlerVO vo) {
         vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override
-    public void deleteRelationalData(T vo) {
+    public void deleteRelationalData(AbstractEventHandlerVO vo) {
         deleteEventHandlerMappings(vo.getId());
         vo.getDefinition().deleteRelationalData(vo);
     }

@@ -21,14 +21,14 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHandlerVO>{
+public class ProcessEventHandlerVO extends AbstractEventHandlerVO {
 
-	private String activeProcessCommand;
+    private String activeProcessCommand;
     private int activeProcessTimeout = 15;
     private String inactiveProcessCommand;
     private int inactiveProcessTimeout = 15;
-    
-	public String getActiveProcessCommand() {
+
+    public String getActiveProcessCommand() {
         return activeProcessCommand;
     }
 
@@ -59,7 +59,7 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHa
     public void setInactiveProcessTimeout(int inactiveProcessTimeout) {
         this.inactiveProcessTimeout = inactiveProcessTimeout;
     }
-    
+
     //
     //
     // Serialization
@@ -68,35 +68,35 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHa
     private static final int version = 1;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-    	out.writeInt(version);
+        out.writeInt(version);
         SerializationHelper.writeSafeUTF(out, activeProcessCommand);
         out.writeInt(activeProcessTimeout);
         SerializationHelper.writeSafeUTF(out, inactiveProcessCommand);
         out.writeInt(inactiveProcessTimeout);
     }
-    
+
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         if(ver == 1){
-		    activeProcessCommand = SerializationHelper.readSafeUTF(in);
-		    activeProcessTimeout = in.readInt();
-		    inactiveProcessCommand = SerializationHelper.readSafeUTF(in);
-		    inactiveProcessTimeout = in.readInt();
+            activeProcessCommand = SerializationHelper.readSafeUTF(in);
+            activeProcessTimeout = in.readInt();
+            inactiveProcessCommand = SerializationHelper.readSafeUTF(in);
+            inactiveProcessTimeout = in.readInt();
         }
     }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	super.jsonWrite(writer);
+        super.jsonWrite(writer);
         writer.writeEntry("activeProcessCommand", activeProcessCommand);
         writer.writeEntry("activeProcessTimeout", activeProcessTimeout);
         writer.writeEntry("inactiveProcessCommand", inactiveProcessCommand);
         writer.writeEntry("inactiveProcessTimeout", inactiveProcessTimeout);
     }
-    
+
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	super.jsonRead(reader, jsonObject);
+        super.jsonRead(reader, jsonObject);
         String text = jsonObject.getString("activeProcessCommand");
         if (text != null)
             activeProcessCommand = text;
@@ -114,10 +114,10 @@ public class ProcessEventHandlerVO extends AbstractEventHandlerVO<ProcessEventHa
             inactiveProcessTimeout = i.intValue();
 
     }
-    
+
     @Override
     public EventHandlerRT<ProcessEventHandlerVO> createRuntime(){
-    	return new ProcessHandlerRT(this);
+        return new ProcessHandlerRT(this);
     }
 
 }

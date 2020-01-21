@@ -31,7 +31,7 @@ import com.serotonin.timer.FixedRateTrigger;
 import com.serotonin.timer.RejectedTaskReason;
 import com.serotonin.timer.TimerTask;
 
-abstract public class PollingDataSource<T extends PollingDataSourceVO<?>> extends DataSourceRT<T> {
+abstract public class PollingDataSource<T extends PollingDataSourceVO> extends DataSourceRT<T> {
 
     private final Log LOG = LogFactory.getLog(PollingDataSource.class);
     private static final String prefix = "POLLINGDS-";

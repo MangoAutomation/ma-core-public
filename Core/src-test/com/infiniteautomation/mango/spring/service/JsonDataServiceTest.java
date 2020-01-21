@@ -71,7 +71,7 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
 
     @Override
     JsonDataVO updateVO(JsonDataVO existing) {
-        JsonDataVO copy = existing.copy();
+        JsonDataVO copy = (JsonDataVO) existing.copy();
         Map<String, String> jsonData = new HashMap<>();
         jsonData.put("test", "value-updated");
         copy.setJsonData(jsonData);

@@ -33,7 +33,6 @@ import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.CronTimerTrigger;
 import com.serotonin.timer.TimerTask;
 
@@ -77,19 +76,19 @@ public class DataPurge {
             for(PurgeFilterDefinition pfd : ModuleRegistry.getDefinitions(PurgeFilterDefinition.class))
                 purgeFilters.add(pfd.getPurgeFilter());
 
-	        // Get the data point information.
-	        List<DataPointVO> dataPoints = dataPointDao.getAll();
-	        for (DataPointVO dataPoint : dataPoints)
-	            purgePoint(dataPoint, countPointValues, purgeFilters);
-	        
-	        if(countPointValues)
-	        	deletedSamples += pointValueDao.deleteOrphanedPointValues();
-	        else
-	        	pointValueDao.deleteOrphanedPointValuesWithoutCount();
+            // Get the data point information.
+            List<DataPointVO> dataPoints = dataPointDao.getAll();
+            for (DataPointVO dataPoint : dataPoints)
+                purgePoint(dataPoint, countPointValues, purgeFilters);
 
-	        pointValueDao.deleteOrphanedPointValueAnnotations();
+            if(countPointValues)
+                deletedSamples += pointValueDao.deleteOrphanedPointValues();
+            else
+                pointValueDao.deleteOrphanedPointValuesWithoutCount();
 
-	        log.info("Data purge ended, " + deletedSamples + " point samples deleted");
+            pointValueDao.deleteOrphanedPointValueAnnotations();
+
+            log.info("Data purge ended, " + deletedSamples + " point samples deleted");
         }else{
             log.info("Purge for data points not enabled, skipping.");
         }
@@ -132,7 +131,7 @@ public class DataPurge {
             }
             else {
                 // Check the data source level.
-                DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataPoint.getDataSourceId());
+                DataSourceVO ds = DataSourceDao.getInstance().get(dataPoint.getDataSourceId());
                 if (ds.isPurgeOverride()) {
                     purgeType = ds.getPurgeType();
                     purgePeriod = ds.getPurgePeriod();

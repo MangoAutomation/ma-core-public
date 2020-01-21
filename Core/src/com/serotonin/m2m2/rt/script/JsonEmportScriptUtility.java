@@ -36,10 +36,8 @@ import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
@@ -72,7 +70,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getFullConfiguration(int prettyIndent) {
-        EmportService<?,?,?> service = Common.getBean(EmportService.class);
+        EmportService service = Common.getBean(EmportService.class);
         return Common.getBean(PermissionService.class).runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
@@ -93,7 +91,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             try {
                 Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
                 StringWriter stringWriter = new StringWriter();
-                EmportService<?,?,?> service = Common.getBean(EmportService.class);
+                EmportService service = Common.getBean(EmportService.class);
                 service.export(data, stringWriter, prettyIndent);
                 return stringWriter.toString();
             }catch(PermissionException e) {
@@ -124,7 +122,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         return Common.getBean(PermissionService.class).runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
-                EmportService<?,?,?> service = Common.getBean(EmportService.class);
+                EmportService service = Common.getBean(EmportService.class);
                 service.export(data, stringWriter, prettyIndent);
                 return stringWriter.toString();
             }catch(PermissionException e) {
@@ -140,7 +138,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     public String dataSourceQuery(String query, int prettyIndent) {
         Map<String, Object> data = new LinkedHashMap<>();
         if(permissionService.hasAdminRole(permissions)) {
-            List<DataSourceVO<?>> dataSources = new ArrayList<>();
+            List<DataSourceVO> dataSources = new ArrayList<>();
             ASTNode root = parser.parse(query);
             DataSourceDao.getInstance().rqlQuery(root, (ds, index) -> {
                 dataSources.add(ds);
@@ -150,7 +148,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         return Common.getBean(PermissionService.class).runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
-                EmportService<?,?,?> service = Common.getBean(EmportService.class);
+                EmportService service = Common.getBean(EmportService.class);
                 service.export(data, stringWriter, prettyIndent);
                 return stringWriter.toString();
             }catch(PermissionException e) {
@@ -166,7 +164,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask<?,?,?> sit = new ScriptImportTask<>(jo, permissions);
+            ScriptImportTask sit = new ScriptImportTask(jo, permissions);
             sit.run(Common.timer.currentTimeMillis());
         }
     }
@@ -178,7 +176,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
             JsonObject jo = value.toJsonObject();
             if(importExclusions != null)
                 doExclusions(jo);
-            ScriptImportTask<?,?,?> sit = new ScriptImportTask<>(jo, permissions);
+            ScriptImportTask sit = new ScriptImportTask(jo, permissions);
             sit.run(Common.timer.currentTimeMillis());
             return sit.getMessages();
         }
@@ -206,9 +204,8 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         this.importDuringValidation = importDuringValidation;
     }
 
-    class ScriptImportTask<DS extends DataSourceVO<DS>, PUB extends PublishedPointVO, EH extends AbstractEventHandlerVO<EH>>  extends ImportTask<DS, PUB, EH> {
+    class ScriptImportTask extends ImportTask {
 
-        @SuppressWarnings("unchecked")
         public ScriptImportTask(JsonObject jo, PermissionHolder holder) {
             super(jo, Common.getTranslations(), holder,
                     Common.getBean(UsersService.class),

@@ -5,9 +5,12 @@
 package com.serotonin.m2m2.rt.dataSource;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -16,6 +19,7 @@ import com.infiniteautomation.mango.io.serial.SerialPortException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.AbstractRT;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
@@ -24,6 +28,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
+import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.util.ILifecycle;
 
 /**
@@ -39,7 +44,7 @@ import com.serotonin.util.ILifecycle;
  *
  * @author Matthew Lohbihler
  */
-abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractRT<VO> implements ILifecycle {
+abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<VO> implements ILifecycle {
     public static final String ATTR_UNRELIABLE_KEY = "UNRELIABLE";
 
     /**
@@ -70,7 +75,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
 
     /* Thread safe set of active event types */
     private ConcurrentHashMap<Integer, Boolean> activeRtnEventTypes;
-    
+
     public DataSourceRT(VO vo) {
         super(vo);
 
@@ -260,5 +265,18 @@ abstract public class DataSourceRT<VO extends DataSourceVO<?>> extends AbstractR
     // Additional lifecycle.
     public void beginPolling() {
         // no op
+    }
+
+    /**
+     * Override to handle any situations where you need to know that a role was deleted.
+     *
+     * @param event
+     */
+    public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        if(getVo().getEditRoles().contains(event.getRole().getRole())) {
+            Set<Role> newEditRoles = new HashSet<>(getVo().getEditRoles());
+            newEditRoles.remove(event.getRole().getRole());
+            getVo().setEditRoles(Collections.unmodifiableSet(newEditRoles));
+        }
     }
 }

@@ -1,3 +1,7 @@
+/**
+    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
+    @author Matthew Lohbihler
+ */
 package com.infiniteautomation.mango.emport;
 
 import org.apache.commons.lang3.StringUtils;
@@ -14,26 +18,25 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 
-public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
-    
-    private final DataSourceService<DS> service;
-    public DataSourceImporter(JsonObject json, DataSourceService<DS> dataSourceService) {
+public class DataSourceImporter extends Importer {
+
+    private final DataSourceService service;
+    public DataSourceImporter(JsonObject json, DataSourceService dataSourceService) {
         super(json);
         this.service = dataSourceService;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected void importImpl() {
         String xid = json.getString("xid");
-        DS vo = null;
+        DataSourceVO vo = null;
         if (StringUtils.isBlank(xid)) {
             xid = service.getDao().generateUniqueXid();
         }else {
             try {
                 vo = service.get(xid);
             }catch(NotFoundException e) {
-                
+
             }
         }
         if (vo == null) {
@@ -46,7 +49,7 @@ public class DataSourceImporter<DS extends DataSourceVO<DS>> extends Importer {
                     addFailureMessage("emport.dataSource.invalidType", xid, typeStr,
                             ModuleRegistry.getDataSourceDefinitionTypes());
                 else {
-                    vo = (DS)def.baseCreateDataSourceVO();
+                    vo = def.baseCreateDataSourceVO();
                     vo.setXid(xid);
                 }
             }

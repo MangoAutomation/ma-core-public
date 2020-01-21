@@ -29,7 +29,7 @@ import com.serotonin.m2m2.util.timeout.HighPriorityTask;
 public class DataSourceGroupTerminator {
 	private final Log LOG = LogFactory.getLog(DataSourceGroupTerminator.class);
 			
-	private List<DataSourceRT<? extends DataSourceVO<?>>> group;
+	private List<DataSourceRT<? extends DataSourceVO>> group;
 	private int threadPoolSize;
 	private List<DataSourceSubGroupTerminator> runningTasks;
 	private boolean useMetrics;
@@ -38,7 +38,7 @@ public class DataSourceGroupTerminator {
 	/**
 	 * @param priorityList
 	 */
-	public DataSourceGroupTerminator(StartPriority startPriority, List<DataSourceRT<? extends DataSourceVO<?>>> group, boolean logMetrics, int threadPoolSize) {
+	public DataSourceGroupTerminator(StartPriority startPriority, List<DataSourceRT<? extends DataSourceVO>> group, boolean logMetrics, int threadPoolSize) {
 		this.startPriority = startPriority;
 		this.group = group;
 		this.useMetrics = logMetrics;
@@ -123,10 +123,10 @@ public class DataSourceGroupTerminator {
 		
 		private final Log LOG = LogFactory.getLog(DataSourceSubGroupTerminator.class);
 		
-		private List<DataSourceRT<? extends DataSourceVO<?>>> subgroup;
+		private List<DataSourceRT<? extends DataSourceVO>> subgroup;
 		private DataSourceGroupTerminator parent;
 		
-		public DataSourceSubGroupTerminator(List<DataSourceRT<? extends DataSourceVO<?>>> subgroup, DataSourceGroupTerminator parent){
+		public DataSourceSubGroupTerminator(List<DataSourceRT<? extends DataSourceVO>> subgroup, DataSourceGroupTerminator parent){
 			super("Datasource subgroup terminator");
 			this.subgroup = subgroup;
 			this.parent = parent;
@@ -138,7 +138,7 @@ public class DataSourceGroupTerminator {
 		@Override
 		public void run(long runtime) {
 			try{
-				for(DataSourceRT<? extends DataSourceVO<?>> config : subgroup){
+				for(DataSourceRT<? extends DataSourceVO> config : subgroup){
 					try{
 						Common.runtimeManager.stopDataSourceShutdown(config.getId());
 					}catch(Exception e){

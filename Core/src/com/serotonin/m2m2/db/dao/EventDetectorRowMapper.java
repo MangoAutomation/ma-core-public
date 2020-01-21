@@ -31,7 +31,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
  * @author Terry Packer
  *
  */
-public class EventDetectorRowMapper<T extends AbstractEventDetectorVO<?>> implements RowMapper<T>{
+public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implements RowMapper<T>{
 
     protected final Log LOG = LogFactory.getLog(EventDetectorRowMapper.class);
     //First column in the query for the event detector columns

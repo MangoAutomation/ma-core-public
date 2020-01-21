@@ -23,14 +23,14 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 
-public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>> extends AbstractVO<T> {
+public abstract class AbstractEventHandlerVO extends AbstractVO {
     public static final String XID_PREFIX = "EH_";
-    
+
     @JsonProperty
     private boolean disabled;
-    
-    private EventHandlerDefinition<T> definition;
-    
+
+    private EventHandlerDefinition<? extends AbstractEventHandlerVO> definition;
+
     List<EventType> eventTypes = null;
 
     /**
@@ -38,7 +38,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
      * @return
      */
     public abstract EventHandlerRT<?> createRuntime();
-    
+
     public TranslatableMessage getMessage() {
         if (!StringUtils.isBlank(name))
             return new TranslatableMessage("common.default", name);
@@ -56,7 +56,7 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
     public String getAlias() {
         return name;
     }
-    
+
     /**
      * Deprecated as we should just use the name. Leaving here as I believe these are probably accessed on the legacy page via DWR.
      * @param alias
@@ -73,31 +73,30 @@ public abstract class AbstractEventHandlerVO<T extends AbstractEventHandlerVO<T>
         this.disabled = disabled;
     }
 
-	public EventHandlerDefinition<T> getDefinition() {
-		return definition;
-	}
+    public <T extends AbstractEventHandlerVO> EventHandlerDefinition<T> getDefinition() {
+        return (EventHandlerDefinition<T>) definition;
+    }
 
-	@SuppressWarnings("unchecked")
-	public void setDefinition(EventHandlerDefinition<?> definition) {
-		this.definition = (EventHandlerDefinition<T>) definition;
-	}
+    public <T extends AbstractEventHandlerVO> void setDefinition(EventHandlerDefinition<T> definition) {
+        this.definition = definition;
+    }
 
-	@Override
+    @Override
     public String getTypeKey() {
         return "event.audit.eventHandler";
     }
 
-	public String getHandlerType(){
-		return this.definition.getEventHandlerTypeName();
-	}
-	
-	/**
+    public String getHandlerType(){
+        return this.definition.getEventHandlerTypeName();
+    }
+
+    /**
      * @return the eventTypes
      */
     public List<EventType> getEventTypes() {
         return eventTypes;
     }
-    
+
     /**
      * @param eventTypes the eventTypes to set
      */

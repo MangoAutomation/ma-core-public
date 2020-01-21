@@ -8,17 +8,17 @@ import com.serotonin.m2m2.rt.EventManagerImpl;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 
-abstract public class EventHandlerRT<T extends AbstractEventHandlerVO<?>> {
-	
+abstract public class EventHandlerRT<T extends AbstractEventHandlerVO> {
+
     protected T vo;
 
     public EventHandlerRT(T vo){
-    	this.vo = vo;
+        this.vo = vo;
     }
-    
+
     /**
      * Not all events that are raised are made active. It depends on the event's alarm level and duplicate handling.
-     * 
+     *
      * @see EventManagerImpl.raiseEvent for details.
      * @param evt
      */
@@ -26,7 +26,7 @@ abstract public class EventHandlerRT<T extends AbstractEventHandlerVO<?>> {
 
     /**
      * Called when the event is considered inactive.
-     * 
+     *
      * @see EventManagerImpl.raiseEvent for details.
      * @param evt
      */

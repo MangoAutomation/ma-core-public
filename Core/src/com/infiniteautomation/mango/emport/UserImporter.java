@@ -23,7 +23,7 @@ public class UserImporter extends Importer {
 
     private final UsersService usersService;
     private final PermissionHolder user;
-    
+
     public UserImporter(JsonObject json, UsersService usersService, PermissionHolder user) {
         super(json);
         this.usersService = usersService;
@@ -49,7 +49,7 @@ public class UserImporter extends Importer {
                 imported = new User();
                 imported.setUsername(username);
             }else {
-                imported = existing.copy();
+                imported = (User) existing.copy();
             }
 
             try {

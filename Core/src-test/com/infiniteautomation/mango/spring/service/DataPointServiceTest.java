@@ -29,15 +29,14 @@ import com.serotonin.m2m2.vo.role.Role;
  * @author Terry Packer
  *
  */
-public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOServiceWithPermissionsTest<DataPointVO, DataPointTableDefinition, DataPointDao, DataPointService> {
+public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServiceWithPermissionsTest<DataPointVO, DataPointTableDefinition, DataPointDao, DataPointService> {
 
-    private DataSourceService<T> dataSourceService;
+    private DataSourceService dataSourceService;
 
     public DataPointServiceTest() {
         super(true, 9000);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void before() {
         super.before();
@@ -50,7 +49,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
         runTest(() -> {
             DataPointVO vo = newVO(editUser);
             getService().permissionService.runAsSystemAdmin(() -> {
-                T ds = dataSourceService.get(vo.getDataSourceId());
+                DataSourceVO ds = dataSourceService.get(vo.getDataSourceId());
                 ds.setEditRoles(Collections.singleton(editRole));
                 dataSourceService.update(ds.getXid(), ds);
                 setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
@@ -206,7 +205,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     void setEditRoles(Set<Role> roles, DataPointVO vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
-            T ds = dataSourceService.get(vo.getDataSourceId());
+            DataSourceVO ds = dataSourceService.get(vo.getDataSourceId());
             ds.setEditRoles(roles);
             dataSourceService.update(ds.getXid(), ds);
         });
@@ -238,7 +237,7 @@ public class DataPointServiceTest<T extends DataSourceVO<T>> extends AbstractVOS
     @Override
     DataPointVO newVO(User user) {
         return getService().permissionService.runAsSystemAdmin(() -> {;
-        T mock = dataSourceService.insert(createDataSource());
+        DataSourceVO mock = dataSourceService.insert(createDataSource());
         //Create the point
         DataPointVO vo = new DataPointVO();
         vo.setXid(UUID.randomUUID().toString());

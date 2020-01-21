@@ -19,16 +19,16 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
-public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
-    
+public class DataPointImporter extends Importer {
+
     final String PATH = "path";
-    
+
     private final DataPointService dataPointService;
-    private final DataSourceService<DS> dataSourceService;
-    
-    public DataPointImporter(JsonObject json, 
+    private final DataSourceService dataSourceService;
+
+    public DataPointImporter(JsonObject json,
             DataPointService dataPointService,
-            DataSourceService<DS> dataSourceService) {
+            DataSourceService dataSourceService) {
         super(json);
         this.dataPointService = dataPointService;
         this.dataSourceService = dataSourceService;
@@ -38,7 +38,7 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
     protected void importImpl() {
         String xid = json.getString("xid");
         DataPointVO vo = null;
-        DataSourceVO<?> dsvo = null;
+        DataSourceVO dsvo = null;
 
         if (StringUtils.isBlank(xid)) {
             xid = dataPointService.getDao().generateUniqueXid();
@@ -46,10 +46,10 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             try {
                 vo = dataPointService.get(xid);
             }catch(NotFoundException e) {
-                
+
             }
         }
-        
+
         if (vo == null) {
             // Locate the data source for the point.
             String dsxid = json.getString("dataSourceXid");
@@ -64,37 +64,37 @@ public class DataPointImporter<DS extends DataSourceVO<DS>> extends Importer {
             vo.setDataSourceId(dsvo.getId());
             vo.setDataSourceXid(dsxid);
             vo.setPointLocator(dsvo.createPointLocator());
-            vo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>(0));
+            vo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO>(0));
             //Not needed as it will be set via the template or JSON or it exists in the DB already: vo.setTextRenderer(new PlainRenderer());
         }
-        
+
         if (vo != null) {
-        	try {
-            	//Read into the VO to get all properties
-            	ctx.getReader().readInto(vo, json);
-            	
+            try {
+                //Read into the VO to get all properties
+                ctx.getReader().readInto(vo, json);
+
                 // If the name is not provided, default to the XID
                 if (StringUtils.isBlank(vo.getName()))
                     vo.setName(xid);
 
                 // If the chart colour is null provide default of '' to handle legacy code that sets colour to null
                 if(vo.getChartColour() == null)
-                	vo.setChartColour("");
+                    vo.setChartColour("");
 
                 boolean isNew = vo.isNew();
                 try {
-                	if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
-                	    if(isNew) {
-                	        dataPointService.insert(vo);
-                	    }else {
-                	        dataPointService.update(vo.getId(), vo);
-                	    }
-                		addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
-                	}else{
-                		addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
-                	}
+                    if(Common.runtimeManager.getState() == RuntimeManager.RUNNING) {
+                        if(isNew) {
+                            dataPointService.insert(vo);
+                        }else {
+                            dataPointService.update(vo.getId(), vo);
+                        }
+                        addSuccessMessage(isNew, "emport.dataPoint.prefix", xid);
+                    }else{
+                        addFailureMessage("emport.dataPoint.runtimeManagerNotRunning", xid);
+                    }
                 } catch(LicenseViolatedException e) {
-                	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
+                    addFailureMessage(new ProcessMessage(e.getErrorMessage()));
                 }
             }catch(ValidationException e) {
                 setValidationMessages(e.getValidationResult(), "emport.dataPoint.prefix", xid);

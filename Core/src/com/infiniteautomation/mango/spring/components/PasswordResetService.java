@@ -142,7 +142,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
     public User resetPassword(String token, String newPassword) {
         User existing = this.verify(token);
         // we copy the user so that when we set the new password it doesn't modify the cached instance
-        User updated = existing.copy();
+        User updated = (User) existing.copy();
         updated.setPlainTextPassword(newPassword);
         return permissionService.runAsSystemAdmin(() -> {
             this.usersService.update(existing, updated);

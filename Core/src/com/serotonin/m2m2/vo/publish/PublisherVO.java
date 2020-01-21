@@ -40,7 +40,7 @@ import com.serotonin.util.SerializationHelper;
 /**
  * @author Matthew Lohbihler
  */
-abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO<PublisherVO<T>> implements Serializable, JsonSerializable {
+abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractActionVO implements Serializable, JsonSerializable {
     public static final String XID_PREFIX = "PUB_";
 
     public interface PublishType{
@@ -93,7 +93,7 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
 
     abstract public ExportCodes getEventCodes();
 
-    private PublisherDefinition<T> definition;
+    private PublisherDefinition<? extends PublisherVO<?>> definition;
 
     private Map<Integer, AlarmLevels> alarmLevels = new HashMap<>();
 
@@ -115,18 +115,18 @@ abstract public class PublisherVO<T extends PublishedPointVO> extends AbstractAc
     @JsonProperty
     private boolean publishAttributeChanges;
 
-    public final PublisherDefinition<T> getDefinition() {
-        return definition;
+    public final <PUB extends PublisherVO<? extends PublishedPointVO>> PublisherDefinition<PUB> getDefinition() {
+        return (PublisherDefinition<PUB>) definition;
     }
 
-    public void setDefinition(PublisherDefinition<T> definition) {
+    public <PUB extends PublisherVO<? extends PublishedPointVO>> void setDefinition(PublisherDefinition<PUB> definition) {
         this.definition = definition;
     }
 
     public void setAlarmLevel(int eventId, AlarmLevels level) {
         alarmLevels.put(eventId, level);
     }
-    
+
     /**
      * Set an alarm level based on the sub-type of the publisher event type
      * which MUST (and already is) one of the codes in getEventCodes()

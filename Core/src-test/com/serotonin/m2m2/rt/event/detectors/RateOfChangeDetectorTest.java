@@ -707,7 +707,7 @@ public class RateOfChangeDetectorTest extends MangoTestBase {
         rocVo.setDurationType(durationPeriodType);
         validate(rocVo);
 
-        List<AbstractPointEventDetectorVO<?>> eventDetectors = new ArrayList<>();
+        List<AbstractPointEventDetectorVO> eventDetectors = new ArrayList<>();
         eventDetectors.add(rocVo);
         dpVo.setEventDetectors(eventDetectors);
 

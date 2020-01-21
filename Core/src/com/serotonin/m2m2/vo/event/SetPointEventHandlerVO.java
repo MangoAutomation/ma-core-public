@@ -31,13 +31,13 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEventHandlerVO>{
+public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
 
     public static final int SET_ACTION_NONE = 0;
     public static final int SET_ACTION_POINT_VALUE = 1;
     public static final int SET_ACTION_STATIC_VALUE = 2;
     public static final int SET_ACTION_SCRIPT_VALUE = 3;
-    
+
     public static final String TARGET_CONTEXT_KEY = "target";
 
     public static ExportCodes SET_ACTION_CODES = new ExportCodes();
@@ -47,7 +47,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         SET_ACTION_CODES.addElement(SET_ACTION_STATIC_VALUE, "STATIC_VALUE", "eventHandlers.action.static");
         SET_ACTION_CODES.addElement(SET_ACTION_SCRIPT_VALUE, "SCRIPT_VALUE", "eventHandlers.action.script");
     }
-	
+
     private int targetPointId;
     private int activeAction;
     private String activeValueToSet;
@@ -59,7 +59,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     private String inactiveScript;
     private ScriptPermissions scriptRoles;
     private List<IntStringPair> additionalContext = new ArrayList<>();
-    
+
     public int getTargetPointId() {
         return targetPointId;
     }
@@ -83,7 +83,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public void setInactiveAction(int inactiveAction) {
         this.inactiveAction = inactiveAction;
     }
-    
+
     public String getActiveValueToSet() {
         return activeValueToSet;
     }
@@ -115,46 +115,46 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
     public void setInactivePointId(int inactivePointId) {
         this.inactivePointId = inactivePointId;
     }
-    
+
     public String getActiveScript() {
-    	return activeScript;
+        return activeScript;
     }
-    
+
     public void setActiveScript(String activeScript) {
-    	this.activeScript = activeScript;
+        this.activeScript = activeScript;
     }
-    
+
     public String getInactiveScript() {
-    	return inactiveScript;
+        return inactiveScript;
     }
-    
+
     public void setInactiveScript(String inactiveScript) {
-    	this.inactiveScript = inactiveScript;
+        this.inactiveScript = inactiveScript;
     }
-    
+
     public ScriptPermissions getScriptRoles() {
-    	return scriptRoles;
+        return scriptRoles;
     }
-    
+
     public void setScriptRoles(ScriptPermissions scriptRoles) {
-    	this.scriptRoles = scriptRoles;
+        this.scriptRoles = scriptRoles;
     }
-    
+
     public List<IntStringPair> getAdditionalContext() {
-    	return additionalContext;
+        return additionalContext;
     }
-    
+
     public void setAdditionalContext(List<IntStringPair> additionalContext) {
-    	this.additionalContext = additionalContext;
+        this.additionalContext = additionalContext;
     }
-    
+
     //
     //
     // Serialization
     //
     private static final long serialVersionUID = -1;
     private static final int version = 4;
-    
+
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
         out.writeInt(targetPointId);
@@ -169,7 +169,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         out.writeObject(additionalContext);
         out.writeObject(scriptRoles);
     }
-    
+
     @SuppressWarnings({"unchecked", "deprecation"})
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
@@ -228,12 +228,12 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
             scriptRoles = (ScriptPermissions) in.readObject();
         }
     }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	super.jsonWrite(writer);
-    	
-    	String dpXid = DataPointDao.getInstance().getXidById(targetPointId);
+        super.jsonWrite(writer);
+
+        String dpXid = DataPointDao.getInstance().getXidById(targetPointId);
         writer.writeEntry("targetPointId", dpXid);
 
         // Active
@@ -245,7 +245,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         else if (activeAction == SET_ACTION_STATIC_VALUE)
             writer.writeEntry("activeValueToSet", activeValueToSet);
         else if (activeAction == SET_ACTION_SCRIPT_VALUE)
-        	writer.writeEntry("activeScript", activeScript);
+            writer.writeEntry("activeScript", activeScript);
 
         // Inactive
         writer.writeEntry("inactiveAction", SET_ACTION_CODES.getCode(inactiveAction));
@@ -256,29 +256,29 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         else if (inactiveAction == SET_ACTION_STATIC_VALUE)
             writer.writeEntry("inactiveValueToSet", inactiveValueToSet);
         else if (inactiveAction == SET_ACTION_SCRIPT_VALUE)
-        	writer.writeEntry("inactiveScript", inactiveScript);
-        
+            writer.writeEntry("inactiveScript", inactiveScript);
+
         JsonArray context = new JsonArray();
         for(IntStringPair pnt : additionalContext) {
-        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey());
-        	if(dpvo != null) {
-        		JsonObject point = new JsonObject();
-        		point.put("dataPointXid", dpvo.getXid());
-        		point.put("contextKey", pnt.getValue());
-        		context.add(point);
-        	}
+            DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey());
+            if(dpvo != null) {
+                JsonObject point = new JsonObject();
+                point.put("dataPointXid", dpvo.getXid());
+                point.put("contextKey", pnt.getValue());
+                context.add(point);
+            }
         }
         writer.writeEntry("additionalContext", context);
         if(scriptRoles != null) {
             writer.writeEntry(ScriptPermissions.JSON_KEY, scriptRoles.getRoles());
         }
     }
-    
+
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        
-    	DataPointDao dataPointDao = DataPointDao.getInstance();
+
+        DataPointDao dataPointDao = DataPointDao.getInstance();
         String xid = jsonObject.getString("targetPointId");
         if (xid != null) {
             Integer id = dataPointDao.getIdByXid(xid);
@@ -313,7 +313,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         else if (activeAction == SET_ACTION_SCRIPT_VALUE) {
             text = jsonObject.getString("activeScript");
             if (text == null)
-            	throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
+                throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
             activeScript = text;
         }
 
@@ -343,49 +343,49 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO<SetPointEvent
         else if (inactiveAction == SET_ACTION_SCRIPT_VALUE) {
             text = jsonObject.getString("inactiveScript");
             if (text == null)
-            	throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
+                throw new TranslatableJsonException("emport.error.eventHandler.invalid", "inactiveScript");
             inactiveScript = text;
         }
 
         JsonArray context = jsonObject.getJsonArray("additionalContext");
         if(context != null) {
-        	List<IntStringPair> additionalContext = new ArrayList<>();
-        	for(JsonValue jv : context) {
-        		JsonObject jo = jv.toJsonObject();
-        		String dataPointXid = jo.getString("dataPointXid");
-        		if(dataPointXid == null)
-        			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
-        		
-        		Integer id = DataPointDao.getInstance().getIdByXid(dataPointXid);
-        		if(id == null)
-        			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
-        		
-        		String contextKey = jo.getString("contextKey");
-        		if(contextKey == null)
-        			throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
-        		
-        		additionalContext.add(new IntStringPair(id, contextKey));
-        	}
-        	this.additionalContext = additionalContext;
+            List<IntStringPair> additionalContext = new ArrayList<>();
+            for(JsonValue jv : context) {
+                JsonObject jo = jv.toJsonObject();
+                String dataPointXid = jo.getString("dataPointXid");
+                if(dataPointXid == null)
+                    throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
+
+                Integer id = DataPointDao.getInstance().getIdByXid(dataPointXid);
+                if(id == null)
+                    throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
+
+                String contextKey = jo.getString("contextKey");
+                if(contextKey == null)
+                    throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
+
+                additionalContext.add(new IntStringPair(id, contextKey));
+            }
+            this.additionalContext = additionalContext;
         } else {
-        	this.additionalContext = new ArrayList<>();
+            this.additionalContext = new ArrayList<>();
         }
         this.scriptRoles = ScriptPermissions.readJsonSafely(reader, jsonObject);
     }
-    
+
     @Override
     public EventHandlerRT<SetPointEventHandlerVO> createRuntime(){
-    	return new SetPointHandlerRT(this);
+        return new SetPointHandlerRT(this);
     }
 
     public static TranslatableMessage getSetActionMessage(int action) {
         switch (action) {
-        case SET_ACTION_NONE:
-            return new TranslatableMessage("eventHandlers.action.none");
-        case SET_ACTION_POINT_VALUE:
-            return new TranslatableMessage("eventHandlers.action.point");
-        case SET_ACTION_STATIC_VALUE:
-            return new TranslatableMessage("eventHandlers.action.static");
+            case SET_ACTION_NONE:
+                return new TranslatableMessage("eventHandlers.action.none");
+            case SET_ACTION_POINT_VALUE:
+                return new TranslatableMessage("eventHandlers.action.point");
+            case SET_ACTION_STATIC_VALUE:
+                return new TranslatableMessage("eventHandlers.action.static");
         }
         return new TranslatableMessage("common.unknown");
     }

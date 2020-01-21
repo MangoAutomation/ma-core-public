@@ -29,19 +29,19 @@ import com.serotonin.util.SerializationHelper;
  * - Add session expiration settings to User
  * - Upgrade Email Event Handlers to have subject include set for legacy compatibility
  * - Upgrade all event handlers to have an alias and make that column required
- * 
+ *
  * @author Terry Packer
  */
 public class Upgrade26 extends DBUpgrade {
-    
+
     @Override
     protected void upgrade() throws Exception {
-        
+
         //First upgrade all event handlers to have a name and use the correct subject in emails
-        List<AbstractEventHandlerVO<?>> handlers = this.ejt.query("SELECT id, xid, alias, eventHandlerType, data FROM eventHandlers", new Upgrade26EventHandlerRowMapper());
-        
-        for(AbstractEventHandlerVO<?> handler : handlers) {
-            
+        List<AbstractEventHandlerVO> handlers = this.ejt.query("SELECT id, xid, alias, eventHandlerType, data FROM eventHandlers", new Upgrade26EventHandlerRowMapper());
+
+        for(AbstractEventHandlerVO handler : handlers) {
+
             if(handler instanceof EmailEventHandlerVO) {
                 EmailEventHandlerVO vo = (EmailEventHandlerVO)handler;
                 if(StringUtils.isEmpty(vo.getName())) {
@@ -63,7 +63,7 @@ public class Upgrade26 extends DBUpgrade {
                 ps.setInt(3, handler.getId());
             });
         }
-        
+
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mysql);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), sql);
@@ -76,7 +76,7 @@ public class Upgrade26 extends DBUpgrade {
     protected String getNewSchemaVersion() {
         return "27";
     }
-    
+
     private String[] sql = new String[]{
             "ALTER TABLE mailingLists ADD COLUMN readPermission varchar(255);",
             "ALTER TABLE mailingLists ADD COLUMN editPermission varchar(255);",
@@ -85,7 +85,7 @@ public class Upgrade26 extends DBUpgrade {
             "ALTER TABLE users ADD COLUMN sessionExpirationPeriodType varchar(25);",
             "ALTER TABLE eventHandlers ALTER COLUMN alias varchar(255) not null;",
     };
-    
+
     private String[] mysql = new String[]{
             "ALTER TABLE mailingLists ADD COLUMN readPermission varchar(255);",
             "ALTER TABLE mailingLists ADD COLUMN editPermission varchar(255);",
@@ -94,7 +94,7 @@ public class Upgrade26 extends DBUpgrade {
             "ALTER TABLE users ADD COLUMN sessionExpirationPeriodType varchar(25);",
             "ALTER TABLE eventHandlers MODIFY COLUMN alias varchar(255) not null;",
     };
-    
+
     private String[] mssql = new String[]{
             "ALTER TABLE mailingLists ADD COLUMN readPermission nvarchar(255);",
             "ALTER TABLE mailingLists ADD COLUMN editPermission nvarchar(255);",
@@ -103,12 +103,12 @@ public class Upgrade26 extends DBUpgrade {
             "ALTER TABLE users ADD COLUMN sessionExpirationPeriodType nvarchar(25);",
             "ALTER TABLE eventHandlers ALTER COLUMN alias nvarchar(255) not null;",
     };
-    
-    private class Upgrade26EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO<?>>{
+
+    private class Upgrade26EventHandlerRowMapper implements RowMapper<AbstractEventHandlerVO>{
 
         @Override
-        public AbstractEventHandlerVO<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
-            AbstractEventHandlerVO<?> h = (AbstractEventHandlerVO<?>) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
+        public AbstractEventHandlerVO mapRow(ResultSet rs, int rowNum) throws SQLException {
+            AbstractEventHandlerVO h = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             h.setId(rs.getInt(1));
             h.setXid(rs.getString(2));
             h.setAlias(rs.getString(3));

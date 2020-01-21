@@ -25,7 +25,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
  * @author Terry Packer
  *
  */
-public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends ScriptUtility {
+public class RuntimeManagerScriptUtility extends ScriptUtility {
 
     public static final String CONTEXT_KEY = "RuntimeManager";
 
@@ -35,10 +35,10 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
     protected static final int OPERATION_NO_CHANGE = 0; //Operation didn't have any effect, it was already in that state
     protected static final int OPERATION_SUCCESSFUL = 1; //Operation worked
 
-    private final DataSourceService<DS> dataSourceService;
+    private final DataSourceService dataSourceService;
 
     @Autowired
-    public RuntimeManagerScriptUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService<DS> dataSourceService) {
+    public RuntimeManagerScriptUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService dataSourceService) {
         super(service, permissionService);
         this.dataSourceService = dataSourceService;
     }
@@ -89,7 +89,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
      */
     public int refreshDataSource(String xid){
 
-        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
+        DataSourceVO vo = DataSourceDao.getInstance().getByXid(xid);
 
         if(vo != null){
 
@@ -115,7 +115,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
      */
     public boolean isDataSourceEnabled(String xid){
 
-        DataSourceVO<?> vo = DataSourceDao.getInstance().getByXid(xid);
+        DataSourceVO vo = DataSourceDao.getInstance().getByXid(xid);
 
         if(vo == null)
             return false;
@@ -137,7 +137,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
     public int enableDataSource(String xid) {
         return Common.getBean(PermissionService.class).runAs(permissions, () -> {
             try {
-                DS vo = dataSourceService.get(xid);
+                DataSourceVO vo = dataSourceService.get(xid);
                 if(!vo.isEnabled()) {
                     vo.setEnabled(true);
                     try{
@@ -163,7 +163,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
     public int disableDataSource(String xid){
         return Common.getBean(PermissionService.class).runAs(permissions, () -> {
             try {
-                DS vo = dataSourceService.get(xid);
+                DataSourceVO vo = dataSourceService.get(xid);
                 if(vo.isEnabled()) {
                     vo.setEnabled(false);
                     try{
@@ -195,7 +195,7 @@ public class RuntimeManagerScriptUtility<DS extends DataSourceVO<DS>> extends Sc
             return false;
         else{
             if(permissionService.hasDataPointSetPermission(permissions, vo) || permissionService.hasDataPointReadPermission(permissions, vo)){
-                DataSourceVO<?> ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
+                DataSourceVO ds = DataSourceDao.getInstance().get(vo.getDataSourceId());
                 if(ds == null)
                     return false;
                 return (ds.isEnabled() && vo.isEnabled());

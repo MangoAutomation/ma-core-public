@@ -39,14 +39,14 @@ import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.role.Role;
 
-abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractActionVO<T> {
+abstract public class DataSourceVO extends AbstractActionVO {
     public static final String XID_PREFIX = "DS_";
 
     abstract public TranslatableMessage getConnectionDescription();
 
     abstract public PointLocatorVO<?> createPointLocator();
 
-    abstract public DataSourceRT<? extends DataSourceVO<?>> createDataSourceRT();
+    abstract public DataSourceRT<? extends DataSourceVO> createDataSourceRT();
 
     abstract public ExportCodes getEventCodes();
 
@@ -63,7 +63,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
         return id == Common.NEW_ID;
     }
 
-    private DataSourceDefinition<T> definition;
+    private DataSourceDefinition<? extends DataSourceVO> definition;
 
     private Map<Integer, AlarmLevels> alarmLevels = new HashMap<>();
 
@@ -75,11 +75,11 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     @JsonProperty
     private Set<Role> editRoles = Collections.emptySet();
 
-    public final DataSourceDefinition<T> getDefinition() {
-        return definition;
+    public final <T extends DataSourceVO> DataSourceDefinition<T> getDefinition() {
+        return (DataSourceDefinition<T>) definition;
     }
 
-    public void setDefinition(DataSourceDefinition<T> definition) {
+    public <T extends DataSourceVO> void setDefinition(DataSourceDefinition<T> definition) {
         this.definition = definition;
     }
 
@@ -96,7 +96,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     public void setAlarmLevel(int eventId, AlarmLevels level) {
         alarmLevels.put(eventId, level);
     }
-    
+
     /**
      * Set an alarm level based on the sub-type of the data source event type
      * which MUST (and already is) one of the codes in getEventCodes()
@@ -346,13 +346,13 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
     protected Integer readUpdatePeriodType(JsonObject json) throws JsonException {
         return readPeriodType("updatePeriodType", json);
     }
-    
+
     protected Integer readPeriodType(String field, JsonObject json) throws JsonException {
         try {
             String text = getString(json, field);
             if (text == null)
                 return null;
-    
+
             int value = Common.TIME_PERIOD_CODES.getId(text);
             if (value == -1)
                 throw new TranslatableJsonException("emport.error.invalid", field, text,
@@ -366,7 +366,7 @@ abstract public class DataSourceVO<T extends DataSourceVO<T>> extends AbstractAc
                     throw new TranslatableJsonException("emport.error.invalid", field, testInt, Common.TIME_PERIOD_CODES.getCodeList());
                 return testInt;
             }catch(JsonException e2) {
-                //Wasn't an int 
+                //Wasn't an int
                 throw new TranslatableJsonException("emport.error.missing", field, Common.TIME_PERIOD_CODES.getCodeList());
             }
         }

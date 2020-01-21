@@ -112,7 +112,7 @@ public class DataSourceEventType extends EventType {
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        DataSourceVO<?> ds = getDataSource(jsonObject, "XID");
+        DataSourceVO ds = getDataSource(jsonObject, "XID");
         dataSourceId = ds.getId();
         dataSourceEventTypeId = getInt(jsonObject, "dataSourceEventType", ds.getEventCodes());
     }
@@ -120,14 +120,14 @@ public class DataSourceEventType extends EventType {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataSourceId);
+        DataSourceVO ds = DataSourceDao.getInstance().get(dataSourceId);
         writer.writeEntry("XID", ds.getXid());
         writer.writeEntry("dataSourceEventType", ds.getEventCodes().getCode(dataSourceEventTypeId));
     }
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        DataSourceVO<?> ds = DataSourceDao.getInstance().get(dataSourceId);
+        DataSourceVO ds = DataSourceDao.getInstance().get(dataSourceId);
         if(ds == null)
             return false;
         return service.hasDataSourcePermission(user, ds);

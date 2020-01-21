@@ -54,7 +54,7 @@ import com.serotonin.m2m2.vo.publish.PublisherVO;
 public class RuntimeManagerImpl implements RuntimeManager {
     private static final Log LOG = LogFactory.getLog(RuntimeManagerImpl.class);
 
-    private final ConcurrentMap<Integer, DataSourceRT<? extends DataSourceVO<?>>> runningDataSources = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, DataSourceRT<? extends DataSourceVO>> runningDataSources = new ConcurrentHashMap<>();
 
     /**
      * Provides a quick lookup map of the running data points.
@@ -131,19 +131,19 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int rtmdIndex = startRTMDefs(defs, safe, 0, 4);
 
         // Initialize data sources that are enabled. Start by organizing all enabled data sources by start priority.
-        List<DataSourceVO<?>> configs = null;
+        List<DataSourceVO> configs = null;
         configs = DataSourceDao.getInstance().getAll();
-        Map<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO<?>>>();
-        for (DataSourceVO<?> config : configs) {
+        Map<DataSourceDefinition.StartPriority, List<DataSourceVO>> priorityMap = new HashMap<DataSourceDefinition.StartPriority, List<DataSourceVO>>();
+        for (DataSourceVO config : configs) {
             if (config.isEnabled()) {
                 if (safe) {
                     config.setEnabled(false);
                     DataSourceDao.getInstance().update(config.getId(), config);
                 }
                 else if (config.getDefinition() != null) {
-                    List<DataSourceVO<?>> priorityList = priorityMap.get(config.getDefinition().getStartPriority());
+                    List<DataSourceVO> priorityList = priorityMap.get(config.getDefinition().getStartPriority());
                     if (priorityList == null) {
-                        priorityList = new ArrayList<DataSourceVO<?>>();
+                        priorityList = new ArrayList<DataSourceVO>();
                         priorityMap.put(config.getDefinition().getStartPriority(), priorityList);
                     }
                     priorityList.add(config);
@@ -152,11 +152,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         // Initialize the prioritized data sources. Start the polling later.
-        List<DataSourceVO<?>> pollingRound = new ArrayList<DataSourceVO<?>>();
+        List<DataSourceVO> pollingRound = new ArrayList<DataSourceVO>();
         int dataSourceStartupThreads = Common.envProps.getInt("runtime.datasource.startupThreads", 8);
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         for (DataSourceDefinition.StartPriority startPriority : DataSourceDefinition.StartPriority.values()) {
-            List<DataSourceVO<?>> priorityList = priorityMap.get(startPriority);
+            List<DataSourceVO> priorityList = priorityMap.get(startPriority);
             if (priorityList != null) {
                 DataSourceGroupInitializer initializer = new DataSourceGroupInitializer(startPriority, priorityList, useMetrics, dataSourceStartupThreads);
                 pollingRound.addAll(initializer.initialize());
@@ -165,7 +165,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
         // Tell the data sources to start polling. Delaying the polling start gives the data points a chance to
         // initialize such that point listeners in meta points and set point handlers can run properly.
-        for (DataSourceVO<?> config : pollingRound)
+        for (DataSourceVO config : pollingRound)
             startDataSourcePolling(config);
 
         // Run everything else.
@@ -224,10 +224,10 @@ public class RuntimeManagerImpl implements RuntimeManager {
         int rtmdIndex = stopRTMDefs(defs, 0, 5);
 
         // Stop data sources in reverse start priority order.
-        Map<DataSourceDefinition.StartPriority, List<DataSourceRT<? extends DataSourceVO<?>>>> priorityMap = new HashMap<>();
-        for (Entry<Integer, DataSourceRT<? extends DataSourceVO<?>>> entry : runningDataSources.entrySet()) {
-            DataSourceRT<? extends DataSourceVO<?>> rt = entry.getValue();
-            List<DataSourceRT<? extends DataSourceVO<?>>> priorityList = priorityMap.get(rt.getVo().getDefinition().getStartPriority());
+        Map<DataSourceDefinition.StartPriority, List<DataSourceRT<? extends DataSourceVO>>> priorityMap = new HashMap<>();
+        for (Entry<Integer, DataSourceRT<? extends DataSourceVO>> entry : runningDataSources.entrySet()) {
+            DataSourceRT<? extends DataSourceVO> rt = entry.getValue();
+            List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(rt.getVo().getDefinition().getStartPriority());
             if (priorityList == null) {
                 priorityList = new ArrayList<>();
                 priorityMap.put(rt.getVo().getDefinition().getStartPriority(), priorityList);
@@ -239,7 +239,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         boolean useMetrics = Common.envProps.getBoolean("runtime.datasource.logStartupMetrics", false);
         DataSourceDefinition.StartPriority[] priorities = DataSourceDefinition.StartPriority.values();
         for (int i = priorities.length - 1; i >= 0; i--) {
-            List<DataSourceRT<? extends DataSourceVO<?>>> priorityList = priorityMap.get(priorities[i]);
+            List<DataSourceRT<? extends DataSourceVO>> priorityList = priorityMap.get(priorities[i]);
             if (priorityList != null) {
                 DataSourceGroupTerminator initializer = new DataSourceGroupTerminator(priorities[i], priorityList, useMetrics, dataSourceStartupThreads);
                 initializer.terminate();
@@ -257,8 +257,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
             return;
         state = POST_TERMINATE;
 
-        for (Entry<Integer, DataSourceRT<? extends DataSourceVO<?>>> entry : runningDataSources.entrySet()) {
-            DataSourceRT<? extends DataSourceVO<?>> dataSource = entry.getValue();
+        for (Entry<Integer, DataSourceRT<? extends DataSourceVO>> entry : runningDataSources.entrySet()) {
+            DataSourceRT<? extends DataSourceVO> dataSource = entry.getValue();
             try {
                 dataSource.joinTermination();
             }
@@ -289,7 +289,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     // Data sources
     //
     @Override
-    public DataSourceRT<? extends DataSourceVO<?>> getRunningDataSource(int dataSourceId) {
+    public DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId) {
         return runningDataSources.get(dataSourceId);
     }
 
@@ -304,7 +304,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public DataSourceVO<?> getDataSource(int dataSourceId) {
+    public DataSourceVO getDataSource(int dataSourceId) {
         return DataSourceDao.getInstance().get(dataSourceId);
     }
 
@@ -316,7 +316,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void insertDataSource(DataSourceVO<?> vo) {
+    public void insertDataSource(DataSourceVO vo) {
 
         // In this case it is new data source, we need to save to the database first so that it has a proper id.
         DataSourceDao.getInstance().insert(vo);
@@ -329,7 +329,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
     @Override
-    public void updateDataSource(DataSourceVO<?> existing, DataSourceVO<?> vo) {
+    public void updateDataSource(DataSourceVO existing, DataSourceVO vo) {
         // If the data source is running, stop it.
         stopDataSource(vo.getId());
 
@@ -344,7 +344,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     }
 
 
-    private boolean initializeDataSource(DataSourceVO<?> vo) {
+    private boolean initializeDataSource(DataSourceVO vo) {
         synchronized (runningDataSources) {
             return initializeDataSourceStartup(vo);
         }
@@ -356,7 +356,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * @return
      */
     @Override
-    public boolean initializeDataSourceStartup(DataSourceVO<?> vo) {
+    public boolean initializeDataSourceStartup(DataSourceVO vo) {
         long startTime = System.nanoTime();
 
         // If the data source is already running, just quit.
@@ -367,7 +367,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         Assert.isTrue(vo.isEnabled(), "Data source not enabled.");
 
         // Create and initialize the runtime version of the data source.
-        DataSourceRT<? extends DataSourceVO<?>> dataSource = vo.createDataSourceRT();
+        DataSourceRT<? extends DataSourceVO> dataSource = vo.createDataSourceRT();
         dataSource.initialize();
 
         // Add it to the list of running data sources.
@@ -425,8 +425,8 @@ public class RuntimeManagerImpl implements RuntimeManager {
         return true;
     }
 
-    private void startDataSourcePolling(DataSourceVO<?> vo) {
-        DataSourceRT<? extends DataSourceVO<?>> dataSource = getRunningDataSource(vo.getId());
+    private void startDataSourcePolling(DataSourceVO vo) {
+        DataSourceRT<? extends DataSourceVO> dataSource = getRunningDataSource(vo.getId());
         if (dataSource != null)
             dataSource.beginPolling();
     }
@@ -443,7 +443,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
     @Override
     public void stopDataSourceShutdown(int id) {
 
-        DataSourceRT<? extends DataSourceVO<?>> dataSource = getRunningDataSource(id);
+        DataSourceRT<? extends DataSourceVO> dataSource = getRunningDataSource(id);
         if (dataSource == null)
             return;
         try{
@@ -475,9 +475,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
         //TODO Mango 4.0 ensure this can't happen elsewhere
         // Event detectors
         int dataType = vo.getPointLocator().getDataTypeId();
-        Iterator<AbstractPointEventDetectorVO<?>> peds = vo.getEventDetectors().iterator();
+        Iterator<AbstractPointEventDetectorVO> peds = vo.getEventDetectors().iterator();
         while (peds.hasNext()) {
-            AbstractPointEventDetectorVO<?> ped = peds.next();
+            AbstractPointEventDetectorVO ped = peds.next();
             if (!ped.supports(dataType))
                 // Remove the detector.
                 peds.remove();
@@ -504,9 +504,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
             vo.defaultTextRenderer();
 
         // Event detectors
-        Iterator<AbstractPointEventDetectorVO<?>> peds = vo.getEventDetectors().iterator();
+        Iterator<AbstractPointEventDetectorVO> peds = vo.getEventDetectors().iterator();
         while (peds.hasNext()) {
-            AbstractPointEventDetectorVO<?> ped = peds.next();
+            AbstractPointEventDetectorVO ped = peds.next();
             if (!ped.supports(dataType))
                 // Remove the detector.
                 peds.remove();
@@ -559,7 +559,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         Assert.isTrue(vo.isEnabled(), "Data point not enabled");
 
         // Only add the data point if its data source is enabled.
-        DataSourceRT<? extends DataSourceVO<?>> ds = getRunningDataSource(vo.getDataSourceId());
+        DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(vo.getDataSourceId());
         if (ds != null) {
             // Change the VO into a data point implementation.
             DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime(), ds.getVo(), initialCache);
@@ -783,7 +783,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             throw new RTException("Point is not settable");
 
         // Tell the data source to set the value of the point.
-        DataSourceRT<? extends DataSourceVO<?>> ds = getRunningDataSource(dataPoint.getDataSourceId());
+        DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPoint.getDataSourceId());
         // The data source may have been disabled. Just make sure.
         if (ds != null)
             ds.setPointValue(dataPoint, valueTime, source);
@@ -801,7 +801,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             throw new RTException("Point is not relinquishable");
 
         // Tell the data source to relinquish value of the point.
-        DataSourceRT<? extends DataSourceVO<?>> ds = getRunningDataSource(dataPoint.getDataSourceId());
+        DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPoint.getDataSourceId());
         // The data source may have been disabled. Just make sure.
         if (ds != null)
             ds.relinquish(dataPoint);
@@ -814,7 +814,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             throw new RTException("Point is not enabled");
 
         // Tell the data source to read the point value;
-        DataSourceRT<? extends DataSourceVO<?>> ds = getRunningDataSource(dataPoint.getDataSourceId());
+        DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(dataPoint.getDataSourceId());
         if (ds != null)
             // The data source may have been disabled. Just make sure.
             ds.forcePointRead(dataPoint);
@@ -822,7 +822,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public void forceDataSourcePoll(int dataSourceId) {
-        DataSourceRT<? extends DataSourceVO<?>> dataSource = runningDataSources.get(dataSourceId);
+        DataSourceRT<? extends DataSourceVO> dataSource = runningDataSources.get(dataSourceId);
         if(dataSource == null)
             throw new RTException("Source is not enabled");
 

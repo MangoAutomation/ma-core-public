@@ -583,7 +583,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
                 else
                     source = new OneTimePointAnnotation(EmailHandlerRT.this, annotation);
 
-                DataSourceRT<? extends DataSourceVO<?>> dsrt = Common.runtimeManager.getRunningDataSource(dprt.getDataSourceId());
+                DataSourceRT<? extends DataSourceVO> dsrt = Common.runtimeManager.getRunningDataSource(dprt.getDataSourceId());
                 dsrt.setPointValue(dprt, newValue, source);
             }
             catch (ResultTypeException e) {

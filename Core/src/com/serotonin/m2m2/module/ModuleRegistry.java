@@ -143,7 +143,7 @@ public class ModuleRegistry {
     private static Map<String, SystemEventTypeDefinition> SYSTEM_EVENT_TYPE_DEFINITIONS;
     private static Map<String, AuditEventTypeDefinition> AUDIT_EVENT_TYPE_DEFINITIONS;
     private static Map<String, EventHandlerDefinition<?>> EVENT_HANDLER_DEFINITIONS;
-    private static Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO<?>>> EVENT_DETECTOR_DEFINITIONS;
+    private static Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO>> EVENT_DETECTOR_DEFINITIONS;
     private static Map<String, PermissionDefinition> PERMISSION_DEFINITIONS;
 
     private static List<AngularJSModuleDefinition> ANGULARJS_MODULE_DEFINITIONS;
@@ -227,7 +227,7 @@ public class ModuleRegistry {
     // Data source special handling
     //
     @SuppressWarnings("unchecked")
-    public static <T extends DataSourceVO<T>> DataSourceDefinition<T> getDataSourceDefinition(String type) {
+    public static <T extends DataSourceVO> DataSourceDefinition<T> getDataSourceDefinition(String type) {
         ensureDataSourceDefinitions();
         return (DataSourceDefinition<T>) DATA_SOURCE_DEFINITIONS.get(type);
     }
@@ -256,7 +256,7 @@ public class ModuleRegistry {
     //
     // Publisher special handling
     //
-    public static PublisherDefinition getPublisherDefinition(String type) {
+    public static PublisherDefinition<?> getPublisherDefinition(String type) {
         ensurePublisherDefinitions();
         return PUBLISHER_DEFINITIONS.get(type);
     }
@@ -434,7 +434,7 @@ public class ModuleRegistry {
         if (EVENT_DETECTOR_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (EVENT_DETECTOR_DEFINITIONS == null) {
-                    Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO<?>>> map = new HashMap<>();
+                    Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO>> map = new HashMap<>();
                     for(EventDetectorDefinition<?> def : Module.getDefinitions(preDefaults, EventDetectorDefinition.class)){
                         map.put(def.getEventDetectorTypeName(), def);
                     }

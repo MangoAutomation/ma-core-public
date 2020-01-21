@@ -37,7 +37,7 @@ import com.serotonin.util.SerializationHelper;
  * @author Terry Packer
  *
  */
-public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandlerVO> {
+public class EmailEventHandlerVO extends AbstractEventHandlerVO {
 
     public static final int RECIPIENT_TYPE_ACTIVE = 1;
     public static final int RECIPIENT_TYPE_ESCALATION = 2;
@@ -45,7 +45,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
 
     public static final int SUBJECT_INCLUDE_NAME = 1;
     public static final int SUBJECT_INCLUDE_EVENT_MESSAGE = 2;
-    
+
     public static ExportCodes RECIPIENT_TYPE_CODES = new ExportCodes();
     public static ExportCodes SUBJECT_INCLUDE_CODES = new ExportCodes();
     static {
@@ -53,13 +53,13 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         RECIPIENT_TYPE_CODES.addElement(RECIPIENT_TYPE_ESCALATION, "ESCALATION",
                 "eventHandlers.recipientType.escalation");
         RECIPIENT_TYPE_CODES.addElement(RECIPIENT_TYPE_INACTIVE, "INACTIVE", "eventHandlers.recipientType.inactive");
-        
+
         SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_NAME, "INCLUDE_NAME", "eventHandlers.includeName");
         SUBJECT_INCLUDE_CODES.addElement(SUBJECT_INCLUDE_EVENT_MESSAGE, "INCLUDE_EVENT_MESSAGE", "eventHandlers.includeEventMessage");
-        
+
     }
-	
-	private List<RecipientListEntryBean> activeRecipients;
+
+    private List<RecipientListEntryBean> activeRecipients;
     private boolean sendEscalation;
     private boolean repeatEscalations;
     private int escalationDelayType = TimePeriods.HOURS;
@@ -76,7 +76,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private ScriptPermissions scriptRoles;
     private String script;
     private int subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
-    
+
     public List<RecipientListEntryBean> getActiveRecipients() {
         return activeRecipients;
     }
@@ -116,11 +116,11 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     public void setSendEscalation(boolean sendEscalation) {
         this.sendEscalation = sendEscalation;
     }
-    
+
     public boolean isRepeatEscalations() {
         return repeatEscalations;
     }
-    
+
     public void setRepeatEscalations(boolean repeatEscalations) {
         this.repeatEscalations = repeatEscalations;
     }
@@ -150,69 +150,69 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     }
 
     public boolean isIncludeSystemInfo(){
-    	return this.includeSystemInfo;
+        return this.includeSystemInfo;
     }
     public void setIncludeSystemInfo(boolean includeSystemInfo){
-    	this.includeSystemInfo = includeSystemInfo;
+        this.includeSystemInfo = includeSystemInfo;
     }
-    
+
     public int getIncludePointValueCount() {
-		return includePointValueCount;
-	}
+        return includePointValueCount;
+    }
 
-	public void setIncludePointValueCount(int includePointValueCount) {
-		this.includePointValueCount = includePointValueCount;
-	}
-	
-	public boolean isIncludeLogfile() {
-		return includeLogfile;
-	}
+    public void setIncludePointValueCount(int includePointValueCount) {
+        this.includePointValueCount = includePointValueCount;
+    }
 
-	public void setIncludeLogfile(boolean includeLogfile) {
-		this.includeLogfile = includeLogfile;
-	}
-	
-	public String getCustomTemplate() {
-		return customTemplate;
-	}
-	
-	public void setCustomTemplate(String customTemplate) {
-		this.customTemplate = customTemplate;
-	}
-	
-	public List<IntStringPair> getAdditionalContext() {
-		return additionalContext;
-	}
-	
-	public void setAdditionalContext(List<IntStringPair> additionalContext) {
-		this.additionalContext = additionalContext;
-	}
-	
-	public ScriptPermissions getScriptRoles() {
-	    return scriptRoles;
-	}
-	
-	public void setScriptRoles(ScriptPermissions scriptRoles) {
-	    this.scriptRoles = scriptRoles;
-	}
-	
-	public String getScript() {
-	    return script;
-	}
-	
-	public void setScript(String script) {
-	    this.script = script;
-	}
-	
+    public boolean isIncludeLogfile() {
+        return includeLogfile;
+    }
+
+    public void setIncludeLogfile(boolean includeLogfile) {
+        this.includeLogfile = includeLogfile;
+    }
+
+    public String getCustomTemplate() {
+        return customTemplate;
+    }
+
+    public void setCustomTemplate(String customTemplate) {
+        this.customTemplate = customTemplate;
+    }
+
+    public List<IntStringPair> getAdditionalContext() {
+        return additionalContext;
+    }
+
+    public void setAdditionalContext(List<IntStringPair> additionalContext) {
+        this.additionalContext = additionalContext;
+    }
+
+    public ScriptPermissions getScriptRoles() {
+        return scriptRoles;
+    }
+
+    public void setScriptRoles(ScriptPermissions scriptRoles) {
+        this.scriptRoles = scriptRoles;
+    }
+
+    public String getScript() {
+        return script;
+    }
+
+    public void setScript(String script) {
+        this.script = script;
+    }
+
     public void setSubject(int subject) {
         this.subject = subject;
     }
-    
+
     public int getSubject() {
         return subject;
     }
-    
-	//
+
+    //
     //
     // Serialization
     //
@@ -220,8 +220,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
     private static final int version = 7;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-    	out.writeInt(version);
-    	out.writeObject(activeRecipients);
+        out.writeInt(version);
+        out.writeObject(activeRecipients);
         out.writeBoolean(sendEscalation);
         out.writeBoolean(repeatEscalations);
         out.writeInt(escalationDelayType);
@@ -239,13 +239,13 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         SerializationHelper.writeSafeUTF(out, script);
         out.writeInt(subject);
     }
-	
+
     @SuppressWarnings({"unchecked", "deprecation"})
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
         if (ver == 1) {
-        	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
             repeatEscalations = false;
@@ -266,7 +266,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             script = null;
         }
         else if (ver == 2) {
-        	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
             repeatEscalations = false;
@@ -287,7 +287,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             script = null;
         }
         else if (ver == 3) {
-        	activeRecipients = (List<RecipientListEntryBean>) in.readObject();
+            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
             RecipientListEntryBean.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
             repeatEscalations = false;
@@ -399,10 +399,10 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             subject = in.readInt();
         }
     }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-    	super.jsonWrite(writer);
+        super.jsonWrite(writer);
         writer.writeEntry("activeRecipients", activeRecipients);
         writer.writeEntry("sendEscalation", sendEscalation);
         if (sendEscalation) {
@@ -421,16 +421,16 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         writer.writeEntry("includePointValueCount", includePointValueCount);
         writer.writeEntry("includeLogfile", includeLogfile);
         writer.writeEntry("customTemplate", customTemplate);
-        
+
         JsonArray context = new JsonArray();
         for(IntStringPair pnt : additionalContext) {
-        	DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey());
-        	if(dpvo != null) {
-        		JsonObject point = new JsonObject();
-        		point.put("dataPointXid", dpvo.getXid());
-        		point.put("contextKey", pnt.getValue());
-        		context.add(point);
-        	}
+            DataPointVO dpvo = DataPointDao.getInstance().get(pnt.getKey());
+            if(dpvo != null) {
+                JsonObject point = new JsonObject();
+                point.put("dataPointXid", dpvo.getXid());
+                point.put("contextKey", pnt.getValue());
+                context.add(point);
+            }
         }
         writer.writeEntry("additionalContext", context);
         writer.writeEntry("script", script);
@@ -439,14 +439,14 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         }
         writer.writeEntry("subject", SUBJECT_INCLUDE_CODES.getCode(subject));
     }
-    
+
     @SuppressWarnings("unchecked")
-	@Override
+    @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-    	super.jsonRead(reader, jsonObject);
-    	
+        super.jsonRead(reader, jsonObject);
+
         String text = null;
-    	TypeDefinition recipType = new TypeDefinition(List.class, RecipientListEntryBean.class);
+        TypeDefinition recipType = new TypeDefinition(List.class, RecipientListEntryBean.class);
         JsonArray jsonActiveRecipients = jsonObject.getJsonArray("activeRecipients");
         if (jsonActiveRecipients != null)
             activeRecipients = (List<RecipientListEntryBean>) reader.read(recipType, jsonActiveRecipients);
@@ -472,7 +472,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             if (jsonEscalationRecipients != null)
                 escalationRecipients = (List<RecipientListEntryBean>) reader.read(recipType,
                         jsonEscalationRecipients);
-            
+
             b = jsonObject.getJsonBoolean("keepSendingEscalations");
             if(b != null)
                 repeatEscalations = b.booleanValue();
@@ -496,43 +496,43 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
         }
         b = jsonObject.getJsonBoolean("includeSystemInformation");
         if(b != null)
-        	includeSystemInfo = b.booleanValue();
-        
+            includeSystemInfo = b.booleanValue();
+
         includePointValueCount = jsonObject.getInt("includePointValueCount", 0);
-        
+
         b = jsonObject.getJsonBoolean("includeLogfile");
         if(b != null)
-        	includeSystemInfo = b.booleanValue();
-        
+            includeSystemInfo = b.booleanValue();
+
         customTemplate = jsonObject.getString("customTemplate");
-        
+
         JsonArray context = jsonObject.getJsonArray("additionalContext");
         if(context != null) {
-        	List<IntStringPair> additionalContext = new ArrayList<>();
-        	for(JsonValue jv : context) {
-        		JsonObject jo = jv.toJsonObject();
-        		String dataPointXid = jo.getString("dataPointXid");
-        		if(dataPointXid == null)
-        			throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
-        		
-        		Integer dpId = DataPointDao.getInstance().getIdByXid(dataPointXid);
-        		if(dpId == null)
-        			throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
-        		
-        		String contextKey = jo.getString("contextKey");
-        		if(contextKey == null)
-        			throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
-        		
-        		additionalContext.add(new IntStringPair(dpId, contextKey));
-        	}
-        	this.additionalContext = additionalContext;
+            List<IntStringPair> additionalContext = new ArrayList<>();
+            for(JsonValue jv : context) {
+                JsonObject jo = jv.toJsonObject();
+                String dataPointXid = jo.getString("dataPointXid");
+                if(dataPointXid == null)
+                    throw new TranslatableJsonException("emport.error.context.missing", "dataPointXid");
+
+                Integer dpId = DataPointDao.getInstance().getIdByXid(dataPointXid);
+                if(dpId == null)
+                    throw new TranslatableJsonException("emport.error.missingPoint", dataPointXid);
+
+                String contextKey = jo.getString("contextKey");
+                if(contextKey == null)
+                    throw new TranslatableJsonException("emport.error.context.missing", "contextKey");
+
+                additionalContext.add(new IntStringPair(dpId, contextKey));
+            }
+            this.additionalContext = additionalContext;
         } else
-        	this.additionalContext = new ArrayList<>();
-        
+            this.additionalContext = new ArrayList<>();
+
         script = jsonObject.getString("script");
-        
+
         this.scriptRoles = ScriptPermissions.readJsonSafely(reader, jsonObject);
-        
+
         text = jsonObject.getString("subject");
         if (text != null) {
             subject = SUBJECT_INCLUDE_CODES.getId(text);
@@ -544,9 +544,9 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO<EmailEventHandle
             subject = StringUtils.isEmpty(name) ? SUBJECT_INCLUDE_EVENT_MESSAGE : SUBJECT_INCLUDE_NAME;
         }
     }
-    
+
     @Override
     public EventHandlerRT<EmailEventHandlerVO> createRuntime(){
-    	return new EmailHandlerRT(this);
+        return new EmailHandlerRT(this);
     }
 }

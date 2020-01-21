@@ -45,7 +45,7 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.util.SerializationHelper;
 
 @Repository()
-public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,DataSourceTableDefinition> {
+public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefinition> {
 
     //TODO Clean up/remove
     public static final Name DATA_SOURCES_ALIAS = DSL.name("ds");
@@ -58,11 +58,11 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
             "SELECT id, xid, name, dataSourceType, data FROM dataSources ";
 
     @SuppressWarnings("unchecked")
-    private static final LazyInitSupplier<DataSourceDao<DataSourceVO<?>>> springInstance = new LazyInitSupplier<>(() -> {
+    private static final LazyInitSupplier<DataSourceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataSourceDao.class);
         if(o == null)
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (DataSourceDao<DataSourceVO<?>>)o;
+        return (DataSourceDao)o;
     });
 
     @Autowired
@@ -79,7 +79,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
      * Get cached instance from Spring Context
      * @return
      */
-    public static DataSourceDao<DataSourceVO<?>> getInstance() {
+    public static DataSourceDao getInstance() {
         return springInstance.get();
     }
 
@@ -88,7 +88,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
      * @param type
      * @return
      */
-    public List<T> getDataSourcesForType(String type) {
+    public List<DataSourceVO> getDataSourcesForType(String type) {
         return query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, getListResultSetExtractor());
     }
 
@@ -98,8 +98,8 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
      * @param dataSourceType
      */
     public void deleteDataSourceType(final String dataSourceType) {
-        List<T> dss = getDataSourcesForType(dataSourceType);
-        for(T ds : dss) {
+        List<DataSourceVO> dss = getDataSourcesForType(dataSourceType);
+        for(DataSourceVO ds : dss) {
             delete(ds);
         }
     }
@@ -152,11 +152,11 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
         });
     }
 
-    class DataSourceRowMapper implements RowMapper<T> {
+    class DataSourceRowMapper implements RowMapper<DataSourceVO> {
         @Override
-        public T mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public DataSourceVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             @SuppressWarnings("unchecked")
-            T ds = (T) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
+            DataSourceVO ds = (DataSourceVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(5));
             ds.setId(rs.getInt(1));
             ds.setXid(rs.getString(2));
             ds.setName(rs.getString(3));
@@ -166,7 +166,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
     }
 
     @Override
-    protected ResultSetExtractor<List<T>> getListResultSetExtractor() {
+    protected ResultSetExtractor<List<DataSourceVO>> getListResultSetExtractor() {
         return getListResultSetExtractor((e, rs) -> {
             if (e.getCause() instanceof ModuleNotLoadedException) {
                 try {
@@ -185,7 +185,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
 
     @Override
     protected ResultSetExtractor<Void> getCallbackResultSetExtractor(
-            MappedRowCallback<T> callback) {
+            MappedRowCallback<DataSourceVO> callback) {
         return getCallbackResultSetExtractor(callback, (e, rs) -> {
             if (e.getCause() instanceof ModuleNotLoadedException) {
                 try {
@@ -208,7 +208,7 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
     }
 
     @Override
-    protected Object[] voToObjectArray(T vo) {
+    protected Object[] voToObjectArray(DataSourceVO vo) {
         return new Object[] {
                 vo.getXid(),
                 vo.getName(),
@@ -217,26 +217,29 @@ public class DataSourceDao<T extends DataSourceVO<?>> extends AbstractDao<T,Data
     }
 
     @Override
-    public RowMapper<T> getRowMapper() {
+    public RowMapper<DataSourceVO> getRowMapper() {
         return new DataSourceRowMapper();
     }
 
     @Override
-    public void loadRelationalData(T vo) {
+    public void loadRelationalData(DataSourceVO vo) {
         vo.setEditRoles(RoleDao.getInstance().getRoles(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
+        vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override
-    public void saveRelationalData(T vo, boolean insert) {
+    public void saveRelationalData(DataSourceVO vo, boolean insert) {
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
+        vo.getDefinition().saveRelationalData(vo, insert);
     }
 
     @Override
-    public void deleteRelationalData(T vo) {
+    public void deleteRelationalData(DataSourceVO vo) {
         DataPointDao.getInstance().deleteDataPoints(vo.getId());
         ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
                 EventType.EventTypeNames.DATA_SOURCE, vo.getId()});
         RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
+        vo.getDefinition().deleteRelationalData(vo);
     }
 
 }

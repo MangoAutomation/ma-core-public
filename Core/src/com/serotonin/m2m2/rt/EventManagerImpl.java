@@ -1036,9 +1036,9 @@ public class EventManagerImpl implements EventManager {
     }
 
     private void setHandlers(EventInstance evt) {
-        List<AbstractEventHandlerVO<?>> vos = EventHandlerDao.getInstance().getEventHandlers(evt.getEventType());
+        List<AbstractEventHandlerVO> vos = EventHandlerDao.getInstance().getEventHandlers(evt.getEventType());
         List<EventHandlerRT<?>> rts = null;
-        for (AbstractEventHandlerVO<?> vo : vos) {
+        for (AbstractEventHandlerVO vo : vos) {
             if (!vo.isDisabled()) {
                 if (rts == null)
                     rts = new ArrayList<EventHandlerRT<?>>();

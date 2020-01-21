@@ -31,7 +31,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  *
  * @author Jared Wiltshire
  */
-public abstract class AbstractDao<T extends AbstractVO<?>, TABLE extends AbstractTableDefinition> extends AbstractBasicDao<T, TABLE> implements AbstractVOAccess<T, TABLE> {
+public abstract class AbstractDao<T extends AbstractVO, TABLE extends AbstractTableDefinition> extends AbstractBasicDao<T, TABLE> implements AbstractVOAccess<T, TABLE> {
 
     /**
      * For generating XIDs this is prepended to any XIDs generated
@@ -190,7 +190,7 @@ public abstract class AbstractDao<T extends AbstractVO<?>, TABLE extends Abstrac
 
                 // Copy the vo
                 @SuppressWarnings("unchecked")
-                T copy = (T)vo.copy();
+                T copy = (T) vo.copy();
                 copy.setId(Common.NEW_ID);
                 copy.setXid(newXid);
                 copy.setName(newName);

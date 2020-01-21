@@ -21,7 +21,6 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -31,57 +30,55 @@ import com.serotonin.m2m2.vo.role.Role;
  *
  */
 public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPointEventHandlerVO>{
-	
-	public static final String TYPE_NAME = "SET_POINT";
-	public static final String DESC_KEY = "eventHandlers.type.setPoint";
-	public static final int ACTIVE_SCRIPT_TYPE = 0;
-	public static final int INACTIVE_SCRIPT_TYPE = 1;
-	
+
+    public static final String TYPE_NAME = "SET_POINT";
+    public static final String DESC_KEY = "eventHandlers.type.setPoint";
+    public static final int ACTIVE_SCRIPT_TYPE = 0;
+    public static final int INACTIVE_SCRIPT_TYPE = 1;
+
     @Autowired
     PermissionService service;
-	
-	@Override
-	public String getEventHandlerTypeName() {
-		return TYPE_NAME;
-	}
 
-	@Override
-	public String getDescriptionKey() {
-		return DESC_KEY;
-	}
-
-	@Override
-	protected SetPointEventHandlerVO createEventHandlerVO() {
-		return new SetPointEventHandlerVO();
-	}
-
-	@Override
-	public void saveRelationalData(AbstractEventHandlerVO<?> vo, boolean insert) {
-	    SetPointEventHandlerVO eh = (SetPointEventHandlerVO)vo;
-	    if(eh.getScriptRoles() != null) {
-	        RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getRoles(), eh, PermissionService.SCRIPT, insert);
-	    }
-	}
-	
-	@Override
-	public void loadRelationalData(AbstractEventHandlerVO<?> vo) {
-	    SetPointEventHandlerVO eh = (SetPointEventHandlerVO)vo;
-        eh.setScriptRoles(new ScriptPermissions(RoleDao.getInstance().getRoles(eh, PermissionService.SCRIPT)));
-	}
-	
     @Override
-    public void deleteRelationalData(AbstractEventHandlerVO<?> vo) {
-        RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SCRIPT);
+    public String getEventHandlerTypeName() {
+        return TYPE_NAME;
     }
-    
+
+    @Override
+    public String getDescriptionKey() {
+        return DESC_KEY;
+    }
+
+    @Override
+    protected SetPointEventHandlerVO createEventHandlerVO() {
+        return new SetPointEventHandlerVO();
+    }
+
+    @Override
+    public void saveRelationalData(SetPointEventHandlerVO eh, boolean insert) {
+        if(eh.getScriptRoles() != null) {
+            RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getRoles(), eh, PermissionService.SCRIPT, insert);
+        }
+    }
+
+    @Override
+    public void loadRelationalData(SetPointEventHandlerVO eh) {
+        eh.setScriptRoles(new ScriptPermissions(RoleDao.getInstance().getRoles(eh, PermissionService.SCRIPT)));
+    }
+
+    @Override
+    public void deleteRelationalData(SetPointEventHandlerVO eh) {
+        RoleDao.getInstance().deleteRolesForVoPermission(eh, PermissionService.SCRIPT);
+    }
+
     @Override
     public void validate(ProcessResult result, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
         if(vo.getScriptRoles() != null) {
             service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getRoles());
-        }       
+        }
     }
-    
+
     @Override
     public void validate(ProcessResult result, SetPointEventHandlerVO existing, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
@@ -93,7 +90,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
                     existingRoles, vo.getScriptRoles().getRoles());
         }
     }
-    
+
     private void commonValidation(ProcessResult response, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
         DataPointVO dp = DataPointDao.getInstance().get(vo.getTargetPointId());
 
@@ -180,11 +177,11 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScriptError", e.getTranslatableMessage());
             }
         }
-        
+
         if(vo.getAdditionalContext() != null)
             validateScriptContext(vo.getAdditionalContext(), response);
         else
             vo.setAdditionalContext(new ArrayList<>());
     }
-    
+
 }

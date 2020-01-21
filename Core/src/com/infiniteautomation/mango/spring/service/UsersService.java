@@ -522,7 +522,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
      */
     public User approveUser(String username, boolean sendEmail) throws PermissionException, NotFoundException, TemplateException, IOException, AddressException {
         User existing = this.get(username);
-        User approved = existing.copy();
+        User approved = (User) existing.copy();
         approved.setDisabled(false);
         update(existing, approved);
 

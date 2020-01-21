@@ -359,7 +359,7 @@ public class Upgrade12 extends DBUpgrade {
      * Upgrade a handler in the DB
      * @param handler
      */
-    void upgradeEventHandler(AbstractEventHandlerVO<?> handler) {
+    void upgradeEventHandler(AbstractEventHandlerVO handler) {
         ejt.update("update eventHandlers set xid=?, alias=?, eventHandlerType=?, data=? where id=?", new Object[] { handler.getXid(),
                 handler.getAlias(), handler.getDefinition().getEventHandlerTypeName(), SerializationHelper.writeObject(handler), handler.getId() }, new int[] {
                         Types.VARCHAR, Types.VARCHAR, Types.VARCHAR, Types.BINARY, Types.INTEGER });
@@ -487,15 +487,15 @@ public class Upgrade12 extends DBUpgrade {
     private int upgradeEventDetectors(OutputStream os){
 
         //Extract them and put them into the new table
-        List<AbstractEventDetectorVO<?>> detectors = this.ejt.query(
+        List<AbstractEventDetectorVO> detectors = this.ejt.query(
                 "select id, xid, alias, dataPointId, detectorType, alarmLevel, stateLimit, duration, durationType, binaryState, "
                         + "  multistateState, changeCount, alphanumericState, weight from pointEventDetectors"
                         , new Object[] { }, new LegacyEventDetectorRowMapper(os));
 
         //Save the new ones
-        for(AbstractEventDetectorVO<?> vo : detectors){
+        for(AbstractEventDetectorVO vo : detectors){
             if(vo instanceof AbstractPointEventDetectorVO) {
-                AbstractPointEventDetectorVO<?> pedVO = (AbstractPointEventDetectorVO<?>)vo;
+                AbstractPointEventDetectorVO pedVO = (AbstractPointEventDetectorVO)vo;
                 if(pedVO.getAlarmLevel().value() < AlarmLevels.URGENT.value() && pedVO.getAlarmLevel().value() > AlarmLevels.INFORMATION.value())
                     pedVO.setAlarmLevel(AlarmLevels.fromValue(pedVO.getAlarmLevel().value()+2));
             }
@@ -525,7 +525,7 @@ public class Upgrade12 extends DBUpgrade {
         return detectors.size();
     }
 
-    class LegacyEventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO<?>> {
+    class LegacyEventDetectorRowMapper implements RowMapper<AbstractEventDetectorVO> {
 
         OutputStream os;
         public LegacyEventDetectorRowMapper(OutputStream os) {
@@ -534,12 +534,12 @@ public class Upgrade12 extends DBUpgrade {
 
         @SuppressWarnings("deprecation")
         @Override
-        public AbstractEventDetectorVO<?> mapRow(ResultSet rs, int rowNum) throws SQLException {
+        public AbstractEventDetectorVO mapRow(ResultSet rs, int rowNum) throws SQLException {
 
             //Switch on the type
             switch(rs.getInt(5)){
                 case PointEventDetectorVO.TYPE_ALPHANUMERIC_REGEX_STATE:
-                    AlphanumericRegexStateDetectorVO arsd = (AlphanumericRegexStateDetectorVO) new AlphanumericRegexStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    AlphanumericRegexStateDetectorVO arsd = new AlphanumericRegexStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     arsd.setId(rs.getInt(1));
                     arsd.setXid(rs.getString(2));
                     arsd.setName(rs.getString(3));
@@ -550,7 +550,7 @@ public class Upgrade12 extends DBUpgrade {
                     arsd.setState(rs.getString(13));
                     return arsd;
                 case PointEventDetectorVO.TYPE_ALPHANUMERIC_STATE:
-                    AlphanumericStateDetectorVO asd = (AlphanumericStateDetectorVO) new AlphanumericStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    AlphanumericStateDetectorVO asd = new AlphanumericStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     asd.setId(rs.getInt(1));
                     asd.setXid(rs.getString(2));
                     asd.setName(rs.getString(3));
@@ -561,7 +561,7 @@ public class Upgrade12 extends DBUpgrade {
                     asd.setState(rs.getString(13));
                     return asd;
                 case PointEventDetectorVO.TYPE_ANALOG_CHANGE:
-                    AnalogChangeDetectorVO acd = (AnalogChangeDetectorVO)new AnalogChangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    AnalogChangeDetectorVO acd = new AnalogChangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     acd.setId(rs.getInt(1));
                     acd.setXid(rs.getString(2));
                     acd.setName(rs.getString(3));
@@ -572,7 +572,7 @@ public class Upgrade12 extends DBUpgrade {
                     acd.setLimit(rs.getDouble(7));
                     return acd;
                 case PointEventDetectorVO.TYPE_ANALOG_HIGH_LIMIT:
-                    AnalogHighLimitDetectorVO ahld = (AnalogHighLimitDetectorVO)new AnalogHighLimitEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    AnalogHighLimitDetectorVO ahld = new AnalogHighLimitEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     ahld.setId(rs.getInt(1));
                     ahld.setXid(rs.getString(2));
                     ahld.setName(rs.getString(3));
@@ -586,7 +586,7 @@ public class Upgrade12 extends DBUpgrade {
                     ahld.setNotHigher(rs.getBoolean(10));
                     return ahld;
                 case PointEventDetectorVO.TYPE_ANALOG_LOW_LIMIT:
-                    AnalogLowLimitDetectorVO alld = (AnalogLowLimitDetectorVO)new AnalogLowLimitEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    AnalogLowLimitDetectorVO alld = new AnalogLowLimitEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     alld.setId(rs.getInt(1));
                     alld.setXid(rs.getString(2));
                     alld.setName(rs.getString(3));
@@ -600,7 +600,7 @@ public class Upgrade12 extends DBUpgrade {
                     alld.setNotLower(rs.getBoolean(10)); //binaryState
                     return alld;
                 case PointEventDetectorVO.TYPE_ANALOG_RANGE:
-                    AnalogRangeDetectorVO ard = (AnalogRangeDetectorVO)new AnalogRangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    AnalogRangeDetectorVO ard = new AnalogRangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     ard.setId(rs.getInt(1));
                     ard.setXid(rs.getString(2));
                     ard.setName(rs.getString(3));
@@ -613,7 +613,7 @@ public class Upgrade12 extends DBUpgrade {
                     ard.setWithinRange(rs.getBoolean(10)); //binaryState
                     return ard;
                 case PointEventDetectorVO.TYPE_BINARY_STATE:
-                    BinaryStateDetectorVO bsd = (BinaryStateDetectorVO)new BinaryStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    BinaryStateDetectorVO bsd = new BinaryStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     bsd.setId(rs.getInt(1));
                     bsd.setXid(rs.getString(2));
                     bsd.setName(rs.getString(3));
@@ -624,7 +624,7 @@ public class Upgrade12 extends DBUpgrade {
                     bsd.setState(rs.getBoolean(10)); //binaryState
                     return bsd;
                 case PointEventDetectorVO.TYPE_MULTISTATE_STATE:
-                    MultistateStateDetectorVO msd = (MultistateStateDetectorVO)new MultistateStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    MultistateStateDetectorVO msd = new MultistateStateEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     msd.setId(rs.getInt(1));
                     msd.setXid(rs.getString(2));
                     msd.setName(rs.getString(3));
@@ -635,7 +635,7 @@ public class Upgrade12 extends DBUpgrade {
                     msd.setState(rs.getInt(11)); //multistate
                     return msd;
                 case PointEventDetectorVO.TYPE_NEGATIVE_CUSUM:
-                    NegativeCusumDetectorVO ncd = (NegativeCusumDetectorVO)new NegativeCusumEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    NegativeCusumDetectorVO ncd = new NegativeCusumEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     ncd.setId(rs.getInt(1));
                     ncd.setXid(rs.getString(2));
                     ncd.setName(rs.getString(3));
@@ -647,7 +647,7 @@ public class Upgrade12 extends DBUpgrade {
                     ncd.setWeight(rs.getDouble(14)); //weight
                     return ncd;
                 case PointEventDetectorVO.TYPE_NO_CHANGE:
-                    NoChangeDetectorVO ncd2 = (NoChangeDetectorVO)new NoChangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    NoChangeDetectorVO ncd2 = new NoChangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     ncd2.setId(rs.getInt(1));
                     ncd2.setXid(rs.getString(2));
                     ncd2.setName(rs.getString(3));
@@ -657,7 +657,7 @@ public class Upgrade12 extends DBUpgrade {
                     ncd2.setDurationType(rs.getInt(9));
                     return ncd2;
                 case PointEventDetectorVO.TYPE_NO_UPDATE:
-                    NoUpdateDetectorVO nud = (NoUpdateDetectorVO)new NoUpdateEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    NoUpdateDetectorVO nud = new NoUpdateEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     nud.setId(rs.getInt(1));
                     nud.setXid(rs.getString(2));
                     nud.setName(rs.getString(3));
@@ -667,7 +667,7 @@ public class Upgrade12 extends DBUpgrade {
                     nud.setDurationType(rs.getInt(9));
                     return nud;
                 case PointEventDetectorVO.TYPE_POINT_CHANGE:
-                    PointChangeDetectorVO pcd = (PointChangeDetectorVO)new PointChangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    PointChangeDetectorVO pcd = new PointChangeEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     pcd.setId(rs.getInt(1));
                     pcd.setXid(rs.getString(2));
                     pcd.setName(rs.getString(3));
@@ -675,7 +675,7 @@ public class Upgrade12 extends DBUpgrade {
                     pcd.setSourceId(rs.getInt(4));
                     return pcd;
                 case PointEventDetectorVO.TYPE_POSITIVE_CUSUM:
-                    PositiveCusumDetectorVO pcd2 = (PositiveCusumDetectorVO)new PositiveCusumEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    PositiveCusumDetectorVO pcd2 = new PositiveCusumEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     pcd2.setId(rs.getInt(1));
                     pcd2.setXid(rs.getString(2));
                     pcd2.setName(rs.getString(3));
@@ -687,7 +687,7 @@ public class Upgrade12 extends DBUpgrade {
                     pcd2.setWeight(rs.getDouble(14)); //weight
                     return pcd2;
                 case PointEventDetectorVO.TYPE_SMOOTHNESS:
-                    SmoothnessDetectorVO sd = (SmoothnessDetectorVO)new SmoothnessEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    SmoothnessDetectorVO sd = new SmoothnessEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     sd.setId(rs.getInt(1));
                     sd.setXid(rs.getString(2));
                     sd.setName(rs.getString(3));
@@ -699,7 +699,7 @@ public class Upgrade12 extends DBUpgrade {
                     sd.setBoxcar(rs.getInt(12)); //change count
                     return sd;
                 case PointEventDetectorVO.TYPE_STATE_CHANGE_COUNT:
-                    StateChangeCountDetectorVO scc = (StateChangeCountDetectorVO)new StateChangeCountEventDetectorDefinition().baseCreateEventDetectorVO(null);
+                    StateChangeCountDetectorVO scc = new StateChangeCountEventDetectorDefinition().baseCreateEventDetectorVO(null);
                     scc.setId(rs.getInt(1));
                     scc.setXid(rs.getString(2));
                     scc.setName(rs.getString(3));

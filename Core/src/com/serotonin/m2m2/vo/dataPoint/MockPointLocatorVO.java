@@ -83,7 +83,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
     }
 
     @Override
-    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO<?> dsvo) {
+    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo) {
         if(!(dsvo instanceof MockDataSourceVO))
             response.addContextualMessage("dataSourceId", "dpEdit.validate.invalidDataSourceType");
     }

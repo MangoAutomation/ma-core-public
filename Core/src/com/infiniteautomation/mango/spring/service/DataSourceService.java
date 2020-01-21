@@ -3,8 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,13 +40,13 @@ import com.serotonin.validation.StringValidation;
  *
  */
 @Service
-public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOService<T, DataSourceTableDefinition, DataSourceDao<T>> {
+public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourceTableDefinition, DataSourceDao> {
 
     private final DataPointService dataPointService;
     private final DataSourcePermissionDefinition createPermission;
 
     @Autowired
-    public DataSourceService(DataSourceDao<T> dao, PermissionService permissionService,
+    public DataSourceService(DataSourceDao dao, PermissionService permissionService,
             DataPointService dataPointService,
             DataSourcePermissionDefinition createPermission) {
         super(dao, permissionService);
@@ -66,31 +64,27 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
         //So we don't have to restart it
         for(DataSourceRT<?> rt : Common.runtimeManager.getRunningDataSources()) {
-            if(rt.getVo().getEditRoles().contains(event.getRole().getRole())) {
-                Set<Role> newEditRoles = new HashSet<>(rt.getVo().getEditRoles());
-                newEditRoles.remove(event.getRole().getRole());
-                rt.getVo().setEditRoles(Collections.unmodifiableSet(newEditRoles));
-            }
+            rt.handleRoleDeletedEvent(event);
         }
     }
 
     @Override
-    public boolean hasCreatePermission(PermissionHolder user, T vo) {
+    public boolean hasCreatePermission(PermissionHolder user, DataSourceVO vo) {
         return permissionService.hasDataSourcePermission(user);
     }
 
     @Override
-    public boolean hasEditPermission(PermissionHolder user, T vo) {
+    public boolean hasEditPermission(PermissionHolder user, DataSourceVO vo) {
         return permissionService.hasDataSourcePermission(user, vo);
     }
 
     @Override
-    public boolean hasReadPermission(PermissionHolder user, T vo) {
+    public boolean hasReadPermission(PermissionHolder user, DataSourceVO vo) {
         return permissionService.hasDataSourcePermission(user, vo);
     }
 
     @Override
-    public T insert(T vo)
+    public DataSourceVO insert(DataSourceVO vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
         //Ensure they can create a list
@@ -115,7 +109,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
 
 
     @Override
-    public T update(T existing, T vo) throws PermissionException, ValidationException {
+    public DataSourceVO update(DataSourceVO existing, DataSourceVO vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
         ensureEditPermission(user, existing);
 
@@ -133,9 +127,9 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     }
 
     @Override
-    public T delete(String xid)
+    public DataSourceVO delete(String xid)
             throws PermissionException, NotFoundException {
-        T vo = get(xid);
+        DataSourceVO vo = get(xid);
         PermissionHolder user = Common.getUser();
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
@@ -148,9 +142,9 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param user
      * @return
      */
-    public DataSourceDefinition<T> getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
+    public DataSourceDefinition<DataSourceVO> getDefinition(String dataSourceType, User user) throws NotFoundException, PermissionException {
         permissionService.ensureDataSourcePermission(user);
-        DataSourceDefinition<T> def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
+        DataSourceDefinition<DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(dataSourceType);
         if(def == null)
             throw new NotFoundException();
         return def;
@@ -163,8 +157,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param restart - Restart the data source, enabled must equal true
      */
     public void restart(String xid, boolean enabled, boolean restart) {
-        T vo = get(xid);
-        T existing = vo.copy();
+        DataSourceVO vo = get(xid);
+        DataSourceVO existing = (DataSourceVO) vo.copy();
         PermissionHolder user = Common.getUser();
         ensureEditPermission(user, vo);
         if (enabled && restart) {
@@ -188,8 +182,8 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @throws PermissionException
      * @throws NotFoundException
      */
-    public T copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints) throws PermissionException, NotFoundException {
-        T existing = get(xid);
+    public DataSourceVO copy(String xid, String copyXid, String copyName, String copyDeviceName, boolean enabled, boolean copyPoints) throws PermissionException, NotFoundException {
+        DataSourceVO existing = get(xid);
         PermissionHolder user = Common.getUser();
         ensureCreatePermission(user, existing);
         //Determine the new name
@@ -221,7 +215,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             throw new ValidationException(result);
         }
 
-        T copy = existing.copy();
+        DataSourceVO copy = (DataSourceVO) existing.copy();
         copy.setId(Common.NEW_ID);
         copy.setName(newName);
         copy.setXid(newXid);
@@ -244,7 +238,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
      * @param newDeviceName - if null will use data source copy's name
      * @param user
      */
-    private void copyDataSourcePoints(int dataSourceId, DataSourceVO<?> dataSourceCopy, String newDeviceName) {
+    private void copyDataSourcePoints(int dataSourceId, DataSourceVO dataSourceCopy, String newDeviceName) {
         // Copy the points by getting each point without any relational data and loading it as we need it
         for (DataPointVO dataPoint : dataPointService.getDataPoints(dataSourceId)) {
             DataPointVO dataPointCopy = dataPoint.copy();
@@ -259,7 +253,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
             dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
             //Copy event detectors and simulate them being new
             dataPointCopy.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dataPoint.getId(), dataPointCopy));
-            for (AbstractPointEventDetectorVO<?> ped : dataPointCopy.getEventDetectors()) {
+            for (AbstractPointEventDetectorVO ped : dataPointCopy.getEventDetectors()) {
                 ped.setId(Common.NEW_ID);
                 ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
             }
@@ -268,7 +262,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     }
 
     @Override
-    public ProcessResult validate(T vo, PermissionHolder user) {
+    public ProcessResult validate(DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
         permissionService.validateVoRoles(response, "editRoles", user, owner, null, vo.getEditRoles());
@@ -278,7 +272,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
     }
 
     @Override
-    public ProcessResult validate(T existing, T vo, PermissionHolder user) {
+    public ProcessResult validate(DataSourceVO existing, DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
         //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
@@ -288,7 +282,7 @@ public class DataSourceService<T extends DataSourceVO<T>> extends AbstractVOServ
         return response;
     }
 
-    protected ProcessResult commonValidation(T vo, PermissionHolder user) {
+    protected ProcessResult commonValidation(DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = super.validate(vo, user);
         if (vo.isPurgeOverride()) {
             if (vo.getPurgeType() != PurgeTypes.DAYS && vo.getPurgeType() != PurgeTypes.MONTHS && vo.getPurgeType() != PurgeTypes.WEEKS

@@ -207,7 +207,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                     }
                 else {
                     DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-                    dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO<?>>());
+                    dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO>());
                     loadRelationalData(dpvo);
                     result.put(id, dpvo);
                     try{
@@ -223,8 +223,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         private void addEventDetector(DataPointVO dpvo, ResultSet rs) throws SQLException {
             if(rs.getObject(firstEventDetectorColumn) == null)
                 return;
-            AbstractEventDetectorVO<?> edvo = eventRowMapper.mapRow(rs, rs.getRow());
-            AbstractPointEventDetectorVO<?> ped = (AbstractPointEventDetectorVO<?>) edvo;
+            AbstractEventDetectorVO edvo = eventRowMapper.mapRow(rs, rs.getRow());
+            AbstractPointEventDetectorVO ped = (AbstractPointEventDetectorVO) edvo;
             dpvo.getEventDetectors().add(ped);
         }
     }
@@ -421,14 +421,14 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
     private void saveEventDetectors(DataPointVO dp) {
         // Get the ids of the existing detectors for this point.
-        final List<AbstractPointEventDetectorVO<?>> existingDetectors = EventDetectorDao.getInstance().getWithSource(dp.getId(), dp);
+        final List<AbstractPointEventDetectorVO> existingDetectors = EventDetectorDao.getInstance().getWithSource(dp.getId(), dp);
 
         // Insert or update each detector in the point.
-        for (AbstractPointEventDetectorVO<?> ped : dp.getEventDetectors()) {
+        for (AbstractPointEventDetectorVO ped : dp.getEventDetectors()) {
             ped.setSourceId(dp.getId());
             if (ped.getId() > 0){
                 //Remove from list
-                AbstractPointEventDetectorVO<?> existing = removeFromList(existingDetectors, ped.getId());
+                AbstractPointEventDetectorVO existing = removeFromList(existingDetectors, ped.getId());
                 EventDetectorDao.getInstance().update(existing, ped);
             } else {
                 ped.setId(Common.NEW_ID);
@@ -438,13 +438,13 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
         // Delete detectors for any remaining ids in the list of existing
         // detectors.
-        for (AbstractEventDetectorVO<?> ed : existingDetectors) {
+        for (AbstractEventDetectorVO ed : existingDetectors) {
             EventDetectorDao.getInstance().delete(ed);
         }
     }
 
-    private AbstractPointEventDetectorVO<?> removeFromList(List<AbstractPointEventDetectorVO<?>> list, int id) {
-        for (AbstractPointEventDetectorVO<?> ped : list) {
+    private AbstractPointEventDetectorVO removeFromList(List<AbstractPointEventDetectorVO> list, int id) {
+        for (AbstractPointEventDetectorVO ped : list) {
             if (ped.getId() == id) {
                 list.remove(ped);
                 return ped;
@@ -738,7 +738,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         //TODO Mango 4.0 get the sourceTypeName in the JOIN, then remove this crap
         //Get the values from the datasource table
         //TODO Could speed this up if necessary...
-        DataSourceVO<?> dsVo = DataSourceDao.getInstance().get(vo.getDataSourceId());
+        DataSourceVO dsVo = DataSourceDao.getInstance().get(vo.getDataSourceId());
         vo.setDataSourceName(dsVo.getName());
         vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
         vo.setDataSourceXid(dsVo.getXid());

@@ -21,11 +21,8 @@ import com.serotonin.json.type.JsonTypeWriter;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.Translations;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.util.ProgressiveTaskListener;
 
 /**
@@ -34,14 +31,14 @@ import com.serotonin.util.ProgressiveTaskListener;
  *
  */
 @Service
-public class EmportService <DS extends DataSourceVO<DS>, PUB extends PublishedPointVO, EH extends AbstractEventHandlerVO<EH>> {
+public class EmportService {
 
     private final UsersService usersService;
     private final MailingListService mailingListService;
-    private final DataSourceService<DS> dataSourceService;
+    private final DataSourceService dataSourceService;
     private final DataPointService dataPointService;
-    private final PublisherService<PUB> publisherService;
-    private final EventHandlerService<EH> eventHandlerService;
+    private final PublisherService publisherService;
+    private final EventHandlerService eventHandlerService;
     private final JsonDataService jsonDataService;
     private final PermissionService permissionService;
 
@@ -49,10 +46,10 @@ public class EmportService <DS extends DataSourceVO<DS>, PUB extends PublishedPo
     @Autowired
     public EmportService(UsersService usersService,
             MailingListService mailingListService,
-            DataSourceService<DS> dataSourceService,
+            DataSourceService dataSourceService,
             DataPointService dataPointService,
-            PublisherService<PUB> publisherService,
-            EventHandlerService<EH> eventHandlerService,
+            PublisherService publisherService,
+            EventHandlerService eventHandlerService,
             JsonDataService jsonDataService,
             PermissionService permissionService) {
         this.usersService = usersService;
@@ -70,8 +67,8 @@ public class EmportService <DS extends DataSourceVO<DS>, PUB extends PublishedPo
      * @param root
      * @return
      */
-    public ImportTask<DS, PUB, EH> getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations, PermissionHolder user) {
-        return new ImportTask<DS,PUB,EH>(root,
+    public ImportTask getImportTask(JsonObject root, ProgressiveTaskListener listener, boolean schedule, Translations translations, PermissionHolder user) {
+        return new ImportTask(root,
                 translations,
                 user,
                 usersService,

@@ -128,7 +128,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * @param permissionType
      * @param user
      */
-    public void addRoleToVoPermission(Role role, AbstractVO<?> vo, String permissionType, PermissionHolder user) throws ValidationException {
+    public void addRoleToVoPermission(Role role, AbstractVO vo, String permissionType, PermissionHolder user) throws ValidationException {
         permissionService.ensureAdminRole(user);
         //TODO PermissionHolder check?
         // Superadmin ok
