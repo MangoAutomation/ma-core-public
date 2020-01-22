@@ -23,6 +23,7 @@ import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.InvalidArgumentException;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.Common.TimePeriods;
@@ -34,6 +35,8 @@ import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.DataSourceDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.util.ColorUtils;
 import com.serotonin.m2m2.vo.DataPointSummary;
@@ -169,6 +172,24 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     @Override
     public ProcessResult validate(DataPointVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
+
+        DataSourceVO dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
+        if(dsvo == null) {
+            result.addContextualMessage("dataSourceId", "validate.invalidValue");
+            return result;
+        }
+
+        //Validate pl if there is one
+        if(vo.getPointLocator() != null) {
+            DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+            if(def == null) {
+                throw new ShouldNeverHappenException("No data source definition for type " + vo.getPointLocator().getDataSourceType());
+            }else {
+                //Validate the point locator
+                def.validate(result, vo, dsvo, user);
+            }
+        }
+
         permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadRoles());
         permissionService.validateVoRoles(result, "setPermission", user, false, null, vo.getSetRoles());
         return result;
@@ -181,6 +202,23 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         //Don't allow moving to new data source
         if(existing.getDataSourceId() != vo.getDataSourceId()) {
             result.addContextualMessage("dataSourceId", "validate.dataPoint.pointChangeDataSource");
+        }
+
+        DataSourceVO dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
+        if(dsvo == null) {
+            result.addContextualMessage("dataSourceId", "validate.invalidValue");
+            return result;
+        }
+
+        //Validate pl if there is one
+        if(vo.getPointLocator() != null) {
+            DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+            if(def == null) {
+                throw new ShouldNeverHappenException("No data source definition for type " + vo.getPointLocator().getDataSourceType());
+            }else {
+                //Validate the point locator
+                def.validate(result, existing, vo, dsvo, user);
+            }
         }
 
         //Validate permissions
@@ -269,14 +307,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             response.addContextualMessage("rollup", "validate.invalidValue");
         else if(!validateRollup(vo))
             response.addContextualMessage("rollup", "validate.rollup.incompatible", vo.getRollup());
-
-        DataSourceVO dsvo = DataSourceDao.getInstance().get(vo.getDataSourceId());
-        if(dsvo == null) {
-            response.addContextualMessage("dataSourceId", "validate.invalidValue");
-            return response;
-        }
-        //Validate the point locator
-        vo.getPointLocator().validate(response, vo, dsvo, user);
 
         // Check text renderer type
         if (vo.getTextRenderer() != null) {

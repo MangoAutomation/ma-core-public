@@ -10,6 +10,7 @@ import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.dataSource.EventDataSource;
 import com.serotonin.m2m2.rt.dataSource.PointLocatorRT;
 import com.serotonin.m2m2.rt.dataSource.PollingDataSource;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -145,7 +146,7 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
     }
 
     /**
-     * Delete any relational data
+     * Delete any relational data for the data source
      * @param vo
      */
     public void deleteRelationalData(T vo) {
@@ -153,10 +154,56 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
     }
 
     /**
-     * Load in relational data
+     * Load in relational data for the data source
      * @param vo
      */
     public void loadRelationalData(T vo) {
+
+    }
+
+    /**
+     * Validate a point locator, with access to the parent data point and data source both guaranteed to be non-null
+     *
+     * @param response
+     * @param dpvo
+     * @param dsvo
+     * @param user - permission holder saving the point
+     */
+    abstract public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo, PermissionHolder user);
+
+    /**
+     * Validate a point locator with access to a pre-existing point, when updating.
+     * @param repsponse
+     * @param existing
+     * @param dpvo
+     * @param dsvo
+     * @param user
+     */
+    public void validate(ProcessResult response, DataPointVO existing, DataPointVO dpvo, DataSourceVO dsvo, PermissionHolder user) {
+        validate(response, dpvo, dsvo, user);
+    }
+    /**
+     * Save any relational data for this point locator i.e. script roles
+     * @param vo
+     * @param insert
+     */
+    public void saveRelationalData(DataPointVO vo, boolean insert) {
+
+    }
+
+    /**
+     * Delete any relational data for this point locator
+     * @param vo
+     */
+    public void deleteRelationalData(DataPointVO vo) {
+
+    }
+
+    /**
+     * Load in relational data fort this point locator
+     * @param vo
+     */
+    public void loadRelationalData(DataPointVO vo) {
 
     }
 

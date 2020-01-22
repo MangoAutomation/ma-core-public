@@ -20,8 +20,8 @@ import com.serotonin.m2m2.i18n.Translations;
 //Required to prevent properties from being written
 @JsonEntity
 abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<VO>> implements PointLocatorVO<VO> {
-    
-    
+
+
     @Override
     public TranslatableMessage getDataTypeMessage() {
         return DataTypes.getDataTypeMessage(getDataTypeId());
@@ -45,7 +45,7 @@ abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<V
     private void readObject(ObjectInputStream in) throws IOException {
         in.readInt(); // Read the version. Value is currently not used.
     }
-    
+
     protected void writeDataType(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("dataType", DataTypes.CODES.getCode(getDataTypeId()));
     }
@@ -70,13 +70,5 @@ abstract public class AbstractPointLocatorVO<VO extends AbstractPointLocatorVO<V
     public Boolean isRelinquishable() {
         return null;
     }
-    
-    public String getClassName(){
-    	return getClass().getSimpleName();
-    }
-    
-    public void setClassName(String s){
-    	//NoOp
-    }
-    
+
 }

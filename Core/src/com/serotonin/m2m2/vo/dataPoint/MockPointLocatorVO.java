@@ -14,13 +14,10 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.DataTypes;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataSource.MockPointLocatorRT;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.AbstractPointLocatorVO;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
+import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 
 /**
  * Mock Point Locator, useful for testing.
@@ -82,12 +79,6 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
         writeDataType(writer);
     }
 
-    @Override
-    public void validate(ProcessResult response, DataPointVO dpvo, DataSourceVO dsvo) {
-        if(!(dsvo instanceof MockDataSourceVO))
-            response.addContextualMessage("dataSourceId", "dpEdit.validate.invalidDataSourceType");
-    }
-
     private static final long serialVersionUID = -1;
     private static final int version = 2;
 
@@ -105,5 +96,10 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
             dataTypeId = in.readInt();
             settable = in.readBoolean();
         }
+    }
+
+    @Override
+    public String getDataSourceType() {
+        return MockDataSourceDefinition.TYPE_NAME;
     }
 }

@@ -73,6 +73,7 @@ import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataPointChangeDefinition;
+import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
@@ -360,6 +361,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         ejt.update("delete from eventDetectors where dataPointId = " + vo.getId());
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SET);
+
+        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+        if(def != null) {
+            def.deleteRelationalData(vo);
+        }
     }
 
     /**
@@ -704,6 +710,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
         vo.setSetRoles(RoleDao.getInstance().getRoles(vo, PermissionService.SET));
         vo.setDataSourceEditRoles(RoleDao.getInstance().getRoles(vo.getDataSourceId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
+
+        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+        if(def != null) {
+            def.loadRelationalData(vo);
+        }
     }
 
     @Override
@@ -726,6 +737,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         //Replace the role mappings
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getSetRoles(), vo, PermissionService.SET, insert);
+
+        DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
+        if(def != null) {
+            def.saveRelationalData(vo, insert);
+        }
     }
 
     /**
