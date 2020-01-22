@@ -23,14 +23,14 @@ import com.serotonin.util.SerializationHelper;
 
 /**
  * Base class for Polling type data sources
- * 
+ *
  * @author Terry Packer
  *
  */
-public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends DataSourceVO {
-    
+public abstract class PollingDataSourceVO extends DataSourceVO {
+
     protected final static String POLL_ABORTED = "POLL_ABORTED";
-    
+
     @JsonProperty
     protected boolean quantize; //Start polls quantized to the start of the update period
     protected int updatePeriodType = Common.TimePeriods.MINUTES;
@@ -62,23 +62,23 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends
     public void setUpdatePeriodType(int updatePeriodType) {
         this.updatePeriodType = updatePeriodType;
     }
-    
+
     public boolean isUseCron() {
         return useCron;
     }
-    
+
     public void setUseCron(boolean useCron) {
         this.useCron = useCron;
     }
-    
+
     public String getCronPattern() {
         return cronPattern;
     }
-    
+
     public void setCronPattern(String cronPattern) {
         this.cronPattern = cronPattern;
     }
-    
+
     /**
      * Allow Polling Data Sources to use an event per Data Source
      * if it exists.
@@ -88,12 +88,12 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends
      * @return
      */
     public abstract int getPollAbortedExceptionEventId();
-    
+
     @Override
     protected void addEventTypes(List<EventTypeVO> ets) {
-         ets.add(createPollAbortedEventType(getPollAbortedExceptionEventId()));
+        ets.add(createPollAbortedEventType(getPollAbortedExceptionEventId()));
     }
-    
+
     /**
      * Useful for polling data sources
      *
@@ -108,9 +108,9 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends
                 new TranslatableMessage("event.ds.pollAborted"),
                 alarmLevel);
     }
-    
+
     /*
-     * Serialization 
+     * Serialization
      */
     private static final long serialVersionUID = 1L;
     private static final int version = 2;
@@ -140,7 +140,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends
             quantize = in.readBoolean();
         }
     }
-    
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
@@ -155,7 +155,7 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);
-        
+
         //The annotated field useCron will have already been imported
         if(jsonObject.containsKey("updatePeriodType")) {
             Integer value = readUpdatePeriodType(jsonObject);
@@ -165,9 +165,9 @@ public abstract class PollingDataSourceVO<T extends PollingDataSourceVO> extends
 
         if(jsonObject.containsKey("updatePeriods"))
             updatePeriods = getInt(jsonObject, "updatePeriods");
-            
+
         if(jsonObject.containsKey("cronPattern"))
             cronPattern = jsonObject.getString("cronPattern");
     }
-   
+
 }

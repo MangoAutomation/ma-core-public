@@ -15,7 +15,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
 /**
  * Useful for things like validation and testing
  */
-public class MockDataSourceVO extends PollingDataSourceVO<MockDataSourceVO> {
+public class MockDataSourceVO extends PollingDataSourceVO {
 
     public MockDataSourceVO(){
         this.setDefinition(new MockDataSourceDefinition());
