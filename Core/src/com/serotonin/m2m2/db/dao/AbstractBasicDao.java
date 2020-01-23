@@ -49,6 +49,7 @@ import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.serotonin.ModuleNotLoadedException;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
@@ -536,10 +537,16 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      */
     protected ResultSetExtractor<T> getObjectResultSetExtractor() {
         return getObjectResultSetExtractor((e,rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException)
+            if(e.getCause() instanceof ModuleNotLoadedException) {
+                //We will log and continue as to not prevent someone from loading module based VOs for
+                // which the modules are actually installed.
                 LOG.error(e.getCause().getMessage(), e.getCause());
-            else
+            }else {
                 LOG.error(e.getMessage(), e);
+                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
+                // want to see the 500 error in the API etc.
+                throw new ShouldNeverHappenException(e);
+            }
         });
     }
 
