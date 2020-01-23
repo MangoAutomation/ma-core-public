@@ -243,8 +243,10 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             addRoleToCreatePermission(editRole);
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-            getService().permissionService.runAs(editUser, () -> {
-                VO newVO = service.insert(vo);
+            VO newVO = getService().permissionService.runAs(systemSuperadmin, () -> {
+                return service.insert(vo);
+            });
+            getService().permissionService.runAs(readUser, () ->{
                 service.delete(newVO.getId());
             });
         });

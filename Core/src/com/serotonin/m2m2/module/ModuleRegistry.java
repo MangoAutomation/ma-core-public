@@ -130,7 +130,7 @@ import com.serotonin.provider.Providers;
 public class ModuleRegistry {
     static final Log LOG = LogFactory.getLog(ModuleRegistry.class);
 
-    public static final String SYSTEM_SETTINGS_URL = "/system_settings.shtm";
+    public static final String CORE_MODULE_NAME = "core";
 
     private static final Object LOCK = new Object();
     private static final Map<String, Module> MODULES = new LinkedHashMap<String, Module>();
@@ -965,7 +965,7 @@ public class ModuleRegistry {
      * @return
      */
     private static CoreModule getCoreModule(){
-        CoreModule core = new CoreModule("core", Common.getVersion(), new TranslatableMessage("modules.core.description"),
+        CoreModule core = new CoreModule(ModuleRegistry.CORE_MODULE_NAME, Common.getVersion(), new TranslatableMessage("modules.core.description"),
                 "Infinite Automation Systems, Inc.", "https://www.infiniteautomation.com", null, -1, Common.isCoreSigned());
 
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));

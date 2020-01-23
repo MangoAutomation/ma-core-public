@@ -8,12 +8,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.shared.LicenseParseException;
 import com.serotonin.util.XmlUtilsTS;
 
 /**
  * Licenses are provided to instances to inform the core/modules of the licenses granted to the instance.
- * 
+ *
  * @author Matthew
  */
 public class InstanceLicense {
@@ -29,7 +30,7 @@ public class InstanceLicense {
         if (licenseElement == null || !StringUtils.equals("license", licenseElement.getTagName()))
             throw new LicenseParseException("Root element must be 'license'");
 
-        Element coreElement = XmlUtilsTS.getChildElement(licenseElement, "core");
+        Element coreElement = XmlUtilsTS.getChildElement(licenseElement, ModuleRegistry.CORE_MODULE_NAME);
         if (coreElement == null)
             throw new LicenseParseException("Missing core element");
 

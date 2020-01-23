@@ -18,13 +18,14 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.BaseDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.util.StringUtils;
 
 /**
  * Base class for instances that perform database upgrades. The naming of subclasses follows the convention
  * 'Upgrade[version]', where '[version]' is the version that the class upgrades <b>from</b>. The subclass must be in
  * this package.
- * 
+ *
  * @author Matthew Lohbihler
  */
 abstract public class DBUpgrade extends BaseDao {
@@ -34,7 +35,7 @@ abstract public class DBUpgrade extends BaseDao {
 
     public static void checkUpgrade() {
         checkUpgrade(SystemSettingsDao.DATABASE_SCHEMA_VERSION, Common.getDatabaseSchemaVersion(), DBUpgrade.class
-                .getPackage().getName(), "core", DBUpgrade.class.getClassLoader());
+                .getPackage().getName(), ModuleRegistry.CORE_MODULE_NAME, DBUpgrade.class.getClassLoader());
         LOG.info("Starting instance with core version " + Common.getVersion() + ", schema v"
                 + Common.getDatabaseSchemaVersion());
     }
@@ -53,12 +54,12 @@ abstract public class DBUpgrade extends BaseDao {
             int schemaVersion = SystemSettingsDao.instance.getIntValue(settingsKey, -1);
 
             if (schemaVersion == -1) {
-                if ("core".equals(moduleName))
+                if (ModuleRegistry.CORE_MODULE_NAME.equals(moduleName))
                     // Probably an old core. Assume the version to be 1 to do complete upgrade
                     schemaVersion = 1;
                 else {
                     // Probably a new module. Put the current code version into the database.
-                	SystemSettingsDao.instance.setIntValue(settingsKey, codeVersion);
+                    SystemSettingsDao.instance.setIntValue(settingsKey, codeVersion);
                     schemaVersion = codeVersion;
                 }
             }
@@ -112,7 +113,7 @@ abstract public class DBUpgrade extends BaseDao {
 
     /**
      * Convenience method for subclasses
-     * 
+     *
      * @param script
      *            the array of script lines to run
      * @param out

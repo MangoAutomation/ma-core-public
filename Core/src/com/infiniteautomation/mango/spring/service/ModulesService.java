@@ -157,7 +157,7 @@ public class ModulesService implements ModuleNotificationListener {
                 }else {
                     translations = Common.getTranslations();
                 }
-                    
+
                 result.addData("error", new TranslatableMessage("modules.versionCheck.storeNotSet").translate(translations));
                 return result;
             }
@@ -204,7 +204,7 @@ public class ModulesService implements ModuleNotificationListener {
 
             Version coreVersion = Common.getVersion();
 
-            jsonModules.put("core", coreVersion.toString());
+            jsonModules.put(ModuleRegistry.CORE_MODULE_NAME, coreVersion.toString());
             for (StringStringPair module : modules)
                 jsonModules.put(module.getKey(), module.getValue());
 
@@ -370,7 +370,7 @@ public class ModulesService implements ModuleNotificationListener {
         json.put("modules", jsonModules);
 
         Version coreVersion = Common.getVersion();
-        jsonModules.put("core", coreVersion.toString());
+        jsonModules.put(ModuleRegistry.CORE_MODULE_NAME, coreVersion.toString());
         for (Module module : modules)
             if (!module.isMarkedForDeletion())
                 jsonModules.put(module.getName(), module.getVersion().toString());
@@ -557,7 +557,7 @@ public class ModulesService implements ModuleNotificationListener {
                     }
 
                     //Validate that module.properties exists and is properly readable
-                    if(!"core".equals(name)) {
+                    if(!ModuleRegistry.CORE_MODULE_NAME.equals(name)) {
                         Map<String, String> expectedProperties = new HashMap<String, String>();
                         expectedProperties.put("name", name);
                         expectedProperties.put("version", version.toString());
@@ -597,7 +597,7 @@ public class ModulesService implements ModuleNotificationListener {
 
                 for (File file : files) {
                     File targetDir =
-                            file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + "core")
+                            file.getName().startsWith(ModuleUtils.Constants.MODULE_PREFIX + ModuleRegistry.CORE_MODULE_NAME)
                             ? coreDir
                                     : moduleDir;
                     try {
@@ -660,7 +660,7 @@ public class ModulesService implements ModuleNotificationListener {
         private void cleanDownloads() {
             for (StringStringPair mod : modules) {
                 final String name = mod.getKey();
-                File targetDir = name.equals("core") ? coreDir : moduleDir;
+                File targetDir = name.equals(ModuleRegistry.CORE_MODULE_NAME) ? coreDir : moduleDir;
                 File[] files = targetDir.listFiles();
                 if (files != null) {
                     for (File file : files) {
