@@ -23,6 +23,7 @@
         <yarnInstallPhase>generate-resources</yarnInstallPhase>
         <webpackPhase>generate-resources</webpackPhase>
         <copyModuleZipPhase>none</copyModuleZipPhase>
+        <yarnRunPhase>none</yarnRunPhase>
     </properties>
     <profiles>
         <profile>
@@ -58,6 +59,15 @@
             </activation>
             <properties>
                 <webpackPhase>none</webpackPhase>
+            </properties>
+        </profile>
+        <profile>
+            <id>yarn-run</id>
+            <properties>
+                <yarnVersionPhase>none</yarnVersionPhase>
+                <yarnInstallPhase>none</yarnInstallPhase>
+                <webpackPhase>none</webpackPhase>
+                <yarnRunPhase>generate-resources</yarnRunPhase>
             </properties>
         </profile>
     </profiles>
@@ -168,6 +178,16 @@
                             </goals>
                             <configuration>
                                 <arguments>run webpack --mode ${webpack.mode}</arguments>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <phase>${yarnRunPhase}</phase>
+                            <id>Run generic yarn command</id>
+                            <goals>
+                                <goal>yarn</goal>
+                            </goals>
+                            <configuration>
+                                <arguments>${yarnRunArgs}</arguments>
                             </configuration>
                         </execution>
                     </executions>
