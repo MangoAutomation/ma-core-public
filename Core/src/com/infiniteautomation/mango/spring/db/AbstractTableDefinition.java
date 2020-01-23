@@ -142,4 +142,14 @@ public class AbstractTableDefinition extends AbstractBasicTableDefinition {
         return 255;
     }
 
+    /**
+     * Create a aliased version of this field for this table
+     * @param <T>
+     * @param field
+     * @return
+     */
+    public <T extends Object> Field<T> getAlias(Field<T> field) {
+        return DSL.field(this.alias.append(field.getName()), field.getDataType());
+    }
+
 }

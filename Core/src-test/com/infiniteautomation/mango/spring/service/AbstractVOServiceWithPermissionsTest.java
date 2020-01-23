@@ -143,7 +143,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
 
     @Test(expected = ValidationException.class)
     public void testAddReadRoleUserDoesNotHave() {
-        VO vo = newVO(editUser);
+        VO vo = newVO(readUser);
         setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
         setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
         getService().permissionService.runAsSystemAdmin(() -> {
@@ -266,7 +266,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     @Test(expected = PermissionException.class)
     public void testSuperadminReadRole() {
         runTest(() -> {
-            VO vo = newVO(readUser);
+            VO vo = newVO(editUser);
             setReadRoles(Collections.singleton(roleService.getSuperadminRole()), vo);
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
