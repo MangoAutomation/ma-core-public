@@ -921,6 +921,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
     // Publishers
     //
     @Override
+    public List<PublisherRT<?>> getRunningPublishers() {
+        return new ArrayList<>(runningPublishers);
+    }
+
+    @Override
     public PublisherRT<?> getRunningPublisher(int publisherId) {
         for (PublisherRT<?> publisher : runningPublishers) {
             if (publisher.getId() == publisherId)

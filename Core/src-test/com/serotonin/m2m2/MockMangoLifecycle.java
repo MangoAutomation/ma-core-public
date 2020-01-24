@@ -139,7 +139,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         //Startup a simulation timer provider
         Providers.add(TimerProvider.class, getSimulationTimerProvider());
 
-
         Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
         Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
         Common.JSON_CONTEXT.addResolver(new EmailRecipientResolver(), EmailRecipient.class);

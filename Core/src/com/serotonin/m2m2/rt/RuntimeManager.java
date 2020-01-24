@@ -37,10 +37,13 @@ public interface RuntimeManager extends ILifecycle {
 
     //
     // Lifecycle
+    @Override
     void initialize(boolean safe);
 
+    @Override
     void terminate();
 
+    @Override
     void joinTermination();
 
     //
@@ -50,7 +53,7 @@ public interface RuntimeManager extends ILifecycle {
     DataSourceRT<? extends DataSourceVO> getRunningDataSource(int dataSourceId);
 
     List<? extends DataSourceRT<?>> getRunningDataSources();
-    
+
     boolean isDataSourceRunning(int dataSourceId);
 
     DataSourceVO getDataSource(int dataSourceId);
@@ -62,21 +65,21 @@ public interface RuntimeManager extends ILifecycle {
      * @param vo
      */
     void insertDataSource(DataSourceVO vo);
-    
+
     /**
      * Update a data source
      * @param existing
      * @param vo
      */
     void updateDataSource(DataSourceVO existing, DataSourceVO vo);
-    
+
     /**
      * Initialize a data source (only to be used at system startup)
      * @param vo
      * @return
      */
     boolean initializeDataSourceStartup(DataSourceVO vo);
-    
+
     /**
      * Stop a data source (only to be used at system shutdown)
      * @param id
@@ -92,16 +95,16 @@ public interface RuntimeManager extends ILifecycle {
      * @param vo
      */
     void insertDataPoint(DataPointVO vo);
-    
+
     /**
      * Update an existing data point
      * @param existing
      * @param vo
      */
     void updateDataPoint(DataPointVO existing, DataPointVO vo);
-    
+
     /**
-     * Enable a data point, event detectors will be loaded 
+     * Enable a data point, event detectors will be loaded
      * during this method
      * @param point
      * @param enabled
@@ -111,7 +114,7 @@ public interface RuntimeManager extends ILifecycle {
     void deleteDataPoint(DataPointVO point);
 
     /**
-     * Restart a data point, the event detectors will be loaded 
+     * Restart a data point, the event detectors will be loaded
      * during this method.
      * @param vo
      */
@@ -120,7 +123,7 @@ public interface RuntimeManager extends ILifecycle {
     boolean isDataPointRunning(int dataPointId);
 
     DataPointRT getDataPoint(int dataPointId);
-    
+
     List<DataPointRT> getRunningDataPoints();
 
     void addDataPointListener(int dataPointId, DataPointListener l);
@@ -138,9 +141,9 @@ public interface RuntimeManager extends ILifecycle {
     void relinquish(int dataPointId);
 
     /**
-     * This method forces a point read ONLY if the 
+     * This method forces a point read ONLY if the
      * underlying data source has implemented that ability.
-     * 
+     *
      * Currently only a few data sources implement this functionality
      * @param dataPointId
      */
@@ -186,6 +189,8 @@ public interface RuntimeManager extends ILifecycle {
     //
     // Publishers
     //
+    List<PublisherRT<?>> getRunningPublishers();
+
     PublisherRT<?> getRunningPublisher(int publisherId);
 
     boolean isPublisherRunning(int publisherId);

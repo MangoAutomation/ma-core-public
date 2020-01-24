@@ -13,6 +13,7 @@ import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.rt.dataImage.PointValueTime;
@@ -69,6 +70,15 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
 
     public PublisherVO<T> getVo() {
         return vo;
+    }
+
+    /**
+     * Override to handle any situations where you need to know that a role was deleted.
+     *
+     * @param event
+     */
+    public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+
     }
 
     /**
@@ -270,16 +280,11 @@ abstract public class PublisherRT<T extends PublishedPointVO> extends TimeoutCli
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getName()
-     */
     @Override
     public String getThreadName() {
         return "Pubisher: " + vo.getXid();
     }
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getTaskId()
-     */
+
     @Override
     public String getTaskId() {
         return "PUB-" + vo.getXid();

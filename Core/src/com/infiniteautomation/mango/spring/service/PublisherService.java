@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.PublisherTableDefinition;
@@ -17,7 +18,9 @@ import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -49,6 +52,15 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     @Override
     public boolean hasReadPermission(PermissionHolder user, PublisherVO<? extends PublishedPointVO> vo) {
         return user.hasAdminRole();
+    }
+
+    @Override
+    @EventListener
+    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        //So we don't have to restart it
+        for(PublisherRT<?> rt : Common.runtimeManager.getRunningPublishers()) {
+            rt.handleRoleDeletedEvent(event);
+        }
     }
 
     @Override

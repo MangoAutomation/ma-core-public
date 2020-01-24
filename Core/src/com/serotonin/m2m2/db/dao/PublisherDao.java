@@ -238,6 +238,21 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
         return count;
     }
 
+    @Override
+    public void loadRelationalData(PublisherVO<?> vo) {
+        vo.getDefinition().loadRelationalData(vo);
+    }
+
+    @Override
+    public void saveRelationalData(PublisherVO<?> vo, boolean insert) {
+        vo.getDefinition().saveRelationalData(vo, insert);
+    }
+
+    @Override
+    public void deleteRelationalData(PublisherVO<?> vo) {
+        vo.getDefinition().deleteRelationalData(vo);
+    }
+
     /**
      * Get the count of data sources per type
      * @return

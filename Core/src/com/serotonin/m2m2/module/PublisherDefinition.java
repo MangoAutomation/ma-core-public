@@ -72,6 +72,31 @@ abstract public class PublisherDefinition<PUB extends PublisherVO<? extends Publ
     abstract protected PUB createPublisherVO();
 
     /**
+     * Save any relational data for this publisher i.e. script roles
+     * @param vo
+     * @param insert
+     */
+    public void saveRelationalData(PUB vo, boolean insert) {
+
+    }
+
+    /**
+     * Delete any relational data for the publisher
+     * @param vo
+     */
+    public void deleteRelationalData(PUB vo) {
+
+    }
+
+    /**
+     * Load in relational data for the publisher
+     * @param vo
+     */
+    public void loadRelationalData(PUB vo) {
+
+    }
+
+    /**
      * Validate a new publisher
      * @param response
      * @param pub
