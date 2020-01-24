@@ -269,6 +269,7 @@ abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<V
 
     /**
      * Override to handle any situations where you need to know that a role was deleted.
+     *  be sure to call super for this method as it handles the edit permissions
      *
      * @param event
      */
