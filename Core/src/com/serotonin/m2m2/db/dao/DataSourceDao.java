@@ -87,8 +87,9 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
      * @param type
      * @return
      */
-    public List<DataSourceVO> getDataSourcesForType(String type) {
-        return query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, getListResultSetExtractor());
+    @SuppressWarnings("unchecked")
+    public <T extends DataSourceVO> List<T> getDataSourcesForType(String type) {
+        return (List<T>) query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, getListResultSetExtractor());
     }
 
     /**
