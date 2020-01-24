@@ -132,6 +132,7 @@ public class MangoTestBase {
                 fail(e.getMessage());
             }
         }else {
+            //TODO Mango 4.0 this won't work as the state of the RTM will not all re-init.
             Common.runtimeManager.initialize(false);
         }
         SimulationTimerProvider provider = (SimulationTimerProvider) Providers.get(TimerProvider.class);
