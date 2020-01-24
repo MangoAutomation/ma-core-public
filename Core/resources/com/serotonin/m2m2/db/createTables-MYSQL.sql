@@ -15,20 +15,6 @@ create table systemSettings (
 ) engine=InnoDB;
 
 --
--- Templates 
-create table templates (
-  id int not null auto_increment,
-  xid varchar(100) not null,
-  name varchar(255) not null,
-  templateType varchar(50) not null,
-  data longblob not null,
-  readPermission varchar(255),
-  setPermission varchar(255),
-  primary key (id)
-) engine=InnoDB;
-alter table templates add constraint templatesUn1 unique (xid);
-
---
 -- Users
 create table users (
   id int not null auto_increment,
@@ -43,7 +29,6 @@ create table users (
   receiveOwnAuditEvents char(1) not null,
   timezone varchar(50),
   muted char(1),
-  permissions varchar(255),
   name varchar(255),
   locale varchar(50),
   tokenVersion int not null,
@@ -83,8 +68,6 @@ create table mailingLists (
   xid varchar(100) not null,
   name varchar(40) not null,
   receiveAlarmEmails int not null,
-  readPermission varchar(255),
-  editPermission varchar(255),
   primary key (id)
 ) engine=InnoDB;
 alter table mailingLists add constraint mailingListsUn1 unique (xid);
@@ -105,9 +88,6 @@ create table mailingListMembers (
 alter table mailingListMembers add constraint mailingListMembersFk1 foreign key (mailingListId) 
   references mailingLists(id) on delete cascade;
 
-
-
-
 --
 --
 -- Data Sources
@@ -119,12 +99,10 @@ create table dataSources (
   dataSourceType varchar(40) not null,
   data longblob not null,
   rtdata longblob,
-  editPermission varchar(255),
   primary key (id)
 ) engine=InnoDB;
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
 ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
-CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);
 
 --
 --
@@ -137,7 +115,6 @@ CREATE TABLE dataPoints (
   name varchar(255),
   deviceName varchar(255),
   enabled char(1),
-  pointFolderId int,
   loggingType int,
   intervalLoggingPeriodType int,
   intervalLoggingPeriod int,
@@ -150,8 +127,6 @@ CREATE TABLE dataPoints (
   discardExtremeValues char(1),
   engineeringUnits int,
   data longblob not null,
-  readPermission varchar(255),
-  setPermission varchar(255),
   templateId int,
   rollup int,
   dataTypeId int not null,
@@ -160,14 +135,11 @@ CREATE TABLE dataPoints (
 ) engine=InnoDB;
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
-CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
 CREATE INDEX enabledIndex on dataPoints (enabled ASC);
 CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
-CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);
 
 -- Data point tags
 CREATE TABLE dataPointTags (
@@ -178,14 +150,6 @@ CREATE TABLE dataPointTags (
 ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId ASC, tagKey ASC);
 ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;
 CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
-
--- Data point hierarchy
-CREATE TABLE dataPointHierarchy (
-  id int NOT NULL auto_increment,
-  parentId int,
-  name varchar(100),
-  PRIMARY KEY (id)
-) engine=InnoDB;
 
 
 --
@@ -331,8 +295,6 @@ CREATE TABLE jsonData (
   	id int not null auto_increment,
 	xid varchar(100) not null,
 	name varchar(255) not null,
-	readPermission varchar(255),
-  	editPermission varchar(255),
   	publicData char(1),
   	data longtext,
     primary key (id)
@@ -356,25 +318,45 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 CREATE TABLE fileStores (
 	id int not null auto_increment, 
 	storeName varchar(100) not null, 
-	readPermission varchar(255), 
-	writePermission varchar(255),
 	PRIMARY KEY (id)
 ) engine=InnoDB;
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
 
 --
 --
--- Compound events detectors
+-- Roles
 --
--- create table compoundEventDetectors (
---   id int not null auto_increment,
---  xid varchar(50) not null,
---   name varchar(100),
---   alarmLevel int not null,
---   returnToNormal char(1) not null,
---   disabled char(1) not null,
---   conditionText varchar(256) not null,
---   primary key (id)
--- ) engine=InnoDB;
--- alter table compoundEventDetectors add constraint compoundEventDetectorsUn1 unique (xid);
+CREATE TABLE roles (
+	id int not null auto_increment,
+	xid varchar(100) not null,
+	name varchar(255) not null,
+  	primary key (id)
+) engine=InnoDB;
+ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
+
+--
+--
+-- Role Mappings
+--
+CREATE TABLE roleMappings (
+	roleId int not null,
+	voId int,
+	voType varchar(255),
+	permissionType varchar(255) not null
+) engine=InnoDB;
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
+
+--
+--
+-- User Role Mappings
+--
+CREATE TABLE userRoleMappings (
+	roleId int not null,
+	userId int not null
+) engine=InnoDB;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
+
 

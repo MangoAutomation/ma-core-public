@@ -12,20 +12,6 @@ CREATE TABLE systemSettings (
 );
 
 --
--- Templates
-CREATE TABLE templates (
-  id int NOT NULL auto_increment,
-  xid varchar(100) NOT NULL,
-  name varchar(255),
-  templateType varchar(50),
-  readPermission varchar(255),
-  setPermission varchar(255),
-  data longblob NOT NULL,
-  PRIMARY KEY (id)
-);
-ALTER TABLE templates ADD CONSTRAINT templatesUn1 UNIQUE (xid);
-
---
 -- Users
 CREATE TABLE users (
   id SERIAL,
@@ -79,8 +65,6 @@ CREATE TABLE mailingLists (
   xid varchar(100) NOT NULL,
   name varchar(40) NOT NULL,
   receiveAlarmEmails INT NOT NULL,
-  readPermission varchar(255),
-  editPermission varchar(255),
   PRIMARY KEY (id)
 );
 ALTER TABLE mailingLists ADD CONSTRAINT mailingListsUn1 UNIQUE (xid);
@@ -101,9 +85,6 @@ CREATE TABLE mailingListMembers (
 ALTER TABLE mailingListMembers ADD CONSTRAINT mailingListMembersFk1 FOREIGN KEY (mailingListId) 
   REFERENCES mailingLists(id) ON DELETE CASCADE;
 
-
-
-
 --
 --
 -- Data Sources
@@ -115,12 +96,10 @@ CREATE TABLE dataSources (
   dataSourceType varchar(40) NOT NULL,
   data bytea NOT NULL,
   rtdata bytea,
-  editPermission varchar(255),
   PRIMARY KEY (id)
 );
 ALTER TABLE dataSources ADD CONSTRAINT dataSourcesUn1 UNIQUE (xid);
 CREATE INDEX nameIndex on dataSources (name ASC);
-CREATE INDEX dataSourcesPermissionIndex on dataSources (editPermission ASC);
 
 --
 --
@@ -133,7 +112,6 @@ CREATE TABLE dataPoints (
   name varchar(255),
   deviceName varchar(255),
   enabled character(1),
-  pointFolderId integer,
   loggingType integer,
   intervalLoggingPeriodType integer,
   intervalLoggingPeriod integer,
@@ -146,8 +124,6 @@ CREATE TABLE dataPoints (
   discardExtremeValues character(1),
   engineeringUnits integer,
   data bytea NOT NULL,
-  readPermission varchar(255),
-  setPermission varchar(255),
   templateId int,
   rollup int,
   dataTypeId int not null,
@@ -156,14 +132,11 @@ CREATE TABLE dataPoints (
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
-ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (templateId) REFERENCES templates(id);
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
-CREATE INDEX pointFolderIdIndex on dataPoints (pointFolderId ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
 CREATE INDEX enabledIndex on dataPoints (enabled ASC);
 CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
-CREATE INDEX dataPointsPermissionIndex on dataPoints (dataSourceId ASC, readPermission ASC, setPermission ASC);
 
 -- Data point tags
 CREATE TABLE dataPointTags (
@@ -174,15 +147,6 @@ CREATE TABLE dataPointTags (
 );
 ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;
 CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
-
--- Data point hierarchy
-CREATE TABLE dataPointHierarchy (
-  id SERIAL,
-  parentId integer,
-  name varchar(100),
-  PRIMARY KEY (id)
-);
-
 
 --
 --
@@ -318,8 +282,6 @@ CREATE TABLE jsonData (
   	id SERIAL,
 	xid varchar(100) not null,
 	name varchar(255) not null,
-	readPermission varchar(255),
-  	editPermission varchar(255),
   	data clob,
     primary key (id)
 );
@@ -342,25 +304,43 @@ ALTER TABLE installedModules ADD CONSTRAINT installModulesUn1 UNIQUE (name);
 CREATE TABLE fileStores (
 	id int not null auto_increment, 
 	storeName varchar(100) not null, 
-	readPermission varchar(255), 
-	writePermission varchar(255),
 	PRIMARY KEY (id)
 );
 ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
 
 --
 --
--- Compound events detectors
+-- Roles
 --
--- CREATE TABLE compoundEventDetectors (
---   id SERIAL,
---   xid varchar(50) NOT NULL,
---   name varchar(100),
---   alarmLevel int not null,
---   returnToNormal char(1) not null,
---   disabled char(1) not null,
---   conditionText varchar(256) not null,
---   primary key (id)
--- );
--- alter table compoundEventDetectors add constraint compoundEventDetectorsUn1 unique (xid);
+CREATE TABLE roles (
+	id int not null auto_increment,
+	xid varchar(100) not null,
+	name varchar(255) not null,
+  	primary key (id)
+);
+ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
 
+--
+--
+-- Role Mappings
+--
+CREATE TABLE roleMappings (
+	roleId int not null,
+	voId int,
+	voType varchar(255),
+	permissionType varchar(255) not null
+);
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
+
+--
+--
+-- User Role Mappings
+--
+CREATE TABLE userRoleMappings (
+	roleId int not null,
+	userId int not null
+);
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);

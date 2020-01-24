@@ -145,15 +145,6 @@ ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsUn1 UNIQUE (dataPointId AS
 ALTER TABLE dataPointTags ADD CONSTRAINT dataPointTagsFk1 FOREIGN KEY (dataPointId) REFERENCES dataPoints (id) ON DELETE CASCADE;
 CREATE INDEX dataPointTagsIndex1 ON dataPointTags (tagKey ASC, tagValue ASC);
 
--- Data point hierarchy
-CREATE TABLE dataPointHierarchy (
-  id int NOT NULL,
-  parentId int,
-  name varchar(100)
-);
-ALTER TABLE dataPointHierarchy ADD CONSTRAINT dataPointHierarchyPk PRIMARY KEY (id);
-
-
 --
 --
 -- Point Values (historical data)

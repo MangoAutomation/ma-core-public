@@ -34,7 +34,7 @@ import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Add roles and roleMappings tables
- * 
+ *
  * MailingList - remove readPermissions and editPermissions
  *
  *
@@ -44,14 +44,13 @@ import com.serotonin.m2m2.vo.role.Role;
 public class Upgrade29 extends DBUpgrade {
 
     private final Log LOG = LogFactory.getLog(Upgrade29.class);
-    
+
     @Override
     protected void upgrade() throws Exception {
         OutputStream out = createUpdateLogOutputStream();
 
         try {
             Map<String, Role> roles = new HashMap<>();
-            dropTemplates(out);
             createRolesTables(roles, out);
             convertUsers(roles, out);
             convertSystemSettingsPermissions(roles, out);
@@ -60,6 +59,8 @@ public class Upgrade29 extends DBUpgrade {
             convertJsonData(roles, out);
             convertMailingLists(roles, out);
             convertFileStores(roles, out);
+            dropTemplates(out);
+            dropPointHierarchy(out);
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
         } finally {
@@ -76,7 +77,16 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropTemplatesSQL);
         runScript(scripts, out);
     }
-    
+
+    private void dropPointHierarchy(OutputStream out) throws Exception {
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropPointHierarchySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropPointHierarchySQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropPointHierarchySQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropPointHierarchySQL);
+        runScript(scripts, out);
+    }
+
     private void createRolesTables(Map<String, Role> roles, OutputStream out) throws Exception {
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), createRolesMySQL);
@@ -84,14 +94,14 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), createRolesMSSQL);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), createRolesSQL);
         runScript(scripts, out);
-        
+
         //Add default user and superadmin roles
         Role superadminRole = new Role(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {PermissionHolder.SUPERADMIN_ROLE_XID, Common.translate("roles.superadmin")}), PermissionHolder.SUPERADMIN_ROLE_XID);
         roles.put(superadminRole.getXid(), superadminRole);
         Role userRole = new Role(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {PermissionHolder.USER_ROLE_XID, Common.translate("roles.user")}), PermissionHolder.USER_ROLE_XID);
         roles.put(userRole.getXid(), userRole);
     }
-    
+
     private void convertUsers(Map<String, Role> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
         ejt.query("SELECT id, permissions FROM users", new RowCallbackHandler() {
@@ -111,11 +121,11 @@ public class Upgrade29 extends DBUpgrade {
                         }
                         if(!userRoles.contains(role)) {
                             //Add a mapping
-                            ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?,)", 
+                            ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?,)",
                                     new Object[] {
                                             r.getId(),
                                             userId
-                                    });
+                            });
                             userRoles.add(role);
                         }
                         return r;
@@ -123,7 +133,7 @@ public class Upgrade29 extends DBUpgrade {
                 }
             }
         });
-        
+
         //Drop the permissions column
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), userSQL);
@@ -132,7 +142,7 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), userSQL);
         runScript(scripts, out);
     }
-    
+
     private void convertSystemSettingsPermissions(Map<String, Role> roles, OutputStream out) throws Exception {
         //Check all permissions
         for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
@@ -148,7 +158,7 @@ public class Upgrade29 extends DBUpgrade {
             ejt.update("DELETE FROM systemSettings WHERE settingName=?", new Object[] {def.getPermissionTypeName()});
         }
     }
-    
+
     private void convertDataPoints(Map<String, Role> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
         ejt.query("SELECT id, readPermission, setPermission FROM dataPoints", new RowCallbackHandler() {
@@ -162,16 +172,16 @@ public class Upgrade29 extends DBUpgrade {
                 insertMapping(voId, DataPointVO.class.getSimpleName(), PermissionService.SET, setPermissions, roles);
             }
         });
-        
-        
+
+
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsSQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsMSSQL);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointsSQL);
         runScript(scripts, out);
     }
-    
+
     private void convertDataSources(Map<String, Role> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
         ejt.query("SELECT id, editPermission FROM dataSources", new RowCallbackHandler() {
@@ -183,16 +193,16 @@ public class Upgrade29 extends DBUpgrade {
                 insertMapping(voId, DataSourceVO.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
             }
         });
-        
-        
+
+
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcesSQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcesMSSQL);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcesSQL);
         runScript(scripts, out);
     }
-    
+
     private void convertJsonData(Map<String, Role> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
         ejt.query("SELECT id, readPermission, editPermission FROM jsonData", new RowCallbackHandler() {
@@ -206,8 +216,8 @@ public class Upgrade29 extends DBUpgrade {
                 insertMapping(voId, JsonDataVO.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
             }
         });
-        
-        
+
+
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataSQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataSQL);
@@ -215,7 +225,7 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataSQL);
         runScript(scripts, out);
     }
-    
+
     private void convertMailingLists(Map<String, Role> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
         ejt.query("SELECT id, readPermission, editPermission FROM mailingLists", new RowCallbackHandler() {
@@ -229,8 +239,8 @@ public class Upgrade29 extends DBUpgrade {
                 insertMapping(voId, MailingList.class.getSimpleName(), PermissionService.EDIT, editPermissions, roles);
             }
         });
-        
-        
+
+
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), mailingListSQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), mailingListSQL);
@@ -238,7 +248,7 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), mailingListSQL);
         runScript(scripts, out);
     }
-    
+
     private void convertFileStores(Map<String, Role> roles, OutputStream out) throws Exception {
         //Move current permissions to roles
         ejt.query("SELECT id, readPermission, writePermission FROM fileStores", new RowCallbackHandler() {
@@ -252,8 +262,8 @@ public class Upgrade29 extends DBUpgrade {
                 insertMapping(voId, FileStore.class.getSimpleName(), PermissionService.WRITE, writePermissions, roles);
             }
         });
-        
-        
+
+
         Map<String, String[]> scripts = new HashMap<>();
         scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), fileStoreSQL);
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), fileStoreSQL);
@@ -261,22 +271,22 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoreSQL);
         runScript(scripts, out);
     }
-    
+
     //Roles
     private String[] dropTemplatesSQL = new String[] {
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
-            "DROP TABLE templates;", 
+            "DROP TABLE templates;",
     };
-    
+
     //Roles
     private String[] createRolesSQL = new String[] {
-            "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));", 
+            "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));",
             "ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);",
-            
+
             "CREATE TABLE roleMappings (roleId int not null, voId int, voType varchar(255), permissionType varchar(255) not null);",
-            "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;" + 
+            "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);",
-            
+
             "CREATE TABLE userRoleMappings (roleId int not null, userId int not null);",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;",
@@ -284,53 +294,80 @@ public class Upgrade29 extends DBUpgrade {
 
     };
     private String[] createRolesMySQL = new String[] {
-            "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id)) engine=InnoDB;", 
+            "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id)) engine=InnoDB;",
             "ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);",
-            
+
             "CREATE TABLE roleMappings (roleId int not null, voId int, voType varchar(255), permissionType varchar(255) not null) engine=InnoDB;",
-            "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;" + 
+            "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);",
-            
+
             "CREATE TABLE userRoleMappings (roleId int not null, userId int not null);",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);"
     };
     private String[] createRolesMSSQL = new String[] {
-            "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));", 
+            "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));",
             "ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);",
-            
+
             "CREATE TABLE roleMappings (roleId int not null, voId int, voType nvarchar(255), permissionType varchar(255) not null);",
-            "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;" + 
+            "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);",
-            
+
             "CREATE TABLE userRoleMappings (roleId int not null, userId int not null);",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);"
     };
-    
+
+    //pointHierarchy
+    private String[] dropPointHierarchySQL = new String[] {
+            "DROP TABLE pointHierarchy;",
+    };
+
+
     //Users
     private String[] userSQL = new String[] {
             "ALTER TABLE users DROP COLUMN permissions;",
     };
-    
+
     private String[] dataPointsSQL = new String[] {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
-            "ALTER TABLE dataPoints DROP COLUMN pointFolderId;"
+            "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
+            "ALTER TABLE dataPoints DROP COLUMN templateId;",
+            "ALTER TABLE dataSources DROP INDEX dataPointsFk2;",
+            "ALTER TABLE dataSources DROP INDEX pointFolderIdIndex;",
+            "ALTER TABLE dataSources DROP INDEX dataPointsPermissionIndex;",
     };
-    
+
+    private String[] dataPointsMSSQL = new String[] {
+            "ALTER TABLE dataPoints DROP COLUMN readPermission;",
+            "ALTER TABLE dataPoints DROP COLUMN setPermission;",
+            "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
+            "ALTER TABLE dataPoints DROP COLUMN templateId;",
+            "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
+            "DROP INDEX pointFolderIdIndex on dataSources;",
+            "DROP INDEX dataPointsPermissionIndex on dataSources;"
+    };
+
+
     private String[] dataSourcesSQL = new String[] {
             "ALTER TABLE dataSources DROP COLUMN editPermission;",
+            "ALTER TABLE dataSources DROP INDEX dataSourcesPermissionIndex;"
     };
-    
+
+    private String[] dataSourcesMSSQL = new String[] {
+            "ALTER TABLE dataSources DROP COLUMN editPermission;",
+            "DROP INDEX dataSourcesPermissionIndex on dataSources;"
+    };
+
     //Mailing lists
     private String[] mailingListSQL = new String[] {
             "ALTER TABLE mailingLists DROP COLUMN readPermission;",
             "ALTER TABLE mailingLists DROP COLUMN editPermission;"
     };
-    
+
     private String[] jsonDataSQL = new String[] {
             "ALTER TABLE jsonData DROP COLUMN readPermission;",
             "ALTER TABLE jsonData DROP COLUMN editPermission;"
@@ -360,7 +397,7 @@ public class Upgrade29 extends DBUpgrade {
             }
         });
     }
-    
+
     /**
      * Ensure role exists and insert mappings for this permission
      *  this is protected for use in modules for this upgrade
@@ -383,21 +420,21 @@ public class Upgrade29 extends DBUpgrade {
                 }
                 if(!voRoles.contains(role)) {
                     //Add a mapping
-                    ejt.doInsert("INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)", 
+                    ejt.doInsert("INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)",
                             new Object[] {
                                     r.getId(),
                                     voId,
                                     voType,
                                     permissionType
-                            });
+                    });
                     voRoles.add(role);
                 }
                 return r;
             });
         }
     }
-    
-    
+
+
     /**
      * For use by modules in this upgrade
      * @param groups
@@ -417,7 +454,7 @@ public class Upgrade29 extends DBUpgrade {
         }
         return Collections.unmodifiableSet(set);
     }
-    
+
     @Override
     protected String getNewSchemaVersion() {
         return "30";
