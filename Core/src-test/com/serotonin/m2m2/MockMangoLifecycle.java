@@ -164,7 +164,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             Common.databaseProxy.initialize(null);
 
         //Setup the Spring Context
-        springRuntimeContextInitialize().get();
+        springRuntimeContextInitialize(Thread.currentThread().getContextClassLoader()).get();
 
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
@@ -216,9 +216,10 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
     }
 
-    protected CompletableFuture<ApplicationContext>  springRuntimeContextInitialize() {
+    protected CompletableFuture<ApplicationContext>  springRuntimeContextInitialize(ClassLoader classLoader) {
         @SuppressWarnings("resource")
         AnnotationConfigApplicationContext runtimeContext = new AnnotationConfigApplicationContext();
+        runtimeContext.setClassLoader(classLoader);
         runtimeContext.setId(MangoTestRuntimeContextConfiguration.CONTEXT_ID);
         runtimeContext.getEnvironment().getPropertySources().addLast(new MangoPropertySource("envProps", Common.envProps));
         runtimeContext.register(MangoTestRuntimeContextConfiguration.class);
