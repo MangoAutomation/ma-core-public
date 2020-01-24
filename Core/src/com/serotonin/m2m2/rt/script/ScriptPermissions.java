@@ -13,7 +13,6 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -104,41 +103,44 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
     }
 
 
-    
+
     @JsonIgnore
     @Override
     public Set<Role> getRoles() {
-        PermissionService service = Common.getBean(PermissionService.class);
         if(combinedRoles == null) {
             Set<String> combined = new HashSet<>();
-            combined.addAll(service.explodeLegacyPermissionGroups(this.dataSourcePermissions));
-            combined.addAll(service.explodeLegacyPermissionGroups(this.dataPointSetPermissions));
-            combined.addAll(service.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
-            combined.addAll(service.explodeLegacyPermissionGroups(this.customPermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataSourcePermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointSetPermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.customPermissions));
             Set<Role> roles = new HashSet<>(combined.size() + 1);
             roles.add(PermissionHolder.USER_ROLE.get());
             for(String group : combined) {
-               RoleVO role = RoleDao.getInstance().getByXid(group);
-               if(role != null) {
-                   roles.add(role.getRole());
-               }
+                RoleVO role = RoleDao.getInstance().getByXid(group);
+                if(role != null) {
+                    roles.add(role.getRole());
+                }else {
+                    roles.add(com.infiniteautomation.mango.util.script.ScriptPermissions.addNewRole(group).getRole());
+                }
             }
             return Collections.unmodifiableSet(roles);
         }
 
         return combinedRoles.get(() -> {
             Set<String> combined = new HashSet<>();
-            combined.addAll(service.explodeLegacyPermissionGroups(this.dataSourcePermissions));
-            combined.addAll(service.explodeLegacyPermissionGroups(this.dataPointSetPermissions));
-            combined.addAll(service.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
-            combined.addAll(service.explodeLegacyPermissionGroups(this.customPermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataSourcePermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointSetPermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
+            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.customPermissions));
             Set<Role> roles = new HashSet<>(combined.size() + 1);
             roles.add(PermissionHolder.USER_ROLE.get());
             for(String group : combined) {
-               RoleVO role = RoleDao.getInstance().getByXid(group);
-               if(role != null) {
-                   roles.add(role.getRole());
-               }
+                RoleVO role = RoleDao.getInstance().getByXid(group);
+                if(role != null) {
+                    roles.add(role.getRole());
+                }else {
+                    roles.add(com.infiniteautomation.mango.util.script.ScriptPermissions.addNewRole(group).getRole());
+                }
             }
             return Collections.unmodifiableSet(roles);
         });

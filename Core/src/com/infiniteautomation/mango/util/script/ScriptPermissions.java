@@ -38,7 +38,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class ScriptPermissions implements JsonSerializable, Serializable, PermissionHolder {
 
     public static final String JSON_KEY = "scriptRoles";
-    
+
     private final Set<Role> roles;
     private final String permissionHolderName; //Name for exception messages
 
@@ -75,7 +75,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
     public boolean isPermissionHolderDisabled() {
         return false;
     }
-    
+
     @Override
     public Set<Role> getRoles() {
         return roles;
@@ -98,10 +98,28 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                 RoleVO role = RoleDao.getInstance().getByXid(permission);
                 if(role != null) {
                     roles.add(role.getRole());
+                }else {
+                    roles.add(addNewRole(permission).getRole());
                 }
             }
         }else if(ver == 2) {
             //Nada
+        }
+    }
+
+    /**
+     * Add a new role to the system, used when de-serializing an old version
+     * @param legacyPermission
+     * @return
+     */
+    public static RoleVO addNewRole(String legacyPermission) {
+        RoleVO role = new RoleVO(Common.NEW_ID, legacyPermission, legacyPermission);
+        try {
+            RoleDao.getInstance().insert(role);
+            return role;
+        }catch(Exception e) {
+            //Someone maybe inserted this role while we were doing this.
+            return role;
         }
     }
 
@@ -119,7 +137,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
      * Safely read legacy and super-legacy ScriptPermissions current permissions are JSON exportable
      * @param jsonObject
      * @return
-     * @throws TranslatableJsonException 
+     * @throws TranslatableJsonException
      */
     public static ScriptPermissions readJsonSafely(JsonReader reader, JsonObject jsonObject) throws TranslatableJsonException {
         if(jsonObject.containsKey("scriptPermissions")) {
@@ -132,7 +150,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                 permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("dataPointSetPermissions")));
                 permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("dataPointReadPermissions")));
                 permissions.addAll(service.explodeLegacyPermissionGroups(o.getString("customPermissions")));
-                
+
                 for(String permission : permissions) {
                     RoleVO role = RoleDao.getInstance().getByXid(permission);
                     if(role != null) {
@@ -141,7 +159,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                         throw new TranslatableJsonException("emport.error.missingRole", permission, "scriptPermissions");
                     }
                 }
-                
+
                 return new ScriptPermissions(roles);
             }catch(ClassCastException e) {
                 //Munchy munch, not a legacy script permissions object
@@ -168,7 +186,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             }
             return new ScriptPermissions(roles);
         }else {
-            
+
             return new ScriptPermissions();
         }
     }
