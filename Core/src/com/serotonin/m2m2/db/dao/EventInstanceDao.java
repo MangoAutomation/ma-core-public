@@ -100,7 +100,8 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select,
+            ConditionSortLimit conditions) {
         select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
         return select.leftJoin(EventInstanceTableDefinition.USER_EVENTS_TABLE.as(EventInstanceTableDefinition.USER_EVENTS_ALIAS))
                 .on(DSL.field(EventInstanceTableDefinition.USER_EVENTS_ALIAS.append("eventId")).eq(this.table.getAlias("id")));
