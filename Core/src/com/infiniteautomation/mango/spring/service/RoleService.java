@@ -104,12 +104,28 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     }
 
     /**
+     * Remove a role to a permission type
+     * @param role
+     * @param permissionType
+     * @param user
+     */
+    public void removeRoleFromPermission(Role role, String permissionType, PermissionHolder user) throws PermissionException, NotFoundException{
+        permissionService.ensureAdminRole(user);
+        Set<Role> permissionRoles = this.dao.getRoles(permissionType);
+        if(!permissionRoles.contains(role)) {
+            throw new NotFoundException();
+        }
+
+        dao.removeRoleFromPermission(role, permissionType);
+    }
+
+    /**
      * Add a role to a permission type
      * @param role
      * @param permissionType
      * @param user
      */
-    public void addRoleToPermission(Role role, String permissionType, PermissionHolder user) {
+    public void addRoleToPermission(Role role, String permissionType, PermissionHolder user) throws PermissionException, ValidationException {
         permissionService.ensureAdminRole(user);
         Set<Role> permissionRoles = this.dao.getRoles(permissionType);
         if(permissionRoles.contains(role)) {

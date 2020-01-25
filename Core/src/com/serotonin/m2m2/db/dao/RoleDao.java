@@ -175,6 +175,19 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
     }
 
     /**
+     * Remove a role from a system permission
+     * @param role
+     * @param permissionType
+     */
+    public void removeRoleFromPermission(Role role, String permissionType) {
+        ejt.update("DELETE FROM roleMappings WHERE voId=null AND voType=null AND roleId=? AND permissionType=?",
+                new Object[]{
+                        role.getId(),
+                        permissionType
+        });
+    }
+
+    /**
      * Replace all roles for a vo's given permission type.
      *   NOTE this should be used in a transaction and the RoleVO ids are not set
      * @param roles
