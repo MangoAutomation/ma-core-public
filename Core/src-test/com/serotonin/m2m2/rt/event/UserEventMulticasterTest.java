@@ -35,7 +35,6 @@ public class UserEventMulticasterTest extends MangoTestBase {
     protected RoleVO mockRole;
 
     public UserEventMulticasterTest() {
-        super(true, 9000);
     }
 
     @Before

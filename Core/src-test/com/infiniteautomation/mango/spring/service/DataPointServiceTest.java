@@ -34,7 +34,6 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     private DataSourceService dataSourceService;
 
     public DataPointServiceTest() {
-        super(true, 9000);
     }
 
     @Override

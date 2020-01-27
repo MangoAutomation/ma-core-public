@@ -34,7 +34,6 @@ import com.serotonin.m2m2.vo.role.Role;
 public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User, UserTableDefinition, UserDao, UsersService> {
 
     public UsersServiceTest() {
-        super(true, 9000);
     }
 
     @Test

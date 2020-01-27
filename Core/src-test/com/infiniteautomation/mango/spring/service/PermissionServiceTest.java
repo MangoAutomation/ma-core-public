@@ -45,7 +45,6 @@ public class PermissionServiceTest extends MangoTestBase {
     protected PermissionHolder systemSuperadmin;
 
     public PermissionServiceTest() {
-        super(false, 9001);
     }
 
     @Before

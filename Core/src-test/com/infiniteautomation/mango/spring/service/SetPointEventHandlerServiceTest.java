@@ -46,7 +46,6 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     protected DataSourceService dataSourceService;
 
     public SetPointEventHandlerServiceTest() {
-        super(true, 9000);
     }
 
     @Before

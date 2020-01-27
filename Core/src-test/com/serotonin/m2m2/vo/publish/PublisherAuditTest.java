@@ -41,7 +41,6 @@ public class PublisherAuditTest extends MangoTestBase {
     private int pointCount = 100;
 
     public PublisherAuditTest() {
-        super(true, 9000);
     }
 
     @BeforeClass

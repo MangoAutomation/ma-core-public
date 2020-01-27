@@ -104,11 +104,6 @@ public class MangoTestBase {
             h2WebPort = 9001;
     }
 
-    public MangoTestBase(boolean enableH2Web, int h2WebPort) {
-        this.enableH2Web = enableH2Web;
-        this.h2WebPort = h2WebPort;
-    }
-
     @BeforeClass
     public static void staticSetup() throws IOException{
 

@@ -28,10 +28,6 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
 
     }
 
-    public AbstractVOServiceWithPermissionsTest(boolean enableWebDb, int webDbPort) {
-        super(enableWebDb, webDbPort);
-    }
-
     /**
      * The type name for the create permission of the VO
      * @return

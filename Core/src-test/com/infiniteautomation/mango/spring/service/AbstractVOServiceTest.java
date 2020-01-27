@@ -22,10 +22,6 @@ public abstract class AbstractVOServiceTest<VO extends AbstractVO, TABLE extends
 
     }
 
-    public AbstractVOServiceTest(boolean enableWebDb, int webDbPort) {
-        super(enableWebDb, webDbPort);
-    }
-
     @Test
     public void testUpdateViaXid() {
         runTest(() -> {

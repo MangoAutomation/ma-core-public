@@ -86,18 +86,10 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
 
     }
 
-    public AbstractBasicVOServiceTest(boolean enableWebDb, int webDbPort) {
-        super(enableWebDb, webDbPort);
-    }
-
     public User getEditUser() {
         return editUser;
     }
 
-    /**
-     *
-     * @param holder
-     */
     public void setContextUser(PermissionHolder holder) {
         SecurityContextImpl sc = new SecurityContextImpl();
         sc.setAuthentication(new PreAuthenticatedAuthenticationToken(holder, holder.getRoles()));
