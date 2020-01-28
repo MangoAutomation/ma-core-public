@@ -265,8 +265,24 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
     }
 
     @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql) {
-        RQLToEventInstanceConditions rqlToSelect = new RQLToEventInstanceConditions(this.table.getAliasMap(), this.valueConverterMap);
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
+        Map<String, Function<Object, Object>> fullMap;
+        if(valueConverterMap == null) {
+            fullMap = new HashMap<>(this.valueConverterMap);
+        }else {
+            fullMap = new HashMap<>(this.valueConverterMap);
+            fullMap.putAll(valueConverters);
+        }
+
+        Map<String, Field<?>> fullFields;
+        if(fieldMap == null) {
+            fullFields = new HashMap<>(this.table.getAliasMap());
+        }else {
+            fullFields = new HashMap<>(this.table.getAliasMap());
+            fullFields.putAll(fieldMap);
+        }
+
+        RQLToEventInstanceConditions rqlToSelect = new RQLToEventInstanceConditions(fullFields, fullMap);
         return rqlToSelect.visit(rql);
     }
 
