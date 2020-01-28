@@ -38,6 +38,9 @@ import com.serotonin.m2m2.vo.role.Role;
  * MailingList - remove readPermissions and editPermissions
  *
  *
+ * Remove User Events tabls
+ *
+ *
  * @author Terry Packer
  *
  */
@@ -61,6 +64,7 @@ public class Upgrade29 extends DBUpgrade {
             convertFileStores(roles, out);
             dropTemplates(out);
             dropPointHierarchy(out);
+            dropUserEvents(out);
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
         } finally {
@@ -84,6 +88,15 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropPointHierarchySQL);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropPointHierarchySQL);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropPointHierarchySQL);
+        runScript(scripts, out);
+    }
+
+    private void dropUserEvents(OutputStream out) throws Exception {
+        Map<String, String[]> scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dropUserEventsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dropUserEventsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dropUserEventsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dropUserEventsSQL);
         runScript(scripts, out);
     }
 
@@ -272,7 +285,7 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
     }
 
-    //Roles
+    //Templates
     private String[] dropTemplatesSQL = new String[] {
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "DROP TABLE templates;",
@@ -320,11 +333,15 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);"
     };
 
-    //pointHierarchy
+    //Point Hierarchy
     private String[] dropPointHierarchySQL = new String[] {
             "DROP TABLE pointHierarchy;",
     };
 
+    //User Events
+    private String[] dropUserEventsSQL = new String[] {
+            "DROP TABLE userEvents;",
+    };
 
     //Users
     private String[] userSQL = new String[] {

@@ -75,7 +75,6 @@ public class DBConvert {
         tableNames.add("pointValueAnnotations");
         tableNames.add(SchemaDefinition.EVENT_DETECTOR_TABLE);
         tableNames.add(SchemaDefinition.EVENTS_TABLE);
-        tableNames.add(SchemaDefinition.USER_EVENTS_TABLE);
         tableNames.add(SchemaDefinition.EVENT_HANDLER_TABLE);
         tableNames.add(SchemaDefinition.EVENT_HANDLER_MAPPING_TABLE);
         tableNames.add(SchemaDefinition.PUBLISHERS_TABLE);
@@ -84,6 +83,7 @@ public class DBConvert {
         tableNames.add(SchemaDefinition.JSON_DATA_TABLE);
         tableNames.add(SchemaDefinition.FILE_STORES_TABLE);
         tableNames.add(SchemaDefinition.INSTALLED_MODULES_TABLE);
+        tableNames.add(SchemaDefinition.ROLES_TABLE);
         return tableNames;
     }
 

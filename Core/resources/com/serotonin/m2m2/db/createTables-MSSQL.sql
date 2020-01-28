@@ -210,16 +210,6 @@ CREATE INDEX events_performance1 ON events (activeTs ASC);
 CREATE INDEX events_performance2 ON events (rtnApplicable ASC, rtnTs ASC);
 CREATE INDEX events_performance3 ON events (typeName ASC, subTypeName ASC, typeRef1 ASC);
 
-create table userEvents (
-  eventId int not null,
-  userId int not null,
-  silenced char(1) not null,
-  primary key (eventId, userId)
-);
-alter table userEvents add constraint userEventsFk1 foreign key (eventId) references events(id) on delete cascade;
-alter table userEvents add constraint userEventsFk2 foreign key (userId) references users(id);
-CREATE INDEX userEvents_performance1 ON userEvents (userId ASC, silenced ASC);
-
 --
 --
 -- Event handlers

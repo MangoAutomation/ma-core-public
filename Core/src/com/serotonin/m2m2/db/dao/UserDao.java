@@ -361,7 +361,6 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         Object[] args = new Object[] { vo.getId() };
         ejt.update("UPDATE userComments SET userId=null WHERE userId=?", args);
         ejt.update("DELETE FROM mailingListMembers WHERE userId=?", args);
-        ejt.update("DELETE FROM userEvents WHERE userId=?", args);
         ejt.update("UPDATE events SET ackUserId=null, alternateAckSource=? WHERE ackUserId=?", new Object[] {
                 new TranslatableMessage("events.ackedByDeletedUser").serialize(), vo.getId() });
     }

@@ -82,13 +82,6 @@ public class EventInstanceVO extends AbstractVO {
     private boolean hasComments;
 
     //
-    //
-    // These fields are used only in the context of access by a particular user, providing state filled in from
-    // the userEvents table.
-    private boolean userNotified;
-    private boolean silenced;
-
-    //
     // Contextual data from the source that raised the event.
     private Map<String, Object> context;
 
@@ -213,6 +206,7 @@ public class EventInstanceVO extends AbstractVO {
     public String getAcknowledgedTimestampString(){
         return Functions.getFullSecondTime(this.acknowledgedTimestamp);
     }
+
     public void setAcknowledgedTimestamp(String s){
         //NoOp
     }
@@ -221,71 +215,41 @@ public class EventInstanceVO extends AbstractVO {
         return acknowledgedByUserId;
     }
 
-
     public void setAcknowledgedByUserId(int acknowledgedByUserId) {
         this.acknowledgedByUserId = acknowledgedByUserId;
     }
-
 
     public String getAcknowledgedByUsername() {
         return acknowledgedByUsername;
     }
 
-
     public void setAcknowledgedByUsername(String acknowledgedByUsername) {
         this.acknowledgedByUsername = acknowledgedByUsername;
     }
-
 
     public TranslatableMessage getAlternateAckSource() {
         return alternateAckSource;
     }
 
-
     public void setAlternateAckSource(TranslatableMessage alternateAckSource) {
         this.alternateAckSource = alternateAckSource;
     }
-
 
     public boolean isHasComments() {
         return hasComments;
     }
 
-
     public void setHasComments(boolean hasComments) {
         this.hasComments = hasComments;
     }
-
-
-    public boolean isUserNotified() {
-        return userNotified;
-    }
-
-
-    public void setUserNotified(boolean userNotified) {
-        this.userNotified = userNotified;
-    }
-
-
-    public boolean isSilenced() {
-        return silenced;
-    }
-
-
-    public void setSilenced(boolean silenced) {
-        this.silenced = silenced;
-    }
-
 
     public Map<String, Object> getContext() {
         return context;
     }
 
-
     public void setContext(Map<String, Object> context) {
         this.context = context;
     }
-
 
     public static long getSerialversionuid() {
         return serialVersionUID;

@@ -75,15 +75,6 @@ public class MockEventManager extends EventManagerImpl {
     }
 
     @Override
-    public boolean toggleSilence(int eventId, int userId) {
-        if(useDatabase) {
-            return super.toggleSilence(eventId, userId);
-        }else {
-            return false;
-        }
-    }
-
-    @Override
     public long getLastAlarmTimestamp() {
         if(useDatabase) {
             return super.getLastAlarmTimestamp();
@@ -193,14 +184,6 @@ public class MockEventManager extends EventManagerImpl {
         if(useDatabase) {
             super.removeUserEventListener(l);
         }
-    }
-
-    @Override
-    public List<EventInstance> getAllActiveUserEvents(int userId) {
-        if(useDatabase) {
-            super.getAllActiveUserEvents(userId);
-        }
-        return null;
     }
 
     @Override

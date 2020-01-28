@@ -974,12 +974,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
-    protected RQLToCondition createRqlToCondition() {
-        // we create one every time as they are stateful for this DAO
-        return null;
-    }
-
-    @Override
     public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
         // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
         RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.table.getAliasMap(), this.valueConverterMap);

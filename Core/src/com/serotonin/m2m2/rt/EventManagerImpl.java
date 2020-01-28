@@ -7,6 +7,7 @@ package com.serotonin.m2m2.rt;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -32,7 +33,6 @@ import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.ReturnCause;
-import com.serotonin.m2m2.rt.event.UserEventCache;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.UserEventMulticaster;
 import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
@@ -93,9 +93,6 @@ public class EventManagerImpl implements EventManager {
     public int getState(){
         return state;
     }
-
-    //Cache for all active events for a logged in user, allow entries to remain un-accessed for 15 minutes and cleanup cache every minute
-    private UserEventCache userEventCache;
 
     //
     //
@@ -195,10 +192,6 @@ public class EventManagerImpl implements EventManager {
             }
         }
 
-        //Add to the UserEventCache if the user has recently accessed their events
-        if(userIdsForCache.size() > 0)
-            this.userEventCache.addEvent(userIdsForCache, evt);
-
         if(multicaster != null)
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
@@ -210,7 +203,6 @@ public class EventManagerImpl implements EventManager {
 
         //No Audit or Do Not Log events are User Events
         if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
-            eventDao.insertUserEvents(evt.getId(), eventUserIds, true);
             if (autoAckMessage == null)
                 lastAlarmTimestamp = Common.timer.currentTimeMillis();
         }
@@ -349,9 +341,6 @@ public class EventManagerImpl implements EventManager {
                 }
 
             }
-            //Only alarms make it into the cache
-            if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
-                this.userEventCache.updateEvent(userIdsForCache, evt);
 
             if(multicaster != null && Common.backgroundProcessing != null)
                 Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, true, false, false));
@@ -403,9 +392,6 @@ public class EventManagerImpl implements EventManager {
                     userIdsForCache.add(user.getId());
                 }
             }
-            //Only alarms make it into the cache
-            if(evt.getAlarmLevel() != AlarmLevels.DO_NOT_LOG)
-                this.userEventCache.updateEvent(userIdsForCache, evt);
 
             if(multicaster != null)
                 Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, true, false));
@@ -455,14 +441,11 @@ public class EventManagerImpl implements EventManager {
             if (evt.getEventType().excludeUser(user))
                 continue;
 
-
             if (permissionService.hasEventTypePermission(user, evt.getEventType())) {
                 //Notify All User Event Listeners of the new event
                 userIdsToNotify.add(user.getId());
             }
         }
-        //Remove the event totally
-        this.userEventCache.removeEvent(evt);
 
         if(multicaster != null)
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, false, false, false, true));
@@ -510,41 +493,6 @@ public class EventManagerImpl implements EventManager {
         return dbEvent;
     }
 
-    /*
-     * (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.EventManager#toggleSilence(int, int)
-     */
-    @Override
-    public boolean toggleSilence(int eventId, int userId) {
-        EventInstance cachedEvent = getById(eventId);
-        boolean silenced = EventDao.getInstance().toggleSilence(eventId, userId);
-        if (cachedEvent != null) {
-            cachedEvent.setSilenced(silenced);
-            //The cache holds un-silenced events
-            if(silenced) {
-                this.userEventCache.removeUser(userId, eventId);
-            }else {
-                Set<Integer> userIds = new HashSet<>(1);
-                userIds.add(userId);
-                this.userEventCache.addEvent(userIds, cachedEvent);
-            }
-        }else {
-            //The cache holds un-silenced events
-            if(silenced) {
-                this.userEventCache.removeUser(userId, eventId);
-            }else {
-                EventInstance dbEvent = EventDao.getInstance().get(eventId);
-                if(dbEvent != null) {
-                    Set<Integer> userIds = new HashSet<>(1);
-                    userIds.add(userId);
-                    this.userEventCache.addEvent(userIds, dbEvent);
-                }
-            }
-        }
-
-        return silenced;
-    }
-
     @Override
     public long getLastAlarmTimestamp() {
         return lastAlarmTimestamp;
@@ -571,7 +519,6 @@ public class EventManagerImpl implements EventManager {
             recentEventsLock.writeLock().unlock();
         }
 
-        userEventCache.purgeAllEvents();
         int auditEventCount = AuditEventDao.getInstance().purgeAllEvents();
         return auditEventCount + eventDao.purgeAllEvents();
     }
@@ -608,7 +555,6 @@ public class EventManagerImpl implements EventManager {
             recentEventsLock.writeLock().unlock();
         }
 
-        userEventCache.purgeEventsBefore(time);
         int auditCount = AuditEventDao.getInstance().purgeEventsBefore(time);
         return auditCount + eventDao.purgeEventsBefore(time);
     }
@@ -645,8 +591,6 @@ public class EventManagerImpl implements EventManager {
         }finally{
             recentEventsLock.writeLock().unlock();
         }
-
-        userEventCache.purgeEventsBefore(time, typeName);
 
         if(EventType.EventTypeNames.AUDIT.equals(typeName)) {
             return AuditEventDao.getInstance().purgeEventsBefore(time);
@@ -687,8 +631,6 @@ public class EventManagerImpl implements EventManager {
         }finally{
             recentEventsLock.writeLock().unlock();
         }
-
-        userEventCache.purgeEventsBefore(time, alarmLevel);
 
         int auditEventCount = AuditEventDao.getInstance().purgeEventsBefore(time, alarmLevel);
         return auditEventCount + eventDao.purgeEventsBefore(time, alarmLevel);
@@ -866,8 +808,6 @@ public class EventManagerImpl implements EventManager {
         eventDao = EventDao.getInstance();
         userDao = UserDao.getInstance();
 
-        this.userEventCache = new UserEventCache(15 * 60000,  1000);
-
         // Get all active events from the database.
         activeEventsLock.writeLock().lock();
         try{
@@ -886,15 +826,12 @@ public class EventManagerImpl implements EventManager {
         if (state != RUNNING)
             return;
         state = TERMINATE;
-        // no op
-        this.userEventCache.terminate();
     }
 
     @Override
     public void joinTermination() {
         if(state != TERMINATE)
             return;
-        this.userEventCache.joinTermination();
         state = TERMINATED;
     }
 
@@ -921,11 +858,26 @@ public class EventManagerImpl implements EventManager {
     }
 
     //
-    // User Event Cache Access
+    // User view of active events
     //
     @Override
-    public List<EventInstance> getAllActiveUserEvents(int userId){
-        return this.userEventCache.getAllEvents(userId);
+    public List<EventInstance> getAllActiveUserEvents(User user){
+        List<EventInstance> userEvents;
+        activeEventsLock.writeLock().lock();
+        try{
+            userEvents = new ArrayList<>(activeEvents);
+        }finally{
+            activeEventsLock.writeLock().unlock();
+        }
+
+        //Prune for user
+        Iterator<EventInstance> it = userEvents.iterator();
+        while(it.hasNext()) {
+            if(!permissionService.hasEventTypePermission(user, it.next().getEventType())) {
+                it.remove();
+            }
+        }
+        return userEvents;
     }
 
 

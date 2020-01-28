@@ -22,7 +22,7 @@ public class EventInstance{
      * Model key for event instance objects in scripts
      */
     public static final String CONTEXT_KEY = "evt";
-    
+
     /**
      * Configuration field. Assigned by the database.
      */
@@ -77,13 +77,6 @@ public class EventInstance{
     private String acknowledgedByUsername;
     private TranslatableMessage alternateAckSource;
     private boolean hasComments;
-
-    //
-    //
-    // These fields are used only in the context of access by a particular user, providing state filled in from
-    // the userEvents table.
-    private boolean userNotified;
-    private boolean silenced;
 
     //Used so that the multicaster knows what to ignore
     private List<Integer> idsToNotify;
@@ -263,22 +256,6 @@ public class EventInstance{
         this.handlers = handlers;
     }
 
-    public boolean isUserNotified() {
-        return userNotified;
-    }
-
-    public void setUserNotified(boolean userNotified) {
-        this.userNotified = userNotified;
-    }
-
-    public boolean isSilenced() {
-        return silenced;
-    }
-
-    public void setSilenced(boolean silenced) {
-        this.silenced = silenced;
-    }
-
     public long getAcknowledgedTimestamp() {
         return acknowledgedTimestamp;
     }
@@ -340,7 +317,6 @@ public class EventInstance{
                 + handlers + ", acknowledgedTimestamp=" + acknowledgedTimestamp
                 + ", acknowledgedByUserId=" + acknowledgedByUserId + ", acknowledgedByUsername="
                 + acknowledgedByUsername + ", alternateAckSource=" + alternateAckSource
-                + ", hasComments=" + hasComments + ", userNotified=" + userNotified + ", silenced="
-                + silenced + ", idsToNotify=" + idsToNotify + ", context=" + context + "]";
+                + ", hasComments=" + hasComments + ", idsToNotify=" + idsToNotify + ", context=" + context + "]";
     }
 }

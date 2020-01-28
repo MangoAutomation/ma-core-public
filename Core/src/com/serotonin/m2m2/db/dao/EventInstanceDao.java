@@ -17,7 +17,6 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.SelectJoinStep;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -51,6 +50,8 @@ import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
+ * This is used for querying events from the database
+ *
  * @author Terry Packer
  *
  */
@@ -102,16 +103,13 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select,
             ConditionSortLimit conditions) {
-        select = select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
-        return select.leftJoin(EventInstanceTableDefinition.USER_EVENTS_TABLE.as(EventInstanceTableDefinition.USER_EVENTS_ALIAS))
-                .on(DSL.field(EventInstanceTableDefinition.USER_EVENTS_ALIAS.append("eventId")).eq(this.table.getAlias("id")));
+        return select.leftJoin(userTable.getTableAsAlias()).on(userTable.getAlias("id").eq(table.getAlias("ackUserId")));
     }
 
     @Override
     public List<Field<?>> getSelectFields() {
         List<Field<?>> fields = new ArrayList<>(super.getSelectFields());
         fields.add(userTable.getAlias("username"));
-        fields.add(DSL.field(DSL.name(EventInstanceTableDefinition.USER_EVENTS_ALIAS).append("silenced")));
         Field<?> hasComments = this.create.selectCount().from(userCommentTable.getTableAsAlias())
                 .where(userCommentTable.getAlias("commentType").eq(UserCommentVO.TYPE_EVENT), userCommentTable.getAlias("typeKey").eq(this.table.getAlias("id"))).asField("cnt");
         fields.add(hasComments);
@@ -120,7 +118,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
 
     @Override
     public RowMapper<EventInstanceVO> getRowMapper() {
-        return new UserEventInstanceVORowMapper();
+        return new EventInstanceVORowMapper();
     }
 
     public static class EventInstanceVORowMapper implements RowMapper<EventInstanceVO> {
@@ -172,61 +170,25 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
                     event.setAcknowledgedByUsername(rs.getString(15));
                 event.setAlternateAckSource(BaseDao.readTranslatableMessage(rs, 14));
             }
-            event.setHasComments(rs.getInt(17) > 0);
-
-            //This makes another query!
-            this.attachRelationalInfo(event);
-
+            event.setHasComments(rs.getInt(16) > 0);
 
             return event;
         }
-
-        private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //
-                + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
-                + " and uc.typeKey=? " //
-                + "order by uc.ts";
-
-        void attachRelationalInfo(EventInstanceVO event) {
-            if (event.isHasComments())
-                event.setEventComments(EventInstanceDao.getInstance().query(EVENT_COMMENT_SELECT, new Object[] { event.getId() },
-                        UserCommentDao.getInstance().getRowMapper()));
-        }
-
-
     }
 
-    class UserEventInstanceVORowMapper extends EventInstanceVORowMapper {
-        @Override
-        public EventInstanceVO mapRow(ResultSet rs, int rowNum) throws SQLException {
-            EventInstanceVO event = super.mapRow(rs, rowNum);
-            event.setSilenced(charToBool(rs.getString(17)));
-            if (!rs.wasNull())
-                event.setUserNotified(true);
-            return event;
-        }
+    @Override
+    public void loadRelationalData(EventInstanceVO vo) {
+        if (vo.isHasComments())
+            vo.setEventComments(EventInstanceDao.getInstance().query(EVENT_COMMENT_SELECT, new Object[] { vo.getId() },
+                    UserCommentDao.getInstance().getRowMapper()));
     }
 
-    /**
-     * @param userId
-     * @param level
-     * @return
-     */
-    public EventInstanceVO getHighestUnsilencedEvent(int userId, AlarmLevels level) {
-        return ejt.queryForObject(getJoinedSelectQuery().getSQL()
-                + "where ue.silenced=? and ue.userId=? and evt.alarmLevel=? ORDER BY evt.activeTs DESC LIMIT 1", new Object[] { boolToChar(false), userId, level.value() },getRowMapper(), null);
-    }
+    private static final String EVENT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT //
+            + "where uc.commentType= " + UserCommentVO.TYPE_EVENT //
+            + " and uc.typeKey=? " //
+            + "order by uc.ts";
 
-    /**
-     * @param userId
-     * @return
-     */
-    public List<EventInstanceVO> getUnsilencedEvents(int userId) {
-        return ejt.query(getJoinedSelectQuery().getSQL()
-                + "where ue.silenced=? and ue.userId=?", new Object[] { boolToChar(false), userId },getRowMapper());
-
-    }
-
-    static EventType createEventType(ResultSet rs, int offset) throws SQLException {
+    public static EventType createEventType(ResultSet rs, int offset) throws SQLException {
         String typeName = rs.getString(offset);
         String subtypeName = rs.getString(offset + 1);
         EventType type;
@@ -267,7 +229,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
         Map<String, Function<Object, Object>> fullMap;
-        if(valueConverterMap == null) {
+        if(valueConverters == null) {
             fullMap = new HashMap<>(this.valueConverterMap);
         }else {
             fullMap = new HashMap<>(this.valueConverterMap);

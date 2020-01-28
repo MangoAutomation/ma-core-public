@@ -7,8 +7,6 @@ import java.util.List;
 
 import org.jooq.Field;
 import org.jooq.Name;
-import org.jooq.Record;
-import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Component;
@@ -19,10 +17,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class EventInstanceTableDefinition extends AbstractTableDefinition {
-
-    public static final Table<? extends Record> USER_EVENTS_TABLE = DSL.table("userEvents");
-    public static final Name USER_EVENTS_ALIAS = DSL.name("ue");
-    public static final Field<Integer> USER_EVENTS_USERID_ALIAS = DSL.field(USER_EVENTS_ALIAS.append(DSL.name("userId")), SQLDataType.INTEGER);
 
     public static final String TABLE_NAME = "events";
 

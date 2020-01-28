@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -14,7 +13,6 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -41,6 +39,12 @@ import com.serotonin.m2m2.util.JsonSerializableUtility;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
 
+/**
+ * This class is used for runtime management of events sort an eventRT but could
+ *  be merged with the EventInstanceDao which is used for historical access and querying
+ *
+ * @author Terry Packer
+ */
 public class EventDao extends BaseDao {
     private static final Log LOG = LogFactory.getLog(EventDao.class);
 
@@ -55,8 +59,6 @@ public class EventDao extends BaseDao {
     public static EventDao getInstance() {
         return instance.get();
     }
-
-    private static final int MAX_PENDING_EVENTS = 100;
 
     public void saveEvent(EventInstance event) {
         if (event.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT)) {
@@ -111,11 +113,6 @@ public class EventDao extends BaseDao {
         }
         args[8] = event.getAlarmLevel().value();
         args[9] = writeTranslatableMessage(event.getMessage());
-        //For None Level Events
-        //        if (event.getAlarmLevel() == AlarmLevels.DO_NOT_LOG) {
-        //            event.setAcknowledgedTimestamp(event.getActiveTimestamp());
-        //            args[10] = event.getAcknowledgedTimestamp();
-        //        }
         event.setId(doInsert(EVENT_INSERT, args, EVENT_INSERT_TYPES));
         event.setEventComments(new LinkedList<UserCommentVO>());
     }
@@ -146,37 +143,13 @@ public class EventDao extends BaseDao {
     }
 
     private static final String EVENT_ACK = "update events set ackTs=?, ackUserId=?, alternateAckSource=? where id=? and ackTs is null";
-    private static final String USER_EVENT_ACK = "update userEvents set silenced=? where eventId=?";
 
     public boolean ackEvent(int eventId, long time, int userId, TranslatableMessage alternateAckSource) {
         // Ack the event
         int count = ejt.update(EVENT_ACK,
                 new Object[] { time, userId == 0 ? null : userId, writeTranslatableMessage(alternateAckSource), eventId },
                 new int[] { Types.BIGINT, Types.INTEGER, Types.CLOB, Types.INTEGER });
-        // Silence the user events
-        ejt.update(USER_EVENT_ACK, new Object[] { boolToChar(true), eventId });
-
         return count > 0;
-    }
-
-    private static final String USER_EVENTS_INSERT = "insert into userEvents (eventId, userId, silenced) values (?,?,?)";
-
-    public void insertUserEvents(final int eventId, final List<Integer> userIds, final boolean alarm) {
-        ejt.batchUpdate(USER_EVENTS_INSERT, new BatchPreparedStatementSetter() {
-            @Override
-            public int getBatchSize() {
-                return userIds.size();
-            }
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                ps.setInt(1, eventId);
-                ps.setInt(2, userIds.get(i));
-                ps.setString(3, boolToChar(!alarm));
-            }
-        });
-
-
     }
 
     private static final String BASIC_EVENT_SELECT = //
@@ -196,79 +169,6 @@ public class EventDao extends BaseDao {
 
     public EventInstance get(int eventId){
         return queryForObject(BASIC_EVENT_SELECT + " where e.id = ?", new Object[]{ eventId }, new EventInstanceRowMapper(), null);
-    }
-
-    private static final String EVENT_SELECT_WITH_USER_DATA = //
-            "select e.id, e.typeName, e.subtypeName, e.typeRef1, e.typeRef2, e.activeTs, e.rtnApplicable, e.rtnTs, " //
-            + "  e.rtnCause, e.alarmLevel, e.message, e.ackTs, e.ackUserId, u.username, e.alternateAckSource, " //
-            + "  (select count(1) from userComments where commentType=" + UserCommentVO.TYPE_EVENT //
-            + "     and typeKey=e.id) as cnt, " //
-            + "  ue.silenced " //
-            + "from events e " //
-            + "  left join users u on e.ackUserId=u.id " //
-            + "  left join userEvents ue on e.id=ue.eventId ";
-
-    public List<EventInstance> getEventsForDataPoint(int dataPointId, int userId) {
-        List<EventInstance> results = query(EVENT_SELECT_WITH_USER_DATA //
-                + "where e.typeName=? " //
-                + "  and e.typeRef1=? " //
-                + "  and ue.userId=? " //
-                + "order by e.activeTs desc",
-                new Object[] { EventType.EventTypeNames.DATA_POINT, dataPointId, userId },
-                new UserEventInstanceRowMapper());
-        attachRelationalInfo(results);
-        return results;
-    }
-
-
-
-    public List<EventInstance> getPendingEventsForDataSource(int dataSourceId, int userId) {
-        return getPendingEvents(EventType.EventTypeNames.DATA_SOURCE, dataSourceId, userId);
-    }
-
-    public List<EventInstance> getPendingEventsForPublisher(int publisherId, int userId) {
-        return getPendingEvents(EventType.EventTypeNames.PUBLISHER, publisherId, userId);
-    }
-
-    List<EventInstance> getPendingEvents(String typeName, int typeRef1, int userId) {
-        Object[] params;
-        StringBuilder sb = new StringBuilder();
-        sb.append(EVENT_SELECT_WITH_USER_DATA);
-        sb.append("where e.typeName=?");
-
-        if (typeRef1 == -1) {
-            params = new Object[] { typeName, userId, boolToChar(true) };
-        }
-        else {
-            sb.append("  and e.typeRef1=?");
-            params = new Object[] { typeName, typeRef1, userId, boolToChar(true) };
-        }
-        sb.append("  and ue.userId=? ");
-        sb.append("  and (e.ackTs is null or (e.rtnApplicable=? and e.rtnTs is null and e.alarmLevel > 0)) ");
-        sb.append("order by e.activeTs desc");
-
-        List<EventInstance> results = query(sb.toString(), params, new UserEventInstanceRowMapper());
-        attachRelationalInfo(results);
-        return results;
-    }
-
-    public List<EventInstance> getAllUnsilencedEvents(int userId) {
-        StringBuilder query = new StringBuilder(EVENT_SELECT_WITH_USER_DATA);
-        query.append("WHERE ue.userId=? AND ue.silenced=? ");
-        query.append("order by e.activeTs desc");
-
-        List<EventInstance> results = query(query.toString(), new Object[] { userId, boolToChar(false) }, new UserEventInstanceRowMapper());
-        attachRelationalInfo(results);
-        return results;
-    }
-
-
-    public List<EventInstance> getPendingEvents(int userId) {
-        List<EventInstance> results = Common.databaseProxy.doLimitQuery(this, EVENT_SELECT_WITH_USER_DATA
-                + "where ue.userId=? and e.ackTs is null order by e.activeTs desc", new Object[] { userId },
-                new UserEventInstanceRowMapper(), MAX_PENDING_EVENTS);
-        attachRelationalInfo(results);
-        return results;
     }
 
     private EventInstance getEventInstance(int eventId) {
@@ -296,17 +196,6 @@ public class EventDao extends BaseDao {
             }
             event.setHasComments(rs.getInt(16) > 0);
 
-            return event;
-        }
-    }
-
-    class UserEventInstanceRowMapper extends EventInstanceRowMapper {
-        @Override
-        public EventInstance mapRow(ResultSet rs, int rowNum) throws SQLException {
-            EventInstance event = super.mapRow(rs, rowNum);
-            event.setSilenced(charToBool(rs.getString(17)));
-            if (!rs.wasNull())
-                event.setUserNotified(true);
             return event;
         }
     }
@@ -469,34 +358,4 @@ public class EventDao extends BaseDao {
     public int getEventCount() {
         return ejt.queryForInt("select count(*) from events", null, 0);
     }
-
-    //
-    //
-    // User alarms
-    //
-    private static final String SILENCED_SELECT = "select ue.silenced " //
-            + "from events e " //
-            + "  join userEvents ue on e.id=ue.eventId " //
-            + "where e.id=? " //
-            + "  and ue.userId=? " //
-            + "  and e.ackTs is null";
-
-    public boolean toggleSilence(int eventId, int userId) {
-        String result = ejt.queryForObject(SILENCED_SELECT, new Object[] { eventId, userId }, String.class, null);
-        if (result == null)
-            return true;
-
-        boolean silenced = !charToBool(result);
-        ejt.update("update userEvents set silenced=? where eventId=? and userId=?", new Object[] {
-                boolToChar(silenced), eventId, userId });
-        return silenced;
-    }
-
-    public int getHighestUnsilencedAlarmLevel(int userId) {
-        return ejt.queryForInt("select max(e.alarmLevel) from userEvents u " + "  join events e on u.eventId=e.id "
-                + "where u.silenced=? and u.userId=?", new Object[] { boolToChar(false), userId }, 0);
-    }
-
-
-
 }

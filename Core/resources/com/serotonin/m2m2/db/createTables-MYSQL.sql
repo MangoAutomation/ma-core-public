@@ -216,16 +216,6 @@ alter table events add index performance1 (activeTs ASC);
 ALTER TABLE events ADD INDEX events_performance2 (`rtnApplicable` ASC, `rtnTs` ASC);
 ALTER TABLE events ADD INDEX events_performance3 (`typeName` ASC, `subTypeName` ASC, `typeRef1` ASC);
 
-create table userEvents (
-  eventId int not null,
-  userId int not null,
-  silenced char(1) not null,
-  primary key (eventId, userId)
-) engine=InnoDB;
-alter table userEvents add constraint userEventsFk1 foreign key (eventId) references events(id) on delete cascade;
-alter table userEvents add constraint userEventsFk2 foreign key (userId) references users(id);
-alter table userEvents add index performance1 (userId ASC, silenced ASC);
-
 --
 --
 -- Event handlers

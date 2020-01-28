@@ -22,7 +22,6 @@ import com.serotonin.m2m2.rt.event.DataPointEventLevelSummary;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.rt.event.UserEventLevelSummary;
 import com.serotonin.m2m2.rt.event.type.EventType;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -74,7 +73,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         List<UserEventLevelSummary> list = new ArrayList<UserEventLevelSummary>();
 
         //This query is slow the first time as it must fill the UserEventCache
-        List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user.getId());
+        List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user);
 
         UserEventLevelSummary lifeSafety = new UserEventLevelSummary(AlarmLevels.LIFE_SAFETY);
         list.add(lifeSafety);
@@ -155,12 +154,13 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         return this.permissionService.runAs(user, () -> {
             Map<Integer, DataPointEventLevelSummary> map = new HashMap<>();
             for(String xid : dataPointXids) {
-                //TODO Mango 4.0 use permissions to create a getIdByXid variant.
-                DataPointVO point = dataPointService.get(xid);
-                map.put(point.getId(), new DataPointEventLevelSummary(xid));
+                Integer point = dataPointService.getDao().getIdByXid(xid);
+                if(point != null) {
+                    map.put(point, new DataPointEventLevelSummary(xid));
+                }
             }
 
-            List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user.getId());
+            List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user);
             for(EventInstance event : events) {
                 if(EventType.EventTypeNames.DATA_POINT.equals(event.getEventType().getEventType())) {
                     DataPointEventLevelSummary model = map.get(event.getEventType().getReferenceId1());

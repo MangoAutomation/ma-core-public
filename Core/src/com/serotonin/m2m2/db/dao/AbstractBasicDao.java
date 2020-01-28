@@ -81,7 +81,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     protected final AtomicIntegerMonitor countMonitor;
 
     protected final Map<String, Function<Object, Object>> valueConverterMap;
-    protected final RQLToCondition rqlToCondition;
 
     public AbstractBasicDao(TABLE table, ObjectMapper mapper, ApplicationEventPublisher publisher) {
         this(table, null, mapper, publisher);
@@ -103,7 +102,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
         // Map of properties to their QueryAttribute
         this.valueConverterMap = this.createValueConverterMap();
-        this.rqlToCondition = this.createRqlToCondition();
 
         //Setup Monitors
         if(countMonitorName != null) {
@@ -447,13 +445,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> RQLToCondition.BOOLEAN_VALUE_CONVERTER));
     }
 
-    protected RQLToCondition createRqlToCondition() {
-        return new RQLToCondition(this.table.getAliasMap(), this.valueConverterMap);
-    }
-
     @Override
     public ConditionSortLimit rqlToCondition(ASTNode rql) {
-        return this.rqlToCondition.visit(rql);
+        return rqlToCondition(rql, null, null);
     }
 
     @Override
@@ -465,7 +459,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
 
         Map<String, Function<Object, Object>> fullMap;
-        if(valueConverterMap == null) {
+        if(valueConverters == null) {
             fullMap = new HashMap<>(this.valueConverterMap);
         }else {
             fullMap = new HashMap<>(this.valueConverterMap);
@@ -587,10 +581,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      */
     protected ResultSetExtractor<List<T>> getListResultSetExtractor() {
         return getListResultSetExtractor((e,rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException)
+            if(e.getCause() instanceof ModuleNotLoadedException) {
                 LOG.error(e.getCause().getMessage(), e.getCause());
-            else
+            }else {
                 LOG.error(e.getMessage(), e);
+                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
+                // want to see the 500 error in the API etc.
+                throw new ShouldNeverHappenException(e);
+            }
         });
     }
 
@@ -631,10 +629,14 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      */
     protected ResultSetExtractor<Void> getCallbackResultSetExtractor(MappedRowCallback<T> callback) {
         return getCallbackResultSetExtractor(callback, (e, rs) -> {
-            if(e.getCause() instanceof ModuleNotLoadedException)
+            if(e.getCause() instanceof ModuleNotLoadedException) {
                 LOG.error(e.getCause().getMessage(), e.getCause());
-            else
+            }else {
                 LOG.error(e.getMessage(), e);
+                //TODO Mango 4.0 What shall we do here? most likely this caused by a bug in the code and we
+                // want to see the 500 error in the API etc.
+                throw new ShouldNeverHappenException(e);
+            }
         });
     }
 

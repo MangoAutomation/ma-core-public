@@ -65,14 +65,6 @@ public interface EventManager extends ILifecycle{
     public EventInstance acknowledgeEventById(int eventId, long time, User user, TranslatableMessage alternateAckSource);
 
     /**
-     * Toggle the state of a current alarm with cache awareness
-     * @param eventId
-     * @param userId
-     * @return
-     */
-    public boolean toggleSilence(int eventId, int userId);
-
-    /**
      * Get the latest alarm's timestamp
      * @return
      */
@@ -153,7 +145,12 @@ public interface EventManager extends ILifecycle{
     //
     // User Event Cache Access
     //
-    List<EventInstance> getAllActiveUserEvents(int userId);
+    /**
+     *
+     * @param user
+     * @return
+     */
+    List<EventInstance> getAllActiveUserEvents(User user);
 
     /**
      * To access all active events quickly
