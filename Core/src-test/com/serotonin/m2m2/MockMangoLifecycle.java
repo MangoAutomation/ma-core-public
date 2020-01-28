@@ -93,7 +93,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
      *   to view the in-memory database.
      */
     public MockMangoLifecycle(List<Module> modules) {
-        this(modules, true, 9001);
+        this(modules, false, 9001);
     }
 
     public MockMangoLifecycle(List<Module> modules, boolean enableWebConsole, int webPort) {
