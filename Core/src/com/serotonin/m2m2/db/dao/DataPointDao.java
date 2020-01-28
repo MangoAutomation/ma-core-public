@@ -395,13 +395,17 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         List<Object> args = query.getBindValues();
         DataPointSummary item = this.ejt.query(sql, args.toArray(new Object[args.size()]),
                 (rs) -> {
-                    DataPointSummary summary = new DataPointSummary();
-                    summary.setId(rs.getInt(1));
-                    summary.setXid(rs.getString(2));
-                    summary.setName(rs.getString(3));
-                    summary.setDataSourceId(rs.getInt(4));
-                    summary.setDeviceName(rs.getString(5));
-                    return summary;
+                    if(rs.next()) {
+                        DataPointSummary summary = new DataPointSummary();
+                        summary.setId(rs.getInt(1));
+                        summary.setXid(rs.getString(2));
+                        summary.setName(rs.getString(3));
+                        summary.setDataSourceId(rs.getInt(4));
+                        summary.setDeviceName(rs.getString(5));
+                        return summary;
+                    }else {
+                        return null;
+                    }
                 });
         if (item != null) {
             item.setReadRoles(RoleDao.getInstance().getRoles(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.READ));
