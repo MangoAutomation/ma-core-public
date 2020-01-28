@@ -4,6 +4,10 @@
 * Add new role table and roles to replace legacy permission strings, the upgrade will convert all permission strings into unique roles and ensure that the permissions remain the same
 * Remove data point chart renderers as they are not used in the new UI
 * Remove support for RQL keywords permissionscontainsany and permissionscontainsall
+* Any property value retrieved from env.properties can now include another property value using ${propertyName} syntax
+* Make log directory, temporary (work) directory, and file data (image point values) directory configurable via env.properties
+* Use configurable logs directory for DB upgrade logs
+* Module zip files are now downloaded to the configurable temp directory when upgrading
 
 *Version 3.7.4*
 * Improve work item failure logging
