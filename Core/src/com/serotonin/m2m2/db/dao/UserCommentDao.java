@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jooq.Field;
@@ -19,6 +20,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
@@ -147,13 +149,14 @@ public class UserCommentDao  extends AbstractDao<UserCommentVO, UserCommentTable
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select,
+            ConditionSortLimit conditions) {
         return select.join(this.userTable.getTableAsAlias()).on(DSL.field(userTable.getAlias("id")).eq(this.table.getAlias("userId")));
     }
 
     @Override
     public List<Field<?>> getSelectFields() {
-        List<Field<?>> fields = super.getSelectFields();
+        List<Field<?>> fields = new ArrayList<>(super.getSelectFields());
         fields.add(userTable.getAlias("username"));
         return fields;
     }

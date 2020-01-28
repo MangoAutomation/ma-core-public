@@ -256,7 +256,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
 
                 fields.addAll(getSelectFields());
 
-                Select<Record> select = this.joinTables(this.getSelectQuery(fields))
+                Select<Record> select = this.joinTables(this.getSelectQuery(fields), null)
                         .leftOuterJoin(this.dataPointTable.getTableAsAlias())
                         .on(this.dataPointTable.getIdAlias().eq(this.table.getField("dataPointId")))
                         .join(dataSourceTable.getTableAsAlias())

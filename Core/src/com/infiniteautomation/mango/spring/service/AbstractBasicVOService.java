@@ -361,11 +361,14 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
 
     /**
      * Join default tables for DAO
+     *
+     * @param <R>
      * @param select
+     * @param conditions
      * @return
      */
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-        return this.dao.joinTables(select);
+    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        return this.dao.joinTables(select, conditions);
     }
 
     /**

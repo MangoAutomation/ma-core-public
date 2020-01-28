@@ -197,15 +197,6 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
 
     /**
      * Join default tables for DAO
-     * @param select
-     * @return
-     */
-    default public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select) {
-        return joinTables(select, null);
-    }
-
-    /**
-     * Join default tables for DAO
      *
      * @param <R>
      * @param select
