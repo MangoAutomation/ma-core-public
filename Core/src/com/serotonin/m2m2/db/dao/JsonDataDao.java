@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -106,7 +107,7 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
 
             //Read the data
             try{
-                vo.setJsonData(getObjectReader(Object.class).readTree(rs.getClob(++i).getCharacterStream()));
+                vo.setJsonData(getObjectReader(JsonNode.class).readTree(rs.getClob(++i).getCharacterStream()));
             }catch(Exception e){
                 LOG.error(e.getMessage(), e);
             }
@@ -148,7 +149,11 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
         return getObjectReader(JsonNode.class).readTree(json);
     }
 
-    public String writeValueAsString(Object value) throws JsonProcessingException{
-        return getObjectWriter(Object.class).writeValueAsString(value);
+    public String writeValueAsString(JsonNode value) throws JsonProcessingException{
+        return getObjectWriter(JsonNode.class).writeValueAsString(value);
+    }
+
+    public JsonNodeFactory getNodeFactory() {
+        return this.mapper.getNodeFactory();
     }
 }

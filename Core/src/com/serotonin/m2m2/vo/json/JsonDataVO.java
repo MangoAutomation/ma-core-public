@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -33,7 +34,7 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
      */
     private static final long serialVersionUID = 1L;
 
-    private Object jsonData;
+    private JsonNode jsonData;
 
     @JsonProperty
     private Set<Role> readRoles = Collections.emptySet();
@@ -42,10 +43,10 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
     @JsonProperty
     private boolean publicData;
 
-    public Object getJsonData() {
+    public JsonNode getJsonData() {
         return jsonData;
     }
-    public void setJsonData(Object data) {
+    public void setJsonData(JsonNode data) {
         this.jsonData = data;
     }
 
@@ -73,6 +74,7 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
         super.jsonWrite(writer);
         writer.writeEntry("jsonData", JsonDataDao.getInstance().writeValueAsString(jsonData));
     }
+
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         super.jsonRead(reader, jsonObject);

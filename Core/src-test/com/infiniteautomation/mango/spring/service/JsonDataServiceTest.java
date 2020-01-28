@@ -5,11 +5,11 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -63,8 +63,9 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
         JsonDataVO vo = new JsonDataVO();
         vo.setXid(UUID.randomUUID().toString());
         vo.setName(UUID.randomUUID().toString());
-        Map<String, String> jsonData = new HashMap<>();
-        jsonData.put("test", "value");
+        JsonNodeFactory nf = this.getDao().getNodeFactory();
+        ObjectNode jsonData = nf.objectNode();
+        jsonData.set("test", nf.textNode("value"));
         vo.setJsonData(jsonData);
         return vo;
     }
@@ -72,8 +73,9 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     @Override
     JsonDataVO updateVO(JsonDataVO existing) {
         JsonDataVO copy = (JsonDataVO) existing.copy();
-        Map<String, String> jsonData = new HashMap<>();
-        jsonData.put("test", "value-updated");
+        JsonNodeFactory nf = this.getDao().getNodeFactory();
+        ObjectNode jsonData = nf.objectNode();
+        jsonData.set("test", nf.textNode("value-updated"));
         copy.setJsonData(jsonData);
         return copy;
     }
