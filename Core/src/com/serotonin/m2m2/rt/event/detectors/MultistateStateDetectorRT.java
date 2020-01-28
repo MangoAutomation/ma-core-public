@@ -10,9 +10,9 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.MultistateStateDetectorVO;
 
 public class MultistateStateDetectorRT extends StateDetectorRT<MultistateStateDetectorVO> {
- 
-	public MultistateStateDetectorRT(MultistateStateDetectorVO vo) {
-    	super(vo);
+
+    public MultistateStateDetectorRT(MultistateStateDetectorVO vo) {
+        super(vo);
     }
 
     @Override
@@ -32,13 +32,10 @@ public class MultistateStateDetectorRT extends StateDetectorRT<MultistateStateDe
         int newMultistate = newValue.getIntegerValue();
         return newMultistate == vo.getState();
     }
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
-	@Override
-	public String getThreadNameImpl() {
-		return "Multistate State Detector " + this.vo.getXid();
-	}
+
+    @Override
+    public String getThreadNameImpl() {
+        return "Multistate State Detector " + this.vo.getXid();
+    }
 
 }
