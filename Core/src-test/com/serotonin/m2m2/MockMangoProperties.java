@@ -7,14 +7,14 @@ package com.serotonin.m2m2;
 import java.util.Properties;
 
 import com.serotonin.m2m2.vo.User;
-import com.serotonin.util.properties.ReloadingProperties;
+import com.serotonin.util.properties.DefaultMangoProperties;
 
 /**
  * Dummy implementation of properties for use in testing.
  *
  * @author Terry Packer
  */
-public class MockMangoProperties extends ReloadingProperties {
+public class MockMangoProperties extends DefaultMangoProperties {
 
     public MockMangoProperties() {
         this(new Properties());

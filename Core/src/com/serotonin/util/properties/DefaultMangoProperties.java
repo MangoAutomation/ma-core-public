@@ -28,13 +28,13 @@ import java.util.regex.Pattern;
  *
  * @author Jared Wiltshire
  */
-public class ReloadingProperties implements MangoProperties {
+public class DefaultMangoProperties implements MangoProperties {
 
     protected final Properties properties;
 
     private static final Pattern INTERPOLATION_PATTERN = Pattern.compile("\\$\\{(.+?)\\}");
 
-    public ReloadingProperties(Properties properties) {
+    public DefaultMangoProperties(Properties properties) {
         this.properties = properties;
     }
 
