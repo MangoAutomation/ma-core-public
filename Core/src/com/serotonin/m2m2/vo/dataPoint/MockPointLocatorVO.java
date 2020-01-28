@@ -49,7 +49,7 @@ public class MockPointLocatorVO extends AbstractPointLocatorVO<MockPointLocatorV
 
     @Override
     public TranslatableMessage getConfigurationDescription() {
-        return new TranslatableMessage("common.default", "Mock Point Locator");
+        return new TranslatableMessage("literal", "Mock Point Locator");
     }
 
     @Override

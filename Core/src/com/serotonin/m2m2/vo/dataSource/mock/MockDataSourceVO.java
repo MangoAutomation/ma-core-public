@@ -29,7 +29,7 @@ public class MockDataSourceVO extends PollingDataSourceVO {
 
     @Override
     public TranslatableMessage getConnectionDescription() {
-        return new TranslatableMessage("common.default", "Mock Data Source");
+        return new TranslatableMessage("literal", "Mock Data Source");
     }
 
     @Override
