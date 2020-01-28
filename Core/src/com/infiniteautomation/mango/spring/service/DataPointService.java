@@ -3,9 +3,11 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,12 +48,17 @@ import com.serotonin.m2m2.vo.DataPointVO.LoggingTypes;
 import com.serotonin.m2m2.vo.DataPointVO.PlotTypes;
 import com.serotonin.m2m2.vo.DataPointVO.SimplifyTypes;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
+ * Service for Data Points.  Event detectors can be added to a data point via this service when updating a point,
+ *  but they cannot be removed.
+ *
  * @author Terry Packer
  *
  */
@@ -135,6 +142,24 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
+
+        //The existing point will have its event detectors set from the db, we want to merge those with the new ones
+        if(vo.getEventDetectors() == null || vo.getEventDetectors().isEmpty()) {
+            vo.setEventDetectors(existing.getEventDetectors());
+        }else {
+            List<AbstractPointEventDetectorVO> toKeep = new ArrayList<>(existing.getEventDetectors());
+            for(AbstractEventDetectorVO ed : existing.getEventDetectors()) {
+                Iterator<AbstractPointEventDetectorVO> it = vo.getEventDetectors().iterator();
+                while(it.hasNext()) {
+                    AbstractPointEventDetectorVO ped = it.next();
+                    if(ped.getId() == ed.getId()) {
+                        //same so we only keep the existing one
+                        it.remove();
+                    }
+                }
+            }
+            vo.getEventDetectors().addAll(toKeep);
+        }
         Common.runtimeManager.updateDataPoint(existing, vo);
         return vo;
     }
