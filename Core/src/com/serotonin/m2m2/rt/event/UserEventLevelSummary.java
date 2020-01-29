@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.event;
 
+import com.serotonin.m2m2.vo.event.EventInstanceI;
+
 /**
  * Provides a summary for an event level of all
  *  unsilenced events for a user.
@@ -11,13 +13,9 @@ package com.serotonin.m2m2.rt.event;
  */
 public class UserEventLevelSummary {
 
-    private AlarmLevels alarmLevel;
-    private int unsilencedCount;
-    private EventInstance latest;
-
-    public UserEventLevelSummary() {
-
-    }
+    private final AlarmLevels alarmLevel;
+    private int count;
+    private EventInstanceI latest;
 
     public UserEventLevelSummary(AlarmLevels alarmLevel) {
         this.alarmLevel = alarmLevel;
@@ -28,37 +26,31 @@ public class UserEventLevelSummary {
     public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
+
     /**
-     * @param alarmLevel the alarmLevel to set
+     * @return the count
      */
-    public void setAlarmLevel(AlarmLevels alarmLevel) {
-        this.alarmLevel = alarmLevel;
+    public int getCount() {
+        return count;
     }
-    /**
-     * @return the unsilencedCount
-     */
-    public int getUnsilencedCount() {
-        return unsilencedCount;
-    }
-    /**
-     * @param unsilencedCount the unsilencedCount to set
-     */
-    public void setUnsilencedCount(int unsilencedCount) {
-        this.unsilencedCount = unsilencedCount;
-    }
+
     /**
      * @return the latest
      */
-    public EventInstance getLatest() {
+    public EventInstanceI getLatest() {
         return latest;
     }
+
     /**
-     * @param latest the latest to set
+     * Increment the count and set the latest event instance
+     * @param latest
      */
-    public void setLatest(EventInstance latest) {
-        this.latest = latest;
+    public void increment(EventInstanceI latest) {
+        this.count++;
+
+        if (this.latest == null || this.latest.getActiveTimestamp() <= latest.getActiveTimestamp()) {
+            this.latest = latest;
+        }
     }
-    public void incrementUnsilencedCount() {
-        this.unsilencedCount++;
-    }
+
 }

@@ -5,10 +5,12 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -63,122 +65,92 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     /**
      * Get the active summary of events for a user
-     *
-     * @param user
      * @return
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public List<UserEventLevelSummary> getActiveSummary(User user) throws PermissionException {
-        List<UserEventLevelSummary> list = new ArrayList<UserEventLevelSummary>();
-
-        List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user);
-
-        UserEventLevelSummary lifeSafety = new UserEventLevelSummary(AlarmLevels.LIFE_SAFETY);
-        list.add(lifeSafety);
-
-        UserEventLevelSummary critical = new UserEventLevelSummary(AlarmLevels.CRITICAL);
-        list.add(critical);
-
-        UserEventLevelSummary urgent = new UserEventLevelSummary(AlarmLevels.URGENT);
-        list.add(urgent);
-
-        UserEventLevelSummary warning = new UserEventLevelSummary(AlarmLevels.WARNING);
-        list.add(warning);
-
-        UserEventLevelSummary important = new UserEventLevelSummary(AlarmLevels.IMPORTANT);
-        list.add(important);
-
-        UserEventLevelSummary information = new UserEventLevelSummary(AlarmLevels.INFORMATION);
-        list.add(information);
-
-        UserEventLevelSummary none = new UserEventLevelSummary(AlarmLevels.NONE);
-        list.add(none);
-
-        UserEventLevelSummary doNotLog = new UserEventLevelSummary(AlarmLevels.DO_NOT_LOG);
-        list.add(doNotLog);
-
-        for (EventInstance event : events) {
-            switch (event.getAlarmLevel()) {
-                case LIFE_SAFETY:
-                    lifeSafety.incrementUnsilencedCount();
-                    lifeSafety.setLatest(event);
-                    break;
-                case CRITICAL:
-                    critical.incrementUnsilencedCount();
-                    critical.setLatest(event);
-                    break;
-                case URGENT:
-                    urgent.incrementUnsilencedCount();
-                    urgent.setLatest(event);
-                    break;
-                case WARNING:
-                    warning.incrementUnsilencedCount();
-                    warning.setLatest(event);
-                    break;
-                case IMPORTANT:
-                    important.incrementUnsilencedCount();
-                    important.setLatest(event);
-                    break;
-                case INFORMATION:
-                    information.incrementUnsilencedCount();
-                    information.setLatest(event);
-                    break;
-                case NONE:
-                    none.incrementUnsilencedCount();
-                    none.setLatest(event);
-                    break;
-                case DO_NOT_LOG:
-                    doNotLog.incrementUnsilencedCount();
-                    doNotLog.setLatest(event);
-                    break;
-                case IGNORE:
-                    break;
-                default:
-                    break;
-            }
+    public List<UserEventLevelSummary> getActiveSummary() throws PermissionException {
+        Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
+        for (AlarmLevels level : AlarmLevels.values()) {
+            summaries.put(level, new UserEventLevelSummary(level));
         }
-        return list;
+
+        for (EventInstance event : this.getAllActiveUserEvents()) {
+            UserEventLevelSummary summary = summaries.get(event.getAlarmLevel());
+            summary.increment(event);
+        }
+
+        return new ArrayList<>(summaries.values());
+    }
+
+    /**
+     * @return
+     */
+    public List<UserEventLevelSummary> getUnacknowledgedSummary() {
+        Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
+        for (AlarmLevels level : AlarmLevels.values()) {
+            summaries.put(level, new UserEventLevelSummary(level));
+        }
+
+        // TODO fix join
+        Field<Long> ackTs = this.dao.getTable().getField("ackTs");
+        this.customizedQuery(ackTs.isNull(), (event, i) -> {
+            UserEventLevelSummary summary = summaries.get(event.getAlarmLevel());
+            summary.increment(event);
+        });
+
+        return new ArrayList<>(summaries.values());
     }
 
     /**
      * Get a summary of data point events for a list of data points
      * @param dataPointXids
-     * @param user
      * @return
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids, User user) throws NotFoundException, PermissionException {
-        return this.permissionService.runAs(user, () -> {
-            Map<Integer, DataPointEventLevelSummary> map = new HashMap<>();
-            for(String xid : dataPointXids) {
-                Integer point = dataPointService.getDao().getIdByXid(xid);
-                if(point != null) {
-                    map.put(point, new DataPointEventLevelSummary(xid));
-                }
+    public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids) throws NotFoundException, PermissionException {
+        Map<Integer, DataPointEventLevelSummary> map = new LinkedHashMap<>();
+        for(String xid : dataPointXids) {
+            Integer point = dataPointService.getDao().getIdByXid(xid);
+            if(point != null) {
+                map.put(point, new DataPointEventLevelSummary(xid));
             }
+        }
 
-            List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user);
-            for(EventInstance event : events) {
-                if(EventType.EventTypeNames.DATA_POINT.equals(event.getEventType().getEventType())) {
-                    DataPointEventLevelSummary model = map.get(event.getEventType().getReferenceId1());
-                    if(model != null) {
-                        model.update(event);
-                    }
+        for(EventInstance event : this.getAllActiveUserEvents()) {
+            if(EventType.EventTypeNames.DATA_POINT.equals(event.getEventType().getEventType())) {
+                DataPointEventLevelSummary model = map.get(event.getEventType().getReferenceId1());
+                if(model != null) {
+                    model.update(event);
                 }
             }
-            return map.values();
-        });
+        }
+        return map.values();
     }
 
     /**
-     *
-     * @param user
      * @return
      */
-    public List<EventInstance> getAllActiveUserEvents(PermissionHolder user) {
+    public List<EventInstance> getAllActiveUserEvents() {
+        PermissionHolder user = Common.getUser();
+        this.permissionService.ensureValidPermissionHolder(user);
         return Common.eventManager.getAllActiveUserEvents(user);
+    }
+
+    /**
+     * @return
+     */
+    public List<EventInstanceVO> getAllUnacknowledgedUserEvents() {
+        List<EventInstanceVO> events = new ArrayList<>();
+
+        // TODO sort
+        Field<Long> ackTs = this.dao.getTable().getField("ackTs");
+        this.customizedQuery(ackTs.isNull(), (event, i) -> {
+            events.add(event);
+        });
+
+        return events;
     }
 
     /**
