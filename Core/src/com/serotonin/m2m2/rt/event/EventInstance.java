@@ -16,8 +16,9 @@ import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
+import com.serotonin.m2m2.vo.event.EventInstanceI;
 
-public class EventInstance{
+public class EventInstance implements EventInstanceI {
     /**
      * Model key for event instance objects in scripts
      */
@@ -200,14 +201,17 @@ public class EventInstance{
         return acknowledgedTimestamp != null;
     }
 
+    @Override
     public long getActiveTimestamp() {
         return activeTimestamp;
     }
 
+    @Override
     public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
 
+    @Override
     public EventType getEventType() {
         return eventType;
     }
@@ -216,10 +220,12 @@ public class EventInstance{
         return id;
     }
 
+    @Override
     public Long getRtnTimestamp() {
         return rtnTimestamp;
     }
 
+    @Override
     public TranslatableMessage getMessage() {
         if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
             MissingEventType type = (MissingEventType)eventType;
@@ -236,6 +242,7 @@ public class EventInstance{
             return message.translate(Common.getTranslations());
     }
 
+    @Override
     public boolean isRtnApplicable() {
         return rtnApplicable;
     }
@@ -248,10 +255,12 @@ public class EventInstance{
         this.eventComments = eventComments;
     }
 
+    @Override
     public List<UserCommentVO> getEventComments() {
         return eventComments;
     }
 
+    @Override
     public ReturnCause getRtnCause() {
         return rtnCause;
     }
@@ -264,6 +273,7 @@ public class EventInstance{
         this.handlers = handlers;
     }
 
+    @Override
     public Long getAcknowledgedTimestamp() {
         return acknowledgedTimestamp;
     }
@@ -272,6 +282,7 @@ public class EventInstance{
         this.acknowledgedTimestamp = acknowledgedTimestamp;
     }
 
+    @Override
     public Integer getAcknowledgedByUserId() {
         return acknowledgedByUserId;
     }
@@ -280,6 +291,7 @@ public class EventInstance{
         this.acknowledgedByUserId = acknowledgedByUserId;
     }
 
+    @Override
     public String getAcknowledgedByUsername() {
         return acknowledgedByUsername;
     }
@@ -288,6 +300,7 @@ public class EventInstance{
         this.acknowledgedByUsername = acknowledgedByUsername;
     }
 
+    @Override
     public TranslatableMessage getAlternateAckSource() {
         return alternateAckSource;
     }
@@ -296,6 +309,7 @@ public class EventInstance{
         this.alternateAckSource = alternateAckSource;
     }
 
+    @Override
     public boolean isHasComments() {
         return hasComments;
     }
@@ -327,4 +341,5 @@ public class EventInstance{
                 + acknowledgedByUsername + ", alternateAckSource=" + alternateAckSource
                 + ", hasComments=" + hasComments + ", idsToNotify=" + idsToNotify + ", context=" + context + "]";
     }
+
 }

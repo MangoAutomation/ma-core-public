@@ -18,7 +18,7 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
  * @author Terry Packer
  *
  */
-public class EventInstanceVO extends AbstractVO {
+public class EventInstanceVO extends AbstractVO implements EventInstanceI {
 
     /**
      *
@@ -73,6 +73,7 @@ public class EventInstanceVO extends AbstractVO {
     private TranslatableMessage alternateAckSource;
     private boolean hasComments;
 
+    @Override
     public EventType getEventType() {
         return eventType;
     }
@@ -81,6 +82,7 @@ public class EventInstanceVO extends AbstractVO {
         this.eventType = eventType;
     }
 
+    @Override
     public long getActiveTimestamp() {
         return activeTimestamp;
     }
@@ -89,6 +91,7 @@ public class EventInstanceVO extends AbstractVO {
         this.activeTimestamp = activeTimestamp;
     }
 
+    @Override
     public boolean isRtnApplicable() {
         return rtnApplicable;
     }
@@ -97,6 +100,7 @@ public class EventInstanceVO extends AbstractVO {
         this.rtnApplicable = rtnApplicable;
     }
 
+    @Override
     public Long getRtnTimestamp() {
         return rtnTimestamp;
     }
@@ -105,6 +109,7 @@ public class EventInstanceVO extends AbstractVO {
         this.rtnTimestamp = rtnTimestamp;
     }
 
+    @Override
     public ReturnCause getRtnCause() {
         return rtnCause;
     }
@@ -114,6 +119,7 @@ public class EventInstanceVO extends AbstractVO {
         this.rtnCause = rtnCause;
     }
 
+    @Override
     public AlarmLevels getAlarmLevel() {
         return alarmLevel;
     }
@@ -122,6 +128,7 @@ public class EventInstanceVO extends AbstractVO {
         this.alarmLevel = alarmLevel;
     }
 
+    @Override
     public TranslatableMessage getMessage() {
         if(eventType.getEventType() == EventType.EventTypeNames.MISSING) {
             MissingEventType type = (MissingEventType)eventType;
@@ -134,6 +141,7 @@ public class EventInstanceVO extends AbstractVO {
         this.message = message;
     }
 
+    @Override
     public List<UserCommentVO> getEventComments() {
         return eventComments;
     }
@@ -142,6 +150,7 @@ public class EventInstanceVO extends AbstractVO {
         this.eventComments = eventComments;
     }
 
+    @Override
     public Long getAcknowledgedTimestamp() {
         return acknowledgedTimestamp;
     }
@@ -150,6 +159,7 @@ public class EventInstanceVO extends AbstractVO {
         this.acknowledgedTimestamp = acknowledgedTimestamp;
     }
 
+    @Override
     public Integer getAcknowledgedByUserId() {
         return acknowledgedByUserId;
     }
@@ -158,6 +168,7 @@ public class EventInstanceVO extends AbstractVO {
         this.acknowledgedByUserId = acknowledgedByUserId;
     }
 
+    @Override
     public String getAcknowledgedByUsername() {
         return acknowledgedByUsername;
     }
@@ -166,6 +177,7 @@ public class EventInstanceVO extends AbstractVO {
         this.acknowledgedByUsername = acknowledgedByUsername;
     }
 
+    @Override
     public TranslatableMessage getAlternateAckSource() {
         return alternateAckSource;
     }
@@ -174,6 +186,7 @@ public class EventInstanceVO extends AbstractVO {
         this.alternateAckSource = alternateAckSource;
     }
 
+    @Override
     public boolean isHasComments() {
         return hasComments;
     }
