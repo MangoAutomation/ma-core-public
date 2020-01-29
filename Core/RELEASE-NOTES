@@ -5,6 +5,7 @@
 * Remove data point chart renderers as they are not used in the new UI
 * Remove support for RQL keywords permissionscontainsany and permissionscontainsall
 * Properties from env.properties can now be overridden using a Java system property
+* Properties from env.properties are no longer reloadable, they are only loaded once on system startup
 * Any property value retrieved from env.properties can now include another property value using ${propertyName} syntax
 * Make log directory, temporary (work) directory, and file data (image point values) directory configurable via env.properties
 * Use configurable logs directory for DB upgrade logs
