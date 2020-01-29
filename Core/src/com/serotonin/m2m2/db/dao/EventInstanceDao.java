@@ -7,7 +7,6 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,20 +144,6 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
                 event.setRtnTimestamp(rtnTs);
                 event.setRtnCause(ReturnCause.fromValue(rs.getInt(9)));
                 //}
-                if(event.isRtnApplicable()){
-                    event.setTotalTime(rtnTs - event.getActiveTimestamp());
-                }else{
-                    event.setTotalTime(-1L);
-                }
-            }else{
-                if(event.isRtnApplicable()){
-                    //Has not been acknowledged yet
-                    Date now = new Date();
-                    event.setTotalTime(now.getTime() -event.getActiveTimestamp());
-                }else{
-                    //Won't ever be
-                    event.setTotalTime(-1L);
-                }
             }
 
             long ackTs = rs.getLong(12);
