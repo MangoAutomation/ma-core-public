@@ -46,7 +46,7 @@ public class EventInstance{
     /**
      * State field. The time that the event returned to normal.
      */
-    private long rtnTimestamp;
+    private Long rtnTimestamp;
 
     /**
      * State field. The action that caused the event to RTN. One of {@link ReturnCause}
@@ -72,8 +72,8 @@ public class EventInstance{
 
     private List<EventHandlerRT<?>> handlers;
 
-    private long acknowledgedTimestamp;
-    private int acknowledgedByUserId;
+    private Long acknowledgedTimestamp;
+    private Integer acknowledgedByUserId;
     private String acknowledgedByUsername;
     private TranslatableMessage alternateAckSource;
     private boolean hasComments;
@@ -128,7 +128,7 @@ public class EventInstance{
 
     public TranslatableMessage getAckMessage() {
         if (isAcknowledged()) {
-            if (acknowledgedByUserId != 0)
+            if (acknowledgedByUserId != null)
                 return new TranslatableMessage("events.ackedByUser", acknowledgedByUsername);
             if (alternateAckSource != null)
                 return alternateAckSource;
@@ -139,7 +139,7 @@ public class EventInstance{
 
     public TranslatableMessage getExportAckMessage() {
         if (isAcknowledged()) {
-            if (acknowledgedByUserId != 0)
+            if (acknowledgedByUserId != null)
                 return new TranslatableMessage("events.export.ackedByUser", acknowledgedByUsername);
             if (alternateAckSource != null)
                 return alternateAckSource;
@@ -178,7 +178,7 @@ public class EventInstance{
     }
 
     public boolean isActive() {
-        return rtnApplicable && rtnTimestamp == 0;
+        return rtnApplicable && rtnTimestamp == null;
     }
 
     public void returnToNormal(long time, ReturnCause rtnCause) {
@@ -189,7 +189,7 @@ public class EventInstance{
     }
 
     public boolean isAcknowledged() {
-        return acknowledgedTimestamp > 0;
+        return acknowledgedTimestamp != null;
     }
 
     public long getActiveTimestamp() {
@@ -256,19 +256,19 @@ public class EventInstance{
         this.handlers = handlers;
     }
 
-    public long getAcknowledgedTimestamp() {
+    public Long getAcknowledgedTimestamp() {
         return acknowledgedTimestamp;
     }
 
-    public void setAcknowledgedTimestamp(long acknowledgedTimestamp) {
+    public void setAcknowledgedTimestamp(Long acknowledgedTimestamp) {
         this.acknowledgedTimestamp = acknowledgedTimestamp;
     }
 
-    public int getAcknowledgedByUserId() {
+    public Integer getAcknowledgedByUserId() {
         return acknowledgedByUserId;
     }
 
-    public void setAcknowledgedByUserId(int acknowledgedByUserId) {
+    public void setAcknowledgedByUserId(Integer acknowledgedByUserId) {
         this.acknowledgedByUserId = acknowledgedByUserId;
     }
 
