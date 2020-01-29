@@ -208,7 +208,7 @@ public class EventInstance{
         return id;
     }
 
-    public long getRtnTimestamp() {
+    public Long getRtnTimestamp() {
         return rtnTimestamp;
     }
 

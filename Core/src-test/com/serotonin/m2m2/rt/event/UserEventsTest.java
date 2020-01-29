@@ -185,7 +185,7 @@ public class UserEventsTest extends MangoTestBase {
         for(MockUserEventListener l : listeners) {
             assertEquals(raised.size(), l.getDeactivated().size());
             for(EventInstance e : l.getDeactivated()) {
-                assertEquals(deactivatedTime, e.getRtnTimestamp());
+                assertEquals(deactivatedTime, (long) e.getRtnTimestamp());
             }
         }
 
