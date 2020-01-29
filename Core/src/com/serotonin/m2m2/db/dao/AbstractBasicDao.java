@@ -393,7 +393,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void customizedQuery(Condition conditions, MappedRowCallback<T> callback) {
-        customizedQuery(getSelectQuery(getSelectFields()), conditions, null, null, null, callback);
+        customizedQuery(getJoinedSelectQuery(), conditions, null, null, null, callback);
     }
 
     @Override
