@@ -99,28 +99,36 @@ public class EventInstance{
     }
 
     public TranslatableMessage getRtnMessage() {
+        return getRtnMessage(eventType, rtnCause);
+    }
+
+    public static TranslatableMessage getRtnMessage(EventType eventType, ReturnCause rtnCause) {
         TranslatableMessage rtnKey = null;
 
-        if (!isActive()) {
-            if (rtnCause == ReturnCause.RETURN_TO_NORMAL)
-                rtnKey = new TranslatableMessage("event.rtn.rtn");
-            else if (rtnCause == ReturnCause.SOURCE_DISABLED) {
-                if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT))
-                    rtnKey = new TranslatableMessage("event.rtn.pointDisabled");
-                else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE))
-                    rtnKey = new TranslatableMessage("event.rtn.dsDisabled");
-                else if (eventType.getEventType().equals(EventType.EventTypeNames.PUBLISHER))
-                    rtnKey = new TranslatableMessage("event.rtn.pubDisabled");
-                else {
-                    EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(eventType.getEventType());
-                    if (def != null)
-                        rtnKey = def.getSourceDisabledMessage();
-                    if (rtnKey == null)
-                        rtnKey = new TranslatableMessage("event.rtn.shutdown");
-                }
+        if (rtnCause != null) {
+            switch(rtnCause) {
+                case RETURN_TO_NORMAL:
+                    rtnKey = new TranslatableMessage("event.rtn.rtn");
+                    break;
+                case SOURCE_DISABLED:
+                    if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT))
+                        rtnKey = new TranslatableMessage("event.rtn.pointDisabled");
+                    else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE))
+                        rtnKey = new TranslatableMessage("event.rtn.dsDisabled");
+                    else if (eventType.getEventType().equals(EventType.EventTypeNames.PUBLISHER))
+                        rtnKey = new TranslatableMessage("event.rtn.pubDisabled");
+                    else {
+                        EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(eventType.getEventType());
+                        if (def != null)
+                            rtnKey = def.getSourceDisabledMessage();
+                        if (rtnKey == null)
+                            rtnKey = new TranslatableMessage("event.rtn.shutdown");
+                    }
+                    break;
+                default:
+                    rtnKey = new TranslatableMessage("event.rtn.unknown");
+                    break;
             }
-            else
-                rtnKey = new TranslatableMessage("event.rtn.unknown");
         }
 
         return rtnKey;
