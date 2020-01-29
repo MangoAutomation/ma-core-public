@@ -862,11 +862,11 @@ public class EventManagerImpl implements EventManager {
     @Override
     public List<EventInstance> getAllActiveUserEvents(PermissionHolder user) {
         List<EventInstance> userEvents;
-        activeEventsLock.writeLock().lock();
+        activeEventsLock.readLock().lock();
         try{
             userEvents = new ArrayList<>(activeEvents);
         }finally{
-            activeEventsLock.writeLock().unlock();
+            activeEventsLock.readLock().unlock();
         }
 
         //Prune for user
