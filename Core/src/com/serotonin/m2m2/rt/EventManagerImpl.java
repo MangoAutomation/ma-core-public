@@ -45,6 +45,7 @@ import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.RejectedTaskReason;
 
 /**
@@ -861,7 +862,7 @@ public class EventManagerImpl implements EventManager {
     // User view of active events
     //
     @Override
-    public List<EventInstance> getAllActiveUserEvents(User user){
+    public List<EventInstance> getAllActiveUserEvents(PermissionHolder user) {
         List<EventInstance> userEvents;
         activeEventsLock.writeLock().lock();
         try{

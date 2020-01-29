@@ -72,7 +72,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     public List<UserEventLevelSummary> getActiveSummary(User user) throws PermissionException {
         List<UserEventLevelSummary> list = new ArrayList<UserEventLevelSummary>();
 
-        //This query is slow the first time as it must fill the UserEventCache
         List<EventInstance> events = Common.eventManager.getAllActiveUserEvents(user);
 
         UserEventLevelSummary lifeSafety = new UserEventLevelSummary(AlarmLevels.LIFE_SAFETY);
@@ -171,6 +170,15 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             }
             return map.values();
         });
+    }
+
+    /**
+     *
+     * @param user
+     * @return
+     */
+    public List<EventInstance> getAllActiveUserEvents(PermissionHolder user) {
+        return Common.eventManager.getAllActiveUserEvents(user);
     }
 
     /**

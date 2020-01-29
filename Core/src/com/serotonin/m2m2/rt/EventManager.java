@@ -15,6 +15,7 @@ import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.UserEventListener;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.ILifecycle;
 
 
@@ -142,15 +143,12 @@ public interface EventManager extends ILifecycle{
 
     void removeUserEventListener(UserEventListener l);
 
-    //
-    // User Event Cache Access
-    //
     /**
-     *
+     * Get all active user events that a user has permission for
      * @param user
      * @return
      */
-    List<EventInstance> getAllActiveUserEvents(User user);
+    List<EventInstance> getAllActiveUserEvents(PermissionHolder user);
 
     /**
      * To access all active events quickly
