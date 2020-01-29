@@ -110,14 +110,6 @@ public class MockMangoLifecycle implements IMangoLifecycle {
      * @throws IOException
      */
     public void initialize() throws InterruptedException, ExecutionException {
-        Providers.add(MangoProperties.class, getEnvProps());
-        Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
-
-        Providers.add(ICoreLicense.class, new TestLicenseDefinition());
-        Providers.add(IMangoLifecycle.class, this);
-
-        //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
-        Common.free = false;
 
         // create temporary paths for data
         try {
@@ -129,6 +121,15 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+        Providers.add(MangoProperties.class, getEnvProps());
+        Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
+
+        Providers.add(ICoreLicense.class, new TestLicenseDefinition());
+        Providers.add(IMangoLifecycle.class, this);
+
+        //TODO Licensing Providers.add(ITimedLicenseRegistrar.class, new TimedLicenseRegistrar());
+        Common.free = false;
 
         //Add in modules
         for(Module module : modules)
