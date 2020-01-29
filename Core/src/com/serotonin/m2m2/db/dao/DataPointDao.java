@@ -81,7 +81,6 @@ import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
-import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -463,23 +462,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         return null;
     }
 
-    //
-    //
-    // Point comments
-    //
-    private static final String POINT_COMMENT_SELECT = UserCommentDao.USER_COMMENT_SELECT
-            + "where uc.commentType= " + UserCommentVO.TYPE_POINT + " and uc.typeKey=? " + "order by uc.ts";
-
-    /**
-     * Loads the comments from the database and them on the data point.
-     *
-     * @param dp
-     */
-    private void loadPointComments(DataPointVO dp) {
-        dp.setComments(query(POINT_COMMENT_SELECT, new Object[] { dp.getId() }, UserCommentDao.getInstance().getRowMapper()));
-    }
-
-
     /**
      * Get the count of all point values for all points
      *
@@ -686,29 +668,15 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     /**
-     * Loads the event detectors, point comments and tags
-     * @param vo
-     */
-    public void loadPartialRelationalData(DataPointVO vo) {
-        this.loadEventDetectors(vo);
-        this.loadPointComments(vo);
-        vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
-    }
-
-    private void loadPartialRelationalData(List<DataPointVO> dps) {
-        for (DataPointVO dp : dps) {
-            loadPartialRelationalData(dp);
-        }
-    }
-
-    /**
      * Loads the event detectors, point comments, tags data source and template name
      * Used by getFull()
      * @param vo
      */
     @Override
     public void loadRelationalData(DataPointVO vo) {
-        this.loadPartialRelationalData(vo);
+        vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
+
+        //TODO from JOIN?
         this.loadDataSource(vo);
         //Populate permissions
         vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));

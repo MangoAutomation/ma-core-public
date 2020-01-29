@@ -46,7 +46,6 @@ import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
@@ -167,7 +166,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     @JsonProperty
     private TextRenderer textRenderer;
     private List<AbstractPointEventDetectorVO> eventDetectors = new ArrayList<>();
-    private List<UserCommentVO> comments;
     @JsonProperty
     private int defaultCacheSize = 1;
     @JsonProperty
@@ -260,7 +258,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
         // new data point will have empty relational data
         // eventDetectors is already initialized
-        this.setComments(new ArrayList<>());
         this.setTags(Collections.emptyMap());
     }
 
@@ -484,14 +481,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     public void setEventDetectors(List<AbstractPointEventDetectorVO> eventDetectors) {
         this.eventDetectors = eventDetectors;
-    }
-
-    public List<UserCommentVO> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<UserCommentVO> comments) {
-        this.comments = comments;
     }
 
     public int getDefaultCacheSize() {
@@ -847,7 +836,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
                 + ", intervalLoggingPeriod=" + intervalLoggingPeriod + ", intervalLoggingType=" + intervalLoggingType
                 + ", tolerance=" + tolerance + ", purgeOverride=" + purgeOverride + ", purgeType=" + purgeType
                 + ", purgePeriod=" + purgePeriod + ", textRenderer=" + textRenderer + ", chartRenderer="
-                + ", eventDetectors=" + eventDetectors + ", comments=" + comments
+                + ", eventDetectors=" + eventDetectors
                 + ", defaultCacheSize=" + defaultCacheSize + ", discardExtremeValues=" + discardExtremeValues
                 + ", discardLowLimit=" + discardLowLimit + ", discardHighLimit=" + discardHighLimit + ", unit=" + unit
                 + ", integralUnit=" + integralUnit + ", renderedUnit=" + renderedUnit + ", useIntegralUnit="
