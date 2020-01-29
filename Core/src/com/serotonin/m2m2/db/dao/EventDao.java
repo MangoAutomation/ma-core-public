@@ -8,7 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -114,7 +113,6 @@ public class EventDao extends BaseDao {
         args[8] = event.getAlarmLevel().value();
         args[9] = writeTranslatableMessage(event.getMessage());
         event.setId(doInsert(EVENT_INSERT, args, EVENT_INSERT_TYPES));
-        event.setEventComments(new LinkedList<UserCommentVO>());
     }
 
     private static final String EVENT_UPDATE = "update events set rtnTs=?, rtnCause=? where id=?";

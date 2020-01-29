@@ -4,14 +4,14 @@
  */
 package com.serotonin.m2m2.rt.event;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.EventTypeDefinition;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.rt.event.type.MissingEventType;
@@ -69,7 +69,7 @@ public class EventInstance implements EventInstanceI {
     /**
      * User comments on the event. Added in the events interface after the event has been raised.
      */
-    private List<UserCommentVO> eventComments;
+    private List<UserCommentVO> eventComments = Collections.emptyList();
 
     private List<EventHandlerRT<?>> handlers;
 
@@ -97,42 +97,6 @@ public class EventInstance implements EventInstanceI {
         else
             this.message = message;
         this.context = context;
-    }
-
-    public TranslatableMessage getRtnMessage() {
-        return getRtnMessage(eventType, rtnCause);
-    }
-
-    public static TranslatableMessage getRtnMessage(EventType eventType, ReturnCause rtnCause) {
-        TranslatableMessage rtnKey = null;
-
-        if (rtnCause != null) {
-            switch(rtnCause) {
-                case RETURN_TO_NORMAL:
-                    rtnKey = new TranslatableMessage("event.rtn.rtn");
-                    break;
-                case SOURCE_DISABLED:
-                    if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_POINT))
-                        rtnKey = new TranslatableMessage("event.rtn.pointDisabled");
-                    else if (eventType.getEventType().equals(EventType.EventTypeNames.DATA_SOURCE))
-                        rtnKey = new TranslatableMessage("event.rtn.dsDisabled");
-                    else if (eventType.getEventType().equals(EventType.EventTypeNames.PUBLISHER))
-                        rtnKey = new TranslatableMessage("event.rtn.pubDisabled");
-                    else {
-                        EventTypeDefinition def = ModuleRegistry.getEventTypeDefinition(eventType.getEventType());
-                        if (def != null)
-                            rtnKey = def.getSourceDisabledMessage();
-                        if (rtnKey == null)
-                            rtnKey = new TranslatableMessage("event.rtn.shutdown");
-                    }
-                    break;
-                default:
-                    rtnKey = new TranslatableMessage("event.rtn.unknown");
-                    break;
-            }
-        }
-
-        return rtnKey;
     }
 
     public TranslatableMessage getAckMessage() {
@@ -216,6 +180,7 @@ public class EventInstance implements EventInstanceI {
         return eventType;
     }
 
+    @Override
     public int getId() {
         return id;
     }
@@ -247,12 +212,8 @@ public class EventInstance implements EventInstanceI {
         return rtnApplicable;
     }
 
-    public void addEventComment(UserCommentVO comment) {
-        eventComments.add(comment);
-    }
-
     public void setEventComments(List<UserCommentVO> eventComments) {
-        this.eventComments = eventComments;
+        this.eventComments = Objects.requireNonNull(eventComments);
     }
 
     @Override

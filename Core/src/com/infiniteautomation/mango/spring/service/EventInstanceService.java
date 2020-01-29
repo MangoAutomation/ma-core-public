@@ -92,8 +92,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
             summaries.put(level, new UserEventLevelSummary(level));
         }
 
-        // TODO fix join
-        Field<Long> ackTs = this.dao.getTable().getField("ackTs");
+        Field<Long> ackTs = this.dao.getTable().getAlias("ackTs");
         this.customizedQuery(ackTs.isNull(), (event, i) -> {
             UserEventLevelSummary summary = summaries.get(event.getAlarmLevel());
             summary.increment(event);
@@ -136,21 +135,6 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         PermissionHolder user = Common.getUser();
         this.permissionService.ensureValidPermissionHolder(user);
         return Common.eventManager.getAllActiveUserEvents(user);
-    }
-
-    /**
-     * @return
-     */
-    public List<EventInstanceVO> getAllUnacknowledgedUserEvents() {
-        List<EventInstanceVO> events = new ArrayList<>();
-
-        // TODO sort
-        Field<Long> ackTs = this.dao.getTable().getField("ackTs");
-        this.customizedQuery(ackTs.isNull(), (event, i) -> {
-            events.add(event);
-        });
-
-        return events;
     }
 
     /**

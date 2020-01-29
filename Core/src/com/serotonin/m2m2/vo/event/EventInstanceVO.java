@@ -4,7 +4,9 @@
  */
 package com.serotonin.m2m2.vo.event;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
@@ -65,7 +67,7 @@ public class EventInstanceVO extends AbstractVO implements EventInstanceI {
     /**
      * User comments on the event. Added in the events interface after the event has been raised.
      */
-    private List<UserCommentVO> eventComments;
+    private List<UserCommentVO> eventComments = Collections.emptyList();
 
     private Long acknowledgedTimestamp;
     private Integer acknowledgedByUserId;
@@ -147,7 +149,7 @@ public class EventInstanceVO extends AbstractVO implements EventInstanceI {
     }
 
     public void setEventComments(List<UserCommentVO> eventComments) {
-        this.eventComments = eventComments;
+        this.eventComments = Objects.requireNonNull(eventComments);
     }
 
     @Override
