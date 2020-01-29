@@ -170,7 +170,6 @@ public class EventManagerImpl implements EventManager {
         Set<String> emailUsers = new HashSet<String>();
 
         List<Integer> userIdsToNotify = new ArrayList<Integer>();
-        Set<Integer> userIdsForCache = new HashSet<Integer>();
         UserEventListener multicaster = userEventMulticaster;
 
         for (User user : userDao.getActiveUsers()) {
@@ -188,7 +187,6 @@ public class EventManagerImpl implements EventManager {
                 //Notify All User Event Listeners of the new event
                 if((alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))){
                     userIdsToNotify.add(user.getId());
-                    userIdsForCache.add(user.getId());
                 }
             }
         }
