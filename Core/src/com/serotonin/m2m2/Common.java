@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
+import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
@@ -28,6 +30,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpHost;
@@ -830,6 +833,34 @@ public class Common {
             return Files.createDirectories(input);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Copy all files from srcDirectory to dstDirectory. Preserves existing files by default unless
+     * {@link java.nio.file.StandardCopyOption#REPLACE_EXISTING REPLACE_EXISTING} is supplied as an option.
+     *
+     * @param srcDirectory
+     * @param dstDirectory
+     * @param options
+     * @throws IOException
+     */
+    public static void copyDirectory(Path srcDirectory, Path dstDirectory, CopyOption... options) throws IOException {
+        boolean replaceExisting = Arrays.stream(options).anyMatch(o -> o == StandardCopyOption.REPLACE_EXISTING);
+
+        try (Stream<Path> srcFiles = Files.walk(srcDirectory)) {
+            for (Path srcFile : (Iterable<Path>) srcFiles::iterator) {
+                Path relativePath = srcDirectory.relativize(srcFile);
+                Path dstFile = dstDirectory.resolve(relativePath);
+
+                if (Files.isDirectory(srcFile)) {
+                    Files.createDirectories(dstFile);
+                } else if (Files.isRegularFile(srcFile)) {
+                    if (replaceExisting || !Files.exists(dstFile)) {
+                        Files.copy(srcFile, dstFile, options);
+                    }
+                }
+            }
         }
     }
 }
