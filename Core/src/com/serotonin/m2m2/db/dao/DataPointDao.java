@@ -641,8 +641,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     public void loadRelationalData(DataPointVO vo) {
         vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
 
-        //TODO from JOIN?
-        this.loadDataSource(vo);
         //Populate permissions
         vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
         vo.setSetRoles(RoleDao.getInstance().getRoles(vo, PermissionService.SET));
@@ -677,23 +675,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         if(def != null) {
             def.saveRelationalData(vo, insert);
         }
-    }
-
-    /**
-     * Load the datasource info into the DataPoint
-     *
-     * @param vo
-     * @return
-     */
-    public void loadDataSource(DataPointVO vo) {
-        //TODO Mango 4.0 get the sourceTypeName in the JOIN, then remove this crap
-        //Get the values from the datasource table
-        //TODO Could speed this up if necessary...
-        DataSourceVO dsVo = DataSourceDao.getInstance().get(vo.getDataSourceId());
-        vo.setDataSourceName(dsVo.getName());
-        vo.setDataSourceTypeName(dsVo.getDefinition().getDataSourceTypeName());
-        vo.setDataSourceXid(dsVo.getXid());
-
     }
 
     /**
