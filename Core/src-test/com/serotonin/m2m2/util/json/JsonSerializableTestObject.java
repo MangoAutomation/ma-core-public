@@ -22,12 +22,12 @@ import com.serotonin.json.type.JsonObject;
  */
 public class JsonSerializableTestObject implements JsonSerializable{
 
-    
+
     public enum JsonSerializableTestEnum {
         ONE("common.default1"),
         TWO("common.default2"),
         THREE("common.default2");
-        
+
         private final String key;
         JsonSerializableTestEnum(String key){
             this.key = key;
@@ -54,14 +54,11 @@ public class JsonSerializableTestObject implements JsonSerializable{
     private Object[] objectArray = new Object[] {new Double(0.0), new Double(0.1)};
     @JsonProperty
     private Integer[] integerArray = new Integer[] {new Integer(0), new Integer(1)};
-    
+
     private JsonSerializableTestEnum writerInnerEnum = JsonSerializableTestEnum.ONE;
     private Map<String, Object> writerMap;
     private List<Object> writerList;
-    
-    /* (non-Javadoc)
-     * @see com.serotonin.json.spi.JsonSerializable#jsonWrite(com.serotonin.json.ObjectWriter)
-     */
+
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         writer.writeEntry("innerEnum", writerInnerEnum);
@@ -69,9 +66,6 @@ public class JsonSerializableTestObject implements JsonSerializable{
         writer.writeEntry("writerList", writerList);
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.json.spi.JsonSerializable#jsonRead(com.serotonin.json.JsonReader, com.serotonin.json.type.JsonObject)
-     */
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         //Don't care for Testing Auditing

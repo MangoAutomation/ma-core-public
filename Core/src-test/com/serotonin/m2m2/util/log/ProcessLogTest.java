@@ -21,21 +21,27 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.MockMangoProperties;
+import com.serotonin.provider.Providers;
+import com.serotonin.util.properties.MangoProperties;
 
 /**
  *
  * @author Terry Packer
  */
 public class ProcessLogTest {
-    
+
     @BeforeClass
     public static void staticSetup() throws IOException{
-        
+
+        //Setup Mango properties Provider as we indirectly access Common
+        Providers.add(MangoProperties.class, new MockMangoProperties());
+
         //Configure Log4j2
         ConfigurationSource source = new ConfigurationSource(ClassLoader.getSystemResource("test-log4j2.xml").openStream());
         Configurator.initialize(null, source);
     }
-    
+
     @Test
     public void testProcessLogStringWriter() {
         final StringWriter scriptOut = new StringWriter();
@@ -47,7 +53,7 @@ public class ProcessLogTest {
             assertMatch(message, level, scriptOut.toString());
         }
     }
-    
+
     @Test
     public void testRollingProcessLog() throws IOException {
         //Delete any existing files for our test
@@ -57,7 +63,7 @@ public class ProcessLogTest {
             String message = "rolling test ";
             for(int i=1; i<11; i++)
                 log.trace(message + i);
-            
+
             File[] logFiles = log.getFiles();
             Assert.assertEquals(10, logFiles.length);
             for(File file : logFiles) {
@@ -71,7 +77,7 @@ public class ProcessLogTest {
                     assertMatch("rolling test " + (10 - index), level, result);
                 }
             }
-            
+
             //Write another log message, generate files 1-10
             log.trace("rolling test " + 11);
             logFiles = log.getFiles();
@@ -87,7 +93,7 @@ public class ProcessLogTest {
                     assertMatch("rolling test " + (10 - index + 1), level, result);
                 }
             }
-            
+
             //Write a final log messages to shuffle the oldest log out
             log.trace("rolling test " + 12);
             logFiles = log.getFiles();
@@ -106,9 +112,9 @@ public class ProcessLogTest {
         }
         cleanLogs("processLog.test-rolling");
     }
-    
+
     //TODO Test writing null as String and Object
-    
+
     @Test
     public void testProcessLogNulls() {
         StringWriter scriptOut = new StringWriter();
@@ -120,8 +126,8 @@ public class ProcessLogTest {
             assertMatch("null", level, scriptOut.toString());
         }
     }
-    
-    
+
+
     @Test
     public void testRollingProcessLogMultiThreadedSingleFile() throws InterruptedException, IOException {
         cleanLogs("processLog.test-multi-thread");
@@ -147,7 +153,7 @@ public class ProcessLogTest {
                     }
                 }.start();
             }
-            
+
             Thread.sleep(2000);
             running.set(false);
             while(active.get() > 0) {
@@ -160,7 +166,7 @@ public class ProcessLogTest {
         }
         cleanLogs("processLog.test-multi-thread");
     }
-    
+
     @Test
     public void testRollingProcessLogMultiThreadedMultiFile() throws InterruptedException, IOException {
         cleanLogs("processLog.test-multi-thread-multi-file");
@@ -186,7 +192,7 @@ public class ProcessLogTest {
                     }
                 }.start();
             }
-            
+
             Thread.sleep(2000);
             running.set(false);
             while(active.get() > 0) {
@@ -197,15 +203,15 @@ public class ProcessLogTest {
             int messageCount = 0;
             for(int i=0; i<files.length; i++) {
                 String result = getLogContents(files[i]);
-               messageCount += result.split("\\n").length;
+                messageCount += result.split("\\n").length;
             }
-            
+
 
             Assert.assertEquals(count.get(), messageCount); //The last log message has a newline so the split will actually contain log messages + 1 elements
         }
         //cleanLogs("processLog.test-multi-thread-multi-file");
     }
-    
+
     private final String logRegex = "(\\D.*) \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{3} \\((.*):(\\d.*)\\) - (.*)\n";
     private void assertMatch(String message, LogLevel level, String result) {
         //Messages of the form:
@@ -222,11 +228,11 @@ public class ProcessLogTest {
         Assert.assertEquals(level.name(), foundLevel);
         Assert.assertEquals(message, foundMessage);
     }
-    
+
     /**
      * @param file
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     private String getLogContents(File file) throws IOException {
         return new String(Files.readAllBytes(file.toPath()));
@@ -242,10 +248,10 @@ public class ProcessLogTest {
                 else
                     return false;
             }
-            
+
         });
         for(File file : files)
             file.delete();
     }
-    
+
 }
