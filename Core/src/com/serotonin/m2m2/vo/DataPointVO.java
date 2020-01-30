@@ -7,10 +7,8 @@ package com.serotonin.m2m2.vo;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,27 +16,19 @@ import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.TimePeriods;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
-import com.serotonin.m2m2.db.dao.EventHandlerDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
-import com.serotonin.m2m2.rt.dataImage.PointValueTime;
-import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.UnitUtil;
 import com.serotonin.m2m2.view.text.AnalogRenderer;
@@ -46,10 +36,7 @@ import com.serotonin.m2m2.view.text.ConvertingRenderer;
 import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
-import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.util.SerializationHelper;
 
@@ -165,7 +152,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     private int purgePeriod = 1;
     @JsonProperty
     private TextRenderer textRenderer;
-    private List<AbstractPointEventDetectorVO> eventDetectors = new ArrayList<>();
     @JsonProperty
     private int defaultCacheSize = 1;
     @JsonProperty
@@ -238,55 +224,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     @JsonProperty
     volatile private Map<String, String> tags;
 
-    //
-    //
-    // Runtime data
-    //
-    /*
-     * This is used by the watch list and graphic views to cache the last known
-     * value for a point to determine if the browser side needs to be refreshed.
-     * Initially set to this value so that point views will update (since null
-     * values in this case do in fact equal each other).
-     */
-    private PointValueTime lastValue = new PointValueTime((DataValue) null, -1);
-
-    public DataPointVO() {
-    }
-
-    public DataPointVO(DataSourceVO dataSource) {
-        this.withDataSource(dataSource);
-
-        // new data point will have empty relational data
-        // eventDetectors is already initialized
-        this.setTags(Collections.emptyMap());
-    }
-
-    public void withDataSource(DataSourceVO dataSource) {
-        this.dataSourceId = dataSource.getId();
-        this.dataSourceName = dataSource.getName();
-        this.dataSourceXid = dataSource.getXid();
-        this.dataSourceTypeName = dataSource.getDefinition().getDataSourceTypeName();
-
-        if (this.xid == null || this.xid.isEmpty()) {
-            this.xid = Common.generateXid(XID_PREFIX);
-        }
-
-        if (this.deviceName == null) {
-            this.deviceName = dataSource.getName();
-        }
-    }
-
-    public void resetLastValue() {
-        lastValue = new PointValueTime((DataValue) null, -1);
-    }
-
-    public PointValueTime lastValue() {
-        return lastValue;
-    }
-
-    public void updateLastValue(PointValueTime pvt) {
-        lastValue = pvt;
-    }
+    public DataPointVO() { }
 
     @Override
     public String getExtendedName() {
@@ -473,14 +411,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         renderer.setUseUnitAsSuffix(true);
         renderer.setFormat("0.0");
         return renderer;
-    }
-
-    public List<AbstractPointEventDetectorVO> getEventDetectors() {
-        return eventDetectors;
-    }
-
-    public void setEventDetectors(List<AbstractPointEventDetectorVO> eventDetectors) {
-        this.eventDetectors = eventDetectors;
     }
 
     public int getDefaultCacheSize() {
@@ -744,7 +674,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             copy.setDiscardHighLimit(discardHighLimit);
             copy.setDiscardLowLimit(discardLowLimit);
             copy.setEnabled(enabled);
-            copy.setEventDetectors(eventDetectors);
             copy.setIntegralUnit(integralUnit);
             copy.setIntervalLoggingPeriod(intervalLoggingPeriod);
             copy.setIntervalLoggingPeriodType(intervalLoggingPeriodType);
@@ -836,13 +765,12 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
                 + ", intervalLoggingPeriod=" + intervalLoggingPeriod + ", intervalLoggingType=" + intervalLoggingType
                 + ", tolerance=" + tolerance + ", purgeOverride=" + purgeOverride + ", purgeType=" + purgeType
                 + ", purgePeriod=" + purgePeriod + ", textRenderer=" + textRenderer + ", chartRenderer="
-                + ", eventDetectors=" + eventDetectors
                 + ", defaultCacheSize=" + defaultCacheSize + ", discardExtremeValues=" + discardExtremeValues
                 + ", discardLowLimit=" + discardLowLimit + ", discardHighLimit=" + discardHighLimit + ", unit=" + unit
                 + ", integralUnit=" + integralUnit + ", renderedUnit=" + renderedUnit + ", useIntegralUnit="
                 + useIntegralUnit + ", useRenderedUnit=" + useRenderedUnit + chartColour + ", rollup=" + Common.ROLLUP_CODES.getCode(rollup)
                 + ", plotType=" + plotType + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName
-                + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid + ", lastValue=" + lastValue
+                + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid
                 + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
                 + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readRoles="
                 + readRoles + ", setRoles=" + setRoles
@@ -1377,7 +1305,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         writer.writeEntry("intervalLoggingType", INTERVAL_LOGGING_TYPE_CODES.getCode(intervalLoggingType));
         writer.writeEntry("purgeType", Common.TIME_PERIOD_CODES.getCode(purgeType));
         writer.writeEntry("pointLocator", pointLocator);
-        writer.writeEntry("eventDetectors", eventDetectors);
+        writer.writeEntry("eventDetectors", EventDetectorDao.getInstance().getWithSource(id, this));
         writer.writeEntry("plotType", PLOT_TYPE_CODES.getCode(plotType));
         writer.writeEntry("rollup", Common.ROLLUP_CODES.getCode(rollup));
         writer.writeEntry("unit", UnitUtil.formatUcum(unit));
@@ -1438,59 +1366,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         JsonObject locatorJson = jsonObject.getJsonObject("pointLocator");
         if (locatorJson != null)
             reader.readInto(pointLocator, locatorJson);
-
-        JsonArray pedArray = jsonObject.getJsonArray("eventDetectors");
-        if (pedArray != null) {
-            for (JsonValue jv : pedArray) {
-                JsonObject pedObject = jv.toJsonObject();
-
-                String pedXid = pedObject.getString("xid");
-                if (StringUtils.isBlank(pedXid))
-                    throw new TranslatableJsonException("emport.error.ped.missingAttr", "xid");
-
-                // Use the ped xid to lookup an existing ped.
-                AbstractPointEventDetectorVO ped = null;
-                for (AbstractPointEventDetectorVO existing : eventDetectors) {
-                    if (StringUtils.equals(pedXid, existing.getXid())) {
-                        ped = existing;
-                        break;
-                    }
-                }
-
-                if (ped == null) {
-                    String typeStr = pedObject.getString("type");
-                    if(typeStr == null)
-                        throw new TranslatableJsonException("emport.error.ped.missingAttr", "type");
-                    //This assumes that all definitions used for data points are Data Point Event Detectors
-                    PointEventDetectorDefinition<?> def = ModuleRegistry.getEventDetectorDefinition(typeStr);
-                    if (def == null)
-                        throw new TranslatableJsonException("emport.error.ped.invalid", "type", typeStr,
-                                ModuleRegistry.getEventDetectorDefinitionTypes());
-                    else {
-                        ped = def.baseCreateEventDetectorVO(this);
-                        ped.setDefinition(def);
-                    }
-
-                    // Create a new one
-                    ped.setId(Common.NEW_ID);
-                    ped.setXid(pedXid);
-                    eventDetectors.add(ped);
-                }
-
-                JsonArray handlerXids = pedObject.getJsonArray("handlers");
-                if(handlerXids != null)
-                    for(int k = 0; k < handlerXids.size(); k+=1) {
-                        AbstractEventHandlerVO eh = EventHandlerDao.getInstance().getByXid(handlerXids.getString(k));
-                        if(eh == null) {
-                            throw new TranslatableJsonException("emport.eventHandler.missing", handlerXids.getString(k));
-                        }else {
-                            ped.addAddedEventHandler(eh);
-                        }
-                    }
-
-                reader.readInto(ped, pedObject);
-            }
-        }
 
         text = jsonObject.getString("unit");
         if (text != null) {

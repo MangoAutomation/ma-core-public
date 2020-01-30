@@ -69,6 +69,7 @@ import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutClient;
 import com.serotonin.m2m2.util.timeout.ModelTimeoutTask;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.timer.TimerTask;
@@ -389,7 +390,8 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
                         if(targetVo.getDefaultCacheSize() == 0)
                             targetVo.setDefaultCacheSize(1);
-                        dprt = new DataPointRT(targetVo, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(targetVo.getDataSourceId()), null);
+                        DataPointWithEventDetectors dp = new DataPointWithEventDetectors(targetVo, new ArrayList<>());
+                        dprt = new DataPointRT(dp, targetVo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(targetVo.getDataSourceId()), null);
                         dprt.resetValues();
                     }
                     context.put(pair.getValue(), dprt);

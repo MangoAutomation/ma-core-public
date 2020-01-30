@@ -31,7 +31,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
  * @author Terry Packer
  */
 public class ConfigurationExportData {
-    
+
     //When adding to this list make sure you update getAllExportNames();
     public static final String DATA_SOURCES = SchemaDefinition.DATASOURCES_TABLE;
     public static final String DATA_POINTS = SchemaDefinition.DATAPOINTS_TABLE;
@@ -61,14 +61,14 @@ public class ConfigurationExportData {
         names.add(SYSTEM_SETTINGS);
         names.add(USERS);
         names.add(VIRTUAL_SERIAL_PORTS);
-        
+
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class))
             if(def.getInView())
                 names.add(def.getElementId());
-        
+
         return names.toArray(new String[names.size()]);
     }
-    
+
     /**
      * Get a list of pairs of i18n property and export names for all export items
      * @return
@@ -87,18 +87,18 @@ public class ConfigurationExportData {
         elements.add(new StringStringPair("header.users", USERS));
         elements.add(new StringStringPair("header.virtualSerialPorts", VIRTUAL_SERIAL_PORTS));
 
-        
+
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if(def.getInView())
                 elements.add(new StringStringPair(def.getDescriptionKey(), def.getElementId()));
         }
-        
+
         return elements;
     }
-    
+
     /**
      * Get a map of desired export data.
-     * 
+     *
      * @param exportElements if null full export is returned
      * @param user
      * @return
@@ -106,9 +106,9 @@ public class ConfigurationExportData {
     public static Map<String, Object> createExportDataMap(String[] exportElements){
         if(exportElements == null)
             exportElements = getAllExportNames();
-        
+
         Map<String, Object> data = new LinkedHashMap<>();
-        
+
         if (ArrayUtils.contains(exportElements, DATA_SOURCES))
             data.put(DATA_SOURCES, DataSourceDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, DATA_POINTS))
@@ -127,16 +127,16 @@ public class ConfigurationExportData {
             data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, JSON_DATA))
             data.put(JSON_DATA, JsonDataDao.getInstance().getAll());
-        
+
         //TODO Add EVENT_DETECTORS
         //TODO Write the ImportTask properly for EventDetectors...
-        
+
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if (ArrayUtils.contains(exportElements, def.getElementId()))
                 data.put(def.getElementId(), def.getExportData());
         }
-        
+
         return data;
     }
-    
+
 }

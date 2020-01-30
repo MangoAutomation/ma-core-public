@@ -15,7 +15,7 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
-import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -91,37 +91,29 @@ public interface RuntimeManager extends ILifecycle {
     // Data points
     //
     /**
-     * Insert a new data point
+     * Start a data point, will confirm that it is enabled
      * @param vo
      */
-    void insertDataPoint(DataPointVO vo);
+    void startDataPoint(DataPointWithEventDetectors vo);
 
     /**
-     * Update an existing data point
-     * @param existing
-     * @param vo
+     *
+     * @param id
      */
-    void updateDataPoint(DataPointVO existing, DataPointVO vo);
+    void stopDataPoint(int id);
 
     /**
-     * Enable a data point, event detectors will be loaded
-     * during this method
-     * @param point
-     * @param enabled
+     * Is this data point running?
+     * @param dataPointId
+     * @return
      */
-    void enableDataPoint(DataPointVO point, boolean enabled);
-
-    void deleteDataPoint(DataPointVO point);
-
-    /**
-     * Restart a data point, the event detectors will be loaded
-     * during this method.
-     * @param vo
-     */
-    void restartDataPoint(DataPointVO vo);
-
     boolean isDataPointRunning(int dataPointId);
 
+    /**
+     * Get the RT of a running data point, can be null if not running
+     * @param dataPointId
+     * @return
+     */
     DataPointRT getDataPoint(int dataPointId);
 
     List<DataPointRT> getRunningDataPoints();

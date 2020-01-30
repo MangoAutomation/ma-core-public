@@ -30,6 +30,7 @@ import com.serotonin.m2m2.rt.script.ScriptLog;
 import com.serotonin.m2m2.rt.script.ScriptPermissionsException;
 import com.serotonin.m2m2.rt.script.ScriptPointValueSetter;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -187,9 +188,12 @@ public class CompiledMangoJavaScript {
                     //So we can test with points disabled
                     if(dprt == null) {
                         if(testRun) {
-                            if(dpvo.getDefaultCacheSize() == 0)
+                            if(dpvo.getDefaultCacheSize() == 0) {
                                 dpvo.setDefaultCacheSize(1);
-                            dprt = new DataPointRT(dpvo, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(dpvo.getDataSourceId()), null);
+                            }
+                            //Generate some fake event detectors
+                            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpvo, new ArrayList<>());
+                            dprt = new DataPointRT(dp, dpvo.getPointLocator().createRuntime(), DataSourceDao.getInstance().get(dpvo.getDataSourceId()), null);
                             dprt.resetValues(); //otherwise variable.value will be empty
                         }else {
                             throw new DataPointStateException(variable.getDataPointId(), new TranslatableMessage(

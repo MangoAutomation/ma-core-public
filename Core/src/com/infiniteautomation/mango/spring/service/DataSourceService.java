@@ -14,9 +14,7 @@ import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
-import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -24,11 +22,9 @@ import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
-import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -226,39 +222,10 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         Common.runtimeManager.insertDataSource(copy);
 
         if(copyPoints) {
-            copyDataSourcePoints(existing.getId(), copy, newDeviceName);
+            // Copy the points by getting each point without any relational data and loading it as we need it
+            dataPointService.copyDataSourcePoints(copy, newDeviceName);
         }
         return get(newXid);
-    }
-
-    /**
-     *
-     * @param dataSourceId - original id to get points from
-     * @param dataSourceCopy
-     * @param newDeviceName - if null will use data source copy's name
-     * @param user
-     */
-    private void copyDataSourcePoints(int dataSourceId, DataSourceVO dataSourceCopy, String newDeviceName) {
-        // Copy the points by getting each point without any relational data and loading it as we need it
-        for (DataPointVO dataPoint : dataPointService.getDataPoints(dataSourceId)) {
-            DataPointVO dataPointCopy = dataPoint.copy();
-            dataPointCopy.setId(Common.NEW_ID);
-            dataPointCopy.setXid(dataPointService.getDao().generateUniqueXid());
-            dataPointCopy.setName(dataPoint.getName());
-            dataPointCopy.setDeviceName(newDeviceName != null ? newDeviceName : dataSourceCopy.getName());
-            dataPointCopy.setDataSourceId(dataSourceCopy.getId());
-            dataPointCopy.setEnabled(dataPoint.isEnabled());
-
-            //Copy Tags
-            dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
-            //Copy event detectors and simulate them being new
-            dataPointCopy.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dataPoint.getId(), dataPointCopy));
-            for (AbstractPointEventDetectorVO ped : dataPointCopy.getEventDetectors()) {
-                ped.setId(Common.NEW_ID);
-                ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
-            }
-            dataPointService.insert(dataPointCopy);
-        }
     }
 
     @Override

@@ -1,47 +1,49 @@
 package com.infiniteautomation.mango.emport;
 
-import java.util.ArrayList;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-
+import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
-import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 
 public class EventDetectorImporter extends Importer {
 
-    private Map<String, DataPointVO> dataPointMap;
+    private Map<String, DataPointWithEventDetectors> dataPointMap;
+    private final DataPointService dataPointService;
 
-    public EventDetectorImporter(JsonObject json, Map<String, DataPointVO> dataPointMap) {
+    public EventDetectorImporter(JsonObject json, Map<String, DataPointWithEventDetectors> dataPointMap, DataPointService dataPointService) {
         super(json);
         this.dataPointMap = dataPointMap;
+        this.dataPointService = dataPointService;
     }
 
     @Override
     protected void importImpl() {
         String dataPointXid = json.getString("dataPointXid");
-        DataPointVO dpvo;
+        DataPointWithEventDetectors dp;
         //Everyone is in the same thread so no synchronization on dataPointMap required.
         if(dataPointMap.containsKey(dataPointXid))
-            dpvo = dataPointMap.get(dataPointXid);
-        else if(StringUtils.isEmpty(dataPointXid) || (dpvo = DataPointDao.getInstance().getByXid(dataPointXid)) == null) {
-            addFailureMessage("emport.error.missingPoint", dataPointXid);
-            return;
-        } else {
-            dataPointMap.put(dataPointXid, dpvo);
-            //We're only going to use this to house event detectors imported in the eventDetectors object.
-            dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO>());
+            dp = dataPointMap.get(dataPointXid);
+        else {
+            try {
+                dp = dataPointService.getWithEventDetectors(dataPointXid);
+                dataPointMap.put(dataPointXid, dp);
+            }catch(NotFoundException e) {
+                addFailureMessage("emport.error.missingPoint", dataPointXid);
+                return;
+            }
         }
 
         String typeStr = json.getString("type");
@@ -54,8 +56,16 @@ public class EventDetectorImporter extends Importer {
             return;
         }
 
-        AbstractEventDetectorVO importing = def.baseCreateEventDetectorVO(dpvo);
-        importing.setDefinition(def);
+        String xid = json.getString("xid");
+        AbstractEventDetectorVO importing;
+        importing = EventDetectorDao.getInstance().getByXid(xid);
+        if(importing == null) {
+            importing = def.baseCreateEventDetectorVO(dp.getDataPoint());
+            importing.setDefinition(def);
+            // Create a new one
+            importing.setId(Common.NEW_ID);
+            importing.setXid(xid);
+        }
 
         JsonArray handlerXids = json.getJsonArray("handlers");
         if(handlerXids != null)
@@ -68,29 +78,11 @@ public class EventDetectorImporter extends Importer {
                     importing.addAddedEventHandler(eh);
                 }
             }
-
-        String xid = json.getString("xid");
-
-        // Create a new one
-        importing.setId(Common.NEW_ID);
-        importing.setXid(xid);
         AbstractPointEventDetectorVO dped = (AbstractPointEventDetectorVO)importing;
-        dpvo.getEventDetectors().add(dped);
+        dp.addOrReplaceDetector(dped);
 
         try {
             ctx.getReader().readInto(importing, json);
-
-            //			try {
-            //				if(Common.runtimeManager.getState() == RuntimeManager.RUNNING){
-            //            		Common.runtimeManager.saveDataPoint(dpvo);
-            //            		addSuccessMessage(isNew, "emport.eventDetector.prefix", xid);
-            //            	}else{
-            //            		addFailureMessage(new ProcessMessage("Runtime Manager not running point with xid: " + xid + " not saved."));
-            //            	}
-            //            } catch(LicenseViolatedException e) {
-            //            	addFailureMessage(new ProcessMessage(e.getErrorMessage()));
-            //			}
-
         }
         catch (TranslatableJsonException e) {
             addFailureMessage("emport.eventDetector.prefix", xid, e.getMsg());

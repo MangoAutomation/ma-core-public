@@ -38,6 +38,7 @@ import com.serotonin.m2m2.util.timeout.TimeoutClient;
 import com.serotonin.m2m2.util.timeout.TimeoutTask;
 import com.serotonin.m2m2.view.stats.IValueTime;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.timer.AbstractTimer;
@@ -86,8 +87,13 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param dsVo
      * @param initialCache
      */
-    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache) {
-        this.vo = vo;
+    public DataPointRT(DataPointWithEventDetectors dp, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache) {
+        this.vo = dp.getDataPoint();
+        this.detectors = new ArrayList<PointEventDetectorRT<?>>();
+        for (AbstractPointEventDetectorVO ped : dp.getEventDetectors()) {
+            PointEventDetectorRT<?> pedRT = (PointEventDetectorRT<?>) ped.createRuntime();
+            detectors.add(pedRT);
+        }
         this.dsVo = dsVo;
         this.pointLocator = pointLocator;
         if (enhanced) {
@@ -107,7 +113,7 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
      * @param initial cache
      * @param timer
      */
-    public DataPointRT(DataPointVO vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
+    public DataPointRT(DataPointWithEventDetectors vo, PointLocatorRT<?> pointLocator, DataSourceVO dsVo, List<PointValueTime> initialCache, AbstractTimer timer) {
         this(vo, pointLocator, dsVo, initialCache);
         this.timer = timer;
     }
@@ -866,17 +872,11 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
             toleranceOrigin = pointValue.getDoubleValue();
 
         // Add point event listeners
-        for (AbstractPointEventDetectorVO ped : vo.getEventDetectors()) {
-            if (detectors == null)
-                detectors = new ArrayList<PointEventDetectorRT<?>>();
-
-            PointEventDetectorRT<?> pedRT = (PointEventDetectorRT<?>) ped.createRuntime();
+        for (PointEventDetectorRT<?> pedRT : detectors) {
             detectors.add(pedRT);
             pedRT.initialize();
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
         }
-
-        //initializeIntervalLogging();
     }
 
     @Override

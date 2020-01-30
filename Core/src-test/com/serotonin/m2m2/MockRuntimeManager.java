@@ -25,6 +25,7 @@ import com.serotonin.m2m2.rt.dataImage.types.DataValue;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
@@ -144,31 +145,6 @@ public class MockRuntimeManager implements RuntimeManager {
 
     @Override
     public void stopDataSourceShutdown(int id) {
-
-    }
-
-    @Override
-    public void insertDataPoint(DataPointVO vo) {
-        if(useDatabase) {
-            DataPointDao.getInstance().insert(vo);
-        }
-    }
-
-    @Override
-    public void updateDataPoint(DataPointVO existing, DataPointVO vo) {
-        if(useDatabase) {
-            DataPointDao.getInstance().update(existing, vo);
-        }
-    }
-
-    @Override
-    public void deleteDataPoint(DataPointVO point) {
-        if(useDatabase)
-            DataPointDao.getInstance().delete(point.getId());
-    }
-
-    @Override
-    public void restartDataPoint(DataPointVO vo) {
 
     }
 
@@ -323,13 +299,6 @@ public class MockRuntimeManager implements RuntimeManager {
     }
 
     @Override
-    public void enableDataPoint(DataPointVO point, boolean enabled) {
-        point.setEnabled(enabled);
-        if(useDatabase)
-            DataPointDao.getInstance().saveEnabledColumn(point);
-    }
-
-    @Override
     public TranslatableMessage getStateMessage() {
         return new TranslatableMessage("common.default", "Mock runtime manager state message");
     }
@@ -346,5 +315,22 @@ public class MockRuntimeManager implements RuntimeManager {
             return running;
         }else
             return null;
+    }
+
+    @Override
+    public void startDataPoint(DataPointWithEventDetectors vo) {
+        if(useDatabase) {
+            vo.getDataPoint().setEnabled(true);
+            DataPointDao.getInstance().saveEnabledColumn(vo.getDataPoint());
+        }
+    }
+
+    @Override
+    public void stopDataPoint(int id) {
+        if(useDatabase) {
+            DataPointVO vo = DataPointDao.getInstance().get(id);
+            vo.setEnabled(false);
+            DataPointDao.getInstance().saveEnabledColumn(vo);
+        }
     }
 }

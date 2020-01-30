@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -36,11 +37,13 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
     protected static final int OPERATION_SUCCESSFUL = 1; //Operation worked
 
     private final DataSourceService dataSourceService;
+    private final DataPointService dataPointService;
 
     @Autowired
-    public RuntimeManagerScriptUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService dataSourceService) {
-        super(service, permissionService);
+    public RuntimeManagerScriptUtility(MangoJavaScriptService service, DataPointService dataPointService, DataSourceService dataSourceService) {
+        super(service, dataPointService.getPermissionService());
         this.dataSourceService = dataSourceService;
+        this.dataPointService = dataPointService;
     }
 
     @Override
@@ -210,19 +213,17 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already enabled, 1 if it was sent to RuntimeManager
      */
     public int enableDataPoint(String xid){
-        DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-        if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
-            return DOES_NOT_EXIST;
-        else if(!vo.isEnabled()){
-            try{
-                Common.runtimeManager.enableDataPoint(vo, true);
-            }catch(Exception e){
-                LOG.error(e.getMessage(), e);
-                throw e;
+        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+            try {
+                if(dataPointService.setDataPointState(xid, true, false)) {
+                    return OPERATION_SUCCESSFUL;
+                }else {
+                    return OPERATION_NO_CHANGE;
+                }
+            }catch(Exception e) {
+                return DOES_NOT_EXIST;
             }
-            return OPERATION_SUCCESSFUL;
-        }else
-            return OPERATION_NO_CHANGE;
+        });
     }
 
     /**
@@ -231,19 +232,17 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
      * @return -1 if DS DNE, 0 if it was already disabled, 1 if it was sent to RuntimeManager
      */
     public int disableDataPoint(String xid){
-        DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
-        if(vo == null || !permissionService.hasDataPointSetPermission(permissions, vo))
-            return DOES_NOT_EXIST;
-        else if(vo.isEnabled()){
-            try{
-                Common.runtimeManager.enableDataPoint(vo, false);
-            }catch(Exception e){
-                LOG.error(e.getMessage(), e);
-                throw e;
+        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+            try {
+                if(dataPointService.setDataPointState(xid, false, false)) {
+                    return OPERATION_SUCCESSFUL;
+                }else {
+                    return OPERATION_NO_CHANGE;
+                }
+            }catch(Exception e) {
+                return DOES_NOT_EXIST;
             }
-            return OPERATION_SUCCESSFUL;
-        }else
-            return OPERATION_NO_CHANGE;
+        });
     }
 
     /**

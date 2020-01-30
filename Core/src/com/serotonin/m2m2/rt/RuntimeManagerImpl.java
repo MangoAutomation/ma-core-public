@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,8 +45,8 @@ import com.serotonin.m2m2.rt.publish.PublisherRT;
 import com.serotonin.m2m2.util.DateUtils;
 import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.publish.PublishedPointVO;
 import com.serotonin.m2m2.vo.publish.PublisherVO;
 
@@ -376,7 +375,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
         }
 
         // Add the enabled points to the data source.
-        List<DataPointVO> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
+        List<DataPointWithEventDetectors> dataSourcePoints = DataPointDao.getInstance().getDataPointsForDataSourceStart(vo.getId());
 
         Map<Integer, List<PointValueTime>> latestValuesMap = null;
         PointValueDao pvDao = Common.databaseProxy.newPointValueDao();
@@ -386,9 +385,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
             // This number of values will be retrieved for all points in the datasource
             // If even one point has a high cache size this *may* cause issues
             int maxCacheSize = 0;
-            for (DataPointVO dataPoint : dataSourcePoints) {
-                if (dataPoint.getDefaultCacheSize() > maxCacheSize)
-                    maxCacheSize = dataPoint.getDefaultCacheSize();
+            for (DataPointWithEventDetectors dataPoint : dataSourcePoints) {
+                if (dataPoint.getDataPoint().getDefaultCacheSize() > maxCacheSize)
+                    maxCacheSize = dataPoint.getDataPoint().getDefaultCacheSize();
             }
 
             try {
@@ -398,11 +397,11 @@ public class RuntimeManagerImpl implements RuntimeManager {
             }
         }
 
-        for (DataPointVO dataPoint : dataSourcePoints) {
-            if (dataPoint.isEnabled()) {
+        for (DataPointWithEventDetectors dataPoint : dataSourcePoints) {
+            if (dataPoint.getDataPoint().isEnabled()) {
                 List<PointValueTime> latestValuesForPoint = null;
                 if (latestValuesMap != null) {
-                    latestValuesForPoint = latestValuesMap.get(dataPoint.getId());
+                    latestValuesForPoint = latestValuesMap.get(dataPoint.getDataPoint().getId());
                     if (latestValuesForPoint == null) {
                         latestValuesForPoint = new ArrayList<>();
                     }
@@ -410,7 +409,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
                 try {
                     startDataPointStartup(dataPoint, latestValuesForPoint);
                 } catch (Exception e) {
-                    LOG.error("Failed to start data point " + dataPoint.getXid(), e);
+                    LOG.error("Failed to start data point " + dataPoint.getDataPoint().getXid(), e);
                 }
             }
         }
@@ -470,81 +469,42 @@ public class RuntimeManagerImpl implements RuntimeManager {
     // Data points
     //
     @Override
-    public void insertDataPoint(DataPointVO vo) {
-
-        //TODO Mango 4.0 ensure this can't happen elsewhere
-        // Event detectors
-        int dataType = vo.getPointLocator().getDataTypeId();
-        Iterator<AbstractPointEventDetectorVO> peds = vo.getEventDetectors().iterator();
-        while (peds.hasNext()) {
-            AbstractPointEventDetectorVO ped = peds.next();
-            if (!ped.supports(dataType))
-                // Remove the detector.
-                peds.remove();
-        }
-
-        DataPointDao.getInstance().insert(vo);
-
-        if (vo.isEnabled())
-            startDataPoint(vo, null);
+    public void startDataPoint(DataPointWithEventDetectors vo) {
+        Assert.isTrue(vo.getDataPoint().isEnabled(), "Attempting to start disabled data point.");
+        startDataPoint(vo, null);
     }
 
     @Override
-    public void updateDataPoint(DataPointVO existing, DataPointVO vo) {
-        stopDataPoint(existing);
+    public void stopDataPoint(int id) {
+        synchronized (dataPoints) {
+            // Remove this point from the data image if it is there. If not, just quit.
+            DataPointRT p = dataPoints.remove(id);
 
-        //TODO Mango 4.0 shouldn't the validation catch all this?
-        // Since the point's data type may have changed, we must ensure that the other attrtibutes are still ok with
-        // it.
-        int dataType = vo.getPointLocator().getDataTypeId();
+            // Remove it from the data source, and terminate it.
+            if (p != null) {
+                try{
+                    getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
+                }catch(Exception e){
+                    LOG.error("Failed to stop point RT with ID: " + id
+                            + " stopping point."
+                            , e);
+                }
 
-        // Text renderer
-        if (vo.getTextRenderer() != null && !vo.getTextRenderer().getDef().supports(dataType))
-            // Return to a default renderer
-            vo.defaultTextRenderer();
-
-        // Event detectors
-        Iterator<AbstractPointEventDetectorVO> peds = vo.getEventDetectors().iterator();
-        while (peds.hasNext()) {
-            AbstractPointEventDetectorVO ped = peds.next();
-            if (!ped.supports(dataType))
-                // Remove the detector.
-                peds.remove();
+                DataPointListener l = getDataPointListeners(id);
+                if (l != null)
+                    try {
+                        l.pointTerminated(p.getVO());
+                    } catch(ExceptionListWrapper e) {
+                        LOG.warn("Exceptions in point terminated method.");
+                        for(Exception e2 : e.getExceptions())
+                            LOG.warn("Listener exception: " + e2.getMessage(), e2);
+                    }
+                p.terminate();
+            }
         }
-
-        DataPointDao.getInstance().update(existing, vo);
-
-        if (vo.isEnabled())
-            startDataPoint(vo, null);
     }
 
-    @Override
-    public void enableDataPoint(DataPointVO dp, boolean enabled) {
-        boolean running = isDataPointRunning(dp.getId());
-        dp.setEnabled(enabled);
-
-        if (running && !enabled) {
-            stopDataPoint(dp);
-        } else if (!running && enabled) {
-            // Ensure the event detectors are loaded
-            DataPointDao.getInstance().loadEventDetectors(dp);
-            startDataPoint(dp, null);
-        }
-
-        //to restart, else if(running && enabled) { stopDataPoint(dp.getId()); startDataPoint(dp, null); }
-        // or pass a restart flag?
-        DataPointDao.getInstance().saveEnabledColumn(dp);
-    }
-
-    @Override
-    public void deleteDataPoint(DataPointVO point) {
-        if (point.isEnabled())
-            stopDataPoint(point);
-        DataPointDao.getInstance().delete(point.getId());
-        Common.eventManager.cancelEventsForDataPoint(point.getId());
-    }
-
-    private void startDataPoint(DataPointVO vo, List<PointValueTime> initialCache) {
+    private void startDataPoint(DataPointWithEventDetectors vo, List<PointValueTime> initialCache) {
         synchronized (dataPoints) {
             startDataPointStartup(vo, initialCache);
         }
@@ -555,14 +515,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
      * @param vo
      * @param latestValue
      */
-    private void startDataPointStartup(DataPointVO vo, List<PointValueTime> initialCache) {
-        Assert.isTrue(vo.isEnabled(), "Data point not enabled");
+    private void startDataPointStartup(DataPointWithEventDetectors vo, List<PointValueTime> initialCache) {
+        Assert.isTrue(vo.getDataPoint().isEnabled(), "Data point not enabled");
 
         // Only add the data point if its data source is enabled.
-        DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(vo.getDataSourceId());
+        DataSourceRT<? extends DataSourceVO> ds = getRunningDataSource(vo.getDataPoint().getDataSourceId());
         if (ds != null) {
             // Change the VO into a data point implementation.
-            DataPointRT dataPoint = new DataPointRT(vo, vo.getPointLocator().createRuntime(), ds.getVo(), initialCache);
+            DataPointRT dataPoint = new DataPointRT(vo, vo.getDataPoint().getPointLocator().createRuntime(), ds.getVo(), initialCache);
 
             // Add/update it in the data image.
             synchronized (dataPoints) {
@@ -571,14 +531,14 @@ public class RuntimeManagerImpl implements RuntimeManager {
                         try{
                             getRunningDataSource(rt.getDataSourceId()).removeDataPoint(rt);
                         }catch(Exception e){
-                            LOG.error("Failed to stop point RT with ID: " + vo.getId()
-                            + " stopping point."
-                            , e);
+                            LOG.error("Failed to stop point RT with ID: " + vo.getDataPoint().getId()
+                                    + " stopping point."
+                                    , e);
                         }
-                        DataPointListener l = getDataPointListeners(vo.getId());
+                        DataPointListener l = getDataPointListeners(vo.getDataPoint().getId());
                         if (l != null)
                             try {
-                                l.pointTerminated(vo);
+                                l.pointTerminated(vo.getDataPoint());
                             } catch(ExceptionListWrapper e) {
                                 LOG.warn("Exceptions in point terminated listeners' methods.");
                                 for(Exception e2 : e.getExceptions())
@@ -603,7 +563,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
             if(!isPolling)
                 dataPoint.initializeIntervalLogging(0l, false);
 
-            DataPointListener l = getDataPointListeners(vo.getId());
+            DataPointListener l = getDataPointListeners(vo.getDataPoint().getId());
             if (l != null)
                 try {
                     l.pointInitialized();
@@ -625,38 +585,9 @@ public class RuntimeManagerImpl implements RuntimeManager {
                         + " disabling point."
                         , e);
                 //TODO Fire Alarm to warn user.
-                DataPointVO copy = dataPoint.getVO().copy();
                 dataPoint.getVO().setEnabled(false);
-                updateDataPoint(copy, dataPoint.getVO()); //Stop it
-            }
-        }
-    }
-
-    private void stopDataPoint(DataPointVO dp) {
-        synchronized (dataPoints) {
-            // Remove this point from the data image if it is there. If not, just quit.
-            DataPointRT p = dataPoints.remove(dp.getId());
-
-            // Remove it from the data source, and terminate it.
-            if (p != null) {
-                try{
-                    getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
-                }catch(Exception e){
-                    LOG.error("Failed to stop point RT with ID: " + dp.getId()
-                    + " stopping point."
-                    , e);
-                }
-
-                DataPointListener l = getDataPointListeners(dp.getId());
-                if (l != null)
-                    try {
-                        l.pointTerminated(dp);
-                    } catch(ExceptionListWrapper e) {
-                        LOG.warn("Exceptions in point terminated method.");
-                        for(Exception e2 : e.getExceptions())
-                            LOG.warn("Listener exception: " + e2.getMessage(), e2);
-                    }
-                p.terminate();
+                DataPointDao.getInstance().saveEnabledColumn(dataPoint.getVO());
+                stopDataPoint(dataPoint.getId()); //Stop it
             }
         }
     }
@@ -692,44 +623,6 @@ public class RuntimeManagerImpl implements RuntimeManager {
             p.terminate();
         }
 
-    }
-
-    @Override
-    public void restartDataPoint(DataPointVO vo){
-        boolean restarted = false;
-        synchronized (dataPoints) {
-            // Remove this point from the data image if it is there. If not, just quit.
-            DataPointRT p = dataPoints.remove(vo.getId());
-
-            // Remove it from the data source, and terminate it.
-            if (p != null) {
-                try{
-                    getRunningDataSource(p.getDataSourceId()).removeDataPoint(p);
-                }catch(Exception e){
-                    LOG.error("Failed to stop point RT with ID: " + vo.getId()
-                    + " stopping point."
-                    , e);
-                }
-                DataPointListener l = getDataPointListeners(vo.getId());
-                if (l != null)
-                    try {
-                        l.pointTerminated(vo);
-                    } catch(ExceptionListWrapper e) {
-                        LOG.warn("Exceptions in point terminated method.");
-                        for(Exception e2 : e.getExceptions())
-                            LOG.warn("Listener exception: " + e2.getMessage(), e2);
-                    }
-                p.terminate();
-                this.startDataPoint(vo, null);
-                restarted = true;
-            }
-        }
-        if(!restarted) {
-            //The data point wasn't really running. Ensure the event detectors and enable
-            vo.setEnabled(true);
-            startDataPoint(vo, null);
-            DataPointDao.getInstance().saveEnabledColumn(vo);
-        }
     }
 
     @Override

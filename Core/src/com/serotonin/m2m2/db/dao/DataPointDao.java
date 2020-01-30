@@ -81,6 +81,7 @@ import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
@@ -166,13 +167,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     /**
-     * TODO Mango 4.0 ALWAYS use this JOIN, make the default query since
-     *  we are loading full VOs always now.  Likely need to review and optimize anyway.
-     * Get points for runtime in an efficient manner
+     * Get points for runtime in an efficient manner by joining with the event detectors
      * @param dataSourceId
      * @return
      */
-    public List<DataPointVO> getDataPointsForDataSourceStart(int dataSourceId) {
+    public List<DataPointWithEventDetectors> getDataPointsForDataSourceStart(int dataSourceId) {
         List<Field<?>> fields = new ArrayList<>(this.getSelectFields());
         fields.addAll(this.eventDetectorTable.getSelectFields());
 
@@ -183,7 +182,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         return this.customizedQuery(select, new DataPointStartupResultSetExtractor());
     }
 
-    class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointVO>> {
+    class DataPointStartupResultSetExtractor implements ResultSetExtractor<List<DataPointWithEventDetectors>> {
 
         private final int firstEventDetectorColumn;
         private final EventDetectorRowMapper<?> eventRowMapper;
@@ -194,8 +193,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         }
 
         @Override
-        public List<DataPointVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
-            Map<Integer, DataPointVO> result = new HashMap<Integer, DataPointVO>();
+        public List<DataPointWithEventDetectors> extractData(ResultSet rs) throws SQLException, DataAccessException {
+            Map<Integer, DataPointWithEventDetectors> result = new HashMap<>();
             DataPointMapper pointRowMapper = new DataPointMapper();
             while(rs.next()) {
                 int id = rs.getInt(1); //dp.id column number
@@ -207,25 +206,25 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                     }
                 else {
                     DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-                    dpvo.setEventDetectors(new ArrayList<AbstractPointEventDetectorVO>());
                     loadRelationalData(dpvo);
-                    result.put(id, dpvo);
+                    DataPointWithEventDetectors dp = new DataPointWithEventDetectors(dpvo, new ArrayList<>());
+                    result.put(id, dp);
                     try{
-                        addEventDetector(dpvo, rs);
+                        addEventDetector(dp, rs);
                     }catch(Exception e){
                         LOG.error("Point not fully initialized: " + e.getMessage(), e);
                     }
                 }
             }
-            return new ArrayList<DataPointVO>(result.values());
+            return new ArrayList<DataPointWithEventDetectors>(result.values());
         }
 
-        private void addEventDetector(DataPointVO dpvo, ResultSet rs) throws SQLException {
+        private void addEventDetector(DataPointWithEventDetectors dp, ResultSet rs) throws SQLException {
             if(rs.getObject(firstEventDetectorColumn) == null)
                 return;
             AbstractEventDetectorVO edvo = eventRowMapper.mapRow(rs, rs.getRow());
             AbstractPointEventDetectorVO ped = (AbstractPointEventDetectorVO) edvo;
-            dpvo.getEventDetectors().add(ped);
+            dp.getEventDetectors().add(ped);
         }
     }
 
@@ -424,42 +423,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
      *
      * @param dp
      */
-    public void loadEventDetectors(DataPointVO dp) {
-        dp.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dp.getId(), dp));
-    }
-
-    private void saveEventDetectors(DataPointVO dp) {
-        // Get the ids of the existing detectors for this point.
-        final List<AbstractPointEventDetectorVO> existingDetectors = EventDetectorDao.getInstance().getWithSource(dp.getId(), dp);
-
-        // Insert or update each detector in the point.
-        for (AbstractPointEventDetectorVO ped : dp.getEventDetectors()) {
-            ped.setSourceId(dp.getId());
-            if (ped.getId() > 0){
-                //Remove from list
-                AbstractPointEventDetectorVO existing = removeFromList(existingDetectors, ped.getId());
-                EventDetectorDao.getInstance().update(existing, ped);
-            } else {
-                ped.setId(Common.NEW_ID);
-                EventDetectorDao.getInstance().insert(ped);
-            }
-        }
-
-        // Delete detectors for any remaining ids in the list of existing
-        // detectors.
-        for (AbstractEventDetectorVO ed : existingDetectors) {
-            EventDetectorDao.getInstance().delete(ed);
-        }
-    }
-
-    private AbstractPointEventDetectorVO removeFromList(List<AbstractPointEventDetectorVO> list, int id) {
-        for (AbstractPointEventDetectorVO ped : list) {
-            if (ped.getId() == id) {
-                list.remove(ped);
-                return ped;
-            }
-        }
-        return null;
+    public void loadEventDetectors(DataPointWithEventDetectors dp) {
+        dp.setEventDetectors(EventDetectorDao.getInstance().getWithSource(dp.getDataPoint().getId(), dp.getDataPoint()));
     }
 
     /**
@@ -691,8 +656,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
     @Override
     public void saveRelationalData(DataPointVO vo, boolean insert) {
-        saveEventDetectors(vo);
-
         Map<String, String> tags = vo.getTags();
         if (tags == null) {
             if (!insert) {

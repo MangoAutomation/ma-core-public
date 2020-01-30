@@ -3,14 +3,13 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
 import javax.measure.unit.SI;
@@ -33,6 +32,7 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
+import com.serotonin.m2m2.db.dao.EventDetectorDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -47,8 +47,8 @@ import com.serotonin.m2m2.vo.DataPointVO.IntervalLoggingTypes;
 import com.serotonin.m2m2.vo.DataPointVO.LoggingTypes;
 import com.serotonin.m2m2.vo.DataPointVO.PlotTypes;
 import com.serotonin.m2m2.vo.DataPointVO.SimplifyTypes;
+import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -65,9 +65,12 @@ import com.serotonin.validation.StringValidation;
 @Service
 public class DataPointService extends AbstractVOService<DataPointVO, DataPointTableDefinition, DataPointDao> {
 
+    private final EventDetectorDao eventDetectorDao;
+
     @Autowired
-    public DataPointService(DataPointDao dao, PermissionService permissionService) {
+    public DataPointService(DataPointDao dao, EventDetectorDao eventDetectorDao, PermissionService permissionService) {
         super(dao, permissionService);
+        this.eventDetectorDao = eventDetectorDao;
     }
 
     @Override
@@ -116,6 +119,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     public DataPointVO insert(DataPointVO vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         //Ensure they can create
         ensureCreatePermission(user, vo);
 
@@ -131,36 +136,35 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             vo.setXid(dao.generateUniqueXid());
 
         ensureValid(vo, user);
-        Common.runtimeManager.insertDataPoint(vo);
+        dao.insert(vo);
+
+        if(vo.isEnabled()) {
+            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
+            Common.runtimeManager.startDataPoint(dp);
+        }
         return vo;
     }
 
     @Override
     public DataPointVO update(DataPointVO existing, DataPointVO vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureEditPermission(user, existing);
 
         vo.setId(existing.getId());
         ensureValid(existing, vo, user);
 
-        //The existing point will have its event detectors set from the db, we want to merge those with the new ones
-        if(vo.getEventDetectors() == null || vo.getEventDetectors().isEmpty()) {
-            vo.setEventDetectors(existing.getEventDetectors());
-        }else {
-            List<AbstractPointEventDetectorVO> toKeep = new ArrayList<>(existing.getEventDetectors());
-            for(AbstractEventDetectorVO ed : existing.getEventDetectors()) {
-                Iterator<AbstractPointEventDetectorVO> it = vo.getEventDetectors().iterator();
-                while(it.hasNext()) {
-                    AbstractPointEventDetectorVO ped = it.next();
-                    if(ped.getId() == ed.getId()) {
-                        //same so we only keep the existing one
-                        it.remove();
-                    }
-                }
-            }
-            vo.getEventDetectors().addAll(toKeep);
+        Common.runtimeManager.stopDataPoint(vo.getId());
+        dao.update(existing, vo);
+
+        if(vo.isEnabled()) {
+            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
+            Common.runtimeManager.startDataPoint(dp);
         }
-        Common.runtimeManager.updateDataPoint(existing, vo);
+
         return vo;
     }
 
@@ -168,8 +172,12 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     public DataPointVO delete(DataPointVO vo)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureDeletePermission(user, vo);
-        Common.runtimeManager.deleteDataPoint(vo);
+        Common.runtimeManager.stopDataPoint(vo.getId());
+        dao.delete(vo);
+        Common.eventManager.cancelEventsForDataPoint(vo.getId());
         return vo;
     }
 
@@ -183,14 +191,123 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
      * @throws NotFoundException
      * @throws PermissionException
      */
-    public void enableDisable(String xid, boolean enabled, boolean restart) throws NotFoundException, PermissionException {
+    public boolean setDataPointState(String xid, boolean enabled, boolean restart) throws NotFoundException, PermissionException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         DataPointVO vo = get(xid);
         permissionService.ensureDataSourcePermission(user, vo.getDataSourceId());
-        if (enabled && restart) {
-            Common.runtimeManager.restartDataPoint(vo);
-        } else {
-            Common.runtimeManager.enableDataPoint(vo, enabled);
+        return setDataPointState(vo, enabled, restart);
+    }
+
+    /**
+     * Reload a potentially running data point, if not running
+     *  then ignore
+     * @param xid
+     * @return true if state changed
+     */
+    public boolean reloadDataPoint(String xid) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        DataPointVO vo = get(xid);
+        return reloadDataPoint(vo);
+    }
+
+    /**
+     * Reload a potentially running data point, if not running
+     *  then ignore
+     *
+     * @param id
+     * @return true if state changed
+     */
+    public boolean reloadDataPoint(Integer id) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        DataPointVO vo = get(id);
+        return reloadDataPoint(vo);
+    }
+
+    /**
+     * Reload a running point common logic
+     * @param vo
+     * @return true if state changed
+     */
+    protected boolean reloadDataPoint(DataPointVO vo) {
+        boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
+        if(running) {
+            return setDataPointState(vo, true, true);
+        }else {
+            return false;
+        }
+    }
+
+    /**
+     * Set the state helper method
+     * @param vo
+     * @param enabled
+     * @param restart
+     * @return - true if the state changed
+     */
+    protected boolean setDataPointState(DataPointVO vo, boolean enabled, boolean restart) {
+        vo.setEnabled(enabled);
+        boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
+        if (running && !enabled) {
+            //Running, so stop it
+            Common.runtimeManager.stopDataPoint(vo.getId());
+            return true;
+        } else if (!running && enabled) {
+            //Not running, so start it
+            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
+            Common.runtimeManager.startDataPoint(dp);
+            return true;
+        }else if(running && enabled) {
+            //Running, so restart it
+            Common.runtimeManager.stopDataPoint(vo.getId());
+            List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+            DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
+            Common.runtimeManager.startDataPoint(dp);
+        }
+        DataPointDao.getInstance().saveEnabledColumn(vo);
+        return false;
+    }
+
+    /**
+     * Make a copy of the points on a data source,
+     *
+     * @param vo
+     * @param newDeviceName - if not supplied then data source name is used
+     */
+    public void copyDataSourcePoints(DataSourceVO vo, String newDeviceName) {
+        for (DataPointVO dataPoint : getDataPoints(vo.getId())) {
+
+            DataPointVO dataPointCopy = dataPoint.copy();
+            dataPointCopy.setId(Common.NEW_ID);
+            dataPointCopy.setXid(getDao().generateUniqueXid());
+            dataPointCopy.setName(dataPoint.getName());
+            dataPointCopy.setDeviceName(newDeviceName != null ? newDeviceName : vo.getName());
+            dataPointCopy.setDataSourceId(vo.getId());
+            //Don't enable the point until after we add the detectors
+            dataPointCopy.setEnabled(false);
+
+            //Copy Tags
+            dataPointCopy.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(dataPoint.getId()));
+
+            insert(dataPointCopy);
+
+            //Insert new event detectors
+            List<AbstractPointEventDetectorVO> detectors = EventDetectorDao.getInstance().getWithSource(dataPoint.getId(), dataPointCopy);
+            for (AbstractPointEventDetectorVO ped : detectors) {
+                ped.setId(Common.NEW_ID);
+                ped.setXid(EventDetectorDao.getInstance().generateUniqueXid());
+                eventDetectorDao.insert(ped);
+            }
+            if(dataPoint.isEnabled()) {
+                //Start him up
+                setDataPointState(dataPointCopy, true, true);
+            }
         }
     }
 
@@ -473,8 +590,22 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             throw new NotFoundException();
         }
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         this.permissionService.ensureDataPointReadPermission(user, vo);
         return vo;
     }
 
+    /**
+     * Get a data point and its detectors from the database
+     * @param xid
+     * @return
+     * @throws PermissionException
+     * @throws NotFoundException
+     */
+    public DataPointWithEventDetectors getWithEventDetectors(String xid) throws PermissionException, NotFoundException {
+        DataPointVO vo = get(xid);
+        List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
+        return new DataPointWithEventDetectors(vo, detectors);
+    }
 }

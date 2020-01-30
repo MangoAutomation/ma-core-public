@@ -16,6 +16,7 @@ import com.infiniteautomation.mango.emport.ImportTask;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EmportService;
+import com.infiniteautomation.mango.spring.service.EventDetectorsService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
@@ -215,6 +216,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
                     Common.getBean(PublisherService.class),
                     Common.getBean(EventHandlerService.class),
                     Common.getBean(JsonDataService.class),
+                    Common.getBean(EventDetectorsService.class),
                     null, false);
         }
 
