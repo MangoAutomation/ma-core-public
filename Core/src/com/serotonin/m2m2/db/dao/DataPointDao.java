@@ -28,9 +28,7 @@ import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
-import org.jooq.SelectConnectByStep;
 import org.jooq.SelectJoinStep;
-import org.jooq.SelectLimitStep;
 import org.jooq.SelectOnConditionStep;
 import org.jooq.SortField;
 import org.jooq.Table;
@@ -66,7 +64,6 @@ import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.log.LogStopWatch;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
@@ -836,53 +833,10 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
                 Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-
-                return select.leftJoin(pivotTable)
-                        .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
             }
         }
         return select;
-    }
-
-    @Override
-    public void customizedQuery(SelectJoinStep<Record> select, Condition condition,
-            List<SortField<Object>> sort, Integer limit, Integer offset,
-            MappedRowCallback<DataPointVO> callback) {
-        if (condition instanceof ConditionSortLimitWithTagKeys) {
-            Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) condition).getTagKeyToColumn();
-            if (!tagKeyToColumn.isEmpty()) {
-                Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-
-                select = select.leftJoin(pivotTable)
-                        .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
-            }
-        }
-        SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
-        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
-
-        Select<Record> offsetStep = afterSort;
-        if (limit != null) {
-            if (offset != null) {
-                offsetStep = afterSort.limit(offset, limit);
-            } else {
-                offsetStep = afterSort.limit(limit);
-            }
-        }
-
-        String sql = offsetStep.getSQL();
-        List<Object> arguments = offsetStep.getBindValues();
-        Object[] argumentsArray = arguments.toArray(new Object[arguments.size()]);
-
-        LogStopWatch stopWatch = null;
-        if (useMetrics) {
-            stopWatch = new LogStopWatch();
-        }
-
-        this.query(sql, argumentsArray, getCallbackResultSetExtractor(callback));
-
-        if (stopWatch != null) {
-            stopWatch.stop("customizedQuery(): " + this.create.renderInlined(offsetStep), metricsThreshold);
-        }
     }
 
     @Override
