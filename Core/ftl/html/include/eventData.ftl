@@ -4,7 +4,7 @@
 -->
 <tr>
   <td><#include "alarmLevel.ftl"></td>
-  <td colspan="2">${evt.prettyActiveTimestamp} - <b><@fmt message=evt.message/></b></td>
+  <td colspan="2">${evt.activeTimestamp?number_to_datetime?string["yyyy/MM/dd HH:mm:ss"]} - <b><@fmt message=evt.message/></b></td>
 </tr>
 
 <#if renderedHtmlPointValues??>
@@ -33,7 +33,7 @@
       <td valign="top" width="16"><img src="cid:<@img src="comment.png"/>" title="<@fmt key="notes.note"/>" alt="<@fmt key="notes.note"/>"/></td>
       <td valign="top">
         <span class="copyTitle">
-          ${comment.prettyTime} <@fmt key="notes.by"/>
+          ${comment.ts?number_to_datetime?string["yyyy/MM/dd HH:mm:ss"]} <@fmt key="notes.by"/>
           <#if comment.username??>
             ${comment.username}
           <#else>

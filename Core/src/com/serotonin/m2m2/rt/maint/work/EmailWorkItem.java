@@ -21,9 +21,9 @@ import com.serotonin.web.mail.EmailContent;
 import com.serotonin.web.mail.EmailSender;
 
 /**
- * 
+ *
  * @author Matthew Lohbihler
- * 
+ *
  */
 public class EmailWorkItem implements WorkItem {
     private static final Log LOG = LogFactory.getLog(EmailWorkItem.class);
@@ -69,9 +69,9 @@ public class EmailWorkItem implements WorkItem {
 
     @Override
     public void execute() {
-    	
-    	Exception failedEx = null;
-    	boolean success = true;
+
+        Exception failedEx = null;
+        boolean success = true;
         try {
             if (fromAddress == null) {
                 String addr = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
@@ -112,36 +112,24 @@ public class EmailWorkItem implements WorkItem {
         }
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getDescription()
-	 */
-	@Override
-	public String getDescription() {
-		if(fromAddress != null)
-			return "Sending email from " + this.fromAddress.toString() + " about " + this.subject;
-		return "Sending email about " + this.subject;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		return null;
-	}
+    @Override
+    public String getDescription() {
+        if(fromAddress != null)
+            return "Sending email from " + this.fromAddress.toString() + " about " + this.subject;
+        return "Sending email about " + this.subject;
+    }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-	 */
-	@Override
-	public int getQueueSize() {
-		return 0;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) { }
+    @Override
+    public String getTaskId() {
+        return null;
+    }
+
+    @Override
+    public int getQueueSize() {
+        return 0;
+    }
+
+    @Override
+    public void rejected(RejectedTaskReason reason) { }
 
 }

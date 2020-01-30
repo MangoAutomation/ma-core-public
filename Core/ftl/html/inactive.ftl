@@ -10,7 +10,7 @@
            <td style="background-color:#FFFFFF;padding:5px;">
 			<table>
 			  <tr><td colspan="3" class="smallTitle">${instanceDescription} - <@fmt key="ftl.eventInactive"/></td></tr>
-			  <tr><td colspan="3">${evt.prettyRtnTimestamp} - <b><@fmt message=evt.rtnMessage/></b></td></tr>
+			  <tr><td colspan="3">${evt.rtnTimestamp?number_to_datetime?string["yyyy/MM/dd HH:mm:ss"]} - <b><@fmt message=evt.rtnMessage/></b></td></tr>
 			  <tr><td colspan="3"><hr></td></tr>
 			  <tr><td colspan="3" class="smallTitle"><@fmt key="ftl.originalInformation"/></td></tr>
 			  <#include "include/eventData.ftl">
