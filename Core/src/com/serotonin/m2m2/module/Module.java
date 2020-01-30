@@ -41,6 +41,7 @@ public class Module {
 
     public static final String MODULE_DATA_ENV_PROP = "moduleData.location";
     public static final String MODULE_DATA_ENV_PROP_DEFAULT = "data";
+    public static final String RESOURCES_DIRECTORY = "resources";
     public static final URI MODULES_BASE_URI = URI.create("/" + Constants.DIR_MODULES + "/");
 
     public static final ExportCodes VERSION_STATE_CODES = new ExportCodes();
@@ -132,6 +133,10 @@ public class Module {
      */
     public Path modulePath() {
         return Common.MA_HOME_PATH.resolve(Constants.DIR_WEB).resolve(Constants.DIR_MODULES).resolve(name);
+    }
+
+    public Path resourcesPath() {
+        return modulePath().resolve(RESOURCES_DIRECTORY);
     }
 
     /**
