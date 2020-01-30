@@ -9,22 +9,20 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.permission.UserRolesDetails;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -76,10 +74,7 @@ public class PermissionService {
      * @param command
      */
     public void runAsSystemAdmin(Runnable command) {
-        runAs(systemSuperadmin, () -> {
-            command.run();
-            return null;
-        });
+        runAs(systemSuperadmin, command);
     }
 
     /**
@@ -92,47 +87,46 @@ public class PermissionService {
         return runAs(systemSuperadmin, command);
     }
 
-    /**
-     *
-     * @param user
-     * @param command
-     */
     public void runAs(PermissionHolder user, Runnable command) {
-        runAs(user, () -> {
+        SecurityContext original = SecurityContextHolder.getContext();
+        try {
+            newSecurityContext(user);
             command.run();
-            return null;
-        });
+        } finally {
+            SecurityContextHolder.setContext(original);
+        }
+    }
+
+    public <T> T runAs(PermissionHolder user, Supplier<T> command) {
+        SecurityContext original = SecurityContextHolder.getContext();
+        try {
+            newSecurityContext(user);
+            return command.get();
+        } finally {
+            SecurityContextHolder.setContext(original);
+        }
+    }
+
+    public <T> T runAsCallable(PermissionHolder user, Callable<T> command) throws Exception {
+        SecurityContext original = SecurityContextHolder.getContext();
+        try {
+            newSecurityContext(user);
+            return command.call();
+        } finally {
+            SecurityContextHolder.setContext(original);
+        }
     }
 
     /**
-     *
-     * @param <T>
+     * Creates and sets a new security context for the user
      * @param user
-     * @param command
      * @return
      */
-    public <T> T runAs(PermissionHolder user, Supplier<T> command) {
-        SecurityContext context = SecurityContextHolder.getContext();
-        SecurityContextHolder.clearContext();
-        setUser(user);
-        try {
-            return command.get();
-        }finally {
-            SecurityContextHolder.clearContext();
-            if(context != null) {
-                SecurityContextHolder.setContext(context);
-            }
-        }
-    }
-
-    private void setUser(PermissionHolder user) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null) {
-            throw new ShouldNeverHappenException("Security context already contains a permission holder");
-        }
-        SecurityContextImpl context = new SecurityContextImpl();
-        context.setAuthentication(new PreAuthenticatedAuthenticationToken(user, null));
-        SecurityContextHolder.setContext(context);
+    private SecurityContext newSecurityContext(PermissionHolder user) {
+        SecurityContext newContext = SecurityContextHolder.createEmptyContext();
+        newContext.setAuthentication(new PreAuthenticatedAuthenticationToken(user, null));
+        SecurityContextHolder.setContext(newContext);
+        return newContext;
     }
 
     /**
