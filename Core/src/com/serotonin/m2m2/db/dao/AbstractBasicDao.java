@@ -387,7 +387,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getJoinedSelectQuery();
-        select = joinTables(select, conditions);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 
