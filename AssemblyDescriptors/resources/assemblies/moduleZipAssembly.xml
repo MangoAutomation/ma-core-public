@@ -19,10 +19,10 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>${project.basedir}/includeInZip</directory>
-      <outputDirectory></outputDirectory>
+      <directory>${project.basedir}/file-resources</directory>
+      <outputDirectory>resources</outputDirectory>
       <includes>
-        <include>**</include>
+        <include>/**</include>
       </includes>
     </fileSet>
     <fileSet>
