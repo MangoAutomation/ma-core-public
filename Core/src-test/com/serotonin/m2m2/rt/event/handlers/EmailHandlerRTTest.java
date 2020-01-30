@@ -108,6 +108,7 @@ public class EmailHandlerRTTest extends MangoTestBase {
         scheduledItems.clear();
 
         //Make Inactive
+        evt.returnToNormal(this.timer.currentTimeMillis(), ReturnCause.RETURN_TO_NORMAL);
         rt.eventInactive(evt);
         assertEquals(0, scheduledItems.size());
 
@@ -133,6 +134,7 @@ public class EmailHandlerRTTest extends MangoTestBase {
         scheduledItems.clear();
 
         //Make Inactive
+        evt.returnToNormal(this.timer.currentTimeMillis(), ReturnCause.RETURN_TO_NORMAL);
         rt.eventInactive(evt);
         assertEquals(1, scheduledItems.size());
     }
