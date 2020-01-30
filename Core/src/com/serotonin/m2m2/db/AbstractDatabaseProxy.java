@@ -14,9 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.MissingResourceException;
 
@@ -37,21 +34,14 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
 import com.serotonin.m2m2.db.dao.PointValueDaoSQL;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.vo.User;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.RoleVO;
-import com.serotonin.provider.Providers;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
@@ -126,11 +116,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                     // Add the settings flag that this is a new instance. This flag is removed when an administrator
                     // logs in.
                     SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
-
-                    /**
-                     * Add a startup task to run after the Audit system is ready
-                     */
-                    Providers.get(IMangoLifecycle.class).addStartupTask(NEW_DB_STARTUP_TASK);
                 }
             }
             else
@@ -301,27 +286,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     public PlatformTransactionManager getTransactionManager() {
         return transactionManager;
     }
-
-    public static Runnable NEW_DB_STARTUP_TASK = () -> {
-        // New database, add default data
-
-        //Add default user and superadmin roles
-        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, Common.translate("roles.superadmin")));
-        RoleDao.getInstance().insert(new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, Common.translate("roles.user")));
-
-        //Create a default user.
-        User user = new User();
-        user.setId(Common.NEW_ID);
-        user.setName("Administrator");
-        user.setUsername("admin");
-        user.setPassword(Common.encrypt("admin"));
-        user.setEmail("admin@mango.example.com");
-        user.setPhone("");
-        user.setRoles(Collections.unmodifiableSet(new HashSet<>(Arrays.asList(PermissionHolder.SUPERADMIN_ROLE.get()))));
-        user.setDisabled(false);
-        user.setHomeUrl("/ui/administration/home");
-        UserDao.getInstance().insert(user);
-    };
 
     @Override
     public OutputStream createLogOutputStream(Class<?> clazz) {

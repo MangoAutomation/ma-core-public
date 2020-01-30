@@ -54,7 +54,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
     @Test
     public void testAddRemoveListeners() {
         int userCount = 3;
-        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE);
         List<MockUserEventListener> listenerSet1 = new ArrayList<>();
         UserEventListener multicaster = null;
 
@@ -94,7 +94,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
         int eventCount = 13;
         int userCount = 13;
 
-        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE);
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
         for(User u : users) {
@@ -141,7 +141,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
         int eventCount = 10000;
         int userCount = 100;
 
-        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE);
         List<MockUserEventListener> listeners = new ArrayList<>();
         UserEventListener multicaster = null;
         for(User u : users) {
@@ -197,7 +197,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
                     "user" + added,
                     "password",
                     "user" + added + "@yourMangoDomain.com",
-                    PermissionHolder.SUPERADMIN_ROLE.get()));
+                    PermissionHolder.SUPERADMIN_ROLE));
             added++;
         }
 
@@ -223,7 +223,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
                     "user" + added,
                     "password",
                     "user" + added + "@yourMangoDomain.com",
-                    PermissionHolder.SUPERADMIN_ROLE.get()));
+                    PermissionHolder.SUPERADMIN_ROLE));
             added++;
         }
 

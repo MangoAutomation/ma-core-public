@@ -164,7 +164,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * @return
      */
     public Role getSuperadminRole() {
-        return PermissionHolder.SUPERADMIN_ROLE.get();
+        return PermissionHolder.SUPERADMIN_ROLE;
     }
 
     /**
@@ -172,6 +172,6 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * @return
      */
     public Role getUserRole() {
-        return PermissionHolder.USER_ROLE.get();
+        return PermissionHolder.USER_ROLE;
     }
 }

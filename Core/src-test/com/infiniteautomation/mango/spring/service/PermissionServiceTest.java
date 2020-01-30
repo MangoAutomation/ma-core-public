@@ -148,7 +148,7 @@ public class PermissionServiceTest extends MangoTestBase {
 
         assertTrue(permissionService.hasAnyRole(testUser, roles));
         assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>()));
-        assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>(Arrays.asList(PermissionHolder.SUPERADMIN_ROLE.get()))));
+        assertFalse(permissionService.hasAnyRole(testUser, new HashSet<>(Arrays.asList(PermissionHolder.SUPERADMIN_ROLE))));
 
         //Test 2 roles
         roles.add(randomRole());

@@ -52,7 +52,7 @@ public class MangoUserDetailsService implements UserDetailsService {
         Set<GrantedAuthority> grantedAuthorities = new HashSet<GrantedAuthority>(roles.size());
         
         for (Role role : roles) {
-        	if(role.equals(PermissionHolder.SUPERADMIN_ROLE.get())) {
+        	if(role.equals(PermissionHolder.SUPERADMIN_ROLE)) {
         		grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
         	}else {
             	grantedAuthorities.add(new SimpleGrantedAuthority("ROLE_" + role.getXid().toUpperCase(Locale.ROOT)));

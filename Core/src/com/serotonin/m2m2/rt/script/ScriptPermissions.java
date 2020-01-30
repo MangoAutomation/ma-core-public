@@ -114,7 +114,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
             combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
             combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.customPermissions));
             Set<Role> roles = new HashSet<>(combined.size() + 1);
-            roles.add(PermissionHolder.USER_ROLE.get());
+            roles.add(PermissionHolder.USER_ROLE);
             for(String group : combined) {
                 RoleVO role = RoleDao.getInstance().getByXid(group);
                 if(role != null) {
@@ -133,7 +133,7 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
             combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
             combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.customPermissions));
             Set<Role> roles = new HashSet<>(combined.size() + 1);
-            roles.add(PermissionHolder.USER_ROLE.get());
+            roles.add(PermissionHolder.USER_ROLE);
             for(String group : combined) {
                 RoleVO role = RoleDao.getInstance().getByXid(group);
                 if(role != null) {

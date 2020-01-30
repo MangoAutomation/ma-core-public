@@ -40,7 +40,7 @@ public class UserEventsTest extends MangoTestBase {
 
     @Test
     public void testListenerAddRemoveSyncrhonization() throws InterruptedException {
-        List<User> users = createUsers(1, PermissionHolder.SUPERADMIN_ROLE.get());
+        List<User> users = createUsers(1, PermissionHolder.SUPERADMIN_ROLE);
 
         ExecutorService executor = Executors.newFixedThreadPool(3);
         SynchronousQueue<MockUserEventListener> queue = new SynchronousQueue<>();
@@ -105,7 +105,7 @@ public class UserEventsTest extends MangoTestBase {
     public void testRaiseEvents() throws InterruptedException {
 
         //Create some users
-        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE);
 
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {
@@ -153,7 +153,7 @@ public class UserEventsTest extends MangoTestBase {
     public void testDeactivateEvents() throws InterruptedException {
 
         //Create some users
-        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE.get());
+        List<User> users = createUsers(userCount, PermissionHolder.SUPERADMIN_ROLE);
 
         List<MockUserEventListener> listeners = new ArrayList<>();
         for(User u : users) {

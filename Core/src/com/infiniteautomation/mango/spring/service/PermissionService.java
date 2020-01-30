@@ -135,7 +135,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasAdminRole(PermissionHolder holder) {
-        return hasSingleRole(holder, PermissionHolder.SUPERADMIN_ROLE.get());
+        return hasSingleRole(holder, PermissionHolder.SUPERADMIN_ROLE);
     }
 
     /**
@@ -551,7 +551,7 @@ public class PermissionService {
     private boolean containsAll(Set<Role> heldRoles, Set<Role> requiredRoles) {
         checkRoleSet(requiredRoles);
 
-        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE.get())) {
+        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE)) {
             return true;
         }
 
@@ -577,7 +577,7 @@ public class PermissionService {
     private boolean containsAnyRole(Set<Role> heldRoles, Set<Role> requiredRoles) {
         checkRoleSet(requiredRoles);
         //If I am superadmin or this has the default user role the we are good
-        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE.get()) || requiredRoles.contains(PermissionHolder.USER_ROLE.get())) {
+        if (heldRoles.contains(PermissionHolder.SUPERADMIN_ROLE) || requiredRoles.contains(PermissionHolder.USER_ROLE)) {
             return true;
         }
 
@@ -641,7 +641,7 @@ public class PermissionService {
             return;
 
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE.get()) && Collections.disjoint(holder.getRoles(), newRoles)) {
+        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getRoles(), newRoles)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 

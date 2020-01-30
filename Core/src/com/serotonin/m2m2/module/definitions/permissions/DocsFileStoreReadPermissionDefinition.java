@@ -32,6 +32,6 @@ public class DocsFileStoreReadPermissionDefinition extends PermissionDefinition{
 
     @Override
     public Set<Role> getDefaultRoles() {
-        return Collections.singleton(PermissionHolder.USER_ROLE.get());
+        return Collections.singleton(PermissionHolder.USER_ROLE);
     }
 }

@@ -20,7 +20,6 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.Functions;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -54,6 +53,9 @@ public class Upgrade29 extends DBUpgrade {
 
         try {
             Map<String, Role> roles = new HashMap<>();
+            roles.put(PermissionHolder.SUPERADMIN_ROLE_XID, PermissionHolder.SUPERADMIN_ROLE);
+            roles.put(PermissionHolder.USER_ROLE_XID, PermissionHolder.USER_ROLE);
+
             createRolesTables(roles, out);
             convertUsers(roles, out);
             convertSystemSettingsPermissions(roles, out);
@@ -109,10 +111,12 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
 
         //Add default user and superadmin roles
-        Role superadminRole = new Role(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {PermissionHolder.SUPERADMIN_ROLE_XID, Common.translate("roles.superadmin")}), PermissionHolder.SUPERADMIN_ROLE_XID);
-        roles.put(superadminRole.getXid(), superadminRole);
-        Role userRole = new Role(ejt.doInsert("INSERT INTO roles (xid,name) VALUES (?,?)", new Object[] {PermissionHolder.USER_ROLE_XID, Common.translate("roles.user")}), PermissionHolder.USER_ROLE_XID);
-        roles.put(userRole.getXid(), userRole);
+        scripts = new HashMap<>();
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), defaultRolesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), defaultRolesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), defaultRolesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), defaultRolesSQL);
+        runScript(scripts, out);
     }
 
     private void convertUsers(Map<String, Role> roles, OutputStream out) throws Exception {
@@ -331,6 +335,12 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;",
             "ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);"
+    };
+
+    //Default role data
+    private String[] defaultRolesSQL = new String[] {
+            "INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmin role');",
+            "INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'User role');"
     };
 
     //Point Hierarchy

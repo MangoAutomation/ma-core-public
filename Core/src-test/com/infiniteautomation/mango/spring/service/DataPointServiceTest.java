@@ -83,7 +83,7 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
             DataPointVO vo = newVO(editUser);
             setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
             setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-            vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()));
+            vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE));
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
             });
@@ -103,9 +103,9 @@ public class DataPointServiceTest<T extends DataSourceVO> extends AbstractVOServ
     public void testUserEditRoleFails() {
         runTest(() -> {
             DataPointVO vo = newVO(editUser);
-            setReadRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()), vo);
+            setReadRoles(Collections.singleton(PermissionHolder.USER_ROLE), vo);
             setEditRoles(Collections.emptySet(), vo);
-            vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE.get()));
+            vo.setSetRoles(Collections.singleton(PermissionHolder.USER_ROLE));
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
             });

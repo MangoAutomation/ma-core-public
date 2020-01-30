@@ -32,7 +32,6 @@ import com.serotonin.db.DaoUtils;
 import com.serotonin.db.spring.ConnectionCallbackVoid;
 import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.MockPointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDao;
 import com.serotonin.m2m2.db.dao.PointValueDaoMetrics;
@@ -42,7 +41,6 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.upgrade.DBUpgrade;
 import com.serotonin.m2m2.module.DatabaseSchemaDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.provider.Providers;
 
 /**
  * Using an H2 in memory database we can easily mock the database proxy.
@@ -153,8 +151,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
             // Add the settings flag that this is a new instance. This flag is removed when an administrator
             // logs in.
             SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
-
-            Providers.get(IMangoLifecycle.class).addStartupTask(AbstractDatabaseProxy.NEW_DB_STARTUP_TASK);
         }
 
         // The database exists, so let's make its schema version matches the application version.
@@ -423,8 +419,6 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
         // Add the settings flag that this is a new instance. This flag is removed when an administrator
         // logs in.
         SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
-
-        AbstractDatabaseProxy.NEW_DB_STARTUP_TASK.run();
 
         //Clean the noSQL database
         // Check if we are using NoSQL

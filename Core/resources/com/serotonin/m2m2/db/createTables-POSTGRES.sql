@@ -334,3 +334,17 @@ CREATE TABLE userRoleMappings (
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
+
+--
+--
+-- Mango Default Data
+--
+-- Insert admin user
+INSERT INTO users (id, name, username, password, email, phone, disabled, lastLogin, homeUrl, receiveAlarmEmails, receiveOwnAuditEvents, muted, locale, tokenVersion, passwordVersion, passwordChangeTimestamp, sessionExpirationOverride, createdTs) VALUES 
+	(1, 'Administrator', 'admin', '{BCRYPT}$2a$10$L6Jea9zZ79Hc82trIesw0ekqH0Q8hTGOBqSGutoi17p2UZ.j3vzWm', 'admin@mango.example.com', '', 'N', 0, '/ui/administration/home', -3, 'N', 'Y', '', 1, 1, 0, 'N', 0);      
+-- Insert default roles
+INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmin role');
+INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'User role');
+-- Add admin user role mappings
+INSERT INTO userRoleMappings (roleId, userId) VALUES (1, 1);
+INSERT INTO userRoleMappings (roleId, userId) VALUES (2, 1);

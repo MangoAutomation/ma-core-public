@@ -328,7 +328,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
     }
 
     private void enforceUserRole(User vo) {
-        Role userRole = PermissionHolder.USER_ROLE.get();
+        Role userRole = PermissionHolder.USER_ROLE;
         if(!vo.getRoles().contains(userRole)) {
             Set<Role> updated = new HashSet<>(vo.getRoles());
             updated.add(userRole);
