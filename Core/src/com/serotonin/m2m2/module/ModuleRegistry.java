@@ -75,8 +75,6 @@ import com.serotonin.m2m2.module.definitions.permissions.SystemMetricsReadPermis
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.query.DataPointEventsByDataPointRQLQueryDefinition;
-import com.serotonin.m2m2.module.definitions.query.DataPointEventsByTagQueryDefinition;
 import com.serotonin.m2m2.module.definitions.script.DataPointQueryScriptUtilityDefinition;
 import com.serotonin.m2m2.module.definitions.script.DataSourceQueryScriptUtilityDefinition;
 import com.serotonin.m2m2.module.definitions.script.HttpBuilderScriptUtilityDefinition;
@@ -152,7 +150,6 @@ public class ModuleRegistry {
     private static List<SystemSettingsListenerDefinition> SYSTEM_SETTINGS_LISTENER_DEFINITIONS;
     private static Map<String, SystemActionDefinition> SYSTEM_ACTION_DEFINITIONS;
     private static Map<String, FileStoreDefinition> FILE_STORE_DEFINITIONS;
-    private static Map<String, ModuleQueryDefinition> MODULE_QUERY_DEFINITIONS;
     private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
@@ -698,41 +695,6 @@ public class ModuleRegistry {
 
     //
     //
-    // Module Query special handling
-    //
-    public static Map<String, ModuleQueryDefinition> getModuleQueryDefinitions() {
-        ensureModuleQueryDefinitions();
-        return new HashMap<String, ModuleQueryDefinition>(MODULE_QUERY_DEFINITIONS);
-    }
-
-    public static ModuleQueryDefinition getModuleQueryDefinition(String name){
-        ensureModuleQueryDefinitions();
-        return MODULE_QUERY_DEFINITIONS.get(name);
-    }
-
-    private static void ensureModuleQueryDefinitions() {
-        if (MODULE_QUERY_DEFINITIONS == null) {
-            synchronized (LOCK) {
-                if (MODULE_QUERY_DEFINITIONS == null) {
-                    Map<String, ModuleQueryDefinition> map = new HashMap<>();
-                    for(ModuleQueryDefinition def : Module.getDefinitions(preDefaults, ModuleQueryDefinition.class)){
-                        map.put(def.getQueryTypeName(), def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (ModuleQueryDefinition def : module.getDefinitions(ModuleQueryDefinition.class))
-                            map.put(def.getQueryTypeName(), def);
-                    }
-                    for(ModuleQueryDefinition def : Module.getDefinitions(postDefaults, ModuleQueryDefinition.class)){
-                        map.put(def.getQueryTypeName(), def);
-                    }
-                    MODULE_QUERY_DEFINITIONS = map;
-                }
-            }
-        }
-    }
-
-    //
-    //
     // Read Only Settings special handling
     //
     public static List<MangoJavascriptContextObjectDefinition> getMangoJavascriptContextObjectDefinitions() {
@@ -924,10 +886,6 @@ public class ModuleRegistry {
         preDefaults.add(new CoreFileStoreDefinition());
         preDefaults.add(new PublicFileStoreDefinition());
         preDefaults.add(new DocsFileStoreDefinition());
-
-        /* Module Queries */
-        preDefaults.add(new DataPointEventsByTagQueryDefinition());
-        preDefaults.add(new DataPointEventsByDataPointRQLQueryDefinition());
 
         /* Script Utilities */
         preDefaults.add(new DataPointQueryScriptUtilityDefinition());
