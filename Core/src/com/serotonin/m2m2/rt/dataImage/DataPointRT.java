@@ -873,7 +873,6 @@ public class DataPointRT implements IDataPointValueSource, ILifecycle {
 
         // Add point event listeners
         for (PointEventDetectorRT<?> pedRT : detectors) {
-            detectors.add(pedRT);
             pedRT.initialize();
             Common.runtimeManager.addDataPointListener(vo.getId(), pedRT);
         }
