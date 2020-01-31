@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +74,7 @@ abstract public class BasePooledProxy extends AbstractDatabaseProxy {
                 ejt.execute(statement.toString());
                 if(out != null) {
                     try {
-                        out.write((statement.toString() + "\n").getBytes(Common.UTF8_CS));
+                        out.write((statement.toString() + "\n").getBytes(StandardCharsets.UTF_8));
                     } catch (IOException e) {
                         //Don't really care
                     }

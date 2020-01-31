@@ -2,6 +2,7 @@ package com.serotonin.web.mail;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 import javax.mail.internet.AddressException;
@@ -13,8 +14,6 @@ import org.springframework.mail.MailPreparationException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
-
-import com.serotonin.m2m2.Common;
 
 public class EmailSender {
     private final JavaMailSenderImpl senderImpl;
@@ -37,7 +36,7 @@ public class EmailSender {
         if (port != -1)
             senderImpl.setPort(port);
     }
-    
+
     //
     // /
     // / Senders
@@ -67,7 +66,7 @@ public class EmailSender {
 
     public void send(String fromAddr, String fromPersonal, String toAddr, String subject, EmailContent content) {
         try {
-            send(new InternetAddress(fromAddr, fromPersonal, Common.UTF8), new InternetAddress[] { new InternetAddress(toAddr) },
+            send(new InternetAddress(fromAddr, fromPersonal, StandardCharsets.UTF_8.name()), new InternetAddress[] { new InternetAddress(toAddr) },
                     null, null, subject, content);
         }
         catch (AddressException e) {
@@ -108,7 +107,7 @@ public class EmailSender {
             InternetAddress[] toIAddr = new InternetAddress[toAddr.length];
             for (int i = 0; i < toAddr.length; i++)
                 toIAddr[i] = new InternetAddress(toAddr[i]);
-            send(new InternetAddress(fromAddr, fromPersonal, Common.UTF8), toIAddr, null, null, subject, content);
+            send(new InternetAddress(fromAddr, fromPersonal, StandardCharsets.UTF_8.name()), toIAddr, null, null, subject, content);
         }
         catch (AddressException e) {
             throw new MailPreparationException(e);
@@ -127,9 +126,10 @@ public class EmailSender {
             final InternetAddress[] to, final InternetAddress[] cc, final InternetAddress[] bcc, final String subject,
             final EmailContent content) throws MailException {
         return new MimeMessagePreparator() {
+            @Override
             public void prepare(MimeMessage mimeMessage) throws Exception {
                 MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, content.isMultipart(),
-                        content.getEncoding());
+                        content.getEncoding().name());
                 helper.setFrom(from);
                 if (replyTo != null)
                     helper.setReplyTo(replyTo);
@@ -182,7 +182,7 @@ public class EmailSender {
     public void send(MimeMessagePreparator[] mimeMessagePreparators) throws MailException {
         senderImpl.send(mimeMessagePreparators);
     }
-    
+
     /**
      * Enable debugging and return the stream
      * @return
@@ -191,5 +191,5 @@ public class EmailSender {
         senderImpl.getSession().setDebug(true);
         senderImpl.getSession().setDebugOut(stream);
     }
-    
+
 }

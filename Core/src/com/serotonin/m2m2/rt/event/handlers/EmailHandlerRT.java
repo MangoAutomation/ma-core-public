@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -435,7 +436,7 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
             MangoEmailContent content;
             if(StringUtils.isEmpty(customTemplate))
-                content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, Common.UTF8);
+                content = new MangoEmailContent(notificationType.getFile(), model, translations, subject, StandardCharsets.UTF_8);
             else
                 content = new MangoEmailContent(handlerXid, customTemplate, model, translations, subject);
 

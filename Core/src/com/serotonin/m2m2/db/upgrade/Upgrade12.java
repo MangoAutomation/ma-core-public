@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
@@ -242,7 +243,7 @@ public class Upgrade12 extends DBUpgrade {
 
             int upgradedEventHandlerCount = upgradeEventHandlers(os);
             String upgradedString = new String("Upgraded " + upgradedEventHandlerCount + " event handlers.\n");
-            os.write(upgradedString.getBytes(Common.UTF8_CS));
+            os.write(upgradedString.getBytes(StandardCharsets.UTF_8));
 
             //Now make column not null
             scripts = new HashMap<>();
@@ -266,12 +267,12 @@ public class Upgrade12 extends DBUpgrade {
             //Remove audit events
             int removed = this.ejt.update("DELETE FROM events WHERE typeName=?", new Object[]{EventType.EventTypeNames.AUDIT});
             String removedString = new String("Deleted " + removed + " AUDIT events from the events table.\n");
-            os.write(removedString.getBytes(Common.UTF8_CS));
+            os.write(removedString.getBytes(StandardCharsets.UTF_8));
 
             //Upgrade the Event Detectors
             int upgradedEventDetectorCount = upgradeEventDetectors(os);
             String upgradedED = new String("Upgraded " + upgradedEventDetectorCount + " event detectors.\n");
-            os.write(upgradedED.getBytes(Common.UTF8_CS));
+            os.write(upgradedED.getBytes(StandardCharsets.UTF_8));
 
             //Drop the pointEventDetectors table.
             this.ejt.update("DROP TABLE pointEventDetectors");
@@ -344,7 +345,7 @@ public class Upgrade12 extends DBUpgrade {
                 default:
                     LOG.error("Unknown event detector type: " + vo.getHandlerType());
                     try{
-                        os.write(new String("Unknown event detector type: " + vo.getHandlerType()).getBytes(Common.UTF8_CS));
+                        os.write(new String("Unknown event detector type: " + vo.getHandlerType()).getBytes(StandardCharsets.UTF_8));
                     }catch(IOException e2){
                         LOG.error("Unable to write to upgrade log.", e2);
                     }
@@ -406,15 +407,15 @@ public class Upgrade12 extends DBUpgrade {
         }catch(IOException e){
             LOG.error(e.getMessage(), e);
             try{
-                os.write(e.getMessage().getBytes(Common.UTF8_CS));
-                os.write("\n".getBytes(Common.UTF8_CS));
+                os.write(e.getMessage().getBytes(StandardCharsets.UTF_8));
+                os.write("\n".getBytes(StandardCharsets.UTF_8));
             }catch(IOException e2){
                 LOG.error("Unable to write to upgrade log.", e2);
             }
         }
         String result = new String("Backed up " + handler.count + " audit events into " + backupFile.getAbsolutePath() + "\n");
         try{
-            os.write(result.getBytes(Common.UTF8_CS));
+            os.write(result.getBytes(StandardCharsets.UTF_8));
         }catch(IOException e2){
             LOG.error("Unable to write to upgrade log.", e2);
         }
@@ -457,8 +458,8 @@ public class Upgrade12 extends DBUpgrade {
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
                 try{
-                    os.write(e.getMessage().getBytes(Common.UTF8_CS));
-                    os.write("\n".getBytes(Common.UTF8_CS));
+                    os.write(e.getMessage().getBytes(StandardCharsets.UTF_8));
+                    os.write("\n".getBytes(StandardCharsets.UTF_8));
                 }catch(IOException e2){
                     LOG.error("Unable to write to upgrade log.", e2);
                 }
@@ -505,8 +506,8 @@ public class Upgrade12 extends DBUpgrade {
             }catch(JsonException | IOException e){
                 LOG.error(e.getMessage(), e);
                 try{
-                    os.write(e.getMessage().getBytes(Common.UTF8_CS));
-                    os.write("\n".getBytes(Common.UTF8_CS));
+                    os.write(e.getMessage().getBytes(StandardCharsets.UTF_8));
+                    os.write("\n".getBytes(StandardCharsets.UTF_8));
                 }catch(IOException e2){
                     LOG.error("Unable to write to upgrade log.", e2);
                 }
@@ -713,7 +714,7 @@ public class Upgrade12 extends DBUpgrade {
                     //Not supported
                     LOG.warn("unable to convert event detector of type: " + rs.getInt(5) );
                     try{
-                        os.write(new String("unable to convert event detector of type: " + rs.getInt(5) + "\n").getBytes(Common.UTF8_CS));
+                        os.write(new String("unable to convert event detector of type: " + rs.getInt(5) + "\n").getBytes(StandardCharsets.UTF_8));
                     }catch(IOException e){
                         LOG.error("Unable to write to upgrade log.", e);
                     }

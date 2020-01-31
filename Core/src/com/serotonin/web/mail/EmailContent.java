@@ -1,31 +1,34 @@
 package com.serotonin.web.mail;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class EmailContent {
     protected String plainContent;
     protected String htmlContent;
     private final List<EmailAttachment> attachments = new ArrayList<EmailAttachment>(2);
     private final List<EmailInline> inlineParts = new ArrayList<EmailInline>(2);
-    protected String encoding;
+    protected Charset encoding;
 
     protected EmailContent() {
         // no op
     }
-
+    
     public EmailContent(String plainContent) {
-        this(plainContent, null, null);
+        this(plainContent, null, StandardCharsets.UTF_8);
     }
 
     public EmailContent(String plainContent, String htmlContent) {
-        this(plainContent, htmlContent, null);
+        this(plainContent, htmlContent, StandardCharsets.UTF_8);
     }
 
-    public EmailContent(String plainContent, String htmlContent, String encoding) {
+    public EmailContent(String plainContent, String htmlContent, Charset encoding) {
         this.plainContent = plainContent;
         this.htmlContent = htmlContent;
-        this.encoding = encoding;
+        this.encoding = Objects.requireNonNull(encoding);
     }
 
     public boolean isMultipart() {
@@ -56,7 +59,7 @@ public class EmailContent {
         return inlineParts;
     }
 
-    public String getEncoding() {
+    public Charset getEncoding() {
         return encoding;
     }
 }

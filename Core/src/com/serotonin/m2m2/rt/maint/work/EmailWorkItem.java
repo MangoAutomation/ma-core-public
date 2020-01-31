@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.rt.maint.work;
 
+import java.nio.charset.StandardCharsets;
+
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
@@ -76,7 +78,7 @@ public class EmailWorkItem implements WorkItem {
             if (fromAddress == null) {
                 String addr = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_ADDRESS);
                 String pretty = SystemSettingsDao.instance.getValue(SystemSettingsDao.EMAIL_FROM_NAME);
-                fromAddress = new InternetAddress(addr, pretty, Common.UTF8);
+                fromAddress = new InternetAddress(addr, pretty, StandardCharsets.UTF_8.name());
             }
 
             EmailSender emailSender = new EmailSender(

@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -422,7 +423,7 @@ public class ScriptingTest extends MangoTestBase {
      */
     static String readFile(Path path) throws IOException {
         byte[] encoded = Files.readAllBytes(path);
-        return new String(encoded, Common.UTF8_CS);
+        return new String(encoded, StandardCharsets.UTF_8);
     }
 
 }

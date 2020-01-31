@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.components;
 import java.io.IOException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Collections;
 import java.util.Date;
@@ -156,7 +157,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         Translations translations = existingUser.getTranslations();
         Map<String, Object> model = new HashMap<>();
         TranslatableMessage subject = new TranslatableMessage("ftl.emailVerification.warningSubject", this.systemSettings.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
-        MangoEmailContent content = new MangoEmailContent("emailVerificationWarning", model, translations, subject.translate(translations), Common.UTF8);
+        MangoEmailContent content = new MangoEmailContent("emailVerificationWarning", model, translations, subject.translate(translations), StandardCharsets.UTF_8);
         EmailWorkItem.queueEmail(existingUser.getEmail(), content);
     }
 
@@ -180,7 +181,7 @@ public class EmailAddressVerificationService extends JwtSignerVerifier<String> {
         model.put("username", userToUpdate != null ? userToUpdate.getUsername() : null);
 
         TranslatableMessage subject = new TranslatableMessage("ftl.emailVerification.subject", this.systemSettings.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
-        MangoEmailContent content = new MangoEmailContent("emailVerification", model, translations, subject.translate(translations), Common.UTF8);
+        MangoEmailContent content = new MangoEmailContent("emailVerification", model, translations, subject.translate(translations), StandardCharsets.UTF_8);
 
         EmailWorkItem.queueEmail(claims.getSubject(), content);
     }

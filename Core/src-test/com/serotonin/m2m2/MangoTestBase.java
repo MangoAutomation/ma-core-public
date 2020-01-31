@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -204,7 +205,7 @@ public class MangoTestBase {
     }
 
     protected void loadConfiguration(File jsonFile) throws JsonException, IOException, URISyntaxException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsonFile), Common.UTF8_CS));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(jsonFile), StandardCharsets.UTF_8));
         JsonReader jr = new JsonReader(reader);
         JsonObject jo = jr.read(JsonObject.class);
 

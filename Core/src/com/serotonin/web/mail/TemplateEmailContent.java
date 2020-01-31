@@ -2,6 +2,7 @@ package com.serotonin.web.mail;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -17,11 +18,11 @@ public class TemplateEmailContent extends EmailContent {
         REPLACEMENT_EMPTY_TAG.put(Pattern.compile("&nbsp;"), " ");
     }
 
-    public TemplateEmailContent(String encoding) {
+    public TemplateEmailContent(Charset encoding) {
         this.encoding = encoding;
     }
 
-    public TemplateEmailContent(Template plainTpl, Template htmlTpl, Object model, String encoding)
+    public TemplateEmailContent(Template plainTpl, Template htmlTpl, Object model, Charset encoding)
             throws TemplateException, IOException {
         setPlainTemplate(plainTpl, model);
         setHtmlTemplate(htmlTpl, model);

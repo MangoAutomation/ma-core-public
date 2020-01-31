@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.components;
 import java.io.IOException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.util.Date;
 import java.util.HashMap;
@@ -20,7 +21,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.infiniteautomation.mango.jwt.JwtSignerVerifier;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.UsersService;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -174,7 +174,7 @@ public final class PasswordResetService extends JwtSignerVerifier<User> {
         model.put("expiration", expiration);
 
         TranslatableMessage subject = new TranslatableMessage("ftl.passwordReset.subject", user.getUsername());
-        MangoEmailContent content = new MangoEmailContent("passwordReset", model, translations, subject.translate(translations), Common.UTF8);
+        MangoEmailContent content = new MangoEmailContent("passwordReset", model, translations, subject.translate(translations), StandardCharsets.UTF_8);
 
         EmailWorkItem.queueEmail(user.getEmail(), content);
     }

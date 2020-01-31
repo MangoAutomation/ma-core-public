@@ -4,6 +4,7 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -529,7 +530,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         Translations translations = existing.getTranslations();
         Map<String, Object> model = new HashMap<>();
         TranslatableMessage subject = new TranslatableMessage("ftl.userApproved.subject", this.systemSettings.getValue(SystemSettingsDao.INSTANCE_DESCRIPTION));
-        MangoEmailContent content = new MangoEmailContent("accountApproved", model, translations, subject.translate(translations), Common.UTF8);
+        MangoEmailContent content = new MangoEmailContent("accountApproved", model, translations, subject.translate(translations), StandardCharsets.UTF_8);
         EmailWorkItem.queueEmail(existing.getEmail(), content);
 
         return approved;

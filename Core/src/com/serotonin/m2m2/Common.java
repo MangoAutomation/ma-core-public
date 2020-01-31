@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.management.ManagementFactory;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -137,10 +137,6 @@ public class Common {
 
     private static final Path TEMP_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.temp", "work")).normalize());
     private static final Path FILEDATA_PATH = createDirectories(MA_HOME_PATH.resolve(envProps.getString("paths.filedata", "filedata")).normalize());
-
-    public static final String UTF8 = "UTF-8";
-    public static final Charset UTF8_CS = Charset.forName(UTF8);
-    public static final Charset ASCII_CS = Charset.forName("ASCII");
 
     public static final int NEW_ID = -1;
 
@@ -545,7 +541,7 @@ public class Common {
                 throw new ShouldNeverHappenException("MessageDigest algorithm " + alg
                         + " not found. Set the 'security.hashAlgorithm' property in env.properties appropriately. "
                         + "Use 'NONE' for no hashing.");
-            md.update(plaintext.getBytes(UTF8_CS));
+            md.update(plaintext.getBytes(StandardCharsets.UTF_8));
             byte raw[] = md.digest();
             String hash = new String(Base64.encodeBase64(raw));
             return hash;

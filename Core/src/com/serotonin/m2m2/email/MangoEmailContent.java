@@ -6,6 +6,8 @@ package com.serotonin.m2m2.email;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import com.serotonin.m2m2.Common;
@@ -21,20 +23,20 @@ public class MangoEmailContent extends TemplateEmailContent {
     public static final int CONTENT_TYPE_BOTH = 0;
     public static final int CONTENT_TYPE_HTML = 1;
     public static final int CONTENT_TYPE_TEXT = 2;
-    
+
     public static ExportCodes CONTENT_TYPE_CODES = new ExportCodes();
     static {
-    	CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_BOTH, "HTML_AND_TEXT");
-    	CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_HTML, "HTML");
-    	CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_TEXT, "TEXT");
+        CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_BOTH, "HTML_AND_TEXT");
+        CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_HTML, "HTML");
+        CONTENT_TYPE_CODES.addElement(CONTENT_TYPE_TEXT, "TEXT");
     }
 
     private final String defaultSubject;
     private final SubjectDirective subjectDirective;
-    
-    public MangoEmailContent(String handlerXid, String rawTemplate, Map<String, Object> model, Translations translations, 
-    		String defaultSubject) throws TemplateException, IOException {
-    	super(Common.UTF8);
+
+    public MangoEmailContent(String handlerXid, String rawTemplate, Map<String, Object> model, Translations translations,
+            String defaultSubject) throws TemplateException, IOException {
+        super(StandardCharsets.UTF_8);
 
         int type = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);
 
@@ -45,7 +47,7 @@ public class MangoEmailContent extends TemplateEmailContent {
         model.put("subject", subjectDirective);
 
         Template template = new Template(handlerXid, new StringReader(rawTemplate), Common.freemarkerConfiguration);
-        
+
         if (type == CONTENT_TYPE_HTML || type == CONTENT_TYPE_BOTH)
             setHtmlTemplate(template, model);
 
@@ -54,7 +56,7 @@ public class MangoEmailContent extends TemplateEmailContent {
     }
 
     public MangoEmailContent(String templateName, Map<String, Object> model, Translations translations,
-            String defaultSubject, String encoding) throws TemplateException, IOException {
+            String defaultSubject, Charset encoding) throws TemplateException, IOException {
         super(encoding);
 
         int type = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.EMAIL_CONTENT_TYPE);

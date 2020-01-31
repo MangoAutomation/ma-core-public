@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -281,7 +282,7 @@ public class H2Proxy extends AbstractDatabaseProxy {
                 ejt.execute(statement.toString());
                 if(out != null) {
                     try {
-                        out.write((statement.toString() + "\n").getBytes(Common.UTF8_CS));
+                        out.write((statement.toString() + "\n").getBytes(StandardCharsets.UTF_8));
                     } catch (IOException e) {
                         //Don't really care
                     }

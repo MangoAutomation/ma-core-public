@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db.upgrade;
 
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -16,7 +17,6 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 
 /**
@@ -74,7 +74,7 @@ public class Upgrade14 extends DBUpgrade{
             });
 
             String upgradedString = new String("Updated " + count.get() + " user comments with XIDs.\n");
-            os.write(upgradedString.getBytes(Common.UTF8_CS));
+            os.write(upgradedString.getBytes(StandardCharsets.UTF_8));
 
             //Run the scripts to restrict the XID to NOT NULL
             scripts.put(DatabaseProxy.DatabaseType.DERBY.name(), derbyXidNotNullColumnScript);
