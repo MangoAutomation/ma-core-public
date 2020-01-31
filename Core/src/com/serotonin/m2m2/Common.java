@@ -166,6 +166,8 @@ public class Common {
     public static final MonitoredValues MONITORED_VALUES = new MonitoredValues();
     public static final JsonContext JSON_CONTEXT = new JsonContext();
 
+    public static final Pattern COMMA_SPLITTER = Pattern.compile("\\s*,\\s*");
+
     public static final LazyInitSupplier<Integer> LAST_UPGRADE = new LazyInitSupplier<>(() -> {
         return SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LAST_UPGRADE, 0);
     });
