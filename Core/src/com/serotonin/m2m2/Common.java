@@ -94,15 +94,6 @@ public class Common {
     public static final long START_TIME = ManagementFactory.getRuntimeMXBean().getStartTime();
 
     /**
-     * <p>Prefer {@link Common#MA_HOME_PATH}</p>
-     *
-     * <p>The Mango Automation installation directory. This is specified by the ma.home system property or the MA_HOME environment variable.
-     * If neither is set the current working directory is used.</p>
-     */
-    @Deprecated
-    public static final String MA_HOME;
-
-    /**
      * <p>The Mango Automation installation directory. This is specified by the ma.home system property or the MA_HOME environment variable.
      * If neither is set the current working directory is used.</p>
      */
@@ -117,7 +108,6 @@ public class Common {
 
         MA_HOME_PATH = Paths.get(maHome).toAbsolutePath().normalize();
         System.setProperty("ma.home", MA_HOME_PATH.toString());
-        MA_HOME = MA_HOME_PATH.toString();
     }
 
     public static final MangoProperties envProps = Providers.get(MangoProperties.class);
