@@ -72,6 +72,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     public List<UserEventLevelSummary> getActiveSummary() throws PermissionException {
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
         for (AlarmLevels level : AlarmLevels.values()) {
+            if(level == AlarmLevels.IGNORE) {
+                continue;
+            }
             summaries.put(level, new UserEventLevelSummary(level));
         }
 
@@ -89,6 +92,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
     public List<UserEventLevelSummary> getUnacknowledgedSummary() {
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
         for (AlarmLevels level : AlarmLevels.values()) {
+            if(level == AlarmLevels.IGNORE) {
+                continue;
+            }
             summaries.put(level, new UserEventLevelSummary(level));
         }
 
