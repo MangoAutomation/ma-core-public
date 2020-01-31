@@ -222,8 +222,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         Common.runtimeManager.insertDataSource(copy);
 
         if(copyPoints) {
-            // Copy the points by getting each point without any relational data and loading it as we need it
-            dataPointService.copyDataSourcePoints(copy, newDeviceName);
+            // Copy the points from this data source
+            dataPointService.copyDataSourcePoints(existing.getId(), copy.getId(), newDeviceName);
         }
         return get(newXid);
     }

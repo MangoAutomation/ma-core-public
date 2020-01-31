@@ -275,20 +275,21 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     }
 
     /**
-     * Make a copy of the points on a data source,
+     * Make a copy of the points on an existing data source, then place them onto the new data source
      *
-     * @param vo
-     * @param newDeviceName - if not supplied then data source name is used
+     * @param existingDataSourceId
+     * @param newDataSourceId
+     * @param newDeviceName
      */
-    public void copyDataSourcePoints(DataSourceVO vo, String newDeviceName) {
-        for (DataPointVO dataPoint : getDataPoints(vo.getId())) {
+    public void copyDataSourcePoints(int existingDataSourceId, int newDataSourceId, String newDeviceName) {
+        for (DataPointVO dataPoint : getDataPoints(existingDataSourceId)) {
 
             DataPointVO dataPointCopy = dataPoint.copy();
             dataPointCopy.setId(Common.NEW_ID);
             dataPointCopy.setXid(getDao().generateUniqueXid());
             dataPointCopy.setName(dataPoint.getName());
-            dataPointCopy.setDeviceName(newDeviceName != null ? newDeviceName : vo.getName());
-            dataPointCopy.setDataSourceId(vo.getId());
+            dataPointCopy.setDeviceName(newDeviceName);
+            dataPointCopy.setDataSourceId(newDataSourceId);
             //Don't enable the point until after we add the detectors
             dataPointCopy.setEnabled(false);
 
