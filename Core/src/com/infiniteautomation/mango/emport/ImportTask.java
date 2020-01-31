@@ -177,97 +177,99 @@ public class ImportTask extends ProgressiveTask {
 
     @Override
     protected void runImpl() {
-        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-            try {
-                if (!importers.isEmpty()) {
-                    if (importerIndex >= importers.size()) {
-                        // A run through the importers has been completed.
-                        if (importerSuccess) {
-                            // If there were successes with the importers and there are still more to do, run through
-                            // them again.
-                            importerIndex = 0;
-                            importerSuccess = false;
-                        } else if(!importedItems) {
-                            try {
-                                for (ImportItem importItem : importItems) {
-                                    if (!importItem.isComplete()) {
-                                        importItem.importNext(importContext, user);
-                                        return;
-                                    }
-                                }
-                                importedItems = true;   // We may have imported a dependency in a module
-                                importerIndex = 0;
-                            }
-                            catch (Exception e) {
-                                addException(e);
-                            }
-                        } else {
-                            // There are importers left in the list, but there were no successful imports in the last run
-                            // of the set. So, all that is left is stuff that will always fail. Copy the validation
-                            // messages to the context for each.
-                            // Run the import items.
-                            for (Importer importer : importers)
-                                importer.copyMessages();
-                            importers.clear();
-                            completed = true;
-                            return;
-                        }
-                    }
+        Common.getBean(PermissionService.class).runAsSystemAdmin(this::runImplAsAdmin);
+    }
 
-                    // Run the next importer
-                    Importer importer = importers.get(importerIndex);
-                    try {
-                        importer.doImport();
-                        if (importer.success()) {
-                            // The import was successful. Note the success and remove the importer from the list.
-                            importerSuccess = true;
-                            importers.remove(importerIndex);
+    protected void runImplAsAdmin() {
+        try {
+            if (!importers.isEmpty()) {
+                if (importerIndex >= importers.size()) {
+                    // A run through the importers has been completed.
+                    if (importerSuccess) {
+                        // If there were successes with the importers and there are still more to do, run through
+                        // them again.
+                        importerIndex = 0;
+                        importerSuccess = false;
+                    } else if(!importedItems) {
+                        try {
+                            for (ImportItem importItem : importItems) {
+                                if (!importItem.isComplete()) {
+                                    importItem.importNext(importContext, user);
+                                    return;
+                                }
+                            }
+                            importedItems = true;   // We may have imported a dependency in a module
+                            importerIndex = 0;
                         }
-                        else{
-                            // The import failed. Leave it in the list since the run of another importer
-                            // may resolved the problem.
-                            importerIndex++;
+                        catch (Exception e) {
+                            addException(e);
                         }
+                    } else {
+                        // There are importers left in the list, but there were no successful imports in the last run
+                        // of the set. So, all that is left is stuff that will always fail. Copy the validation
+                        // messages to the context for each.
+                        // Run the import items.
+                        for (Importer importer : importers)
+                            importer.copyMessages();
+                        importers.clear();
+                        completed = true;
+                        return;
                     }
-                    catch (Exception e) {
-                        // Uh oh...
-                        LOG.error(e.getMessage(),e);
-                        addException(e);
+                }
+
+                // Run the next importer
+                Importer importer = importers.get(importerIndex);
+                try {
+                    importer.doImport();
+                    if (importer.success()) {
+                        // The import was successful. Note the success and remove the importer from the list.
+                        importerSuccess = true;
                         importers.remove(importerIndex);
                     }
-
-                    return;
-                }
-
-                // Run the import items.
-                try {
-                    for (ImportItem importItem : importItems) {
-                        if (!importItem.isComplete()) {
-                            importItem.importNext(importContext, user);
-                            return;
-                        }
+                    else{
+                        // The import failed. Leave it in the list since the run of another importer
+                        // may resolved the problem.
+                        importerIndex++;
                     }
-                    processUpdatedDetectors(eventDetectorPoints);
-                    completed = true;
                 }
                 catch (Exception e) {
+                    // Uh oh...
+                    LOG.error(e.getMessage(),e);
                     addException(e);
+                    importers.remove(importerIndex);
                 }
+
+                return;
             }
-            finally {
-                //Compute progress, but only declare if we are < 100 since we will declare 100 when done
-                //Our progress is 100 - chunk*importersLeft
-                int importItemsLeft = 1;
-                if(completed)
-                    importItemsLeft = 0; //Since we know we ran the processDataPointPaths method
-                for(ImportItem item : importItems)
-                    if(!item.isComplete())
-                        importItemsLeft++;
-                this.progress = 100f - progressChunk*((float)importers.size() + (float)importItemsLeft);
-                if(progress < 100f)
-                    declareProgress(this.progress);
+
+            // Run the import items.
+            try {
+                for (ImportItem importItem : importItems) {
+                    if (!importItem.isComplete()) {
+                        importItem.importNext(importContext, user);
+                        return;
+                    }
+                }
+                processUpdatedDetectors(eventDetectorPoints);
+                completed = true;
             }
-        });
+            catch (Exception e) {
+                addException(e);
+            }
+        }
+        finally {
+            //Compute progress, but only declare if we are < 100 since we will declare 100 when done
+            //Our progress is 100 - chunk*importersLeft
+            int importItemsLeft = 1;
+            if(completed)
+                importItemsLeft = 0; //Since we know we ran the processDataPointPaths method
+            for(ImportItem item : importItems)
+                if(!item.isComplete())
+                    importItemsLeft++;
+            this.progress = 100f - progressChunk*((float)importers.size() + (float)importItemsLeft);
+            if(progress < 100f)
+                declareProgress(this.progress);
+        }
     }
 
     private void processUpdatedDetectors(Map<String, DataPointWithEventDetectors> eventDetectorMap) {
