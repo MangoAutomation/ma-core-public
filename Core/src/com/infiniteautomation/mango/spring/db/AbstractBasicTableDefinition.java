@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.PostConstruct;
 
@@ -79,8 +80,8 @@ public abstract class AbstractBasicTableDefinition {
         addFieldMappings(this.fieldMap);
 
         //Generate the aliases
-        for(Field<?> field : this.fieldMap.values()) {
-            this.aliasMap.put(field.getName(), DSL.field(this.alias.append(field.getName()), field.getDataType()));
+        for(Entry<String, Field<?>> entry : this.fieldMap.entrySet()) {
+            this.aliasMap.put(entry.getKey(), DSL.field(this.alias.append(entry.getValue().getName()), entry.getValue().getDataType()));
         }
 
         //Make all unmodifiable
