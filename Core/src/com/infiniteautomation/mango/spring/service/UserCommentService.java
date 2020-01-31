@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
+import com.serotonin.m2m2.db.dao.DataPointDao;
+import com.serotonin.m2m2.db.dao.EventInstanceDao;
+import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.UserCommentDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -26,11 +29,19 @@ import com.serotonin.validation.StringValidation;
 public class UserCommentService extends AbstractVOService<UserCommentVO, UserCommentTableDefinition, UserCommentDao>  {
 
     private final UserDao userDao;
+    private final DataPointDao dataPointDao;
+    private final JsonDataDao jsonDataDao;
+    private final EventInstanceDao eventInstanceDao;
 
     @Autowired
-    public UserCommentService(UserCommentDao dao, UserDao userDao, PermissionService permissionService) {
+    public UserCommentService(UserCommentDao dao, UserDao userDao,
+            PermissionService permissionService, DataPointDao dataPointDao,
+            JsonDataDao jsonDataDao, EventInstanceDao eventInstanceDao) {
         super(dao, permissionService);
         this.userDao = userDao;
+        this.dataPointDao = dataPointDao;
+        this.jsonDataDao = jsonDataDao;
+        this.eventInstanceDao = eventInstanceDao;
     }
 
     @Override
@@ -88,6 +99,30 @@ public class UserCommentService extends AbstractVOService<UserCommentVO, UserCom
         if(owner == null) {
             result.addContextualMessage("userId", "validate.userMissing");
         }
+
+        if(!UserCommentVO.COMMENT_TYPE_CODES.isValidId(vo.getCommentType())) {
+            result.addContextualMessage("commentType", "validate.invalidValue");
+        }else {
+            switch(vo.getCommentType()) {
+                case UserCommentVO.TYPE_EVENT:
+                    if(eventInstanceDao.get(vo.getReferenceId()) == null) {
+                        result.addContextualMessage("referenceId", "validate.invalidValue");
+                    }
+                    break;
+                case UserCommentVO.TYPE_POINT:
+                    if(dataPointDao.getXidById(vo.getReferenceId()) == null) {
+                        result.addContextualMessage("referenceId", "validate.invalidValue");
+                    }
+                    break;
+                case UserCommentVO.TYPE_JSON_DATA:
+                    if(jsonDataDao.getXidById(vo.getReferenceId()) == null) {
+                        result.addContextualMessage("referenceId", "validate.invalidValue");
+                    }
+                    break;
+            }
+        }
+
+
 
         return result;
     }
