@@ -8,6 +8,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
+import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -41,6 +42,23 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
     @Override
     public boolean hasReadPermission(PermissionHolder user, JsonDataVO vo) {
         return permissionService.hasAnyRole(user, vo.getReadRoles());
+    }
+
+    /**
+     * Get data and ensure it is public,
+     * @param xid
+     * @return
+     * @throws NotFoundException if it doesn't exist or if it exists and is not public
+     */
+    public JsonDataVO getPublicData(String xid) throws NotFoundException {
+        JsonDataVO vo = this.getPermissionService().runAsSystemAdmin(() -> {
+            return super.get(xid);
+        });
+        if(!vo.isPublicData()) {
+            throw new NotFoundException();
+        }else {
+            return vo;
+        }
     }
 
     @Override
