@@ -6,6 +6,7 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.jooq.Record;
 import org.jooq.Select;
@@ -205,16 +206,29 @@ public abstract class AbstractDao<T extends AbstractVO, TABLE extends AbstractTa
     }
 
     @Override
-    protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
-        switch(type) {
-            case CREATE:
-                return new DaoEvent<T>(this, type, vo, null);
-            case UPDATE:
-                return new DaoEvent<T>(this, type, vo, existing.getXid());
-            case DELETE:
-                return new DaoEvent<T>(this, type, vo, null);
-            default:
-                throw new ShouldNeverHappenException("Uknown dao event type: " + type);
+    protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing, Set<?> updatedFields) {
+        if(updatedFields == null) {
+            switch(type) {
+                case CREATE:
+                    return new DaoEvent<T>(this, type, vo, null);
+                case UPDATE:
+                    return new DaoEvent<T>(this, type, vo, existing.getXid());
+                case DELETE:
+                    return new DaoEvent<T>(this, type, vo, null);
+                default:
+                    throw new ShouldNeverHappenException("Uknown dao event type: " + type);
+            }
+        }else {
+            switch(type) {
+                case CREATE:
+                    return new DaoEvent<T>(this, type, vo, null);
+                case UPDATE:
+                    return new DaoEvent<T>(this, type, vo, existing.getXid(), updatedFields);
+                case DELETE:
+                    return new DaoEvent<T>(this, type, vo, null);
+                default:
+                    throw new ShouldNeverHappenException("Uknown dao event type: " + type);
+            }
         }
 
     }

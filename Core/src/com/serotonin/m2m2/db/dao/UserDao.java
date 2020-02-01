@@ -74,10 +74,6 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         return (UserDao)o;
     });
 
-    public static enum UpdatedFields {
-        AUTH_TOKEN, PASSWORD, PERMISSIONS, LAST_LOGIN, HOME_URL, MUTED
-    }
-
     private final RoleDao roleDao;
     private final ConcurrentMap<String, User> userCache = new ConcurrentHashMap<>();
 
@@ -295,22 +291,9 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
                         vo.setPasswordVersion(old.getPasswordVersion());
                     }
                     UserDao.super.update(old, vo);
+
                     //Set the last login time so it is available on the saved user
                     vo.setLastLogin(old.getLastLogin());
-
-                    boolean permissionsChanged = !old.getRoles().equals(vo.getRoles());
-
-                    EnumSet<UpdatedFields> fields = EnumSet.noneOf(UpdatedFields.class);
-                    if (passwordChanged) {
-                        fields.add(UpdatedFields.PASSWORD);
-                    }
-                    if (permissionsChanged) {
-                        fields.add(UpdatedFields.PERMISSIONS);
-                    }
-
-                    if (passwordChanged || permissionsChanged || vo.isDisabled()) {
-                        exireSessionsForUser(old);
-                    }
 
                     userCache.remove(old.getUsername().toLowerCase(Locale.ROOT));
                     return old;
@@ -484,6 +467,36 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
     @Override
     protected String getXidPrefix() {
         return "";
+    }
+
+    @Override
+    protected EnumSet<UpdatedFields> getUpdatedFields(User existing, User vo) {
+        boolean passwordChanged = !existing.getPassword().equals(vo.getPassword());
+        if (passwordChanged) {
+            vo.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
+            vo.setPasswordVersion(existing.getPasswordVersion() + 1);
+        } else {
+            vo.setPasswordChangeTimestamp(existing.getPasswordChangeTimestamp());
+            vo.setPasswordVersion(existing.getPasswordVersion());
+        }
+
+        //Set the last login time so it is available on the saved user
+        vo.setLastLogin(existing.getLastLogin());
+
+        boolean permissionsChanged = !existing.getRoles().equals(vo.getRoles());
+
+        EnumSet<UpdatedFields> fields = EnumSet.noneOf(UpdatedFields.class);
+        if (passwordChanged) {
+            fields.add(UpdatedFields.PASSWORD);
+        }
+        if (permissionsChanged) {
+            fields.add(UpdatedFields.PERMISSIONS);
+        }
+
+        if (passwordChanged || permissionsChanged || vo.isDisabled()) {
+            exireSessionsForUser(existing);
+        }
+        return fields;
     }
 
     @Override

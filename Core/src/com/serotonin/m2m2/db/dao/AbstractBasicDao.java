@@ -9,10 +9,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -214,7 +216,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             saveRelationalData(vo, false);
             return null;
         });
-        this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, existing));
+        EnumSet<UpdatedFields> fields = getUpdatedFields(existing, vo);
+        this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, existing, fields));
     }
 
     @Override
@@ -499,13 +502,29 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
-        return new DaoEvent<T>(this, type, vo, null);
+        return createDaoEvent(type, vo, existing, null);
+    }
+
+    protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing, Set<?> updatedFields) {
+        if(updatedFields == null) {
+            return new DaoEvent<T>(this, type, vo, null);
+        }else {
+            return new DaoEvent<T>(this, type, vo, null, updatedFields);
+        }
     }
 
     protected void publishEvent(DaoEvent<T> event) {
         if (this.eventPublisher != null) {
             this.eventPublisher.publishEvent(event);
         }
+    }
+
+    /**
+     * Override to propagate change detection for the Dao Messages
+     * @return
+     */
+    protected EnumSet<UpdatedFields> getUpdatedFields(T existing, T vo) {
+        return EnumSet.noneOf(UpdatedFields.class);
     }
 
     /**
