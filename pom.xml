@@ -70,6 +70,12 @@
       </modules>
     </profile>
     <profile>
+      <id>stallion</id>
+      <modules>
+        <module>../stallion</module>
+      </modules>
+    </profile>
+    <profile>
       <id>core-zip</id>
       <modules>
         <module>CoreBundle</module>
