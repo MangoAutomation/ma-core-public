@@ -278,7 +278,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
      */
     public void saveEnabledColumn(DataPointVO dp) {
         ejt.update("UPDATE dataPoints SET enabled=? WHERE id=?", new Object[]{boolToChar(dp.isEnabled()), dp.getId()});
-        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, null));
+        DataPointVO old = get(dp.getId());
+        this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.UPDATE, dp, old));
         AuditEventType.raiseToggleEvent(AuditEventType.TYPE_DATA_POINT, dp);
     }
 
@@ -329,7 +330,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         for (DataPointVO dp : old) {
             for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
                 def.afterDelete(dp.getId());
-            this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp, null));
+            this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp));
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
             this.countMonitor.decrement();
         }
