@@ -15,9 +15,6 @@ import org.springframework.transaction.support.TransactionCallback;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
-import com.infiniteautomation.mango.spring.events.DaoEvent;
-import com.infiniteautomation.mango.spring.events.DaoEventType;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -203,20 +200,4 @@ public abstract class AbstractDao<T extends AbstractVO, TABLE extends AbstractTa
 
         return getTransactionTemplate().execute(callback);
     }
-
-    @Override
-    protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
-        switch(type) {
-            case CREATE:
-                return new DaoEvent<T>(this, type, vo, null);
-            case UPDATE:
-                return new DaoEvent<T>(this, type, vo, existing.getXid());
-            case DELETE:
-                return new DaoEvent<T>(this, type, vo, null);
-            default:
-                throw new ShouldNeverHappenException("Uknown dao event type: " + type);
-        }
-
-    }
-
 }

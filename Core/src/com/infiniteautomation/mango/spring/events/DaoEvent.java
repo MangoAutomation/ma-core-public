@@ -3,9 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.events;
 
-import java.util.Collections;
 import java.util.Objects;
-import java.util.Set;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.core.ResolvableType;
@@ -23,38 +21,35 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
 
     private final DaoEventType type;
     private final T vo;
-    private final String originalXid;
-    private final Set<?> updatedFields;
+    private final T originalVo;
 
     /**
-     * Create an event without any updated field information
-     * @param source
-     * @param type
-     * @param vo
-     * @param originalXid
-     */
-    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo, String originalXid) {
-        super(source);
-        this.type = Objects.requireNonNull(type);
-        this.vo = Objects.requireNonNull(vo);
-        this.originalXid = originalXid;
-        this.updatedFields = Collections.emptySet();
-    }
-
-    /**
-     * Create an event and include the set of updated fields
+     * Create an event
      * @param source
      * @param type
      * @param vo
      * @param originalXid
      * @param updatedFields
      */
-    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo, String originalXid, Set<?> updatedFields) {
+    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo) {
         super(source);
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);
-        this.originalXid = originalXid;
-        this.updatedFields = Objects.requireNonNull(updatedFields);
+        this.originalVo = null;
+    }
+
+    /**
+     * Create an event, including the previous version of the vo
+     * @param source
+     * @param type
+     * @param vo
+     * @param originalXid
+     */
+    public DaoEvent(AbstractBasicDao<T,?> source, DaoEventType type, T vo, T originalVo) {
+        super(source);
+        this.type = Objects.requireNonNull(type);
+        this.vo = Objects.requireNonNull(vo);
+        this.originalVo = Objects.requireNonNull(originalVo);
     }
 
     public DaoEventType getType() {
@@ -65,8 +60,8 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         return vo;
     }
 
-    public String getOriginalXid() {
-        return originalXid;
+    public T getOriginalVo() {
+        return originalVo;
     }
 
     /**
@@ -78,13 +73,9 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         return ResolvableType.forClassWithGenerics(this.getClass(), ResolvableType.forClass(this.vo.getClass()));
     }
 
-    public Set<?> getUpdatedFields() {
-        return updatedFields;
-    }
-
     @Override
     public String toString() {
-        return "DaoEvent [type=" + type + ", vo=" + vo + ", originalXid=" + originalXid + ", updatedFields=" + updatedFields + "]";
+        return "DaoEvent [type=" + type + ", vo=" + vo + ", originalVo=" + originalVo + "]";
     }
 
 }

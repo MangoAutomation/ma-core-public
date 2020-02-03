@@ -499,7 +499,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
-        return new DaoEvent<T>(this, type, vo, null);
+        if(existing != null) {
+            return new DaoEvent<T>(this, type, vo, existing);
+        }else {
+            return new DaoEvent<T>(this, type, vo);
+        }
     }
 
     protected void publishEvent(DaoEvent<T> event) {
