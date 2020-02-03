@@ -499,9 +499,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {
-        if(existing != null) {
+        if (type == DaoEventType.UPDATE) {
             return new DaoEvent<T>(this, type, vo, existing);
-        }else {
+        } else {
             return new DaoEvent<T>(this, type, vo);
         }
     }

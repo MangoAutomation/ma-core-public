@@ -36,6 +36,10 @@ public class DaoEvent<T extends AbstractBasicVO> extends ApplicationEvent implem
         this.type = Objects.requireNonNull(type);
         this.vo = Objects.requireNonNull(vo);
         this.originalVo = null;
+
+        if (this.type == DaoEventType.UPDATE) {
+            throw new IllegalArgumentException("originalVo must be supplied for an UPDATE event");
+        }
     }
 
     /**
