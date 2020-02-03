@@ -358,9 +358,12 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
      */
     public void revokeTokens(User user) {
         int userId = user.getId();
+        User old = get(userId);
+
         int currentTokenVersion = user.getTokenVersion();
         int newTokenVersion = currentTokenVersion + 1;
         String username = user.getUsername();
+
 
         int count = ejt.update("UPDATE users SET tokenVersion = ? WHERE id = ? AND tokenVersion = ? AND username = ?", new Object[] { newTokenVersion, userId, currentTokenVersion, username });
         if (count == 0) {
@@ -370,7 +373,6 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         user.setTokenVersion(newTokenVersion);
 
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        User old = get(userId);
         eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
     }
 
@@ -387,6 +389,8 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
      */
     public void updatePasswordHash(User user, String newPasswordHash) {
         int userId = user.getId();
+        User old = get(userId);
+
         int currentPasswordVersion = user.getPasswordVersion();
         int newPasswordVersion = currentPasswordVersion + 1;
         long passwordChangeTimestamp = Common.timer.currentTimeMillis();
@@ -405,16 +409,16 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         // expire the user's sessions
         exireSessionsForUser(user);
         userCache.remove(user.getUsername().toLowerCase(Locale.ROOT));
-        User old = get(userId);
         eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
     }
 
     public void recordLogin(User user) {
+        User old = get(user.getId());
         long loginTime = Common.timer.currentTimeMillis();
         user.setLastLogin(loginTime);
         ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });
         userCache.put(user.getUsername().toLowerCase(Locale.ROOT), user);
-        User old = get(user.getId());
+
         eventPublisher.publishEvent(new DaoEvent<User>(this, DaoEventType.UPDATE, user, old));
     }
 
