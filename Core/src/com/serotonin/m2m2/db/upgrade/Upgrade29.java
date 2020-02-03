@@ -148,6 +148,15 @@ public class Upgrade29 extends DBUpgrade {
                         return r;
                     });
                 }
+                //Ensure they have the user role
+                if(!userRoles.contains(PermissionHolder.USER_ROLE_XID)) {
+                    //Add a mapping
+                    ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?,)",
+                            new Object[] {
+                                    2,
+                                    userId
+                    });
+                }
             }
         });
 
