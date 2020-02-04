@@ -489,13 +489,6 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
-        //Ensure they have the default 'user' role
-        if(!vo.getRoles().contains(PermissionHolder.USER_ROLE)) {
-            Set<Role> newRoles = new HashSet<>(vo.getRoles());
-            newRoles.add(PermissionHolder.USER_ROLE);
-            vo.setRoles(newRoles);
-        }
-
         return response;
     }
 
