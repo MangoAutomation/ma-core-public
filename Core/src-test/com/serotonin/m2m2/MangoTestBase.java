@@ -41,6 +41,7 @@ import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
+import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
@@ -214,6 +215,7 @@ public class MangoTestBase {
         ImportTask task = new ImportTask(jo,
                 Common.getTranslations(),
                 admin,
+                Common.getBean(RoleService.class),
                 Common.getBean(UsersService.class),
                 Common.getBean(MailingListService.class),
                 Common.getBean(DataSourceService.class),

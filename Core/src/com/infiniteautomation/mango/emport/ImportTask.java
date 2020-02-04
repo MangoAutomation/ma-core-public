@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.spring.service.JsonDataService;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
+import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.serotonin.json.JsonException;
@@ -68,6 +69,7 @@ public class ImportTask extends ProgressiveTask {
     public ImportTask(JsonObject root,
             Translations translations,
             PermissionHolder user,
+            RoleService roleService,
             UsersService usersService,
             MailingListService mailingListService,
             DataSourceService dataSourceService,
@@ -83,6 +85,10 @@ public class ImportTask extends ProgressiveTask {
         this.eventDetectorService = eventDetectorService;
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
+
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.ROLES))
+            addImporter(new RoleImporter(jv.toJsonObject(), roleService));
+
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
             addImporter(new UserImporter(jv.toJsonObject(), usersService, user));

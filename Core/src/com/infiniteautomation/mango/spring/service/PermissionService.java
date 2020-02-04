@@ -632,8 +632,13 @@ public class PermissionService {
             if (role == null) {
                 result.addContextualMessage(contextKey, "validate.role.empty");
                 return;
-            } else if(roleDao.getIdByXid(role.getXid()) == null) {
-                result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+            } else {
+                Integer id = roleDao.getIdByXid(role.getXid());
+                if( id == null) {
+                    result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+                }else if (id != role.getId()) {
+                    result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
+                }
             }
         }
 

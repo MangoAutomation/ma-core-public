@@ -42,6 +42,7 @@ import com.serotonin.json.convert.JsonValueConverter;
 import com.serotonin.json.convert.LongConverter;
 import com.serotonin.json.convert.MapConverter;
 import com.serotonin.json.convert.ObjectConverter;
+import com.serotonin.json.convert.RoleConverter;
 import com.serotonin.json.convert.SerializerConverter;
 import com.serotonin.json.convert.ShortConverter;
 import com.serotonin.json.convert.StringConverter;
@@ -66,24 +67,25 @@ import com.serotonin.json.type.JsonValue;
 import com.serotonin.json.util.MaxCharacterCountExceededException;
 import com.serotonin.json.util.SerializableProperty;
 import com.serotonin.json.util.Utils;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * The JsonContext is the central repository of converters and factories for all JSON conversion. Typically, an
  * application will create and (if necessary) configure one of these and share it. Multiple instances may be created if
  * different types of conversion are required for different purposes. (See the discussion of includeHints in
  * JsonProperty.)
- * 
+ *
  * For example, a server application may convert value objects for transport to a client application, and include fields
  * such as the primary key. For saving the same objects into a SQL database though (if the objects are sufficiently
  * complex or variable that it is undesirable to create an explicit schema for them), the primary key would be a table
  * column and so not required in the JSON. In this case two different JSON contexts would be created, one with a default
  * include hint of perhaps "client", and the other with one of "database". Annotations or custom code can then be used
  * to determine if an object attribute should be included in the JSON for the given context or not.
- * 
+ *
  * By default a context populates its registry with converters for all primitives as well as String, BigInteger,
  * BigDecimal, Map, List, Set, Enum, and array objects. Naturally, all native JSON type objects have default converters
  * as well.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class JsonContext {
@@ -142,7 +144,8 @@ public class JsonContext {
         addConverter(new UUIDConverter(), UUID.class);
         addConverter(new JacksonJsonNodeConverter(), JsonNode.class);
         addConverter(new DateConverter(), Date.class);
-        
+        addConverter(new RoleConverter(), Role.class);
+
         // Object factories
         addFactory(new ListFactory(), List.class);
         addFactory(new MapFactory(), Map.class);
@@ -160,7 +163,7 @@ public class JsonContext {
     /**
      * Register a ClassSerializer against the given class. This method will wrap the serializer in a SerializerConverter
      * and then register the converter with the class.
-     * 
+     *
      * @param <T>
      *            the generic type of the class
      * @param serializer
@@ -174,10 +177,10 @@ public class JsonContext {
 
     /**
      * Register a ClassConverter against the given list of classes.
-     * 
+     *
      * @param converter
      *            the converter instance
-     * 
+     *
      * @param classes
      *            the classes to which the converter should be bound.
      */
@@ -188,7 +191,7 @@ public class JsonContext {
 
     /**
      * Returns the class converter for the given class.
-     * 
+     *
      * @param clazz
      *            the class to look up
      * @return the converter that is bound to the class. May be null if no converter was registered.
@@ -430,10 +433,10 @@ public class JsonContext {
 
     /**
      * Register an {@link TypeResolver} against the given list of classes.
-     * 
+     *
      * @param resolver
      *            the type resolver to register
-     * 
+     *
      * @param classes
      *            the classes to which the resolver should be bound.
      */
@@ -444,7 +447,7 @@ public class JsonContext {
 
     /**
      * Returns the {@link TypeResolver} bound to the given class.
-     * 
+     *
      * @param clazz
      *            the class to look up
      * @return the type resolver, or null if not found.
@@ -455,10 +458,10 @@ public class JsonContext {
 
     /**
      * Register an ObjectFactory against the given list of classes.
-     * 
+     *
      * @param factory
      *            the object factory to register
-     * 
+     *
      * @param classes
      *            the classes to which the factory should be bound.
      */
@@ -470,7 +473,7 @@ public class JsonContext {
     /**
      * Create a new instance of the given class using the given jsonValue if necessary. If no object factory is found
      * for the given class, the default constructor factory is used.
-     * 
+     *
      * @param clazz
      *            the clazz of object to be created
      * @param jsonValue

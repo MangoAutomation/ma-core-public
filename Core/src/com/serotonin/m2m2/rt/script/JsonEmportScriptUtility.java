@@ -23,6 +23,7 @@ import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.spring.service.PublisherService;
+import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
@@ -209,6 +210,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
         public ScriptImportTask(JsonObject jo, PermissionHolder holder) {
             super(jo, Common.getTranslations(), holder,
+                    Common.getBean(RoleService.class),
                     Common.getBean(UsersService.class),
                     Common.getBean(MailingListService.class),
                     Common.getBean(DataSourceService.class),

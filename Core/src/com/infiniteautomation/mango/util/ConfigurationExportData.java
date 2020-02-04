@@ -19,6 +19,7 @@ import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SchemaDefinition;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -43,6 +44,7 @@ public class ConfigurationExportData {
     public static final String SYSTEM_SETTINGS = SchemaDefinition.SYSTEM_SETTINGS_TABLE;
     public static final String USERS = SchemaDefinition.USERS_TABLE;
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
+    public static final String ROLES = "roles";
 
     /**
      * Get a list of all available export elements
@@ -86,7 +88,7 @@ public class ConfigurationExportData {
         elements.add(new StringStringPair("header.systemSettings", SYSTEM_SETTINGS));
         elements.add(new StringStringPair("header.users", USERS));
         elements.add(new StringStringPair("header.virtualSerialPorts", VIRTUAL_SERIAL_PORTS));
-
+        elements.add(new StringStringPair("header.roles", ROLES));
 
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if(def.getInView())
@@ -127,6 +129,8 @@ public class ConfigurationExportData {
             data.put(VIRTUAL_SERIAL_PORTS, VirtualSerialPortConfigDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, JSON_DATA))
             data.put(JSON_DATA, JsonDataDao.getInstance().getAll());
+        if (ArrayUtils.contains(exportElements, ROLES))
+            data.put(ROLES, RoleDao.getInstance().getAll());
 
         //TODO Add EVENT_DETECTORS
         //TODO Write the ImportTask properly for EventDetectors...

@@ -33,6 +33,7 @@ import com.serotonin.util.ProgressiveTaskListener;
 @Service
 public class EmportService {
 
+    private final RoleService roleService;
     private final UsersService usersService;
     private final MailingListService mailingListService;
     private final DataSourceService dataSourceService;
@@ -44,7 +45,8 @@ public class EmportService {
     private final EventDetectorsService eventDetectorService;
 
     @Autowired
-    public EmportService(UsersService usersService,
+    public EmportService(RoleService roleService,
+            UsersService usersService,
             MailingListService mailingListService,
             DataSourceService dataSourceService,
             DataPointService dataPointService,
@@ -53,6 +55,7 @@ public class EmportService {
             JsonDataService jsonDataService,
             PermissionService permissionService,
             EventDetectorsService eventDetectorService) {
+        this.roleService = roleService;
         this.usersService = usersService;
         this.mailingListService = mailingListService;
         this.dataSourceService = dataSourceService;
@@ -73,6 +76,7 @@ public class EmportService {
         return new ImportTask(root,
                 translations,
                 user,
+                roleService,
                 usersService,
                 mailingListService,
                 dataSourceService,
