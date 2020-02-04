@@ -1,8 +1,0 @@
-This directory contains scripts that act as extensions to the generic MA 
-scripts. Extension scripts can be enabled by creating a symbolic link in the 
-ext-enabled dir to the scripts in this dir. The links can be named such that
-the extensions run in a certain order.
-
-Extensions are run in the source shell, and so can define or override variables
-defined in other scripts. Extensions are provided a parameter in their call 
-that determines the current activity. These are init, start, restart, and stop.
