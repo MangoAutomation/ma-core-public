@@ -11,6 +11,7 @@
 * Use configurable logs directory for DB upgrade logs
 * Module zip files are now downloaded to the configurable temp directory when upgrading
 * Remove userEvents table which would allow a user to silence an event for yourself in the legacy UI
+* Fix bug in MySQL database create script which would create the name column 40 characters long instead of 255
 
 *Version 3.7.4*
 * Improve work item failure logging

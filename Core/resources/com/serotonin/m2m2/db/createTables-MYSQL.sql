@@ -95,7 +95,7 @@ alter table mailingListMembers add constraint mailingListMembersFk1 foreign key 
 create table dataSources (
   id int not null auto_increment,
   xid varchar(100) not null,
-  name varchar(40) not null,
+  name varchar(255) not null,
   dataSourceType varchar(40) not null,
   data longblob not null,
   rtdata longblob,

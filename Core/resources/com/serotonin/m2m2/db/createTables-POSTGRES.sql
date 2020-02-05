@@ -92,7 +92,7 @@ ALTER TABLE mailingListMembers ADD CONSTRAINT mailingListMembersFk1 FOREIGN KEY 
 CREATE TABLE dataSources (
   id SERIAL,
   xid varchar(100) NOT NULL,
-  name varchar(40) NOT NULL,
+  name varchar(255) NOT NULL,
   dataSourceType varchar(40) NOT NULL,
   data bytea NOT NULL,
   rtdata bytea,

@@ -32,6 +32,8 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
+ * Fix MySQL data source table to have a name column length of 255
+ *
  * Add roles and roleMappings tables
  *
  * MailingList - remove readPermissions and editPermissions
@@ -52,6 +54,15 @@ public class Upgrade29 extends DBUpgrade {
         OutputStream out = createUpdateLogOutputStream();
 
         try {
+
+            //Update the data source name column length for MySQL
+            Map<String, String[]> scripts = new HashMap<>();
+            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[0]);
+            scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[0]);
+            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterDataSourceNameColumnMySQL);
+            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), new String[0]);
+            runScript(scripts, out);
+
             Map<String, Role> roles = new HashMap<>();
             roles.put(PermissionHolder.SUPERADMIN_ROLE_XID, PermissionHolder.SUPERADMIN_ROLE);
             roles.put(PermissionHolder.USER_ROLE_XID, PermissionHolder.USER_ROLE);
@@ -297,6 +308,10 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoreSQL);
         runScript(scripts, out);
     }
+
+    private String[] alterDataSourceNameColumnMySQL = new String[] {
+            "ALTER TABLE dataSources MODIFY COLUMN name VARCHAR(255) NOT NULL;"
+    };
 
     //Templates
     private String[] dropTemplatesSQL = new String[] {
