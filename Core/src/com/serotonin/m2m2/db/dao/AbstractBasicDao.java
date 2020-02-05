@@ -235,9 +235,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void getAll(MappedRowCallback<T> callback) {
-        PermissionHolder user = Common.getUser();
-        Select<Record> query = this.getJoinedSelectQuery()
-                .where(this.hasReadPermission(user));
+        Select<Record> query = this.getJoinedSelectQuery();
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
         query(sql, args.toArray(), getCallbackResultSetExtractor((item, index) -> {
