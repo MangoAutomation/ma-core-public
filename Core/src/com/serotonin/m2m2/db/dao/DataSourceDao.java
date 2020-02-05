@@ -10,12 +10,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.SelectJoinStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -30,6 +33,7 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
@@ -42,6 +46,7 @@ import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.SerializationHelper;
 
 @Repository()
@@ -239,6 +244,28 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
                 EventType.EventTypeNames.DATA_SOURCE, vo.getId()});
         RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
         vo.getDefinition().deleteRelationalData(vo);
+    }
+
+    @Override
+    public Condition hasPermission(PermissionHolder user) {
+        List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+        return RoleTableDefinition.roleIdFieldAlias.in(roleIds);
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
+
+        if(PermissionService.EDIT.equals(permissionType) || PermissionService.READ.equals(permissionType)) {
+
+            Condition editJoinCondition = DSL.and(
+                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
+                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                    );
+            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(editJoinCondition);
+
+        }
+        return select;
     }
 
 }

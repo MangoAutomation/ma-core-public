@@ -27,7 +27,7 @@ public class RoleTableDefinition extends AbstractTableDefinition {
         super(DSL.table(TABLE_NAME), DSL.name("r"));
     }
 
-    public static final Table<? extends Record> roleMappingTable = DSL.table(TABLE_NAME);
+    public static final Table<? extends Record> roleMappingTable = DSL.table(ROLE_MAPPING_TABLE);
     public static final Name roleMappingTableAlias = DSL.name("rm");
     public static final Table<? extends Record> roleMappingTableAsAlias = roleMappingTable.as(roleMappingTableAlias);
 

@@ -7,8 +7,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.jooq.Condition;
 import org.jooq.Field;
@@ -298,6 +300,42 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
+     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
+     *  and value converters to translate the RQL conditions into the values expected from the database.  Security context user
+     *  is used to enforce read permission for the items
+     *
+     * @param rql
+     * @param fieldMap - can be null
+     * @param valueConverters - can be null
+     * @return
+     */
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        return dao.rqlToCondition(rql, fieldMap, valueConverters, user);
+    }
+
+    /**
+     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
+     *  and value converters to translate the RQL conditions into the values expected from the database.  Security context user
+     *  is used to enforce supplied type of permission for the items
+     *
+     *
+     * @param rql
+     * @param fieldMap - can be null
+     * @param valueConverters - can be null
+     * @param permissionType
+     * @return
+     */
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, String permissionType) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        return dao.rqlToCondition(rql, fieldMap, valueConverters, user, permissionType);
+    }
+
+    /**
      * Query for VOs with a callback for each row
      * @param conditions
      * @param callback
@@ -316,7 +354,10 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @param callback
      */
     public void customizedQuery(ASTNode conditions, MappedRowCallback<T> callback) {
-        dao.customizedQuery(dao.rqlToCondition(conditions), (item, index) ->{
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        dao.customizedQuery(dao.rqlToCondition(conditions, null, null, user), (item, index) ->{
             dao.loadRelationalData(item);
             callback.row(item, index);
         });
@@ -402,7 +443,10 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @return
      */
     public int customizedCount(ASTNode conditions) {
-        return dao.customizedCount(dao.rqlToCondition(conditions));
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        return dao.customizedCount(dao.rqlToCondition(conditions, null, null, user));
     }
 
     /**

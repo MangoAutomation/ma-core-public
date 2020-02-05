@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,6 +49,7 @@ import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -339,13 +341,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     /**
-     * Add any joins regardless of conditions
+     * Add any joins including those in the conditions
      *  Override as necessary
      * @param select
      * @return
      */
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
+        if(conditions != null) {
+            for(BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>> join : conditions.getJoins()) {
+                select = (SelectJoinStep<R>) join.apply(select, conditions);
+            }
+        }
         return select;
     }
 
@@ -446,17 +453,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql) {
-        return rqlToCondition(rql, null, null);
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user) {
+        return rqlToCondition(rql, fieldMap, valueConverters, user, PermissionService.READ);
     }
 
     @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Function<Object, Object>> valueConverters) {
-        return rqlToCondition(rql, null, valueConverters);
-    }
-
-    @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user, String permissionType) {
 
         Map<String, Function<Object, Object>> fullMap;
         if(valueConverters == null) {
@@ -475,7 +477,20 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         }
 
         RQLToCondition rqlToCondition = createRqlToCondition(fullFields, fullMap);
-        return rqlToCondition.visit(rql);
+        ConditionSortLimit conditions = rqlToCondition.visit(rql);
+
+        //By default add the read role conditions
+        if(!user.hasAdminRole()) {
+            Condition readRoleCondition = hasPermission(user);
+            if(readRoleCondition != null) {
+                conditions.addCondition(readRoleCondition);
+                conditions.addJoin((select, c) -> {
+                    return joinRoles(select, permissionType);
+                });
+            }
+        }
+
+        return conditions;
     }
 
     /**
@@ -488,14 +503,24 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         return new RQLToCondition(fieldMap, converterMap);
     }
 
-    public void rqlQuery(ASTNode rql, MappedRowCallback<T> callback) {
-        ConditionSortLimit result = this.rqlToCondition(rql);
-        this.customizedQuery(result, callback);
+    /**
+     * If this VO has permissions then restrict based on role mappings
+     * @param user
+     * @return
+     */
+    public Condition hasPermission(PermissionHolder user) {
+        return null;
     }
 
-    public int rqlCount(ASTNode rql) {
-        ConditionSortLimit result = this.rqlToCondition(rql);
-        return this.customizedCount(result);
+    /**
+     * Join for the appropriate permissions
+     * @param <R>
+     * @param select
+     * @param permissionType
+     * @return
+     */
+    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
+        return select;
     }
 
     protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {

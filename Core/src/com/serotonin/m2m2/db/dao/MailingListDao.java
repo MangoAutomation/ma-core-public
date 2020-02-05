@@ -11,8 +11,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
+import org.jooq.Condition;
+import org.jooq.Record;
+import org.jooq.SelectJoinStep;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -23,6 +28,7 @@ import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -35,6 +41,7 @@ import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Matthew Lohbihler
@@ -190,6 +197,44 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
     public void deleteRelationalData(MailingList vo) {
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.EDIT);
+    }
+
+    @Override
+    public Condition hasPermission(PermissionHolder user) {
+        List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+        return RoleTableDefinition.roleIdFieldAlias.in(roleIds);
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
+
+        if(PermissionService.EDIT.equals(permissionType)) {
+
+            Condition editJoinCondition = DSL.and(
+                    RoleTableDefinition.voTypeFieldAlias.eq(MailingList.class.getSimpleName()),
+                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                    );
+            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(editJoinCondition);
+
+        }else if(PermissionService.READ.equals(permissionType)) {
+
+            Condition readJoinCondition = DSL.or(
+                    DSL.and(
+                            RoleTableDefinition.voTypeFieldAlias.eq(MailingList.class.getSimpleName()),
+                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.READ)
+                            ),
+                    DSL.and(
+                            RoleTableDefinition.voTypeFieldAlias.eq(MailingList.class.getSimpleName()),
+                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                            )
+                    );
+
+            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(readJoinCondition);
+        }
+        return select;
     }
 
     @Override

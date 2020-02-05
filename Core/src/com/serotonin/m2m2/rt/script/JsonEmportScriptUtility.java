@@ -34,7 +34,6 @@ import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
-import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
@@ -50,10 +49,12 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     private RQLParser parser = new RQLParser();;
     private List<JsonImportExclusion> importExclusions;
     protected boolean importDuringValidation = false;
+    private final DataSourceService dataSourceService;
 
     @Autowired
-    public JsonEmportScriptUtility(MangoJavaScriptService service, PermissionService permissionService) {
+    public JsonEmportScriptUtility(MangoJavaScriptService service, PermissionService permissionService, DataSourceService dataSourceService) {
         super(service, permissionService);
+        this.dataSourceService = dataSourceService;
     }
 
     @Override
@@ -73,7 +74,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
     public String getFullConfiguration(int prettyIndent) {
         EmportService service = Common.getBean(EmportService.class);
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return permissionService.runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
                 service.export(ConfigurationExportData.createExportDataMap(null), stringWriter, prettyIndent);
@@ -89,7 +90,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
     }
 
     public String getConfiguration(String type, int prettyIndent) {
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return permissionService.runAs(permissions, () -> {
             try {
                 Map<String, Object> data = ConfigurationExportData.createExportDataMap(new String[] {type});
                 StringWriter stringWriter = new StringWriter();
@@ -111,7 +112,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         if(permissionService.hasAdminRole(permissions)) {
             ASTNode root = parser.parse(query);
             List<DataPointVO> dataPoints = new ArrayList<>();
-            ConditionSortLimitWithTagKeys conditions = DataPointDao.getInstance().rqlToCondition(root);
+            ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null, permissions);
             DataPointDao.getInstance().customizedQuery(conditions, new MappedRowCallback<DataPointVO>() {
                 @Override
                 public void row(DataPointVO item, int index) {
@@ -121,7 +122,7 @@ public class JsonEmportScriptUtility extends ScriptUtility {
 
             data.put(ConfigurationExportData.DATA_POINTS, dataPoints);
         }
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return permissionService.runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
                 EmportService service = Common.getBean(EmportService.class);
@@ -142,12 +143,15 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         if(permissionService.hasAdminRole(permissions)) {
             List<DataSourceVO> dataSources = new ArrayList<>();
             ASTNode root = parser.parse(query);
-            DataSourceDao.getInstance().rqlQuery(root, (ds, index) -> {
-                dataSources.add(ds);
+            permissionService.runAs(permissions, () -> {
+                dataSourceService.customizedQuery(root, (ds, index) -> {
+                    dataSources.add(ds);
+                });
             });
+
             data.put(ConfigurationExportData.DATA_SOURCES, dataSources);
         }
-        return Common.getBean(PermissionService.class).runAs(permissions, () -> {
+        return permissionService.runAs(permissions, () -> {
             try{
                 StringWriter stringWriter = new StringWriter();
                 EmportService service = Common.getBean(EmportService.class);

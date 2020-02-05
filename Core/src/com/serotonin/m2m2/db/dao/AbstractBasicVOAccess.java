@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -213,30 +214,31 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public TABLE getTable();
 
     /**
-     * Create a ConditionSortLimit configuration from an RQL AST Node
-     * @param rql
-     * @return
-     */
-    public ConditionSortLimit rqlToCondition(ASTNode rql);
-
-    /**
-     * Create a ConditionSortLimit configuration and allow supplying value converters to translate the
-     *  RQL conditions into the values expected from the database
-     * @param rql
-     * @param valueConverterMap
-     * @return
-     */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Function<Object, Object>> valueConverterMap);
-
-    /**
-     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columsn
-     *  and value converters to translate the RQL conditions into the values expected from the database
+     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
+     *  and value converters to translate the RQL conditions into the values expected from the database.  Supplied user
+     *  is used to enforce read permission for the items
      *
      * @param rql
-     * @param fieldMap
-     * @param valueConverters
+     * @param fieldMap - can be null
+     * @param valueConverters - can be null
+     * @param user - cannot be null if the item has permissions
      * @return
      */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters);
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user);
+
+    /**
+     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
+     *  and value converters to translate the RQL conditions into the values expected from the database.  Supplied user
+     *  is used to enforce supplied type of permission for the items
+     *
+     *
+     * @param rql
+     * @param fieldMap - can be null
+     * @param valueConverters - can be null
+     * @param user - cannot be null if the item has permissions
+     * @param permissionType
+     * @return
+     */
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user, String permissionType);
 
 }

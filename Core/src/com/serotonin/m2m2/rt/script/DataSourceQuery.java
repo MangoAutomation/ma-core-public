@@ -12,6 +12,7 @@ import javax.script.ScriptEngine;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptUtility;
@@ -39,10 +40,12 @@ public class DataSourceQuery extends ScriptUtility {
     private ScriptEngine engine;
     private ScriptPointValueSetter setter;
     private RQLParser parser = new RQLParser();
+    private final DataSourceService dataSourceService;
 
     @Autowired
-    public DataSourceQuery(MangoJavaScriptService service, PermissionService permissionService) {
-        super(service, permissionService);
+    public DataSourceQuery(MangoJavaScriptService javaScriptService, PermissionService permissionService, DataSourceService service) {
+        super(javaScriptService, permissionService);
+        this.dataSourceService = service;
     }
 
     @Override
@@ -60,12 +63,15 @@ public class DataSourceQuery extends ScriptUtility {
     public List<DataSourceWrapper> query(String query){
         ASTNode root = parser.parse(query);
         List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();
-        DataSourceDao.getInstance().rqlQuery(root, (ds, index) -> {
-            if(permissionService.hasDataSourcePermission(permissions, ds)){
-                List<DataPointWrapper> points = getPointsForSource(ds);
-                results.add(new DataSourceWrapper(ds, points));
-            }
+        permissionService.runAs(permissions, () -> {
+            dataSourceService.customizedQuery(root, (ds, index) -> {
+                if(permissionService.hasDataSourcePermission(permissions, ds)){
+                    List<DataPointWrapper> points = getPointsForSource(ds);
+                    results.add(new DataSourceWrapper(ds, points));
+                }
+            });
         });
+
         return results;
     }
 

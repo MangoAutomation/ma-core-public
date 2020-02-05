@@ -13,12 +13,12 @@ import org.jooq.SortField;
 
 /**
  * Stores a map of tag keys used in the RQL query and maps them to the aliased column names.
- * 
+ *
  * @author Jared Wiltshire
  */
 public class ConditionSortLimitWithTagKeys extends ConditionSortLimit {
     private final Map<String, Name> tagKeyToColumn;
-    
+
     public ConditionSortLimitWithTagKeys(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, Map<String, Name> tagKeyToColumn) {
         super(condition, sort, limit, offset);
         this.tagKeyToColumn = tagKeyToColumn;

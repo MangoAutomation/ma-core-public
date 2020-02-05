@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,11 +29,8 @@ import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectJoinStep;
-import org.jooq.SelectOnConditionStep;
-import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -55,6 +52,7 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -76,16 +74,14 @@ import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.DataPointSummary;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.bean.PointHistoryCount;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
-
-import net.jazdw.rql.parser.ASTNode;
 
 /**
  * This class is a Half-Breed between the legacy Dao and the new type that extends AbstractDao.
@@ -110,14 +106,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
         return (DataPointDao)o;
     });
-
-    //TODO Clean up/remove
-    public static final Name DATA_POINTS_ALIAS = DSL.name("dp");
-    public static final Table<Record> DATA_POINTS = DSL.table(DSL.name(SchemaDefinition.DATAPOINTS_TABLE)).as(DATA_POINTS_ALIAS);
-    public static final Field<Integer> ID = DSL.field(DATA_POINTS_ALIAS.append("id"), SQLDataType.INTEGER.nullable(false));
-    public static final Field<Integer> DATA_SOURCE_ID = DSL.field(DATA_POINTS_ALIAS.append("dataSourceId"), SQLDataType.INTEGER.nullable(false));
-    public static final Field<String> READ_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("readPermission"), SQLDataType.VARCHAR(255).nullable(true));
-    public static final Field<String> SET_PERMISSION = DSL.field(DATA_POINTS_ALIAS.append("setPermission"), SQLDataType.VARCHAR(255).nullable(true));
 
     @Autowired
     private DataPointDao(DataPointTableDefinition table,
@@ -675,145 +663,61 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         }
     }
 
-    /**
-     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     * For a superadmin user it will get all data points in the system.
-     *
-     * @param user
-     * @return
-     */
-    public List<DataPointVO> dataPointsForUser(User user) {
-        List<DataPointVO> result = new ArrayList<>();
-        dataPointsForUser(user, (item, index) -> result.add(item));
-        return result;
+    @Override
+    public Condition hasPermission(PermissionHolder user) {
+        List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+        return RoleTableDefinition.roleIdFieldAlias.in(roleIds);
     }
 
-    /**
-     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     * For a superadmin user it will get all data points in the system.
-     *
-     * @param user
-     * @param callback
-     */
-    public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback) {
-        dataPointsForUser(user, callback, null, null, null);
-    }
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
 
-    /**
-     * Gets all data points that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     * For a superadmin user it will get all data points in the system.
-     *
-     * @param user
-     * @param callback
-     * @param sort (may be null)
-     * @param limit (may be null)
-     * @param offset (may be null)
-     */
-    public void dataPointsForUser(User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
-        Condition condition = null;
-        //TODO Mango 4.0 fix this
-        if (!user.hasAdminRole()) {
-            //condition = this.userHasPermission(user);
+        if(PermissionService.EDIT.equals(permissionType)) {
+
+            Condition editJoinCondition = DSL.and(
+                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
+                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
+                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                    );
+            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(editJoinCondition);
+
+        }else if(PermissionService.SET.equals(permissionType)) {
+
+            Condition setJoinCondition = DSL.or(
+                    DSL.and(
+                            RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
+                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET)
+                            ),
+                    DSL.and(
+                            RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
+                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
+                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                            )
+                    );
+
+            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(setJoinCondition);
+        }else if(PermissionService.READ.equals(permissionType)) {
+
+            Condition readJoinCondition = DSL.or(
+                    DSL.and(
+                            RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
+                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                            DSL.or(
+                                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET),
+                                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.READ)
+                                    )
+                            ),
+                    DSL.and(
+                            RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
+                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
+                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                            )
+                    );
+
+            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(readJoinCondition);
         }
-        SelectJoinStep<Record> select = this.create.select(getSelectFields()).from(this.table.getTableAsAlias());
-        this.customizedQuery(select, condition, sort, limit, offset, callback);
-    }
-
-    /**
-     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     *
-     * @param restrictions
-     * @param user
-     * @return
-     */
-    public List<DataPointVO> dataPointsForTags(Map<String, String> restrictions, User user) {
-        List<DataPointVO> result = new ArrayList<>();
-        dataPointsForTags(restrictions, user, (item, index) -> result.add(item));
-        return result;
-    }
-
-    /**
-     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     *
-     * @param restrictions
-     * @param user
-     * @param callback
-     */
-    public void dataPointsForTags(Map<String, String> restrictions, User user, MappedRowCallback<DataPointVO> callback) {
-        dataPointsForTags(restrictions, user, callback, null, null, null);
-    }
-
-    /**
-     * Gets data points for a set of tags that a user has access to (i.e. readPermission, setPermission or the datasource editPermission).
-     *
-     * @param restrictions
-     * @param user
-     * @param callback
-     * @param sort (may be null)
-     * @param limit (may be null)
-     * @param offset (may be null)
-     */
-    public void dataPointsForTags(Map<String, String> restrictions, User user, MappedRowCallback<DataPointVO> callback, List<SortField<Object>> sort, Integer limit, Integer offset) {
-        if (restrictions.isEmpty()) {
-            throw new IllegalArgumentException("restrictions should not be empty");
-        }
-
-        Map<String, Name> tagKeyToColumn = DataPointTagsDao.getInstance().tagKeyToColumn(restrictions.keySet());
-
-        List<Condition> conditions = restrictions.entrySet().stream().map(e -> {
-            return DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyToColumn.get(e.getKey()))).eq(e.getValue());
-        }).collect(Collectors.toCollection(ArrayList::new));
-
-        //TODO Mango 4.0 fix this
-        if (!user.hasAdminRole()) {
-            //conditions.add(this.userHasPermission(user));
-        }
-
-        Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-
-        SelectOnConditionStep<Record> select = this.create.select(getSelectFields()).from(this.table.getTableAsAlias()).leftJoin(pivotTable)
-                .on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
-
-        this.customizedQuery(select, DSL.and(conditions), sort, limit, offset, callback);
-    }
-
-    //TODO  Mango 4.0 fix this
-    public Condition userHasPermission(User user) {
-        Set<String> userPermissions = new HashSet<>();
-        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 3);
-
-        for (String userPermission : userPermissions) {
-            conditions.add(fieldMatchesUserPermission(READ_PERMISSION, userPermission));
-            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
-            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
-        }
-
-        return DSL.or(conditions);
-    }
-
-    //TODO Mango 4.0 fix this
-    public Condition userHasSetPermission(User user) {
-        Set<String> userPermissions = new HashSet<>();
-        List<Condition> conditions = new ArrayList<>(userPermissions.size() * 2);
-
-        for (String userPermission : userPermissions) {
-            conditions.add(fieldMatchesUserPermission(SET_PERMISSION, userPermission));
-            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
-        }
-
-        return DSL.or(conditions);
-    }
-
-    //TODO Mango 4.0 fix this
-    public Condition userHasEditPermission(User user) {
-        Set<String> userPermissions = new HashSet<>();
-        List<Condition> conditions = new ArrayList<>(userPermissions.size());
-
-        for (String userPermission : userPermissions) {
-            conditions.add(fieldMatchesUserPermission(DataSourceDao.EDIT_PERMISSION, userPermission));
-        }
-
-        return DSL.or(conditions);
+        return select;
     }
 
     @Override
@@ -830,41 +734,27 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         select = select.join(dataSourceTable.getTableAsAlias())
                 .on(DSL.field(dataSourceTable.getAlias("id"))
                         .eq(this.table.getAlias("dataSourceId")));
+
+        if(conditions != null) {
+            for(BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>> join : conditions.getJoins()) {
+                select = (SelectJoinStep<R>) join.apply(select, conditions);
+            }
+        }
+
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();
             if (!tagKeyToColumn.isEmpty()) {
                 Table<Record> pivotTable = DataPointTagsDao.getInstance().createTagPivotSql(tagKeyToColumn).asTable().as(DATA_POINT_TAGS_PIVOT_ALIAS);
-                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(ID));
+                return select.leftJoin(pivotTable).on(DataPointTagsDao.PIVOT_ALIAS_DATA_POINT_ID.eq(this.table.getIdAlias()));
             }
         }
         return select;
     }
 
     @Override
-    public ConditionSortLimitWithTagKeys rqlToCondition(ASTNode rql) {
-        // RQLToConditionWithTagKeys is stateful, we need to create a new one every time
-        RQLToConditionWithTagKeys rqlToSelect = new RQLToConditionWithTagKeys(this.table.getAliasMap(), this.valueConverterMap);
-        return rqlToSelect.visit(rql);
-    }
-
-    @Override
     protected RQLToCondition createRqlToCondition(Map<String, Field<?>> fieldMap,
             Map<String, Function<Object, Object>> converterMap) {
         return new RQLToConditionWithTagKeys(fieldMap, converterMap);
-    }
-
-    public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
-    public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
-
-    Condition fieldMatchesUserPermission(Field<String> field, String userPermission) {
-        return DSL.or(
-                field.eq(userPermission),
-                DSL.and(
-                        field.isNotNull(),
-                        field.notEqual(""),
-                        field.likeRegex(PERMISSION_START_REGEX + userPermission + PERMISSION_END_REGEX)
-                        )
-                );
     }
 
     protected void notifyTagsUpdated(DataPointVO dataPoint) {
