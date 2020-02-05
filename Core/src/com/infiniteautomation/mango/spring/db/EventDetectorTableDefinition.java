@@ -50,12 +50,4 @@ public class EventDetectorTableDefinition extends AbstractTableDefinition {
         fields.addAll(definitionFields.values());
     }
 
-    //TODO Mango 4.0 Move to REST controller
-    @Override
-    protected void addFieldMappings(Map<String, Field<?>> map) {
-        map.put("detectorSourceType", map.get("sourceTypeName"));
-        //TODO This will break if we add new detector types and keep the same table structure, we should break this out into a mapping table
-        map.put("sourceId", map.get("dataPointId"));
-    }
-
 }

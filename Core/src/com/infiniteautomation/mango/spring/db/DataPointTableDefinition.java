@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.db;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,11 +20,11 @@ import org.springframework.stereotype.Component;
 public class DataPointTableDefinition extends AbstractTableDefinition {
 
     public static final String TABLE_NAME = "dataPoints";
-    
+
     public DataPointTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("dp"));
     }
-    
+
     @Override
     protected void addFields(List<Field<?>> fields) {
         super.addFields(fields);
@@ -46,9 +47,11 @@ public class DataPointTableDefinition extends AbstractTableDefinition {
         fields.add(DSL.field(DSL.name("dataTypeId"), SQLDataType.INTEGER));
         fields.add(DSL.field(DSL.name("settable"), SQLDataType.CHAR(1)));
     }
-    
+
     @Override
-    protected void addFieldMappings(Map<String, Field<?>> map) {
-        map.put("dataType", map.get("dataTypeId"));  
+    protected Map<String, Field<?>> getAliasMappings() {
+        Map<String, Field<?>> map = new HashMap<>();
+        map.put("dataType", aliasMap.get("dataTypeId"));
+        return map;
     }
 }

@@ -77,11 +77,16 @@ public abstract class AbstractBasicTableDefinition {
             this.updateFields.add(field);
             this.fieldMap.put(field.getName(), field);
         }
-        addFieldMappings(this.fieldMap);
 
         //Generate the aliases
         for(Entry<String, Field<?>> entry : this.fieldMap.entrySet()) {
             this.aliasMap.put(entry.getKey(), DSL.field(this.alias.append(entry.getValue().getName()), entry.getValue().getDataType()));
+        }
+
+        //Now add the mappings
+        Map<String, Field<?>> mappings = getAliasMappings();
+        if(mappings != null) {
+            this.aliasMap.putAll(mappings);
         }
 
         //Make all unmodifiable
@@ -101,12 +106,17 @@ public abstract class AbstractBasicTableDefinition {
     abstract protected void addFields(List<Field<?>> fields);
 
     /**
-     * Add in mappings for alternate names to be used in queries for existing fields.
-     *  i.e.  query for dataTypeId based on the alias of 'dataType'
-     * @param map
+     * Add in mappings for alternate names to be used in queries.  These should be in alias form with the correct table prefix.
+     * They will only be available in the alias map for this table.
+     * NOTE: The alias and field maps are usable in this method for example if
+     *  one wanted to create a mapping for an existing alias or field.
+     *
+     *  i.e.  query for dataTypeId based on the alias of 'ds.dataType'
+     *  i.e.  query for username based on the alias of 'u.username'
+     * @return
      */
-    protected void addFieldMappings(Map<String, Field<?>> map) {
-        //No-op by default
+    protected Map<String, Field<?>> getAliasMappings() {
+        return null;
     }
 
     /**
