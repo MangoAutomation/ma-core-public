@@ -26,6 +26,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
+ * TODO Mango 4.0 rename to focus on Dao
  * Interface to outline the DAO access methods for Basic VOs and aid in mocks for testing.
  *
  * @author Terry Packer
@@ -136,6 +137,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public SelectSelectStep<Record1<Integer>> getCountQuery();
 
     /**
+     * TODO Mango 4.0 is the condition necessary?  Change to accept different query step
      * Create a custom count query
      * @param input
      * @param condition
@@ -155,6 +157,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback);
 
     /**
+     * TODO Mango 4.0 Remove this
      * Create a custom query with callback for each row
      * @param conditions
      * @param callback
@@ -181,7 +184,9 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param conditions
      * @param callback
      */
-    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback);
+    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>,
+            SelectJoinStep<Record>>> joins, List<SortField<Object>> sort,
+            Integer limit, Integer offset, MappedRowCallback<T> callback);
 
     /**
      * Get the select query for the supplied fields without any joins

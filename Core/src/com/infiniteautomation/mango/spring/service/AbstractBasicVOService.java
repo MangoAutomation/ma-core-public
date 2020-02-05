@@ -40,6 +40,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 import net.jazdw.rql.parser.ASTNode;
 
 /**
+ * TODO Mango 4.0 extract interface
  * @author Terry Packer
  *
  */
@@ -133,6 +134,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
+     * TODO Mango 4.0 remove user from parameters
      * Ensure this vo is valid compared to the previous one.
      *
      * Override as necessary, most VOs won't need this.
@@ -147,6 +149,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
+     * TODO Mango 4.0 remove user from parameters
+     *
      * Ensure that this VO is valid.
      * Note: validation will only fail if there are Error level messages in the result
      * @param vo
@@ -159,6 +163,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
+     * TODO Mango 4.0 remove user from parameters
      * Note: validation will only fail if there are Error level messages in the result
      * @param existing
      * @param vo

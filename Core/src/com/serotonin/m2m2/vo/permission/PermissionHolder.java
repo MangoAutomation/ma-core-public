@@ -14,6 +14,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
+ * TODO Mango 4.0 remove permissionService field (and all methods that use it) and force the use of the service instead of the methods on this interface.
  * Something that holds permissions, typically a user. Could however in the future be groups, data source scripts etc.
  *
  * @author Jared Wiltshire
