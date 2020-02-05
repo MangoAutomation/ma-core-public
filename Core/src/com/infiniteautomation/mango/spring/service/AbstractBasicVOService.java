@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -16,10 +17,9 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Record1;
-import org.jooq.Select;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectSelectStep;
-import org.springframework.jdbc.core.ResultSetExtractor;
+import org.jooq.SortField;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
@@ -336,7 +336,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
-     * Query for VOs with a callback for each row
+     * Query for VOs with a callback for each row, filtering within the database is supported
+     * by the conditions input, if not using database filtering you must manually filter on permissions
      * @param conditions
      * @param callback
      */
@@ -348,7 +349,8 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
-     * Query for VOs using RQL
+     * Query for VOs using RQL.  Permissions are filtered within the database if supported by the dao, if not
+     * you must filter manually.
      * @param conditions
      * @param full - load relational data
      * @param callback
@@ -364,40 +366,48 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
-     * Execute arbitrary queries on the database
-     * @param select
-     * @param callback
-     */
-    public void customizedQuery(Select<Record> select, ResultSetExtractor<Void> callback) {
-        this.dao.customizedQuery(select, callback);
-    }
-
-    /**
-     * Execute custom query for VOs with a callback per row
-     * @param select
-     * @param callback
-     */
-    public void customizedQuery(Select<Record> select, MappedRowCallback<T> callback) {
-        dao.customizedQuery(select, (item, index) ->{
-            dao.loadRelationalData(item);
-            callback.row(item, index);
-        });
-    }
-
-    /**
-     * Get all matching items that calling use has read permission for
+     * Execute a query and ensure the results returned are restricted by read permission
+     *
      * @param conditions
+     * @param sort - optional
+     * @param limit - optional
+     * @param offset - optional
      * @param callback
      */
-    public void customizedQuery(Condition conditions, MappedRowCallback<T> callback) {
+    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        dao.customizedQuery(conditions, (vo, index) -> {
-            if(hasReadPermission(user, vo)) {
-                callback.row(vo, index);
+        List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins = new ArrayList<>();
+
+        if(!user.hasAdminRole()) {
+            Condition readRoleCondition = getDao().hasPermission(user);
+            if(readRoleCondition != null) {
+                //In database query filter
+                conditions.and(readRoleCondition);
+                joins.add((select) -> {
+                    return dao.joinRoles(select, PermissionService.READ);
+                });
+                dao.customizedQuery(conditions, joins, sort, limit, offset, (vo, index) -> {
+                    dao.loadRelationalData(vo);
+                    callback.row(vo, index);
+                });
+            }else {
+                //Manually filter
+                dao.customizedQuery(conditions, joins, sort, limit, offset, (vo, index) -> {
+                    if(hasReadPermission(user, vo)) {
+                        dao.loadRelationalData(vo);
+                        callback.row(vo, index);
+                    }
+                });
             }
-        });
+
+        }else {
+            dao.customizedQuery(conditions, joins, sort, limit, offset, (vo, index) -> {
+                dao.loadRelationalData(vo);
+                callback.row(vo, index);
+            });
+        }
     }
 
     /**

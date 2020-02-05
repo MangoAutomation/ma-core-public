@@ -5,10 +5,10 @@
 package com.serotonin.m2m2.vo.publish;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import org.jooq.Record;
-import org.jooq.SelectJoinStep;
+import org.jooq.Condition;
 import org.jooq.impl.DSL;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
 import com.infiniteautomation.mango.spring.service.AuditEventService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.MangoTestBase;
@@ -70,12 +71,18 @@ public class PublisherAuditTest extends MangoTestBase {
         List<AuditEventInstanceVO> events = new ArrayList<>();
         AuditEventService service = Common.getBean(AuditEventService.class);
         AuditEventTableDefinition table = Common.getBean(AuditEventTableDefinition.class);
-        SelectJoinStep<Record> query = service.getJoinedSelectQuery();
-        service.customizedQuery(query.where(
-                DSL.and(table.getAlias("typeName").eq(AuditEventType.TYPE_PUBLISHER), table.getAlias("objectId").eq(vo.getId()))).orderBy(table.getAlias("id")),
-                (evt, index) -> {
-                    events.add(evt);
-                });
+        Condition conditions = DSL.and(table.getAlias("typeName").eq(AuditEventType.TYPE_PUBLISHER), table.getAlias("objectId").eq(vo.getId()));
+        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
+            service.customizedQuery(
+                    conditions,
+                    Arrays.asList(table.getAlias("id").asc()),
+                    null,
+                    null,
+                    (evt, index) -> {
+                        events.add(evt);
+                    });
+        });
+
         Assert.assertEquals(2, events.size());
     }
 

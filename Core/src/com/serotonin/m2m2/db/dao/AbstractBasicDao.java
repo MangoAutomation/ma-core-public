@@ -399,8 +399,13 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public void customizedQuery(Condition conditions, MappedRowCallback<T> callback) {
-        customizedQuery(getJoinedSelectQuery(), conditions, null, null, null, callback);
+    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+        SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
+        for(Function<SelectJoinStep<Record>, SelectJoinStep<Record>> join : joins) {
+            select = join.apply(select);
+        }
+        select = joinTables(select, null);
+        customizedQuery(select, conditions, sort, limit, offset, callback);
     }
 
     @Override
@@ -508,6 +513,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      * @param user
      * @return
      */
+    @Override
     public Condition hasPermission(PermissionHolder user) {
         return null;
     }
@@ -519,6 +525,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      * @param permissionType
      * @return
      */
+    @Override
     public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
         return select;
     }

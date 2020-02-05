@@ -181,7 +181,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param conditions
      * @param callback
      */
-    public void customizedQuery(Condition conditions, MappedRowCallback<T> callback);
+    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback);
 
     /**
      * Get the select query for the supplied fields without any joins
@@ -240,5 +240,21 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @return
      */
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user, String permissionType);
+
+    /**
+     * If this VO has permissions then restrict based on role mappings
+     * @param user
+     * @return
+     */
+    public Condition hasPermission(PermissionHolder user);
+
+    /**
+     * Join for the appropriate permissions
+     * @param <R>
+     * @param select
+     * @param permissionType
+     * @return
+     */
+    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType);
 
 }

@@ -65,10 +65,8 @@ public class DataSourceQuery extends ScriptUtility {
         List<DataSourceWrapper> results = new ArrayList<DataSourceWrapper>();
         permissionService.runAs(permissions, () -> {
             dataSourceService.customizedQuery(root, (ds, index) -> {
-                if(permissionService.hasDataSourcePermission(permissions, ds)){
-                    List<DataPointWrapper> points = getPointsForSource(ds);
-                    results.add(new DataSourceWrapper(ds, points));
-                }
+                List<DataPointWrapper> points = getPointsForSource(ds);
+                results.add(new DataSourceWrapper(ds, points));
             });
         });
 

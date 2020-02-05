@@ -99,7 +99,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         }
 
         Field<Long> ackTs = this.dao.getTable().getAlias("ackTs");
-        this.customizedQuery(ackTs.isNull(), (event, i) -> {
+        this.customizedQuery(ackTs.isNull(), null, null, null, (event, i) -> {
             UserEventLevelSummary summary = summaries.get(event.getAlarmLevel());
             summary.increment(event);
         });
