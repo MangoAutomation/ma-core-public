@@ -23,8 +23,8 @@ public class ConditionSortLimit {
     private Condition condition;
     private Field<?> groupBy;
     private final List<SortField<Object>> sort;
-    private final Integer limit;
-    private final Integer offset;
+    private Integer limit;
+    private Integer offset;
     private final List<BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>>> joins;
 
     public ConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
@@ -71,7 +71,21 @@ public class ConditionSortLimit {
         return limit;
     }
 
+    /**
+     * Set limit to null, when going to filter manually
+     */
+    public void nullLimit() {
+        this.limit = null;
+    }
+
     public Integer getOffset() {
         return offset;
+    }
+
+    /**
+     * Set offset to null, when going to filter manually
+     */
+    public void nullOffset() {
+        this.offset = null;
     }
 }
