@@ -625,6 +625,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
      */
     @Override
     public void loadRelationalData(DataPointVO vo) {
+        //TODO Mango 4.0 loading tags always is much slower
         vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
 
         //Populate permissions
