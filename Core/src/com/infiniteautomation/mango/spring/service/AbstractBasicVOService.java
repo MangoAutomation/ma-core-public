@@ -379,7 +379,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @param offset - optional
      * @param callback
      */
-    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(Condition conditions, Field<?> groupBy, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
@@ -393,13 +393,13 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
                 joins.add((select) -> {
                     return dao.joinRoles(select, PermissionService.READ);
                 });
-                dao.customizedQuery(conditions, joins, sort, limit, offset, (vo, index) -> {
+                dao.customizedQuery(conditions, joins, groupBy, sort, limit, offset, (vo, index) -> {
                     dao.loadRelationalData(vo);
                     callback.row(vo, index);
                 });
             }else {
                 //Manually filter
-                dao.customizedQuery(conditions, joins, sort, limit, offset, (vo, index) -> {
+                dao.customizedQuery(conditions, joins, groupBy, sort, limit, offset, (vo, index) -> {
                     if(hasReadPermission(user, vo)) {
                         dao.loadRelationalData(vo);
                         callback.row(vo, index);
@@ -408,7 +408,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
             }
 
         }else {
-            dao.customizedQuery(conditions, joins, sort, limit, offset, (vo, index) -> {
+            dao.customizedQuery(conditions, joins, groupBy, sort, limit, offset, (vo, index) -> {
                 dao.loadRelationalData(vo);
                 callback.row(vo, index);
             });

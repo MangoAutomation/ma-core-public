@@ -146,17 +146,6 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public int customizedCount(SelectJoinStep<Record1<Integer>> input, Condition condition);
 
     /**
-     * Explicit convenience method for verbose custom queries
-     * @param select
-     * @param condition
-     * @param sort
-     * @param limit
-     * @param offset
-     * @param callback
-     */
-    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback);
-
-    /**
      * TODO Mango 4.0 Remove this
      * Create a custom query with callback for each row
      * @param conditions
@@ -179,13 +168,34 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public <TYPE> TYPE customizedQuery(Select<Record> select, ResultSetExtractor<TYPE> callback);
 
     /**
+     * Explicit convenience method for verbose custom queries
+     *
+     * @param select
+     * @param condition
+     * @param groupByField - can be null
+     * @param sort
+     * @param limit
+     * @param offset
+     * @param callback
+     */
+    public void customizedQuery(SelectJoinStep<Record> select,
+            Condition condition, Field<?> groupByField, List<SortField<Object>> sort,
+            Integer limit, Integer offset, MappedRowCallback<T> callback);
+
+
+    /**
      * Execute a query for these VOs based on the conditions
      *
      * @param conditions
+     * @param joins
+     * @param groupByField - can be null
+     * @param sort
+     * @param limit
+     * @param offset
      * @param callback
      */
     public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>,
-            SelectJoinStep<Record>>> joins, List<SortField<Object>> sort,
+            SelectJoinStep<Record>>> joins, Field<?> groupByField, List<SortField<Object>> sort,
             Integer limit, Integer offset, MappedRowCallback<T> callback);
 
     /**

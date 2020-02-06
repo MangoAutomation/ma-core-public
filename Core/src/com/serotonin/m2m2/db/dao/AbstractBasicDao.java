@@ -27,6 +27,7 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConnectByStep;
+import org.jooq.SelectHavingStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectSelectStep;
@@ -393,23 +394,26 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
-        customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
+        customizedQuery(select, conditions.getCondition(), conditions.getGroupBy(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 
     @Override
-    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins, Field<?> groupByField, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         for(Function<SelectJoinStep<Record>, SelectJoinStep<Record>> join : joins) {
             select = join.apply(select);
         }
         select = joinTables(select, null);
-        customizedQuery(select, conditions, sort, limit, offset, callback);
+        customizedQuery(select, conditions, groupByField, sort, limit, offset, callback);
     }
 
     @Override
-    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, Field<?> groupByField, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
-        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
+
+        SelectHavingStep<Record> groupBy = groupByField == null ? afterWhere : afterWhere.groupBy(groupByField);
+
+        SelectLimitStep<Record> afterSort = sort == null ? groupBy : groupBy.orderBy(sort);
 
         Select<Record> offsetStep = afterSort;
         if (limit != null) {
@@ -490,6 +494,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
                 conditions.addJoin((select, c) -> {
                     return joinRoles(select, permissionType);
                 });
+                //We only want the distinct vos as there could be multiple role mappings
+                conditions.setGroupBy(this.table.getIdAlias());
             }
         }
 

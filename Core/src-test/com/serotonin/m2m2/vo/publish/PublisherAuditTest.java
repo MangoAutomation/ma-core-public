@@ -75,6 +75,7 @@ public class PublisherAuditTest extends MangoTestBase {
         Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
             service.customizedQuery(
                     conditions,
+                    null,
                     Arrays.asList(table.getAlias("id").asc()),
                     null,
                     null,

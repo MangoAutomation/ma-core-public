@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
@@ -20,6 +21,7 @@ import com.serotonin.m2m2.db.dao.AbstractBasicDao;
  */
 public class ConditionSortLimit {
     private Condition condition;
+    private Field<?> groupBy;
     private final List<SortField<Object>> sort;
     private final Integer limit;
     private final Integer offset;
@@ -51,6 +53,14 @@ public class ConditionSortLimit {
 
     public void addJoin(BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>> join) {
         this.joins.add(join);
+    }
+
+    public Field<?> getGroupBy() {
+        return groupBy;
+    }
+
+    public void setGroupBy(Field<?> groupBy) {
+        this.groupBy = groupBy;
     }
 
     public List<SortField<Object>> getSort() {
