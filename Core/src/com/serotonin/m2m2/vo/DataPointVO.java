@@ -1419,8 +1419,8 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             this.simplifyTolerance = simplifyTolerance;
 
         //Legacy permissions support
-        this.readRoles = readLegacyPermissions("readPermissions", this.readRoles, jsonObject);
-        this.setRoles = readLegacyPermissions("setPermissions", this.setRoles, jsonObject);
+        this.readRoles = readLegacyPermissions("readPermission", this.readRoles, jsonObject);
+        this.setRoles = readLegacyPermissions("setPermission", this.setRoles, jsonObject);
     }
 
     private Unit<?> parseUnitString(String string, String item) throws TranslatableJsonException {
