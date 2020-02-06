@@ -114,15 +114,18 @@ public class DataPointImporter extends Importer {
                         JsonObject pedObject = jv.toJsonObject();
 
                         String pedXid = pedObject.getString("xid");
-                        if (StringUtils.isBlank(pedXid))
-                            throw new TranslatableJsonException("emport.error.ped.missingAttr", "xid");
-
-                        // Use the ped xid to lookup an existing ped.
                         AbstractPointEventDetectorVO ped = null;
-                        for (AbstractPointEventDetectorVO existing : dp.getEventDetectors()) {
-                            if (StringUtils.equals(pedXid, existing.getXid())) {
-                                ped = existing;
-                                break;
+
+                        //TODO Mango 4.0 adding the option to create new ones during import, this used to be thrown if the xid was missing
+                        //throw new TranslatableJsonException("emport.error.ped.missingAttr", "xid");
+
+                        if (!StringUtils.isBlank(pedXid)) {
+                            // Use the ped xid to lookup an existing ped.
+                            for (AbstractPointEventDetectorVO existing : dp.getEventDetectors()) {
+                                if (StringUtils.equals(pedXid, existing.getXid())) {
+                                    ped = existing;
+                                    break;
+                                }
                             }
                         }
 
@@ -142,7 +145,6 @@ public class DataPointImporter extends Importer {
 
                             // Create a new one
                             ped.setId(Common.NEW_ID);
-                            ped.setXid(pedXid);
                             dp.addOrReplaceDetector(ped);
                         }
 

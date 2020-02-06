@@ -24,6 +24,7 @@ import com.infiniteautomation.mango.spring.service.PublisherService;
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
@@ -283,16 +284,23 @@ public class ImportTask extends ProgressiveTask {
             //The content of the event detectors lists may have duplicates and the DataPointVO may be out of date,
             // but we can assume that all the event detectors for a point will exist in this list.
             for(AbstractPointEventDetectorVO ed : dp.getEventDetectors()) {
-                if(ed.isNew()) {
-                    eventDetectorService.insertAndReload(ed, false);
-                    importContext.addSuccessMessage(true, "emport.eventDetector.prefix", ed.getXid());
-                }else {
-                    eventDetectorService.updateAndReload(ed.getXid(), ed, false);
-                    importContext.addSuccessMessage(false, "emport.eventDetector.prefix", ed.getXid());
-                }
+                try {
+                    if(ed.isNew()) {
+                        eventDetectorService.insertAndReload(ed, false);
+                        importContext.addSuccessMessage(true, "emport.eventDetector.prefix", ed.getXid());
+                    }else {
+                        eventDetectorService.updateAndReload(ed.getXid(), ed, false);
+                        importContext.addSuccessMessage(false, "emport.eventDetector.prefix", ed.getXid());
+                    }
 
-                //Reload into the RT
-                dataPointService.reloadDataPoint(dp.getDataPoint().getXid());
+                    //Reload into the RT
+                    dataPointService.reloadDataPoint(dp.getDataPoint().getXid());
+
+                }catch(ValidationException e) {
+                    importContext.copyValidationMessages(e.getValidationResult(), "emport.eventDetector.prefix", ed.getXid());
+                }catch(Exception e) {
+                    LOG.error("Event detector import failed.", e);
+                }
             }
         }
 
