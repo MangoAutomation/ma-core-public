@@ -75,7 +75,10 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
     protected Object[] voToObjectArray(JsonDataVO vo) {
         String jsonData = null;
         try{
-            jsonData = writeValueAsString(vo.getJsonData());
+            JsonNode data = vo.getJsonData();
+            if (data != null) {
+                jsonData = writeValueAsString(data);
+            }
         }catch(JsonProcessingException e){
             LOG.error(e.getMessage(), e);
         }
