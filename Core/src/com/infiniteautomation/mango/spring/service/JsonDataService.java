@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -168,10 +170,30 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
         } else if (parent instanceof ArrayNode) {
             ((ArrayNode) parent).remove(Integer.parseInt(property));
         } else {
-            throw new RuntimeException("Cant delete property of " + parent.getClass().getSimpleName());
+            throw new UnsupportedOperationException("Cant delete property of " + parent.getClass().getSimpleName());
         }
 
         this.update(xid, item);
+    }
+
+    /**
+     * Retrieves a list of values inside an item using a JSON pointer.
+     * Target must be an object or array
+     *
+     * @param xid
+     * @param pointer RFC 6901 JSON pointer
+     */
+    public List<JsonNode> valuesForDataAtPointer(String xid, String pointer) {
+        JsonNode data = this.getDataAtPointer(xid, pointer);
+
+        if (!(data instanceof ObjectNode || data instanceof ArrayNode)) {
+            throw new UnsupportedOperationException("Can't list values for " + data.getClass().getSimpleName());
+        }
+
+        List<JsonNode> list = new ArrayList<>(data.size());
+        data.elements().forEachRemaining(list::add);
+
+        return list;
     }
 
     private String getLastPropertyName(JsonPointer ptr) {
