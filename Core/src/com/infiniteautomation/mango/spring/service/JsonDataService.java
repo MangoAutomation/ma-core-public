@@ -152,28 +152,30 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
      * @param pointer RFC 6901 JSON pointer
      * @param data
      */
-    public void deleteDataAtPointer(String xid, String pointer) {
+    public boolean deleteDataAtPointer(String xid, String pointer) {
         JsonDataVO item = this.get(xid);
 
+        JsonNode removed = null;
+
         if (pointer == null || pointer.isEmpty()) {
+            removed = item.getJsonData();
             item.setJsonData(null);
-            this.update(xid, item);
-            return;
-        }
-
-        JsonPointer ptr = JsonPointer.compile(pointer);
-        JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
-        String property = getLastPropertyName(ptr);
-
-        if (parent instanceof ObjectNode) {
-            ((ObjectNode) parent).remove(property);
-        } else if (parent instanceof ArrayNode) {
-            ((ArrayNode) parent).remove(Integer.parseInt(property));
         } else {
-            throw new UnsupportedOperationException("Cant delete property of " + parent.getClass().getSimpleName());
+            JsonPointer ptr = JsonPointer.compile(pointer);
+            JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
+            String property = getLastPropertyName(ptr);
+
+            if (parent instanceof ObjectNode) {
+                removed = ((ObjectNode) parent).remove(property);
+            } else if (parent instanceof ArrayNode) {
+                removed = ((ArrayNode) parent).remove(Integer.parseInt(property));
+            } else {
+                throw new UnsupportedOperationException("Cant delete property of " + parent.getClass().getSimpleName());
+            }
         }
 
         this.update(xid, item);
+        return removed != null;
     }
 
     /**
