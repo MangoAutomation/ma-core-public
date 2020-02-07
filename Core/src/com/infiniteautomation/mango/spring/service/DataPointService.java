@@ -3,6 +3,10 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,8 +20,19 @@ import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Select;
+import org.jooq.SelectConnectByStep;
+import org.jooq.SelectJoinStep;
+import org.jooq.SelectLimitStep;
+import org.jooq.SortField;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
@@ -25,6 +40,7 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.InvalidArgumentException;
 import com.serotonin.ShouldNeverHappenException;
+import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Common.Rollups;
 import com.serotonin.m2m2.Common.TimePeriods;
@@ -310,6 +326,60 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
                 setDataPointState(dataPointCopy, true, true);
             }
         }
+    }
+
+    /**
+     * Query for device names on data points a user can read
+     * @param conditions
+     * @param sortAsc
+     * @param limit
+     * @param offset
+     * @param callback
+     */
+    public void queryDeviceNames(Condition conditions, boolean sortAsc, Integer limit, Integer offset, MappedRowCallback<String> callback) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        Field<String> deviceName = this.dao.getTable().getAlias("deviceName");
+        List<SortField<String>> sort = new ArrayList<>();
+        if(sortAsc) {
+            sort.add(deviceName.asc());
+        }else {
+            sort.add(deviceName.desc());
+        }
+
+        SelectJoinStep<Record> select = this.dao.getSelectQuery(Arrays.asList(deviceName));
+        select = dao.joinTables(select, null);
+
+        if(!user.hasAdminRole()) {
+            conditions = DSL.and(getDao().hasPermission(user, PermissionService.READ), conditions);
+        }
+
+        SelectConnectByStep<Record> afterWhere = conditions == null ? select : select.where(conditions);
+        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
+
+        Select<Record> offsetStep = afterSort;
+        if (limit != null) {
+            if (offset != null) {
+                offsetStep = afterSort.limit(offset, limit);
+            } else {
+                offsetStep = afterSort.limit(limit);
+            }
+        }
+
+        dao.customizedQuery(offsetStep, new ResultSetExtractor<Void>() {
+
+            @Override
+            public Void extractData(ResultSet rs) throws SQLException, DataAccessException {
+                int rowNum = 0;
+                while (rs.next()) {
+                    callback.row(rs.getString(1), rowNum);
+                    rowNum++;
+                }
+                return null;
+            }
+
+        });
     }
 
     @Override
