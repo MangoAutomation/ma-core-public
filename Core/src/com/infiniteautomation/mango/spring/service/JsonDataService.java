@@ -109,21 +109,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
      */
     public JsonNode getDataAtPointer(String xid, String pointer) {
         JsonNode data = this.get(xid).getJsonData();
-
-        if (data == null || data instanceof MissingNode) {
-            throw new NotFoundException();
-        }
-
-        if (pointer == null || pointer.isEmpty()) {
-            return data;
-        }
-
-        JsonPointer ptr = JsonPointer.compile(pointer);
-        JsonNode dataAtPtr = data.at(ptr);
-        if (dataAtPtr instanceof MissingNode) {
-            throw new NotFoundException();
-        }
-        return dataAtPtr;
+        return getUsingPointer(data, pointer);
     }
 
     /**
@@ -143,16 +129,8 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
         }
 
         JsonPointer ptr = JsonPointer.compile(pointer);
-        JsonNode existing = item.getJsonData();
-        JsonNode parent = existing.at(ptr.head());
-
-        if (parent instanceof MissingNode) {
-            throw new NotFoundException();
-        }
-
-        String property = ptr.last().toString().substring(1);
-        property = UNESCAPE_JSON_PTR_SLASH.matcher(property).replaceAll("/");
-        property = UNESCAPE_JSON_PTR_TILDE.matcher(property).replaceAll("~");
+        JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
+        String property = getLastPropertyName(ptr);
 
         if (parent instanceof ObjectNode) {
             ((ObjectNode) parent).set(property, data);
@@ -163,5 +141,61 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
         }
 
         this.update(xid, item);
+    }
+
+    /**
+     * Delete data inside an item using a JSON pointer
+     *
+     * @param xid
+     * @param pointer RFC 6901 JSON pointer
+     * @param data
+     */
+    public void deleteDataAtPointer(String xid, String pointer) {
+        JsonDataVO item = this.get(xid);
+
+        if (pointer == null || pointer.isEmpty()) {
+            item.setJsonData(null);
+            this.update(xid, item);
+            return;
+        }
+
+        JsonPointer ptr = JsonPointer.compile(pointer);
+        JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
+        String property = getLastPropertyName(ptr);
+
+        if (parent instanceof ObjectNode) {
+            ((ObjectNode) parent).remove(property);
+        } else if (parent instanceof ArrayNode) {
+            ((ArrayNode) parent).remove(Integer.parseInt(property));
+        } else {
+            throw new RuntimeException("Cant delete property of " + parent.getClass().getSimpleName());
+        }
+
+        this.update(xid, item);
+    }
+
+    private String getLastPropertyName(JsonPointer ptr) {
+        String property = ptr.last().toString().substring(1);
+        property = UNESCAPE_JSON_PTR_SLASH.matcher(property).replaceAll("/");
+        property = UNESCAPE_JSON_PTR_TILDE.matcher(property).replaceAll("~");
+        return property;
+    }
+
+    private JsonNode getUsingPointer(JsonNode data, String pointer) {
+        return getUsingPointer(data, pointer == null ? null : JsonPointer.compile(pointer));
+    }
+
+    private JsonNode getUsingPointer(JsonNode data, JsonPointer pointer) {
+        if (data == null || data instanceof MissingNode) {
+            throw new NotFoundException();
+        }
+
+        JsonNode dataAtPointer = pointer == null ? data : data.at(pointer);
+
+        if (dataAtPointer instanceof MissingNode) {
+            throw new NotFoundException();
+        }
+
+        return dataAtPointer;
     }
 }
