@@ -322,7 +322,7 @@ public class Upgrade29 extends DBUpgrade {
     };
 
     private String[] dataPointIndexes = new String[] {
-            "CREATE INDEX deviceNameNameIdIndex ON dataPoints (deviceName ASD, name ASC, id ASC);"
+            "CREATE INDEX deviceNameNameIdIndex ON dataPoints (deviceName ASC, name ASC, id ASC);"
     };
 
 
