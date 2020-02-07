@@ -25,6 +25,7 @@ import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Select;
 import org.jooq.SelectConnectByStep;
+import org.jooq.SelectHavingStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
@@ -356,7 +357,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         }
 
         SelectConnectByStep<Record> afterWhere = conditions == null ? select : select.where(conditions);
-        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
+        SelectHavingStep<Record> afterGroupBy = afterWhere.groupBy(deviceName);
+        SelectLimitStep<Record> afterSort = sort == null ? afterGroupBy : afterGroupBy.orderBy(sort);
 
         Select<Record> offsetStep = afterSort;
         if (limit != null) {
