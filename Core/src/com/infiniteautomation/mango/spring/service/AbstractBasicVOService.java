@@ -3,7 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -374,32 +373,28 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * Execute a query and ensure the results returned are restricted by read permission
      *
      * @param conditions
+     * @param groupBy - can be null
      * @param sort - optional
      * @param limit - optional
      * @param offset - optional
      * @param callback
      */
-    public void customizedQuery(Condition conditions, Field<?> groupBy, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins = new ArrayList<>();
-
         if(!user.hasAdminRole()) {
-            Condition readRoleCondition = getDao().hasPermission(user);
+            Condition readRoleCondition = getDao().hasPermission(user, PermissionService.READ);
             if(readRoleCondition != null) {
                 //In database query filter
                 conditions.and(readRoleCondition);
-                joins.add((select) -> {
-                    return dao.joinRoles(select, PermissionService.READ);
-                });
-                dao.customizedQuery(conditions, joins, groupBy, sort, limit, offset, (vo, index) -> {
+                dao.customizedQuery(conditions, sort, limit, offset, (vo, index) -> {
                     dao.loadRelationalData(vo);
                     callback.row(vo, index);
                 });
             }else {
                 //Manually filter
-                dao.customizedQuery(conditions, joins, groupBy, sort, limit, offset, (vo, index) -> {
+                dao.customizedQuery(conditions, sort, limit, offset, (vo, index) -> {
                     if(hasReadPermission(user, vo)) {
                         dao.loadRelationalData(vo);
                         callback.row(vo, index);
@@ -408,7 +403,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
             }
 
         }else {
-            dao.customizedQuery(conditions, joins, groupBy, sort, limit, offset, (vo, index) -> {
+            dao.customizedQuery(conditions, sort, limit, offset, (vo, index) -> {
                 dao.loadRelationalData(vo);
                 callback.row(vo, index);
             });

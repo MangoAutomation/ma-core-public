@@ -172,14 +172,13 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      *
      * @param select
      * @param condition
-     * @param groupByField - can be null
      * @param sort
      * @param limit
      * @param offset
      * @param callback
      */
     public void customizedQuery(SelectJoinStep<Record> select,
-            Condition condition, Field<?> groupByField, List<SortField<Object>> sort,
+            Condition condition, List<SortField<Object>> sort,
             Integer limit, Integer offset, MappedRowCallback<T> callback);
 
 
@@ -187,15 +186,12 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * Execute a query for these VOs based on the conditions
      *
      * @param conditions
-     * @param joins
-     * @param groupByField - can be null
      * @param sort
      * @param limit
      * @param offset
      * @param callback
      */
-    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>,
-            SelectJoinStep<Record>>> joins, Field<?> groupByField, List<SortField<Object>> sort,
+    public void customizedQuery(Condition conditions, List<SortField<Object>> sort,
             Integer limit, Integer offset, MappedRowCallback<T> callback);
 
     /**
@@ -257,19 +253,11 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user, String permissionType);
 
     /**
-     * If this VO has permissions then restrict based on role mappings
+     * If this VO has permissions then restrict based on role mapping conditions
      * @param user
-     * @return
-     */
-    public Condition hasPermission(PermissionHolder user);
-
-    /**
-     * Join for the appropriate permissions
-     * @param <R>
-     * @param select
      * @param permissionType
      * @return
      */
-    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType);
+    public Condition hasPermission(PermissionHolder user, String permissionType);
 
 }

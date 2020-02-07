@@ -14,7 +14,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,7 +26,6 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.SelectConnectByStep;
-import org.jooq.SelectHavingStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SelectSelectStep;
@@ -347,11 +345,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      */
     @Override
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        if(conditions != null) {
-            for(BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>> join : conditions.getJoins()) {
-                select = (SelectJoinStep<R>) join.apply(select, conditions);
-            }
-        }
         return select;
     }
 
@@ -362,6 +355,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
         SelectJoinStep<Record1<Integer>> select = count.from(this.table.getTableAsAlias());
         select = joinTables(select, conditions);
+
         return customizedCount(select, condition);
     }
 
@@ -394,26 +388,22 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
-        customizedQuery(select, conditions.getCondition(), conditions.getGroupBy(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
+        customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 
     @Override
-    public void customizedQuery(Condition conditions, List<Function<SelectJoinStep<Record>, SelectJoinStep<Record>>> joins, Field<?> groupByField, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
-        for(Function<SelectJoinStep<Record>, SelectJoinStep<Record>> join : joins) {
-            select = join.apply(select);
-        }
+
         select = joinTables(select, null);
-        customizedQuery(select, conditions, groupByField, sort, limit, offset, callback);
+        customizedQuery(select, conditions, sort, limit, offset, callback);
     }
 
     @Override
-    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, Field<?> groupByField, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
 
-        SelectHavingStep<Record> groupBy = groupByField == null ? afterWhere : afterWhere.groupBy(groupByField);
-
-        SelectLimitStep<Record> afterSort = sort == null ? groupBy : groupBy.orderBy(sort);
+        SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
 
         Select<Record> offsetStep = afterSort;
         if (limit != null) {
@@ -488,14 +478,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
         //By default add the read role conditions
         if(!user.hasAdminRole()) {
-            Condition readRoleCondition = hasPermission(user);
+            Condition readRoleCondition = hasPermission(user, PermissionService.READ);
             if(readRoleCondition != null) {
                 conditions.addCondition(readRoleCondition);
-                conditions.addJoin((select, c) -> {
-                    return joinRoles(select, permissionType);
-                });
-                //We only want the distinct vos as there could be multiple role mappings
-                conditions.setGroupBy(this.table.getIdAlias());
             }
         }
 
@@ -515,23 +500,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     /**
      * If this VO has permissions then restrict based on role mappings
      * @param user
-     * @return
-     */
-    @Override
-    public Condition hasPermission(PermissionHolder user) {
-        return null;
-    }
-
-    /**
-     * Join for the appropriate permissions
-     * @param <R>
-     * @param select
      * @param permissionType
      * @return
      */
     @Override
-    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
-        return select;
+    public Condition hasPermission(PermissionHolder user, String permissionType) {
+        return null;
     }
 
     protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {

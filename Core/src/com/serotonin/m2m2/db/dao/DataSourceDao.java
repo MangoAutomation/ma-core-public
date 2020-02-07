@@ -18,7 +18,6 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.SelectJoinStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -247,25 +246,20 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     }
 
     @Override
-    public Condition hasPermission(PermissionHolder user) {
+    public Condition hasPermission(PermissionHolder user, String permissionType) {
         List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
-        return RoleTableDefinition.roleIdFieldAlias.in(roleIds);
-    }
-
-    @Override
-    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
-
+        Condition roleIdsIn = RoleTableDefinition.roleIdFieldAlias.in(roleIds);
         if(PermissionService.EDIT.equals(permissionType) || PermissionService.READ.equals(permissionType)) {
-
-            Condition editJoinCondition = DSL.and(
+            Condition readCondition = DSL.and(
                     RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
                     RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
                     RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
                     );
-            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(editJoinCondition);
-
+            return this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                    .from(RoleTableDefinition.roleMappingTableAsAlias)
+                    .where(readCondition, roleIdsIn));
+        }else {
+            return DSL.falseCondition();
         }
-        return select;
     }
-
 }

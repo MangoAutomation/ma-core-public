@@ -4,13 +4,9 @@
 
 package com.infiniteautomation.mango.db.query;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 
 import org.jooq.Condition;
-import org.jooq.Field;
-import org.jooq.SelectJoinStep;
 import org.jooq.SortField;
 import org.jooq.impl.DSL;
 
@@ -21,15 +17,12 @@ import com.serotonin.m2m2.db.dao.AbstractBasicDao;
  */
 public class ConditionSortLimit {
     private Condition condition;
-    private Field<?> groupBy;
     private final List<SortField<Object>> sort;
     private Integer limit;
     private Integer offset;
-    private final List<BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>>> joins;
 
     public ConditionSortLimit(Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset) {
         this.condition = condition;
-        this.joins = new ArrayList<>();
         this.sort = sort;
         this.limit = limit == null ? AbstractBasicDao.DEFAULT_LIMIT : limit;
         this.offset = offset;
@@ -45,22 +38,6 @@ public class ConditionSortLimit {
         } else {
             condition = DSL.and(condition, c);
         }
-    }
-
-    public List<BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>>> getJoins() {
-        return joins;
-    }
-
-    public void addJoin(BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>> join) {
-        this.joins.add(join);
-    }
-
-    public Field<?> getGroupBy() {
-        return groupBy;
-    }
-
-    public void setGroupBy(Field<?> groupBy) {
-        this.groupBy = groupBy;
     }
 
     public List<SortField<Object>> getSort() {

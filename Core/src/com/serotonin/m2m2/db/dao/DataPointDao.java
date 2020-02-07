@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -665,60 +664,61 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
-    public Condition hasPermission(PermissionHolder user) {
+    public Condition hasPermission(PermissionHolder user, String permissionType) {
         List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
-        return RoleTableDefinition.roleIdFieldAlias.in(roleIds);
-    }
-
-    @Override
-    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
-
+        Condition roleIdsIn = RoleTableDefinition.roleIdFieldAlias.in(roleIds);
         if(PermissionService.EDIT.equals(permissionType)) {
-
-            Condition editJoinCondition = DSL.and(
+            Condition editConditions = DSL.and(
                     RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
                     RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
                     RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
                     );
-            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(editJoinCondition);
-
+            return this.table.getAlias("dataSourceId").in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                    .from(RoleTableDefinition.roleMappingTableAsAlias)
+                    .where(editConditions, roleIdsIn));
         }else if(PermissionService.SET.equals(permissionType)) {
-
-            Condition setJoinCondition = DSL.or(
-                    DSL.and(
-                            RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
-                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
-                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET)
-                            ),
-                    DSL.and(
-                            RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
-                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
-                            )
+            Condition setConditions = DSL.and(
+                    RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
+                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET)
                     );
-
-            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(setJoinCondition);
+            Condition editConditions = DSL.and(
+                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
+                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
+                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                    );
+            return DSL.or(this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                    .from(RoleTableDefinition.roleMappingTableAsAlias)
+                    .where(setConditions, roleIdsIn)),
+                    this.table.getAlias("dataSourceId").in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                            .from(RoleTableDefinition.roleMappingTableAsAlias)
+                            .where(editConditions, roleIdsIn))
+                    );
         }else if(PermissionService.READ.equals(permissionType)) {
-
-            Condition readJoinCondition = DSL.or(
-                    DSL.and(
-                            RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
-                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
-                            DSL.or(
-                                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET),
-                                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.READ)
-                                    )
-                            ),
-                    DSL.and(
-                            RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
-                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+            Condition readConditions = DSL.and(
+                    RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
+                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
+                    DSL.or(
+                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET),
+                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.READ)
                             )
                     );
+            Condition editConditions = DSL.and(
+                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
+                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
+                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
+                    );
 
-            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(readJoinCondition);
+            return DSL.or(this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                    .from(RoleTableDefinition.roleMappingTableAsAlias)
+                    .where(readConditions, roleIdsIn)),
+                    this.table.getAlias("dataSourceId").in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                            .from(RoleTableDefinition.roleMappingTableAsAlias)
+                            .where(editConditions, roleIdsIn))
+                    );
+        }else {
+            return DSL.falseCondition();
         }
-        return select;
     }
 
     @Override
@@ -735,12 +735,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         select = select.join(dataSourceTable.getTableAsAlias())
                 .on(DSL.field(dataSourceTable.getAlias("id"))
                         .eq(this.table.getAlias("dataSourceId")));
-
-        if(conditions != null) {
-            for(BiFunction<SelectJoinStep<?>, ConditionSortLimit, SelectJoinStep<?>> join : conditions.getJoins()) {
-                select = (SelectJoinStep<R>) join.apply(select, conditions);
-            }
-        }
 
         if (conditions instanceof ConditionSortLimitWithTagKeys) {
             Map<String, Name> tagKeyToColumn = ((ConditionSortLimitWithTagKeys) conditions).getTagKeyToColumn();

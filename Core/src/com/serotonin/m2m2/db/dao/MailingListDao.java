@@ -15,8 +15,6 @@ import java.util.stream.Collectors;
 
 import org.joda.time.DateTime;
 import org.jooq.Condition;
-import org.jooq.Record;
-import org.jooq.SelectJoinStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -200,26 +198,23 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
     }
 
     @Override
-    public Condition hasPermission(PermissionHolder user) {
+    public Condition hasPermission(PermissionHolder user, String permissionType) {
         List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
-        return RoleTableDefinition.roleIdFieldAlias.in(roleIds);
-    }
-
-    @Override
-    public <R extends Record> SelectJoinStep<R> joinRoles(SelectJoinStep<R> select, String permissionType) {
-
+        Condition roleIdsIn = RoleTableDefinition.roleIdFieldAlias.in(roleIds);
         if(PermissionService.EDIT.equals(permissionType)) {
 
-            Condition editJoinCondition = DSL.and(
+            Condition editConditions = DSL.and(
                     RoleTableDefinition.voTypeFieldAlias.eq(MailingList.class.getSimpleName()),
                     RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
                     RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
                     );
-            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(editJoinCondition);
+            return this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                    .from(RoleTableDefinition.roleMappingTableAsAlias)
+                    .where(editConditions, roleIdsIn));
 
         }else if(PermissionService.READ.equals(permissionType)) {
 
-            Condition readJoinCondition = DSL.or(
+            Condition readConditions = DSL.or(
                     DSL.and(
                             RoleTableDefinition.voTypeFieldAlias.eq(MailingList.class.getSimpleName()),
                             RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
@@ -232,9 +227,12 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
                             )
                     );
 
-            return select.join(RoleTableDefinition.roleMappingTableAsAlias).on(readJoinCondition);
+            return this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
+                    .from(RoleTableDefinition.roleMappingTableAsAlias)
+                    .where(readConditions, roleIdsIn));
+        }else {
+            return DSL.falseCondition();
         }
-        return select;
     }
 
     @Override

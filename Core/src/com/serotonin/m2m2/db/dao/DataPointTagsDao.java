@@ -172,15 +172,6 @@ public class DataPointTagsDao extends BaseDao {
         });
     }
 
-    SelectJoinStep<Record1<String>> joinPointPermissions(SelectJoinStep<Record1<String>> select, Field<Integer> dataPointIdField, User user) {
-        Condition userHasPermission = DataPointDao.getInstance().hasPermission(user);
-
-        select = select.join(dataPointTable.getTableAsAlias()).on(dataPointIdField.eq(dataPointTable.getIdAlias()));
-        select = DataPointDao.getInstance().joinRoles(select, PermissionService.READ);
-        return select.join(DataSourceDao.DATA_SOURCES).on(DSL.and(dataPointTable.getAlias("dataSourceId").eq(DataSourceDao.ID), userHasPermission));
-    }
-
-
 
     public Set<String> getTagKeys(User user) {
         Table<Record> fromTable = DATA_POINT_TAGS;
@@ -189,11 +180,15 @@ public class DataPointTagsDao extends BaseDao {
                 .from(fromTable);
 
         if (!user.hasAdminRole()) {
-            query = joinPointPermissions(query, DATA_POINT_ID, user);
-        }
-
-        try (Stream<Record1<String>> stream = query.stream()) {
-            return stream.map(r -> r.value1()).collect(Collectors.toSet());
+            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
+            query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
+            try (Stream<Record1<String>> stream = query.where(userHasPermission).stream()) {
+                return stream.map(r -> r.value1()).collect(Collectors.toSet());
+            }
+        }else {
+            try (Stream<Record1<String>> stream = query.stream()) {
+                return stream.map(r -> r.value1()).collect(Collectors.toSet());
+            }
         }
     }
 
@@ -202,11 +197,15 @@ public class DataPointTagsDao extends BaseDao {
 
         SelectJoinStep<Record1<String>> query = this.create.selectDistinct(TAG_VALUE)
                 .from(fromTable);
-        if (!user.hasAdminRole()) {
-            query = joinPointPermissions(query, DATA_POINT_ID, user);
-        }
 
-        SelectConditionStep<Record1<String>> conditional = query.where(TAG_KEY.eq(tagKey));
+        SelectConditionStep<Record1<String>> conditional;
+        if (!user.hasAdminRole()) {
+            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
+            query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
+            conditional = query.where(userHasPermission, TAG_KEY.eq(tagKey));
+        }else {
+            conditional = query.where(TAG_KEY.eq(tagKey));
+        }
 
         try (Stream<Record1<String>> stream = conditional.stream()) {
             return stream.map(r -> r.value1()).collect(Collectors.toSet());
@@ -236,11 +235,13 @@ public class DataPointTagsDao extends BaseDao {
                 .from(from);
 
         if (!user.hasAdminRole()) {
-            query = joinPointPermissions(query, PIVOT_ALIAS_DATA_POINT_ID, user);
+            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
+            query = query.join(dataPointTable.getTableAsAlias()).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
+            conditions.add(userHasPermission);
         }
 
-        SelectConditionStep<Record1<String>> result = query.where(DSL.and(conditions));
-        try (Stream<Record1<String>> stream = result.stream()) {
+        SelectConditionStep<Record1<String>> conditional = query.where(DSL.and(conditions));
+        try (Stream<Record1<String>> stream = conditional.stream()) {
             return stream.map(r -> r.value1()).collect(Collectors.toSet());
         }
     }
@@ -263,12 +264,14 @@ public class DataPointTagsDao extends BaseDao {
                 .selectDistinct(DSL.field(DATA_POINT_TAGS_PIVOT_ALIAS.append(tagKeyColumn), String.class))
                 .from(from);
 
+
         if (!user.hasAdminRole()) {
-            query = joinPointPermissions(query, PIVOT_ALIAS_DATA_POINT_ID, user);
+            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
+            query = query.join(dataPointTable.getTableAsAlias()).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
+            conditionList.add(userHasPermission);
         }
 
         Select<Record1<String>> result = query;
-
         if (!conditionList.isEmpty()) {
             result = query.where(DSL.and(conditionList));
         }
