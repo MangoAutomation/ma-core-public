@@ -1,64 +1,64 @@
 /**
- * Copyright (C) 2015 Infinite Automation Software. All rights reserved.
- * @author Terry Packer
+ * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
  */
 package com.infiniteautomation.mango.db.query;
 
-import com.serotonin.ShouldNeverHappenException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Terry Packer
- *
+ * @author Jared Wiltshire
  */
 public enum ComparisonEnum {
 
-	EQUAL_TO,
-	NOT_EQUAL_TO,
-	LESS_THAN,
-	LESS_THAN_EQUAL_TO,
-	GREATER_THAN,
-	GREATER_THAN_EQUAL_TO,
-	IN,
-	LIKE,
-	NOT_LIKE,
-	CONTAINS,
-	IS,
-	IS_NOT,
-	AND,
-	OR;
-	
-	public static ComparisonEnum convertTo(String comparison){
-		switch(comparison){
-        case "eq":
-        	return EQUAL_TO;
-        case "gt":
-        	return GREATER_THAN;
-        case "ge":
-        	return GREATER_THAN_EQUAL_TO;
-        case "lt":
-        	return LESS_THAN;
-        case "le":
-        	return LESS_THAN_EQUAL_TO;
-        case "ne":
-        	return NOT_EQUAL_TO;
-        case "match":
-        case "like":
-        	return LIKE;
-        case "not like":
-        	return NOT_LIKE;
-        case "in":
-        	return IN;
-        case "is":
-        	return IS;
-        case "is not":
-        	return IS_NOT;
-        case "and":
-        	return AND;
-        case "or":
-        	return OR;
-		}
-		throw new ShouldNeverHappenException("Comparison: " + comparison + " not supported.");
-	}
-	
-	
+    EQUAL_TO("eq"),
+    NOT_EQUAL_TO("ne"),
+    LESS_THAN("lt"),
+    LESS_THAN_EQUAL_TO("le"),
+    GREATER_THAN("gt"),
+    GREATER_THAN_EQUAL_TO("ge"),
+    IN("in"),
+    LIKE("like", "match"),
+    NOT_LIKE("not like", "not match", "nlike", "nmatch"),
+    CONTAINS(),
+    IS("is"),
+    IS_NOT("is not"),
+    AND("and"),
+    OR("or"),
+    LIMIT("limit"),
+    SORT("sort");
+
+    public static ComparisonEnum convertTo(String comparisonString) {
+        ComparisonEnum comparison = REVERSE_MAP.get(comparisonString);
+        if (comparison == null) {
+            throw new UnsupportedOperationException("Comparison: " + comparisonString + " not supported.");
+        }
+        return comparison;
+    }
+
+    private static final Map<String, ComparisonEnum> REVERSE_MAP;
+    static {
+        ComparisonEnum[] constants = ComparisonEnum.class.getEnumConstants();
+        Map<String, ComparisonEnum> map = new HashMap<>(constants.length, 1);
+
+        for (ComparisonEnum comparison : constants) {
+            for (String op : comparison.getOpCodes()) {
+                map.put(op, comparison);
+            }
+        }
+
+        REVERSE_MAP = Collections.unmodifiableMap(map);
+    }
+
+    private final String[] opCodes;
+
+    private ComparisonEnum(String... opCodes) {
+        this.opCodes = opCodes;
+    }
+
+    public String[] getOpCodes() {
+        return opCodes;
+    }
 }
