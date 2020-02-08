@@ -110,13 +110,6 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
         throw new UnsupportedOperationException("Cant compare " + a.getClass());
     };
 
-    class NaturalComparator<X extends Comparable<? super X>> implements Comparator<X> {
-        @Override
-        public int compare(X a, X b) {
-            return a.compareTo(b);
-        }
-    }
-
     protected Comparator<T> getComparator(String property) {
         return (a, b) -> {
             Object valueA = getProperty(a, property);
