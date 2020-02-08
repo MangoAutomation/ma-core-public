@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
+import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -110,7 +111,10 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
 
             //Read the data
             try{
-                vo.setJsonData(getObjectReader(JsonNode.class).readTree(rs.getClob(++i).getCharacterStream()));
+                Clob clob = rs.getClob(++i);
+                if (clob != null) {
+                    vo.setJsonData(getObjectReader(JsonNode.class).readTree(clob.getCharacterStream()));
+                }
             }catch(Exception e){
                 LOG.error(e.getMessage(), e);
             }
