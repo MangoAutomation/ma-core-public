@@ -3,8 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -185,17 +183,18 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
      * @param xid
      * @param pointer RFC 6901 JSON pointer
      */
-    public List<JsonNode> valuesForDataAtPointer(String xid, String pointer) {
+    public ArrayNode valuesForDataAtPointer(String xid, String pointer) {
         JsonNode data = this.getDataAtPointer(xid, pointer);
 
-        if (!(data instanceof ObjectNode || data instanceof ArrayNode)) {
+        if (data instanceof ArrayNode) {
+            return (ArrayNode) data;
+        } else if (data instanceof ObjectNode) {
+            ArrayNode array = ((ObjectNode) data).arrayNode(data.size());
+            data.elements().forEachRemaining(array::add);
+            return array;
+        } else {
             throw new UnsupportedOperationException("Can't list values for " + data.getClass().getSimpleName());
         }
-
-        List<JsonNode> list = new ArrayList<>(data.size());
-        data.elements().forEachRemaining(list::add);
-
-        return list;
     }
 
     private String getLastPropertyName(JsonPointer ptr) {
