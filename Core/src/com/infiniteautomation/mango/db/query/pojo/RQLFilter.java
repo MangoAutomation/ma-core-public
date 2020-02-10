@@ -3,12 +3,14 @@
  */
 package com.infiniteautomation.mango.db.query.pojo;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -19,12 +21,11 @@ import net.jazdw.rql.parser.ASTNode;
 
 public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
-    private static final Pattern STAR_REPLACER = Pattern.compile("\\*");
+    private static final Pattern MATCH_ALLOWED = Pattern.compile("\\*|\\?");
 
     private final Predicate<T> filter;
     private Long limit;
     private Long offset;
-    private long total;
     private Comparator<T> comparator;
 
     public RQLFilter(ASTNode node) {
@@ -33,16 +34,9 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
     @Override
     public Stream<T> apply(Stream<T> stream) {
-        this.total = 0;
-
         if (this.filter != null) {
             stream = stream.filter(filter);
         }
-
-        stream = stream.peek(c -> {
-            this.total++;
-        });
-
         if (this.comparator != null) {
             stream = stream.sorted(this.comparator);
         }
@@ -53,6 +47,13 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
             stream = stream.limit(this.limit);
         }
         return stream;
+    }
+
+    public long count(Stream<T> stream) {
+        if (this.filter != null) {
+            stream = stream.filter(filter);
+        }
+        return stream.count();
     }
 
     private Predicate<T> visit(ASTNode node) {
@@ -134,11 +135,25 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
                 // we only want to allow the star special character in our like operation
                 // convert the expression to a literal pattern then replace all literal star characters with .* regex
-                String literal = Pattern.quote((String) arguments.get(1));
-                Pattern target = Pattern.compile(STAR_REPLACER.matcher(literal).replaceAll(".*"), Pattern.CASE_INSENSITIVE);
+                String matchString = (String) arguments.get(1);
+                String regex = tokenize(MATCH_ALLOWED, matchString).stream().map(t -> {
+                    if ("*".equals(t)) {
+                        return ".*";
+                    } else if ("?".equals(t)) {
+                        return ".";
+                    }
+                    return Pattern.quote(t);
+                }).collect(Collectors.joining());
+
+                boolean caseSensitive = false;
+                if (arguments.size() > 2) {
+                    caseSensitive = (boolean) arguments.get(2);
+                }
+                Pattern target = Pattern.compile(regex, caseSensitive ? 0 : Pattern.CASE_INSENSITIVE);
 
                 return (item) -> {
-                    return target.matcher((String) getProperty(item, property)).find();
+                    String value = (String) getProperty(item, property);
+                    return target.matcher(value).matches();
                 };
             }
             case CONTAINS: {
@@ -219,7 +234,32 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
      */
     protected abstract Object getProperty(T item, String property);
 
-    public long getTotal() {
-        return total;
+    /**
+     * Tokenizes a string, splitting on the pattern but keeping the delimiters.
+     *
+     * @param pattern
+     * @param input
+     * @return
+     */
+    public static List<String> tokenize(Pattern pattern, String input) {
+        List<String> tokens = new ArrayList<>();
+
+        Matcher matcher = pattern.matcher(input);
+        int position = 0;
+        while (matcher.find()) {
+            String prevToken = input.substring(position, matcher.start());
+            if (!prevToken.isEmpty()) {
+                tokens.add(prevToken);
+            }
+            position = matcher.end();
+            tokens.add(matcher.group());
+        }
+
+        String lastToken = input.substring(position);
+        if (!lastToken.isEmpty()) {
+            tokens.add(lastToken);
+        }
+
+        return tokens;
     }
 }
