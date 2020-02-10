@@ -3,11 +3,13 @@
  */
 package com.infiniteautomation.mango.db.query.pojo;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,6 +18,8 @@ import com.infiniteautomation.mango.db.query.ComparisonEnum;
 import net.jazdw.rql.parser.ASTNode;
 
 public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
+
+    private static final Pattern STAR_REPLACER = Pattern.compile("\\*");
 
     private final Predicate<T> filter;
     private Long limit;
@@ -53,90 +57,136 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
     private Predicate<T> visit(ASTNode node) {
         ComparisonEnum comparison = ComparisonEnum.convertTo(node.getName());
+        return visit(comparison, node.getArguments());
+    }
 
+    private Predicate<T> visit(ComparisonEnum comparison, List<Object> arguments) {
         switch(comparison) {
             case AND: {
-                List<Predicate<T>> childPredicates = childPredicates(node);
+                List<Predicate<T>> childPredicates = childPredicates(arguments);
                 return item -> {
                     return childPredicates.stream().allMatch(p -> p.test(item));
                 };
             }
             case OR: {
-                List<Predicate<T>> childPredicates = childPredicates(node);
+                List<Predicate<T>> childPredicates = childPredicates(arguments);
                 return item -> {
                     return childPredicates.stream().anyMatch(p -> p.test(item));
                 };
             }
+            case NOT: {
+                return visit(ComparisonEnum.AND, arguments).negate();
+            }
             case LIMIT: {
-                applyLimit(node);
+                applyLimit(arguments);
                 return null;
             }
             case SORT: {
-                applySort(node);
+                applySort(arguments);
                 return null;
             }
-            case EQUAL_TO: {
-                String property = (String) node.getArgument(0);
-                Object target = node.getArgument(1);
-                return (item) -> OBJECT_COMPARATOR.compare(getProperty(item, property), target) == 0;
+            case IS: {
+                String property = (String) arguments.get(0);
+                Object target = arguments.get(1);
+                return (item) -> getProperty(item, property) == target;
             }
-            // TODO implement other cases
+            case EQUAL_TO: {
+                String property = (String) arguments.get(0);
+                Object target = arguments.get(1);
+                return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) == 0;
+            }
+            case NOT_EQUAL_TO: {
+                return visit(ComparisonEnum.EQUAL_TO, arguments).negate();
+            }
+            case LESS_THAN: {
+                String property = (String) arguments.get(0);
+                Object target = arguments.get(1);
+                return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) < 0;
+            }
+            case LESS_THAN_EQUAL_TO: {
+                String property = (String) arguments.get(0);
+                Object target = arguments.get(1);
+                return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) <= 0;
+            }
+            case GREATER_THAN: {
+                return visit(ComparisonEnum.LESS_THAN_EQUAL_TO, arguments).negate();
+            }
+            case GREATER_THAN_EQUAL_TO: {
+                return visit(ComparisonEnum.LESS_THAN, arguments).negate();
+            }
+            case IN: {
+                String property = (String) arguments.get(0);
+                List<?> args;
+                if (arguments.get(1) instanceof List) {
+                    args = (List<?>) arguments.get(1);
+                } else {
+                    args = arguments.subList(1, arguments.size());
+                }
 
-            //            case IN: {
-            //                // work around for RQL queries with an array in their first argument position
-            //                if (node.getArgument(0) instanceof List) {
-            //                    node = new ASTNode(node.getName(), (List<?>) node.getArgument(0));
-            //                }
-            //                String property = (String) node.getArgument(0);
-            //                Object target = node.getArgument(1);
-            //                return (item) -> OBJECT_COMPARATOR.compare(getProperty(item, property), target) == 0;
-            //            }
+                return item -> {
+                    return args.stream().anyMatch(arg -> {
+                        return ObjectComparator.INSTANCE.compare(getProperty(item, property), arg) == 0;
+                    });
+                };
+            }
+            case LIKE: {
+                String property = (String) arguments.get(0);
+
+                // we only want to allow the star special character in our like operation
+                // convert the expression to a literal pattern then replace all literal star characters with .* regex
+                String literal = Pattern.quote((String) arguments.get(1));
+                Pattern target = Pattern.compile(STAR_REPLACER.matcher(literal).replaceAll(".*"), Pattern.CASE_INSENSITIVE);
+
+                return (item) -> {
+                    return target.matcher((String) getProperty(item, property)).find();
+                };
+            }
+            case CONTAINS: {
+                String property = (String) arguments.get(0);
+                Object target = arguments.get(1);
+                return (item) -> {
+                    Object value = getProperty(item, property);
+                    if (value instanceof String) {
+                        return ((String) value).contains((String) target);
+                    } else if (value instanceof Collection) {
+                        Collection<?> values = (Collection<?>) value;
+                        return values.stream().anyMatch(v -> {
+                            return ObjectComparator.INSTANCE.compare(v, target) == 0;
+                        });
+                    }
+                    else throw new UnsupportedOperationException("Cant search inside " + value.getClass());
+                };
+            }
             default:
                 throw new UnsupportedOperationException("Unsupported RQL operation " + comparison);
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final Comparator<Object> OBJECT_COMPARATOR = (a, b) -> {
-        if (!a.getClass().isAssignableFrom(b.getClass())) {
-            return a.getClass().getName().compareTo(b.getClass().getName());
-        }
-
-        // TODO make this work better with numbers
-        if (a instanceof Comparable) {
-            return ((Comparable) a).compareTo(b);
-        }
-
-        throw new UnsupportedOperationException("Cant compare " + a.getClass());
-    };
-
     protected Comparator<T> getComparator(String property) {
         return (a, b) -> {
             Object valueA = getProperty(a, property);
             Object valueB = getProperty(b, property);
-            return OBJECT_COMPARATOR.compare(valueA, valueB);
+            return ObjectComparator.INSTANCE.compare(valueA, valueB);
         };
     }
 
-    private List<Predicate<T>> childPredicates(ASTNode node) {
-        return node.getArguments().stream()
+    private List<Predicate<T>> childPredicates(List<Object> arguments) {
+        return arguments.stream()
                 .map(arg -> this.visit((ASTNode) arg))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    private void applyLimit(ASTNode node) {
-        List<Object> args = node.getArguments();
-        if (!args.isEmpty()) {
-            this.limit = ((Number) args.get(0)).longValue();
-            this.offset = args.size() > 1 ? ((Number) args.get(1)).longValue() : 0;
+    private void applyLimit(List<Object> arguments) {
+        if (!arguments.isEmpty()) {
+            this.limit = ((Number) arguments.get(0)).longValue();
+            this.offset = arguments.size() > 1 ? ((Number) arguments.get(1)).longValue() : 0;
         }
     }
 
-    private void applySort(ASTNode node) {
+    private void applySort(List<Object> arguments) {
         this.comparator = null;
-        List<Object> args = node.getArguments();
-        for (Object arg : args) {
+        for (Object arg : arguments) {
             boolean descending;
 
             String property = (String) arg;
