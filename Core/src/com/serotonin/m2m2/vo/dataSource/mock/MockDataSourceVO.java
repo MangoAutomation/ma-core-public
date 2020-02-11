@@ -17,7 +17,7 @@ import com.serotonin.m2m2.vo.event.EventTypeVO;
  */
 public class MockDataSourceVO extends PollingDataSourceVO {
 
-    public MockDataSourceVO(){
+    public MockDataSourceVO() {
         this.setDefinition(new MockDataSourceDefinition());
     }
 
