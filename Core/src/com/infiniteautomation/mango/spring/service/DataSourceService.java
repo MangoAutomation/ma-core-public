@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -83,6 +84,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     public DataSourceVO insert(DataSourceVO vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
 
@@ -107,6 +110,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     @Override
     public DataSourceVO update(DataSourceVO existing, DataSourceVO vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureEditPermission(user, existing);
 
         //Ensure matching data source types
@@ -123,10 +128,10 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     }
 
     @Override
-    public DataSourceVO delete(String xid)
-            throws PermissionException, NotFoundException {
-        DataSourceVO vo = get(xid);
+    public DataSourceVO delete(DataSourceVO vo) throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deleteDataSource(vo.getId());
         return vo;
