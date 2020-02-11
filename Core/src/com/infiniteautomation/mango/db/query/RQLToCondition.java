@@ -54,20 +54,25 @@ public class RQLToCondition {
     }
 
     protected Condition visitNode(ASTNode node) {
-        switch (node.getName()) {
-            case "":
-            case "and": {
+        ComparisonEnum operation = ComparisonEnum.convertTo(node.getName().toLowerCase());
+
+        switch (operation) {
+            case AND: {
                 List<Condition> conditions = visitAndOr(node);
                 return conditions.isEmpty() ? null : DSL.and(conditions);
             }
-            case "or": {
+            case OR: {
                 List<Condition> conditions = visitAndOr(node);
                 return conditions.isEmpty() ? null : DSL.or(conditions);
             }
-            case "sort":
+            case NOT: {
+                List<Condition> conditions = visitAndOr(node);
+                return conditions.isEmpty() ? null : DSL.not(DSL.and(conditions));
+            }
+            case SORT:
                 sortFields = getSortFields(node);
                 return null;
-            case "limit":
+            case LIMIT:
                 limit = (Integer) node.getArgument(0);
                 if (node.getArgumentsSize() > 1) {
                     offset = (Integer) node.getArgument(1);
@@ -85,36 +90,32 @@ public class RQLToCondition {
         Function<Object, Object> valueConverter = getValueConverter(field);
         Object firstArg = valueConverter.apply(node.getArgument(1));
 
-        switch (node.getName().toLowerCase()) {
-            case "eq":
+        ComparisonEnum operation = ComparisonEnum.convertTo(node.getName().toLowerCase());
+
+        switch (operation) {
+            case EQUAL_TO:
                 if (firstArg == null) {
                     return field.isNull();
                 }
                 return field.eq(firstArg);
-            case "gt":
+            case GREATER_THAN:
                 return field.gt(firstArg);
-            case "ge":
+            case GREATER_THAN_EQUAL_TO:
                 return field.ge(firstArg);
-            case "lt":
+            case LESS_THAN:
                 return field.lt(firstArg);
-            case "le":
+            case LESS_THAN_EQUAL_TO:
                 return field.le(firstArg);
-            case "ne":
+            case NOT_EQUAL_TO:
                 if (firstArg == null) {
                     return field.isNotNull();
                 }
                 return field.ne(firstArg);
-            case "match":
-            case "like": {
+            case MATCH: {
                 String like = ((String) firstArg).replace('*', '%');
                 return field.likeIgnoreCase(like);
             }
-            case "nmatch":
-            case "nlike": {
-                String nlike = ((String) firstArg).replace('*', '%');
-                return field.notLikeIgnoreCase(nlike);
-            }
-            case "in":
+            case IN:
                 List<?> inArray;
                 if (firstArg instanceof List) {
                     inArray = (List<?>) firstArg;
@@ -125,29 +126,6 @@ public class RQLToCondition {
                             .collect(Collectors.toList());
                 }
                 return field.in(inArray);
-            case "csvcontainsany":
-                List<?> csvContainsAnyPermissionsArray;
-                if (firstArg instanceof List) {
-                    csvContainsAnyPermissionsArray = (List<?>) firstArg;
-                } else {
-                    csvContainsAnyPermissionsArray = node.getArguments().subList(1, node.getArgumentsSize())
-                            .stream()
-                            .map(valueConverter)
-                            .collect(Collectors.toList());
-                }
-                return fieldMatchesAnyPermission(field, csvContainsAnyPermissionsArray);
-            case "csvcontainsall":
-                List<?> csvContainsAllPermissionsArray;
-                if (firstArg instanceof List) {
-                    csvContainsAllPermissionsArray = (List<?>) firstArg;
-                } else {
-                    csvContainsAllPermissionsArray = node.getArguments().subList(1, node.getArgumentsSize())
-                            .stream()
-                            .map(valueConverter)
-                            .collect(Collectors.toList());
-                }
-                return fieldMatchesAllPermissions(field, csvContainsAllPermissionsArray);
-
             default:
                 throw new RQLVisitException(String.format("Unknown node type '%s'", node.getName()));
         }
@@ -165,6 +143,7 @@ public class RQLToCondition {
         return conditions;
     }
 
+    @SuppressWarnings("unchecked")
     protected <T> Field<T> getField(String property) {
         if (this.fieldMapping.containsKey(property)) {
             return (Field<T>) this.fieldMapping.get(property);
@@ -196,65 +175,6 @@ public class RQLToCondition {
         }
 
         return fields;
-    }
-
-    public static final String PERMISSION_START_REGEX = "(^|[,])\\s*";
-    public static final String PERMISSION_END_REGEX = "\\s*($|[,])";
-
-    /**
-     * Match any permission
-     * @param field
-     * @param userPermission
-     * @return
-     */
-    protected Condition fieldMatchesAnyPermission(Field<Object> field, List<?> permissions) {
-        if(permissions.size() == 0) {
-            return DSL.trueCondition();
-        }else {
-            Condition or = null;
-            for(Object permission : permissions) {
-                if(or == null)
-                    or = fieldMatchesPermission(field, permission);
-                else
-                    or = DSL.or(or, fieldMatchesPermission(field, permission));
-            }
-            return or;
-        }
-    }
-
-    /**
-     * Must match all permissions
-     * @param field
-     * @param userPermission
-     * @return
-     */
-    protected Condition fieldMatchesAllPermissions(Field<Object> field, List<?> permissions) {
-        if(permissions.size() == 0) {
-            return DSL.trueCondition();
-        }else {
-            Condition and = null;
-            for(Object permission : permissions) {
-                if(and == null)
-                    and = fieldMatchesPermission(field, permission);
-                else
-                    and = DSL.and(and, fieldMatchesPermission(field, permission));
-            }
-            return and;
-        }
-    }
-
-    private Condition fieldMatchesPermission(Field<Object> field, Object permission) {
-        //For now only support strings
-        if(!(permission instanceof String))
-            return DSL.falseCondition();
-        return DSL.or(
-                field.eq(permission),
-                DSL.and(
-                        field.isNotNull(),
-                        field.notEqual(""),
-                        field.likeRegex(PERMISSION_START_REGEX + permission + PERMISSION_END_REGEX)
-                        )
-                );
     }
 
     public static class RQLVisitException extends RuntimeException {

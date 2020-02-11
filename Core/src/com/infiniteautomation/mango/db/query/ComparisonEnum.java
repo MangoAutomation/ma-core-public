@@ -12,12 +12,6 @@ import java.util.Map;
  * @author Jared Wiltshire
  */
 public enum ComparisonEnum {
-
-    /**
-     * Strict equality using == operator
-     */
-    IS("is"),
-
     /**
      * Check for equality using a {@link java.util.Comparator Comparator}
      */
@@ -56,7 +50,7 @@ public enum ComparisonEnum {
     /**
      * Check if the value matches the supplied match pattern, only the star operator (*) is supported and is equivalent to the regex .*
      */
-    LIKE("like", "match"),
+    MATCH("match", "like"),
 
     /**
      * Check if the value contains the supplied argument, the value can be String or a Collection

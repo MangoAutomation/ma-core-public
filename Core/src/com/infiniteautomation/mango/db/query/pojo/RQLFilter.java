@@ -57,7 +57,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     }
 
     private Predicate<T> visit(ASTNode node) {
-        ComparisonEnum comparison = ComparisonEnum.convertTo(node.getName());
+        ComparisonEnum comparison = ComparisonEnum.convertTo(node.getName().toLowerCase());
         return visit(comparison, node.getArguments());
     }
 
@@ -85,11 +85,6 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
             case SORT: {
                 applySort(arguments);
                 return null;
-            }
-            case IS: {
-                String property = (String) arguments.get(0);
-                Object target = arguments.get(1);
-                return (item) -> getProperty(item, property) == target;
             }
             case EQUAL_TO: {
                 String property = (String) arguments.get(0);
@@ -130,7 +125,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                     });
                 };
             }
-            case LIKE: {
+            case MATCH: {
                 String property = (String) arguments.get(0);
 
                 // we only want to allow the star special character in our like operation

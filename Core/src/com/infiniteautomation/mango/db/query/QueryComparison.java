@@ -126,7 +126,7 @@ public class QueryComparison {
                     return thisValue.compareTo(value) < 0;
                 case LESS_THAN_EQUAL_TO:
                     return thisValue.compareTo(value) <= 0;
-                case LIKE:
+                case MATCH:
                 case EQUAL_TO:
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
@@ -159,7 +159,7 @@ public class QueryComparison {
                     return thisValue.compareTo(value) < 0;
                 case LESS_THAN_EQUAL_TO:
                     return thisValue.compareTo(value) <= 0;
-                case LIKE:
+                case MATCH:
                 case EQUAL_TO:
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
@@ -192,7 +192,7 @@ public class QueryComparison {
                     return thisValue.compareTo(value) < 0;
                 case LESS_THAN_EQUAL_TO:
                     return thisValue.compareTo(value) <= 0;
-                case LIKE:
+                case MATCH:
                 case EQUAL_TO:
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
@@ -226,7 +226,7 @@ public class QueryComparison {
 				return thisValue.compareTo(value) < 0;
 			case LESS_THAN_EQUAL_TO:
 				return thisValue.compareTo(value) <= 0;
-			case LIKE:
+			case MATCH:
 				//Create regex by simply replacing * by .*
 				String regex = value.replace("*", ".*");
 				return thisValue.matches(regex);
@@ -259,7 +259,7 @@ public class QueryComparison {
 					return thisValue.compareTo(value) < 0;
 				case LESS_THAN_EQUAL_TO:
 					return thisValue.compareTo(value) <= 0;
-				case LIKE:
+				case MATCH:
                 case EQUAL_TO:
                     return thisValue.equals(value);
                 case NOT_EQUAL_TO:
@@ -288,7 +288,7 @@ public class QueryComparison {
             case LESS_THAN:
             case LESS_THAN_EQUAL_TO:
                 return false;
-            case LIKE:
+            case MATCH:
             case EQUAL_TO:
                 return null == value;
             case NOT_EQUAL_TO:
