@@ -153,8 +153,9 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     public boolean delete(T vo) {
         if (vo != null) {
             Integer deleted = getTransactionTemplate().execute(status -> {
+                Integer d = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
                 deleteRelationalData(vo);
-                return this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                return d;
             });
 
             if(this.countMonitor != null)
