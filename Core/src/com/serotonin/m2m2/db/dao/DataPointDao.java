@@ -8,7 +8,6 @@ import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_A
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -43,8 +42,6 @@ import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
-import com.infiniteautomation.mango.db.query.Index;
-import com.infiniteautomation.mango.db.query.QueryAttribute;
 import com.infiniteautomation.mango.db.query.RQLToCondition;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
@@ -533,34 +530,6 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 vo.getRollup(),
                 vo.getPointLocator().getDataTypeId(),
                 boolToChar(vo.getPointLocator().isSettable())};
-    }
-
-    //TODO Mango 4.0 should we re-add this?
-    protected List<Index> getIndexes() {
-        List<Index> indexes = new ArrayList<Index>();
-        List<QueryAttribute> columns = new ArrayList<QueryAttribute>();
-        //Data Source Name Force
-        columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
-        indexes.add(new Index("nameIndex", "ds", columns, "ASC"));
-
-        //Data Source xid Force
-        columns = new ArrayList<QueryAttribute>();
-        columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
-        indexes.add(new Index("dataSourcesUn1", "ds", columns, "ASC"));
-
-        //DeviceNameName Index Force
-        columns = new ArrayList<QueryAttribute>();
-        columns.add(new QueryAttribute("deviceName", new HashSet<String>(), Types.VARCHAR));
-        columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
-        indexes.add(new Index("deviceNameNameIndex", "dp", columns, "ASC"));
-
-        //xid point name force
-        columns = new ArrayList<QueryAttribute>();
-        columns.add(new QueryAttribute("xid", new HashSet<String>(), Types.VARCHAR));
-        columns.add(new QueryAttribute("name", new HashSet<String>(), Types.VARCHAR));
-        indexes.add(new Index("xidNameIndex", "dp", columns, "ASC"));
-
-        return indexes;
     }
 
     @Override
