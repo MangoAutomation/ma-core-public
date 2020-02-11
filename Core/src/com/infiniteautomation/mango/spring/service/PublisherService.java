@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.service;
 
 import java.util.HashSet;
 import java.util.ListIterator;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -67,6 +68,8 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     public PublisherVO<? extends PublishedPointVO> insert(PublisherVO<? extends PublishedPointVO> vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         //Ensure they can create a list
         ensureCreatePermission(user, vo);
 
@@ -90,6 +93,8 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     @Override
     public PublisherVO<? extends PublishedPointVO> update(PublisherVO<? extends PublishedPointVO> existing, PublisherVO<? extends PublishedPointVO> vo) throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureEditPermission(user, existing);
 
         //Ensure matching data source types
@@ -105,11 +110,13 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
         return vo;
     }
 
+
     @Override
-    public PublisherVO<? extends PublishedPointVO> delete(String xid)
+    public PublisherVO<? extends PublishedPointVO> delete(PublisherVO<? extends PublishedPointVO> vo)
             throws PermissionException, NotFoundException {
-        PublisherVO<? extends PublishedPointVO> vo = get(xid);
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureDeletePermission(user, vo);
         Common.runtimeManager.deletePublisher(vo.getId());
         return vo;
@@ -123,6 +130,8 @@ public class PublisherService extends AbstractVOService<PublisherVO<? extends Pu
     public void restart(String xid, boolean enabled, boolean restart) {
         PublisherVO<? extends PublishedPointVO>  vo = get(xid);
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureEditPermission(user, vo);
         if (enabled && restart) {
             vo.setEnabled(true);
