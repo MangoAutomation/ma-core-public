@@ -83,11 +83,6 @@ import com.serotonin.provider.Providers;
 import com.serotonin.util.SerializationHelper;
 
 /**
- * This class is a Half-Breed between the legacy Dao and the new type that extends AbstractDao.
- *
- * The top half of the code is the legacy code, the bottom is the new style.
- *
- * Eventually all the method innards will be reworked, leaving the names the same.
  *
  * @author Terry Packer
  *
