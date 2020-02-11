@@ -48,17 +48,17 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     }
 
     @Override
-    public RoleVO delete(String xid)
+    public RoleVO delete(RoleVO vo)
             throws PermissionException, NotFoundException {
         //Cannot delete the 'user' or 'superadmin' roles
-        if(StringUtils.equalsIgnoreCase(xid, getSuperadminRole().getXid())) {
+        if(StringUtils.equalsIgnoreCase(vo.getXid(), getSuperadminRole().getXid())) {
             PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterSuperadminRole"), user);
-        }else if(StringUtils.equalsIgnoreCase(xid, getUserRole().getXid())) {
+        }else if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
             PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterUserRole"), user);
         }
-        return super.delete(xid);
+        return super.delete(vo);
     }
 
     @Override
