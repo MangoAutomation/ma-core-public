@@ -27,8 +27,11 @@ public class RQLFilterJsonNode extends RQLFilter<JsonNode> {
 
     @Override
     protected Object getProperty(JsonNode item, String property) {
-        JsonNode node = item.get(property);
-        return toJavaNative(node);
+        String[] propertyNames = RQLFilterJavaBean.PROPERTY_SEPARATOR.split(property);
+        for (String subProperty : propertyNames) {
+            item = item.get(subProperty);
+        }
+        return toJavaNative(item);
     }
 
     public static Object toJavaNative(JsonNode node) {
