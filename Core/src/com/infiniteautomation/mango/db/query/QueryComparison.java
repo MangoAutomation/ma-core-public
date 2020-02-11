@@ -19,12 +19,12 @@ import com.serotonin.ShouldNeverHappenException;
 public class QueryComparison {
 	
 	protected String attribute;
-	protected ComparisonEnum comparisonType;
+	protected RQLOperation comparisonType;
 	protected List<Object> arguments;
 	
 	public QueryComparison() { }
 	
-	public QueryComparison(String attribute, ComparisonEnum comparisonType, List<Object> arguments){
+	public QueryComparison(String attribute, RQLOperation comparisonType, List<Object> arguments){
 		this.attribute = attribute;
 		this.comparisonType = comparisonType;
 		this.arguments = arguments;
@@ -38,7 +38,7 @@ public class QueryComparison {
 		this.attribute = attribute;
 	}
 	
-	public ComparisonEnum getComparison(){
+	public RQLOperation getComparison(){
 		return this.comparisonType;
 	}
 	

@@ -11,7 +11,7 @@ import java.util.Map;
  * @author Terry Packer
  * @author Jared Wiltshire
  */
-public enum ComparisonEnum {
+public enum RQLOperation {
     /**
      * Check for equality using a {@link java.util.Comparator Comparator}
      */
@@ -82,20 +82,20 @@ public enum ComparisonEnum {
      */
     LIMIT("limit");
 
-    public static ComparisonEnum convertTo(String comparisonString) {
-        ComparisonEnum comparison = REVERSE_MAP.get(comparisonString);
+    public static RQLOperation convertTo(String comparisonString) {
+        RQLOperation comparison = REVERSE_MAP.get(comparisonString);
         if (comparison == null) {
             throw new UnsupportedOperationException("Comparison: " + comparisonString + " not supported.");
         }
         return comparison;
     }
 
-    private static final Map<String, ComparisonEnum> REVERSE_MAP;
+    private static final Map<String, RQLOperation> REVERSE_MAP;
     static {
-        ComparisonEnum[] constants = ComparisonEnum.class.getEnumConstants();
-        Map<String, ComparisonEnum> map = new HashMap<>(constants.length, 1);
+        RQLOperation[] constants = RQLOperation.class.getEnumConstants();
+        Map<String, RQLOperation> map = new HashMap<>(constants.length, 1);
 
-        for (ComparisonEnum comparison : constants) {
+        for (RQLOperation comparison : constants) {
             for (String op : comparison.getOpCodes()) {
                 map.put(op, comparison);
             }
@@ -106,7 +106,7 @@ public enum ComparisonEnum {
 
     private final String[] opCodes;
 
-    private ComparisonEnum(String... opCodes) {
+    private RQLOperation(String... opCodes) {
         this.opCodes = opCodes;
     }
 

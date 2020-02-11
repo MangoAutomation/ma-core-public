@@ -54,7 +54,7 @@ public class RQLToCondition {
     }
 
     protected Condition visitNode(ASTNode node) {
-        ComparisonEnum operation = ComparisonEnum.convertTo(node.getName().toLowerCase());
+        RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase());
 
         switch (operation) {
             case AND: {
@@ -90,7 +90,7 @@ public class RQLToCondition {
         Function<Object, Object> valueConverter = getValueConverter(field);
         Object firstArg = valueConverter.apply(node.getArgument(1));
 
-        ComparisonEnum operation = ComparisonEnum.convertTo(node.getName().toLowerCase());
+        RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase());
 
         switch (operation) {
             case EQUAL_TO:

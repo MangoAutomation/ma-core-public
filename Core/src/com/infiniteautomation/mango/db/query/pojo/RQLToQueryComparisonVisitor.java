@@ -7,7 +7,7 @@ package com.infiniteautomation.mango.db.query.pojo;
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.ASTVisitor;
 
-import com.infiniteautomation.mango.db.query.ComparisonEnum;
+import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.QueryComparison;
 
 /**
@@ -39,7 +39,7 @@ public class RQLToQueryComparisonVisitor implements ASTVisitor<QueryComparison, 
 	    default:
 	    	String attribute = (String)node.getArgument(0);
 	    	if(attribute.equals(searchAttribute)){
-	    		return new QueryComparison(attribute, ComparisonEnum.convertTo(node.getName()), node.getArguments().subList(1, node.getArgumentsSize()));
+	    		return new QueryComparison(attribute, RQLOperation.convertTo(node.getName()), node.getArguments().subList(1, node.getArgumentsSize()));
 	    	}
 	    	
 	    	

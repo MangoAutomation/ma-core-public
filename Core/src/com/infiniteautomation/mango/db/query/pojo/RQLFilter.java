@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.infiniteautomation.mango.db.query.ComparisonEnum;
+import com.infiniteautomation.mango.db.query.RQLOperation;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -57,11 +57,11 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     }
 
     private Predicate<T> visit(ASTNode node) {
-        ComparisonEnum comparison = ComparisonEnum.convertTo(node.getName().toLowerCase());
+        RQLOperation comparison = RQLOperation.convertTo(node.getName().toLowerCase());
         return visit(comparison, node.getArguments());
     }
 
-    private Predicate<T> visit(ComparisonEnum comparison, List<Object> arguments) {
+    private Predicate<T> visit(RQLOperation comparison, List<Object> arguments) {
         switch(comparison) {
             case AND: {
                 List<Predicate<T>> childPredicates = childPredicates(arguments);
@@ -76,7 +76,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 };
             }
             case NOT: {
-                return visit(ComparisonEnum.AND, arguments).negate();
+                return visit(RQLOperation.AND, arguments).negate();
             }
             case LIMIT: {
                 applyLimit(arguments);
@@ -92,7 +92,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) == 0;
             }
             case NOT_EQUAL_TO: {
-                return visit(ComparisonEnum.EQUAL_TO, arguments).negate();
+                return visit(RQLOperation.EQUAL_TO, arguments).negate();
             }
             case LESS_THAN: {
                 String property = (String) arguments.get(0);
@@ -105,10 +105,10 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) <= 0;
             }
             case GREATER_THAN: {
-                return visit(ComparisonEnum.LESS_THAN_EQUAL_TO, arguments).negate();
+                return visit(RQLOperation.LESS_THAN_EQUAL_TO, arguments).negate();
             }
             case GREATER_THAN_EQUAL_TO: {
-                return visit(ComparisonEnum.LESS_THAN, arguments).negate();
+                return visit(RQLOperation.LESS_THAN, arguments).negate();
             }
             case IN: {
                 String property = (String) arguments.get(0);

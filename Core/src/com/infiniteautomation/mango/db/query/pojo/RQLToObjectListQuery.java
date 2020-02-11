@@ -10,7 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.infiniteautomation.mango.db.query.ComparisonEnum;
+import com.infiniteautomation.mango.db.query.RQLOperation;
 import com.infiniteautomation.mango.db.query.QueryComparison;
 import com.infiniteautomation.mango.db.query.SortOption;
 
@@ -76,7 +76,7 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
      * @param args
      * @return
      */
-    protected QueryComparison createComparison(String field, ComparisonEnum comparison, List<Object> args) {
+    protected QueryComparison createComparison(String field, RQLOperation comparison, List<Object> args) {
         return new QueryComparison(field, comparison, args);
     }
 
@@ -170,13 +170,13 @@ public class RQLToObjectListQuery<T> implements ASTVisitor<List<T>, List<T>>{
 
     @SuppressWarnings("unchecked")
     private QueryComparison createComparison(ASTNode node) {
-        ComparisonEnum comparison = ComparisonEnum.convertTo(node.getName());
+        RQLOperation comparison = RQLOperation.convertTo(node.getName());
 
         List<Object> args = node.getArguments();
         String field = (String) args.get(0);
         List<Object> remainingArgs = args.subList(1, args.size());
 
-        if (comparison == ComparisonEnum.IN) {
+        if (comparison == RQLOperation.IN) {
             if (remainingArgs.get(0) instanceof List) {
                 remainingArgs = (List<Object>) remainingArgs.get(0);
             }
