@@ -26,7 +26,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     private final Predicate<T> filter;
     private Long limit;
     private Long offset;
-    private Comparator<T> comparator;
+    private Comparator<T> sort;
 
     public RQLFilter(ASTNode node) {
         this.filter = node == null ? null : this.visit(node);
@@ -37,8 +37,8 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
         if (this.filter != null) {
             stream = stream.filter(filter);
         }
-        if (this.comparator != null) {
-            stream = stream.sorted(this.comparator);
+        if (this.sort != null) {
+            stream = stream.sorted(this.sort);
         }
         if (this.offset != null) {
             stream = stream.skip(this.offset);
@@ -195,7 +195,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     }
 
     private void applySort(List<Object> arguments) {
-        this.comparator = null;
+        this.sort = null;
         for (Object arg : arguments) {
             boolean descending;
 
@@ -214,10 +214,10 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
             if (descending) {
                 comparator = comparator.reversed();
             }
-            if (this.comparator == null) {
-                this.comparator = comparator;
+            if (this.sort == null) {
+                this.sort = comparator;
             } else {
-                this.comparator = this.comparator.thenComparing(comparator);
+                this.sort = this.sort.thenComparing(comparator);
             }
         }
     }
@@ -256,5 +256,21 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
         }
 
         return tokens;
+    }
+
+    public Predicate<T> getFilter() {
+        return filter;
+    }
+
+    public Long getLimit() {
+        return limit;
+    }
+
+    public Long getOffset() {
+        return offset;
+    }
+
+    public Comparator<T> getSort() {
+        return sort;
     }
 }
