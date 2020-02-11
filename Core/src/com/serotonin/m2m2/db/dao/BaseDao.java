@@ -7,13 +7,15 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.infiniteautomation.mango.db.query.SQLConstants;
 import com.serotonin.db.DaoUtils;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.TranslatableMessageParseException;
 
-public class BaseDao extends DaoUtils implements SQLConstants {
+public class BaseDao extends DaoUtils {
+
+    public static final String Y = "Y";
+    public static final String N = "N";
 
     /**
      * Public constructor for code that needs to get stuff from the database.

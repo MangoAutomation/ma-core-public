@@ -28,16 +28,19 @@ public class RQLFilterJavaBean<T> extends RQLFilter<T> {
 
     @Override
     protected Object getProperty(Object item, String property) {
-        String[] attributes = PROPERTY_SEPARATOR.split(property);
-        Object value = item;
-        for (String attr : attributes) {
-            try {
-                value = PropertyUtils.getProperty(value, attr);
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                throw new IllegalArgumentException("Error getting value for property " + property, e);
-            }
+        String[] propertyNames = PROPERTY_SEPARATOR.split(property);
+        for (String subProperty : propertyNames) {
+            item = getItemProperty(item, subProperty);
         }
-        return value;
+        return item;
+    }
+
+    protected Object getItemProperty(Object item, String property) {
+        try {
+            return PropertyUtils.getProperty(item, property);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new IllegalArgumentException("Error getting value for property " + property, e);
+        }
     }
 
 }

@@ -87,22 +87,25 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 return null;
             }
             case EQUAL_TO: {
-                String property = (String) arguments.get(0);
-                Object target = arguments.get(1);
-                return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) == 0;
+                String property = mapPropertyName((String) arguments.get(0));
+                Object target = convertRQLArgument(property, arguments.get(1));
+                Comparator<Object> comparator = getComparator(property);
+                return (item) -> comparator.compare(getProperty(item, property), target) == 0;
             }
             case NOT_EQUAL_TO: {
                 return visit(RQLOperation.EQUAL_TO, arguments).negate();
             }
             case LESS_THAN: {
-                String property = (String) arguments.get(0);
-                Object target = arguments.get(1);
-                return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) < 0;
+                String property = mapPropertyName((String) arguments.get(0));
+                Object target = convertRQLArgument(property, arguments.get(1));
+                Comparator<Object> comparator = getComparator(property);
+                return (item) -> comparator.compare(getProperty(item, property), target) < 0;
             }
             case LESS_THAN_EQUAL_TO: {
-                String property = (String) arguments.get(0);
-                Object target = arguments.get(1);
-                return (item) -> ObjectComparator.INSTANCE.compare(getProperty(item, property), target) <= 0;
+                String property = mapPropertyName((String) arguments.get(0));
+                Object target = convertRQLArgument(property, arguments.get(1));
+                Comparator<Object> comparator = getComparator(property);
+                return (item) -> comparator.compare(getProperty(item, property), target) <= 0;
             }
             case GREATER_THAN: {
                 return visit(RQLOperation.LESS_THAN_EQUAL_TO, arguments).negate();
@@ -111,26 +114,29 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 return visit(RQLOperation.LESS_THAN, arguments).negate();
             }
             case IN: {
-                String property = (String) arguments.get(0);
+                String property = mapPropertyName((String) arguments.get(0));
+
                 List<?> args;
                 if (arguments.get(1) instanceof List) {
                     args = (List<?>) arguments.get(1);
                 } else {
                     args = arguments.subList(1, arguments.size());
                 }
+                List<?> convertedArgs = args.stream().map(v -> convertRQLArgument(property, v)).collect(Collectors.toList());
+                Comparator<Object> comparator = getComparator(property);
 
                 return item -> {
-                    return args.stream().anyMatch(arg -> {
-                        return ObjectComparator.INSTANCE.compare(getProperty(item, property), arg) == 0;
+                    return convertedArgs.stream().anyMatch(arg -> {
+                        return comparator.compare(getProperty(item, property), arg) == 0;
                     });
                 };
             }
             case MATCH: {
-                String property = (String) arguments.get(0);
+                String property = mapPropertyName((String) arguments.get(0));
 
                 // we only want to allow the star special character in our like operation
                 // convert the expression to a literal pattern then replace all literal star characters with .* regex
-                String matchString = (String) arguments.get(1);
+                String matchString = convertRQLArgument(property, arguments.get(1)).toString();
                 String regex = tokenize(MATCH_ALLOWED, matchString).stream().map(t -> {
                     if ("*".equals(t)) {
                         return ".*";
@@ -152,8 +158,10 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 };
             }
             case CONTAINS: {
-                String property = (String) arguments.get(0);
-                Object target = arguments.get(1);
+                String property = mapPropertyName((String) arguments.get(0));
+                Object target = convertRQLArgument(property, arguments.get(1));
+                Comparator<Object> comparator = getComparator(property);
+
                 return (item) -> {
                     Object value = getProperty(item, property);
                     if (value instanceof String) {
@@ -161,7 +169,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                     } else if (value instanceof Collection) {
                         Collection<?> values = (Collection<?>) value;
                         return values.stream().anyMatch(v -> {
-                            return ObjectComparator.INSTANCE.compare(v, target) == 0;
+                            return comparator.compare(v, target) == 0;
                         });
                     }
                     else throw new UnsupportedOperationException("Cant search inside " + value.getClass());
@@ -172,11 +180,20 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
         }
     }
 
-    protected Comparator<T> getComparator(String property) {
+    protected Object convertRQLArgument(String propertyName, Object argument) {
+        return argument;
+    }
+
+    protected Comparator<Object> getComparator(String propertyName) {
+        return ObjectComparator.INSTANCE;
+    }
+
+    protected Comparator<T> getSortComparator(String property) {
+        Comparator<Object> objComparator = getComparator(property);
         return (a, b) -> {
             Object valueA = getProperty(a, property);
             Object valueB = getProperty(b, property);
-            return ObjectComparator.INSTANCE.compare(valueA, valueB);
+            return objComparator.compare(valueA, valueB);
         };
     }
 
@@ -210,7 +227,7 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
                 descending = false;
             }
 
-            Comparator<T> comparator = getComparator(property);
+            Comparator<T> comparator = getSortComparator(mapPropertyName(property));
             if (descending) {
                 comparator = comparator.reversed();
             }
@@ -224,10 +241,14 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
     /**
      * @param item String, Boolean, Integer, Long, BigInteger, Float, Double, BigDecimal or null
-     * @param property
+     * @param propertyName
      * @return
      */
-    protected abstract Object getProperty(T item, String property);
+    protected abstract Object getProperty(T item, String propertyName);
+
+    protected String mapPropertyName(String propertyName) {
+        return propertyName;
+    }
 
     /**
      * Tokenizes a string, splitting on the pattern but keeping the delimiters.

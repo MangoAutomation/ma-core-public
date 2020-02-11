@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import com.infiniteautomation.mango.util.exception.InvalidRQLException;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 
+import net.jazdw.rql.converter.Converter;
 import net.jazdw.rql.parser.ASTNode;
 import net.jazdw.rql.parser.RQLParser;
 import net.jazdw.rql.parser.RQLParserException;
@@ -21,6 +22,9 @@ public class RQLUtils {
     private static final ASTNode DEFAULT_NODE = new ASTNode("limit", AbstractBasicDao.DEFAULT_LIMIT);
     private static final Pattern FORMAT_PARAMETER_PATTERN = Pattern.compile("(?:^|&)format=[\\w-]+?(?:$|&)");
 
+    public static ASTNode parseRQLtoAST(String queryString) throws InvalidRQLException {
+        return parseRQLtoAST(queryString, new Converter());
+    }
 
     /**
      * Create an AST Node from the RQL query in the request
@@ -28,7 +32,7 @@ public class RQLUtils {
      * @return ASTNode
      * @throws InvalidRQLRestException
      */
-    public static ASTNode parseRQLtoAST(String queryString) throws InvalidRQLException {
+    public static ASTNode parseRQLtoAST(String queryString, Converter converter) throws InvalidRQLException {
         if (queryString == null || queryString.isEmpty()) return DEFAULT_NODE;
 
         // remove format=x e.g. format=csv parameter
