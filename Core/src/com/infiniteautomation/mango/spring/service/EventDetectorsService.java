@@ -72,12 +72,11 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
         return updated;
     }
 
-
     @Override
-    public AbstractEventDetectorVO delete(String xid)
+    public AbstractEventDetectorVO delete(AbstractEventDetectorVO vo)
             throws PermissionException, NotFoundException {
-        AbstractEventDetectorVO vo = super.delete(xid);
-        vo.getDefinition().restartSource(vo);
+        AbstractEventDetectorVO deleted = super.delete(vo);
+        vo.getDefinition().restartSource(deleted);
         return vo;
     }
 
