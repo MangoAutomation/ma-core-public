@@ -150,7 +150,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
      * @param pointer RFC 6901 JSON pointer
      * @param data
      */
-    public boolean deleteDataAtPointer(String xid, String pointer) {
+    public JsonNode deleteDataAtPointer(String xid, String pointer) {
         JsonDataVO item = this.get(xid);
 
         JsonNode removed = null;
@@ -173,7 +173,7 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
         }
 
         this.update(xid, item);
-        return removed != null;
+        return removed;
     }
 
     /**
