@@ -27,9 +27,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.db.pair.StringStringPair;
@@ -38,7 +36,7 @@ import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy.DatabaseType;
 
-public class DaoUtils {
+public class DaoUtils implements TransactionCapable {
     protected final DataSource dataSource;
     protected final PlatformTransactionManager transactionManager;
     protected final ExtendedJdbcTemplate ejt;
@@ -327,29 +325,18 @@ public class DaoUtils {
     //
     // Transaction management
     //
-    protected PlatformTransactionManager getTransactionManager() {
+    @Override
+    public PlatformTransactionManager getTransactionManager() {
         return transactionManager;
     }
 
-    protected TransactionTemplate getTransactionTemplate() {
-        return new TransactionTemplate(getTransactionManager());
-    }
-
+    @Override
     public <T> T doInTransaction(TransactionCallback<T> callback) {
         return this.getTransactionTemplate().execute(callback);
     }
 
+    @Override
     public void doInTransaction(TransactionCallbackNoResult callback) {
         this.getTransactionTemplate().execute(callback);
-    }
-
-    public interface TransactionCallbackNoResult extends TransactionCallback<Object> {
-        @Override
-        default Object doInTransaction(TransactionStatus status) {
-            doInTransactionNoResult(status);
-            return null;
-        }
-
-        void doInTransactionNoResult(TransactionStatus status);
     }
 }

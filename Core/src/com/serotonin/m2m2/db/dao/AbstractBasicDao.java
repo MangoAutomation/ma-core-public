@@ -683,4 +683,12 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             }
         };
     }
+
+    @Override
+    public void lockRow(int id) {
+        this.create.select().from(this.table.getTableAsAlias())
+        .where(this.table.getIdAlias().eq(id))
+        .forUpdate()
+        .fetch();
+    }
 }

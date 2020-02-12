@@ -5,7 +5,10 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
 
+import org.springframework.transaction.support.TransactionCallback;
+
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
+import com.serotonin.db.TransactionCallbackNoResult;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -65,4 +68,24 @@ public interface AbstractVOAccess<T extends AbstractVO, TABLE extends AbstractTa
      * @return List of VO with matching name
      */
     public List<T> getByName(String name);
+
+    /**
+     * Issues a SELECT FOR UPDATE for the row with the given xid. Enables transactional updates on rows.
+     * @param xid
+     */
+    public void lockRow(String xid);
+
+    public default void withLockedRow(String xid, TransactionCallbackNoResult callback) {
+        doInTransaction(txStatus -> {
+            lockRow(xid);
+            callback.doInTransactionNoResult(txStatus);
+        });
+    }
+
+    public default <X> X withLockedRow(String xid, TransactionCallback<X> callback) {
+        return doInTransaction(txStatus -> {
+            lockRow(xid);
+            return callback.doInTransaction(txStatus);
+        });
+    }
 }

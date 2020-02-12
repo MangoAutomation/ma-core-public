@@ -16,10 +16,13 @@ import org.jooq.SelectJoinStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.serotonin.db.MappedRowCallback;
+import com.serotonin.db.TransactionCallbackNoResult;
+import com.serotonin.db.TransactionCapable;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -32,7 +35,7 @@ import net.jazdw.rql.parser.ASTNode;
  * @author Terry Packer
  *
  */
-public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition> {
+public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends AbstractBasicTableDefinition> extends TransactionCapable {
 
     /**
      * Insert a vo and save relational data in a transaction
@@ -260,4 +263,23 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      */
     public Condition hasPermission(PermissionHolder user, String permissionType);
 
+    /**
+     * Issues a SELECT FOR UPDATE for the row with the given id. Enables transactional updates on rows.
+     * @param id
+     */
+    public void lockRow(int id);
+
+    public default void withLockedRow(int id, TransactionCallbackNoResult callback) {
+        doInTransaction(txStatus -> {
+            lockRow(id);
+            callback.doInTransactionNoResult(txStatus);
+        });
+    }
+
+    public default <X> X withLockedRow(int id, TransactionCallback<X> callback) {
+        return doInTransaction(txStatus -> {
+            lockRow(id);
+            return callback.doInTransaction(txStatus);
+        });
+    }
 }

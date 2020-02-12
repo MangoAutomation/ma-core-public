@@ -200,4 +200,13 @@ public abstract class AbstractDao<T extends AbstractVO, TABLE extends AbstractTa
 
         return getTransactionTemplate().execute(callback);
     }
+
+    @Override
+    public void lockRow(String xid) {
+        this.create.select().from(this.table.getTableAsAlias())
+        .where(this.table.getXidAlias().eq(xid))
+        .forUpdate()
+        .fetch();
+    }
+
 }
