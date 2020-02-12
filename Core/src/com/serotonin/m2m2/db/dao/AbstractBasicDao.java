@@ -152,17 +152,19 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public boolean delete(T vo) {
         if (vo != null) {
-            Integer deleted = getTransactionTemplate().execute(status -> {
-                Integer d = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+            Integer deleted = withLockedRow(vo.getId(), (txStatus) -> {
                 deleteRelationalData(vo);
-                return d;
+                return this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
             });
 
-            if(this.countMonitor != null)
+            if(this.countMonitor != null) {
                 this.countMonitor.addValue(-deleted);
+            }
+
             if(deleted > 0) {
                 this.publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
             }
+
             return deleted > 0;
         }
         return false;
