@@ -120,27 +120,29 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
      * @param data
      */
     public void setDataAtPointer(String xid, String pointer, JsonNode data) {
-        JsonDataVO item = this.get(xid);
+        this.dao.withLockedRow(xid, (txStatus) -> {
+            JsonDataVO item = this.get(xid);
 
-        if (pointer == null || pointer.isEmpty()) {
-            item.setJsonData(data);
+            if (pointer == null || pointer.isEmpty()) {
+                item.setJsonData(data);
+                this.update(xid, item);
+                return;
+            }
+
+            JsonPointer ptr = JsonPointer.compile(pointer);
+            JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
+            String property = getLastPropertyName(ptr);
+
+            if (parent instanceof ObjectNode) {
+                ((ObjectNode) parent).set(property, data);
+            } else if (parent instanceof ArrayNode) {
+                ((ArrayNode) parent).set(Integer.parseInt(property), data);
+            } else {
+                throw new RuntimeException("Cant set property of " + parent.getClass().getSimpleName());
+            }
+
             this.update(xid, item);
-            return;
-        }
-
-        JsonPointer ptr = JsonPointer.compile(pointer);
-        JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
-        String property = getLastPropertyName(ptr);
-
-        if (parent instanceof ObjectNode) {
-            ((ObjectNode) parent).set(property, data);
-        } else if (parent instanceof ArrayNode) {
-            ((ArrayNode) parent).set(Integer.parseInt(property), data);
-        } else {
-            throw new RuntimeException("Cant set property of " + parent.getClass().getSimpleName());
-        }
-
-        this.update(xid, item);
+        });
     }
 
     /**
@@ -151,29 +153,31 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
      * @param data
      */
     public JsonNode deleteDataAtPointer(String xid, String pointer) {
-        JsonDataVO item = this.get(xid);
+        return this.dao.withLockedRow(xid, (txStatus) -> {
+            JsonDataVO item = this.get(xid);
 
-        JsonNode removed = null;
+            JsonNode removed = null;
 
-        if (pointer == null || pointer.isEmpty()) {
-            removed = item.getJsonData();
-            item.setJsonData(null);
-        } else {
-            JsonPointer ptr = JsonPointer.compile(pointer);
-            JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
-            String property = getLastPropertyName(ptr);
-
-            if (parent instanceof ObjectNode) {
-                removed = ((ObjectNode) parent).remove(property);
-            } else if (parent instanceof ArrayNode) {
-                removed = ((ArrayNode) parent).remove(Integer.parseInt(property));
+            if (pointer == null || pointer.isEmpty()) {
+                removed = item.getJsonData();
+                item.setJsonData(null);
             } else {
-                throw new UnsupportedOperationException("Cant delete property of " + parent.getClass().getSimpleName());
-            }
-        }
+                JsonPointer ptr = JsonPointer.compile(pointer);
+                JsonNode parent = getUsingPointer(item.getJsonData(), ptr.head());
+                String property = getLastPropertyName(ptr);
 
-        this.update(xid, item);
-        return removed;
+                if (parent instanceof ObjectNode) {
+                    removed = ((ObjectNode) parent).remove(property);
+                } else if (parent instanceof ArrayNode) {
+                    removed = ((ArrayNode) parent).remove(Integer.parseInt(property));
+                } else {
+                    throw new UnsupportedOperationException("Cant delete property of " + parent.getClass().getSimpleName());
+                }
+            }
+
+            this.update(xid, item);
+            return removed;
+        });
     }
 
     /**
