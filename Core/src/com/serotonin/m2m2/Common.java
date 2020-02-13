@@ -851,4 +851,33 @@ public class Common {
             }
         }
     }
+
+    /**
+     * Tokenizes a string, splitting on the pattern but keeping the delimiters.
+     *
+     * @param pattern
+     * @param input
+     * @return
+     */
+    public static List<String> tokenize(Pattern pattern, String input) {
+        List<String> tokens = new ArrayList<>();
+
+        Matcher matcher = pattern.matcher(input);
+        int position = 0;
+        while (matcher.find()) {
+            String prevToken = input.substring(position, matcher.start());
+            if (!prevToken.isEmpty()) {
+                tokens.add(prevToken);
+            }
+            position = matcher.end();
+            tokens.add(matcher.group());
+        }
+
+        String lastToken = input.substring(position);
+        if (!lastToken.isEmpty()) {
+            tokens.add(lastToken);
+        }
+
+        return tokens;
+    }
 }

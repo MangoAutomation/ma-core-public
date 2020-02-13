@@ -3,25 +3,22 @@
  */
 package com.infiniteautomation.mango.db.query.pojo;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.infiniteautomation.mango.db.query.RQLMatchToken;
 import com.infiniteautomation.mango.db.query.RQLOperation;
 
 import net.jazdw.rql.parser.ASTNode;
 
 public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
-
-    private static final Pattern MATCH_ALLOWED = Pattern.compile("\\*|\\?");
 
     private final Predicate<T> filter;
     private Long limit;
@@ -133,17 +130,17 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
             }
             case MATCH: {
                 String property = mapPropertyName((String) arguments.get(0));
-
-                // we only want to allow the star special character in our like operation
-                // convert the expression to a literal pattern then replace all literal star characters with .* regex
                 String matchString = convertRQLArgument(property, arguments.get(1)).toString();
-                String regex = tokenize(MATCH_ALLOWED, matchString).stream().map(t -> {
-                    if ("*".equals(t)) {
-                        return ".*";
-                    } else if ("?".equals(t)) {
+
+                // Converts a match string containing * and ? into a regex pattern.
+                String regex = RQLMatchToken.tokenize(matchString).map(t -> {
+                    if (t == RQLMatchToken.SINGLE_CHARACTER_WILDCARD) {
                         return ".";
+                    } else if (t == RQLMatchToken.MULTI_CHARACTER_WILDCARD) {
+                        return ".*";
+                    } else {
+                        return Pattern.quote(t.toString());
                     }
-                    return Pattern.quote(t);
                 }).collect(Collectors.joining());
 
                 boolean caseSensitive = false;
@@ -248,35 +245,6 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
 
     protected String mapPropertyName(String propertyName) {
         return propertyName;
-    }
-
-    /**
-     * Tokenizes a string, splitting on the pattern but keeping the delimiters.
-     *
-     * @param pattern
-     * @param input
-     * @return
-     */
-    public static List<String> tokenize(Pattern pattern, String input) {
-        List<String> tokens = new ArrayList<>();
-
-        Matcher matcher = pattern.matcher(input);
-        int position = 0;
-        while (matcher.find()) {
-            String prevToken = input.substring(position, matcher.start());
-            if (!prevToken.isEmpty()) {
-                tokens.add(prevToken);
-            }
-            position = matcher.end();
-            tokens.add(matcher.group());
-        }
-
-        String lastToken = input.substring(position);
-        if (!lastToken.isEmpty()) {
-            tokens.add(lastToken);
-        }
-
-        return tokens;
     }
 
     public Predicate<T> getFilter() {

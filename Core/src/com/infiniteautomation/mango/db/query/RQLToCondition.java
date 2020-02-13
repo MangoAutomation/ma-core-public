@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.jooq.Condition;
@@ -15,6 +16,8 @@ import org.jooq.Field;
 import org.jooq.SortField;
 import org.jooq.SortOrder;
 import org.jooq.impl.DSL;
+
+import com.serotonin.m2m2.db.dao.BaseDao;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -25,9 +28,11 @@ import net.jazdw.rql.parser.ASTNode;
  */
 public class RQLToCondition {
 
+    private static final Pattern LIKE_PATTERN_ESCAPE = Pattern.compile("(!|%|_)");
+
     public static final Function<Object, Object> BOOLEAN_VALUE_CONVERTER = value -> {
         if (value instanceof Boolean) {
-            return ((Boolean) value) ? "Y" : "N";
+            return ((Boolean) value) ? BaseDao.Y : BaseDao.N;
         }
         return value;
     };
@@ -84,11 +89,12 @@ public class RQLToCondition {
     }
 
     protected Condition visitConditionNode(ASTNode node) {
-        String property = (String) node.getArgument(0);
+        List<Object> arguments = node.getArguments();
+        String property = (String) arguments.get(0);
 
         Field<Object> field = getField(property);
         Function<Object, Object> valueConverter = getValueConverter(field);
-        Object firstArg = valueConverter.apply(node.getArgument(1));
+        Object firstArg = valueConverter.apply(arguments.get(1));
 
         RQLOperation operation = RQLOperation.convertTo(node.getName().toLowerCase());
 
@@ -112,15 +118,36 @@ public class RQLToCondition {
                 }
                 return field.ne(firstArg);
             case MATCH: {
-                String like = ((String) firstArg).replace('*', '%');
-                return field.likeIgnoreCase(like);
+                boolean caseSensitive = false;
+                if (arguments.size() > 2) {
+                    caseSensitive = (boolean) arguments.get(2);
+                }
+
+                String matchString = ((String) firstArg);
+
+                // Converts a match string containing * and ? a SQL like pattern
+                String likeText = RQLMatchToken.tokenize(matchString).map(t -> {
+                    if (t == RQLMatchToken.SINGLE_CHARACTER_WILDCARD) {
+                        return "_";
+                    } else if (t == RQLMatchToken.MULTI_CHARACTER_WILDCARD) {
+                        return "%";
+                    } else {
+                        return LIKE_PATTERN_ESCAPE.matcher(t.toString()).replaceAll("!$1");
+                    }
+                }).collect(Collectors.joining());
+
+                if (caseSensitive) {
+                    return field.like(likeText).escape('!');
+                } else {
+                    return field.likeIgnoreCase(likeText).escape('!');
+                }
             }
             case IN:
                 List<?> inArray;
                 if (firstArg instanceof List) {
                     inArray = (List<?>) firstArg;
                 } else {
-                    inArray = node.getArguments().subList(1, node.getArgumentsSize())
+                    inArray = arguments.subList(1, node.getArgumentsSize())
                             .stream()
                             .map(valueConverter)
                             .collect(Collectors.toList());
