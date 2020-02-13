@@ -5,8 +5,13 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
@@ -96,6 +101,62 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
             RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID);
             RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
             service.update(vo.getXid(), updated);
+        });
+    }
+
+    @Override
+    @Test
+    public void testCount() {
+        runTest(() -> {
+            getService().permissionService.runAsSystemAdmin(() -> {
+                List<RoleVO> all = service.dao.getAll();
+                for(RoleVO vo : all) {
+                    if(!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID,vo.getXid())
+                            && !StringUtils.equals(PermissionHolder.USER_ROLE_XID,vo.getXid())) {
+                        service.delete(vo.getId());
+                    }
+                }
+
+                List<RoleVO> vos = new ArrayList<>();
+                for(int i=0; i<5; i++) {
+                    vos.add(insertNewVO(readUser));
+                }
+                assertEquals(7, service.dao.count());
+            });
+        });
+    }
+
+    @Override
+    @Test
+    public void testGetAll() {
+        runTest(() -> {
+            getService().permissionService.runAsSystemAdmin(() -> {
+                List<RoleVO> all = service.dao.getAll();
+                for(RoleVO vo : all) {
+                    if(!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID,vo.getXid())
+                            && !StringUtils.equals(PermissionHolder.USER_ROLE_XID,vo.getXid())) {
+                        service.delete(vo.getId());
+                    }
+                }
+                List<RoleVO> vos = new ArrayList<>();
+                vos.add(service.get(PermissionHolder.SUPERADMIN_ROLE_XID));
+                vos.add(service.get(PermissionHolder.USER_ROLE_XID));
+
+                for(int i=0; i<5; i++) {
+                    vos.add(insertNewVO(readUser));
+                }
+                all = service.dao.getAll();
+                for(RoleVO vo : all) {
+                    RoleVO expected = null;
+                    for(RoleVO e : vos) {
+                        if(e.getId() == vo.getId()) {
+                            expected = e;
+                        }
+                    }
+                    assertNotNull("Didn't find expected VO", expected);
+                    assertVoEqual(expected, vo);
+                }
+            });
         });
     }
 
