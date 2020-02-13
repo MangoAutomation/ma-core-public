@@ -4,13 +4,15 @@ import com.serotonin.m2m2.vo.DataPointVO;
 
 /**
  * A definition allowing a hook into the data point delete event.
- * 
+ *
+ * TODO Mango 4.0 can we get rid of this?  It is not used by any modules.
+ *
  * @author Matthew Lohbihler
  */
 abstract public class DataPointChangeDefinition extends ModuleElementDefinition {
     /**
      * Called immediately before the point is to be inserted into the database.
-     * 
+     *
      * @param dpvo
      *            the point to be inserted
      */
@@ -18,7 +20,7 @@ abstract public class DataPointChangeDefinition extends ModuleElementDefinition 
 
     /**
      * Called immediately after the point is inserted into the database.
-     * 
+     *
      * @param dpvo
      *            the point that was inserted
      */
@@ -26,7 +28,7 @@ abstract public class DataPointChangeDefinition extends ModuleElementDefinition 
 
     /**
      * Called immediately before the point is to be update in the database.
-     * 
+     *
      * @param dpvo
      *            the point to be updated
      */
@@ -34,7 +36,7 @@ abstract public class DataPointChangeDefinition extends ModuleElementDefinition 
 
     /**
      * Called immediately after the point is updated in the database.
-     * 
+     *
      * @param dpvo
      *            the point that was updated
      */
@@ -42,7 +44,7 @@ abstract public class DataPointChangeDefinition extends ModuleElementDefinition 
 
     /**
      * Called immediately before the point is to be deleted from the database.
-     * 
+     *
      * @param dataPointId
      *            the point to be deleted
      */
@@ -50,7 +52,7 @@ abstract public class DataPointChangeDefinition extends ModuleElementDefinition 
 
     /**
      * Called immediately after the point is deleted from the database.
-     * 
+     *
      * @param dataPointId
      *            the point that was deleted
      */
