@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.h2.jdbcx.JdbcConnectionPool;
@@ -22,6 +23,7 @@ import org.junit.Test;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventHandlerService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -34,6 +36,8 @@ import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
@@ -45,12 +49,201 @@ import com.serotonin.m2m2.vo.role.RoleVO;
  *
  * @author Terry Packer
  */
-public class DataPointDaoDeadlockDetection extends MangoTestBase {
+public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
-    static final Log LOG = LogFactory.getLog(DataPointDaoDeadlockDetection.class);
+    static final Log LOG = LogFactory.getLog(DataSourceDaoDeadlockDetection.class);
+
+    /**
+     * See the deadlock when you insert data source, then point,
+     *  then delete point (outside of transaction) then delete source
+     */
+    @Test
+    public void detectDeadlockFromDataSourceDeleteDataPointInsertAndDelete() {
+        //Create data source
+        //Add data point
+        //Delete data source
+        //Create data source
+
+        int numThreads = 5; //25;
+        int numDataSources = 10; //100;
+
+        //Insert 0 roles
+        Set<Role> roles = new HashSet<>();
+
+        PermissionService permissionService = Common.getBean(PermissionService.class);
+        DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+        DataPointService dataPointService = Common.getBean(DataPointService.class);
+
+        AtomicInteger successes = new AtomicInteger();
+        AtomicInteger failures = new AtomicInteger();
+        AtomicInteger running = new AtomicInteger(numThreads);
+        MutableObject<Exception> failure = new MutableObject<>(null);
+
+        for(int i=0; i<numThreads; i++) {
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        permissionService.runAsSystemAdmin(() -> {
+                            for(int i=0; i<numDataSources; i++) {
+                                //Create data source
+                                MockDataSourceVO ds = new MockDataSourceVO();
+                                ds.setName(Common.generateXid("Mock "));
+                                ds.setEditRoles(roles);
+
+                                dataSourceService.insert(ds);
+
+                                //Create and save point
+                                DataPointVO dp = createMockDataPoint(ds, new MockPointLocatorVO());
+
+                                //Delete point
+                                dataPointService.delete(dp);
+
+                                //Delete data source
+                                dataSourceService.delete(ds);
+
+                                successes.getAndIncrement();
+                            }
+                        });
+                    }catch(Exception e){
+                        e.printStackTrace();
+                        failure.setValue(e);
+                        failures.getAndIncrement();
+                    }finally {
+                        running.decrementAndGet();
+                    }
+                };
+            }.start();
+        }
+
+        while(running.get() > 0) {
+            try { Thread.sleep(100); }catch(Exception e) { }
+        }
+        if(failures.get() > 0) {
+            fail("Ran " + successes.get() + " queries: " + failure.getValue().getMessage());
+        }
+    }
+
+    /**
+     * See the deadlock when you insert data source, then point,
+     *  then then delete source (which deletes the point inside a transaction)
+     */
+    @Test
+    public void detectDeadlockFromDataSourceDeleteDataPointInsert() {
+
+        int numThreads = 5; //25;
+        int numDataSources = 10; //100;
+
+        //Insert 0 roles
+        Set<Role> roles = new HashSet<>();
+
+        PermissionService permissionService = Common.getBean(PermissionService.class);
+        DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+
+        AtomicInteger failures = new AtomicInteger();
+        AtomicInteger successes = new AtomicInteger();
+        AtomicInteger running = new AtomicInteger(numThreads);
+        MutableObject<Exception> failure = new MutableObject<>(null);
+
+        for(int i=0; i<numThreads; i++) {
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        permissionService.runAsSystemAdmin(() -> {
+                            for(int i=0; i<numDataSources; i++) {
+                                //Create data source
+                                MockDataSourceVO ds = new MockDataSourceVO();
+                                ds.setName(Common.generateXid("Mock "));
+                                ds.setEditRoles(roles);
+
+                                dataSourceService.insert(ds);
+
+                                //Create and save point
+                                createMockDataPoint(ds, new MockPointLocatorVO());
+
+                                //Delete data source
+                                dataSourceService.delete(ds);
+                                successes.getAndIncrement();
+                            }
+                        });
+                    }catch(Exception e){
+                        e.printStackTrace();
+                        failure.setValue(e);
+                        failures.getAndIncrement();
+                    }finally {
+                        running.decrementAndGet();
+                    }
+                };
+            }.start();
+        }
+
+        while(running.get() > 0) {
+            try { Thread.sleep(100); }catch(Exception e) { }
+        }
+        if(failures.get() > 0) {
+            fail("Ran " + successes.get() + " queries: " + failure.getValue().getMessage());
+        }
+    }
 
     @Test
-    public void detectDeadlockUsingDaos() {
+    public void detectDeadlockFromDataSourceDataPointInsert() {
+
+        int numThreads = 5; //25;
+        int numDataSources = 10; //100;
+
+        //Insert 0 roles
+        Set<Role> roles = new HashSet<>();
+
+        PermissionService permissionService = Common.getBean(PermissionService.class);
+        DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
+
+        AtomicInteger successes = new AtomicInteger();
+        AtomicInteger failures = new AtomicInteger();
+        AtomicInteger running = new AtomicInteger(numThreads);
+        MutableObject<Exception> failure = new MutableObject<>(null);
+
+        for(int i=0; i<numThreads; i++) {
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        permissionService.runAsSystemAdmin(() -> {
+                            for(int i=0; i<numDataSources; i++) {
+                                //Create data source
+                                MockDataSourceVO ds = new MockDataSourceVO();
+                                ds.setName(Common.generateXid("Mock "));
+                                ds.setEditRoles(roles);
+
+                                dataSourceService.insert(ds);
+
+                                //Create and save point
+                                createMockDataPoint(ds, new MockPointLocatorVO());
+
+                                successes.getAndIncrement();
+                            }
+                        });
+                    }catch(Exception e){
+                        e.printStackTrace();
+                        failure.setValue(e);
+                        failures.getAndIncrement();
+                    }finally {
+                        running.decrementAndGet();
+                    }
+                };
+            }.start();
+        }
+
+        while(running.get() > 0) {
+            try { Thread.sleep(100); }catch(Exception e) { }
+        }
+        if(failures.get() > 0) {
+            fail("Ran " + successes.get() + " queries: " + failure.getValue().getMessage());
+        }
+    }
+
+    @Test
+    public void detectDeadlockWithEventHandlerRoleMappingandDataSourceTablesUsingDaos() {
 
         //This will create 2x threads for each operating as one of the desired problem scenarios
         int numThreads = 5; //25;
@@ -66,7 +259,9 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
         JdbcConnectionPool pool = (JdbcConnectionPool)dataSource;
         pool.setMaxConnections(numThreads*100);
 
+        AtomicInteger successes = new AtomicInteger();
         AtomicInteger failures = new AtomicInteger();
+        MutableObject<Exception> failure = new MutableObject<>(null);
 
         for(int i=0; i<numThreads; i++) {
             //#5 lock eventHandlerMappings and roleMappings and then try to lock dataSources
@@ -106,10 +301,13 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
                                 eventHandlerService.update(eh.getXid(), myEventHandler);
 
                                 dataSourceService.delete(ds);
+
+                                successes.getAndIncrement();
                             }
                         });
                     }catch(Exception e){
                         e.printStackTrace();
+                        failure.setValue(e);
                         failures.getAndIncrement();
                     }finally {
                         running.decrementAndGet();
@@ -154,10 +352,13 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
 
                                 ds.setXid(ds.getXid() + 1);
                                 dataSourceService.update(ds.getId(), ds);
+
+                                successes.getAndIncrement();
                             }
                         });
                     }catch(Exception e){
                         e.printStackTrace();
+                        failure.setValue(e);
                         failures.getAndIncrement();
                     }finally {
                         running.decrementAndGet();
@@ -168,17 +369,14 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
 
         while(running.get() > 0) {
             try { Thread.sleep(100); }catch(Exception e) { }
-            if(failures.get() > 0) {
-                fail("Failed to perform all queries successfully.");
-            }
         }
         if(failures.get() > 0) {
-            fail("Failed to perform all queries successfully.");
+            fail("Ran " + successes.get() + " queries: " + failure.getValue().getMessage());
         }
     }
 
     @Test
-    public void detectDeadlockExplicit() {
+    public void detectDeadlockWithEventHandlerRoleMappingandDataSourceTablesExplicit() {
 
         //This will create 2x threads for each operating as one of the desired problem scenarios
         int numThreads = 5;
@@ -205,7 +403,9 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
 
         PlatformTransactionManager transactionManager = Common.databaseProxy.getTransactionManager();
 
+        AtomicInteger successes = new AtomicInteger();
         AtomicInteger failures = new AtomicInteger();
+        MutableObject<Exception> failure = new MutableObject<>(null);
 
         for(int i=0; i<numThreads; i++) {
             //#5 lock eventHandlerMappings and roleMappings and then try to lock dataSources
@@ -254,10 +454,12 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
 
                                     return null;
                                 });
+                                successes.getAndIncrement();
                             }
                         });
                     }catch(Exception e){
                         e.printStackTrace();
+                        failure.setValue(e);
                         failures.getAndIncrement();
                     }finally {
                         running.decrementAndGet();
@@ -307,10 +509,12 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
 
                                     return null;
                                 });
+                                successes.getAndIncrement();
                             }
                         });
                     }catch(Exception e){
                         e.printStackTrace();
+                        failure.setValue(e);
                         failures.getAndIncrement();
                     }finally {
                         running.decrementAndGet();
@@ -321,12 +525,9 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
 
         while(running.get() > 0) {
             try { Thread.sleep(100); }catch(Exception e) { }
-            if(failures.get() > 0) {
-                fail("Failed to perform all queries successfully.");
-            }
         }
         if(failures.get() > 0) {
-            fail("Failed to perform all queries successfully.");
+            fail("Ran " + successes.get() + " queries: " + failure.getValue().getMessage());
         }
     }
 
@@ -345,7 +546,7 @@ public class DataPointDaoDeadlockDetection extends MangoTestBase {
         }
         @Override
         public String getUrl() {
-            return "jdbc:h2:mem:" + databaseName + ";MV_STORE=FALSE;DEFAULT_LOCK_TIMEOUT=10000;";
+            return "jdbc:h2:mem:" + databaseName + ";MV_STORE=FALSE;DB_CLOSE_ON_EXIT=FALSE";
         }
     }
 
