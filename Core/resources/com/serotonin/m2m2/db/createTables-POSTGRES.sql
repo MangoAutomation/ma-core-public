@@ -138,6 +138,7 @@ CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
 CREATE INDEX deviceNameNameIdIndex ON dataPoints (deviceName ASC, name ASC, id ASC);
 CREATE INDEX enabledIndex on dataPoints (enabled ASC);
 CREATE INDEX xidNameIndex on dataPoints (xid ASC, name ASC);
+CREATE INDEX dataSourceIdFkIndex ON dataPoints (dataSourceId ASC);
 
 -- Data point tags
 CREATE TABLE dataPointTags (
