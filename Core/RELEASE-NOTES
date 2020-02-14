@@ -13,6 +13,7 @@
 * Remove userEvents table which would allow a user to silence an event for yourself in the legacy UI
 * Fix bug in MySQL database create script which would create the name column 40 characters long instead of 255
 * Add ability to create new event detectors for a data point by importing them without an xid
+* Upgrade Jackson library to 2.10.2
 
 *Version 3.7.4*
 * Improve work item failure logging
