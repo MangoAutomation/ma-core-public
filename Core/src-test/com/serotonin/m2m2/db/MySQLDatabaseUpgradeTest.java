@@ -57,7 +57,7 @@ public class MySQLDatabaseUpgradeTest {
         Providers.add(MangoProperties.class, properties);
 
         //Load the driver
-        Class.forName("com.mysql.jdbc.Driver");
+        Class.forName("com.mysql.cj.jdbc.Driver");
         try (Connection conn = DriverManager.getConnection(props.getProperty("db.url"), props.getProperty("db.username"), props.getProperty("db.password"))){
             Statement stmt = conn.createStatement();
             stmt.executeUpdate( "DROP DATABASE IF EXISTS `" + props.getProperty("db.name") + "`;");
