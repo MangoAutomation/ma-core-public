@@ -14,6 +14,7 @@
 * Fix bug in MySQL database create script which would create the name column 40 characters long instead of 255
 * Add ability to create new event detectors for a data point by importing them without an xid
 * Upgrade Jackson library to 2.10.2
+* Upgrade Apache POI to 4.1.2 which is used in Excel Report generation
 
 *Version 3.7.4*
 * Improve work item failure logging
