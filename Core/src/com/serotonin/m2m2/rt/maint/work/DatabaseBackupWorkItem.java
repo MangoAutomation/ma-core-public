@@ -417,8 +417,6 @@ public class DatabaseBackupWorkItem implements WorkItem {
                     zos.closeEntry();
 
                     zos.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
                 }finally{
                     // Delete the sql file
                     if(rawOutputFile.exists())
