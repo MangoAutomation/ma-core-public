@@ -31,8 +31,11 @@ import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
+import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
@@ -44,6 +47,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.rt.event.type.EventType;
+import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.util.SerializationHelper;
@@ -61,6 +65,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     private static final String DATA_SOURCE_SELECT = //
             "SELECT id, xid, name, dataSourceType, data FROM dataSources ";
 
+    private final DataPointTableDefinition dataPointTable;
+
     private static final LazyInitSupplier<DataSourceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataSourceDao.class);
         if(o == null)
@@ -71,11 +77,13 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     @Autowired
     private DataSourceDao(
             DataSourceTableDefinition table,
+            DataPointTableDefinition dataPointTable,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_DATA_SOURCE, table,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
+        this.dataPointTable = dataPointTable;
     }
 
     /**
@@ -94,6 +102,40 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     @SuppressWarnings("unchecked")
     public <T extends DataSourceVO> List<T> getDataSourcesForType(String type) {
         return (List<T>) query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, getListResultSetExtractor());
+    }
+
+    @Override
+    public boolean delete(DataSourceVO vo) {
+        //Since we are going to delete all the points we will select them for update as well as the data source
+        if (vo != null) {
+
+            DataSourceDeletionResult result = withLockedRow(vo.getId(), (txStatus) -> {
+                DataSourceDeletionResult r = new DataSourceDeletionResult();
+                r.points = DataPointDao.getInstance().deleteDataPoints(vo.getId());
+                deleteRelationalData(vo);
+                r.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                return r;
+            });
+
+            if(this.countMonitor != null) {
+                this.countMonitor.addValue(-result.deleted);
+            }
+
+            if(result.deleted > 0) {
+                this.publishEvent(createDaoEvent(DaoEventType.DELETE, vo, null));
+                AuditEventType.raiseDeletedEvent(this.typeName, vo);
+            }
+
+            DataPointDao.getInstance().raiseDeletedEvents(result.points);
+
+            return result.deleted > 0;
+        }
+        return false;
+    }
+
+    private class DataSourceDeletionResult {
+        private List<DataPointVO> points;
+        private Integer deleted;
     }
 
     /**
@@ -238,9 +280,10 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
 
     @Override
     public void deleteRelationalData(DataSourceVO vo) {
-        DataPointDao.getInstance().deleteDataPoints(vo.getId());
-        ejt.update("DELETE FROM eventHandlersMapping WHERE eventTypeName=? AND eventTypeRef1=?", new Object[] {
-                EventType.EventTypeNames.DATA_SOURCE, vo.getId()});
+        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
+        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_SOURCE),
+                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
+
         RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT);
         vo.getDefinition().deleteRelationalData(vo);
     }

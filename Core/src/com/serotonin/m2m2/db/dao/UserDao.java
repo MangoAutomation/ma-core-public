@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -414,6 +415,10 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
 
     public void recordLogin(User user) {
         User old = get(user.getId());
+
+        Objects.requireNonNull(old);
+        Objects.requireNonNull(user);
+
         long loginTime = Common.timer.currentTimeMillis();
         user.setLastLogin(loginTime);
         ejt.update("UPDATE users SET lastLogin=? WHERE id=?", new Object[] { loginTime, user.getId() });

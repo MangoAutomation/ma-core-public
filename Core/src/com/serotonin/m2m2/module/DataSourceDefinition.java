@@ -138,6 +138,8 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
 
     /**
      * Save any relational data for this data source i.e. script roles
+     *
+     * NOTE: this logic will be executed in a database transaction.
      * @param vo
      * @param insert
      */
@@ -146,7 +148,9 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
     }
 
     /**
-     * Delete any relational data for the data source
+     * Delete any relational data for the data source.
+     *
+     * NOTE: this logic will be executed in a database transaction.
      * @param vo
      */
     public void deleteRelationalData(T vo) {
@@ -155,6 +159,7 @@ abstract public class DataSourceDefinition<T extends DataSourceVO> extends Modul
 
     /**
      * Load in relational data for the data source
+     *
      * @param vo
      */
     public void loadRelationalData(T vo) {

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +35,6 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
@@ -48,7 +45,9 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
+import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.events.DataPointTagsUpdatedEvent;
@@ -63,7 +62,6 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.LicenseViolatedException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.DataPointChangeDefinition;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -90,6 +88,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
     private final DataSourceTableDefinition dataSourceTable;
     private final EventDetectorTableDefinition eventDetectorTable;
+    private final UserCommentTableDefinition userCommentTable;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -102,6 +101,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     private DataPointDao(DataPointTableDefinition table,
             DataSourceTableDefinition dataSourceTable,
             EventDetectorTableDefinition eventDetectorTable,
+            UserCommentTableDefinition userCommentTable,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(EventType.EventTypeNames.DATA_POINT, table,
@@ -109,6 +109,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 mapper, publisher);
         this.dataSourceTable = dataSourceTable;
         this.eventDetectorTable = eventDetectorTable;
+        this.userCommentTable = userCommentTable;
     }
 
     /**
@@ -223,32 +224,21 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     @Override
     public void insert(DataPointVO vo) {
         checkAddPoint();
-        for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-            def.beforeInsert(vo);
 
         // Create a default text renderer
         if (vo.getTextRenderer() == null)
             vo.defaultTextRenderer();
 
         super.insert(vo);
-
-        for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-            def.afterInsert(vo);
     }
 
     @Override
     public void update(DataPointVO existing, DataPointVO vo) {
-        for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-            def.beforeUpdate(vo);
-
         //If have a new data type we will wipe our history
         if (existing.getPointLocator().getDataTypeId() != vo.getPointLocator().getDataTypeId())
             Common.databaseProxy.newPointValueDao().deletePointValues(vo.getId());
 
         super.update(existing, vo);
-
-        for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-            def.afterUpdate(vo);
     }
 
     /**
@@ -281,34 +271,53 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         });
     }
 
-    public void deleteDataPoints(final int dataSourceId) {
-        List<DataPointVO> old = getDataPoints(dataSourceId);
+    /**
+     * Delete the data point for a data source, this must be called within a transaction
+     *  as it locks the data points while it is deleting all of them
+     * @param dataSourceId
+     */
+    List<DataPointVO> deleteDataPoints(final int dataSourceId) {
 
-        for (DataPointVO dp : old) {
-            for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-                def.beforeDelete(dp.getId());
-        }
+        //TODO Mango 4.0 make sure the query/delete are within a transaction
 
-        getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
-            @Override
-            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                List<Integer> pointIds = queryForList("select id from dataPoints where dataSourceId=?",
-                        new Object[] { dataSourceId }, Integer.class);
-                if (pointIds.size() > 0) {
-                    String dataPointIdList = createDelimitedList(new HashSet<>(pointIds), ",", null);
-                    dataPointIdList = "(" + dataPointIdList + ")";
-                    ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1 in " + dataPointIdList,
-                            new Object[] { EventType.EventTypeNames.DATA_POINT });
-                    ejt.update("delete from userComments where commentType=2 and typeKey in " + dataPointIdList);
-                    ejt.update("delete from eventDetectors where dataPointId in " + dataPointIdList);
-                    ejt.update("delete from dataPoints where id in " + dataPointIdList);
-                }
+        //We use a list to hold the old points so we can fire the delete events,
+        // which will only fire if the transaction completes fully as if it
+        // throws an exception it will not complete this method
+        //Get an exclusive lock on these rows, as this will happen
+        List<DataPointVO> points = customizedQuery(getJoinedSelectQuery().where(table.getAlias("dataSourceId").eq(dataSourceId)),
+                getListResultSetExtractor());
+
+        if (points.size() > 0) {
+            List<Integer> ids = new ArrayList<>();
+            for(DataPointVO dp : points) {
+                ids.add(dp.getId());
             }
-        });
 
-        for (DataPointVO dp : old) {
-            for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-                def.afterDelete(dp.getId());
+            //delete event handler mappings
+            create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
+            .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
+                    EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.in(ids)).execute();
+
+            //delete user comments
+            create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
+                    userCommentTable.getField("typeKey").in(ids)).execute();
+
+            //delete event detectors
+            create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").in(ids)).execute();
+
+            //delete the points in bulk
+            create.deleteFrom(table.getTable()).where(table.getIdField().in(ids)).execute();
+        }
+        return points;
+    }
+
+    /**
+     * Use to raise events after the delete transaction of a data source
+     *
+     * @param points - deleted points
+     */
+    void raiseDeletedEvents(List<DataPointVO> points) {
+        for (DataPointVO dp : points) {
             this.publishEvent(new DaoEvent<DataPointVO>(this, DaoEventType.DELETE, dp));
             AuditEventType.raiseDeletedEvent(AuditEventType.TYPE_DATA_POINT, dp);
             this.countMonitor.decrement();
@@ -316,24 +325,20 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
-    public boolean delete(DataPointVO vo) {
-        boolean deleted = false;
-        if (vo != null) {
-            for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-                def.beforeDelete(vo.getId());
-            deleted = super.delete(vo);
-            for (DataPointChangeDefinition def : ModuleRegistry.getDefinitions(DataPointChangeDefinition.class))
-                def.afterDelete(vo.getId());
-        }
-        return deleted;
-    }
-
-    @Override
     public void deleteRelationalData(DataPointVO vo) {
-        ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1 = " + vo.getId(),
-                new Object[] { EventType.EventTypeNames.DATA_POINT });
-        ejt.update("delete from userComments where commentType=2 and typeKey = " + vo.getId());
-        ejt.update("delete from eventDetectors where dataPointId = " + vo.getId());
+
+        //delete event handler mappings
+        create.deleteFrom(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TABLE)
+        .where(EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_EVENT_TYPE_NAME.eq(EventType.EventTypeNames.DATA_POINT),
+                EventHandlerTableDefinition.EVENT_HANDLER_MAPPING_TYPEREF1.eq(vo.getId())).execute();
+
+        //delete user comments
+        create.deleteFrom(userCommentTable.getTable()).where(userCommentTable.getField("commentType").eq(2),
+                userCommentTable.getField("typeKey").eq(vo.getId())).execute();
+
+        //delete event detectors
+        create.deleteFrom(eventDetectorTable.getTable()).where(eventDetectorTable.getField("dataPointId").eq(vo.getId())).execute();
+
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.SET);
 

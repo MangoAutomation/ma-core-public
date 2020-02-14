@@ -175,7 +175,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void insert(T vo) {
-        getTransactionTemplate().execute(status -> {
+        doInTransaction(status -> {
             int id = -1;
             InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
             String sql = insert.getSQL();
@@ -202,7 +202,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void update(T existing, T vo) {
-        getTransactionTemplate().execute(status -> {
+        doInTransaction(status -> {
             List<Object> list = new ArrayList<>();
             list.addAll(Arrays.asList(voToObjectArray(vo)));
             Map<Field<?>, Object> values = new LinkedHashMap<>();
