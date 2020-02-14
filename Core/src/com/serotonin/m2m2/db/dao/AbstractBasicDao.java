@@ -34,6 +34,7 @@ import org.jooq.UpdateConditionStep;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -73,6 +74,11 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     protected Log LOG = LogFactory.getLog(AbstractBasicDao.class);
 
     public static final int DEFAULT_LIMIT = 100;
+
+    //Retry transactions that deadlock
+    //TODO Mango 4.0 make this an env property?
+    //TODO Mango 4.0 make the retry criteria more accurate
+    protected final int transactionRetries = 5;
 
     protected final TABLE table;
     protected final ObjectMapper mapper;
@@ -152,10 +158,22 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     @Override
     public boolean delete(T vo) {
         if (vo != null) {
-            Integer deleted = withLockedRow(vo.getId(), (txStatus) -> {
-                deleteRelationalData(vo);
-                return this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
-            });
+            Integer deleted = 0;
+            int tries = transactionRetries;
+            while(tries > 0) {
+                try {
+                    deleted = withLockedRow(vo.getId(), (txStatus) -> {
+                        deleteRelationalData(vo);
+                        return this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                    });
+                    break;
+                }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
+                    if(tries == 1) {
+                        throw e;
+                    }
+                }
+                tries--;
+            }
 
             if(this.countMonitor != null) {
                 this.countMonitor.addValue(-deleted);
@@ -175,16 +193,27 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void insert(T vo) {
-        doInTransaction(status -> {
-            int id = -1;
-            InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
-            String sql = insert.getSQL();
-            List<Object> args = insert.getBindValues();
-            id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
-            vo.setId(id);
-            saveRelationalData(vo, true);
-            return null;
-        });
+        int tries = transactionRetries;
+        while(tries > 0) {
+            try {
+                doInTransaction(status -> {
+                    int id = -1;
+                    InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
+                    String sql = insert.getSQL();
+                    List<Object> args = insert.getBindValues();
+                    id = ejt.doInsert(sql, args.toArray(new Object[args.size()]));
+                    vo.setId(id);
+                    saveRelationalData(vo, true);
+                    return null;
+                });
+                break;
+            }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
+                if(tries == 1) {
+                    throw e;
+                }
+            }
+            tries--;
+        }
 
         this.publishEvent(createDaoEvent(DaoEventType.CREATE, vo, null));
 
@@ -202,22 +231,34 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
 
     @Override
     public void update(T existing, T vo) {
-        doInTransaction(status -> {
-            List<Object> list = new ArrayList<>();
-            list.addAll(Arrays.asList(voToObjectArray(vo)));
-            Map<Field<?>, Object> values = new LinkedHashMap<>();
-            int i = 0;
-            for(Field<?> f : this.table.getUpdateFields()) {
-                values.put(f, list.get(i));
-                i++;
+        int tries = transactionRetries;
+        while(tries > 0) {
+            try {
+                doInTransaction(status -> {
+                    List<Object> list = new ArrayList<>();
+                    list.addAll(Arrays.asList(voToObjectArray(vo)));
+                    Map<Field<?>, Object> values = new LinkedHashMap<>();
+                    int i = 0;
+                    for(Field<?> f : this.table.getUpdateFields()) {
+                        values.put(f, list.get(i));
+                        i++;
+                    }
+                    UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getIdField().eq(vo.getId()));
+                    String sql = update.getSQL();
+                    List<Object> args = update.getBindValues();
+                    ejt.update(sql, args.toArray(new Object[args.size()]));
+                    saveRelationalData(vo, false);
+                    return null;
+                });
+                break;
+            }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
+                if(tries == 1) {
+                    throw e;
+                }
             }
-            UpdateConditionStep<?> update = this.create.update(this.table.getTable()).set(values).where(this.table.getIdField().eq(vo.getId()));
-            String sql = update.getSQL();
-            List<Object> args = update.getBindValues();
-            ejt.update(sql, args.toArray(new Object[args.size()]));
-            saveRelationalData(vo, false);
-            return null;
-        });
+            tries--;
+        }
+
         this.publishEvent(createDaoEvent(DaoEventType.UPDATE, vo, existing));
     }
 

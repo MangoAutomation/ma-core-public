@@ -24,6 +24,7 @@ import org.jooq.impl.SQLDataType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -108,14 +109,23 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     public boolean delete(DataSourceVO vo) {
         //Since we are going to delete all the points we will select them for update as well as the data source
         if (vo != null) {
-
-            DataSourceDeletionResult result = withLockedRow(vo.getId(), (txStatus) -> {
-                DataSourceDeletionResult r = new DataSourceDeletionResult();
-                r.points = DataPointDao.getInstance().deleteDataPoints(vo.getId());
-                deleteRelationalData(vo);
-                r.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
-                return r;
-            });
+            DataSourceDeletionResult result = new DataSourceDeletionResult();
+            int tries = transactionRetries;
+            while(tries > 0) {
+                try {
+                    withLockedRow(vo.getId(), (txStatus) -> {
+                        result.points = DataPointDao.getInstance().deleteDataPoints(vo.getId());
+                        deleteRelationalData(vo);
+                        result.deleted = this.create.deleteFrom(this.table.getTable()).where(this.table.getIdField().eq(vo.getId())).execute();
+                    });
+                    break;
+                }catch(org.jooq.exception.DataAccessException | ConcurrencyFailureException e) {
+                    if(tries == 1) {
+                        throw e;
+                    }
+                }
+                tries--;
+            }
 
             if(this.countMonitor != null) {
                 this.countMonitor.addValue(-result.deleted);
