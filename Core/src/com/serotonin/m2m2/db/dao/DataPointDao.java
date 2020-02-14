@@ -273,17 +273,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
     /**
      * Delete the data point for a data source, this must be called within a transaction
-     *  as it locks the data points while it is deleting all of them
+     *
      * @param dataSourceId
      */
     List<DataPointVO> deleteDataPoints(final int dataSourceId) {
 
-        //TODO Mango 4.0 make sure the query/delete are within a transaction
-
-        //We use a list to hold the old points so we can fire the delete events,
-        // which will only fire if the transaction completes fully as if it
-        // throws an exception it will not complete this method
-        //Get an exclusive lock on these rows, as this will happen
         List<DataPointVO> points = customizedQuery(getJoinedSelectQuery().where(table.getAlias("dataSourceId").eq(dataSourceId)),
                 getListResultSetExtractor());
 
