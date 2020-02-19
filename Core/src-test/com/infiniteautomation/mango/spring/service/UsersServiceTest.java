@@ -241,7 +241,9 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     void addRoleToEditSelfPermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
-            roleService.addRoleToPermission(vo, UserEditSelfPermission.PERMISSION, systemSuperadmin);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                roleService.addRoleToPermission(vo, UserEditSelfPermission.PERMISSION);
+            });
         }
     }
 

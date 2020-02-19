@@ -12,6 +12,7 @@ import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.springframework.util.Assert;
 
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
@@ -152,8 +153,18 @@ public class CompiledMangoJavaScript {
      * @throws ScriptError
      */
     public void compile(String script, boolean wrapInFunction) throws ScriptError {
-        this.compiledScript = service.compile(script, wrapInFunction, permissionHolder);
-        this.wrapInFunction = wrapInFunction;
+        MutableObject<ScriptError> error = new MutableObject<>();
+        this.service.getPermissionService().runAs(permissionHolder, () -> {
+            try{
+                this.compiledScript = service.compile(script, wrapInFunction);
+                this.wrapInFunction = wrapInFunction;
+            }catch(ScriptError e) {
+                error.setValue(e);
+            }
+        });
+        if(error.getValue() != null) {
+            throw error.getValue();
+        }
     }
 
     /**

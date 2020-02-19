@@ -138,7 +138,9 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     }
 
     void addRoleToCreatePermission(Role vo) {
-        roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION, systemSuperadmin);
+        getService().permissionService.runAsSystemAdmin(() -> {
+            roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION);
+        });
     }
 
 }

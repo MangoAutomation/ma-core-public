@@ -109,7 +109,10 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * @param permissionType
      * @param user
      */
-    public void removeRoleFromPermission(Role role, String permissionType, PermissionHolder user) throws PermissionException, NotFoundException{
+    public void removeRoleFromPermission(Role role, String permissionType) throws PermissionException, NotFoundException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         permissionService.ensureAdminRole(user);
         Set<Role> permissionRoles = this.dao.getRoles(permissionType);
         if(!permissionRoles.contains(role)) {
@@ -123,9 +126,11 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * Add a role to a permission type
      * @param role
      * @param permissionType
-     * @param user
      */
-    public void addRoleToPermission(Role role, String permissionType, PermissionHolder user) throws PermissionException, ValidationException {
+    public void addRoleToPermission(Role role, String permissionType) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         permissionService.ensureAdminRole(user);
         Set<Role> permissionRoles = this.dao.getRoles(permissionType);
         if(permissionRoles.contains(role)) {
@@ -142,11 +147,13 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * @param voId
      * @param role
      * @param permissionType
-     * @param user
      */
-    public void addRoleToVoPermission(Role role, AbstractVO vo, String permissionType, PermissionHolder user) throws ValidationException {
+    public void addRoleToVoPermission(Role role, AbstractVO vo, String permissionType) throws ValidationException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         permissionService.ensureAdminRole(user);
-        //TODO PermissionHolder check?
+        //TODO Mango 4.0 PermissionHolder check?
         // Superadmin ok
         // holder must contain the role already?
         //Cannot add an existing mapping

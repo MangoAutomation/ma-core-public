@@ -360,7 +360,9 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
     void addRoleToCreatePermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
-            roleService.addRoleToPermission(vo, getCreatePermissionType(), systemSuperadmin);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                roleService.addRoleToPermission(vo, getCreatePermissionType());
+            });
         }
     }
 }

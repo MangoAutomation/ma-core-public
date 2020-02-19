@@ -191,7 +191,9 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     }
 
     void addRoleToCreatePermission(Role vo) {
-        roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION, systemSuperadmin);
+        getService().permissionService.runAsSystemAdmin(() -> {
+            roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION);
+        });
     }
 
 }

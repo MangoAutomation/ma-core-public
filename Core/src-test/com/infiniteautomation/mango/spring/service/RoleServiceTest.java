@@ -57,8 +57,10 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
             //TODO Wire into data point service?
             //Mock up the insert into the mapping table for now
             RoleService roleService = Common.getBean(RoleService.class);
-            roleService.addRoleToVoPermission(readRole, dp, PermissionService.READ, PermissionHolder.SYSTEM_SUPERADMIN);
-            roleService.addRoleToVoPermission(editRole, dp, PermissionService.EDIT, PermissionHolder.SYSTEM_SUPERADMIN);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                roleService.addRoleToVoPermission(readRole, dp, PermissionService.READ);
+                roleService.addRoleToVoPermission(editRole, dp, PermissionService.EDIT);
+            });
 
             PermissionService service = Common.getBean(PermissionService.class);
 

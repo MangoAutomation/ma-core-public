@@ -134,12 +134,16 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
                 response.addContextualMessage("activeDataPointId", "eventHandlers.invalidActiveSourceType");
         }
         else if (vo.getActiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-            if(StringUtils.isEmpty(vo.getActiveScript()))
+            if(StringUtils.isEmpty(vo.getActiveScript())) {
                 response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScript");
-            try {
-                javaScriptService.compile(vo.getActiveScript(), true, vo.getScriptRoles());
-            } catch(ScriptError e) {
-                response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+            }else {
+                javaScriptService.getPermissionService().runAs(vo.getScriptRoles(), () -> {
+                    try {
+                        javaScriptService.compile(vo.getActiveScript(), true);
+                    } catch(ScriptError e) {
+                        response.addContextualMessage("activeScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+                    }
+                });
             }
         }
 
@@ -169,12 +173,16 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
                 response.addContextualMessage("inactivePointId", "eventHandlers.invalidInactiveSourceType");
         }
         else if (vo.getInactiveAction() == SetPointEventHandlerVO.SET_ACTION_SCRIPT_VALUE) {
-            if(StringUtils.isEmpty(vo.getInactiveScript()))
+            if(StringUtils.isEmpty(vo.getInactiveScript())) {
                 response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScript");
-            try {
-                javaScriptService.compile(vo.getInactiveScript(), true, vo.getScriptRoles());
-            } catch(ScriptError e) {
-                response.addContextualMessage("inactiveScript", "eventHandlers.invalidInactiveScriptError", e.getTranslatableMessage());
+            }else {
+                javaScriptService.getPermissionService().runAs(vo.getScriptRoles(), () -> {
+                    try {
+                        javaScriptService.compile(vo.getInactiveScript(), true);
+                    } catch(ScriptError e) {
+                        response.addContextualMessage("inactiveScript", "eventHandlers.invalidActiveScriptError", e.getTranslatableMessage());
+                    }
+                });
             }
         }
 

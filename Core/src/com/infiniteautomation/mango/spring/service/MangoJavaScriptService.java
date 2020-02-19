@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 
@@ -85,8 +86,8 @@ import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 /**
- * Service to allow running and validating Mango JavaScript scripts 
- * 
+ * Service to allow running and validating Mango JavaScript scripts
+ *
  * @author Terry Packer
  *
  */
@@ -105,16 +106,16 @@ public class MangoJavaScriptService {
     public static final String UNCHANGED_KEY = "UNCHANGED";
 
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd MMM YYYY HH:mm:ss z");
-    
+
     private static final Object globalFunctionsLock = new Object();
 
     private final PermissionService permissionService;
-    
+
     @Autowired
     public MangoJavaScriptService(PermissionService permissionService) {
         this.permissionService = permissionService;
     }
-    
+
     /**
      * Validate a script with its parts
      * @param vo
@@ -123,25 +124,25 @@ public class MangoJavaScriptService {
      */
     public ProcessResult validate(MangoJavaScript vo, PermissionHolder user) {
         ProcessResult result = new ProcessResult();
-        
+
         //Ensure the user has ALL of the permissions as we will likely test/run this script
         if(!permissionService.hasAllRoles(user, vo.getPermissions().getRoles()))
             result.addContextualMessage("permissions", "permission.exception.doesNotHaveRequiredPermission");
-        
+
         validateContext(vo.getContext(), user, result);
-        
+
         if(vo.getResultDataTypeId() != null) {
             if(!DataTypes.CODES.isValidId(vo.getResultDataTypeId()))
                 result.addContextualMessage("resultDataTypeId", "validate.invalidValue");
         }
-        
+
         //Can't validate a null script
         if(StringUtils.isEmpty(vo.getScript()))
             result.addContextualMessage("script", "validate.invalidValue");
-        
+
         return result;
     }
-    
+
     /**
      * Validate a script context
      * @param context
@@ -179,7 +180,7 @@ public class MangoJavaScriptService {
         }
 
     }
-    
+
     /**
      * Ensure the script is valid
      * @param vo
@@ -192,27 +193,29 @@ public class MangoJavaScriptService {
         if(!result.isValid())
             throw new ValidationException(result);
     }
-    
+
     /**
      * Test a script
      * @param vo
-     * @param user
      * @return
      * @throws ValidationException
      * @throws PermissionException
      */
-    public MangoJavaScriptResult testScript(MangoJavaScript vo, PermissionHolder user) throws ValidationException, PermissionException {
-        return testScript(vo, (result, holder) ->{ return createValidationSetter(result, holder);}, user);
+    public MangoJavaScriptResult testScript(MangoJavaScript vo) throws ValidationException, PermissionException {
+        return testScript(vo, (result, holder) ->{ return createValidationSetter(result);});
     }
-    
+
     /**
-     * 
+     *
      * @param vo
      * @param createSetter
      * @param user
      * @return
      */
-    public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter, PermissionHolder user) {
+    public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureValid(vo, user);
         final StringWriter scriptOut = new StringWriter();
         MangoJavaScriptResult result = new  MangoJavaScriptResult();
@@ -221,10 +224,10 @@ public class MangoJavaScriptService {
             try(ScriptLog scriptLog = new ScriptLog("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter);){
                 CompiledMangoJavaScript script = new CompiledMangoJavaScript(
                         vo, createSetter.apply(result, vo.getPermissions()), scriptLog, result, this);
-                
+
                 script.compile(vo.getScript(), vo.isWrapInFunction());
                 script.initialize(vo.getContext());
-                
+
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null) {
                     script.execute(time, time, vo.getResultDataTypeId());
@@ -255,20 +258,22 @@ public class MangoJavaScriptService {
         }
         return result;
     }
-    
+
     /**
      * The preferred way to execute a script
      * @param vo
-     * @param user
      * @return
      * @throws ValidationException
      * @throws PermissionException
      */
-    public MangoJavaScriptResult executeScript(MangoJavaScript vo, ScriptPointValueSetter setter, PermissionHolder user) throws ValidationException, PermissionException {
+    public MangoJavaScriptResult executeScript(MangoJavaScript vo, ScriptPointValueSetter setter) throws ValidationException, PermissionException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureValid(vo, user);
         MangoJavaScriptResult result = new MangoJavaScriptResult();
         final Writer scriptOut;
-        final PrintWriter scriptWriter; 
+        final PrintWriter scriptWriter;
         if(vo.isReturnLogOutput()) {
             scriptOut = new StringWriter();
             scriptWriter = new PrintWriter(scriptOut);
@@ -277,16 +282,16 @@ public class MangoJavaScriptService {
             scriptWriter = new NullPrintWriter(writer);
             scriptOut = writer;
         }
-        
+
         try {
             try(ScriptLogExtender scriptLog = new ScriptLogExtender("scriptTest-" + user.getPermissionHolderName(), vo.getLogLevel(), scriptWriter, vo.getLog(), vo.isCloseLog());){
-                
+
                 CompiledMangoJavaScript script = new CompiledMangoJavaScript(
                         vo, setter, scriptLog, result, this);
-                
+
                 script.compile(vo.getScript(), vo.isWrapInFunction());
                 script.initialize(vo.getContext());
-                
+
                 long time = Common.timer.currentTimeMillis();
                 if(vo.getResultDataTypeId() != null)
                     script.execute(time, time, vo.getResultDataTypeId());
@@ -308,22 +313,22 @@ public class MangoJavaScriptService {
         }
         return result;
     }
-    
+
     /**
      * Compile a script to be run and add global bindings
-     * 
+     *
      * @param script
      * @param wrapInFunction
      * @return
      * @throws ScriptError
      */
-    public CompiledScript compile(String script, boolean wrapInFunction, PermissionHolder user) throws ScriptError {
+    public CompiledScript compile(String script, boolean wrapInFunction) throws ScriptError {
         try {
-            final ScriptEngine engine = newEngine(user);
-            
+            final ScriptEngine engine = newEngine();
+
             // Add constants to the context
             Bindings globalBindings = new SimpleBindings();
-            
+
             //left here for legacy compatibility
             globalBindings.put("SECOND", Common.TimePeriods.SECONDS);
             globalBindings.put("MINUTE", Common.TimePeriods.MINUTES);
@@ -332,17 +337,17 @@ public class MangoJavaScriptService {
             globalBindings.put("WEEK", Common.TimePeriods.WEEKS);
             globalBindings.put("MONTH", Common.TimePeriods.MONTHS);
             globalBindings.put("YEAR", Common.TimePeriods.YEARS);
-            
+
             for(IntStringPair isp : Common.TIME_PERIOD_CODES.getIdKeys())
                 globalBindings.put(Common.TIME_PERIOD_CODES.getCode(isp.getKey()), isp.getKey());
-            
+
             for(IntStringPair isp : Common.ROLLUP_CODES.getIdKeys(Common.Rollups.NONE))
                 globalBindings.put(Common.ROLLUP_CODES.getCode(isp.getKey()), isp.getKey());
-            
+
             //Add in Additional Utilities with Global Scope
             globalBindings.put(DateTimeUtility.CONTEXT_KEY, new DateTimeUtility());
             globalBindings.put(UnitUtility.CONTEXT_KEY, new UnitUtility());
-            
+
             engine.setBindings(globalBindings, ScriptContext.GLOBAL_SCOPE);
 
             String toCompile;
@@ -351,13 +356,13 @@ public class MangoJavaScriptService {
             }else {
                 toCompile = script;
             }
-            
+
             return ((Compilable)engine).compile(toCompile);
         }catch(ScriptException e) {
             throw ScriptError.create(e, wrapInFunction);
         }
     }
-    
+
     /**
      * Reset the engine scope of a script and initialize for running
      * @param script
@@ -367,10 +372,10 @@ public class MangoJavaScriptService {
         //TODO assert compiled
         //TODO assert permissions to execute global scripts
         //TODO assert setter not null
-        
+
         Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
         //TODO Clear engine scope completely?
-        
+
         engineScope.put(MangoJavaScriptService.UNCHANGED_KEY, MangoJavaScriptService.UNCHANGED);
 
         Set<String> points = new HashSet<String>();
@@ -396,21 +401,21 @@ public class MangoJavaScriptService {
                 engineScope.put(util.getContextKey(), util);
             }
         }
-        
+
         Set<Entry<String,Object>> entries = script.getAdditionalContext().entrySet();
         for(Entry<String,Object> entry: entries)
             engineScope.put(entry.getKey(), entry.getValue());
-        
+
         if(context != null) {
             for (String varName : context.keySet()) {
                 IDataPointValueSource point = context.get(varName);
                 engineScope.put(varName, wrapPoint(script.getEngine(), point, script.getSetter()));
-                points.add(varName); 
+                points.add(varName);
             }
             engineScope.put(MangoJavaScriptService.POINTS_MAP_KEY, context);
         }else
             engineScope.put(MangoJavaScriptService.POINTS_MAP_KEY, new HashMap<>());
-        
+
         //Set the print writer and log
         script.getEngine().getContext().setWriter(script.getLog().getStdOutWriter());
         engineScope.put(ScriptLog.CONTEXT_KEY, script.getLog());
@@ -429,10 +434,10 @@ public class MangoJavaScriptService {
                 throw new ShouldNeverHappenException(e);
         }
     }
-    
+
     /**
      * Reset result and execute script for any type of result
-     * 
+     *
      * @param script
      * @param runtime
      * @param timestamp
@@ -447,29 +452,29 @@ public class MangoJavaScriptService {
             //Setup the wraper context
             Bindings engineScope = script.getEngine().getBindings(ScriptContext.ENGINE_SCOPE);
             engineScope.put(MangoJavaScriptService.WRAPPER_CONTEXT_KEY, new WrapperContext(runtime, timestamp));
-            
+
             //Ensure the result is available to the utilities
             for(ScriptUtility util : script.getUtilities()) {
                 util.setResult(script.getResult());
             }
-            
+
             //Initialize additional utilities
             for(ScriptUtility util : script.getAdditionalUtilities())
                 util.setResult(script.getResult());
-            
+
             Object resultObject = script.getCompiledScript().eval();
             script.getResult().setResult(resultObject);
         }catch(ScriptException e) {
             throw ScriptError.create(e, script.isWrapInFunction());
         }catch (RuntimeException e) {
-            //Nashorn seems to like to wrap exceptions in RuntimeException 
+            //Nashorn seems to like to wrap exceptions in RuntimeException
             if(e.getCause() instanceof ScriptPermissionsException)
                 throw (ScriptPermissionsException)e.getCause();
             else
                 throw new ShouldNeverHappenException(e);
         }
     }
-    
+
     /**
      * Reset the result and execute for PointValueTime result
      * @param script
@@ -495,7 +500,7 @@ public class MangoJavaScriptService {
         DataValue value = coerce(resultObject, resultDataTypeId);
         script.getResult().setResult(new PointValueTime(value, timestamp));
     }
-    
+
     /**
      * Create a dumb setter that tracks actions but does not actually set anything
      * @param vo
@@ -503,10 +508,13 @@ public class MangoJavaScriptService {
      * @param permissions
      * @return
      */
-    public ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result, PermissionHolder permissions) {
-       return new ScriptPointValueSetter(permissions) {
-            
-           @Override
+    public ScriptPointValueSetter createValidationSetter(MangoJavaScriptResult result) {
+        PermissionHolder permissions = Common.getUser();
+        Objects.requireNonNull(permissions, "Permission holder must be set in security context");
+
+        return new ScriptPointValueSetter(permissions) {
+
+            @Override
             public void set(IDataPointValueSource point, Object value, long timestamp, String annotation) {
                 DataPointRT dprt = (DataPointRT) point;
                 if(!dprt.getVO().getPointLocator().isSettable()) {
@@ -531,21 +539,24 @@ public class MangoJavaScriptService {
         };
 
     }
-    
+
     /* Utilities for Script Execution */
     /**
      * Create a new script engine
      * @param - to help restrict script execution access so that only admin can access java classes
      * @return
      */
-    public ScriptEngine newEngine(PermissionHolder holder) {
+    public ScriptEngine newEngine() {
+        PermissionHolder holder = Common.getUser();
+        Objects.requireNonNull(holder, "Permission holder must be set in security context");
+
         NashornScriptEngineFactory factory = new NashornScriptEngineFactory();
         if(holder != null && holder.hasAdminRole())
             return factory.getScriptEngine();
         else
             return factory.getScriptEngine(new NoJavaFilter());
     }
-    
+
     private static class NoJavaFilter implements ClassFilter {
 
         @Override
@@ -553,7 +564,7 @@ public class MangoJavaScriptService {
             return false;
         }
     }
-    
+
     /**
      * Wrap a data point for insertion into script context
      * @param engine
@@ -576,7 +587,7 @@ public class MangoJavaScriptService {
             return new ImagePointWrapper(point, engine, setter);
         throw new ShouldNeverHappenException("Unknown data type id: " + point.getDataTypeId());
     }
-    
+
     private static String FUNCTIONS;
 
     /**
@@ -606,12 +617,12 @@ public class MangoJavaScriptService {
             FUNCTIONS = null;
         }
     }
-    
+
     /**
      * Add a data point to the engine scope bindings.
-     * 
+     *
      * Only to be called while script is not executing.
-     * 
+     *
      * @param engine
      * @param varName
      * @param dprt
@@ -621,39 +632,39 @@ public class MangoJavaScriptService {
     public void addToContext(ScriptEngine engine, String varName, DataPointRT dprt, ScriptPointValueSetter setCallback) {
         AbstractPointWrapper wrapper = wrapPoint(engine, dprt, setCallback);
         engine.put(varName, wrapper);
-        
+
         Map<String, IDataPointValueSource> context = (Map<String, IDataPointValueSource>)engine.getBindings(ScriptContext.ENGINE_SCOPE).get(POINTS_MAP_KEY);
         context.put(varName, dprt);
-        
+
         Set<String> points = (Set<String>) engine.get(POINTS_CONTEXT_KEY);
         if (points != null) {
             points.remove(varName);
             points.add(varName);
         }
     }
-    
+
     /**
      * Remove a data point from the engine scope bindings.
-     * 
+     *
      * Only to be called while the script is not executing.
      * @param engine
      * @param varName
      */
     @SuppressWarnings("unchecked")
     public void removeFromContext(ScriptEngine engine, String varName) {
-        
+
         Map<String, IDataPointValueSource> context = (Map<String, IDataPointValueSource>)engine.getBindings(ScriptContext.ENGINE_SCOPE).get(POINTS_MAP_KEY);
         context.remove(varName);
-        
+
         Set<String> points = (Set<String>) engine.get(POINTS_CONTEXT_KEY);
         if (points != null) {
             points.remove(varName);
         }
         engine.getBindings(ScriptContext.ENGINE_SCOPE).remove(varName);
     }
-    
 
-    
+
+
     /**
      * Coerce an object into a DataValue
      * @param input
@@ -663,12 +674,12 @@ public class MangoJavaScriptService {
      */
     public DataValue coerce(Object input, int toDataTypeId) throws ResultTypeException {
         DataValue value;
-        
+
         if(input instanceof DataValue)
             return (DataValue)input;
         else if(input instanceof PointValueTime)
             return ((PointValueTime)input).getValue();
-        
+
         if (input == null) {
             if (toDataTypeId == DataTypes.BINARY)
                 value = new BinaryValue(false);
@@ -733,16 +744,20 @@ public class MangoJavaScriptService {
 
         return value;
     }
-    
+
     public SimpleDateFormat getDateFormat() {
         return sdf;
     }
 
+    public PermissionService getPermissionService() {
+        return this.permissionService;
+    }
+
     private class ScriptLogExtender extends ScriptLog {
-        
+
         private final ScriptLog logger;
         private final boolean closeExtendedLog;
-        
+
         /**
          * @param id
          * @param level
@@ -755,67 +770,77 @@ public class MangoJavaScriptService {
         }
 
 
+        @Override
         public void trace(Object o) {
             if(logger != null)
                 logger.trace(o);
             super.trace(o);
         }
 
+        @Override
         public void debug(Object o) {
             if(logger != null)
                 logger.debug(o);
             super.debug(o);
         }
 
+        @Override
         public void info(Object o) {
             if(logger != null)
                 logger.info(o);
             super.info(o);
         }
 
+        @Override
         public void warn(Object o) {
             if(logger != null)
                 logger.warn(o);
             super.warn(o);
         }
 
+        @Override
         public void error(Object o) {
             if(logger != null)
                 logger.error(o);
             super.error(o);
         }
 
+        @Override
         public void fatal(Object o) {
             if(logger != null)
                 logger.fatal(o);
             super.fatal(o);
         }
-        
+
+        @Override
         public PrintWriter getStdOutWriter() {
             if(logger != null)
                 return logger.getStdOutWriter();
             else
                 return super.getStdOutWriter();
         }
-        
+
         /**
          * Get the file currently being written to
          * @return
          */
+        @Override
         public File getFile(){
             if(logger != null)
                 return logger.getFile();
             else
                 return super.getFile();
         }
-        
+
+        @Override
         public PrintWriter getPrintWriter() {
             if(logger != null)
                 return logger.getPrintWriter();
             else
                 return super.getPrintWriter();
         }
-        
+
+        @Override
         public void close() {
             if(logger != null && closeExtendedLog)
                 logger.close();
@@ -823,14 +848,16 @@ public class MangoJavaScriptService {
                 super.close();
         }
 
+        @Override
         public String getId() {
             if(logger != null)
                 return logger.getId();
             else
                 return super.getId();
-                    
+
         }
 
+        @Override
         public LogLevel getLogLevel() {
             if(logger != null)
                 return logger.getLogLevel();
@@ -838,6 +865,7 @@ public class MangoJavaScriptService {
                 return super.getLogLevel();
         }
 
+        @Override
         public void setLogLevel(LogLevel logLevel) {
             if(logger != null)
                 logger.setLogLevel(logLevel);
@@ -846,6 +874,7 @@ public class MangoJavaScriptService {
 
         //
         // Trace
+        @Override
         public boolean isTraceEnabled() {
             if(logger != null && logger.isTraceEnabled())
                 return true;
@@ -853,18 +882,21 @@ public class MangoJavaScriptService {
                 return super.isTraceEnabled();
         }
 
+        @Override
         public void trace(String s) {
             if(logger != null)
                 logger.trace(s);
             super.trace(s);
         }
 
+        @Override
         public void trace(Throwable t) {
             if(logger != null)
                 logger.trace(t);
             super.trace(t);
         }
 
+        @Override
         public void trace(String s, Throwable t) {
             if(logger != null)
                 logger.trace(s, t);
@@ -873,6 +905,7 @@ public class MangoJavaScriptService {
 
         //
         // Debug
+        @Override
         public boolean isDebugEnabled() {
             if(logger != null && logger.isDebugEnabled())
                 return true;
@@ -880,18 +913,21 @@ public class MangoJavaScriptService {
                 return super.isDebugEnabled();
         }
 
+        @Override
         public void debug(String s) {
             if(logger != null)
                 logger.debug(s);
             super.debug(s);
         }
 
+        @Override
         public void debug(Throwable t) {
             if(logger != null)
                 logger.debug(t);
             super.debug(t);
         }
 
+        @Override
         public void debug(String s, Throwable t) {
             if(logger != null)
                 logger.debug(s, t);
@@ -900,6 +936,7 @@ public class MangoJavaScriptService {
 
         //
         // Info
+        @Override
         public boolean isInfoEnabled() {
             if(logger != null && logger.isInfoEnabled())
                 return true;
@@ -907,18 +944,21 @@ public class MangoJavaScriptService {
                 return super.isInfoEnabled();
         }
 
+        @Override
         public void info(String s) {
             if(logger != null)
                 logger.info(s);
             super.info(s);
         }
 
+        @Override
         public void info(Throwable t) {
             if(logger != null)
                 logger.info(t);
             super.info(t);
         }
 
+        @Override
         public void info(String s, Throwable t) {
             if(logger != null)
                 logger.info(s, t);
@@ -927,6 +967,7 @@ public class MangoJavaScriptService {
 
         //
         // Warn
+        @Override
         public boolean isWarnEnabled() {
             if(logger != null && logger.isWarnEnabled())
                 return true;
@@ -934,18 +975,21 @@ public class MangoJavaScriptService {
                 return super.isWarnEnabled();
         }
 
+        @Override
         public void warn(String s) {
             if(logger != null)
                 logger.warn(s);
             super.warn(s);
         }
 
+        @Override
         public void warn(Throwable t) {
             if(logger != null)
                 logger.warn(t);
             super.warn(t);
         }
 
+        @Override
         public void warn(String s, Throwable t) {
             if(logger != null)
                 logger.warn(s, t);
@@ -954,6 +998,7 @@ public class MangoJavaScriptService {
 
         //
         // Error
+        @Override
         public boolean isErrorEnabled() {
             if(logger != null && logger.isErrorEnabled())
                 return true;
@@ -961,18 +1006,21 @@ public class MangoJavaScriptService {
                 return super.isErrorEnabled();
         }
 
+        @Override
         public void error(String s) {
             if(logger != null)
                 logger.error(s);
             super.error(s);
         }
 
+        @Override
         public void error(Throwable t) {
             if(logger != null)
                 logger.error(t);
             super.error(t);
         }
 
+        @Override
         public void error(String s, Throwable t) {
             if(logger != null)
                 logger.error(s, t);
@@ -981,6 +1029,7 @@ public class MangoJavaScriptService {
 
         //
         // Fatal
+        @Override
         public boolean isFatalEnabled() {
             if(logger != null && logger.isFatalEnabled())
                 return true;
@@ -988,36 +1037,41 @@ public class MangoJavaScriptService {
                 return super.isFatalEnabled();
         }
 
+        @Override
         public void fatal(String s) {
             if(logger != null)
                 logger.fatal(s);
             super.fatal(s);
         }
 
+        @Override
         public void fatal(Throwable t) {
             if(logger != null)
                 logger.fatal(t);
             super.fatal(t);
         }
 
+        @Override
         public void fatal(String s, Throwable t) {
             if(logger != null)
                 logger.fatal(s, t);
             super.fatal(s, t);
         }
 
-        
+
+        @Override
         public boolean trouble() {
             if(logger != null)
                 return logger.trouble();
             else
                 return super.trouble();
         }
-        
+
         /**
          * List all the files
          * @return
          */
+        @Override
         public File[] getFiles(){
             if(logger != null)
                 return logger.getFiles();

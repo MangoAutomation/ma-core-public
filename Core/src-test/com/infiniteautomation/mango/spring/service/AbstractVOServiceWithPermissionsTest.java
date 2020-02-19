@@ -361,14 +361,18 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
     void addRoleToCreatePermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
-            roleService.addRoleToPermission(vo, getCreatePermissionType(), systemSuperadmin);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                roleService.addRoleToPermission(vo, getCreatePermissionType());
+            });
         }
     }
 
     void removeRoleFromCreatePermission(Role vo) {
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
-            roleService.removeRoleFromPermission(vo, getCreatePermissionType(),systemSuperadmin);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                roleService.removeRoleFromPermission(vo, getCreatePermissionType());
+            });
         }
     }
 }
