@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.i18n;
 
+import java.io.Serializable;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,7 +13,10 @@ import java.util.List;
 /**
  * @author Matthew Lohbihler
  */
-public class TranslatableMessage {
+public class TranslatableMessage implements Serializable {
+
+    private static final long serialVersionUID = 8466485929018594868L;
+
     public static String translate(Translations translations, String key) {
         return translations.translate(key);
     }
@@ -45,7 +49,7 @@ public class TranslatableMessage {
                     this.args[i] = args[i];
                 else if(args[i] instanceof Object[])
                     this.args[i] = Arrays.toString((Object[])args[i]);
-                else 
+                else
                     this.args[i] = args[i].toString();
             }
         }
@@ -162,17 +166,17 @@ public class TranslatableMessage {
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             switch (c) {
-            case '|':
-                sb.append("\\|");
-                break;
-            case '[':
-                sb.append("\\[");
-                break;
-            case ']':
-                sb.append("\\]");
-                break;
-            default:
-                sb.append(c);
+                case '|':
+                    sb.append("\\|");
+                    break;
+                case '[':
+                    sb.append("\\[");
+                    break;
+                case ']':
+                    sb.append("\\]");
+                    break;
+                default:
+                    sb.append(c);
             }
         }
 
@@ -191,12 +195,12 @@ public class TranslatableMessage {
             if (c1 == '\\') {
                 char c2 = s.charAt(i + 1);
                 switch (c2) {
-                case '|':
-                case '[':
-                case ']':
-                    c1 = c2;
-                    i++;
-                    break;
+                    case '|':
+                    case '[':
+                    case ']':
+                        c1 = c2;
+                        i++;
+                        break;
                 }
             }
 
@@ -205,17 +209,6 @@ public class TranslatableMessage {
         }
 
         return sb.toString();
-    }
-
-    public static void main(String[] args) throws Exception {
-        TranslatableMessage lm1 = new TranslatableMessage("nest1key", "nest1param1", "nest1param2");
-        TranslatableMessage lm2 = new TranslatableMessage("nest2key", "nest2param1", "nest2param2");
-        TranslatableMessage lm3 = new TranslatableMessage("outerkey", lm1, lm2);
-
-        String enc = lm3.serialize();
-        System.out.println(enc);
-        TranslatableMessage dec = TranslatableMessage.deserialize(enc);
-        System.out.println(dec.getKey());
     }
 
     @Override
