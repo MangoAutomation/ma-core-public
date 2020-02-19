@@ -8,18 +8,18 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 import javax.annotation.PreDestroy;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.concurrent.DelegatingSecurityContextExecutorService;
+import org.springframework.security.concurrent.DelegatingSecurityContextScheduledExecutorService;
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.exceptionHandling.MangoUncaughtExceptionHandler;
@@ -56,7 +56,7 @@ public final class MangoExecutors {
 
     private volatile Thread futureConverterThread;
     private final LazyInitSupplier<FutureConverter> futureConverter = new LazyInitSupplier<>(() -> {
-        FutureConverter converter = new FutureConverter(ForkJoinPool.commonPool());
+        FutureConverter converter = new FutureConverter(getExecutor());
 
         futureConverterThread = new Thread(converter, "Mango FutureConverter loop");
         futureConverterThread.setUncaughtExceptionHandler(new MangoUncaughtExceptionHandler());
@@ -131,20 +131,13 @@ public final class MangoExecutors {
     }
 
     public ScheduledExecutorService getScheduledExecutor() {
-        return scheduledExecutor;
+        return new DelegatingSecurityContextScheduledExecutorService(scheduledExecutor);
     }
 
     public ExecutorService getExecutor() {
-        return executor;
+        return new DelegatingSecurityContextExecutorService(executor);
     }
 
-    public <T> CompletableFuture<T> supplyAsync(Supplier<T> supplier) {
-        return CompletableFuture.supplyAsync(supplier, executor);
-    }
-
-    public <T> CompletableFuture<Void> runAsync(Runnable runnable) {
-        return CompletableFuture.runAsync(runnable, executor);
-    }
 
     public <T> CompletableFuture<T> makeCompletable(Future<T> future) {
         return futureConverter.get().submit(future, 0, null);
@@ -154,24 +147,4 @@ public final class MangoExecutors {
         return futureConverter.get().submit(future, timeout, timeoutUnit);
     }
 
-    public <T> CompletableFuture<T> runInExecutor(ThrowingConsumer<CompletableFuture<T>> consumer) {
-        CompletableFuture<T> future = new CompletableFuture<T>();
-        try {
-            executor.execute(() -> {
-                try {
-                    consumer.accept(future);
-                } catch (Exception e) {
-                    future.completeExceptionally(e);
-                }
-            });
-        } catch (Exception e) {
-            future.completeExceptionally(e);
-        }
-        return future;
-    }
-
-    @FunctionalInterface
-    public static interface ThrowingConsumer<T> {
-        void accept(T t) throws Exception;
-    }
 }
