@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -15,8 +16,6 @@ import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
@@ -111,18 +110,17 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     // Session data. The user object is stored in session, and some other session-based information is cached here
     // for convenience.
     //
-    private final transient ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<>();
-    private transient final LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
-    private transient final LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
-    private transient final LazyInitializer<Locale> localeObject = new LazyInitializer<>();
+    private transient LazyInitializer<TimeZone> _tz = new LazyInitializer<>();
+    private transient LazyInitializer<DateTimeZone> _dtz = new LazyInitializer<>();
+    private transient LazyInitializer<Locale> localeObject = new LazyInitializer<>();
 
     //System permissions that we have one or more roles in
-    private transient final LazyInitializer<Set<MangoPermission>> grantedPermissions = new LazyInitializer<>();
+    private transient LazyInitializer<Set<MangoPermission>> grantedPermissions = new LazyInitializer<>();
 
     //
     //Spring Security
     //
-    private transient final LazyInitializer<Set<GrantedAuthority>> authorities = new LazyInitializer<>();
+    private transient LazyInitializer<Set<GrantedAuthority>> authorities = new LazyInitializer<>();
 
     public User() {
         this.name = "";
@@ -170,26 +168,6 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     @Override
     public void raiseRecursionFailureEvent() {
         throw new ShouldNeverHappenException("");
-    }
-
-    //
-    //
-    // Attributes
-    //
-    public void setAttribute(String key, Object value) {
-        attributes.put(key, value);
-    }
-
-    public void removeAttribute(String key) {
-        attributes.remove(key);
-    }
-
-    public Object getAttribute(String key) {
-        return attributes.get(key);
-    }
-
-    public <T> T getAttribute(String key, Class<T> requiredClass) {
-        return requiredClass.cast(attributes.get(key));
     }
 
     //
@@ -701,4 +679,13 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         return this.disabled;
     }
 
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        _tz = new LazyInitializer<>();
+        _dtz = new LazyInitializer<>();
+        localeObject = new LazyInitializer<>();
+        grantedPermissions = new LazyInitializer<>();
+        authorities = new LazyInitializer<>();
+    }
 }

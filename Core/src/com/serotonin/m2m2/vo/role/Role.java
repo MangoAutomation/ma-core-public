@@ -3,31 +3,35 @@
  */
 package com.serotonin.m2m2.vo.role;
 
+import java.io.Serializable;
+
 /**
  * TODO Mango 4.0 add Sero JSON Serialization/Serializer/Deserializer to output as a string?
- * 
+ *
  * @author Terry Packer
  *
  */
-public class Role {
+public class Role implements Serializable {
+
+    private static final long serialVersionUID = 6960583419249000443L;
 
     private final int id;
     private final String xid;
-    
+
     public Role(RoleVO vo) {
         this.id = vo.getId();
         this.xid = vo.getXid();
     }
-    
+
     public Role(int id, String xid){
         this.id = id;
         this.xid = xid;
     }
-    
+
     public int getId() {
         return id;
     }
-    
+
     public String getXid() {
         return xid;
     }
