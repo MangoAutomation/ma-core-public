@@ -39,6 +39,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.rt.maint.work.EmailWorkItem;
@@ -71,6 +72,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     private final SystemSettingsDao systemSettings;
     private final PasswordService passwordService;
     private final PermissionDefinition editSelfPermission;
+    private final PermissionDefinition changeOwnUsernamePermission;
 
     @Autowired
     public UsersService(UserDao dao, PermissionService permissionService,
@@ -81,6 +83,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         this.passwordService = passwordService;
         this.roleDao = roleDao;
         this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
+        this.changeOwnUsernamePermission = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
     }
 
     @Override
@@ -401,6 +404,14 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                 }
             }
         }
+
+        //Ensure they can change the username if they try
+        if(!StringUtils.equals(existing.getUsername(), vo.getUsername())) {
+            if(!permissionService.hasAnyRole(holder, changeOwnUsernamePermission.getRoles())) {
+                result.addMessage("username", new TranslatableMessage("users.validate.cannotChangeOwnUsername"));
+            }
+        }
+
         return result;
     }
 

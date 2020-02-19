@@ -54,6 +54,7 @@ import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandler
 import com.serotonin.m2m2.module.definitions.filestore.CoreFileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.filestore.DocsFileStoreDefinition;
 import com.serotonin.m2m2.module.definitions.filestore.PublicFileStoreDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
@@ -844,6 +845,7 @@ public class ModuleRegistry {
         preDefaults.add(new JsonDataCreatePermissionDefinition());
         preDefaults.add(new MailingListCreatePermission());
         preDefaults.add(new UserEditSelfPermission());
+        preDefaults.add(new ChangeOwnUsernamePermissionDefinition());
         preDefaults.add(new SendToMailingListPermission());
         preDefaults.add(new UserCreatePermission());
         preDefaults.add(new EventHandlerCreatePermission());

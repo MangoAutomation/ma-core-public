@@ -21,6 +21,7 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.vo.User;
@@ -227,14 +228,58 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         });
     }
 
-    @Test(expected = ValidationException.class)
-    public void testChangeUsername() {
+    public void testChangeUsernameAsAdmin() {
         getService().permissionService.runAsSystemAdmin(() -> {
             User vo = newVO(readUser);
             service.insert(vo);
             vo = service.get(vo.getId());
             vo.setUsername(UUID.randomUUID().toString());
+            service.update(vo.getId(), vo);
+        });
+    }
+
+    @Test(expected = ValidationException.class)
+    public void testChangeUsernameWithoutPermission() {
+
+        //Ensure the default 'user' role is removed from the change username permission and they can edit self
+        addRoleToEditSelfPermission(readRole);
+        getService().permissionService.runAsSystemAdmin(() -> {
+            roleService.addRoleToPermission(editRole, ChangeOwnUsernamePermissionDefinition.PERMISSION);
+        });
+
+        User vo = newVO(readUser);
+        vo.setRoles(Collections.singleton(readRole));
+        User saved = getService().permissionService.runAsSystemAdmin(() -> {
             service.insert(vo);
+            return service.get(vo.getId());
+        });
+
+        getService().permissionService.runAs(saved, () -> {
+            saved.setUsername(UUID.randomUUID().toString());
+            service.update(saved.getId(), saved);
+        });
+    }
+
+    public void testChangeUsernameWithPermission() {
+
+        //Add read role to change username permission
+        getService().permissionService.runAsSystemAdmin(() -> {
+            roleService.addRoleToPermission(readRole, ChangeOwnUsernamePermissionDefinition.PERMISSION);
+        });
+
+        //Ensure they can edit self
+        addRoleToEditSelfPermission(readRole);
+
+        User vo = newVO(readUser);
+        vo.setRoles(Collections.singleton(readRole));
+        User saved = getService().permissionService.runAsSystemAdmin(() -> {
+            service.insert(vo);
+            return service.get(vo.getId());
+        });
+
+        getService().permissionService.runAs(saved, () -> {
+            saved.setUsername(UUID.randomUUID().toString());
+            service.update(saved.getId(), saved);
         });
     }
 
