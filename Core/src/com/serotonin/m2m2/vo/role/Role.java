@@ -6,7 +6,6 @@ package com.serotonin.m2m2.vo.role;
 import java.io.Serializable;
 
 /**
- * TODO Mango 4.0 add Sero JSON Serialization/Serializer/Deserializer to output as a string?
  *
  * @author Terry Packer
  *
