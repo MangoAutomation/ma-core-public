@@ -275,26 +275,25 @@ public class ModulesService implements ModuleNotificationListener {
         }
     }
 
-    public ProcessResult monitorDownloads() {
-        ProcessResult result = new ProcessResult();
+    public UpgradeStatus monitorDownloads() {
+        UpgradeStatus status = new UpgradeStatus();
         synchronized (UPGRADE_DOWNLOADER_LOCK) {
             if (UPGRADE_DOWNLOADER == null && stage == UpgradeState.IDLE) {
-                result.addGenericMessage("modules.versionCheck.notRunning");
-                return result;
+                status.setStage(stage);
+                return status;
             }
-            result.addData("finished", finished);
-            result.addData("cancelled", cancelled);
-            result.addData("restart", restart);
-            if (error != null)
-                result.addData("error", error);
-            result.addData("stage", stage);
-            result.addData("results", getUpgradeResults(Common.getTranslations()));
+            status.setFinished(finished);
+            status.setCancelled(cancelled);
+            status.setRestart(restart);
+            status.setError(error);
+            status.setStage(stage);
+            status.setResults(getUpgradeResults());
 
             if(finished)
                 stage = UpgradeState.IDLE;
         }
 
-        return result;
+        return status;
     }
 
     /**
@@ -691,7 +690,7 @@ public class ModulesService implements ModuleNotificationListener {
         moduleResults.clear();
     }
 
-    public static List<StringStringPair> getUpgradeResults(Translations translations) {
+    public static List<StringStringPair> getUpgradeResults() {
         synchronized (moduleResults) {
             return new ArrayList<>(moduleResults);
         }
@@ -746,4 +745,50 @@ public class ModulesService implements ModuleNotificationListener {
         //no-op
     }
 
+    public static class UpgradeStatus {
+        private UpgradeState stage;
+        private boolean finished;
+        private boolean cancelled;
+        private boolean restart;
+        private String error;
+        private List<StringStringPair> results = new ArrayList<>();
+
+        public UpgradeState getStage() {
+            return stage;
+        }
+        public void setStage(UpgradeState stage) {
+            this.stage = stage;
+        }
+        public boolean isFinished() {
+            return finished;
+        }
+        public void setFinished(boolean finished) {
+            this.finished = finished;
+        }
+        public boolean isCancelled() {
+            return cancelled;
+        }
+        public void setCancelled(boolean cancelled) {
+            this.cancelled = cancelled;
+        }
+        public boolean isRestart() {
+            return restart;
+        }
+        public void setRestart(boolean restart) {
+            this.restart = restart;
+        }
+        public String getError() {
+            return error;
+        }
+        public void setError(String error) {
+            this.error = error;
+        }
+        public List<StringStringPair> getResults() {
+            return results;
+        }
+        public void setResults(List<StringStringPair> results) {
+            this.results = results;
+        }
+
+    }
 }
