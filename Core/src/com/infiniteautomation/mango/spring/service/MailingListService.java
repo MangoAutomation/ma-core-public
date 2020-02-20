@@ -300,8 +300,11 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                 case USER:
                 case USER_PHONE_NUMBER:
                     UserEntry ue = (UserEntry)recipient;
-                    if(userDao.getXidById(ue.getUserId()) == null) {
+                    User userWithPhone = userDao.get(ue.getUserId());
+                    if(userWithPhone == null) {
                         result.addContextualMessage(prefix, "mailingLists.validate.userDoesNotExist");
+                    }else if(StringUtils.isBlank(userWithPhone.getPhone())){
+                        result.addContextualMessage(prefix, "mailingLists.validate.userDoesNotHavePhoneNumber");
                     }
                     break;
                 default:
