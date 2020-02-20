@@ -5,9 +5,7 @@
 package com.serotonin.m2m2.i18n;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -25,7 +23,6 @@ import com.serotonin.m2m2.i18n.ProcessMessage.Level;
  */
 public class ProcessResult {
     private List<ProcessMessage> messages = new ArrayList<ProcessMessage>();
-    private Map<String, Object> data = new HashMap<String, Object>();
 
     private final String contextKeyPrefix;
 
@@ -85,18 +82,6 @@ public class ProcessResult {
         this.messages = messages;
     }
 
-    public void addData(String key, Object value) {
-        data.put(key, value);
-    }
-
-    public Map<String, Object> getData() {
-        return data;
-    }
-
-    public void setData(Map<String, Object> data) {
-        this.data = data;
-    }
-
     /**
      * A result is valid if there are no messages at the WARN or ERROR level
      * @return
@@ -144,6 +129,5 @@ public class ProcessResult {
     public void copyTo(ProcessResult other) {
         Objects.requireNonNull(other);
         other.getMessages().addAll(messages);
-        other.getData().putAll(data);
     }
 }
