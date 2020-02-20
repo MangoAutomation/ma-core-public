@@ -83,6 +83,7 @@ import com.serotonin.m2m2.module.definitions.script.JsonEmportScriptUtilityDefin
 import com.serotonin.m2m2.module.definitions.script.PointValueTimeStreamScriptUtilityDefinition;
 import com.serotonin.m2m2.module.definitions.script.RuntimeManagerScriptUtilityDefinition;
 import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
+import com.serotonin.m2m2.module.definitions.settings.DataPointTagsDisplaySettingDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeInfoDefinition;
 import com.serotonin.m2m2.module.definitions.settings.DiskInfoDefinition;
@@ -912,6 +913,9 @@ public class ModuleRegistry {
         preDefaults.add(new UpgradeCheckEventTypeDefinition());
         preDefaults.add(new UserLoginEventTypeDefinition());
         preDefaults.add(new NewUserRegisteredEventTypeDefinition());
+
+        /* System Settings Definitions */
+        preDefaults.add(new DataPointTagsDisplaySettingDefinition());
 
         /*
          * Add a module for the core

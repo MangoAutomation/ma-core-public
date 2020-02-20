@@ -1,10 +1,21 @@
+/*
+    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
+    @author Matthew Lohbihler
+ */
 package com.serotonin.m2m2.vo;
 
+import java.util.Map;
 import java.util.Set;
 
 import com.serotonin.m2m2.vo.role.Role;
 
+/**
+ * Summary of a data point
+ *
+ * @author Terry Packer
+ */
 public class DataPointSummary implements IDataPoint {
+
     private int id;
     private String xid;
     private String name;
@@ -12,6 +23,7 @@ public class DataPointSummary implements IDataPoint {
     private String deviceName;
     private Set<Role> readRoles;
     private Set<Role> setRoles;
+    private Map<String, String> tags;
 
     public DataPointSummary() {
         // no op
@@ -25,6 +37,7 @@ public class DataPointSummary implements IDataPoint {
         deviceName = vo.getDeviceName();
         readRoles = vo.getReadRoles();
         setRoles = vo.getSetRoles();
+        tags = vo.getTags();
     }
 
     @Override
@@ -73,11 +86,6 @@ public class DataPointSummary implements IDataPoint {
     }
 
     @Override
-    public String getExtendedName() {
-        return DataPointVO.getExtendedName(this);
-    }
-
-    @Override
     public Set<Role> getReadRoles() {
         return readRoles;
     }
@@ -93,6 +101,11 @@ public class DataPointSummary implements IDataPoint {
 
     public void setSetRoles(Set<Role> setRoles) {
         this.setRoles = setRoles;
+    }
+
+    @Override
+    public Map<String, String> getTags() {
+        return tags;
     }
 
     @Override

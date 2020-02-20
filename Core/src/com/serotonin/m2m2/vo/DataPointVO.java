@@ -226,19 +226,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     public DataPointVO() { }
 
-    @Override
-    public String getExtendedName() {
-        return getExtendedName(this);
-    }
-
-    public static String getExtendedName(IDataPoint dp) {
-        return dp.getDeviceName() + " - " + dp.getName();
-    }
-
-    public void setExtendedName(String name) {
-        //No-Op
-    }
-
     /**
      * Sets the text renderer to the default text renderer for the point locator data type
      */
@@ -1436,6 +1423,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      * Returns a map of the tag keys and values. Will not contain "name" or "device" keys.
      * @return unmodifiable map of tags
      */
+    @Override
     public Map<String, String> getTags() {
         Map<String, String> tags = this.tags;
         if (tags == null) {

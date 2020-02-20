@@ -16,19 +16,19 @@ import com.serotonin.m2m2.vo.DataPointVO;
  *
  */
 public class DataPointWrapper {
-	
-	protected DataPointVO vo;
-	protected AbstractPointWrapper wrapper;
-	
-	public DataPointWrapper(DataPointVO vo, AbstractPointWrapper wrapper){
-		this.vo = vo;
-		this.wrapper = wrapper;
-	}
-	
-    public String getExtendedName() {
-        return DataPointVO.getExtendedName(vo);
+
+    protected DataPointVO vo;
+    protected AbstractPointWrapper wrapper;
+
+    public DataPointWrapper(DataPointVO vo, AbstractPointWrapper wrapper){
+        this.vo = vo;
+        this.wrapper = wrapper;
     }
-    
+
+    public String getExtendedName() {
+        return vo.getExtendedName();
+    }
+
     public boolean isSettable() {
         return vo.getPointLocator().isSettable();
     }
@@ -40,31 +40,31 @@ public class DataPointWrapper {
     public boolean isEnabled() {
         return vo.isEnabled();
     }
-    
+
     public int getId() {
         return vo.getId();
     }
-    
+
     public String getXid() {
         return vo.getXid();
     }
-    
+
     public String getName() {
         return vo.getName();
     }
-    
+
     public Unit<?> getUnit(){
-    	return vo.getUnit();
+        return vo.getUnit();
     }
-    
+
     public String getDataSourceName() {
         return vo.getDataSourceName();
     }
-    
+
     public String getDataSourceXid() {
         return vo.getDataSourceXid();
     }
-    
+
     public Map<String, String> getTags() {
         Map<String, String> tags = vo.getTags();
         if(tags == null) {
@@ -73,44 +73,45 @@ public class DataPointWrapper {
         } else
             return tags;
     }
-    
+
     public AbstractPointWrapper getRuntime(){
-    	return this.wrapper;
+        return this.wrapper;
     }
-    
+
     public String getHelp(){
-    	return toString();
+        return toString();
     }
-    
+
     /**
      * For subclass use
      * @param builder
      */
     public void helpImpl(StringBuilder builder){ }
-    
-	public String toString(){
-		StringBuilder builder = new StringBuilder();
-		builder.append("{ ");
-		builder.append("extendedName: ").append(getExtendedName()).append(",\n");
-		builder.append("settable: ").append(isSettable()).append(",\n");
-		builder.append("deviceName: ").append(getDeviceName()).append(",\n");
-		builder.append("enabled: ").append(isEnabled()).append(",\n");
-		builder.append("id: ").append(getId()).append(",\n");
-		builder.append("xid: ").append(getXid()).append(",\n");
-		builder.append("name: ").append(getName()).append(",\n");
-		builder.append("unit: ").append(getUnit().toString()).append(",\n");
-		builder.append("dataSourceName: ").append(getDataSourceName()).append(",\n");
-		builder.append("dataSourceXid: ").append(getDataSourceXid()).append(",\n");
-		builder.append("tags: ").append(getTags()).append(",\n");
 
-		if(this.wrapper != null)
-			builder.append("runtime: ").append(this.wrapper.getHelp());
-		else
-			builder.append("runtime: null (not enabled),\n");
-		this.helpImpl(builder);
+    @Override
+    public String toString(){
+        StringBuilder builder = new StringBuilder();
+        builder.append("{ ");
+        builder.append("extendedName: ").append(getExtendedName()).append(",\n");
+        builder.append("settable: ").append(isSettable()).append(",\n");
+        builder.append("deviceName: ").append(getDeviceName()).append(",\n");
+        builder.append("enabled: ").append(isEnabled()).append(",\n");
+        builder.append("id: ").append(getId()).append(",\n");
+        builder.append("xid: ").append(getXid()).append(",\n");
+        builder.append("name: ").append(getName()).append(",\n");
+        builder.append("unit: ").append(getUnit().toString()).append(",\n");
+        builder.append("dataSourceName: ").append(getDataSourceName()).append(",\n");
+        builder.append("dataSourceXid: ").append(getDataSourceXid()).append(",\n");
+        builder.append("tags: ").append(getTags()).append(",\n");
 
-		builder.append(" }\n");
-		return builder.toString();
-	}
-	
+        if(this.wrapper != null)
+            builder.append("runtime: ").append(this.wrapper.getHelp());
+        else
+            builder.append("runtime: null (not enabled),\n");
+        this.helpImpl(builder);
+
+        builder.append(" }\n");
+        return builder.toString();
+    }
+
 }
