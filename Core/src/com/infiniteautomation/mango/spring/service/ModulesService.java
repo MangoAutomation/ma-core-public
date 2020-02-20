@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -55,9 +54,7 @@ import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.PublisherDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
-import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleNotificationListener;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -65,7 +62,6 @@ import com.serotonin.m2m2.rt.maint.work.BackupWorkItem;
 import com.serotonin.m2m2.rt.maint.work.DatabaseBackupWorkItem;
 import com.serotonin.m2m2.shared.ModuleUtils;
 import com.serotonin.m2m2.util.timeout.HighPriorityTask;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.web.http.HttpUtils4;
@@ -97,98 +93,13 @@ public class ModulesService implements ModuleNotificationListener {
         listeners.add(this);
     }
 
-    public boolean toggleDeletion(String moduleName) {
-        Module module = ModuleRegistry.getModule(moduleName);
-        module.setMarkedForDeletion(!module.isMarkedForDeletion());
-        return module.isMarkedForDeletion();
-    }
-
-    public ProcessResult scheduleRestart() {
-        ProcessResult result = new ProcessResult();
-        synchronized(SHUTDOWN_TASK_LOCK){
-            if (SHUTDOWN_TASK == null) {
-                IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, true, Common.getUser());
-                //Get the redirect page
-                result.addData("shutdownUri", "/shutdown.htm");
-            }
-            else {
-                result.addData("message", Common.translate("modules.restartAlreadyScheduled"));
-            }
-        }
-
-        return result;
-    }
-
-    public ProcessResult scheduleShutdown() {
-        ProcessResult result = new ProcessResult();
-        synchronized(SHUTDOWN_TASK_LOCK){
-            if (SHUTDOWN_TASK == null) {
-                //Ensure our lifecycle state is set to PRE_SHUTDOWN
-                IMangoLifecycle lifecycle = Providers.get(IMangoLifecycle.class);
-                SHUTDOWN_TASK = lifecycle.scheduleShutdown(null, false, Common.getUser());
-                //Get the redirect page
-                result.addData("shutdownUri", "/shutdown.htm");
-            }
-            else {
-                result.addData("message", Common.translate("modules.shutdownAlreadyScheduled"));
-            }
-        }
-
-        return result;
-    }
-
-    public ProcessResult versionCheck() {
-        ProcessResult result = new ProcessResult();
-
-        if (UPGRADE_DOWNLOADER != null) {
-            result.addData("error", Common.translate("modules.versionCheck.occupied"));
-            return result;
-        }
-
-        try {
-            JsonValue jsonResponse = getAvailableUpgrades();
-
-            if (jsonResponse == null) {
-                PermissionHolder user = Common.getUser();
-                Translations translations;
-                if(user instanceof User) {
-                    translations = ((User)user).getTranslations();
-                }else {
-                    translations = Common.getTranslations();
-                }
-
-                result.addData("error", new TranslatableMessage("modules.versionCheck.storeNotSet").translate(translations));
-                return result;
-            }
-            if (jsonResponse instanceof JsonString)
-                result.addData("error", jsonResponse.toString());
-            else {
-                JsonObject root = jsonResponse.toJsonObject();
-                result.addData("upgrades", root.get("upgrades").toNative());
-                result.addData("newInstalls", root.get("newInstalls").toNative());
-                if (root.containsKey("upgradesError"))
-                    result.addData("upgradesError", root.getString("upgradesError"));
-                if (root.containsKey("updates")) {
-                    result.addData("updates", root.get("updates").toNative());
-                    result.addData("newInstalls-oldCore",
-                            root.get("newInstalls-oldCore").toNative());
-                }
-                if (root.containsKey("missingModules"))
-                    result.addData("missingModules",
-                            root.getJsonArray("missingModules").toNative());
-            }
-        } catch (UnknownHostException e) {
-            LOG.error("", e);
-            result.addData("unknownHost", e.getMessage());
-        } catch (Exception e) {
-            LOG.error("", e);
-            result.addData("error", e.getMessage());
-        }
-        return result;
-    }
-
-
+    /**
+     * Start downloading modules
+     * @param modules
+     * @param backup
+     * @param restart
+     * @return
+     */
     public String startDownloads(List<StringStringPair> modules, boolean backup, boolean restart) {
         synchronized(UPGRADE_DOWNLOADER_LOCK){
             if (UPGRADE_DOWNLOADER != null)
@@ -249,16 +160,6 @@ public class ModulesService implements ModuleNotificationListener {
 
         return null;
     }
-
-    public ProcessResult tryCancelDownloads() {
-        ProcessResult pr = new ProcessResult();
-        if (tryCancelUpgrade())
-            pr.addGenericMessage("common.cancelled");
-        else
-            pr.addGenericMessage("modules.versionCheck.notRunning");
-        return pr;
-    }
-
 
     /**
      * Try and Cancel the Upgrade
@@ -333,6 +234,13 @@ public class ModulesService implements ModuleNotificationListener {
         return size;
     }
 
+    /**
+     * Get the information for available upgrades
+     * @return
+     * @throws JsonException
+     * @throws IOException
+     * @throws HttpException
+     */
     public JsonValue getAvailableUpgrades() throws JsonException, IOException, HttpException {
 
         // Create the request
