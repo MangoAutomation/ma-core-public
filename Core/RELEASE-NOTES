@@ -17,6 +17,7 @@
 * Upgrade Apache POI to 4.1.2 which is used in Excel Report generatio
 * Upgrade MySQL connector to 8.0.19 driver classname is now com.mysql.cj.jdbc.Driver
 * Add permission to allow users to change thier own username defaults to allow all users to do this
+* Add new types to Mailing List to allow any phone number and User phone numbers
 
 *Version 3.7.4*
 * Improve work item failure logging

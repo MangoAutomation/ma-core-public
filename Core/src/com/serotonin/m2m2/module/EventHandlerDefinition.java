@@ -15,8 +15,6 @@ import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.util.VarNames;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
-import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -142,21 +140,4 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
             pos++;
         }
     }
-
-    protected void validateRecipient(String prefix, RecipientListEntryBean b, ProcessResult response) {
-        switch(b.getRecipientType()) {
-            case EmailRecipient.TYPE_MAILING_LIST:
-                if(b.getReferenceId() < 1)
-                    response.addContextualMessage(prefix, "validate.invalidValue");
-                break;
-            case EmailRecipient.TYPE_USER:
-                if(b.getReferenceId() < 1)
-                    response.addContextualMessage(prefix, "validate.invalidValue");
-                break;
-            case EmailRecipient.TYPE_ADDRESS:
-                //TODO Validate email format?
-                break;
-        }
-    }
-
 }

@@ -5,32 +5,38 @@
 package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
-import java.util.Set;
-
-import org.joda.time.DateTime;
+import java.io.Serializable;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.util.ExportCodes;
 
-abstract public interface EmailRecipient extends JsonSerializable {
-    public static final int TYPE_MAILING_LIST = 1;
-    public static final int TYPE_USER = 2;
-    public static final int TYPE_ADDRESS = 3;
+/**
+ * Recipient for a mailing list, can be an attribute of a VO such as a user's email address or
+ *  a raw attribute such as any email address
+ *
+ * @author Terry Packer
+ */
+abstract public interface MailingListRecipient extends Serializable, JsonSerializable {
 
-    public static final ExportCodes TYPE_CODES = EmailRecipientTypeCodes.instance;
+    /**
+     * Return the type of recipient
+     * @return
+     */
+    abstract public RecipientListEntryType getRecipientType();
 
-    abstract public int getRecipientType();
-
-    abstract public void appendAddresses(Set<String> addresses, DateTime sendTime);
-
-    abstract public void appendAllAddresses(Set<String> addresses);
-
+    /**
+     * For reference types this will return the referenced VO's id
+     * @return
+     */
     abstract public int getReferenceId();
 
+    /**
+     * For raw types this will return the address to use
+     * @return
+     */
     abstract public String getReferenceAddress();
 
     /**
@@ -38,7 +44,7 @@ abstract public interface EmailRecipient extends JsonSerializable {
      */
     @Override
     default public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("recipientType", TYPE_CODES.getCode(getRecipientType()));
+        writer.writeEntry("recipientType", getRecipientType().name());
     }
 
     @Override

@@ -44,8 +44,8 @@ import com.serotonin.m2m2.util.MapWrap;
 import com.serotonin.m2m2.util.MapWrapConverter;
 import com.serotonin.m2m2.view.text.BaseTextRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipientResolver;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipientResolver;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
@@ -140,7 +140,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
 
         Common.JSON_CONTEXT.addResolver(new EventTypeResolver(), EventType.class);
         Common.JSON_CONTEXT.addResolver(new BaseTextRenderer.Resolver(), TextRenderer.class);
-        Common.JSON_CONTEXT.addResolver(new EmailRecipientResolver(), EmailRecipient.class);
+        Common.JSON_CONTEXT.addResolver(new MailingListRecipientResolver(), MailingListRecipient.class);
         Common.JSON_CONTEXT.addResolver(new VirtualSerialPortConfigResolver(), VirtualSerialPortConfig.class);
         Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);
 

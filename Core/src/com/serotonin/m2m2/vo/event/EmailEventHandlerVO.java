@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
@@ -30,6 +31,7 @@ import com.serotonin.m2m2.rt.event.handlers.EmailHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.util.SerializationHelper;
 
@@ -59,15 +61,15 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
 
     }
 
-    private List<RecipientListEntryBean> activeRecipients;
+    private List<MailingListRecipient> activeRecipients;
     private boolean sendEscalation;
     private boolean repeatEscalations;
     private int escalationDelayType = TimePeriods.HOURS;
     private int escalationDelay = 1;
-    private List<RecipientListEntryBean> escalationRecipients;
+    private List<MailingListRecipient> escalationRecipients;
     private boolean sendInactive;
     private boolean inactiveOverride;
-    private List<RecipientListEntryBean> inactiveRecipients;
+    private List<MailingListRecipient> inactiveRecipients;
     private boolean includeSystemInfo; //Include Work Items and Service Thread Pool Data
     private int includePointValueCount = 10;
     private boolean includeLogfile;
@@ -77,11 +79,11 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
     private String script;
     private int subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
 
-    public List<RecipientListEntryBean> getActiveRecipients() {
+    public List<MailingListRecipient> getActiveRecipients() {
         return activeRecipients;
     }
 
-    public void setActiveRecipients(List<RecipientListEntryBean> activeRecipients) {
+    public void setActiveRecipients(List<MailingListRecipient> activeRecipients) {
         this.activeRecipients = activeRecipients;
     }
 
@@ -101,11 +103,11 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
         this.escalationDelayType = escalationDelayType;
     }
 
-    public List<RecipientListEntryBean> getEscalationRecipients() {
+    public List<MailingListRecipient> getEscalationRecipients() {
         return escalationRecipients;
     }
 
-    public void setEscalationRecipients(List<RecipientListEntryBean> escalationRecipients) {
+    public void setEscalationRecipients(List<MailingListRecipient> escalationRecipients) {
         this.escalationRecipients = escalationRecipients;
     }
 
@@ -141,11 +143,11 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
         this.inactiveOverride = inactiveOverride;
     }
 
-    public List<RecipientListEntryBean> getInactiveRecipients() {
+    public List<MailingListRecipient> getInactiveRecipients() {
         return inactiveRecipients;
     }
 
-    public void setInactiveRecipients(List<RecipientListEntryBean> inactiveRecipients) {
+    public void setInactiveRecipients(List<MailingListRecipient> inactiveRecipients) {
         this.inactiveRecipients = inactiveRecipients;
     }
 
@@ -217,7 +219,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
     // Serialization
     //
     private static final long serialVersionUID = -1;
-    private static final int version = 7;
+    private static final int version = 8;
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
@@ -242,21 +244,41 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
 
     @SuppressWarnings({"unchecked", "deprecation"})
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        MailingListService service = Common.getBean(MailingListService.class);
+
         int ver = in.readInt();
         subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
         if (ver == 1) {
-            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                activeRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    activeRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(activeRecipients);
+            }
             sendEscalation = in.readBoolean();
             repeatEscalations = false;
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
-            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                escalationRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    escalationRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(escalationRecipients);
+            }
             sendInactive = in.readBoolean();
             inactiveOverride = in.readBoolean();
-            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                inactiveRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    inactiveRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(inactiveRecipients);
+            }
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
@@ -266,18 +288,36 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             script = null;
         }
         else if (ver == 2) {
-            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                activeRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    activeRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(activeRecipients);
+            }
             sendEscalation = in.readBoolean();
             repeatEscalations = false;
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
-            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                escalationRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    escalationRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(escalationRecipients);
+            }
             sendInactive = in.readBoolean();
             inactiveOverride = in.readBoolean();
-            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                inactiveRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    inactiveRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(inactiveRecipients);
+            }
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
@@ -287,18 +327,37 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             script = null;
         }
         else if (ver == 3) {
-            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                activeRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    activeRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(activeRecipients);
+            }
+            service.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
             repeatEscalations = false;
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
-            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                escalationRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    escalationRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(escalationRecipients);
+            }
             sendInactive = in.readBoolean();
             inactiveOverride = in.readBoolean();
-            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                inactiveRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    inactiveRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(inactiveRecipients);
+            }
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
@@ -308,18 +367,37 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             script = null;
         }
         else if (ver == 4) {
-            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                activeRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    activeRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(activeRecipients);
+            }
+            service.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
             repeatEscalations = false;
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
-            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                escalationRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    escalationRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(escalationRecipients);
+            }
             sendInactive = in.readBoolean();
-            inactiveOverride = in.readBoolean();
-            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                inactiveRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    inactiveRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(inactiveRecipients);
+            }
+            service.cleanRecipientList(inactiveRecipients);
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
@@ -333,18 +411,37 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             script = SerializationHelper.readSafeUTF(in);
         }
         else if (ver == 5) {
-            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                activeRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    activeRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(activeRecipients);
+            }
+            service.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
             repeatEscalations = in.readBoolean();
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
-            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                escalationRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    escalationRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(escalationRecipients);
+            }
             sendInactive = in.readBoolean();
             inactiveOverride = in.readBoolean();
-            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                inactiveRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    inactiveRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(inactiveRecipients);
+            }
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
@@ -357,18 +454,37 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
                 scriptRoles = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
         }else if (ver == 6) {
-            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                activeRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    activeRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(activeRecipients);
+            }
+            service.cleanRecipientList(activeRecipients);
             sendEscalation = in.readBoolean();
             repeatEscalations = in.readBoolean();
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
-            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                escalationRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    escalationRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(escalationRecipients);
+            }
             sendInactive = in.readBoolean();
             inactiveOverride = in.readBoolean();
-            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                inactiveRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    inactiveRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(inactiveRecipients);
+            }
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
@@ -377,18 +493,57 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             scriptRoles = (ScriptPermissions)in.readObject();
             script = SerializationHelper.readSafeUTF(in);
         }else if(ver == 7) {
-            activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(activeRecipients);
+            List<RecipientListEntryBean> legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                activeRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    activeRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(activeRecipients);
+            }
             sendEscalation = in.readBoolean();
             repeatEscalations = in.readBoolean();
             escalationDelayType = in.readInt();
             escalationDelay = in.readInt();
-            escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(escalationRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                escalationRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    escalationRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(escalationRecipients);
+            }
             sendInactive = in.readBoolean();
             inactiveOverride = in.readBoolean();
-            inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-            RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
+            legacy = (List<RecipientListEntryBean>)in.readObject();
+            if(legacy != null) {
+                inactiveRecipients = new ArrayList<>();
+                for(RecipientListEntryBean b : legacy) {
+                    inactiveRecipients.add(b.createEmailRecipient());
+                }
+                service.cleanRecipientList(inactiveRecipients);
+            }
+            includeSystemInfo = in.readBoolean();
+            includePointValueCount = in.readInt();
+            includeLogfile = in.readBoolean();
+            customTemplate = SerializationHelper.readSafeUTF(in);
+            additionalContext = (List<IntStringPair>) in.readObject();
+            scriptRoles = (ScriptPermissions)in.readObject();
+            script = SerializationHelper.readSafeUTF(in);
+            subject = in.readInt();
+        }else if(ver == 8) {
+            activeRecipients = (List<MailingListRecipient>) in.readObject();
+            service.cleanRecipientList(activeRecipients);
+            sendEscalation = in.readBoolean();
+            repeatEscalations = in.readBoolean();
+            escalationDelayType = in.readInt();
+            escalationDelay = in.readInt();
+            escalationRecipients = (List<MailingListRecipient>) in.readObject();
+            service.cleanRecipientList(escalationRecipients);
+            sendInactive = in.readBoolean();
+            inactiveOverride = in.readBoolean();
+            inactiveRecipients = (List<MailingListRecipient>) in.readObject();
+            service.cleanRecipientList(inactiveRecipients);
             includeSystemInfo = in.readBoolean();
             includePointValueCount = in.readInt();
             includeLogfile = in.readBoolean();
@@ -446,10 +601,10 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
         super.jsonRead(reader, jsonObject);
 
         String text = null;
-        TypeDefinition recipType = new TypeDefinition(List.class, RecipientListEntryBean.class);
+        TypeDefinition recipType = new TypeDefinition(List.class, MailingListRecipient.class);
         JsonArray jsonActiveRecipients = jsonObject.getJsonArray("activeRecipients");
         if (jsonActiveRecipients != null)
-            activeRecipients = (List<RecipientListEntryBean>) reader.read(recipType, jsonActiveRecipients);
+            activeRecipients = (List<MailingListRecipient>) reader.read(recipType, jsonActiveRecipients);
 
         JsonBoolean b = jsonObject.getJsonBoolean("sendEscalation");
         if (b != null)
@@ -470,7 +625,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
 
             JsonArray jsonEscalationRecipients = jsonObject.getJsonArray("escalationRecipients");
             if (jsonEscalationRecipients != null)
-                escalationRecipients = (List<RecipientListEntryBean>) reader.read(recipType,
+                escalationRecipients = (List<MailingListRecipient>) reader.read(recipType,
                         jsonEscalationRecipients);
 
             b = jsonObject.getJsonBoolean("keepSendingEscalations");
@@ -490,7 +645,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             if (inactiveOverride) {
                 JsonArray jsonInactiveRecipients = jsonObject.getJsonArray("inactiveRecipients");
                 if (jsonInactiveRecipients != null)
-                    inactiveRecipients = (List<RecipientListEntryBean>) reader.read(recipType,
+                    inactiveRecipients = (List<MailingListRecipient>) reader.read(recipType,
                             jsonInactiveRecipients);
             }
         }

@@ -1,66 +1,67 @@
-/*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+/**
+ * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
+
 package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.util.SerializationHelper;
 
-public class AddressEntry implements MailingListRecipient {
+/**
+ * Used when a mailing list is part of a recipient list
+ * @author Terry Packer
+ */
+public class MailingListEntry implements MailingListRecipient {
 
-    private String address;
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    private int mailingListId;
 
     @Override
     public RecipientListEntryType getRecipientType() {
-        return RecipientListEntryType.ADDRESS;
+        return RecipientListEntryType.MAILING_LIST;
     }
 
     @Override
     public int getReferenceId() {
-        return 0;
+        return mailingListId;
     }
 
     @Override
     public String getReferenceAddress() {
-        return address;
+        return null;
     }
 
-    @Override
-    public String toString() {
-        return address;
+    public int getMailingListId() {
+        return mailingListId;
+    }
+
+    public void setMailingListId(int mailingListId) {
+        this.mailingListId = mailingListId;
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         MailingListRecipient.super.jsonWrite(writer);
-        writer.writeEntry("address", address);
+        writer.writeEntry("mailingList", MailingListDao.getInstance().getXidById(mailingListId));
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         MailingListRecipient.super.jsonRead(reader, jsonObject);
-        address = jsonObject.getString("address");
-        if (StringUtils.isBlank(address))
-            throw new TranslatableJsonException("emport.error.recipient.missing.reference", "address");
+        String xid = jsonObject.getString("mailingList");
+        Integer id = MailingListDao.getInstance().getIdByXid(xid);
+        if(id == null) {
+            throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "mailingList", xid);
+        }else {
+            mailingListId = id;
+        }
     }
 
     //
@@ -72,13 +73,13 @@ public class AddressEntry implements MailingListRecipient {
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
-        SerializationHelper.writeSafeUTF(out, address);
+        out.writeInt(mailingListId);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         if(ver == 1) {
-            address = SerializationHelper.readSafeUTF(in);
+            mailingListId = in.readInt();
         }
     }
 

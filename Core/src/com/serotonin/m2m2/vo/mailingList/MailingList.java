@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.joda.time.DateTime;
-
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -21,14 +19,12 @@ import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.role.Role;
 
-public class MailingList extends AbstractVO implements EmailRecipient {
-
-    private static final long serialVersionUID = 1L;
+public class MailingList extends AbstractVO {
 
     public static final String XID_PREFIX = "ML_";
 
     @JsonProperty
-    private List<EmailRecipient> entries;
+    private List<MailingListRecipient> entries;
     private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
     @JsonProperty
     private Set<Role> readRoles = Collections.emptySet();
@@ -43,26 +39,11 @@ public class MailingList extends AbstractVO implements EmailRecipient {
     @JsonProperty
     private Set<Integer> inactiveIntervals = new TreeSet<Integer>();
 
-    @Override
-    public int getRecipientType() {
-        return EmailRecipient.TYPE_MAILING_LIST;
-    }
-
-    @Override
-    public String getReferenceAddress() {
-        return null;
-    }
-
-    @Override
-    public int getReferenceId() {
-        return id;
-    }
-
-    public List<EmailRecipient> getEntries() {
+    public List<MailingListRecipient> getEntries() {
         return entries;
     }
 
-    public void setEntries(List<EmailRecipient> entries) {
+    public void setEntries(List<MailingListRecipient> entries) {
         this.entries = entries;
     }
 
@@ -99,27 +80,6 @@ public class MailingList extends AbstractVO implements EmailRecipient {
     }
 
     @Override
-    public void appendAddresses(Set<String> addresses, DateTime sendTime) {
-        if (sendTime != null && inactiveIntervals.contains(getIntervalIdAt(sendTime)))
-            return;
-        appendAllAddresses(addresses);
-    }
-
-    @Override
-    public void appendAllAddresses(Set<String> addresses) {
-        for (EmailRecipient e : entries)
-            e.appendAddresses(addresses, null);
-    }
-
-    private static int getIntervalIdAt(DateTime dt) {
-        int interval = 0;
-        interval += dt.getMinuteOfHour() / 15;
-        interval += dt.getHourOfDay() * 4;
-        interval += (dt.getDayOfWeek() - 1) * 96;
-        return interval;
-    }
-
-    @Override
     public String toString() {
         return "MailingList(" + entries + ")";
     }
@@ -147,4 +107,11 @@ public class MailingList extends AbstractVO implements EmailRecipient {
     public String getTypeKey() {
         return "event.audit.mailingList";
     }
+
+    //
+    //
+    // Serialization
+    //
+    private static final long serialVersionUID = -1;
+
 }

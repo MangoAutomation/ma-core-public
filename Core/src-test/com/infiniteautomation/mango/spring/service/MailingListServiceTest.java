@@ -21,8 +21,8 @@ import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermis
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.mailingList.AddressEntry;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -124,22 +124,22 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         assertEquals(expected.getReceiveAlarmEmails(), actual.getReceiveAlarmEmails());
         assertEquals(expected.getEntries().size(), actual.getEntries().size());
         for(int i=0; i<expected.getEntries().size(); i++) {
-            EmailRecipient expectedRecipient = expected.getEntries().get(i);
-            EmailRecipient actualRecipient = actual.getEntries().get(i);
+            MailingListRecipient expectedRecipient = expected.getEntries().get(i);
+            MailingListRecipient actualRecipient = actual.getEntries().get(i);
             switch(expectedRecipient.getRecipientType()) {
-                case EmailRecipient.TYPE_ADDRESS:
+                case ADDRESS:
+                case PHONE_NUMBER:
                     assertEquals(expectedRecipient.getReferenceAddress(), actualRecipient.getReferenceAddress());
                     break;
-                case EmailRecipient.TYPE_MAILING_LIST:
-                    assertEquals(expectedRecipient.getReferenceId(), actualRecipient.getReferenceId());
-                    break;
-                case EmailRecipient.TYPE_USER:
+                case USER:
+                case USER_PHONE_NUMBER:
+                case MAILING_LIST:
                     assertEquals(expectedRecipient.getReferenceId(), actualRecipient.getReferenceId());
                     break;
                 default:
                     fail("unknown recipient type");
-            }
 
+            }
         }
         assertRoles(expected.getReadRoles(), actual.getReadRoles());
         assertRoles(expected.getEditRoles(), actual.getEditRoles());
@@ -176,7 +176,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         vo.setName("MailingList");
         vo.setReceiveAlarmEmails(AlarmLevels.NONE);
 
-        List<EmailRecipient> entries = new ArrayList<>();
+        List<MailingListRecipient> entries = new ArrayList<>();
         AddressEntry entry = new AddressEntry();
         entry.setAddress("entry1@example.com");
         entries.add(entry);

@@ -25,8 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringEscapeUtils;
-import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.Functions;
@@ -41,7 +41,6 @@ import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
 import com.serotonin.m2m2.db.dao.EventDao;
-import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.email.PostEmailRunnable;
@@ -73,6 +72,7 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataPoint.DataPointWithEventDetectors;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.timer.TimerTask;
 import com.serotonin.web.mail.EmailAttachment;
 import com.serotonin.web.mail.EmailContent;
@@ -112,9 +112,10 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
      * The list of all of the recipients - active and escalation - for sending upon inactive if configured to do so.
      */
     private Set<String> inactiveRecipients;
-
+    private final MailingListService mailingListService;
     public EmailHandlerRT(EmailEventHandlerVO vo) {
         super(vo);
+        this.mailingListService = Common.getBean(MailingListService.class);
     }
 
     public Set<String> getActiveRecipients() {
@@ -126,8 +127,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
 
         if(vo.getActiveRecipients() != null && !vo.getActiveRecipients().isEmpty()) {
             // Get the email addresses to send to
-            activeRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getActiveRecipients(),
-                    new DateTime(evt.getActiveTimestamp()));
+            activeRecipients = mailingListService.getActiveRecipients(
+                    vo.getActiveRecipients(),
+                    evt.getActiveTimestamp(),
+                    RecipientListEntryType.MAILING_LIST,
+                    RecipientListEntryType.ADDRESS,
+                    RecipientListEntryType.USER);
         }
         // Send an email to the active recipients.
         sendEmail(evt, NotificationType.ACTIVE, activeRecipients);
@@ -135,8 +140,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         // If an inactive notification is to be sent, save the active recipients.
         if (vo.isSendInactive()) {
             if (vo.isInactiveOverride() && vo.getInactiveRecipients() != null && !vo.getInactiveRecipients().isEmpty())
-                inactiveRecipients = MailingListDao.getInstance().getRecipientAddresses(vo.getInactiveRecipients(),
-                        new DateTime(evt.getActiveTimestamp()));
+                inactiveRecipients = mailingListService.getActiveRecipients(
+                        vo.getInactiveRecipients(),
+                        evt.getActiveTimestamp(),
+                        RecipientListEntryType.MAILING_LIST,
+                        RecipientListEntryType.ADDRESS,
+                        RecipientListEntryType.USER);
             else if(!vo.isInactiveOverride())
                 inactiveRecipients = activeRecipients;
         }
@@ -157,8 +166,12 @@ public class EmailHandlerRT extends EventHandlerRT<EmailEventHandlerVO> implemen
         Set<String> addresses;
         if(vo.getEscalationRecipients() != null && !vo.getEscalationRecipients().isEmpty()) {
             // Get the email addresses to send to
-            addresses = MailingListDao.getInstance().getRecipientAddresses(vo.getEscalationRecipients(), new DateTime(
-                    fireTime));
+            addresses = mailingListService.getActiveRecipients(
+                    vo.getEscalationRecipients(),
+                    fireTime,
+                    RecipientListEntryType.MAILING_LIST,
+                    RecipientListEntryType.ADDRESS,
+                    RecipientListEntryType.USER);
         }else {
             addresses = new HashSet<>();
         }

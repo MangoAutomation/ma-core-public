@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,8 @@ import com.serotonin.m2m2.vo.event.detector.PointChangeDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
 import com.serotonin.util.SerializationHelper;
 /**
  * Upgrade to add template system
@@ -297,14 +300,38 @@ public class Upgrade12 extends DBUpgrade {
                     emailHandler.setName(vo.getAlias());
                     emailHandler.setDisabled(vo.isDisabled());
                     emailHandler.setDefinition(ModuleRegistry.getEventHandlerDefinition(EmailEventHandlerDefinition.TYPE_NAME));
-                    emailHandler.setActiveRecipients(vo.getActiveRecipients());
+
+                    if(vo.getActiveRecipients() != null) {
+                        List<MailingListRecipient> activeRecipients = new ArrayList<>();
+                        for(RecipientListEntryBean entry : vo.getActiveRecipients()) {
+                            activeRecipients.add(entry.createEmailRecipient());
+                        }
+                        emailHandler.setActiveRecipients(activeRecipients);
+                    }
+
                     emailHandler.setSendEscalation(vo.isSendEscalation());
                     emailHandler.setEscalationDelayType(vo.getEscalationDelayType());
                     emailHandler.setEscalationDelay(vo.getEscalationDelay());
-                    emailHandler.setEscalationRecipients(vo.getEscalationRecipients());
+
+                    if(vo.getEscalationRecipients() != null) {
+                        List<MailingListRecipient> escalationRecipients = new ArrayList<>();
+                        for(RecipientListEntryBean entry : vo.getEscalationRecipients()) {
+                            escalationRecipients.add(entry.createEmailRecipient());
+                        }
+                        emailHandler.setEscalationRecipients(escalationRecipients);
+                    }
+
                     emailHandler.setSendInactive(vo.isSendInactive());
                     emailHandler.setInactiveOverride(vo.isInactiveOverride());
-                    emailHandler.setInactiveRecipients(vo.getInactiveRecipients());
+
+                    if(vo.getInactiveRecipients() != null) {
+                        List<MailingListRecipient> inactiveRecipients = new ArrayList<>();
+                        for(RecipientListEntryBean entry : vo.getInactiveRecipients()) {
+                            inactiveRecipients.add(entry.createEmailRecipient());
+                        }
+                        emailHandler.setInactiveRecipients(inactiveRecipients);
+                    }
+
                     emailHandler.setIncludeSystemInfo(vo.isIncludeSystemInfo());
                     emailHandler.setIncludePointValueCount(vo.getIncludePointValueCount());
                     emailHandler.setIncludeLogfile(vo.isIncludeLogfile());

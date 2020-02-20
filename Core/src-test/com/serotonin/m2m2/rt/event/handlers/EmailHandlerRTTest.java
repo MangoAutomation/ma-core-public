@@ -28,8 +28,8 @@ import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.event.detector.AnalogChangeDetectorVO;
-import com.serotonin.m2m2.vo.mailingList.EmailRecipient;
-import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
+import com.serotonin.m2m2.vo.mailingList.AddressEntry;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 
 /**
  * @author Terry Packer
@@ -56,7 +56,7 @@ public class EmailHandlerRTTest extends MangoTestBase {
     public void testSendActive() {
 
         EmailEventHandlerVO vo = createVO();
-        List<RecipientListEntryBean> activeRecipients = createRecipients();
+        List<MailingListRecipient> activeRecipients = createRecipients();
         vo.setActiveRecipients(activeRecipients);
         EmailHandlerRT rt = new EmailHandlerRT(vo);
         EventInstance evt = createDataPointEventInstance();
@@ -78,7 +78,7 @@ public class EmailHandlerRTTest extends MangoTestBase {
 
         EmailEventHandlerVO vo = createVO();
         vo.setSendInactive(true);
-        List<RecipientListEntryBean> activeRecipients = createRecipients();
+        List<MailingListRecipient> activeRecipients = createRecipients();
         vo.setActiveRecipients(activeRecipients);
         EmailHandlerRT rt = new EmailHandlerRT(vo);
         EventInstance evt = createDataPointEventInstance();
@@ -118,11 +118,11 @@ public class EmailHandlerRTTest extends MangoTestBase {
     public void testSendInactive() {
 
         EmailEventHandlerVO vo = createVO();
-        List<RecipientListEntryBean> activeRecipients = createRecipients();
+        List<MailingListRecipient> activeRecipients = createRecipients();
         vo.setActiveRecipients(activeRecipients);
 
         vo.setSendInactive(true);
-        List<RecipientListEntryBean> inactiveRecipients = createRecipients();
+        List<MailingListRecipient> inactiveRecipients = createRecipients();
         vo.setInactiveRecipients(inactiveRecipients);
 
         EmailHandlerRT rt = new EmailHandlerRT(vo);
@@ -170,11 +170,10 @@ public class EmailHandlerRTTest extends MangoTestBase {
         return vo;
     }
 
-    protected List<RecipientListEntryBean> createRecipients() {
-        List<RecipientListEntryBean> recipients = new ArrayList<>();
-        RecipientListEntryBean address = new RecipientListEntryBean();
-        address.setRecipientType(EmailRecipient.TYPE_ADDRESS);
-        address.setReferenceAddress("test@test.com");
+    protected List<MailingListRecipient> createRecipients() {
+        List<MailingListRecipient> recipients = new ArrayList<>();
+        AddressEntry address = new AddressEntry();
+        address.setAddress("test@test.com");
         recipients.add(address);
         return recipients;
     }

@@ -122,24 +122,24 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
 
     public static TranslatableMessage getSetActionMessage(int action) {
         switch (action) {
-        case SET_ACTION_NONE:
-            return new TranslatableMessage("eventHandlers.action.none");
-        case SET_ACTION_POINT_VALUE:
-            return new TranslatableMessage("eventHandlers.action.point");
-        case SET_ACTION_STATIC_VALUE:
-            return new TranslatableMessage("eventHandlers.action.static");
+            case SET_ACTION_NONE:
+                return new TranslatableMessage("eventHandlers.action.none");
+            case SET_ACTION_POINT_VALUE:
+                return new TranslatableMessage("eventHandlers.action.point");
+            case SET_ACTION_STATIC_VALUE:
+                return new TranslatableMessage("eventHandlers.action.static");
         }
         return new TranslatableMessage("common.unknown");
     }
 
     private static TranslatableMessage getTypeMessage(int handlerType) {
         switch (handlerType) {
-        case TYPE_SET_POINT:
-            return new TranslatableMessage("eventHandlers.type.setPoint");
-        case TYPE_EMAIL:
-            return new TranslatableMessage("eventHandlers.type.email");
-        case TYPE_PROCESS:
-            return new TranslatableMessage("eventHandlers.type.process");
+            case TYPE_SET_POINT:
+                return new TranslatableMessage("eventHandlers.type.setPoint");
+            case TYPE_EMAIL:
+                return new TranslatableMessage("eventHandlers.type.email");
+            case TYPE_PROCESS:
+                return new TranslatableMessage("eventHandlers.type.process");
         }
         return new TranslatableMessage("common.unknown");
     }
@@ -305,29 +305,29 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
     }
 
     public boolean isIncludeSystemInfo(){
-    	return this.includeSystemInfo;
+        return this.includeSystemInfo;
     }
     public void setIncludeSystemInfo(boolean includeSystemInfo){
-    	this.includeSystemInfo = includeSystemInfo;
+        this.includeSystemInfo = includeSystemInfo;
     }
-    
+
     public int getIncludePointValueCount() {
-		return includePointValueCount;
-	}
+        return includePointValueCount;
+    }
 
-	public void setIncludePointValueCount(int includePointValueCount) {
-		this.includePointValueCount = includePointValueCount;
-	}
-	
-	public boolean isIncludeLogfile() {
-		return includeLogfile;
-	}
+    public void setIncludePointValueCount(int includePointValueCount) {
+        this.includePointValueCount = includePointValueCount;
+    }
 
-	public void setIncludeLogfile(boolean includeLogfile) {
-		this.includeLogfile = includeLogfile;
-	}
+    public boolean isIncludeLogfile() {
+        return includeLogfile;
+    }
 
-	public String getActiveProcessCommand() {
+    public void setIncludeLogfile(boolean includeLogfile) {
+        this.includeLogfile = includeLogfile;
+    }
+
+    public String getActiveProcessCommand() {
         return activeProcessCommand;
     }
 
@@ -500,7 +500,6 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
     @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
-
         // Switch on the version of the class so that version changes can be elegantly handled.
         if (ver == 1) {
             handlerType = in.readInt();
@@ -516,16 +515,13 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includePointValueCount = 0;
             }
             else if (handlerType == TYPE_PROCESS) {
@@ -549,16 +545,13 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includePointValueCount = 0;
             }
             else if (handlerType == TYPE_PROCESS) {
@@ -582,16 +575,13 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includeSystemInfo = in.readBoolean();
                 includePointValueCount = 0;
             }
@@ -615,16 +605,13 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includeSystemInfo = in.readBoolean();
                 includePointValueCount = in.readInt();
             }
@@ -648,16 +635,13 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             }
             else if (handlerType == TYPE_EMAIL) {
                 activeRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(activeRecipients);
                 sendEscalation = in.readBoolean();
                 escalationDelayType = in.readInt();
                 escalationDelay = in.readInt();
                 escalationRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(escalationRecipients);
                 sendInactive = in.readBoolean();
                 inactiveOverride = in.readBoolean();
                 inactiveRecipients = (List<RecipientListEntryBean>) in.readObject();
-                RecipientListEntryBean.cleanRecipientList(inactiveRecipients);
                 includeSystemInfo = in.readBoolean();
                 includePointValueCount = in.readInt();
                 includeLogfile = in.readBoolean();
@@ -843,14 +827,14 @@ public class EventHandlerVO implements Serializable, JsonSerializable {
             }
             b = jsonObject.getJsonBoolean("includeSystemInformation");
             if(b != null){
-            	includeSystemInfo = b.booleanValue();
+                includeSystemInfo = b.booleanValue();
             }
-            
+
             includePointValueCount = jsonObject.getInt("includePointValueCount", 0);
-            
+
             b = jsonObject.getJsonBoolean("includeLogfile");
             if(b != null){
-            	includeSystemInfo = b.booleanValue();
+                includeSystemInfo = b.booleanValue();
             }
         }
         else if (handlerType == TYPE_PROCESS) {

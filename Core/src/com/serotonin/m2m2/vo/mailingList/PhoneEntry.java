@@ -1,7 +1,7 @@
-/*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+/**
+ * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
+
 package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
@@ -17,21 +17,25 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.util.SerializationHelper;
 
-public class AddressEntry implements MailingListRecipient {
+/**
+ * Any phone number
+ * @author Terry Packer
+ */
+public class PhoneEntry implements MailingListRecipient {
 
-    private String address;
+    private String phone;
 
-    public String getAddress() {
-        return address;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setAddress(String address) {
-        this.address = address;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     @Override
     public RecipientListEntryType getRecipientType() {
-        return RecipientListEntryType.ADDRESS;
+        return RecipientListEntryType.PHONE_NUMBER;
     }
 
     @Override
@@ -41,26 +45,21 @@ public class AddressEntry implements MailingListRecipient {
 
     @Override
     public String getReferenceAddress() {
-        return address;
-    }
-
-    @Override
-    public String toString() {
-        return address;
+        return phone;
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         MailingListRecipient.super.jsonWrite(writer);
-        writer.writeEntry("address", address);
+        writer.writeEntry("phone", phone);
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         MailingListRecipient.super.jsonRead(reader, jsonObject);
-        address = jsonObject.getString("address");
-        if (StringUtils.isBlank(address))
-            throw new TranslatableJsonException("emport.error.recipient.missing.reference", "address");
+        phone = jsonObject.getString("phone");
+        if (StringUtils.isBlank(phone))
+            throw new TranslatableJsonException("emport.error.recipient.missing.reference", "phone");
     }
 
     //
@@ -72,13 +71,13 @@ public class AddressEntry implements MailingListRecipient {
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
-        SerializationHelper.writeSafeUTF(out, address);
+        SerializationHelper.writeSafeUTF(out, phone);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         if(ver == 1) {
-            address = SerializationHelper.readSafeUTF(in);
+            phone = SerializationHelper.readSafeUTF(in);
         }
     }
 

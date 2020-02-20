@@ -5,29 +5,25 @@ package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
-import java.util.ListIterator;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.type.JsonObject;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.User;
 
 /**
- * TODO Mango 4.0 remove or rename to not have bean in the name
+ * Helper to resolve an entry in a mailing list.  This class is left here
+ *  for legacy serialization compatablity as it is stored serialized in the db
  * @author Terry Packer
  *
  */
+@Deprecated
 public class RecipientListEntryBean implements Serializable, JsonSerializable {
     private static final long serialVersionUID = -1;
 
@@ -35,22 +31,36 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
     private int referenceId;
     private String referenceAddress;
 
-    public EmailRecipient createEmailRecipient() {
-        switch (recipientType) {
-        case EmailRecipient.TYPE_MAILING_LIST:
-            MailingList ml = new MailingList();
-            ml.setId(referenceId);
-            return ml;
-        case EmailRecipient.TYPE_USER:
-            UserEntry u = new UserEntry();
-            u.setUserId(referenceId);
-            return u;
-        case EmailRecipient.TYPE_ADDRESS:
-            AddressEntry a = new AddressEntry();
-            a.setAddress(referenceAddress);
-            return a;
+    /**
+     * Convert to mailing list recipient
+     * @return
+     */
+    public MailingListRecipient createEmailRecipient() {
+        RecipientListEntryType type = RecipientListEntryType.fromValue(recipientType);
+        switch(type) {
+            case ADDRESS:
+                AddressEntry a = new AddressEntry();
+                a.setAddress(referenceAddress);
+                return a;
+            case MAILING_LIST:
+                MailingListEntry ml = new MailingListEntry();
+                ml.setMailingListId(referenceId);
+                return ml;
+            case PHONE_NUMBER:
+                PhoneEntry pe = new PhoneEntry();
+                pe.setPhone(referenceAddress);
+                return pe;
+            case USER:
+                UserEntry u = new UserEntry();
+                u.setUserId(referenceId);
+                return u;
+            case USER_PHONE_NUMBER:
+                PhoneEntry p = new PhoneEntry();
+                p.setPhone(referenceAddress);
+                return p;
+            default:
+                throw new ShouldNeverHappenException("Unknown recipient type: " + recipientType);
         }
-        throw new ShouldNeverHappenException("Unknown email recipient type: " + recipientType);
     }
 
     public String getReferenceAddress() {
@@ -79,53 +89,85 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        writer.writeEntry("recipientType", EmailRecipient.TYPE_CODES.getCode(recipientType));
-        if (recipientType == EmailRecipient.TYPE_MAILING_LIST)
-            writer.writeEntry("mailingList", MailingListDao.getInstance().get(referenceId).getXid());
-        else if (recipientType == EmailRecipient.TYPE_USER)
-            writer.writeEntry("username", UserDao.getInstance().get(referenceId).getUsername());
-        else if (recipientType == EmailRecipient.TYPE_ADDRESS)
-            writer.writeEntry("address", referenceAddress);
+        RecipientListEntryType type = RecipientListEntryType.fromValue(recipientType);
+        writer.writeEntry("recipientType", type);
+        switch(type) {
+            case ADDRESS:
+                writer.writeEntry("address", referenceAddress);
+                break;
+            case MAILING_LIST:
+                writer.writeEntry("mailingList", MailingListDao.getInstance().getXidById(referenceId));
+                break;
+            case PHONE_NUMBER:
+                writer.writeEntry("phone", referenceAddress);
+                break;
+            case USER:
+            case USER_PHONE_NUMBER:
+                writer.writeEntry("username", UserDao.getInstance().getXidById(referenceId));
+                break;
+            default:
+                break;
+
+        }
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         String text = jsonObject.getString("recipientType");
-        if (text == null)
-            throw new TranslatableJsonException("emport.error.recipient.missing", "recipientType",
-                    EmailRecipient.TYPE_CODES.getCodeList());
-
-        recipientType = EmailRecipient.TYPE_CODES.getId(text);
-        if (recipientType == -1)
+        RecipientListEntryType type = RecipientListEntryType.fromName(text);
+        if (type == null) {
             throw new TranslatableJsonException("emport.error.recipient.invalid", "recipientType", text,
-                    EmailRecipient.TYPE_CODES.getCodeList());
-
-        if (recipientType == EmailRecipient.TYPE_MAILING_LIST) {
-            text = jsonObject.getString("mailingList");
-            if (text == null)
-                throw new TranslatableJsonException("emport.error.recipient.missing.reference", "mailingList");
-
-            MailingList ml = MailingListDao.getInstance().getByXid(text);
-            if (ml == null)
-                throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "mailingList", text);
-
-            referenceId = ml.getId();
+                    RecipientListEntryType.values());
         }
-        else if (recipientType == EmailRecipient.TYPE_USER) {
-            text = jsonObject.getString("username");
-            if (text == null)
-                throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
 
-            User user = UserDao.getInstance().getByXid(text);
-            if (user == null)
-                throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "user", text);
+        switch(type) {
+            case ADDRESS:
+                referenceAddress = jsonObject.getString("address");
+                if (referenceAddress == null)
+                    throw new TranslatableJsonException("emport.error.recipient.missing.reference", "address");
+                break;
+            case MAILING_LIST:
+                text = jsonObject.getString("mailingList");
+                if (text == null)
+                    throw new TranslatableJsonException("emport.error.recipient.missing.reference", "mailingList");
 
-            referenceId = user.getId();
-        }
-        else if (recipientType == EmailRecipient.TYPE_ADDRESS) {
-            referenceAddress = jsonObject.getString("address");
-            if (referenceAddress == null)
-                throw new TranslatableJsonException("emport.error.recipient.missing.reference", "address");
+                MailingList ml = MailingListDao.getInstance().getByXid(text);
+                if (ml == null)
+                    throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "mailingList", text);
+
+                referenceId = ml.getId();
+                break;
+            case PHONE_NUMBER:
+                referenceAddress = jsonObject.getString("phone");
+                if (referenceAddress == null)
+                    throw new TranslatableJsonException("emport.error.recipient.missing.reference", "phone");
+                break;
+            case USER:
+                text = jsonObject.getString("username");
+                if (text == null)
+                    throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
+
+                User user = UserDao.getInstance().getByXid(text);
+                if (user == null)
+                    throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "user", text);
+
+                referenceId = user.getId();
+                referenceAddress = user.getEmail();
+                break;
+            case USER_PHONE_NUMBER:
+                text = jsonObject.getString("username");
+                if (text == null)
+                    throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
+
+                User userPhone = UserDao.getInstance().getByXid(text);
+                if (userPhone == null)
+                    throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "user", text);
+
+                referenceId = userPhone.getId();
+                referenceAddress = userPhone.getPhone();
+                break;
+            default:
+                throw new ShouldNeverHappenException("Unknown recipient type: " + type);
         }
     }
 
@@ -161,37 +203,4 @@ public class RecipientListEntryBean implements Serializable, JsonSerializable {
             return false;
         return true;
     }
-    
-    /**
-     * Clean a list of beans by removing any entries with dead references.
-     * @param list
-     */
-    public static void cleanRecipientList(List<RecipientListEntryBean> list){
-        if(list == null)
-            return;
-        
-        ListIterator<RecipientListEntryBean> it = list.listIterator();
-        ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
-        ejt.setDataSource(Common.databaseProxy.getDataSource());
-
-        while(it.hasNext()){
-            RecipientListEntryBean bean = it.next();
-            switch(bean.recipientType){
-            case EmailRecipient.TYPE_ADDRESS:
-                if(StringUtils.isEmpty(bean.referenceAddress))
-                    it.remove();
-                break;
-            case EmailRecipient.TYPE_MAILING_LIST:
-                if(ejt.queryForInt("SELECT id from mailingLists WHERE id=?", new Object[] {bean.referenceId}, Common.NEW_ID) == Common.NEW_ID)
-                    it.remove();
-                break;
-            case EmailRecipient.TYPE_USER:
-                if(ejt.queryForInt("SELECT id from users WHERE id=?", new Object[] {bean.referenceId}, Common.NEW_ID) == Common.NEW_ID)
-                    it.remove();
-                break;
-            }
-        }
-        
-    }
-    
 }

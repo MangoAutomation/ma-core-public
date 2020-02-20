@@ -19,14 +19,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.joda.time.DateTime;
 
+import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AuditEventDao;
 import com.serotonin.m2m2.db.dao.EventDao;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
-import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
@@ -44,7 +43,7 @@ import com.serotonin.m2m2.rt.maint.work.WorkItem;
 import com.serotonin.m2m2.util.ExceptionListWrapper;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
-import com.serotonin.m2m2.vo.mailingList.MailingList;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.RejectedTaskReason;
 
@@ -66,6 +65,7 @@ public class EventManagerImpl implements EventManager {
     private long lastAlarmTimestamp = 0;
     private int highestActiveAlarmLevel = 0;
     private UserEventListener userEventMulticaster = null;
+    private MailingListService mailingListService;
 
     /**
      * State machine allowed order:
@@ -194,11 +194,11 @@ public class EventManagerImpl implements EventManager {
         if(multicaster != null)
             Common.backgroundProcessing.addWorkItem(new EventNotifyWorkItem(userIdsToNotify, multicaster, evt, true, false, false, false));
 
-        DateTime now = new DateTime(time);
         // add email addresses for mailing lists which have been configured to receive events over a certain level
-        for(MailingList ml : MailingListDao.getInstance().getAlarmMailingLists(alarmLevel)) {
-            ml.appendAddresses(emailUsers, now);
-        }
+        emailUsers.addAll(mailingListService.getAlarmAddresses(alarmLevel, time,
+                RecipientListEntryType.MAILING_LIST,
+                RecipientListEntryType.ADDRESS,
+                RecipientListEntryType.USER));
 
         //No Audit or Do Not Log events are User Events
         if ((eventUserIds.size() > 0)&&(alarmLevel != AlarmLevels.DO_NOT_LOG)&&(!evt.getEventType().getEventType().equals(EventType.EventTypeNames.AUDIT))) {
@@ -806,6 +806,7 @@ public class EventManagerImpl implements EventManager {
         permissionService = Common.getBean(PermissionService.class);
         eventDao = EventDao.getInstance();
         userDao = UserDao.getInstance();
+        mailingListService = Common.getBean(MailingListService.class);
 
         // Get all active events from the database.
         activeEventsLock.writeLock().lock();

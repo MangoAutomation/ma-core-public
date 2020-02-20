@@ -1,66 +1,75 @@
-/*
-    Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
-    @author Matthew Lohbihler
+/**
+ * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
+
 package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.util.SerializationHelper;
 
-public class AddressEntry implements MailingListRecipient {
+/**
+ * The phone number of the user
+ * @author Terry Packer
+ */
+public class UserPhoneEntry implements MailingListRecipient {
 
-    private String address;
-
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    private int userId;
 
     @Override
     public RecipientListEntryType getRecipientType() {
-        return RecipientListEntryType.ADDRESS;
+        return RecipientListEntryType.USER_PHONE_NUMBER;
     }
 
     @Override
     public int getReferenceId() {
-        return 0;
+        return userId;
     }
 
     @Override
     public String getReferenceAddress() {
-        return address;
+        return null;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
     }
 
     @Override
     public String toString() {
-        return address;
+        return "userId=" + userId;
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         MailingListRecipient.super.jsonWrite(writer);
-        writer.writeEntry("address", address);
+        writer.writeEntry("username", UserDao.getInstance().getXidById(userId));
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
         MailingListRecipient.super.jsonRead(reader, jsonObject);
-        address = jsonObject.getString("address");
-        if (StringUtils.isBlank(address))
-            throw new TranslatableJsonException("emport.error.recipient.missing.reference", "address");
+
+        String username = jsonObject.getString("username");
+        if (username == null)
+            throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
+
+        Integer user = UserDao.getInstance().getIdByXid(username);
+        if (user == null)
+            throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "username", username);
+
+        userId = user;
     }
 
     //
@@ -72,13 +81,13 @@ public class AddressEntry implements MailingListRecipient {
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.writeInt(version);
-        SerializationHelper.writeSafeUTF(out, address);
+        out.writeInt(userId);
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         if(ver == 1) {
-            address = SerializationHelper.readSafeUTF(in);
+            userId = in.readInt();
         }
     }
 

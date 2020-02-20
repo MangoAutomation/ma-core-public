@@ -12,6 +12,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -21,7 +22,8 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
-import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -39,6 +41,8 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
 
     @Autowired
     PermissionService service;
+    @Autowired
+    MailingListService mailingListService;
 
     @Override
     public String getEventHandlerTypeName() {
@@ -99,8 +103,13 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     private void commonValidation(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
         if(vo.getActiveRecipients() != null) {
             int pos = 0;
-            for(RecipientListEntryBean b : vo.getActiveRecipients()) {
-                validateRecipient("activeRecipients[" + pos + "]", b, result);
+            for(MailingListRecipient b : vo.getActiveRecipients()) {
+                mailingListService.validateRecipient("activeRecipients[" + pos + "]",
+                        b,
+                        result,
+                        RecipientListEntryType.ADDRESS,
+                        RecipientListEntryType.MAILING_LIST,
+                        RecipientListEntryType.USER);
                 pos++;
             }
         }
@@ -112,8 +121,13 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
                 result.addContextualMessage("escalationDelayType", "validate.invalidValue");
             if(vo.getEscalationRecipients() != null) {
                 int pos = 0;
-                for(RecipientListEntryBean b : vo.getEscalationRecipients()) {
-                    validateRecipient("escalationRecipients[" + pos + "]", b, result);
+                for(MailingListRecipient b : vo.getEscalationRecipients()) {
+                    mailingListService.validateRecipient("escalationRecipients[" + pos + "]",
+                            b,
+                            result,
+                            RecipientListEntryType.ADDRESS,
+                            RecipientListEntryType.MAILING_LIST,
+                            RecipientListEntryType.USER);
                     pos++;
                 }
             }

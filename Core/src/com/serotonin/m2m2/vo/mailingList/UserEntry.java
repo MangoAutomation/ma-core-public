@@ -5,9 +5,8 @@
 package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
-import java.util.Set;
-
-import org.joda.time.DateTime;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -15,15 +14,18 @@ import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.vo.User;
 
-public class UserEntry implements EmailRecipient {
+/**
+ * Entry for a user's email address
+ *
+ * @author Terry Packer
+ */
+public class UserEntry implements MailingListRecipient {
     private int userId;
-    private User user;
 
     @Override
-    public int getRecipientType() {
-        return EmailRecipient.TYPE_USER;
+    public RecipientListEntryType getRecipientType() {
+        return RecipientListEntryType.USER;
     }
 
     @Override
@@ -44,54 +46,48 @@ public class UserEntry implements EmailRecipient {
         this.userId = userId;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    @Override
-    public void appendAddresses(Set<String> addresses, DateTime sendTime) {
-        appendAllAddresses(addresses);
-    }
-
-    @Override
-    public void appendAllAddresses(Set<String> addresses) {
-        if (user == null)
-            return;
-        if (!user.isDisabled())
-            addresses.add(user.getEmail());
-    }
-
     @Override
     public String toString() {
-        if (user == null)
-            return "userId=" + userId;
-        return user.getUsername();
+        return "userId=" + userId;
     }
 
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
-        EmailRecipient.super.jsonWrite(writer);
-        if (user == null)
-            user = UserDao.getInstance().get(userId);
-        writer.writeEntry("username", user.getUsername());
+        MailingListRecipient.super.jsonWrite(writer);
+        writer.writeEntry("username", UserDao.getInstance().getXidById(userId));
     }
 
     @Override
     public void jsonRead(JsonReader reader, JsonObject jsonObject) throws JsonException {
-        EmailRecipient.super.jsonRead(reader, jsonObject);
+        MailingListRecipient.super.jsonRead(reader, jsonObject);
 
         String username = jsonObject.getString("username");
         if (username == null)
             throw new TranslatableJsonException("emport.error.recipient.missing.reference", "username");
 
-        user = UserDao.getInstance().getByXid(username);
+        Integer user = UserDao.getInstance().getIdByXid(username);
         if (user == null)
             throw new TranslatableJsonException("emport.error.recipient.invalid.reference", "username", username);
 
-        userId = user.getId();
+        userId = user;
+    }
+
+    //
+    //
+    // Serialization
+    //
+    private static final long serialVersionUID = -1;
+    private static final int version = 1;
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeInt(version);
+        out.writeInt(userId);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        int ver = in.readInt();
+        if(ver == 1) {
+            userId = in.readInt();
+        }
     }
 }
