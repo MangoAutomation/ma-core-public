@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.i18n;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,10 @@ import com.serotonin.m2m2.i18n.ProcessMessage.Level;
  *
  * @author Matthew Lohbihler
  */
-public class ProcessResult {
+public class ProcessResult implements Serializable {
+
+    private static final long serialVersionUID = 50970866870464592L;
+
     private List<ProcessMessage> messages = new ArrayList<ProcessMessage>();
     private Map<String, Object> data = new HashMap<String, Object>();
 
