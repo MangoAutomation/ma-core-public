@@ -70,14 +70,20 @@ public interface IDataPoint {
                 tagsToUse = new HashMap<>();
                 String[] displayTags = toDisplay.split(",");
                 for(String tag : displayTags) {
-                    tagsToUse.put(tag, tags.get(tag));
+                    String value = tags.get(tag);
+                    if(value != null) {
+                        tagsToUse.put(tag, tags.get(tag));
+                    }
                 }
             }else {
                 tagsToUse = tags;
             }
             if(!tagsToUse.isEmpty()) {
                 b.append(OPEN_BRACKET);
-                b.append(tagsToUse.entrySet().stream().map(e -> e.getKey() + "=" + e.getValue()).collect(Collectors.joining(", ")));
+                b.append(tagsToUse.entrySet().stream()
+                        .filter(e -> e.getValue() != null)
+                        .map(e -> e.getKey() + "=" + e.getValue())
+                        .collect(Collectors.joining(", ")));
                 b.append(CLOSE_BRACKET);
             }
 
