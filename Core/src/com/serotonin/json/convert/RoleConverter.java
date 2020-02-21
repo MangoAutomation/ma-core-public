@@ -31,7 +31,7 @@ public class RoleConverter extends ImmutableClassConverter {
 
     @Override
     public void jsonWrite(JsonWriter writer, Object value) throws IOException, JsonException {
-        writer.append(((Role)value).getXid());
+        writer.quote(((Role)value).getXid());
     }
 
     @Override
