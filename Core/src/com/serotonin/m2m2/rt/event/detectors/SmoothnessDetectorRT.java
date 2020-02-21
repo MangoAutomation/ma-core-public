@@ -18,7 +18,7 @@ import com.serotonin.util.queue.ObjectQueue;
  * The SmoothnessDetectorRT is used to detect erratic input from what should otherwise be a stable sensor. This
  * was developed specifically for a model of temperature sensors used in brewing vats, but can be used in other
  * situations as well.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessDetectorVO> {
@@ -34,7 +34,6 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
      * events being raised during the duration of a single limit breech.
      */
     private boolean limitBreech;
-
     private long limitBreechActiveTime;
     private long limitBreechInactiveTime;
 
@@ -45,7 +44,28 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
     private boolean eventActive;
 
     public SmoothnessDetectorRT(SmoothnessDetectorVO vo) {
-    	super(vo);
+        super(vo);
+    }
+
+    public ObjectQueue<Double> getBoxcar() {
+        synchronized(boxcar) {
+            ObjectQueue<Double> temp = new ObjectQueue<>(boxcar.size());
+            for (Double value : boxcar) {
+                temp.push(value);
+            }
+            return temp;
+        }
+    }
+    public boolean isLimitBreech() {
+        return limitBreech;
+    }
+
+    public long getLimitBreechActiveTime() {
+        return limitBreechActiveTime;
+    }
+
+    public long getLimitBreechInactiveTime() {
+        return limitBreechInactiveTime;
     }
 
     @Override
@@ -59,7 +79,7 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
     }
 
     @Override
-	public boolean isEventActive() {
+    public boolean isEventActive() {
         return eventActive;
     }
 
@@ -80,15 +100,19 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
     synchronized public void pointUpdated(PointValueTime newValue) {
         long time = Common.timer.currentTimeMillis();
         double newDouble = newValue.getDoubleValue();
-        // Add the value to the boxcar.
-        boxcar.push(newDouble);
+        double smoothness;
 
-        // Trim the boxcar to the max size
-        while (boxcar.size() > vo.getBoxcar())
-            boxcar.pop();
+        synchronized(boxcar) {
+            // Add the value to the boxcar.
+            boxcar.push(newDouble);
 
-        // Calculate the smoothness
-        double smoothness = calc();
+            // Trim the boxcar to the max size
+            while (boxcar.size() > vo.getBoxcar())
+                boxcar.pop();
+
+            // Calculate the smoothness
+            smoothness = calc();
+        }
 
         if (smoothness < vo.getLimit()) {
             if (!limitBreech) {
@@ -105,16 +129,16 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
     }
 
     @Override
-    protected long getConditionActiveTime() {
+    public long getConditionActiveTime() {
         return limitBreechActiveTime;
     }
-    
+
     @Override
     protected void setEventInactive(long timestamp) {
         this.eventActive = false;
         returnToNormal(limitBreechInactiveTime);
     }
-    
+
     @Override
     protected void setEventActive(long timestamp) {
         this.eventActive = true;
@@ -127,7 +151,7 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
             eventActive = false;
         }
     }
- 
+
     private double calc() {
         if (boxcar.size() < 3)
             return 1;
@@ -160,9 +184,9 @@ public class SmoothnessDetectorRT extends TimeDelayedEventDetectorRT<SmoothnessD
         return (float) (1 - err);
     }
 
-	@Override
-	public String getThreadNameImpl() {
-		return "Smoothness Detector " + this.vo.getXid();
-	}
+    @Override
+    public String getThreadNameImpl() {
+        return "Smoothness Detector " + this.vo.getXid();
+    }
 
 }

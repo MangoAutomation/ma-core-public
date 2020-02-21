@@ -10,7 +10,7 @@ import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.event.detector.BinaryStateDetectorVO;
 
 public class BinaryStateDetectorRT extends StateDetectorRT<BinaryStateDetectorVO> {
-	
+
     public BinaryStateDetectorRT(BinaryStateDetectorVO vo) {
         super(vo);
     }
@@ -33,12 +33,9 @@ public class BinaryStateDetectorRT extends StateDetectorRT<BinaryStateDetectorVO
         return newBinary == vo.isState();
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
-	@Override
-	public String getThreadNameImpl() {
-		return "BinaryState Detector " + this.vo.getXid();
-	}
+    @Override
+    public String getThreadNameImpl() {
+        return "BinaryState Detector " + this.vo.getXid();
+    }
 
 }

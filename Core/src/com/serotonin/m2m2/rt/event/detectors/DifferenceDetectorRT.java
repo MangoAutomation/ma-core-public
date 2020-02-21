@@ -13,11 +13,11 @@ import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
  */
 abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeDelayedEventDetectorRT<T> {
 
-	public DifferenceDetectorRT(T vo) {
-		super(vo);
-	}
+    public DifferenceDetectorRT(T vo) {
+        super(vo);
+    }
 
-	/**
+    /**
      * State field. Whether the event is currently active or not. This field is used to prevent multiple events being
      * raised during the duration of a single state detection.
      */
@@ -28,8 +28,12 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
      */
     protected long lastChange;
 
+    public long getLastChange() {
+        return lastChange;
+    }
+
     @Override
-	public boolean isEventActive() {
+    public boolean isEventActive() {
         return eventActive;
     }
 
@@ -42,7 +46,7 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
             unscheduleJob(fireTime);
         else
             setEventInactive(fireTime);
-        lastChange = fireTime;      
+        lastChange = fireTime;
         scheduleJob(fireTime);
     }
 
@@ -70,16 +74,16 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
     }
 
     @Override
-    protected long getConditionActiveTime() {
+    public long getConditionActiveTime() {
         return lastChange;
     }
-    
+
     @Override
     public void scheduleTimeoutImpl(long fireTime) {
-        //Ensure that the pointData() method hasn't updated our last change time and that we are not active already 
+        //Ensure that the pointData() method hasn't updated our last change time and that we are not active already
         setEventActive(fireTime);
     }
-    
+
     @Override
     public synchronized void setEventActive(long fireTime) {
         if(lastChange + getDurationMS() <= fireTime) {
@@ -87,7 +91,7 @@ abstract public class DifferenceDetectorRT<T extends TimeoutDetectorVO<T>> exten
             raiseEvent(fireTime, createEventContext());
         }
     }
-    
+
     @Override
     protected void setEventInactive(long timestamp) {
         eventActive = false;

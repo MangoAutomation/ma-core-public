@@ -25,16 +25,16 @@ import com.serotonin.timer.SimulationTimer;
 import com.serotonin.timer.TimerTask;
 
 /**
- * 
+ *
  * RoC = (latestValue - periodStartValue)/periodDurationMs
- * 
+ *
  * @author Terry Packer
  *
  */
 public class RateOfChangeDetectorRT extends TimeDelayedEventDetectorRT<RateOfChangeDetectorVO> {
 
-private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
-    
+    private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
+
     /**
      * State field. Whether the event is currently active or not. This field is used to prevent multiple events being
      * raised during the duration of a single range event.
@@ -45,32 +45,32 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
      * Time when the RoC started to change, raise events using this offset
      */
     private long periodStartTime;
-    
+
     /**
      * Oldest value to use in RoC computation
      */
     private Double periodStartValue;
-    
+
     /**
      * Latest value to use in RoC computation
      */
     private PointValueTime latestValue;
-    
+
     /**
      * The RoC per millisecond to compare to
      */
     private double comparisonRoCPerMs;
-    
+
     /**
      * The RoC per millisecond to reset on
      */
     private double resetRoCPerMs;
-    
+
     /**
      * The duration for the roc computation
      */
     private long rocDurationMs;
-    
+
     /**
      * State field. Whether the RoC event is currently active or not. This field is used to prevent multiple events
      * being raised during the duration of a single RoC threshold exceeded event.
@@ -79,38 +79,81 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
 
     private long rocBreachActiveTime;
     private long rocBreachInactiveTime;
-    
+
     /**
      * So we have access to our point's value at a given time
      */
     private Function<Long, PointValueTime> currentValueFunction;
     private DataPointRT rt;
-    
+
+    //For display in REST api
+    private double latestRoc;
+
     /**
      * Tasks used to see if we have dropped below our threshold due to
      * no changes be recorded.
      */
     private final Set<RocTimeoutTask> rocTimeoutTasks;
-    
+
     public RateOfChangeDetectorRT(RateOfChangeDetectorVO vo) {
         super(vo);
         this.rocTimeoutTasks = new HashSet<>();
     }
- 
+
+    public long getPeriodStartTime() {
+        return periodStartTime;
+    }
+
+    public Double getPeriodStartValue() {
+        return periodStartValue;
+    }
+
+    public PointValueTime getLatestValue() {
+        return latestValue;
+    }
+
+    public double getComparisonRoCPerMs() {
+        return comparisonRoCPerMs;
+    }
+
+    public double getResetRoCPerMs() {
+        return resetRoCPerMs;
+    }
+
+    public long getRocDurationMs() {
+        return rocDurationMs;
+    }
+
+    public boolean isRocBreachActive() {
+        return rocBreachActive;
+    }
+
+    public long getRocBreachActiveTime() {
+        return rocBreachActiveTime;
+    }
+
+    public long getRocBreachInactiveTime() {
+        return rocBreachInactiveTime;
+    }
+
+    public double getLatestRoc() {
+        return latestRoc;
+    }
+
     @Override
     public void initializeState() {
         long time = timer.currentTimeMillis();
         rt = Common.runtimeManager.getDataPoint(vo.getDataPoint().getId());
-        
+
         //Initialize our period
         //periodStartTime = time; //Use if we don't want to calculate while window is filling
         periodStartTime = computePeriodStart(time); //Use if we want to calculate while the window is filling up
-        
+
         if(vo.getCalculationMode() == CalculationMode.AVERAGE) {
-            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
             rocDurationMs = Common.getMillis(vo.getRateOfChangePeriodType(), vo.getRateOfChangePeriods());
             if(vo.isUseResetThreshold())
-                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
+                resetRoCPerMs = vo.getResetThreshold() / Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
 
             //Go back duration + averaging period loop over all values to get state
             periodStartTime = time - (getDurationMS() + rocDurationMs);
@@ -121,7 +164,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 SimulationTimer simTimer = new SimulationTimer();
                 simTimer.setStartTime(periodStartTime);
                 timer = simTimer;
-                
+
                 for(PointValueTime past : history) {
                     simTimer.fastForwardTo(past.getTime());
                     pointUpdated(past);
@@ -130,12 +173,12 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 //Reset
                 timer = Common.timer;
                 currentValueFunction = (l) -> {return rt.getPointValue();};
-                
+
                 //Reset our timeout task if necessary
                 if(isJobScheduled()) {
                     rescheduleJob();
                 }
-                
+
                 List<RocTimeoutTask> reschedule = new ArrayList<>(rocTimeoutTasks);
                 rocTimeoutTasks.clear();
                 for(RocTimeoutTask rocTimeoutTask : reschedule) {
@@ -147,9 +190,9 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             }
             currentValueFunction = (l) -> {return rt.getPointValue();};
         }else {
-            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
+            comparisonRoCPerMs = vo.getRateOfChangeThreshold() / Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
             if(vo.isUseResetThreshold())
-                resetRoCPerMs = vo.getResetThreshold() / (double)Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
+                resetRoCPerMs = vo.getResetThreshold() / Common.getMillis(vo.getRateOfChangeThresholdPeriodType(), 1);
 
             //Determine our start state if we are using a duration
             long duration = getDurationMS();
@@ -160,16 +203,16 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 SimulationTimer simTimer = new SimulationTimer();
                 simTimer.setStartTime(historyStartTime);
                 timer = simTimer;
-                
+
                 for(PointValueTime past : history) {
                     simTimer.fastForwardTo(past.getTime());
                     pointUpdated(past);
                 }
                 simTimer.fastForwardTo(time);
-                
+
                 //Reset timer
                 timer = Common.timer;
-                
+
                 //Reset our timeout task if necessary
                 if(isJobScheduled()) {
                     rescheduleJob();
@@ -193,7 +236,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         TranslatableMessage comparison = vo.getComparisonDescription();
         TranslatableMessage durationDesc = vo.getDurationDescription();
         TranslatableMessage rateOfChangeDurationDesc = vo.getRateOfChangeDurationDescription();
- 
+
         if (vo.getCalculationMode() == CalculationMode.INSTANTANEOUS) {
             if(durationDesc == null)
                 return new TranslatableMessage("event.detector.rocInstantaneous", name, comparison);
@@ -212,7 +255,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
     public boolean isEventActive() {
         return eventActive;
     }
-    
+
     private void changeRocBreachActive() {
         rocBreachActive = !rocBreachActive;
         if (rocBreachActive)
@@ -221,7 +264,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         else
             unscheduleJob(rocBreachInactiveTime);
     }
-    
+
     /**
      * These will always be in time order as this call won't happen on backdates
      */
@@ -239,7 +282,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
                 periodStartValue = latestValue.getDoubleValue();
                 periodStartTime = latestValue.getTime();
             }
-            latestValue = newValue;            
+            latestValue = newValue;
             rocChanged(now);
         }else {
             latestValue = newValue;
@@ -248,26 +291,30 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             scheduleRocTimeoutTask(now);
         }
     }
-    
+
     private synchronized void rocChanged(long now) {
         //Don't compute if there is not a period start value
         if(periodStartValue == null)
             return;
-        
+
         if(latestValue != null) {
             double currentRoc = firstLastRocAlgorithm();
+            this.latestRoc = currentRoc;
             checkState(currentRoc, now, latestValue.getTime());
         }else {
             //Assume 0 RoC
+            this.latestRoc = 0.0d;
             checkState(0.0d, now, now);
         }
     }
-    
+
     private synchronized void checkState(double currentRoc, long fireTime, long latestValueTime) {
-        
-        if(vo.isUseAbsoluteValue())
+
+        if(vo.isUseAbsoluteValue()) {
             currentRoc = Math.abs(currentRoc);
-        
+            this.latestRoc = currentRoc;
+        }
+
         if(vo.getComparisonMode() == ComparisonMode.LESS_THAN_OR_EQUALS){
             if (currentRoc <= comparisonRoCPerMs) {
                 if (!rocBreachActive) {
@@ -359,7 +406,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             }
         }
     }
-    
+
     synchronized private void rocCheckTimeout(long fireTime, PointValueTime currentValue) {
         long latestTime = fireTime;
         //Slide the window
@@ -370,7 +417,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         }else {
             periodStartValue = null;
         }
-        
+
         if(currentValue != null && currentValue.getTime() >= periodStartTime) {
             if(latestValue != null && latestValue.getTime() < currentValue.getTime()) {
                 latestTime = currentValue.getTime();
@@ -379,45 +426,47 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         }else {
             latestValue = null;
         }
-        
+
         // Don't compute if there is not a period start value
         if (periodStartValue == null)
             return;
 
         if (latestValue != null) {
             double currentRoc = firstLastRocAlgorithm();
+            this.latestRoc = currentRoc;
             checkState(currentRoc, fireTime, latestTime);
         } else {
             // Assume 0 RoC
+            this.latestRoc = 0.0d;
             checkState(0.0d, fireTime, latestTime);
         }
     }
-    
+
     private PointValueTime getValueAtOrBefore(long time) {
         PointValueTime start = rt.getPointValueAt(time);
         if(start == null)
             start = rt.getPointValueBefore(time);
         return start;
     }
-    
+
     synchronized private void cancelRocTimeoutTasks() {
         for(RocTimeoutTask rocTimeoutTask : rocTimeoutTasks) {
             rocTimeoutTask.cancel();
         }
     }
-    
+
     synchronized private void removeRocTimeoutTask(RocTimeoutTask task) {
         rocTimeoutTasks.remove(task);
     }
-    
+
     synchronized private void scheduleRocTimeoutTask(long now) {
         RocTimeoutTask task = new RocTimeoutTask(new Date(now + this.rocDurationMs));
         rocTimeoutTasks.add(task);
         task.schedule();
     }
-    
+
     @Override
-    protected long getConditionActiveTime() {
+    public long getConditionActiveTime() {
         return rocBreachActiveTime;
     }
 
@@ -426,7 +475,7 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
         this.eventActive = false;
         returnToNormal(rocBreachInactiveTime);
     }
-    
+
     @Override
     protected synchronized void setEventActive(long timestamp) {
         this.eventActive = rocBreachActive;
@@ -438,43 +487,43 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             log.warn("Call to set event active when roc detector is not active. Ignoring.");
         }
     }
-    
+
     private long computePeriodStart(long now){
         return now - rocDurationMs;
     }
-    
+
     /**
-     * Compute the Rate of Change by using the first and last values over the full period 
+     * Compute the Rate of Change by using the first and last values over the full period
      * @return
      */
     protected double firstLastRocAlgorithm(){
         if(vo.getCalculationMode() == CalculationMode.AVERAGE)
-            return (latestValue.getDoubleValue() - periodStartValue)/(double)rocDurationMs;
+            return (latestValue.getDoubleValue() - periodStartValue)/rocDurationMs;
         else {
             long duration = latestValue.getTime() - periodStartTime;
             if(duration > 0)
-                return (latestValue.getDoubleValue() - periodStartValue)/(double)duration;
+                return (latestValue.getDoubleValue() - periodStartValue)/duration;
             else
                 return 0; //TODO what do we do here?
         }
     }
-    
+
     @Override
     public void terminate() {
         cancelRocTimeoutTasks();
         super.terminate();
     }
-    
+
     /**
-     * Schedule a timeout to check the RoC when no point updates are received 
-     *  then cleanup by removing our reference 
+     * Schedule a timeout to check the RoC when no point updates are received
+     *  then cleanup by removing our reference
      * @author Terry Packer
      *
      */
     class RocTimeoutTask extends TimerTask {
-        
+
         Date date;
-        
+
         public RocTimeoutTask(Date date) {
             super(new OneTimeTrigger(date), "ROCD" + vo.getXid(), null, -1);
             this.date = date;
@@ -485,10 +534,10 @@ private final Log log = LogFactory.getLog(RateOfChangeDetectorRT.class);
             rocCheckTimeout(runtime, currentValueFunction.apply(runtime));
             removeRocTimeoutTask(this);
         }
-        
+
         public void schedule() {
             timer.schedule(this);
         }
-        
+
     }
 }

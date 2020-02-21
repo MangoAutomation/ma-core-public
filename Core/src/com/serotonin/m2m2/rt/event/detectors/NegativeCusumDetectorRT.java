@@ -17,12 +17,12 @@ import com.serotonin.m2m2.vo.event.detector.NegativeCusumDetectorVO;
  * The NegativeCusumDetectorRT is used to detect occurances of point values below the given CUSUM limit for a given
  * duration. For example, a user may need to have an event raised when a temperature CUSUM sinks below some value for 10
  * minutes or more.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT<NegativeCusumDetectorVO> {
     private final Log log = LogFactory.getLog(NegativeCusumDetectorRT.class);
-  
+
     /**
      * State field. The current negative CUSUM for the point.
      */
@@ -47,6 +47,22 @@ public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT<Negative
         super(vo);
     }
 
+    public double getCusum() {
+        return cusum;
+    }
+
+    public boolean isNegativeCusumActive() {
+        return negativeCusumActive;
+    }
+
+    public long getNegativeCusumActiveTime() {
+        return negativeCusumActiveTime;
+    }
+
+    public long getNegativeCusumInactiveTime() {
+        return negativeCusumInactiveTime;
+    }
+
     @Override
     public TranslatableMessage getMessage() {
         String name = vo.getDataPoint().getExtendedName();
@@ -58,14 +74,14 @@ public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT<Negative
     }
 
     @Override
-	public boolean isEventActive() {
+    public boolean isEventActive() {
         return eventActive;
     }
 
     /**
      * This method is only called when the negative CUSUM changes between being active or not, i.e. if the point's CUSUM
      * is currently above the limit, then it should never be called with a value of true.
-     * 
+     *
      * @param b
      */
     private void changeNegativeCusumActive(long timestamp) {
@@ -101,16 +117,16 @@ public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT<Negative
     }
 
     @Override
-    protected long getConditionActiveTime() {
+    public long getConditionActiveTime() {
         return negativeCusumActiveTime;
     }
-    
+
     @Override
     protected void setEventInactive(long timestamp) {
         this.eventActive = false;
         returnToNormal(negativeCusumInactiveTime);
     }
-    
+
     @Override
     protected void setEventActive(long timestamp) {
         this.eventActive = true;
@@ -124,9 +140,9 @@ public class NegativeCusumDetectorRT extends TimeDelayedEventDetectorRT<Negative
         }
     }
 
-	@Override
-	public String getThreadNameImpl() {
-		return "NegativeCusum Detector " + this.vo.getXid();
-	}
+    @Override
+    public String getThreadNameImpl() {
+        return "NegativeCusum Detector " + this.vo.getXid();
+    }
 
 }

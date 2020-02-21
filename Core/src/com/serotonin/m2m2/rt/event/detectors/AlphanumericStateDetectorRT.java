@@ -15,8 +15,8 @@ import com.serotonin.m2m2.vo.event.detector.AlphanumericStateDetectorVO;
  * @author Matthew Lohbihler
  */
 public class AlphanumericStateDetectorRT extends StateDetectorRT<AlphanumericStateDetectorVO> {
-    
-	public AlphanumericStateDetectorRT(AlphanumericStateDetectorVO vo) {
+
+    public AlphanumericStateDetectorRT(AlphanumericStateDetectorVO vo) {
         super(vo);
     }
 
@@ -37,13 +37,10 @@ public class AlphanumericStateDetectorRT extends StateDetectorRT<AlphanumericSta
         String newAlpha = newValue.getStringValue();
         return StringUtils.equals(newAlpha, vo.getState());
     }
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
-	@Override
-	public String getThreadNameImpl() {
-		return "AlphanumericState Detector " + this.vo.getXid();
-	}
+
+    @Override
+    public String getThreadNameImpl() {
+        return "AlphanumericState Detector " + this.vo.getXid();
+    }
 
 }

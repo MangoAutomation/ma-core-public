@@ -17,12 +17,12 @@ import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
  * The PositiveCusumDetector is used to detect occurrences of point values exceeding the given CUSUM limit for a given
  * duration. For example, a user may need to have an event raised when a temperature CUSUM exceeds some value for 10
  * minutes or more.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<PositiveCusumDetectorVO> {
     private final Log log = LogFactory.getLog(PositiveCusumDetectorRT.class);
-   /**
+    /**
      * State field. The current positive CUSUM for the point.
      */
     private double cusum;
@@ -46,6 +46,22 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
         super(vo);
     }
 
+    public double getCusum() {
+        return cusum;
+    }
+
+    public boolean isPositiveCusumActive() {
+        return positiveCusumActive;
+    }
+
+    public long getPositiveCusumActiveTime() {
+        return positiveCusumActiveTime;
+    }
+
+    public long getPositiveCusumInactiveTime() {
+        return positiveCusumInactiveTime;
+    }
+
     @Override
     public TranslatableMessage getMessage() {
         String name = vo.getDataPoint().getExtendedName();
@@ -57,14 +73,14 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
     }
 
     @Override
-	public boolean isEventActive() {
+    public boolean isEventActive() {
         return eventActive;
     }
 
     /**
      * This method is only called when the positive CUSUM changes between being active or not, i.e. if the point's CUSUM
      * is currently above the limit, then it should never be called with a value of true.
-     * 
+     *
      * @param b
      */
     private void changePositiveCusumActive(long time) {
@@ -100,7 +116,7 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
     }
 
     @Override
-    protected long getConditionActiveTime() {
+    public long getConditionActiveTime() {
         return positiveCusumActiveTime;
     }
 
@@ -109,7 +125,7 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
         this.eventActive = false;
         returnToNormal(positiveCusumInactiveTime);
     }
-    
+
     @Override
     protected void setEventActive(long timestamp) {
         this.eventActive = true;
@@ -122,10 +138,10 @@ public class PositiveCusumDetectorRT extends TimeDelayedEventDetectorRT<Positive
             eventActive = false;
         }
     }
-    
-	@Override
-	public String getThreadNameImpl() {
-		return "PosCusumDetector " + this.vo.getXid();
-	}
+
+    @Override
+    public String getThreadNameImpl() {
+        return "PosCusumDetector " + this.vo.getXid();
+    }
 
 }

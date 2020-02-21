@@ -103,6 +103,36 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
 
     }
 
+    public PointValueTime getInstantValue() {
+        return instantValue;
+    }
+
+    public List<PointValueTime> getPeriodValues() {
+        synchronized(periodValues) {
+            return new ArrayList<>(periodValues);
+        }
+    }
+
+    public double getMax() {
+        return max;
+    }
+
+    public double getMin() {
+        return min;
+    }
+
+    public long getMaxTime() {
+        return maxTime;
+    }
+
+    public long getMinTime() {
+        return minTime;
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
     @Override
     public TranslatableMessage getMessage() {
         String name = vo.getDataPoint().getExtendedName();
@@ -173,7 +203,7 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
                 if(pvt.getDoubleValue() > newMax) {
                     newMax = pvt.getDoubleValue();
                     newMaxTime = pvt.getTime();
-                } 
+                }
                 if(pvt.getDoubleValue() < newMin) {
                     newMin = pvt.getDoubleValue();
                     newMinTime = pvt.getTime();
@@ -214,10 +244,10 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
             min = newValue.getDoubleValue();
             minTime = newValue.getTime();
         }
-        
+
         return active || (vo.isCheckIncrease() && vo.isCheckDecrease() && max - min > vo.getLimit()) ||
-               (vo.isCheckDecrease() && maxTime < minTime && max - min > vo.getLimit()) || 
-               (vo.isCheckIncrease() && maxTime > minTime && max - min > vo.getLimit());
+                (vo.isCheckDecrease() && maxTime < minTime && max - min > vo.getLimit()) ||
+                (vo.isCheckIncrease() && maxTime > minTime && max - min > vo.getLimit());
     }
 
     private void handleValue(PointValueTime newValue) {
@@ -268,11 +298,6 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         }
     }
 
-    /*
-     * Call to check changes and see if we have changed enough
-     * (non-Javadoc)
-     * @see com.serotonin.m2m2.rt.event.detectors.TimeoutDetectorRT#scheduleTimeoutImpl(long)
-     */
     @Override
     protected void scheduleTimeoutImpl(long fireTime) {
         synchronized(periodValues) {
@@ -294,9 +319,6 @@ public class AnalogChangeDetectorRT extends TimeoutDetectorRT<AnalogChangeDetect
         }
     }
 
-    /* (non-Javadoc)
-     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-     */
     @Override
     public String getThreadNameImpl() {
         return "AnalogChange Detector " + this.vo.getXid();

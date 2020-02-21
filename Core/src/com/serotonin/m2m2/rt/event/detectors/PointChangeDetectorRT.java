@@ -16,13 +16,25 @@ import com.serotonin.m2m2.vo.event.detector.PointChangeDetectorVO;
  *
  */
 public class PointChangeDetectorRT extends PointEventDetectorRT<PointChangeDetectorVO> {
-    
-	private DataValue oldValue;
+
+    private DataValue oldValue;
     private DataValue newValue;
     private TranslatableMessage annotation;
 
     public PointChangeDetectorRT(PointChangeDetectorVO vo) {
-    	super(vo);
+        super(vo);
+    }
+
+    public DataValue getOldValue() {
+        return oldValue;
+    }
+
+    public DataValue getNewValue() {
+        return newValue;
+    }
+
+    public TranslatableMessage getAnnotation() {
+        return annotation;
     }
 
     @Override
@@ -55,7 +67,7 @@ public class PointChangeDetectorRT extends PointEventDetectorRT<PointChangeDetec
     }
 
     @Override
-	public boolean isEventActive() {
+    public boolean isEventActive() {
         return false;
     }
 }

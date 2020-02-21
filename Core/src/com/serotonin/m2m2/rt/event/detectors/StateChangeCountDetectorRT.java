@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.rt.event.detectors;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,6 +35,16 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
         super(vo);
     }
 
+    public List<PointValueTime> getPointValues() {
+        synchronized(pointValues) {
+            return new ArrayList<>(pointValues);
+        }
+    }
+
+    public long getEventActiveTime() {
+        return eventActiveTime;
+    }
+
     @Override
     public TranslatableMessage getMessage() {
         return new TranslatableMessage("event.detector.changeCount", vo.getDataPoint().getExtendedName(),
@@ -41,7 +52,7 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
     }
 
     @Override
-	public boolean isEventActive() {
+    public boolean isEventActive() {
         return eventActive;
     }
 
@@ -143,12 +154,12 @@ public class StateChangeCountDetectorRT extends TimeoutDetectorRT<StateChangeCou
         }
     }
 
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
-	 */
-	@Override
-	public String getThreadNameImpl() {
-		return "StateChangeCounter " + this.vo.getXid();
-	}
+    /* (non-Javadoc)
+     * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getThreadName()
+     */
+    @Override
+    public String getThreadNameImpl() {
+        return "StateChangeCounter " + this.vo.getXid();
+    }
 
 }

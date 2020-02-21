@@ -10,30 +10,31 @@ import com.serotonin.m2m2.vo.event.detector.TimeoutDetectorVO;
 
 /**
  * This is a base class for all subclasses that need to schedule timeouts for them to become active.
- * 
+ *
  * @author Matthew Lohbihler
  */
 abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>> extends TimeoutDetectorRT<T> {
-    
-	/**
-	 * @param vo
-	 */
-	public TimeDelayedEventDetectorRT(T vo) {
-		super(vo);
-	}
-	
-	/**
-	 * Schedule a job passing in the time of now for reference
-	 */
+
+    /**
+     * @param vo
+     */
+    public TimeDelayedEventDetectorRT(T vo) {
+        super(vo);
+    }
+
+    /**
+     * Schedule a job passing in the time of now for reference
+     */
+    @Override
     synchronized protected void scheduleJob(long now) {
         if (getDurationMS() > 0)
             super.scheduleJob(now + getDurationMS());
         else if(!isEventActive())
             setEventActive(now);
-    }	
+    }
 
     /**
-     * Unschedule a job, 
+     * Unschedule a job,
      *  - set event inactive if its active
      *  - raise and RTN an event in the past if it is inactive now
      * @param conditionInactiveTime
@@ -42,14 +43,14 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
         // Reset the eventActive if it is on
         if (isEventActive())
             setEventInactive(conditionInactiveTime);
-        
+
         // Check whether there is a tolerance duration.
         else if (getDurationMS() > 0) {
             if (isJobScheduled()) {
                 unscheduleJob();
 
                 // There is an existing job scheduled. It's fire time is likely past when the event is to actually fire,
-                // so check if the event activation time 
+                // so check if the event activation time
                 long eventActiveTime = getConditionActiveTime() + getDurationMS();
 
                 if (eventActiveTime < conditionInactiveTime) {
@@ -66,7 +67,7 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
      * The timestamp for when the condition has gone active
      * @return
      */
-    abstract protected long getConditionActiveTime();
+    abstract public long getConditionActiveTime();
 
     /**
      * Change the state of the event, raise using the supplied timestamp if necessary
@@ -74,14 +75,14 @@ abstract public class TimeDelayedEventDetectorRT<T extends TimeoutDetectorVO<T>>
      * @param timestamp
      */
     protected abstract void setEventActive(long timestamp);
-    
+
     /**
      * Change the state of the event, rtn using the supplied timestamp if necessary
      * @param state
      * @param timestamp
      */
     protected abstract void setEventInactive(long timestamp);
-    
+
 
     @Override
     public void initialize() {
