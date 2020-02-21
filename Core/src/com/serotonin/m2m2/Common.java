@@ -56,6 +56,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.CompiledCoreVersion;
+import com.infiniteautomation.mango.io.messaging.MessageManager;
 import com.infiniteautomation.mango.io.serial.SerialPortManager;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
@@ -137,6 +138,7 @@ public class Common {
     public static EventManager eventManager;
     public static RuntimeManager runtimeManager;
     public static SerialPortManager serialPortManager;
+    public static MessageManager messageManager;
 
     //Used to determine the given size of all Task Queues
     //TODO Remove this and replace with varying size queues
