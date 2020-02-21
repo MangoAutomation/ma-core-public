@@ -31,6 +31,7 @@ import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.mailingList.PhoneEntry;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.mailingList.UserEntry;
+import com.serotonin.m2m2.vo.mailingList.UserPhoneEntry;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
@@ -298,9 +299,14 @@ public class MailingListService extends AbstractVOService<MailingList, MailingLi
                     }
                     break;
                 case USER:
-                case USER_PHONE_NUMBER:
                     UserEntry ue = (UserEntry)recipient;
-                    User userWithPhone = userDao.get(ue.getUserId());
+                    if(userDao.getXidById(ue.getUserId()) == null) {
+                        result.addContextualMessage(prefix, "mailingLists.validate.userDoesNotExist");
+                    }
+                    break;
+                case USER_PHONE_NUMBER:
+                    UserPhoneEntry up = (UserPhoneEntry)recipient;
+                    User userWithPhone = userDao.get(up.getUserId());
                     if(userWithPhone == null) {
                         result.addContextualMessage(prefix, "mailingLists.validate.userDoesNotExist");
                     }else if(StringUtils.isBlank(userWithPhone.getPhone())){
