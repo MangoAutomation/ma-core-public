@@ -52,35 +52,26 @@ public class ProcessWorkItem implements WorkItem {
         }
     }
 
-	@Override
-	public String getDescription() {
-		return "Process: " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
-	}
-    
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-	 */
-	@Override
-	public String getTaskId() {
-		//TODO Better handling by sending in an XID as this is always unique for work items...
-		return "ProcessWorkItem-" + this.hashCode();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-	 */
-	@Override
-	public int getQueueSize() {
-		return Common.defaultTaskQueueSize;
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-	 */
-	@Override
-	public void rejected(RejectedTaskReason reason) { }
+    @Override
+    public String getDescription() {
+        return "Process: " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
+    }
 
-	
+    @Override
+    public String getTaskId() {
+        //TODO Better handling by sending in an XID as this is always unique for work items...
+        return "ProcessWorkItem-" + this.hashCode();
+    }
+
+    @Override
+    public int getQueueSize() {
+        return Common.defaultTaskQueueSize;
+    }
+
+    @Override
+    public void rejected(RejectedTaskReason reason) { }
+
+
     public static StringStringPair executeProcessCommand(String command, int timeoutSeconds) throws IOException {
         Process process = Runtime.getRuntime().exec(command);
 
@@ -89,16 +80,16 @@ public class ProcessWorkItem implements WorkItem {
 
         Common.backgroundProcessing.addWorkItem(out);
         Common.backgroundProcessing.addWorkItem(err);
-        
+
         if(LOG.isDebugEnabled() && process.getClass().getName().equals("java.lang.UNIXProcess")) {
-        	try {
-	        	Field f = process.getClass().getDeclaredField("pid");
-	        	f.setAccessible(true);
-	        	LOG.debug("Started command " + command + " on unix system, pid is: " + f.getLong(process));
-	        	f.setAccessible(false);
-        	} catch(Exception e) {
-        		LOG.debug("Error extracting pid from UNIXProcess object");
-        	}
+            try {
+                Field f = process.getClass().getDeclaredField("pid");
+                f.setAccessible(true);
+                LOG.debug("Started command " + command + " on unix system, pid is: " + f.getLong(process));
+                f.setAccessible(false);
+            } catch(Exception e) {
+                LOG.debug("Error extracting pid from UNIXProcess object");
+            }
         }
 
         StringStringPair result = new StringStringPair();
@@ -179,33 +170,33 @@ public class ProcessWorkItem implements WorkItem {
             catch (InterruptedException e) { /* no op */
             }
         }
-        
-    	@Override
-    	public String getDescription() {
-    		return "ProcessTimeout : " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
-    	}
-    	
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-		 */
-		@Override
-		public String getTaskId() {
-			return null;
-		}
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-		 */
-		@Override
-		public int getQueueSize() {
-			return 0;
-		}
+        @Override
+        public String getDescription() {
+            return "ProcessTimeout : " + command + " with timeout " + Integer.toString(timeoutSeconds) + "s";
+        }
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-		 */
-		@Override
-		public void rejected(RejectedTaskReason reason) { }
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+         */
+        @Override
+        public String getTaskId() {
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+         */
+        @Override
+        public int getQueueSize() {
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+         */
+        @Override
+        public void rejected(RejectedTaskReason reason) { }
 
     }
 
@@ -255,41 +246,41 @@ public class ProcessWorkItem implements WorkItem {
                 }
             }
         }
-    	
-        @Override
-    	public String getDescription() {
-        	String state;
-        	if(!done)
-        		state = "waiting";
-        	else
-        		state = "processing";
-    		return "Input Reader: " + state;
-    	}
-        
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
-		 */
-		@Override
-		public String getTaskId() {
-			return null;
-		}
 
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
-		 */
-		@Override
-		public int getQueueSize() {
-			return 0;
-		}
-		
-		/* (non-Javadoc)
-		 * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
-		 */
-		@Override
-		public void rejected(RejectedTaskReason reason) { }
+        @Override
+        public String getDescription() {
+            String state;
+            if(!done)
+                state = "waiting";
+            else
+                state = "processing";
+            return "Input Reader: " + state;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#getTaskId()
+         */
+        @Override
+        public String getTaskId() {
+            return null;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.util.timeout.TimeoutClient#getQueueSize()
+         */
+        @Override
+        public int getQueueSize() {
+            return 0;
+        }
+
+        /* (non-Javadoc)
+         * @see com.serotonin.m2m2.rt.maint.work.WorkItem#rejected(com.serotonin.timer.RejectedTaskReason)
+         */
+        @Override
+        public void rejected(RejectedTaskReason reason) { }
 
     }
-    //    
+    //
     // public static void main(String[] args) throws Exception {
     // // ServletContext ctx = new DummyServletContext();
     // BackgroundProcessing bp = new BackgroundProcessing();
@@ -298,25 +289,25 @@ public class ProcessWorkItem implements WorkItem {
     // // Common.ctx = new ContextWrapper(ctx);
     // // ProcessWorkItem.queueProcess("");
     // // bp.terminate();
-    //        
+    //
     // // //ProcessBuilder pb = new ProcessBuilder("cmd /c dir");
     // // ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "dir");
     // // pb.redirectErrorStream(true);
     // // Process process = pb.start();
     // Process process = Runtime.getRuntime().exec("cmd /c java -version");
-    //        
+    //
     // InputReader out = new InputReader(process.getInputStream());
     // InputReader err = new InputReader(process.getErrorStream());
-    //        
+    //
     // bp.addWorkItem(out);
     // bp.addWorkItem(err);
-    //        
+    //
     // process.waitFor();
     // out.join();
     // err.join();
     // process.destroy();
     // bp.terminate();
-    //        
+    //
     // System.out.println("out: "+ out.getInput());
     // System.out.println("err: "+ err.getInput());
     // }
