@@ -4,12 +4,17 @@
  */
 package com.serotonin.m2m2.i18n;
 
+import java.io.Serializable;
+
 import com.serotonin.m2m2.Common;
 
 /**
  * @author Matthew Lohbihler
  */
-public class ProcessMessage {
+public class ProcessMessage implements Serializable {
+
+    private static final long serialVersionUID = 49963516519482601L;
+
     public enum Level {
         info, warning, error;
     }
@@ -131,7 +136,8 @@ public class ProcessMessage {
             return contextKey + " --> " + contextualMessage.translate(translations);
         return genericMessage.translate(translations);
     }
-    
+
+    @Override
     public String toString() {
         if (contextKey != null)
             return contextKey + " --> " + contextualMessage.translate(Common.getTranslations());
