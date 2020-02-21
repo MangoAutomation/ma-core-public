@@ -19,6 +19,7 @@
 * Add permission to allow users to change thier own username defaults to allow all users to do this
 * Add new types to Mailing List to allow any phone number and User phone numbers
 * Adding a system setting that allows control over what tags are displayed this defaults to all tags
+* Add read and edit permission to event detectors default to previous behavior if no permissions are set
 
 *Version 3.7.4*
 * Improve work item failure logging

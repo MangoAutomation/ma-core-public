@@ -30,6 +30,7 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -155,12 +156,17 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
                 EventHandlerDao.getInstance().saveEventHandlerMapping(xid, et.getEventType());
             }
         }
+        //Replace the role mappings
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT, insert);
 
     }
 
     @Override
     public void loadRelationalData(AbstractEventDetectorVO vo) {
         vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
+        vo.setReadRoles(RoleDao.getInstance().getRoles(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ));
+        vo.setEditRoles(RoleDao.getInstance().getRoles(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT));
     }
 
     @Override
@@ -168,6 +174,8 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
         //Also update the Event Handlers
         ejt.update("delete from eventHandlersMapping where eventTypeName=? and eventTypeRef1=? and eventTypeRef2=?",
                 new Object[] { vo.getEventType().getEventType().getEventType(), vo.getSourceId(), vo.getId() });
+        RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ);
+        RoleDao.getInstance().deleteRolesForVoPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT);
     }
 
     /**

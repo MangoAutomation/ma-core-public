@@ -91,6 +91,8 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     public boolean hasEditPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
         if(user.hasAdminRole())
             return true;
+        if(permissionService.hasAnyRole(user, vo.getEditRoles()))
+            return true;
         return vo.getDefinition().hasEditPermission(user, vo);
     }
 
@@ -98,12 +100,16 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     public boolean hasReadPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
         if(user.hasAdminRole())
             return true;
+        if(permissionService.hasAnyRole(user, vo.getReadRoles()))
+            return true;
         return vo.getDefinition().hasReadPermission(user, vo);
     }
 
     @Override
     public ProcessResult validate(AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
+        permissionService.validateVoRoles(response, "readRoles", user, false, null, vo.getReadRoles());
+        permissionService.validateVoRoles(response, "editRoles", user, false, null, vo.getEditRoles());
         vo.getDefinition().validate(response, vo, user);
         return response;
     }
@@ -111,6 +117,9 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     @Override
     public ProcessResult validate(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
+        permissionService.validateVoRoles(response, "readRoles", user, false, existing.getReadRoles(), vo.getReadRoles());
+        permissionService.validateVoRoles(response, "editRoles", user, false, existing.getEditRoles(), vo.getEditRoles());
+
         vo.getDefinition().validate(response, existing, vo, user);
         return response;
     }
