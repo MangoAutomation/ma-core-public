@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.definitions.settings.DataPointTagsDisplaySettingDefinition;
 import com.serotonin.m2m2.vo.role.Role;
@@ -67,12 +68,14 @@ public interface IDataPoint {
 
             Map<String, String> tagsToUse = tags;
             if(!StringUtils.isEmpty(toDisplay)) {
-                String[] displayTags = toDisplay.split(",");
+                String[] displayTags = Common.COMMA_SPLITTER.split(toDisplay);
                 tagsToUse = new LinkedHashMap<>(displayTags.length);
                 for(String tag : displayTags) {
-                    String value = tags.get(tag);
-                    if(value != null) {
-                        tagsToUse.put(tag, value);
+                    if (!tag.isEmpty()) {
+                        String value = tags.get(tag);
+                        if(value != null) {
+                            tagsToUse.put(tag, value);
+                        }
                     }
                 }
             }
