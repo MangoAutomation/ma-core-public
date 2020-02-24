@@ -1,6 +1,6 @@
 package com.serotonin.m2m2.vo;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -65,19 +65,18 @@ public interface IDataPoint {
         if(tags != null) {
             String toDisplay = SystemSettingsDao.instance.getValue(DataPointTagsDisplaySettingDefinition.DEFAULT_DISPLAY_TAGS);
 
-            Map<String, String> tagsToUse;
+            Map<String, String> tagsToUse = tags;
             if(!StringUtils.isEmpty(toDisplay)) {
-                tagsToUse = new HashMap<>();
                 String[] displayTags = toDisplay.split(",");
+                tagsToUse = new LinkedHashMap<>(displayTags.length);
                 for(String tag : displayTags) {
                     String value = tags.get(tag);
                     if(value != null) {
-                        tagsToUse.put(tag, tags.get(tag));
+                        tagsToUse.put(tag, value);
                     }
                 }
-            }else {
-                tagsToUse = tags;
             }
+
             if(!tagsToUse.isEmpty()) {
                 b.append(OPEN_BRACKET);
                 b.append(tagsToUse.entrySet().stream()
