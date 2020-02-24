@@ -46,7 +46,7 @@ public interface IDataPoint {
      */
     Set<Role> getSetRoles();
 
-    final static String DASH = " - ";
+    final static String DASH = " — ";
     final static String OPEN_BRACKET = " [";
     final static String CLOSE_BRACKET = "]";
 
