@@ -40,7 +40,6 @@ import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefin
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.JacksonModuleDefinition;
@@ -250,11 +249,6 @@ public class MangoRuntimeContextConfiguration {
     @Bean
     public IMangoLifecycle lifecycle() {
         return Providers.get(IMangoLifecycle.class);
-    }
-
-    @Bean
-    public ICoreLicense coreLicense() {
-        return Providers.get(ICoreLicense.class);
     }
 
     @Bean(SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
