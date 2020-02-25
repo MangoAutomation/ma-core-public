@@ -30,7 +30,7 @@ import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.DataPointVO;
-import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
+import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.util.SerializationHelper;
 
 /**

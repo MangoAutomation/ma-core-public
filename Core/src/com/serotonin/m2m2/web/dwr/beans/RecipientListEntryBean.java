@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2019  Infinite Automation Software. All rights reserved.
  */
-package com.serotonin.m2m2.vo.mailingList;
+package com.serotonin.m2m2.web.dwr.beans;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -16,6 +16,13 @@ import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.mailingList.AddressEntry;
+import com.serotonin.m2m2.vo.mailingList.MailingList;
+import com.serotonin.m2m2.vo.mailingList.MailingListEntry;
+import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
+import com.serotonin.m2m2.vo.mailingList.PhoneEntry;
+import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
+import com.serotonin.m2m2.vo.mailingList.UserEntry;
 
 /**
  * Helper to resolve an entry in a mailing list.  This class is left here
