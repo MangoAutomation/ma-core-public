@@ -39,7 +39,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
 
     public static final String JSON_KEY = "scriptRoles";
 
-    private final Set<Role> roles;
+    private Set<Role> roles;
     private final String permissionHolderName; //Name for exception messages
 
     public ScriptPermissions() {
@@ -93,7 +93,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
         int ver = in.readInt();
         if(ver == 1) {
             Set<String> permissionsSet = (Set<String>) in.readObject();
-            roles.clear();
+            roles = new HashSet<>();
             for(String permission : permissionsSet) {
                 RoleVO role = RoleDao.getInstance().getByXid(permission);
                 if(role != null) {
@@ -102,6 +102,7 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
                     roles.add(addNewRole(permission).getRole());
                 }
             }
+            roles = Collections.unmodifiableSet(roles);
         }else if(ver == 2) {
             //Nada
         }
