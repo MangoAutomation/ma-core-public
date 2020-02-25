@@ -157,7 +157,7 @@ public class Upgrade29 extends DBUpgrade {
                         }
                         if(!userRoles.contains(role)) {
                             //Add a mapping
-                            ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?,)",
+                            ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)",
                                     new Object[] {
                                             r.getId(),
                                             userId
@@ -170,7 +170,7 @@ public class Upgrade29 extends DBUpgrade {
                 //Ensure they have the user role
                 if(!userRoles.contains(PermissionHolder.USER_ROLE_XID)) {
                     //Add a mapping
-                    ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?,)",
+                    ejt.doInsert("INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)",
                             new Object[] {
                                     2,
                                     userId
@@ -196,7 +196,7 @@ public class Upgrade29 extends DBUpgrade {
                 @Override
                 public void processRow(ResultSet rs) throws SQLException {
                     //Add role/mapping
-                    insertMapping(null, def.getPermissionTypeName(), null, explodePermissionGroups(rs.getString(1)), roles);
+                    insertMapping(null, null, def.getPermissionTypeName(), explodePermissionGroups(rs.getString(1)), roles);
                 }
             });
             //Delete the setting
@@ -220,10 +220,10 @@ public class Upgrade29 extends DBUpgrade {
 
 
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataPointsMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataPointsH2SQL);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataPointsMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointsSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataPointsMySQL);
         runScript(scripts, out);
     }
 
@@ -328,7 +328,6 @@ public class Upgrade29 extends DBUpgrade {
 
     //Templates
     private String[] dropTemplatesSQL = new String[] {
-            "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "DROP TABLE templates;",
     };
 
@@ -382,7 +381,7 @@ public class Upgrade29 extends DBUpgrade {
 
     //Point Hierarchy
     private String[] dropPointHierarchySQL = new String[] {
-            "DROP TABLE pointHierarchy;",
+            "DROP TABLE dataPointHierarchy;",
     };
 
     //User Events
@@ -395,35 +394,37 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE users DROP COLUMN permissions;",
     };
 
-    private String[] dataPointsSQL = new String[] {
+    private String[] dataPointsH2SQL = new String[] {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
+            "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
             "ALTER TABLE dataPoints DROP COLUMN templateId;",
-            "ALTER TABLE dataSources DROP INDEX dataPointsFk2;",
-            "ALTER TABLE dataSources DROP INDEX pointFolderIdIndex;",
-            "ALTER TABLE dataSources DROP INDEX dataPointsPermissionIndex;",
+    };
+
+    private String[] dataPointsMySQL = new String[] {
+            "ALTER TABLE dataPoints DROP COLUMN readPermission;",
+            "ALTER TABLE dataPoints DROP COLUMN setPermission;",
+            "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
+            "ALTER TABLE dataPoints DROP FOREIGN KEY dataPointsFk2;",
+            "ALTER TABLE dataPoints DROP COLUMN templateId;"
     };
 
     private String[] dataPointsMSSQL = new String[] {
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
-            "ALTER TABLE dataPoints DROP COLUMN templateId;",
             "ALTER TABLE dataPoints DROP CONSTRAINT dataPointsFk2;",
-            "DROP INDEX pointFolderIdIndex on dataSources;",
-            "DROP INDEX dataPointsPermissionIndex on dataSources;"
+            "ALTER TABLE dataPoints DROP COLUMN templateId;"
     };
 
 
     private String[] dataSourcesSQL = new String[] {
             "ALTER TABLE dataSources DROP COLUMN editPermission;",
-            "ALTER TABLE dataSources DROP INDEX dataSourcesPermissionIndex;"
     };
 
     private String[] dataSourcesMSSQL = new String[] {
-            "ALTER TABLE dataSources DROP COLUMN editPermission;",
-            "DROP INDEX dataSourcesPermissionIndex on dataSources;"
+            "ALTER TABLE dataSources DROP COLUMN editPermission;"
     };
 
     //Mailing lists
