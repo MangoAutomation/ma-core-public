@@ -346,6 +346,7 @@ public class DatabaseBackupWorkItem implements WorkItem {
 
         } else {
             LOG.info("Database backup not found at: " + fullFilePath);
+            result.addMessage(new TranslatableMessage("literal", "Database backup not found at: " + fullFilePath));
         }
 
         return result;
