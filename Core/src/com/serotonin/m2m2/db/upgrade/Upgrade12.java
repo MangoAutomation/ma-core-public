@@ -76,7 +76,7 @@ import com.serotonin.m2m2.vo.event.detector.PositiveCusumDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.SmoothnessDetectorVO;
 import com.serotonin.m2m2.vo.event.detector.StateChangeCountDetectorVO;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
-import com.serotonin.m2m2.vo.mailingList.RecipientListEntryBean;
+import com.serotonin.m2m2.web.dwr.beans.RecipientListEntryBean;
 import com.serotonin.util.SerializationHelper;
 /**
  * Upgrade to add template system
