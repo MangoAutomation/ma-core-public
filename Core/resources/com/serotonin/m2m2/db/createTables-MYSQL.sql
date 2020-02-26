@@ -350,6 +350,9 @@ CREATE TABLE userRoleMappings (
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
+CREATE INDEX roleMappingsPermissionTypeIndex ON roleMappings (permissionType ASC);
+CREATE INDEX roleMappingsVoTypeIndex ON roleMappings (voType ASC);
+CREATE INDEX roleMappingsVoIdIndex ON roleMappings (voId ASC);
 
 --
 --
