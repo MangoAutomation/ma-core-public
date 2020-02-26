@@ -254,7 +254,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
 
     private static final String USER_ROLES_DELETE = "DELETE FROM userRoleMappings WHERE userId=?";
     private static final String USER_ROLE_INSERT = "INSERT INTO userRoleMappings (roleId, userId) VALUES (?,?)";
-    private static final String USER_ROLES_SELECT = "SELECT r.id, r.xid, r.name FROM userRoleMappings AS ur JOIN roles r ON ur.roleId=r.id JOIN users u ON ur.userId=u.id WHERE ur.userId=?";
+    private static final String USER_ROLES_SELECT = "SELECT r.id, r.xid, r.name FROM userRoleMappings AS ur JOIN roles r ON ur.roleId=r.id WHERE ur.userId=?";
 
     @Override
     public void insert(User vo) {
