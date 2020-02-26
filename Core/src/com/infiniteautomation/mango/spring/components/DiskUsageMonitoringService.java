@@ -45,16 +45,19 @@ public class DiskUsageMonitoringService {
 
     public static final String MA_HOME_PARTITION_TOTAL_SPACE = "internal.monitor.MA_HOME_PARTITION_TOTAL_SPACE";
     public static final String MA_HOME_PARTITION_USABLE_SPACE = "internal.monitor.MA_HOME_PARTITION_USABLE_SPACE";
+    public static final String MA_HOME_PARTITION_USED_SPACE = "internal.monitor.MA_HOME_PARTITION_USED_SPACE";
 
     public static final String NOSQL_PARTITION_TOTAL_SPACE = "internal.monitor.NOSQL_PARTITION_TOTAL_SPACE";
     public static final String NOSQL_PARTITION_USABLE_SPACE = "internal.monitor.NOSQL_PARTITION_USABLE_SPACE";
+    public static final String NOSQL_PARTITION_USED_SPACE = "internal.monitor.NOSQL_PARTITION_USED_SPACE";
 
     public static final String SQL_PARTITION_TOTAL_SPACE = "internal.monitor.SQL_PARTITION_TOTAL_SPACE";
     public static final String SQL_PARTITION_USABLE_SPACE = "internal.monitor.SQL_PARTITION_USABLE_SPACE";
+    public static final String SQL_PARTITION_USED_SPACE = "internal.monitor.SQL_PARTITION_USED_SPACE";
 
     public static final String FILESTORE_PARTITION_TOTAL_SPACE = "internal.monitor.FILESTORE_PARTITION_TOTAL_SPACE";
     public static final String FILESTORE_PARTITION_USABLE_SPACE = "internal.monitor.FILESTORE_PARTITION_USABLE_SPACE";
-
+    public static final String FILESTORE_PARTITION_USED_SPACE = "internal.monitor.FILESTORE_PARTITION_USED_SPACE";
 
     public static final String MA_HOME_SIZE = "internal.monitor.MA_HOME_SIZE";
     public static final String FILE_STORE_SIZE_PREFIX = "internal.monitor.FILE_STORE.";
@@ -65,12 +68,16 @@ public class DiskUsageMonitoringService {
 
     private final ValueMonitor<Long> maHomePartitionTotalSpace;
     private final ValueMonitor<Long> maHomePartitionUsableSpace;
+    private final ValueMonitor<Long> maHomePartitionUsedSpace;
     private final ValueMonitor<Long> noSqlPartitionTotalSpace;
     private final ValueMonitor<Long> noSqlPartitionUsableSpace;
+    private final ValueMonitor<Long> noSqlPartitionUsedSpace;
     private final ValueMonitor<Long> sqlPartitionTotalSpace;
     private final ValueMonitor<Long> sqlPartitionUsableSpace;
+    private final ValueMonitor<Long> sqlPartitionUsedSpace;
     private final ValueMonitor<Long> filestorePartitionTotalSpace;
     private final ValueMonitor<Long> filestorePartitionUsableSpace;
+    private final ValueMonitor<Long> filestorePartitionUsedSpace;
     private final ValueMonitor<Long> maHomeSize;
 
     private final Map<String, ValueMonitor<Long>> fileStoreMonitors = new HashMap<>();
@@ -99,11 +106,17 @@ public class DiskUsageMonitoringService {
         maHomePartitionUsableSpace = monitoredValues.<Long>create(MA_HOME_PARTITION_USABLE_SPACE)
                 .name(new TranslatableMessage(MA_HOME_PARTITION_USABLE_SPACE))
                 .build();
+        maHomePartitionUsedSpace = monitoredValues.<Long>create(MA_HOME_PARTITION_USED_SPACE)
+                .name(new TranslatableMessage(MA_HOME_PARTITION_USED_SPACE))
+                .build();
         noSqlPartitionTotalSpace = monitoredValues.<Long>create(NOSQL_PARTITION_TOTAL_SPACE)
                 .name(new TranslatableMessage(NOSQL_PARTITION_TOTAL_SPACE))
                 .build();
         noSqlPartitionUsableSpace = monitoredValues.<Long>create(NOSQL_PARTITION_USABLE_SPACE)
                 .name(new TranslatableMessage(NOSQL_PARTITION_USABLE_SPACE))
+                .build();
+        noSqlPartitionUsedSpace = monitoredValues.<Long>create(NOSQL_PARTITION_USED_SPACE)
+                .name(new TranslatableMessage(NOSQL_PARTITION_USED_SPACE))
                 .build();
         sqlPartitionTotalSpace = monitoredValues.<Long>create(SQL_PARTITION_TOTAL_SPACE)
                 .name(new TranslatableMessage(SQL_PARTITION_TOTAL_SPACE))
@@ -111,11 +124,17 @@ public class DiskUsageMonitoringService {
         sqlPartitionUsableSpace = monitoredValues.<Long>create(SQL_PARTITION_USABLE_SPACE)
                 .name(new TranslatableMessage(SQL_PARTITION_USABLE_SPACE))
                 .build();
+        sqlPartitionUsedSpace = monitoredValues.<Long>create(SQL_PARTITION_USED_SPACE)
+                .name(new TranslatableMessage(SQL_PARTITION_USED_SPACE))
+                .build();
         filestorePartitionTotalSpace = monitoredValues.<Long>create(FILESTORE_PARTITION_TOTAL_SPACE)
                 .name(new TranslatableMessage(FILESTORE_PARTITION_TOTAL_SPACE))
                 .build();
         filestorePartitionUsableSpace = monitoredValues.<Long>create(FILESTORE_PARTITION_USABLE_SPACE)
                 .name(new TranslatableMessage(FILESTORE_PARTITION_USABLE_SPACE))
+                .build();
+        filestorePartitionUsedSpace = monitoredValues.<Long>create(FILESTORE_PARTITION_USED_SPACE)
+                .name(new TranslatableMessage(FILESTORE_PARTITION_USED_SPACE))
                 .build();
 
         if (monitorDirectories) {
@@ -156,6 +175,7 @@ public class DiskUsageMonitoringService {
             FileStore store = Files.getFileStore(Common.MA_HOME_PATH);
             maHomePartitionTotalSpace.setValue(store.getTotalSpace());
             maHomePartitionUsableSpace.setValue(store.getUsableSpace());
+            maHomePartitionUsedSpace.setValue(store.getTotalSpace() - store.getUsableSpace());
         }catch(Exception e) {
             log.error("Unable to get MA_HOME partition usage", e);
         }
@@ -164,6 +184,7 @@ public class DiskUsageMonitoringService {
             FileStore store = Files.getFileStore(Paths.get(NoSQLProxy.getDatabasePath()).toAbsolutePath());
             noSqlPartitionTotalSpace.setValue(store.getTotalSpace());
             noSqlPartitionUsableSpace.setValue(store.getUsableSpace());
+            noSqlPartitionUsedSpace.setValue(store.getTotalSpace() - store.getUsableSpace());
         }catch(Exception e) {
             log.error("Unable to get NoSQL partition usage", e);
         }
@@ -175,6 +196,7 @@ public class DiskUsageMonitoringService {
                 FileStore store = Files.getFileStore(dataDirectory.toPath());
                 sqlPartitionTotalSpace.setValue(store.getTotalSpace());
                 sqlPartitionUsableSpace.setValue(store.getUsableSpace());
+                sqlPartitionUsedSpace.setValue(store.getTotalSpace() - store.getUsableSpace());
             }catch(Exception e) {
                 log.error("Unable to get Filestore partition usage", e);
             }
@@ -189,6 +211,7 @@ public class DiskUsageMonitoringService {
             FileStore store = Files.getFileStore(Common.MA_HOME_PATH.resolve(location));
             filestorePartitionTotalSpace.setValue(store.getTotalSpace());
             filestorePartitionUsableSpace.setValue(store.getUsableSpace());
+            filestorePartitionUsedSpace.setValue(store.getTotalSpace() - store.getUsableSpace());
         }catch(Exception e) {
             log.error("Unable to get Filestore partition usage", e);
         }
