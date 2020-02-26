@@ -188,6 +188,35 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
     }
 
     /**
+     * Delete all existing and create all new mappings
+     * @param roles
+     * @param permissionType
+     */
+    public void replaceRolesOnPermission(Set<Role> roles, String permissionType) {
+        doInTransaction((status) -> {
+            ejt.update("DELETE FROM roleMappings WHERE voId=null AND voType=null AND permissionType=?",
+                    new Object[]{permissionType});
+
+            List<Role> rolesList = new ArrayList<>(roles);
+            ejt.batchUpdate(INSERT_VO_ROLE_MAPPING, new BatchPreparedStatementSetter() {
+                @Override
+                public int getBatchSize() {
+                    return roles.size();
+                }
+
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    Role r = rolesList.get(i);
+                    ps.setInt(1, r.getId());
+                    ps.setString(2, null);
+                    ps.setString(3, null);
+                    ps.setString(4, permissionType);
+                }
+            });
+        });
+    }
+
+    /**
      * Replace all roles for a vo's given permission type.
      *   NOTE this should be used in a transaction and the RoleVO ids are not set
      * @param roles

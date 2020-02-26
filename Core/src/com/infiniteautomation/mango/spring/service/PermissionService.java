@@ -174,7 +174,7 @@ public class PermissionService {
      * Return all the granted permissions a user has.  This is any Permission Definition that the user
      *  has permission for.
      *
-     *  TODO all VO types too?
+     *  TODO Mango 4.0 all VO types too, i.e. dataPoint.read (these are not definitions)?
      *
      * @param holder
      * @return
@@ -184,6 +184,7 @@ public class PermissionService {
 
         for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
             MangoPermission permission = def.getValue().getPermission();
+            //TODO Mango 4.0 performance improvement as superadmin don't bother checking if they have any role
             Set<Role> roles = permission.getRoles().stream().map(RoleVO::getRole).collect(Collectors.toSet());
             if(hasAnyRole(holder, roles)) {
                 grantedPermissions.add(permission);

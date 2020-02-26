@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -19,6 +20,8 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -104,7 +107,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     }
 
     /**
-     * Remove a role to a permission type
+     * Remove a role from a permission type
      * @param role
      * @param permissionType
      * @param user
@@ -140,6 +143,54 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         }
 
         dao.addRoleToPermission(role, permissionType);
+    }
+
+    /**
+     *
+     * @param roleXids
+     * @param permissionType
+     */
+    public void replaceAllRolesOnPermission(Set<String> roleXids, String permissionType) {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        permissionService.ensureAdminRole(user);
+
+        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(permissionType);
+        if(def == null) {
+            throw new NotFoundException();
+        }
+
+        ProcessResult validation = new ProcessResult();
+        Set<Role> roles = new HashSet<>();
+        if(roleXids != null) {
+            for(String xid : roleXids) {
+                try {
+                    RoleVO roleVO = get(xid);
+                    roles.add(roleVO.getRole());
+                }catch(NotFoundException e) {
+                    validation.addGenericMessage("validate.role.notFound", xid);
+                }
+            }
+        }
+
+        if(validation.getHasMessages()) {
+            throw new ValidationException(validation);
+        }
+
+        dao.replaceRolesOnPermission(roles, def.getPermissionTypeName());
+    }
+
+    /**
+     * Replace all roles to a permission type
+     * @param role
+     * @param permissionType
+     */
+    public void replaceAllRolesOnPermission(Set<Role> roles, PermissionDefinition def) throws PermissionException, ValidationException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        permissionService.ensureAdminRole(user);
+        dao.replaceRolesOnPermission(roles, def.getPermissionTypeName());
     }
 
     /**
