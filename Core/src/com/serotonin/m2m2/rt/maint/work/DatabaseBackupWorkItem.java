@@ -238,7 +238,13 @@ public class DatabaseBackupWorkItem implements WorkItem {
                 // Have we ever run?
                 if (lastRunDateString != null) {
                     SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
-                    Date lastRunDate = dateFormatter.parse(lastRunDateString);
+                    Date lastRunDate;
+                    try{
+                        lastRunDate = dateFormatter.parse(lastRunDateString);
+                    }catch(Exception e) {
+                        lastRunDate = new Date();
+                        LOG.warn("Failed to parse last backup date, using Jan 1 1970.", e);
+                    }
                     DateTime lastRun = new DateTime(lastRunDate);
                     // Compute the next run time off of the last run time
                     DateTime nextRun = DateUtils.plus(lastRun,

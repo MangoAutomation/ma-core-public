@@ -190,7 +190,6 @@ public class BackupWorkItem implements WorkItem {
      * Get a JSON Backup
      * @return
      */
-    @SuppressWarnings("unchecked")
     public String getBackup(){
         return Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
             Map<String, Object> data = ConfigurationExportData.createExportDataMap(null);
@@ -220,7 +219,13 @@ public class BackupWorkItem implements WorkItem {
 
                 //Have we ever run?
                 if(lastRunDateString != null){
-                    Date lastRunDate = dateFormatter.parse(lastRunDateString);
+                    Date lastRunDate;
+                    try {
+                        lastRunDate = dateFormatter.parse(lastRunDateString);
+                    }catch(Exception e) {
+                        lastRunDate = new Date();
+                        LOG.warn("Failed to parse last backup date, using Jan 1 1970.", e);
+                    }
                     DateTime lastRun = new DateTime(lastRunDate);
                     //Compute the next run time off of the last run time
                     DateTime nextRun = DateUtils.plus(lastRun, SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_PERIOD_TYPE),
