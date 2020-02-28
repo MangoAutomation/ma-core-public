@@ -55,7 +55,7 @@ public interface BackgroundProcessing extends ILifecycle {
     void executeMediumPriorityTask(TimerTask task);
 
     /**
-     * add a work item int our queue
+     * add a work item into our queue
      * @param item
      */
     void addWorkItem(WorkItem item);
@@ -84,7 +84,7 @@ public interface BackgroundProcessing extends ILifecycle {
 
     /**
      * Set the core pool size for the high priority service.
-     * The new size must be greater than the lowest allowable limit 
+     * The new size must be greater than the lowest allowable limit
      * defined by HIGH_PRI_MAX_POOL_SIZE_MIN
      * @param size
      */
@@ -92,7 +92,7 @@ public interface BackgroundProcessing extends ILifecycle {
 
     /**
      * Set the maximum pool size for the high priority service.
-     * The new size must be larger than the core pool size for this change to take 
+     * The new size must be larger than the core pool size for this change to take
      * effect.
      * @param size
      */
@@ -115,8 +115,8 @@ public interface BackgroundProcessing extends ILifecycle {
     List<WorkItemInfo> getMediumPriorityServiceQueueItems();
 
     /**
-     * Set the Core Pool Size, in the medium priority queue this 
-     * results in the maximum number of threads that will be run 
+     * Set the Core Pool Size, in the medium priority queue this
+     * results in the maximum number of threads that will be run
      * due to the way the pool is setup.  This will only set the pool size up to Maximum Pool Size
      * @param corePoolSize
      */
@@ -131,8 +131,8 @@ public interface BackgroundProcessing extends ILifecycle {
     int getMediumPriorityServiceLargestPoolSize();
 
     /**
-     * Set the Core Pool Size, in the medium priority queue this 
-     * results in the maximum number of threads that will be run 
+     * Set the Core Pool Size, in the medium priority queue this
+     * results in the maximum number of threads that will be run
      * due to the way the pool is setup.
      * @param corePoolSize
      */
@@ -151,13 +151,16 @@ public interface BackgroundProcessing extends ILifecycle {
 
     List<WorkItemInfo> getLowPriorityServiceQueueItems();
 
-    //Lifecycle Interface 
+    //Lifecycle Interface
+    @Override
     void initialize(boolean safe);
 
+    @Override
     void terminate();
 
+    @Override
     void joinTermination();
-    
+
     TaskRejectionHandler getHighPriorityRejectionHandler();
 
     TaskRejectionHandler getMediumPriorityRejectionHandler();
