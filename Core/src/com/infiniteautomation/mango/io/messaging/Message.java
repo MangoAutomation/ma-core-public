@@ -8,12 +8,12 @@ package com.infiniteautomation.mango.io.messaging;
  *
  * @author Terry Packer
  */
-public interface SentMessage {
+public interface Message {
 
     /**
-     * The transport that sent me
+     * Type of message
      * @return
      */
-    MessageTransport getTransport();
+    public MessageType getType();
 
 }

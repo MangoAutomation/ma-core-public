@@ -30,6 +30,13 @@ import com.serotonin.web.mail.EmailSender;
 public class EmailWorkItem implements WorkItem {
     private static final Log LOG = LogFactory.getLog(EmailWorkItem.class);
 
+    public EmailWorkItem(InternetAddress[] toAddrs, String subject, EmailContent content, PostEmailRunnable[] postSendExecution) {
+        this.toAddresses = toAddrs;
+        this.subject = subject;
+        this.content = content;
+        this.postSendExecution = postSendExecution;
+    }
+
     @Override
     public int getPriority() {
         return WorkItem.PRIORITY_LOW; //Changed from medium to low as it isn't as important as Data Point Listener callbacks
@@ -50,16 +57,11 @@ public class EmailWorkItem implements WorkItem {
 
     public static void queueEmail(String[] toAddrs, String subject, EmailContent content, PostEmailRunnable[] postSendExecution)
             throws AddressException {
-        EmailWorkItem item = new EmailWorkItem();
-
-        item.toAddresses = new InternetAddress[toAddrs.length];
+        InternetAddress[] toAddresses = new InternetAddress[toAddrs.length];
         for (int i = 0; i < toAddrs.length; i++)
-            item.toAddresses[i] = new InternetAddress(toAddrs[i]);
+            toAddresses[i] = new InternetAddress(toAddrs[i]);
 
-        item.subject = subject;
-        item.content = content;
-        item.postSendExecution = postSendExecution;
-
+        EmailWorkItem item = new EmailWorkItem(toAddresses, subject, content, postSendExecution);
         Common.backgroundProcessing.addWorkItem(item);
     }
 

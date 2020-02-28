@@ -43,12 +43,12 @@ import com.serotonin.timer.TimerTask;
 /**
  * A cheesy name for a class, i know, but it pretty much says it like it is. This class keeps an inbox of items to
  * process, and oddly enough, processes them. (Oh, and removes them from the inbox when it's done.)
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class BackgroundProcessingImpl implements BackgroundProcessing {
     final Log log = LogFactory.getLog(BackgroundProcessingImpl.class);
-    
+
     //Private access to our timer
     protected AbstractTimer timer;
     protected OrderedThreadPoolExecutor highPriorityService;
@@ -56,98 +56,98 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     protected TaskRejectionHandler mediumPriorityRejectionHandler;
     protected OrderedThreadPoolExecutor mediumPriorityService;
     protected ThreadPoolExecutor lowPriorityService;
-    
+
     protected int state = PRE_INITIALIZE;
 
     @Override
     public void execute(HighPriorityTask task){
         this.timer.execute(task);
     }
-    
-	@Override
+
+    @Override
     public void schedule(TimeoutTask task) {
-		this.timer.schedule(task);
-	}
+        this.timer.schedule(task);
+    }
 
-	@Override
+    @Override
     public void schedule(TimerTask task) {
-		this.timer.schedule(task);
-	}
+        this.timer.schedule(task);
+    }
 
-	@Override
+    @Override
     public void executeMediumPriorityTask(TimerTask task){
-		this.mediumPriorityService.execute(new TaskWrapper(task, this.timer.currentTimeMillis()));
-	}
+        this.mediumPriorityService.execute(new TaskWrapper(task, this.timer.currentTimeMillis()));
+    }
 
     @Override
     public void addWorkItem(final WorkItem item) {
         try{
-	        if (item.getPriority() == WorkItem.PRIORITY_HIGH){
-	        	timer.execute(new RejectableWorkItemRunnable(item, this.highPriorityRejectionHandler));
-	        }
-	        else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM){
-	            mediumPriorityService.execute(new TaskWrapper(new RejectableWorkItemRunnable(item, this.mediumPriorityRejectionHandler), this.timer.currentTimeMillis()));
-	        }
-	        else{
-	            lowPriorityService.execute(new WorkItemRunnable(item));
-	        }
+            if (item.getPriority() == WorkItem.PRIORITY_HIGH){
+                timer.execute(new RejectableWorkItemRunnable(item, this.highPriorityRejectionHandler));
+            }
+            else if (item.getPriority() == WorkItem.PRIORITY_MEDIUM){
+                mediumPriorityService.execute(new TaskWrapper(new RejectableWorkItemRunnable(item, this.mediumPriorityRejectionHandler), this.timer.currentTimeMillis()));
+            }
+            else{
+                lowPriorityService.execute(new WorkItemRunnable(item));
+            }
         }catch(RejectedExecutionException e){
-        	log.fatal(new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()).translate(Common.getTranslations()), e);
+            log.fatal(new TranslatableMessage("event.system.rejectedWorkItemMessage", e.getMessage()).translate(Common.getTranslations()), e);
         }
     }
-    
+
     @Override
     public void rejectedHighPriorityTask(RejectedTaskReason reason){
-    	    highPriorityRejectionHandler.rejectedTask(reason);
+        highPriorityRejectionHandler.rejectedTask(reason);
     }
-    
+
     @Override
     public int getHighPriorityServiceScheduledTaskCount(){
         return this.timer.size();
     }
-    
+
     @Override
     public int getHighPriorityServiceQueueSize(){
-    	    return highPriorityService.getQueue().size();
+        return highPriorityService.getQueue().size();
     }
-    
+
     @Override
     public int getHighPriorityServiceActiveCount(){
-    	    return highPriorityService.getActiveCount();
+        return highPriorityService.getActiveCount();
     }
-    
+
     @Override
     public int getHighPriorityServiceCorePoolSize(){
-    	    return highPriorityService.getCorePoolSize();
+        return highPriorityService.getCorePoolSize();
     }
 
     @Override
     public int getHighPriorityServiceLargestPoolSize(){
         return this.highPriorityService.getLargestPoolSize();
-    }    
-    
+    }
+
     @Override
     public List<OrderedTaskInfo> getHighPriorityOrderedQueueStats(){
-      	return this.highPriorityService.getOrderedQueueInfo();
+        return this.highPriorityService.getOrderedQueueInfo();
     }
-    
+
     @Override
     public void setHighPriorityServiceCorePoolSize(int size){
-    	if(size > HIGH_PRI_MAX_POOL_SIZE_MIN)
-    		highPriorityService.setCorePoolSize(size);
+        if(size > HIGH_PRI_MAX_POOL_SIZE_MIN)
+            highPriorityService.setCorePoolSize(size);
     }
 
     @Override
     public void setHighPriorityServiceMaximumPoolSize(int size){
-		if(highPriorityService.getCorePoolSize() < size)
-			highPriorityService.setMaximumPoolSize(size);
+        if(highPriorityService.getCorePoolSize() < size)
+            highPriorityService.setMaximumPoolSize(size);
     }
 
     @Override
     public int getHighPriorityServiceMaximumPoolSize(){
-    	    return highPriorityService.getMaximumPoolSize();
+        return highPriorityService.getMaximumPoolSize();
     }
-    
+
     @Override
     public Map<String, Integer> getHighPriorityServiceQueueClassCounts() {
         Iterator<TimerTask> iter = timer.getTasks().iterator();
@@ -180,9 +180,9 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
     @Override
     public List<OrderedTaskInfo> getMediumPriorityOrderedQueueStats(){
-      	return this.mediumPriorityService.getOrderedQueueInfo();
+        return this.mediumPriorityService.getOrderedQueueInfo();
     }
-    
+
     @Override
     public List<WorkItemInfo> getHighPriorityServiceItems(){
         List<WorkItemInfo> list = new ArrayList<WorkItemInfo>();
@@ -196,7 +196,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
     @Override
     public List<WorkItemInfo> getMediumPriorityServiceQueueItems(){
-    	    return getQueueItems(mediumPriorityService, "MEDIUM");
+        return getQueueItems(mediumPriorityService, "MEDIUM");
     }
 
     @Override
@@ -215,17 +215,17 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             }
         }
     }
-    
+
     @Override
     public int getMediumPriorityServiceCorePoolSize(){
         return this.mediumPriorityService.getCorePoolSize();
     }
-    
+
     @Override
     public int getMediumPriorityServiceMaximumPoolSize(){
         return this.mediumPriorityService.getMaximumPoolSize();
     }
-    
+
     @Override
     public int getMediumPriorityServiceActiveCount(){
         return this.mediumPriorityService.getActiveCount();
@@ -234,8 +234,8 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
     @Override
     public int getMediumPriorityServiceLargestPoolSize(){
         return this.mediumPriorityService.getLargestPoolSize();
-    }    
-    
+    }
+
     @Override
     public void setLowPriorityServiceCorePoolSize(int corePoolSize){
         if (corePoolSize > LOW_PRI_MAX_POOL_SIZE_MIN) {
@@ -252,37 +252,37 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
             }
         }
     }
-    
+
     @Override
     public int getLowPriorityServiceCorePoolSize(){
-    	return this.lowPriorityService.getCorePoolSize();
+        return this.lowPriorityService.getCorePoolSize();
     }
 
     @Override
     public int getLowPriorityServiceMaximumPoolSize(){
-    	return this.lowPriorityService.getMaximumPoolSize();
+        return this.lowPriorityService.getMaximumPoolSize();
     }
 
     @Override
     public int getLowPriorityServiceActiveCount(){
-    	return this.lowPriorityService.getActiveCount();
+        return this.lowPriorityService.getActiveCount();
     }
 
     @Override
     public int getLowPriorityServiceLargestPoolSize(){
-    	return this.lowPriorityService.getLargestPoolSize();
-    }  
+        return this.lowPriorityService.getLargestPoolSize();
+    }
 
     @Override
     public int getLowPriorityServiceQueueSize() {
         return lowPriorityService.getQueue().size();
     }
-    
+
     @Override
     public List<WorkItemInfo> getLowPriorityServiceQueueItems(){
-    	return getQueueItems(lowPriorityService, "LOW");
+        return getQueueItems(lowPriorityService, "LOW");
     }
-    
+
     private Map<String, Integer> getClassCounts(ThreadPoolExecutor e) {
         Map<String, Integer> classCounts = new HashMap<>();
         Iterator<Runnable> iter = e.getQueue().iterator();
@@ -297,18 +297,18 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         }
         return classCounts;
     }
-    
+
     private List<WorkItemInfo> getQueueItems(ThreadPoolExecutor e, String priority){
-    	List<WorkItemInfo> list = new ArrayList<WorkItemInfo>();
-    	Iterator<Runnable> iter = e.getQueue().iterator();
-    	while (iter.hasNext()) {
+        List<WorkItemInfo> list = new ArrayList<WorkItemInfo>();
+        Iterator<Runnable> iter = e.getQueue().iterator();
+        while (iter.hasNext()) {
             Runnable r = iter.next();
             WorkItemRunnable wir = (WorkItemRunnable)r;
             list.add(new WorkItemInfo(wir.getWorkItem().getClass().getCanonicalName(), wir.getWorkItem().getDescription(), priority));
         }
-    	return list;
+        return list;
     }
-    
+
     @Override
     public void initialize(boolean safe) {
         if (state != PRE_INITIALIZE)
@@ -316,50 +316,50 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
         // Set the started indicator to true.
         state = INITIALIZE;
-        
-	    try {
-	        this.timer = Providers.get(TimerProvider.class).getTimer();
-	        this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
-	        this.highPriorityRejectionHandler = new TaskRejectionHandler();
-	        this.mediumPriorityRejectionHandler = new TaskRejectionHandler();
+
+        try {
+            this.timer = Providers.get(TimerProvider.class).getTimer();
+            this.highPriorityService = (OrderedThreadPoolExecutor)timer.getExecutorService();
+            this.highPriorityRejectionHandler = new TaskRejectionHandler();
+            this.mediumPriorityRejectionHandler = new TaskRejectionHandler();
         }
         catch (ProviderNotFoundException e) {
             throw new ShouldNeverHappenException(e);
         }
         this.highPriorityService.setRejectedExecutionHandler(this.highPriorityRejectionHandler);
-    
-    	//Adjust the high priority pool sizes now
-    	int corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
-    	int maxPoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
-    	this.highPriorityService.setCorePoolSize(corePoolSize);
-    	this.highPriorityService.setMaximumPoolSize(maxPoolSize);
-    	
-    	//TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
-    	Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
-    	
-    	//Pull our settings from the System Settings
-    	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
-    	
-    	//Sanity check to ensure the pool sizes are appropriate
-    	if(corePoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
-    		corePoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
-    	mediumPriorityService = new OrderedThreadPoolExecutor(
-    	       		corePoolSize,
-    	       		corePoolSize,
-    	      		60L,
-    	      		TimeUnit.SECONDS,
-    	            new LinkedBlockingQueue<Runnable>(),
-    	            new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Common.getModuleClassLoader()),
-    	      		mediumPriorityRejectionHandler,
-    	      		Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
-    	      		Common.timer.getTimeSource());
-        
-    	corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
-    	//Sanity check to ensure the pool sizes are appropriate
-    	if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
-    	    corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
+
+        //Adjust the high priority pool sizes now
+        int corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_CORE_POOL_SIZE);
+        int maxPoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.HIGH_PRI_MAX_POOL_SIZE);
+        this.highPriorityService.setCorePoolSize(corePoolSize);
+        this.highPriorityService.setMaximumPoolSize(maxPoolSize);
+
+        //TODO Quick Fix for Setting default size somewhere other than in Lifecycle or Main
+        Common.defaultTaskQueueSize = Common.envProps.getInt("runtime.realTimeTimer.defaultTaskQueueSize", 1);
+
+        //Pull our settings from the System Settings
+        corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.MED_PRI_CORE_POOL_SIZE);
+
+        //Sanity check to ensure the pool sizes are appropriate
+        if(corePoolSize < MED_PRI_MAX_POOL_SIZE_MIN)
+            corePoolSize = MED_PRI_MAX_POOL_SIZE_MIN;
+        mediumPriorityService = new OrderedThreadPoolExecutor(
+                corePoolSize,
+                corePoolSize,
+                60L,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<Runnable>(),
+                new MangoThreadFactory("medium", Thread.MAX_PRIORITY - 2, Common.getModuleClassLoader()),
+                mediumPriorityRejectionHandler,
+                Common.envProps.getBoolean("runtime.realTimeTimer.flushTaskQueueOnReject", false),
+                Common.timer.getTimeSource());
+
+        corePoolSize = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.LOW_PRI_CORE_POOL_SIZE);
+        //Sanity check to ensure the pool sizes are appropriate
+        if(corePoolSize < LOW_PRI_MAX_POOL_SIZE_MIN)
+            corePoolSize = LOW_PRI_MAX_POOL_SIZE_MIN;
         lowPriorityService = new ThreadPoolExecutor(corePoolSize, corePoolSize, 0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY, Common.getModuleClassLoader()));
+                new LinkedBlockingQueue<Runnable>(), new MangoThreadFactory("low", Thread.NORM_PRIORITY, Common.getModuleClassLoader()));
         this.state = RUNNING;
     }
 
@@ -368,31 +368,31 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
         if (state != RUNNING)
             return;
         state = TERMINATE;
-        
+
         // Close the executor services.
-    	if(highPriorityService != null){
-        	//Terminate the RealTimeTimer
+        if(highPriorityService != null){
+            //Terminate the RealTimeTimer
             if (Common.timer.isInitialized()) {
-          	  List<TimerTask> tasks = Common.timer.cancel();
-          	  for(TimerTask task : tasks)
-          		  task.cancel();
+                List<TimerTask> tasks = Common.timer.cancel();
+                for(TimerTask task : tasks)
+                    task.cancel();
             }
-    		highPriorityService.shutdown();
-    	}
-    	if(mediumPriorityService != null)
-    		mediumPriorityService.shutdown();
-    	if(lowPriorityService != null)
-    		lowPriorityService.shutdown();
+            highPriorityService.shutdown();
+        }
+        if(mediumPriorityService != null)
+            mediumPriorityService.shutdown();
+        if(lowPriorityService != null)
+            lowPriorityService.shutdown();
     }
 
     @Override
     public void joinTermination() {
-    	if(state != TERMINATE)
-    		return;
-    	state = POST_TERMINATE;
+        if(state != TERMINATE)
+            return;
+        state = POST_TERMINATE;
         boolean medDone = false;
         boolean lowDone = false;
-        
+
         try {
 
             // With 5 second waits and a worst case of both of both high and low priority jobs that just won't finish,
@@ -409,7 +409,7 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
                 if ((!lowDone && !medDone)&&(rewaits % 5 == 0))
                     log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + mediumPriorityService.getActiveCount() +
-                            " active and " + mediumPriorityService.getQueue().size() + " queued medium priority tasks to complete.\n" + 
+                            " active and " + mediumPriorityService.getQueue().size() + " queued medium priority tasks to complete.\n" +
                             "BackgroundProcessing waiting " + rewaits + " more seconds for " + lowPriorityService.getActiveCount() +
                             " active and " + lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
                 else if ((!medDone)&&(rewaits % 5 == 0))
@@ -420,35 +420,35 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
                             " active and " +lowPriorityService.getQueue().size() + " queued low priority tasks to complete.");
                 rewaits--;
             }
-            
+
             //Wait for the high tasks now
             rewaits = Common.envProps.getInt("runtime.shutdown.highTimeout", 60) - rewaits;
             while(rewaits > 0){
-            	if(highPriorityService.awaitTermination(1, TimeUnit.SECONDS))
-            		break;
-            	if(rewaits % 5 == 0)
+                if(highPriorityService.awaitTermination(1, TimeUnit.SECONDS))
+                    break;
+                if(rewaits % 5 == 0)
                     log.info("BackgroundProcessing waiting " + rewaits + " more seconds for " + highPriorityService.getActiveCount() +
                             " active and " + highPriorityService.getQueue().size() + " queued high priority tasks to complete.");
-            	
-            	rewaits--;
+
+                rewaits--;
             }
-            
+
             List<Runnable> highTasks = highPriorityService.shutdownNow();
             if(highTasks.size() == 0)
-            	log.info("All high priority tasks exited gracefully.");
+                log.info("All high priority tasks exited gracefully.");
             else
-            	log.info(highTasks.size() + " high priority tasks forcefully terminated.");
-            
+                log.info(highTasks.size() + " high priority tasks forcefully terminated.");
+
             List<Runnable> medTasks = mediumPriorityService.shutdownNow();
             if(medTasks.size() == 0)
-            	log.info("All medium priority tasks exited gracefully.");
+                log.info("All medium priority tasks exited gracefully.");
             else
-            	log.info(medTasks.size() + " medium priority tasks forcefully terminated.");
+                log.info(medTasks.size() + " medium priority tasks forcefully terminated.");
             List<Runnable> lowTasks = lowPriorityService.shutdownNow();
             if(lowTasks.size() == 0)
-            	log.info("All low priority tasks exited gracefully.");
+                log.info("All low priority tasks exited gracefully.");
             else
-            	log.info(lowTasks.size() + " low priority tasks forcefully terminated.");
+                log.info(lowTasks.size() + " low priority tasks forcefully terminated.");
         }
         catch (InterruptedException e) {
             log.info("", e);
@@ -458,17 +458,17 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
 
     @Override
     public TaskRejectionHandler getHighPriorityRejectionHandler(){
-    	return this.highPriorityRejectionHandler;
+        return this.highPriorityRejectionHandler;
     }
 
     @Override
     public TaskRejectionHandler getMediumPriorityRejectionHandler(){
-    	return this.mediumPriorityRejectionHandler;
+        return this.mediumPriorityRejectionHandler;
     }
-    
+
     @Override
     public List<ThreadInfo> getThreadsList(int stackDepth){
-    	
+
         // All of the last thread ids. Ids are removed from this set as they are processed. If ids remain,
         // it means the thread is gone and should be removed from the map.
 
@@ -480,9 +480,9 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
                 continue;
             infos.add(thread);
         }
-		return infos;
+        return infos;
     }
-    
+
     /**
      * Helper class to get more info on Work Items while queued up
      * @author Terry Packer
@@ -490,46 +490,46 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      */
     public class RejectableWorkItemRunnable extends Task{
 
-    	final WorkItem item;
-    	final TaskRejectionHandler rejectionHandler;
-    	
-    	/**
-		 * @param name
-		 */
-		public RejectableWorkItemRunnable(WorkItem item, TaskRejectionHandler rejectionHandler) {
-			super(item.getDescription(), item.getTaskId(), item.getQueueSize());
-			this.item = item;
-			this.rejectionHandler = rejectionHandler;
-		}
+        final WorkItem item;
+        final TaskRejectionHandler rejectionHandler;
 
-		@Override
-		public void run(long runtime) {
+        /**
+         * @param name
+         */
+        public RejectableWorkItemRunnable(WorkItem item, TaskRejectionHandler rejectionHandler) {
+            super(item.getDescription(), item.getTaskId(), item.getQueueSize());
+            this.item = item;
+            this.rejectionHandler = rejectionHandler;
+        }
+
+        @Override
+        public void run(long runtime) {
             try {
                 item.execute();
             }
             catch (Throwable t) {
-            	log.error("Error in work item", t);
+                log.error("Error in work item", t);
             }
         }
-		
-		public WorkItem getWorkItem(){
-			return this.item;
-		}
-		
-		@Override
-		public String toString() {
-			return item.getDescription();
-		}
 
-		@Override
-		public void rejected(RejectedTaskReason reason) {
-		    try {
-    			item.rejected(reason);
-    			rejectionHandler.rejectedTask(reason);
-		    }catch(Exception e){
-	            log.error("Uncaught work item rejection exception", e);
-	        }
-		}
+        public WorkItem getWorkItem(){
+            return this.item;
+        }
+
+        @Override
+        public String toString() {
+            return item.getDescription();
+        }
+
+        @Override
+        public void rejected(RejectedTaskReason reason) {
+            try {
+                item.rejected(reason);
+                rejectionHandler.rejectedTask(reason);
+            }catch(Exception e){
+                log.error("Uncaught work item rejection exception", e);
+            }
+        }
     }
 
     /**
@@ -538,13 +538,13 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
      *
      */
     public class WorkItemRunnable implements Runnable{
-    	
-    	public WorkItemRunnable(WorkItem item){
-    		this.item = item;
-    	}
-    	WorkItem item;
-    	
-    	@Override
+
+        public WorkItemRunnable(WorkItem item){
+            this.item = item;
+        }
+        WorkItem item;
+
+        @Override
         public void run() {
             try {
                 item.execute();
@@ -557,25 +557,25 @@ public class BackgroundProcessingImpl implements BackgroundProcessing {
                 if(item.getTaskId() != null) {
                     message += " with id " + item.getTaskId();
                 }
-            	log.error(message, t);
+                log.error(message, t);
             }
         }
 
-		public WorkItem getWorkItem(){
-			return this.item;
-		}
+        public WorkItem getWorkItem(){
+            return this.item;
+        }
 
-		@Override
-		public String toString() {
-			return item.getDescription();
-		}
-		public Class<?> getWorkItemClass() {
-			return item.getClass();
-		}
+        @Override
+        public String toString() {
+            return item.getDescription();
+        }
+        public Class<?> getWorkItemClass() {
+            return item.getClass();
+        }
 
-		public String getDescription() {
-			return item.getDescription();
-		}
-    	
+        public String getDescription() {
+            return item.getDescription();
+        }
+
     }
 }
