@@ -121,7 +121,7 @@ public abstract class ConvertingRenderer extends BaseTextRenderer {
             if(renderedUnit == null)
                 result.addContextualMessage("renderedUnit", "validate.required");
         }
-        if(unit != null && renderedUnit!= null & !renderedUnit.isCompatible(unit))
+        if(unit != null && renderedUnit!= null && !renderedUnit.isCompatible(unit))
             result.addContextualMessage("renderedUnit", "validate.unitNotCompatible");
     }
 }
