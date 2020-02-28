@@ -15,7 +15,7 @@ public interface MessageReceivedListener {
      * @param type
      * @return
      */
-    public boolean supportsReceiving(MessageType type);
+    public boolean supportsReceiving(Message type);
 
     /**
      * A message was recieved

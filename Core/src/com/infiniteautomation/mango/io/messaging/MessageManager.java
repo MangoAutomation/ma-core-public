@@ -34,13 +34,13 @@ public interface MessageManager extends ILifecycle  {
     public CompletionStage<SentMessage> sendMessageUsingFirstAvailableTransport(Message message);
 
     /**
-     * Get the highest priority sender for this type
+     * Get the highest priority transport for this type of messages
      *
      * @param type
      * @return
      * @throws NoTransportAvailableException
      */
-    MessageTransport getPrioritySender(MessageType type) throws NoTransportAvailableException;
+    MessageTransport getPriorityTransport(Message type) throws NoTransportAvailableException;
 
     /**
      * Get all senders running in Mango

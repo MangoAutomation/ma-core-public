@@ -20,14 +20,14 @@ public interface MessageTransport extends ILifecycle {
      * @param type
      * @return
      */
-    public boolean supportsSending(MessageType type);
+    public boolean supportsSending(Message type);
 
     /**
      * Does this transport support receiving this type of message?
      * @param type
      * @return
      */
-    public boolean supportsReceiving(MessageType type);
+    public boolean supportsReceiving(Message type);
 
     /**
      * Send a message, must be done in separate thread to not

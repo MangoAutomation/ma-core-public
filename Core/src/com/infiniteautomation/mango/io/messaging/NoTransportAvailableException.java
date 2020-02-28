@@ -16,12 +16,12 @@ public class NoTransportAvailableException extends MessageSendException {
     private final Message failedMessage;
 
     public NoTransportAvailableException(Message message) {
-        super(new TranslatableMessage("messaging.noTransportAvailable", message.getType()), null);
+        super(new TranslatableMessage("messaging.noTransportAvailable", message.getClass().getSimpleName()), null);
         this.failedMessage = message;
     }
 
-    public NoTransportAvailableException(MessageType type) {
-        super(new TranslatableMessage("messaging.noTransportAvailable", type), null);
+    public NoTransportAvailableException(Class<Message> type) {
+        super(new TranslatableMessage("messaging.noTransportAvailable", type.getSimpleName()), null);
         this.failedMessage = null;
     }
 

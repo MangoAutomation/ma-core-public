@@ -10,10 +10,4 @@ package com.infiniteautomation.mango.io.messaging;
  */
 public interface Message {
 
-    /**
-     * Type of message
-     * @return
-     */
-    public MessageType getType();
-
 }

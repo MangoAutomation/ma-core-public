@@ -9,7 +9,6 @@ import java.util.Set;
 import javax.mail.internet.InternetAddress;
 
 import com.infiniteautomation.mango.io.messaging.Message;
-import com.infiniteautomation.mango.io.messaging.MessageType;
 import com.serotonin.web.mail.EmailContent;
 
 /**
@@ -43,10 +42,5 @@ public class EmailMessage implements Message {
 
     public EmailContent getContent() {
         return content;
-    }
-
-    @Override
-    public MessageType getType() {
-        return MessageType.EMAIL;
     }
 }

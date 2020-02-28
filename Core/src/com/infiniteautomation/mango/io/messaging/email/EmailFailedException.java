@@ -18,8 +18,8 @@ public class EmailFailedException extends MessageSendException {
 
     private final String session;
 
-    public EmailFailedException(Exception root, String session) {
-        super(new TranslatableMessage("event.system.email"), root);
+    public EmailFailedException(Exception root, String subject, String to, String session) {
+        super(new TranslatableMessage("event.email.failure", subject, to, root.getMessage()), root);
         this.session = session;
     }
 

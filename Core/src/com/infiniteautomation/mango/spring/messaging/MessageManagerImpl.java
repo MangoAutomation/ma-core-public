@@ -17,7 +17,6 @@ import com.infiniteautomation.mango.io.messaging.Message;
 import com.infiniteautomation.mango.io.messaging.MessageManager;
 import com.infiniteautomation.mango.io.messaging.MessageReceivedListener;
 import com.infiniteautomation.mango.io.messaging.MessageTransport;
-import com.infiniteautomation.mango.io.messaging.MessageType;
 import com.infiniteautomation.mango.io.messaging.NoTransportAvailableException;
 import com.infiniteautomation.mango.io.messaging.SentMessage;
 import com.serotonin.util.LifecycleException;
@@ -65,7 +64,7 @@ public class MessageManagerImpl implements MessageManager,MessageReceivedListene
     public List<CompletionStage<SentMessage>> sendMessage(Message message) {
         List<CompletionStage<SentMessage>> sent = new ArrayList<>();
         for(MessageTransport sender : this.senders) {
-            if(sender.supportsSending(message.getType())) {
+            if(sender.supportsSending(message)) {
                 sent.add(sender.sendMessage(message));
             }
         }
@@ -75,7 +74,7 @@ public class MessageManagerImpl implements MessageManager,MessageReceivedListene
     @Override
     public CompletionStage<SentMessage> sendMessageUsingFirstAvailableTransport(Message message) {
         for(MessageTransport sender : this.senders) {
-            if(sender.supportsSending(message.getType())) {
+            if(sender.supportsSending(message)) {
                 return sender.sendMessage(message);
             }
         }
@@ -91,14 +90,14 @@ public class MessageManagerImpl implements MessageManager,MessageReceivedListene
     }
 
     @Override
-    public boolean supportsReceiving(MessageType type) {
+    public boolean supportsReceiving(Message type) {
         return true;
     }
 
     @Override
     public void messageReceived(String from, Message message) {
         for(MessageReceivedListener listener : this.listeners) {
-            if(listener.supportsReceiving(message.getType())) {
+            if(listener.supportsReceiving(message)) {
                 listener.messageReceived(from, message);
             }
         }
@@ -115,7 +114,7 @@ public class MessageManagerImpl implements MessageManager,MessageReceivedListene
     }
 
     @Override
-    public MessageTransport getPrioritySender(MessageType type) throws NoTransportAvailableException {
+    public MessageTransport getPriorityTransport(Message type) throws NoTransportAvailableException {
         for(MessageTransport sender : this.senders) {
             if(sender.supportsSending(type)) {
                 return sender;

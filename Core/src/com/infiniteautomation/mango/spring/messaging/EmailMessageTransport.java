@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import com.infiniteautomation.mango.io.messaging.Message;
 import com.infiniteautomation.mango.io.messaging.MessageReceivedListener;
 import com.infiniteautomation.mango.io.messaging.MessageTransport;
-import com.infiniteautomation.mango.io.messaging.MessageType;
 import com.infiniteautomation.mango.io.messaging.SentMessage;
 import com.infiniteautomation.mango.io.messaging.email.EmailFailedException;
 import com.infiniteautomation.mango.io.messaging.email.EmailMessage;
@@ -60,12 +59,12 @@ public class EmailMessageTransport implements MessageTransport {
     }
 
     @Override
-    public boolean supportsSending(MessageType type) {
-        return MessageType.EMAIL == type;
+    public boolean supportsSending(Message type) {
+        return EmailMessage.class.equals(type.getClass());
     }
 
     @Override
-    public boolean supportsReceiving(MessageType type) {
+    public boolean supportsReceiving(Message type) {
         return false;
     }
 
@@ -108,7 +107,7 @@ public class EmailMessageTransport implements MessageTransport {
                     }catch (Exception e) {
                         LOG.warn("Error sending email", e);
                         String debug = new String(baos.toByteArray(), StandardCharsets.UTF_8);
-                        EmailFailedException failure = new EmailFailedException(e, debug);
+                        EmailFailedException failure = new EmailFailedException(e, m.getSubject(), m.getToAddresses().toString(), debug);
                         f.completeExceptionally(failure);
                     }
                 }
