@@ -66,9 +66,10 @@ public class PermissionService {
     public PermissionService(RoleDao roleDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     PermissionHolder systemSuperadmin,
+    DataSourcePermissionDefinition dataSourcePermission,
     EventsViewPermissionDefinition eventsView) {
         this.roleDao = roleDao;
-        this.dataSourcePermission = (DataSourcePermissionDefinition) ModuleRegistry.getPermissionDefinition(DataSourcePermissionDefinition.PERMISSION);
+        this.dataSourcePermission = dataSourcePermission;
         this.systemSuperadmin = systemSuperadmin;
         this.eventsViewPermission = eventsView;
     }

@@ -62,6 +62,7 @@ import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDef
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreReadPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
+import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.PublicFileStoreWritePermissionDefinition;
@@ -851,6 +852,7 @@ public class ModuleRegistry {
         preDefaults.add(new UserCreatePermission());
         preDefaults.add(new EventHandlerCreatePermission());
         preDefaults.add(new SystemMetricsReadPermissionDefinition());
+        preDefaults.add(new EventsViewPermissionDefinition());
 
         /* Read Only Settings */
         preDefaults.add(new TimezoneInfoDefinition());
