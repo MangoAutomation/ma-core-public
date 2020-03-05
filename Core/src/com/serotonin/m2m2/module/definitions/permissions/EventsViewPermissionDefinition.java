@@ -13,6 +13,9 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
+ * Permission to view any events, each individual event is also restricted
+ *  based on the event type permission.
+ *
  * @author Terry Packer
  *
  */

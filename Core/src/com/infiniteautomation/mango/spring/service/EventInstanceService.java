@@ -9,6 +9,7 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,10 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * @throws PermissionException
      */
     public List<UserEventLevelSummary> getActiveSummary() throws PermissionException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        this.permissionService.ensureEventsVewPermission(user);
+
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
         for (AlarmLevels level : AlarmLevels.values()) {
             if(level == AlarmLevels.IGNORE) {
@@ -90,6 +95,10 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * @return
      */
     public List<UserEventLevelSummary> getUnacknowledgedSummary() {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        this.permissionService.ensureEventsVewPermission(user);
+
         Map<AlarmLevels, UserEventLevelSummary> summaries = new EnumMap<>(AlarmLevels.class);
         for (AlarmLevels level : AlarmLevels.values()) {
             if(level == AlarmLevels.IGNORE) {
@@ -115,6 +124,10 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      * @throws PermissionException
      */
     public Collection<DataPointEventLevelSummary> getDataPointEventSummaries(String[] dataPointXids) throws NotFoundException, PermissionException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        this.permissionService.ensureEventsVewPermission(user);
+
         Map<Integer, DataPointEventLevelSummary> map = new LinkedHashMap<>();
         for(String xid : dataPointXids) {
             Integer point = dataPointService.getDao().getIdByXid(xid);
@@ -139,7 +152,9 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
      */
     public List<EventInstance> getAllActiveUserEvents() {
         PermissionHolder user = Common.getUser();
-        this.permissionService.ensureValidPermissionHolder(user);
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+        this.permissionService.ensureEventsVewPermission(user);
+
         return Common.eventManager.getAllActiveUserEvents(user);
     }
 

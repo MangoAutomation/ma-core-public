@@ -30,6 +30,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -59,14 +60,17 @@ public class PermissionService {
     private final RoleDao roleDao;
     private final DataSourcePermissionDefinition dataSourcePermission;
     private final PermissionHolder systemSuperadmin;
+    private final EventsViewPermissionDefinition eventsViewPermission;
 
     @Autowired
     public PermissionService(RoleDao roleDao,
             @Qualifier(MangoRuntimeContextConfiguration.SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
-    PermissionHolder systemSuperadmin) {
+    PermissionHolder systemSuperadmin,
+    EventsViewPermissionDefinition eventsView) {
         this.roleDao = roleDao;
         this.dataSourcePermission = (DataSourcePermissionDefinition) ModuleRegistry.getPermissionDefinition(DataSourcePermissionDefinition.PERMISSION);
         this.systemSuperadmin = systemSuperadmin;
+        this.eventsViewPermission = eventsView;
     }
 
     /**
@@ -399,7 +403,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasEventTypePermission(PermissionHolder user, EventType eventType) {
-        return hasAdminRole(user) || eventType.hasPermission(user, this);
+        return hasAdminRole(user) || (hasEventsViewPermission(user) && eventType.hasPermission(user, this));
     }
 
     /**
@@ -421,6 +425,28 @@ public class PermissionService {
      */
     public void ensureEventTypePermission(PermissionHolder user, EventTypeVO eventType) throws PermissionException {
         ensureEventTypePermission(user, eventType.getEventType());
+    }
+
+    /**
+     * Can this user view any events?
+     * @param user
+     * @return
+     */
+    public boolean hasEventsViewPermission (PermissionHolder user) {
+        if (!isValidPermissionHolder(user)) return false;
+
+        if(user.hasAdminRole()) return true;
+
+        return hasPermission(user, eventsViewPermission.getPermission());
+    }
+
+    /**
+     * Ensure this user can view any events?
+     * @param user
+     */
+    public void ensureEventsVewPermission(PermissionHolder user) {
+        if (!hasEventsViewPermission(user))
+            throw new PermissionException(new TranslatableMessage("permission.exception.event", user.getPermissionHolderName()), user);
     }
 
     /**
