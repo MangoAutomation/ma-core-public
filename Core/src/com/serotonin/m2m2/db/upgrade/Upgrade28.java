@@ -61,7 +61,7 @@ public class Upgrade28 extends DBUpgrade {
 
             if (duplicates.size() > 0) {
                 duplicates.stream().forEach(u -> {
-                    String uniqueEmail = u.email + UUID.randomUUID();
+                    String uniqueEmail = UUID.randomUUID() + u.email;
                     if(uniqueEmail.length() > 255) {
                         uniqueEmail = uniqueEmail.substring(uniqueEmail.length() - 255, uniqueEmail.length());
                     }
