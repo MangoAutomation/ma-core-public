@@ -158,6 +158,9 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             vo.setCreated(new Date());
         }
 
+        //After validation we can set password changed date
+        vo.setPasswordChangeTimestamp(Common.timer.currentTimeMillis());
+
         dao.insert(vo);
         return vo;
     }
