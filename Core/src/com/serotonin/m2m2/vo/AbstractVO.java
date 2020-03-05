@@ -6,8 +6,6 @@
 package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import com.serotonin.ShouldNeverHappenException;
@@ -19,8 +17,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
-import com.serotonin.m2m2.util.MapWrap;
-import com.serotonin.util.SerializationHelper;
 
 /**
  * Copyright (C) 2013 Deltamation Software. All rights reserved.
@@ -32,12 +28,6 @@ JsonSerializable, Cloneable {
 
     protected static final String DEFAULT_MISSING_IMPORT_KEY = "emport.error.missingValue";
     protected static final String DEFAULT_WRONG_DATA_TYPE_KEY = "emport.error.wrongDataType";
-
-    /**
-     * Allows the conversion of VOs between code versions by providing access to properties that would otherwise have
-     * been expunged by the version handling in the readObject method.
-     */
-    private transient MapWrap deletedProperties;
 
     /*
      * Mango properties
@@ -137,39 +127,7 @@ JsonSerializable, Cloneable {
     /*
      * Serialization
      */
-
     private static final long serialVersionUID = -1;
-
-    /*
-     * Deleted properties
-     */
-    public void saveDeleteProperty(String key, Object value) {
-        if (deletedProperties == null)
-            deletedProperties = new MapWrap();
-        deletedProperties.put(key, value);
-    }
-
-    public MapWrap deletedProperties() {
-        return deletedProperties;
-    }
-
-    protected void writeDeletedProperties(ObjectOutputStream out) throws IOException {
-        SerializationHelper.writeObject(out, deletedProperties());
-    }
-
-    protected void readDeletedProperties(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        MapWrap del = (MapWrap) in.readObject();
-        if (del != null) {
-            if (deletedProperties != null)
-                // Merge
-                del.putAll(deletedProperties);
-            deletedProperties = del;
-        }
-    }
-
-    /*
-     * ChangeComparable
-     */
 
     /**
      * Get the Audit Message Key
