@@ -25,7 +25,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.infiniteautomation.mango.util.datetime.NextTimePeriodAdjuster;
@@ -115,7 +114,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     private transient LazyInitializer<Locale> localeObject = new LazyInitializer<>();
 
     //System permissions that we have one or more roles in
-    private transient LazyInitializer<Set<MangoPermission>> grantedPermissions = new LazyInitializer<>();
+    private transient LazyInitializer<Set<String>> grantedPermissions = new LazyInitializer<>();
 
     //
     //Spring Security
@@ -483,7 +482,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         this.sessionExpirationPeriodType = sessionExpirationPeriodType;
     }
 
-    public Set<MangoPermission> getGrantedPermissions() {
+    public Set<String> getGrantedPermissions() {
         return grantedPermissions.get(() -> {
             PermissionService service = Common.getBean(PermissionService.class);
             return Collections.unmodifiableSet(service.getGrantedPermissions(this));

@@ -176,6 +176,16 @@ public class PermissionService {
     }
 
     /**
+     * Does this user have any roles assigned to this permission?
+     * @param definition
+     * @param holder
+     * @return
+     */
+    public boolean isGrantedPermission(PermissionDefinition definition, PermissionHolder holder) {
+        return roleDao.isGrantedPermission(definition.getPermissionTypeName(), holder.getRoles());
+    }
+
+    /**
      * Return all the granted permissions a user has.  This is any Permission Definition that the user
      *  has permission for.
      *
@@ -184,15 +194,13 @@ public class PermissionService {
      * @param holder
      * @return
      */
-    public Set<MangoPermission> getGrantedPermissions(PermissionHolder holder){
-        Set<MangoPermission> grantedPermissions = new HashSet<>();
-
-        for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-            MangoPermission permission = def.getValue().getPermission();
-            //TODO Mango 4.0 performance improvement as superadmin don't bother checking if they have any role
-            Set<Role> roles = permission.getRoles().stream().map(RoleVO::getRole).collect(Collectors.toSet());
-            if(hasAnyRole(holder, roles)) {
-                grantedPermissions.add(permission);
+    public Set<String> getGrantedPermissions(PermissionHolder holder) {
+        Set<String> grantedPermissions = new HashSet<>();
+        if(isValidPermissionHolder(holder)) {
+            for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
+                if(hasAdminRole(holder) || def.getValue().hasPermission(holder)) {
+                    grantedPermissions.add(def.getValue().getPermissionTypeName());
+                }
             }
         }
         return grantedPermissions;

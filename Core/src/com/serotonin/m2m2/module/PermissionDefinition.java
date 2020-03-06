@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
@@ -84,5 +85,14 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
                 }
             }
         }
+    }
+
+    /**
+     * Does this holder have any roles assigned to this permission?
+     * @param holder
+     * @return
+     */
+    public boolean hasPermission(PermissionHolder holder) {
+        return roleDao.isGrantedPermission(getPermissionTypeName(), holder.getRoles());
     }
 }

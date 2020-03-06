@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -288,6 +289,26 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
                         classSimpleName,
                         permissionType,
         });
+    }
+
+    /**
+     * Are any of the supplied roles assigned to this permission
+     * @param permissionTypeName
+     * @param roles
+     * @return
+     */
+    public boolean isGrantedPermission(String permissionType, Set<Role> roles) {
+        List<Integer> roleIds = roles.stream().map(r -> r.getId()).collect(Collectors.toList());
+        int count = this.create.selectCount().from(RoleTableDefinition.roleMappingTableAsAlias).where(
+                RoleTableDefinition.voTypeFieldAlias.isNull(),
+                RoleTableDefinition.voIdFieldAlias.isNull(),
+                RoleTableDefinition.permissionTypeFieldAlias.eq(permissionType),
+                RoleTableDefinition.roleIdFieldAlias.in(roleIds)).fetchOneInto(Integer.class);
+        if(count > 0) {
+            return true;
+        }else {
+            return false;
+        }
     }
 
     /**
