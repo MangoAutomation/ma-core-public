@@ -21,6 +21,8 @@
 * Adding a system setting that allows control over what tags are displayed this defaults to all tags
 * Add read and edit permission to event detectors default to previous behavior if no permissions are set
 * Add events view permission that has a default of the user role to be consistent with previous versions of Mango this permission can restrict a user to not be able to see any events
+* Leverage module versions database table for more robust upgrade/installation support
+
 
 *Version 3.7.4*
 * Improve work item failure logging

@@ -82,6 +82,7 @@ public class Module {
 
     private final String name;
     private final Version version;
+    private Version previousVersion;
     private String licenseType;
     private final TranslatableMessage description;
     private final String vendor;
@@ -161,36 +162,39 @@ public class Module {
      * Called after the system is initialized, i.e. once services like the database, timer, properties, runtime, etc are
      * available. Should not be used by client code.
      */
-    public void preInitialize(boolean install, boolean upgrade) {
+    public void preInitialize() {
         for (ModuleElementDefinition df : definitions)
-            df.preInitialize(install, upgrade);
+            df.preInitialize();
     }
 
     /**
      * Called immediately after the database is initialized, but before the event and runtime managers. Should not be
      * used by client code.
+     * @return true if module is new
      */
-    public void postDatabase(boolean install, boolean upgrade) {
+    public boolean postDatabase() {
+        this.previousVersion = InstalledModulesDao.instance.getModuleVersion(name);
         for (ModuleElementDefinition df : definitions)
-            df.postDatabase(install, upgrade);
+            df.postDatabase(this.previousVersion, this.version);
+        return this.previousVersion == null;
     }
 
     /**
      * Called after immediately after the event manager is initialized, but before the runtime managers. Should not be
      * used by client code.
      */
-    public void postEventManager(boolean install, boolean upgrade) {
+    public void postEventManager() {
         for (ModuleElementDefinition df : definitions)
-            df.postEventManager(install, upgrade);
+            df.postEventManager(this.previousVersion, this.version);
     }
 
     /**
      * Called after the system is initialized, i.e. once services like the database, timer, properties, runtime, etc are
      * available. Should not be used by client code.
      */
-    public void postInitialize(boolean install, boolean upgrade) {
+    public void postInitialize() {
         for (ModuleElementDefinition df : definitions)
-            df.postInitialize(install, upgrade);
+            df.postInitialize(this.previousVersion, this.version);
         //Fully running so update our version
         InstalledModulesDao.instance.updateModuleVersion(this);
     }

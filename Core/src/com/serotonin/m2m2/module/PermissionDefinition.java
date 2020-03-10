@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -75,9 +76,9 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     }
 
     @Override
-    public void postDatabase(boolean install, boolean upgrade) {
+    public void postDatabase(Version previousVersion, Version current) {
         //Install our default roles if there are none in the database
-        if(install) {
+        if(previousVersion == null) {
             Set<RoleVO> roles = roleDao.getRoleVOs(getPermissionTypeName());
             if(roles.isEmpty()) {
                 for(Role role : getDefaultRoles()) {

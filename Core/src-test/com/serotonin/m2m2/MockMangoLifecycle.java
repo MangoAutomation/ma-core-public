@@ -145,7 +145,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.JSON_CONTEXT.addConverter(new MapWrapConverter(), MapWrap.class);
 
         for (Module module : ModuleRegistry.getModules()) {
-            module.preInitialize(true, false);
+            module.preInitialize();
         }
 
         freemarkerInitialize();
@@ -170,7 +170,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.backgroundProcessing.initialize(false);
 
         for (Module module : ModuleRegistry.getModules()) {
-            module.postDatabase(true, false);
+            module.postDatabase();
         }
 
         //Utilities
@@ -189,6 +189,10 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         for (EventManagerListenerDefinition def : ModuleRegistry.getDefinitions(EventManagerListenerDefinition.class))
             Common.eventManager.addListener(def);
 
+        for (Module module : ModuleRegistry.getModules()) {
+            module.postEventManager();
+        }
+
         Common.runtimeManager = getRuntimeManager();
         Common.runtimeManager.initialize(false);
 
@@ -202,7 +206,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
 
         for (Module module : ModuleRegistry.getModules()) {
-            module.postInitialize(true, false);
+            module.postInitialize();
         }
 
         for (Runnable task : STARTUP_TASKS){

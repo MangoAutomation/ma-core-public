@@ -806,119 +806,6 @@ public class ModuleRegistry {
             }
         });
 
-        //Add in Core Event Handlers
-        preDefaults.add(new EmailEventHandlerDefinition());
-        preDefaults.add(new ProcessEventHandlerDefinition());
-        preDefaults.add(new SetPointEventHandlerDefinition());
-
-        //Add in Core Event Detectors
-        preDefaults.add(new AlphanumericRegexStateEventDetectorDefinition());
-        preDefaults.add(new AlphanumericStateEventDetectorDefinition());
-        preDefaults.add(new AnalogChangeEventDetectorDefinition());
-        preDefaults.add(new AnalogHighLimitEventDetectorDefinition());
-        preDefaults.add(new AnalogLowLimitEventDetectorDefinition());
-        preDefaults.add(new AnalogRangeEventDetectorDefinition());
-        preDefaults.add(new BinaryStateEventDetectorDefinition());
-        preDefaults.add(new MultistateStateEventDetectorDefinition());
-        preDefaults.add(new NegativeCusumEventDetectorDefinition());
-        preDefaults.add(new NoChangeEventDetectorDefinition());
-        preDefaults.add(new PointChangeEventDetectorDefinition());
-        preDefaults.add(new PositiveCusumEventDetectorDefinition());
-        preDefaults.add(new SmoothnessEventDetectorDefinition());
-        preDefaults.add(new StateChangeCountEventDetectorDefinition());
-        preDefaults.add(new NoUpdateEventDetectorDefinition());
-        preDefaults.add(new RateOfChangeDetectorDefinition());
-
-        /* Permissions Settings */
-        preDefaults.add(new SuperadminPermissionDefinition());
-        preDefaults.add(new DataSourcePermissionDefinition());
-        preDefaults.add(new ConfigurationBackupActionPermissionDefinition());
-        preDefaults.add(new PurgeAllEventsActionPermissionDefinition());
-        preDefaults.add(new PurgeAllPointValuesActionPermissionDefinition());
-        preDefaults.add(new PurgeWithPurgeSettingsActionPermissionDefinition());
-        preDefaults.add(new SqlBackupActionPermissionDefinition());
-        preDefaults.add(new SqlRestoreActionPermissionDefinition());
-        preDefaults.add(new CoreFileStoreReadPermissionDefinition());
-        preDefaults.add(new CoreFileStoreWritePermissionDefinition());
-        preDefaults.add(new PublicFileStoreWritePermissionDefinition());
-        preDefaults.add(new DocsFileStoreReadPermissionDefinition());
-        preDefaults.add(new DocsFileStoreWritePermissionDefinition());
-        preDefaults.add(new UserFileStoreCreatePermissionDefinition());
-        preDefaults.add(new JsonDataCreatePermissionDefinition());
-        preDefaults.add(new MailingListCreatePermission());
-        preDefaults.add(new UserEditSelfPermission());
-        preDefaults.add(new ChangeOwnUsernamePermissionDefinition());
-        preDefaults.add(new SendToMailingListPermission());
-        preDefaults.add(new UserCreatePermission());
-        preDefaults.add(new EventHandlerCreatePermission());
-        preDefaults.add(new SystemMetricsReadPermissionDefinition());
-        preDefaults.add(new EventsViewPermissionDefinition());
-
-        /* Read Only Settings */
-        preDefaults.add(new TimezoneInfoDefinition());
-        preDefaults.add(new DatabaseTypeInfoDefinition());
-        preDefaults.add(new SqlDatabaseSizeInfoDefinition());
-        preDefaults.add(new FiledataSizeInfoDefinition());
-        preDefaults.add(new FiledataCountInfoDefinition());
-        preDefaults.add(new NoSqlPointValueDatabaseSizeInfoDefinition());
-        preDefaults.add(new SqlDatabaseBackupFileListInfoDefinition());
-        preDefaults.add(new EventsCountInfoDefinition());
-        preDefaults.add(new DiskInfoDefinition());
-        preDefaults.add(new LoadAverageInfoDefinition());
-        preDefaults.add(new OperatingSystemInfoDefinition());
-        preDefaults.add(new DiskInfoDefinition());
-
-        /* System Settings Listeners */
-        // Do NOT Use the ThreadPoolListener as if the pools are full we can't spawn threads to update the settings...
-        // preDefaults.add(new ThreadPoolSettingsListenerDefinition());
-        //
-        preDefaults.add(new LanguageSettingListenerDefinition());
-        preDefaults.add(new BackupSettingsListenerDefinition());
-        preDefaults.add(new DatabaseBackupSettingsListenerDefinition());
-        preDefaults.add(new AuditEventTypeSettingsListenerDefinition());
-        preDefaults.add(new SystemEventTypeSettingsListenerDefinition());
-        preDefaults.add(new LastUpgradeSettingsListenerDefinition());
-
-        /* System Actions */
-        preDefaults.add(new PurgeAllPointValuesActionDefinition());
-        preDefaults.add(new PurgeAllEventsActionDefinition());
-        preDefaults.add(new PurgeWithPurgeSettingsActionDefinition());
-        preDefaults.add(new ConfigurationBackupActionDefinition());
-        preDefaults.add(new SqlBackupActionDefinition());
-        preDefaults.add(new SqlRestoreActionDefinition());
-
-        /* File Store */
-        preDefaults.add(new CoreFileStoreDefinition());
-        preDefaults.add(new PublicFileStoreDefinition());
-        preDefaults.add(new DocsFileStoreDefinition());
-
-        /* Script Utilities */
-        preDefaults.add(new DataPointQueryScriptUtilityDefinition());
-        preDefaults.add(new DataSourceQueryScriptUtilityDefinition());
-        preDefaults.add(new HttpBuilderScriptUtilityDefinition());
-        preDefaults.add(new JsonEmportScriptUtilityDefinition());
-        preDefaults.add(new PointValueTimeStreamScriptUtilityDefinition());
-        preDefaults.add(new RuntimeManagerScriptUtilityDefinition());
-
-        /* System Event Types */
-        preDefaults.add(new BackupFailureEventTypeDefinition());
-        preDefaults.add(new EmailSendFailureEventTypeDefinition());
-        preDefaults.add(new FailedUserLoginEventTypeDefinition());
-        preDefaults.add(new LicenseCheckEventTypeDefinition());
-        preDefaults.add(new MaxAlarmLevelChangedEventTypeDefinition());
-        preDefaults.add(new MissingModuleDependencyEventTypeDefinition());
-        preDefaults.add(new ProcessFailureEventTypeDefinition());
-        preDefaults.add(new RejectedWorkItemEventTypeDefinition());
-        preDefaults.add(new SetPointHandlerFailureEventTypeDefinition());
-        preDefaults.add(new SystemShutdownEventTypeDefinition());
-        preDefaults.add(new SystemStartupEventTypeDefinition());
-        preDefaults.add(new UpgradeCheckEventTypeDefinition());
-        preDefaults.add(new UserLoginEventTypeDefinition());
-        preDefaults.add(new NewUserRegisteredEventTypeDefinition());
-
-        /* System Settings Definitions */
-        preDefaults.add(new DataPointTagsDisplaySettingDefinition());
-
         /*
          * Add a module for the core
          */
@@ -935,6 +822,119 @@ public class ModuleRegistry {
                 "Infinite Automation Systems, Inc.", "https://www.infiniteautomation.com", null, -1, Common.isCoreSigned());
 
         core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
+
+        //Add in Core Event Handlers
+        core.addDefinition(new EmailEventHandlerDefinition());
+        core.addDefinition(new ProcessEventHandlerDefinition());
+        core.addDefinition(new SetPointEventHandlerDefinition());
+
+        //Add in Core Event Detectors
+        core.addDefinition(new AlphanumericRegexStateEventDetectorDefinition());
+        core.addDefinition(new AlphanumericStateEventDetectorDefinition());
+        core.addDefinition(new AnalogChangeEventDetectorDefinition());
+        core.addDefinition(new AnalogHighLimitEventDetectorDefinition());
+        core.addDefinition(new AnalogLowLimitEventDetectorDefinition());
+        core.addDefinition(new AnalogRangeEventDetectorDefinition());
+        core.addDefinition(new BinaryStateEventDetectorDefinition());
+        core.addDefinition(new MultistateStateEventDetectorDefinition());
+        core.addDefinition(new NegativeCusumEventDetectorDefinition());
+        core.addDefinition(new NoChangeEventDetectorDefinition());
+        core.addDefinition(new PointChangeEventDetectorDefinition());
+        core.addDefinition(new PositiveCusumEventDetectorDefinition());
+        core.addDefinition(new SmoothnessEventDetectorDefinition());
+        core.addDefinition(new StateChangeCountEventDetectorDefinition());
+        core.addDefinition(new NoUpdateEventDetectorDefinition());
+        core.addDefinition(new RateOfChangeDetectorDefinition());
+
+        /* Permissions Settings */
+        core.addDefinition(new SuperadminPermissionDefinition());
+        core.addDefinition(new DataSourcePermissionDefinition());
+        core.addDefinition(new ConfigurationBackupActionPermissionDefinition());
+        core.addDefinition(new PurgeAllEventsActionPermissionDefinition());
+        core.addDefinition(new PurgeAllPointValuesActionPermissionDefinition());
+        core.addDefinition(new PurgeWithPurgeSettingsActionPermissionDefinition());
+        core.addDefinition(new SqlBackupActionPermissionDefinition());
+        core.addDefinition(new SqlRestoreActionPermissionDefinition());
+        core.addDefinition(new CoreFileStoreReadPermissionDefinition());
+        core.addDefinition(new CoreFileStoreWritePermissionDefinition());
+        core.addDefinition(new PublicFileStoreWritePermissionDefinition());
+        core.addDefinition(new DocsFileStoreReadPermissionDefinition());
+        core.addDefinition(new DocsFileStoreWritePermissionDefinition());
+        core.addDefinition(new UserFileStoreCreatePermissionDefinition());
+        core.addDefinition(new JsonDataCreatePermissionDefinition());
+        core.addDefinition(new MailingListCreatePermission());
+        core.addDefinition(new UserEditSelfPermission());
+        core.addDefinition(new ChangeOwnUsernamePermissionDefinition());
+        core.addDefinition(new SendToMailingListPermission());
+        core.addDefinition(new UserCreatePermission());
+        core.addDefinition(new EventHandlerCreatePermission());
+        core.addDefinition(new SystemMetricsReadPermissionDefinition());
+        core.addDefinition(new EventsViewPermissionDefinition());
+
+        /* Read Only Settings */
+        core.addDefinition(new TimezoneInfoDefinition());
+        core.addDefinition(new DatabaseTypeInfoDefinition());
+        core.addDefinition(new SqlDatabaseSizeInfoDefinition());
+        core.addDefinition(new FiledataSizeInfoDefinition());
+        core.addDefinition(new FiledataCountInfoDefinition());
+        core.addDefinition(new NoSqlPointValueDatabaseSizeInfoDefinition());
+        core.addDefinition(new SqlDatabaseBackupFileListInfoDefinition());
+        core.addDefinition(new EventsCountInfoDefinition());
+        core.addDefinition(new DiskInfoDefinition());
+        core.addDefinition(new LoadAverageInfoDefinition());
+        core.addDefinition(new OperatingSystemInfoDefinition());
+        core.addDefinition(new DiskInfoDefinition());
+
+        /* System Settings Listeners */
+        // Do NOT Use the ThreadPoolListener as if the pools are full we can't spawn threads to update the settings...
+        // core.addDefinition(new ThreadPoolSettingsListenerDefinition());
+        //
+        core.addDefinition(new LanguageSettingListenerDefinition());
+        core.addDefinition(new BackupSettingsListenerDefinition());
+        core.addDefinition(new DatabaseBackupSettingsListenerDefinition());
+        core.addDefinition(new AuditEventTypeSettingsListenerDefinition());
+        core.addDefinition(new SystemEventTypeSettingsListenerDefinition());
+        core.addDefinition(new LastUpgradeSettingsListenerDefinition());
+
+        /* System Actions */
+        core.addDefinition(new PurgeAllPointValuesActionDefinition());
+        core.addDefinition(new PurgeAllEventsActionDefinition());
+        core.addDefinition(new PurgeWithPurgeSettingsActionDefinition());
+        core.addDefinition(new ConfigurationBackupActionDefinition());
+        core.addDefinition(new SqlBackupActionDefinition());
+        core.addDefinition(new SqlRestoreActionDefinition());
+
+        /* File Store */
+        core.addDefinition(new CoreFileStoreDefinition());
+        core.addDefinition(new PublicFileStoreDefinition());
+        core.addDefinition(new DocsFileStoreDefinition());
+
+        /* Script Utilities */
+        core.addDefinition(new DataPointQueryScriptUtilityDefinition());
+        core.addDefinition(new DataSourceQueryScriptUtilityDefinition());
+        core.addDefinition(new HttpBuilderScriptUtilityDefinition());
+        core.addDefinition(new JsonEmportScriptUtilityDefinition());
+        core.addDefinition(new PointValueTimeStreamScriptUtilityDefinition());
+        core.addDefinition(new RuntimeManagerScriptUtilityDefinition());
+
+        /* System Event Types */
+        core.addDefinition(new BackupFailureEventTypeDefinition());
+        core.addDefinition(new EmailSendFailureEventTypeDefinition());
+        core.addDefinition(new FailedUserLoginEventTypeDefinition());
+        core.addDefinition(new LicenseCheckEventTypeDefinition());
+        core.addDefinition(new MaxAlarmLevelChangedEventTypeDefinition());
+        core.addDefinition(new MissingModuleDependencyEventTypeDefinition());
+        core.addDefinition(new ProcessFailureEventTypeDefinition());
+        core.addDefinition(new RejectedWorkItemEventTypeDefinition());
+        core.addDefinition(new SetPointHandlerFailureEventTypeDefinition());
+        core.addDefinition(new SystemShutdownEventTypeDefinition());
+        core.addDefinition(new SystemStartupEventTypeDefinition());
+        core.addDefinition(new UpgradeCheckEventTypeDefinition());
+        core.addDefinition(new UserLoginEventTypeDefinition());
+        core.addDefinition(new NewUserRegisteredEventTypeDefinition());
+
+        /* System Settings Definitions */
+        core.addDefinition(new DataPointTagsDisplaySettingDefinition());
 
         /* Test Definitions */
         if(Common.envProps.getBoolean("testing.enabled")) {
@@ -968,5 +968,4 @@ public class ModuleRegistry {
         }
 
     }
-
 }
