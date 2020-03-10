@@ -57,6 +57,12 @@ public class EmailWorkItem implements WorkItem {
 
     public static void queueEmail(String[] toAddrs, String subject, EmailContent content, PostEmailRunnable[] postSendExecution)
             throws AddressException {
+
+        if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_DISABLED)) {
+            LOG.warn("Not sending email because email is disabled globally.");
+            return;
+        }
+
         InternetAddress[] toAddresses = new InternetAddress[toAddrs.length];
         for (int i = 0; i < toAddrs.length; i++)
             toAddresses[i] = new InternetAddress(toAddrs[i]);

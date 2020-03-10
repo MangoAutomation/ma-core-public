@@ -71,6 +71,7 @@ public class EmailMessageTransport implements MessageTransport {
     @Override
     public CompletionStage<SentMessage> sendMessage(Message message) {
         CompletableFuture<SentMessage> f = new CompletableFuture<>();
+
         try {
             EmailMessage m = (EmailMessage)message;
             InternetAddress fromAddress;
@@ -82,6 +83,12 @@ public class EmailMessageTransport implements MessageTransport {
                 fromAddress = m.getFrom();
             }
             String subject = m.getSubject();
+
+            if(SystemSettingsDao.instance.getBooleanValue(SystemSettingsDao.EMAIL_DISABLED)) {
+                LOG.warn("Not sending email because email is disabled globally.");
+                f.complete(new SentEmail(m.getToAddresses(), fromAddress, m, "Email not sent as email is disabled", this));
+                return f;
+            }
 
             Common.backgroundProcessing.addWorkItem(new WorkItem() {
 

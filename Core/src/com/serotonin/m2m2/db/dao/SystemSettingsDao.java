@@ -86,6 +86,7 @@ public class SystemSettingsDao extends BaseDao {
     public static final String EMAIL_TLS = "emailTls";
     public static final String EMAIL_CONTENT_TYPE = "emailContentType";
     public static final String EMAIL_SEND_TIMEOUT = "emailSendTimeout";
+    public static final String EMAIL_DISABLED = "emailDisabled";
 
     // Base URL to use when inserting links in emails etc
     public static final String PUBLICLY_RESOLVABLE_BASE_URL = "publiclyResolvableBaseUrl";
@@ -750,6 +751,7 @@ public class SystemSettingsDao extends BaseDao {
         DEFAULT_VALUES.put(PASSWORD_SPECIAL_COUNT, 0);
         DEFAULT_VALUES.put(PASSWORD_LENGTH_MIN, 8);
         DEFAULT_VALUES.put(PASSWORD_LENGTH_MAX, 255);
+        DEFAULT_VALUES.put(EMAIL_DISABLED, false);
     }
 
     /**
