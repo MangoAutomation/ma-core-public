@@ -181,7 +181,7 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
      * @param permissionType
      */
     public void removeRoleFromPermission(Role role, String permissionType) {
-        ejt.update("DELETE FROM roleMappings WHERE voId=null AND voType=null AND roleId=? AND permissionType=?",
+        ejt.update("DELETE FROM roleMappings WHERE voId IS null AND voType IS null AND roleId=? AND permissionType=?",
                 new Object[]{
                         role.getId(),
                         permissionType
@@ -195,7 +195,7 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
      */
     public void replaceRolesOnPermission(Set<Role> roles, String permissionType) {
         doInTransaction((status) -> {
-            ejt.update("DELETE FROM roleMappings WHERE voId=null AND voType=null AND permissionType=?",
+            ejt.update("DELETE FROM roleMappings WHERE voId IS null AND voType IS null AND permissionType=?",
                     new Object[]{permissionType});
 
             List<Role> rolesList = new ArrayList<>(roles);
