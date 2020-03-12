@@ -154,6 +154,10 @@ public class MangoTestBase {
         Common.runtimeManager.terminate();
         Common.runtimeManager.joinTermination();
 
+        for (Module module : ModuleRegistry.getModules()) {
+            module.postRuntimeManagerTerminate(false);
+        }
+
         H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
         try {
             proxy.clean();

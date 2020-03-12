@@ -78,7 +78,7 @@ public class DataSourceQuery extends ScriptUtility {
         if(ds == null)
             return null;
 
-        if(permissionService.hasDataSourcePermission(permissions, ds)) {
+        if(permissionService.hasDataSourceEditPermission(permissions, ds)) {
             List<DataPointWrapper> points = getPointsForSource(ds);
             return new DataSourceWrapper(ds, points);
         } else

@@ -72,12 +72,12 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, DataSourceVO vo) {
-        return permissionService.hasDataSourcePermission(user, vo);
+        return permissionService.hasDataSourceEditPermission(user, vo);
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, DataSourceVO vo) {
-        return permissionService.hasDataSourcePermission(user, vo);
+        return permissionService.hasDataSourceReadPermission(user, vo);
     }
 
     @Override
@@ -238,6 +238,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         ProcessResult response = commonValidation(vo, user);
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
         permissionService.validateVoRoles(response, "editRoles", user, owner, null, vo.getEditRoles());
+        permissionService.validateVoRoles(response, "readRoles", user, owner, null, vo.getReadRoles());
+
         //Allow module to define validation logic
         vo.getDefinition().validate(response, vo, user);
         return response;
@@ -249,6 +251,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
         permissionService.validateVoRoles(response, "editRoles", user, owner, existing.getEditRoles(), vo.getEditRoles());
+        permissionService.validateVoRoles(response, "readRoles", user, owner, existing.getReadRoles(), vo.getReadRoles());
+
         //Allow module to define validation logic
         vo.getDefinition().validate(response, existing, vo, user);
         return response;

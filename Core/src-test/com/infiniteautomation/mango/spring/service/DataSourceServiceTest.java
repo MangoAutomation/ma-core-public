@@ -8,8 +8,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.Set;
 import java.util.UUID;
 
-import org.junit.Test;
-
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -34,7 +32,7 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
 
     @Override
     void setReadRoles(Set<Role> roles, DataSourceVO vo) {
-        vo.setEditRoles(roles);
+        vo.setReadRoles(roles);
     }
 
     @Override
@@ -89,12 +87,12 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
 
     @Override
     void addReadRoleToFail(Role role, DataSourceVO vo) {
-        throw new UnsupportedOperationException();
+        vo.getReadRoles().add(role);
     }
 
     @Override
     String getReadRolesContextKey() {
-        throw new UnsupportedOperationException();
+        return "readRoles";
     }
 
     @Override
@@ -105,24 +103,6 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
     @Override
     String getEditRolesContextKey() {
         return "editRoles";
-    }
-
-    @Override
-    @Test
-    public void testAddReadRoleUserDoesNotHave() {
-        //TODO Mango 4.0
-    }
-
-    @Override
-    @Test
-    public void testReadRolesCannotBeNull() {
-        //TODO Mango 4.0
-    }
-
-    @Override
-    @Test
-    public void testCannotRemoveReadAccess() {
-        //TODO Mango 4.0
     }
 
 }

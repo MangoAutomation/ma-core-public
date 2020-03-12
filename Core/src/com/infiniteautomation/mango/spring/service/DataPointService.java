@@ -92,12 +92,12 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, DataPointVO vo) {
-        return permissionService.hasDataSourcePermission(user, vo.getDataSourceId());
+        return permissionService.hasDataSourceEditPermission(user, vo.getDataSourceId());
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, DataPointVO vo) {
-        return permissionService.hasDataSourcePermission(user, vo.getDataSourceId());
+        return permissionService.hasDataSourceEditPermission(user, vo.getDataSourceId());
     }
 
     @Override
@@ -213,7 +213,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         DataPointVO vo = get(xid);
-        permissionService.ensureDataSourcePermission(user, vo.getDataSourceId());
+        permissionService.ensureDataSourceEditPermission(user, vo.getDataSourceId());
         return setDataPointState(vo, enabled, restart);
     }
 

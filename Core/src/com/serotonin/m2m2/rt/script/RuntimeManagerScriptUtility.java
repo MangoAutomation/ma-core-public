@@ -70,7 +70,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
                 return OPERATION_NO_CHANGE;
 
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getDataSourceId());
-            if(dsRt == null || !permissionService.hasDataSourcePermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasDataSourceEditPermission(permissions, dsRt.getVo()))
                 return OPERATION_NO_CHANGE;
 
             Common.runtimeManager.forcePointRead(vo.getId());
@@ -100,7 +100,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
                 return OPERATION_NO_CHANGE;
 
             DataSourceRT<?> dsRt = Common.runtimeManager.getRunningDataSource(vo.getId());
-            if(dsRt == null || !permissionService.hasDataSourcePermission(permissions, dsRt.getVo()))
+            if(dsRt == null || !permissionService.hasDataSourceEditPermission(permissions, dsRt.getVo()))
                 return OPERATION_NO_CHANGE;
 
             Common.runtimeManager.forceDataSourcePoll(vo.getId());
@@ -124,7 +124,7 @@ public class RuntimeManagerScriptUtility extends ScriptUtility {
             return false;
         else{
             //This will throw an exception if there is no permission
-            if(permissionService.hasDataSourcePermission(permissions, vo))
+            if(permissionService.hasDataSourceEditPermission(permissions, vo))
                 return vo.isEnabled();
             else
                 return false;

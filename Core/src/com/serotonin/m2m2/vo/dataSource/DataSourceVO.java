@@ -74,6 +74,8 @@ abstract public class DataSourceVO extends AbstractActionVO {
     private int purgePeriod = 1;
     @JsonProperty
     private Set<Role> editRoles = Collections.emptySet();
+    @JsonProperty
+    private Set<Role> readRoles = Collections.emptySet();
 
     public final <T extends DataSourceVO> DataSourceDefinition<T> getDefinition() {
         return (DataSourceDefinition<T>) definition;
@@ -151,6 +153,14 @@ abstract public class DataSourceVO extends AbstractActionVO {
 
     public void setEditRoles(Set<Role> editRoles) {
         this.editRoles = editRoles;
+    }
+
+    public Set<Role> getReadRoles() {
+        return readRoles;
+    }
+
+    public void setReadRoles(Set<Role> readRoles) {
+        this.readRoles = readRoles;
     }
 
     /**
@@ -337,6 +347,8 @@ abstract public class DataSourceVO extends AbstractActionVO {
                 throw new TranslatableJsonException("emport.error.invalid", "purgeType", text,
                         Common.TIME_PERIOD_CODES.getCodeList());
         }
+
+        this.editRoles = readLegacyPermissions("editPermission", this.editRoles, jsonObject);
     }
 
     protected void writeUpdatePeriodType(ObjectWriter writer, int updatePeriodType) throws IOException, JsonException {

@@ -267,7 +267,7 @@ public class PointValueTimeStreamScriptUtility extends ScriptUtility {
                     throw new RuntimeException("Data point with id " + id + " does not exist."); //TODO better error'ing
                 if(!permissionService.hasDataPointReadPermission(permissions, vo) &&
                         !permissionService.hasDataPointSetPermission(permissions, vo) &&
-                        !permissionService.hasDataSourcePermission(permissions, DataSourceDao.getInstance().get(vo.getDataSourceId())))
+                        !permissionService.hasDataSourceEditPermission(permissions, DataSourceDao.getInstance().get(vo.getDataSourceId())))
                     throw new ScriptPermissionsException(new TranslatableMessage("script.set.permissionDenied", vo.getXid()));
                 DataPointStatisticsQuantizer<?> quantizer;
                 switch(vo.getPointLocator().getDataTypeId()) {
