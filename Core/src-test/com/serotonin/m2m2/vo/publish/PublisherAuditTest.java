@@ -68,20 +68,31 @@ public class PublisherAuditTest extends MangoTestBase {
         vo.setName("New Name");
         dao.update(vo.getId(), vo);
 
+        //Since these are raised in the background processing thread they may have not yet fired
+        int retries = 4;
         List<AuditEventInstanceVO> events = new ArrayList<>();
-        AuditEventService service = Common.getBean(AuditEventService.class);
-        AuditEventTableDefinition table = Common.getBean(AuditEventTableDefinition.class);
-        Condition conditions = DSL.and(table.getAlias("typeName").eq(AuditEventType.TYPE_PUBLISHER), table.getAlias("objectId").eq(vo.getId()));
-        Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
-            service.customizedQuery(
-                    conditions,
-                    Arrays.asList(table.getAlias("id").asc()),
-                    null,
-                    null,
-                    (evt, index) -> {
-                        events.add(evt);
-                    });
-        });
+        while(retries > 0) {
+            AuditEventService service = Common.getBean(AuditEventService.class);
+            AuditEventTableDefinition table = Common.getBean(AuditEventTableDefinition.class);
+            Condition conditions = DSL.and(table.getAlias("typeName").eq(AuditEventType.TYPE_PUBLISHER), table.getAlias("objectId").eq(vo.getId()));
+            Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
+                service.customizedQuery(
+                        conditions,
+                        Arrays.asList(table.getAlias("id").asc()),
+                        null,
+                        null,
+                        (evt, index) -> {
+                            events.add(evt);
+                        });
+            });
+            if(events.size() == 2) {
+                break;
+            }else {
+                events.clear();
+            }
+            retries --;
+            try { Thread.sleep(500); }catch(InterruptedException e) { }
+        }
 
         Assert.assertEquals(2, events.size());
     }
