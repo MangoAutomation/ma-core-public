@@ -95,6 +95,7 @@ CREATE TABLE dataSources (
   name varchar(255) NOT NULL,
   dataSourceType varchar(40) NOT NULL,
   data bytea NOT NULL,
+  jsonData json,
   rtdata bytea,
   PRIMARY KEY (id)
 );
@@ -128,6 +129,7 @@ CREATE TABLE dataPoints (
   rollup int,
   dataTypeId int not null,
   settable char(1),
+  jsonData json,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);

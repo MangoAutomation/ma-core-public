@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -76,6 +77,8 @@ abstract public class DataSourceVO extends AbstractActionVO {
     private Set<Role> editRoles = Collections.emptySet();
     @JsonProperty
     private Set<Role> readRoles = Collections.emptySet();
+    @JsonProperty
+    private JsonNode data;
 
     public final <T extends DataSourceVO> DataSourceDefinition<T> getDefinition() {
         return (DataSourceDefinition<T>) definition;
@@ -163,6 +166,14 @@ abstract public class DataSourceVO extends AbstractActionVO {
         this.readRoles = readRoles;
     }
 
+    public JsonNode getData() {
+        return data;
+    }
+
+    public void setData(JsonNode data) {
+        this.data = data;
+    }
+
     /**
      * Helper to get description on Page
      *
@@ -170,10 +181,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
      */
     public String getConnectionDescriptionString() {
         return getConnectionDescription().translate(Common.getTranslations());
-    }
-
-    public void setConnectionDescriptionString(String str) {
-        //No-op
     }
 
     /**

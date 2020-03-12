@@ -39,7 +39,9 @@ import com.serotonin.m2m2.vo.role.Role;
  * MailingList - remove readPermissions and editPermissions
  *
  *
- * Remove User Events tabls
+ * Remove User Events table
+ *
+ * Add JSON Data to data points and data sources
  *
  *
  * @author Terry Packer
@@ -55,8 +57,15 @@ public class Upgrade29 extends DBUpgrade {
 
         try {
 
-            //Update the data source name column length for MySQL
+            //Add jsonData column to data points and data sources
             Map<String, String[]> scripts = new HashMap<>();
+            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataColumnsMySQL);
+            scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataColumnsSql);
+            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataColumnsMSSQL);
+            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataColumnsMySQL);
+
+            //Update the data source name column length for MySQL
+            scripts = new HashMap<>();
             scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), new String[0]);
             scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[0]);
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), alterDataSourceNameColumnMySQL);
@@ -317,10 +326,26 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
     }
 
+    //JSON Data
+    private String[] jsonDataColumnsSql = new String[]{
+            "ALTER TABLE dataPoints ADD COLUMN jsonData longtext;",
+            "ALTER TABLE dataSources ADD COLUMN jsonData longtext;"
+    };
+    private String[] jsonDataColumnsMySQL = new String[]{
+            "ALTER TABLE dataPoints ADD COLUMN jsonData JSON;",
+            "ALTER TABLE dataSources ADD COLUMN jsonData JSON;"
+    };
+    private String[] jsonDataColumnsMSSQL = new String[]{
+            "ALTER TABLE dataPoints ADD COLUMN jsonData ntext;",
+            "ALTER TABLE dataSources ADD COLUMN jsonData ntext;"
+    };
+
+    //Data source fix
     private String[] alterDataSourceNameColumnMySQL = new String[] {
             "ALTER TABLE dataSources MODIFY COLUMN name VARCHAR(255) NOT NULL;"
     };
 
+    //Data point indexes
     private String[] dataPointIndexes = new String[] {
             "CREATE INDEX deviceNameNameIdIndex ON dataPoints (deviceName ASC, name ASC, id ASC);"
     };

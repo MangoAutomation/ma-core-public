@@ -4,6 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,6 +41,8 @@ import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -733,5 +736,35 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         .where(this.table.getIdAlias().eq(id))
         .forUpdate()
         .fetch();
+    }
+
+    /**
+     * Helper to convert JSON Node for db
+     * @param data
+     * @return
+     */
+    protected String convertData(JsonNode data) {
+        try {
+            if(data == null) {
+                return null;
+            }else {
+                return getObjectWriter(JsonNode.class).writeValueAsString(data);
+            }
+        }catch(JsonProcessingException e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    protected JsonNode extractData(Clob c) throws SQLException {
+        try {
+            if(c != null) {
+                return getObjectReader(JsonNode.class).readValue(c.getCharacterStream());
+            }else {
+                return null;
+            }
+        }catch(Exception e) {
+            throw new SQLException(e);
+        }
     }
 }

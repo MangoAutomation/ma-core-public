@@ -98,6 +98,7 @@ create table dataSources (
   name varchar(255) not null,
   dataSourceType varchar(40) not null,
   data longblob not null,
+  jsonData JSON,
   rtdata longblob,
   primary key (id)
 ) engine=InnoDB;
@@ -131,6 +132,7 @@ CREATE TABLE dataPoints (
   rollup int,
   dataTypeId int not null,
   settable char(1),
+  jsonData JSON,
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);

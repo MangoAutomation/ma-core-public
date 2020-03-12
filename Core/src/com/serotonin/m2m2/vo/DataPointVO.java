@@ -16,6 +16,7 @@ import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -202,6 +203,8 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     private Set<Role> readRoles = Collections.emptySet();
     @JsonProperty
     private Set<Role> setRoles = Collections.emptySet();
+    @JsonProperty
+    private JsonNode data;
 
     //
     //
@@ -624,6 +627,14 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
 
     public void setSetRoles(Set<Role> setRoles) {
         this.setRoles = setRoles;
+    }
+
+    public JsonNode getData() {
+        return data;
+    }
+
+    public void setData(JsonNode data) {
+        this.data = data;
     }
 
     /**

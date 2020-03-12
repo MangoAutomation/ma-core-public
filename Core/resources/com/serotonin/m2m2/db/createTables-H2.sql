@@ -95,6 +95,7 @@ CREATE TABLE dataSources (
   name varchar(255) NOT NULL,
   dataSourceType varchar(40) NOT NULL,
   data longblob NOT NULL,
+  jsonData longtext,
   rtdata longblob,
   PRIMARY KEY (id)
 );
@@ -125,6 +126,7 @@ CREATE TABLE dataPoints (
   rollup int,
   dataTypeId int not null,
   settable char(1),
+  jsonData longtext,
   PRIMARY KEY (id)
 );
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);

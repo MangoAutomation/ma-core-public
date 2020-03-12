@@ -18,16 +18,17 @@ import org.springframework.stereotype.Component;
 public class DataSourceTableDefinition extends AbstractTableDefinition {
 
     public static final String TABLE_NAME = "dataSources";
-    
+
     public DataSourceTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("ds"));
     }
-    
+
     @Override
     protected void addFields(List<Field<?>> fields) {
         super.addFields(fields);
         fields.add(DSL.field(DSL.name("dataSourceType"), SQLDataType.VARCHAR(40)));
         fields.add(DSL.field(DSL.name("data"), SQLDataType.BLOB));
+        fields.add(DSL.field(DSL.name("jsonData"), SQLDataType.CLOB));
     }
 
 }

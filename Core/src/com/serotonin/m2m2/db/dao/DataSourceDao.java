@@ -211,6 +211,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
             ds.setXid(rs.getString(2));
             ds.setName(rs.getString(3));
             ds.setDefinition(ModuleRegistry.getDataSourceDefinition(rs.getString(4)));
+            ds.setData(extractData(rs.getClob(6)));
             return ds;
         }
     }
@@ -263,7 +264,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
                 vo.getXid(),
                 vo.getName(),
                 vo.getDefinition().getDataSourceTypeName(),
-                SerializationHelper.writeObjectToArray(vo)};
+                SerializationHelper.writeObjectToArray(vo),
+                convertData(vo.getData())};
     }
 
     @Override

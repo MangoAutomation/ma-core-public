@@ -38,7 +38,6 @@ import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonTypeReader;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.DataPointDao.DataPointMapper;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
@@ -237,7 +236,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
         @Override
         public List<AbstractPointEventDetectorVO> extractData(ResultSet rs) throws SQLException, DataAccessException {
             List<AbstractPointEventDetectorVO> results = new ArrayList<>();
-            DataPointMapper pointRowMapper = new DataPointMapper();
+            RowMapper<DataPointVO> pointRowMapper = DataPointDao.getInstance().getRowMapper();
             while(rs.next()) {
                 DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
                 PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(dataPointTable.getSelectFields().size() + 3 + 1, 5, dpvo);

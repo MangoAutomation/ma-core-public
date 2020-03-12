@@ -94,6 +94,7 @@ create table dataSources (
   name nvarchar(255) not null,
   dataSourceType nvarchar(40) not null,
   data image not null,
+  jsonData ntext,
   rtdata image,
   primary key (id)
 );
@@ -126,6 +127,7 @@ create table dataPoints (
   rollup int,
   dataTypeId int not null,
   settable char(1),
+  jsonData ntext,
   primary key (id)
 );
 alter table dataPoints add constraint dataPointsUn1 unique (xid);

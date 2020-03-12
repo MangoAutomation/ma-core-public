@@ -232,16 +232,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
                 emailVerified = null;
             }
             user.setEmailVerified(emailVerified);
-            Clob c = rs.getClob(++i);
-            try {
-                if(c != null) {
-                    user.setData(getObjectReader(JsonNode.class).readValue(c.getCharacterStream()));
-                }else {
-                    user.setData(null);
-                }
-            }catch(Exception e) {
-                throw new SQLException(e);
-            }
+            user.setData(extractData(rs.getClob(++i)));
             return user;
         }
     }
@@ -507,18 +498,5 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
             keys.add(def.getKey());
         }
         return keys;
-    }
-
-    private String convertData(JsonNode data) {
-        try {
-            if(data == null) {
-                return null;
-            }else {
-                return getObjectWriter(JsonNode.class).writeValueAsString(data);
-            }
-        }catch(JsonProcessingException e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return null;
     }
 }

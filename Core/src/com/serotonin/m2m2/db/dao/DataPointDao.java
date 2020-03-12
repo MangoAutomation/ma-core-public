@@ -528,7 +528,9 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                 vo.getEngineeringUnits(),
                 vo.getRollup(),
                 vo.getPointLocator().getDataTypeId(),
-                boolToChar(vo.getPointLocator().isSettable())};
+                boolToChar(vo.getPointLocator().isSettable()),
+                convertData(vo.getData())
+        };
     }
 
     @Override
@@ -536,7 +538,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         return new DataPointMapper();
     }
 
-    public static class DataPointMapper implements RowMapper<DataPointVO> {
+    public class DataPointMapper implements RowMapper<DataPointVO> {
         @Override
         public DataPointVO mapRow(ResultSet rs, int rowNum) throws SQLException {
             int i = 0;
@@ -569,6 +571,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             rs.getInt(++i);
             // read and discard settable boolean
             rs.getString(++i);
+
+            dp.setData(extractData(rs.getClob(++i)));
 
             // Data source information from join
             dp.setDataSourceName(rs.getString(++i));
