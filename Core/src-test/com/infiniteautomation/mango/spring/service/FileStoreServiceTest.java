@@ -77,8 +77,18 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     }
 
     @Override
+    String getReadRolesContextKey() {
+        return "readRoles";
+    }
+
+    @Override
     void addEditRoleToFail(Role role, FileStore vo) {
         vo.getWriteRoles().add(role);
+    }
+
+    @Override
+    String getEditRolesContextKey() {
+        return "writeRoles";
     }
 
 }

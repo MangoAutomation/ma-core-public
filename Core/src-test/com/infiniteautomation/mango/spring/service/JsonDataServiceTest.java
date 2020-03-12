@@ -86,8 +86,17 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     }
 
     @Override
+    String getReadRolesContextKey() {
+        return "readRoles";
+    }
+
+    @Override
     void addEditRoleToFail(Role role, JsonDataVO vo) {
         vo.getReadRoles().add(role);
     }
 
+    @Override
+    String getEditRolesContextKey() {
+        return "editRoles";
+    }
 }

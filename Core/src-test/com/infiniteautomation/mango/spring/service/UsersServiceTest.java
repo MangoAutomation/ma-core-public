@@ -13,12 +13,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermissionDefinition;
@@ -26,6 +26,7 @@ import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionException;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -88,9 +89,6 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         });
     }
 
-    /**
-     * Test edit self permission
-     */
     @Test
     public void testUserEditRoleDefaultUser() {
         runTest(() -> {
@@ -98,6 +96,10 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             User saved = getService().permissionService.runAsSystemAdmin(() -> {
                 return service.insert(vo);
             });
+
+            //Ensure the ability to edit self
+            List<Role> myRoles = saved.getRoles().stream().collect(Collectors.toList());
+            addRoleToEditSelfPermission(myRoles.get(0));
 
             getService().permissionService.runAs(saved, () -> {
                 saved.setName("I edited myself");
@@ -113,6 +115,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     public void testUserEditRoleFails() {
         runTest(() -> {
             addRoleToEditSelfPermission(editRole);
+            removeRoleFromEditSelfPermission(PermissionHolder.USER_ROLE);
             getService().permissionService.runAs(readUser, () -> {
                 User toUpdate = service.get(readUser.getId());
                 toUpdate.setName("I edited myself");
@@ -154,19 +157,26 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         //skipped as no edit roles
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     @Override
     public void testAddEditRoleUserDoesNotHave() {
-        User vo = newVO(readUser);
-        vo.setRoles(Collections.singleton(readRole));
-        User saved = getService().permissionService.runAsSystemAdmin(() -> {
-            return service.insert(vo);
-        });
+        runTest(() -> {
+            User vo = newVO(readUser);
+            vo.setRoles(Collections.singleton(readRole));
+            User saved = getService().permissionService.runAsSystemAdmin(() -> {
+                return service.insert(vo);
+            });
 
-        getService().permissionService.runAs(saved, () -> {
-            saved.setRoles(Collections.singleton(editRole));
-            service.update(saved.getUsername(), saved);
-        });
+            //Ensure the ability to edit self
+            List<Role> myRoles = saved.getRoles().stream().collect(Collectors.toList());
+            addRoleToEditSelfPermission(myRoles.get(0));
+
+            getService().permissionService.runAs(saved, () -> {
+                myRoles.add(editRole);
+                saved.setRoles(new HashSet<>(myRoles));
+                service.update(saved.getUsername(), saved);
+            });
+        }, "roles");
     }
 
     @Test
@@ -214,18 +224,21 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         });
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testRemoveRolesFails() {
-        User vo = newVO(readUser);
-        vo.setRoles(Collections.singleton(readRole));
-        User saved = getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-            return service.get(vo.getId());
-        });
-        getService().permissionService.runAs(saved, () -> {
-            saved.setRoles(Collections.emptySet());
-            service.update(saved.getUsername(), saved);
-        });
+        runTest(() -> {
+            User vo = newVO(readUser);
+
+            vo.setRoles(Collections.singleton(readRole));
+            User saved = getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+                return service.get(vo.getId());
+            });
+            getService().permissionService.runAs(saved, () -> {
+                saved.setRoles(Collections.emptySet());
+                service.update(saved.getUsername(), saved);
+            });
+        }, "roles", "roles");
     }
 
     public void testChangeUsernameAsAdmin() {
@@ -238,26 +251,28 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         });
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testChangeUsernameWithoutPermission() {
+        runTest(() -> {
+            removeRoleFromEditSelfPermission(PermissionHolder.USER_ROLE);
+            addRoleToEditSelfPermission(readRole);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                roleService.removeRoleFromPermission(PermissionHolder.USER_ROLE, ChangeOwnUsernamePermissionDefinition.PERMISSION);
+                roleService.addRoleToPermission(editRole, ChangeOwnUsernamePermissionDefinition.PERMISSION);
+            });
 
-        //Ensure the default 'user' role is removed from the change username permission and they can edit self
-        addRoleToEditSelfPermission(readRole);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            roleService.addRoleToPermission(editRole, ChangeOwnUsernamePermissionDefinition.PERMISSION);
-        });
+            User vo = newVO(readUser);
+            vo.setRoles(Collections.singleton(readRole));
+            User saved = getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+                return service.get(vo.getId());
+            });
 
-        User vo = newVO(readUser);
-        vo.setRoles(Collections.singleton(readRole));
-        User saved = getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-            return service.get(vo.getId());
-        });
-
-        getService().permissionService.runAs(saved, () -> {
-            saved.setUsername(UUID.randomUUID().toString());
-            service.update(saved.getId(), saved);
-        });
+            getService().permissionService.runAs(saved, () -> {
+                saved.setUsername(UUID.randomUUID().toString());
+                service.update(saved.getId(), saved);
+            });
+        }, "username");
     }
 
     public void testChangeUsernameWithPermission() {
@@ -284,12 +299,15 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     void addRoleToEditSelfPermission(Role vo) {
-        String permissionType = getCreatePermissionType();
-        if(permissionType != null) {
-            getService().permissionService.runAsSystemAdmin(() -> {
-                roleService.addRoleToPermission(vo, UserEditSelfPermission.PERMISSION);
-            });
-        }
+        getService().permissionService.runAsSystemAdmin(() -> {
+            roleService.addRoleToPermission(vo, UserEditSelfPermission.PERMISSION);
+        });
+    }
+
+    void removeRoleFromEditSelfPermission(Role vo) {
+        getService().permissionService.runAsSystemAdmin(() -> {
+            roleService.removeRoleFromPermission(vo, UserEditSelfPermission.PERMISSION);
+        });
     }
 
     @Override
@@ -423,7 +441,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Override
+    String getReadRolesContextKey() {
+        return "roles";
+    }
+
+    @Override
     void addEditRoleToFail(Role role, User vo) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    String getEditRolesContextKey() {
         throw new UnsupportedOperationException();
     }
 }

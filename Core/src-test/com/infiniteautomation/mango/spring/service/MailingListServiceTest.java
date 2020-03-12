@@ -14,7 +14,6 @@ import java.util.Set;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
 import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
@@ -91,15 +90,17 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         });
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testAddMissingEditRole() {
-        MailingList vo = newVO(readUser);
-        Role role = new Role(10000, "new-role");
-        Set<Role> editRoles = Collections.singleton(role);
-        vo.setEditRoles(editRoles);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
+        runTest(() -> {
+            MailingList vo = newVO(readUser);
+            Role role = new Role(10000, "new-role");
+            Set<Role> editRoles = Collections.singleton(role);
+            vo.setEditRoles(editRoles);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+        }, "editRoles");
     }
 
     @Test
@@ -191,8 +192,18 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     }
 
     @Override
+    String getReadRolesContextKey() {
+        return "readRoles";
+    }
+
+    @Override
     void addEditRoleToFail(Role role, MailingList vo) {
         vo.getEditRoles().add(role);
+    }
+
+    @Override
+    String getEditRolesContextKey() {
+        return "editRoles";
     }
 
 }

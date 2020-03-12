@@ -15,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
 import com.serotonin.m2m2.db.dao.DataPointDao;
@@ -72,38 +71,46 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
         });
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void cannotInsertNewUserRole() {
-        RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
+        runTest(() -> {
+            RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.USER_ROLE_XID, "user default");
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+        }, "xid", "xid");
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void cannotInsertSuperadminRole() {
-        RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
+        runTest(() -> {
+            RoleVO vo = new RoleVO(Common.NEW_ID, PermissionHolder.SUPERADMIN_ROLE_XID, "Superadmin default");
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+        }, "xid", "xid");
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void cannotModifyUserRole() {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID);
-            RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
-            service.update(vo.getXid(), updated);
-        });
+        runTest(() -> {
+            getService().permissionService.runAsSystemAdmin(() -> {
+                RoleVO vo = service.get(PermissionHolder.USER_ROLE_XID);
+                RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), vo.getName());
+                service.update(vo.getXid(), updated);
+            });
+        }, "xid");
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void cannotModifySuperadminRole() {
-        getService().permissionService.runAsSystemAdmin(() -> {
-            RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID);
-            RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
-            service.update(vo.getXid(), updated);
-        });
+        runTest(() -> {
+            getService().permissionService.runAsSystemAdmin(() -> {
+                RoleVO vo = service.get(PermissionHolder.SUPERADMIN_ROLE_XID);
+                RoleVO updated = new RoleVO(Common.NEW_ID, vo.getXid(), "Superadmin default changed");
+                service.update(vo.getXid(), updated);
+            });
+        }, "xid");
     }
 
     @Override

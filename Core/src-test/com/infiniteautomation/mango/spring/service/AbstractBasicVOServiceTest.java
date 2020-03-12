@@ -8,10 +8,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -246,10 +248,12 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
     }
 
     /**
-     * Run a test and provide nice validation failure messages
+     * Run a test and allow providing expected invalid properties
      * @param test
+     * @param expectedInvalidProperties - property names (can be null if no invalid properties expected)
      */
-    public void runTest(ServiceLayerTest test) {
+    public void runTest(ServiceLayerTest test, String... expectedInvalidProperties) {
+        List<String> invalid = new ArrayList<>();
         try {
             test.test();
         } catch(ValidationException e) {
@@ -258,11 +262,21 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
                 if(m.getContextKey() != null) {
                     String messagePart = m.getContextKey() + " -> " + m.getContextualMessage().translate(Common.getTranslations()) + "\n";
                     failureMessage += messagePart;
+                    //Were we expecting this failure?
+                    if(ArrayUtils.contains(expectedInvalidProperties, m.getContextKey())) {
+                        invalid.add(m.getContextKey());
+                    }
                 }else {
                     failureMessage += m.getContextualMessage().translate(Common.getTranslations()) + "\n";
                 }
             }
-            fail(failureMessage);
+            if(expectedInvalidProperties.length > 0) {
+                if(!Arrays.equals(expectedInvalidProperties, invalid.toArray(new String[invalid.size()]))) {
+                    fail("Did not match all invalid properties but found:\n" + failureMessage  + " but expected " + Arrays.asList(expectedInvalidProperties));
+                }
+            }else if(StringUtils.isNotEmpty(failureMessage)) {
+                fail(failureMessage);
+            }
         }
     }
     public Role getEditRole() {

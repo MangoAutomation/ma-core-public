@@ -53,6 +53,7 @@ import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleElementDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
@@ -132,6 +133,11 @@ public class MangoTestBase {
                 fail(e.getMessage());
             }
         }else {
+            //Lifecycle hook for things that need to run to install into a new database
+            for (Module module : ModuleRegistry.getModules()) {
+                module.postDatabase();
+            }
+
             //TODO Mango 4.0 this won't work as the state of the RTM will not all re-init.
             Common.runtimeManager.initialize(false);
         }

@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.db.dao.AbstractBasicDao;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -46,6 +45,13 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
      * @param vo
      */
     abstract void addReadRoleToFail(Role role, VO vo);
+
+    /**
+     * Get the context key used in the validation of the read roles
+     * @return
+     */
+    abstract String getReadRolesContextKey();
+
     /**
      * Replace the edit roles with these
      * @param roles
@@ -59,6 +65,12 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
      * @param vo
      */
     abstract void addEditRoleToFail(Role role, VO vo);
+
+    /**
+     * Get the context key used in the validation of the edit roles
+     * @return
+     */
+    abstract String getEditRolesContextKey();
 
     @Test(expected = PermissionException.class)
     public void testCreatePrivilegeFails() {
@@ -110,48 +122,57 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 VO fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
             });
-        });
+        }, getReadRolesContextKey());
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testReadRolesCannotBeNull() {
-        VO vo = newVO(readUser);
-        setReadRoles(null, vo);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
+        runTest(() -> {
+            VO vo = newVO(readUser);
+            setReadRoles(null, vo);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+        }, getReadRolesContextKey());
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testCannotRemoveReadAccess() {
-        VO vo = newVO(editUser);
-        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
-        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
-        getService().permissionService.runAs(readUser, () -> {
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            setReadRoles(Collections.emptySet(), fromDb);
-            service.update(fromDb.getId(), fromDb);
-        });
+        runTest(() -> {
+            VO vo = newVO(editUser);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+            getService().permissionService.runAs(readUser, () -> {
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                setReadRoles(Collections.emptySet(), fromDb);
+                service.update(fromDb.getId(), fromDb);
+            });
+        }, getReadRolesContextKey());
     }
 
-    @Test(expected = ValidationException.class)
+    /**
+     * There will be 2 validation messages about this, must retain permission AND cannot add/remove a role you do not have
+     */
+    @Test
     public void testAddReadRoleUserDoesNotHave() {
-        VO vo = newVO(editUser);
-        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
-        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
-        getService().permissionService.runAs(readUser, () -> {
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            setReadRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
-            service.update(fromDb.getId(), fromDb);
-        });
+        runTest(() -> {
+            VO vo = newVO(editUser);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+            getService().permissionService.runAs(readUser, () -> {
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                setReadRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
+                service.update(fromDb.getId(), fromDb);
+            });
+        }, getReadRolesContextKey(), getReadRolesContextKey());
     }
 
     @Test
@@ -192,45 +213,53 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
         });
     }
 
-    @Test(expected = ValidationException.class)
     public void testEditRolesCannotBeNull() {
-        VO vo = newVO(editUser);
-        setEditRoles(null, vo);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
+        runTest(() -> {
+            VO vo = newVO(editUser);
+            setEditRoles(null, vo);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+        }, getEditRolesContextKey());
     }
 
-    @Test(expected = ValidationException.class)
+    @Test
     public void testCannotRemoveEditAccess() {
-        VO vo = newVO(editUser);
-        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
-        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
-        getService().permissionService.runAs(readUser, () -> {
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            setEditRoles(Collections.emptySet(), fromDb);
-            service.update(fromDb.getId(), fromDb);
-        });
+        runTest(() -> {
+            VO vo = newVO(editUser);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+            getService().permissionService.runAs(readUser, () -> {
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                setEditRoles(Collections.emptySet(), fromDb);
+                service.update(fromDb.getId(), fromDb);
+            });
+        }, getEditRolesContextKey());
     }
 
-    @Test(expected = ValidationException.class)
+    /**
+     * There will be 2 validation messages about this, must retain permission AND cannot add/remove a role you do not have
+     */
+    @Test
     public void testAddEditRoleUserDoesNotHave() {
-        VO vo = newVO(editUser);
-        setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
-        setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
-        getService().permissionService.runAsSystemAdmin(() -> {
-            service.insert(vo);
-        });
-        getService().permissionService.runAs(readUser, () -> {
-            VO fromDb = service.get(vo.getId());
-            assertVoEqual(vo, fromDb);
-            setEditRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
-            service.update(fromDb.getId(), fromDb);
-        });
+        runTest(() -> {
+            VO vo = newVO(editUser);
+            setReadRoles(Collections.singleton(roleService.getUserRole()), vo);
+            setEditRoles(Collections.singleton(roleService.getUserRole()), vo);
+            getService().permissionService.runAsSystemAdmin(() -> {
+                service.insert(vo);
+            });
+            getService().permissionService.runAs(readUser, () -> {
+                VO fromDb = service.get(vo.getId());
+                assertVoEqual(vo, fromDb);
+                setEditRoles(Collections.singleton(roleService.getSuperadminRole()), fromDb);
+                service.update(fromDb.getId(), fromDb);
+            });
+        }, getEditRolesContextKey(), getEditRolesContextKey());
     }
 
     @Test
