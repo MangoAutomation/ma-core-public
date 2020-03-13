@@ -18,6 +18,7 @@ import org.jooq.Condition;
 import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
+import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -62,8 +63,6 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     public static final Field<String> EDIT_PERMISSION = DSL.field(DATA_SOURCES_ALIAS.append("editPermission"), SQLDataType.VARCHAR(255).nullable(true));
 
     static final Log LOG = LogFactory.getLog(DataSourceDao.class);
-    private static final String DATA_SOURCE_SELECT = //
-            "SELECT id, xid, name, dataSourceType, data FROM dataSources ";
 
     private static final LazyInitSupplier<DataSourceDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataSourceDao.class);
@@ -97,7 +96,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
      */
     @SuppressWarnings("unchecked")
     public <T extends DataSourceVO> List<T> getDataSourcesForType(String type) {
-        return (List<T>) query(DATA_SOURCE_SELECT + "WHERE dataSourceType=?", new Object[] { type }, getListResultSetExtractor());
+        SelectConditionStep<Record> query = getJoinedSelectQuery().where(this.table.getAlias("dataSourceType").eq(type));
+        return (List<T>) query(query.getSQL(), query.getBindValues().toArray(), getListResultSetExtractor());
     }
 
     @Override
