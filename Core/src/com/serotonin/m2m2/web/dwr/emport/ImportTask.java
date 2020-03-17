@@ -16,7 +16,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.util.ConfigurationExportData;
-import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -53,15 +52,15 @@ import com.serotonin.util.ProgressiveTaskListener;
  * @author Matthew Lohbihler
  */
 public class ImportTask extends ProgressiveTask {
-	
-	private static Log LOG = LogFactory.getLog(ImportTask.class);
-	
+
+    private static Log LOG = LogFactory.getLog(ImportTask.class);
+
     protected final ImportContext importContext;
     protected final PointHierarchyImporter hierarchyImporter;
     protected final PermissionHolder user;
     protected float progress = 0f;
     protected float progressChunk;
-    
+
     protected final List<Importer> importers = new ArrayList<Importer>();
     protected final List<ImportItem> importItems = new ArrayList<ImportItem>();
     protected final List<DataPointSummaryPathPair> dpPathPairs = new ArrayList<DataPointSummaryPathPair>();
@@ -77,7 +76,7 @@ public class ImportTask extends ProgressiveTask {
     public ImportTask(JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener) {
         this(root, translations, user, listener, true);
     }
-    
+
     /**
      * Create an Import task to run now without a listener
      * @param root
@@ -90,7 +89,7 @@ public class ImportTask extends ProgressiveTask {
 
     /**
      * Create an ordered task that can be queue to run one after another
-     * 
+     *
      * @param root
      * @param translations
      * @param user
@@ -102,7 +101,7 @@ public class ImportTask extends ProgressiveTask {
     }
 
     /**
-     * 
+     *
      * @param name
      * @param taskId
      * @param queueSize
@@ -113,91 +112,80 @@ public class ImportTask extends ProgressiveTask {
      * @param schedule
      */
     public ImportTask(String name, String taskId, int queueSize, JsonObject root, Translations translations, PermissionHolder user, ProgressiveTaskListener listener, boolean schedule) {
-    	    super(name, taskId, queueSize, listener);
-    	
+        super(name, taskId, queueSize, listener);
+
         JsonReader reader = new JsonReader(Common.JSON_CONTEXT, root);
         this.importContext = new ImportContext(reader, new ProcessResult(), translations);
-        
+
         Objects.requireNonNull(user);
         this.user = user;
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
             addImporter(new UserImporter(jv.toJsonObject(), user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_SOURCES))
             addImporter(new DataSourceImporter(jv.toJsonObject(), user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.DATA_POINTS))
             addImporter(new DataPointImporter(jv.toJsonObject(), user, dpPathPairs));
-        
+
         JsonArray phJson = root.getJsonArray(ConfigurationExportData.POINT_HIERARCHY);
         if(phJson != null) {
             hierarchyImporter = new PointHierarchyImporter(phJson, user);
-        	    addImporter(hierarchyImporter);
+            addImporter(hierarchyImporter);
         } else
             hierarchyImporter = null;
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.MAILING_LISTS))
             addImporter(new MailingListImporter(jv.toJsonObject(), user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.PUBLISHERS))
             addImporter(new PublisherImporter(jv.toJsonObject(), user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_HANDLERS))
             addImporter(new EventHandlerImporter(jv.toJsonObject(), user));
-        
+
         JsonObject obj = root.getJsonObject(ConfigurationExportData.SYSTEM_SETTINGS);
         if(obj != null)
             addImporter(new SystemSettingsImporter(obj, user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.TEMPLATES))
             addImporter(new TemplateImporter(jv.toJsonObject(), user));
-        
+
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.VIRTUAL_SERIAL_PORTS))
             addImporter(new VirtualSerialPortImporter(jv.toJsonObject(), user));
-        
+
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
-        	addImporter(new JsonDataImporter(jv.toJsonObject(), user));
-        
+            addImporter(new JsonDataImporter(jv.toJsonObject(), user));
+
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
             importItems.add(importItem);
         }
-        
-        for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS)) 
-        	addImporter(new EventDetectorImporter(jv.toJsonObject(), user, eventDetectorPoints));
+
+        for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS))
+            addImporter(new EventDetectorImporter(jv.toJsonObject(), user, eventDetectorPoints));
 
         //Quick hack to ensure the Global Scripts are imported first in case they are used in scripts that will be loaded during this import
         final String globalScriptId = "sstGlobalScripts";
         Iterator<ImportItem> it = importItems.iterator();
+        ImportItem gsImporter = null;
         while(it.hasNext()) {
             ImportItem item = it.next();
             if(globalScriptId.equals(item.getEmportDefinition().getElementId())) {
                 it.remove();
-                Importer importer = new Importer(root, user) {
-                    
-                    private ImportItem gsImporter = item;
-                    
-                    @Override
-                    protected void importImpl() {
-                        try {
-                            if (!gsImporter.isComplete())
-                                gsImporter.importNext(ctx, user);
-                        } catch (JsonException e) {
-                            addException(e);
-                        }
-                    }
-                };
-                importer.setImportContext(importContext);
-                importer.setImporters(importers);
-                importers.add(0, importer);
+                gsImporter = item;
                 break;
             }
         }
-        
-        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths 
 
-        if(schedule)    
+        if(gsImporter != null) {
+            importItems.add(0, gsImporter);
+        }
+
+        this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths
+
+        if(schedule)
             Common.backgroundProcessing.execute(this);
     }
 
@@ -231,12 +219,12 @@ public class ImportTask extends ProgressiveTask {
                 if (importerIndex >= importers.size()) {
                     // A run through the importers has been completed.
                     if (importerSuccess) {
-                        // If there were successes with the importers and there are still more to do, run through 
+                        // If there were successes with the importers and there are still more to do, run through
                         // them again.
                         importerIndex = 0;
                         importerSuccess = false;
                     } else if(!importedItems) {
-        	            try {
+                        try {
                             for (ImportItem importItem : importItems) {
                                 if (!importItem.isComplete()) {
                                     importItem.importNext(importContext, user);
@@ -251,9 +239,9 @@ public class ImportTask extends ProgressiveTask {
                         }
                     } else {
                         // There are importers left in the list, but there were no successful imports in the last run
-                        // of the set. So, all that is left is stuff that will always fail. Copy the validation 
+                        // of the set. So, all that is left is stuff that will always fail. Copy the validation
                         // messages to the context for each.
-                    	    // Run the import items.
+                        // Run the import items.
                         for (Importer importer : importers)
                             importer.copyMessages();
                         importers.clear();
@@ -280,7 +268,7 @@ public class ImportTask extends ProgressiveTask {
                 }
                 catch (Exception e) {
                     // Uh oh...
-                	LOG.error(e.getMessage(),e);
+                    LOG.error(e.getMessage(),e);
                     addException(e);
                     importers.remove(importerIndex);
                 }
@@ -319,29 +307,29 @@ public class ImportTask extends ProgressiveTask {
                 declareProgress(this.progress);
         }
     }
-    
+
     public void processDataPointPaths(PointHierarchyImporter hierarchyImporter, List<DataPointSummaryPathPair> dpPathPairs) {
 
         PointFolder root;
-        if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null) 
+        if(hierarchyImporter != null && hierarchyImporter.getHierarchy() != null)
             root = hierarchyImporter.getHierarchy().getRoot();
         else if(dpPathPairs.size() > 0)
             root = DataPointDao.getInstance().getPointHierarchy(false).getRoot();
         else
             return;
-        
+
         String pathSeparator = SystemSettingsDao.instance.getValue(SystemSettingsDao.HIERARCHY_PATH_SEPARATOR);
         for(DataPointSummaryPathPair dpp : dpPathPairs) {
             root.removePointRecursively(dpp.getDataPointSummary().getId());
             PointFolder starting = root;
             PointFolder previous = root;
             String[] pathParts = dpp.getPath().split(pathSeparator);
-            
+
             if(pathParts.length == 1 && StringUtils.isBlank(pathParts[0])) { //Check if it's in the root
                 root.getPoints().add(dpp.getDataPointSummary());
                 continue;
             }
-            
+
             for(String s : pathParts) {
                 if(StringUtils.isBlank(s))
                     continue;
@@ -360,7 +348,7 @@ public class ImportTask extends ProgressiveTask {
         DataPointDao.getInstance().savePointHierarchy(root);
         importContext.addSuccessMessage(false, "emport.pointHierarchy.prefix", "");
     }
-    
+
     private void processUpdatedDetectors(Map<String, DataPointVO> eventDetectorMap) {
         for(DataPointVO dpvo : eventDetectorMap.values()) {
             //We can't really guarantee that the import didnt' also ocntain event detectors on the point or that the
@@ -382,7 +370,7 @@ public class ImportTask extends ProgressiveTask {
                 //Having removed the old versions, add the new.
                 saved.getEventDetectors().add(eventDetector);
             }
-            
+
             //Save the data point
             Common.runtimeManager.saveDataPoint(saved);
             for(AbstractPointEventDetectorVO<?> modified : dpvo.getEventDetectors())
@@ -397,7 +385,7 @@ public class ImportTask extends ProgressiveTask {
             msg += ", " + importContext.getTranslations().translate("emport.causedBy") + " '" + t.getMessage() + "'";
         //We were missing NPE and others without a msg
         if(msg == null)
-        	msg = e.getClass().getCanonicalName();
+            msg = e.getClass().getCanonicalName();
         importContext.getResult().addGenericMessage("common.default", msg);
     }
 }
