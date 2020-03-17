@@ -25,7 +25,6 @@ import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.spring.service.UsersService;
 import com.infiniteautomation.mango.util.ConfigurationExportData;
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -130,29 +129,18 @@ public class ImportTask extends ProgressiveTask {
         //Quick hack to ensure the Global Scripts are imported first in case they are used in scripts that will be loaded during this import
         final String globalScriptId = "sstGlobalScripts";
         Iterator<ImportItem> it = importItems.iterator();
+        ImportItem gsImporter = null;
         while(it.hasNext()) {
             ImportItem item = it.next();
             if(globalScriptId.equals(item.getEmportDefinition().getElementId())) {
                 it.remove();
-                Importer importer = new Importer(root) {
-
-                    private ImportItem gsImporter = item;
-
-                    @Override
-                    protected void importImpl() {
-                        try {
-                            if (!gsImporter.isComplete())
-                                gsImporter.importNext(ctx, user);
-                        } catch (JsonException e) {
-                            addException(e);
-                        }
-                    }
-                };
-                importer.setImportContext(importContext);
-                importer.setImporters(importers);
-                importers.add(0, importer);
+                gsImporter = item;
                 break;
             }
+        }
+
+        if(gsImporter != null) {
+            importItems.add(0, gsImporter);
         }
 
         this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths
