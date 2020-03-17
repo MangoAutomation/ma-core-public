@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.infiniteautomation.mango.util.ConfigurationExportData;
+import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
@@ -158,29 +159,38 @@ public class ImportTask extends ProgressiveTask {
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.JSON_DATA))
             addImporter(new JsonDataImporter(jv.toJsonObject(), user));
 
+        final String globalScriptId = "sstGlobalScripts";
+        List<Importer> globalScriptImporters = new ArrayList<>();
+
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
-            ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
-            importItems.add(importItem);
+            if(globalScriptId.equals(def.getElementId())) {
+                JsonValue scripts = root.get(def.getElementId());
+                if(scripts != null) {
+                    for(JsonValue script : scripts.toJsonArray()) {
+                        globalScriptImporters.add(new Importer(null, user) {
+                            @Override
+                            protected void importImpl() {
+                                try {
+                                    def.doImport(script, importContext, user);
+                                } catch (JsonException e) {
+                                    addException(e);
+                                }
+                            }
+                        });
+                    }
+                }
+            }else {
+                ImportItem importItem = new ImportItem(def, root.get(def.getElementId()));
+                importItems.add(importItem);
+            }
         }
 
         for(JsonValue jv : nonNullList(root, ConfigurationExportData.EVENT_DETECTORS))
             addImporter(new EventDetectorImporter(jv.toJsonObject(), user, eventDetectorPoints));
 
         //Quick hack to ensure the Global Scripts are imported first in case they are used in scripts that will be loaded during this import
-        final String globalScriptId = "sstGlobalScripts";
-        Iterator<ImportItem> it = importItems.iterator();
-        ImportItem gsImporter = null;
-        while(it.hasNext()) {
-            ImportItem item = it.next();
-            if(globalScriptId.equals(item.getEmportDefinition().getElementId())) {
-                it.remove();
-                gsImporter = item;
-                break;
-            }
-        }
-
-        if(gsImporter != null) {
-            importItems.add(0, gsImporter);
+        for(Importer importer : globalScriptImporters){
+            importers.add(0, importer);
         }
 
         this.progressChunk = 100f/((float)importers.size() + (float)importItems.size() + 1);  //+1 for processDataPointPaths
