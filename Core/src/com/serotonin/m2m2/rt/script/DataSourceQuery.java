@@ -28,7 +28,7 @@ import net.jazdw.rql.parser.RQLParser;
 
 /**
  *
- * Scripting Utility to query data points
+ * Scripting Utility to query data sources
  *
  * @author Terry Packer
  *

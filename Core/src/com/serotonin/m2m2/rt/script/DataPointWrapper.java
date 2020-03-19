@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.measure.unit.Unit;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -65,6 +66,10 @@ public class DataPointWrapper {
         return vo.getDataSourceXid();
     }
 
+    public JsonNode getData() {
+        return vo.getData();
+    }
+
     public Map<String, String> getTags() {
         Map<String, String> tags = vo.getTags();
         if(tags == null) {
@@ -103,7 +108,7 @@ public class DataPointWrapper {
         builder.append("dataSourceName: ").append(getDataSourceName()).append(",\n");
         builder.append("dataSourceXid: ").append(getDataSourceXid()).append(",\n");
         builder.append("tags: ").append(getTags()).append(",\n");
-
+        builder.append("data: ").append(getData()).append(",\n");
         if(this.wrapper != null)
             builder.append("runtime: ").append(this.wrapper.getHelp());
         else
