@@ -8,7 +8,10 @@ import java.util.Map;
 
 import javax.measure.unit.Unit;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointTagsDao;
 import com.serotonin.m2m2.vo.DataPointVO;
 
@@ -21,7 +24,7 @@ public class DataPointWrapper {
     protected DataPointVO vo;
     protected AbstractPointWrapper wrapper;
 
-    public DataPointWrapper(DataPointVO vo, AbstractPointWrapper wrapper){
+    public DataPointWrapper(DataPointVO vo, AbstractPointWrapper wrapper) {
         this.vo = vo;
         this.wrapper = wrapper;
     }
@@ -66,8 +69,9 @@ public class DataPointWrapper {
         return vo.getDataSourceXid();
     }
 
-    public JsonNode getData() {
-        return vo.getData();
+    public Map<String,Object> getData() {
+        ObjectMapper mapper = Common.getBean(ObjectMapper.class, MangoRuntimeContextConfiguration.COMMON_OBJECT_MAPPER_NAME);
+        return mapper.convertValue(vo.getData(), new TypeReference<Map<String, Object>>(){});
     }
 
     public Map<String, String> getTags() {

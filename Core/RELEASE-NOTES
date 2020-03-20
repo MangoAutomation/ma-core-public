@@ -24,7 +24,7 @@
 * Leverage module versions database table for more robust upgrade/installation support
 * Adding system setting emailDisabled to allow globally disabling email temporarily
 * Add free form data field to data point and data source to allow storage of custom data in the configuration
-
+* Expose 'data' field in Mango javascript context for data point wrappers. Usage contextPointKey.dataPointWrapper.data
 
 *Version 3.7.4*
 * Improve work item failure logging
