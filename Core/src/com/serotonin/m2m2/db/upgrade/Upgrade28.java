@@ -5,6 +5,7 @@ package com.serotonin.m2m2.db.upgrade;
 
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.sql.DatabaseMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +18,8 @@ import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.github.zafarkhaja.semver.Version;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 
@@ -39,6 +42,17 @@ public class Upgrade28 extends DBUpgrade {
 
     @Override
     protected void upgrade() throws Exception {
+
+        //Ensure if we are using MySQL we are at least 5.7.8 or we won't upgrade
+        if(Common.databaseProxy.getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
+            //Check version
+            DatabaseMetaData dmd = Common.databaseProxy.getDataSource().getConnection().getMetaData();
+            Version version =  Version.valueOf(dmd.getDatabaseProductVersion());
+            Version lowestSupported = Version.valueOf("5.7.8");
+            if(version.lessThan(lowestSupported)) {
+                throw new ShouldNeverHappenException("Unable to upgrade Mango, MySQL version must be at least 5.7.8");
+            }
+        }
         //Update User table to have unique email addresses
         //First update duplicate email addresses
         try (OutputStream out = createUpdateLogOutputStream()) {
