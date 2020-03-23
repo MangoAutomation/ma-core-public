@@ -47,6 +47,17 @@
 			<artifactId>ma-priv</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>com.infiniteautomation.mango</groupId>
+            <artifactId>ma-bootstrap</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.infiniteautomation.mango</groupId>
+            <artifactId>ma-bootstrap</artifactId>
+            <version>${project.parent.version}</version>
+            <classifier>windows</classifier>
+        </dependency>
 		<!-- ma-modules-public -->
 		<dependency>
 			<groupId>com.infiniteautomation.mango</groupId>

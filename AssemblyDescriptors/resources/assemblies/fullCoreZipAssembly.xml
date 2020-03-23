@@ -120,6 +120,7 @@
     	</includes>
       	<excludes>
       		<exclude>com.infiniteautomation.mango:*:zip:*</exclude>
+            <exclude>com.infiniteautomation.mango:ma-bootstrap</exclude>
       	</excludes>
      	<outputDirectory>lib</outputDirectory>
       	<useProjectArtifact>false</useProjectArtifact>
@@ -135,6 +136,13 @@
     	<outputFileNameMapping>m2m2-${artifact.name}-${artifact.baseVersion}.${artifact.extension}</outputFileNameMapping>
     	<useProjectArtifact>false</useProjectArtifact>
     	<useTransitiveDependencies>false</useTransitiveDependencies>
+    </dependencySet>
+    <dependencySet>
+        <includes>
+            <include>com.infiniteautomation.mango:ma-bootstrap</include>
+        </includes>
+        <outputDirectory>boot</outputDirectory>
+        <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
     </dependencySet>
   </dependencySets>
 </assembly>	

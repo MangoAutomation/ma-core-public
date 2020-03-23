@@ -31,6 +31,7 @@
    <module>AssemblyDescriptors</module>
    <module>Core</module>
    <module>Modules</module>
+   <module>Bootstrap</module>
  </modules>
  <profiles>
     <profile>
@@ -256,6 +257,10 @@
                 <version>${project.parent.version}</version>
               </dependency>
             </dependencies>
+          </plugin>
+          <plugin>
+            <artifactId>maven-jar-plugin</artifactId>
+            <version>3.2.0</version>
           </plugin>
           <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
           <plugin>
