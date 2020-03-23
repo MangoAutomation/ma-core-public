@@ -58,9 +58,11 @@ import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.IDataPoint;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataPoint.MockPointLocatorVO;
+import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceVO;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.provider.Providers;
 import com.serotonin.provider.TimerProvider;
 import com.serotonin.timer.SimulationTimer;
@@ -249,6 +251,22 @@ public class MangoTestBase {
         }
     }
 
+    protected List<RoleVO> createRoles(int count) {
+        List<RoleVO> roles = new ArrayList<>();
+        for(int i=0; i<count; i++) {
+            roles.add(createRole("role" + i, "Role " + i));
+        }
+        return roles;
+    }
+
+    protected RoleVO createRole(String xid, String name) {
+        RoleService service = Common.getBean(RoleService.class);
+        RoleVO role = new RoleVO(Common.NEW_ID, xid, name);
+        return service.getPermissionService().runAsSystemAdmin(() -> {
+            return service.insert(role);
+        });
+    }
+
     /**
      * Create users with password=password and supplied permissions
      * @param count
@@ -317,11 +335,17 @@ public class MangoTestBase {
     }
 
     protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled) {
+        return createMockDataSource(name, xid, enabled, Collections.emptySet(), Collections.emptySet());
+    }
+
+    protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled, Set<Role> readRoles, Set<Role> editRoles) {
         DataSourceService service = Common.getBean(DataSourceService.class);
         MockDataSourceVO vo = new MockDataSourceVO();
         vo.setXid(name);
         vo.setName(xid);
         vo.setEnabled(enabled);
+        vo.setReadRoles(readRoles);
+        vo.setEditRoles(editRoles);
 
         return (MockDataSourceVO) service.getPermissionService().runAsSystemAdmin(() -> {
             try {
@@ -348,8 +372,11 @@ public class MangoTestBase {
     }
 
     protected List<IDataPoint> createMockDataPoints(int count, boolean enabled, Set<Role> readRoles, Set<Role> setRoles) {
+        return createMockDataPoints(count, enabled, readRoles, setRoles, createMockDataSource(enabled));
+    }
+
+    protected List<IDataPoint> createMockDataPoints(int count, boolean enabled, Set<Role> readRoles, Set<Role> setRoles, DataSourceVO ds) {
         List<IDataPoint> points = new ArrayList<>(count);
-        MockDataSourceVO ds = createMockDataSource(enabled);
         String name = UUID.randomUUID().toString();
         for(int i=0; i<count; i++) {
             points.add(createMockDataPoint(Common.NEW_ID,
@@ -358,6 +385,7 @@ public class MangoTestBase {
                     ds.getName() + " " + name,
                     enabled,
                     ds.getId(),
+                    ds.getXid(),
                     readRoles,
                     setRoles,
                     new MockPointLocatorVO()));
@@ -377,17 +405,18 @@ public class MangoTestBase {
                 ds.getName() + " " + name,
                 enabled,
                 ds.getId(),
+                ds.getXid(),
                 vo);
     }
 
     protected DataPointVO createMockDataPoint(int id, String xid, String name,
-            String deviceName, boolean enabled, int dataSourceId, MockPointLocatorVO vo) {
+            String deviceName, boolean enabled, int dataSourceId, String dataSourceXid, MockPointLocatorVO vo) {
         return createMockDataPoint(id, xid,
-                name, deviceName, enabled, dataSourceId, new HashSet<>(), new HashSet<>(), vo);
+                name, deviceName, enabled, dataSourceId, dataSourceXid, new HashSet<>(), new HashSet<>(), vo);
     }
 
     protected DataPointVO createMockDataPoint(int id, String xid, String name, String deviceName, boolean enabled, int dataSourceId,
-            Set<Role> readRoles, Set<Role> setRoles, MockPointLocatorVO vo) {
+            String dataSourceXid, Set<Role> readRoles, Set<Role> setRoles, MockPointLocatorVO vo) {
 
         DataPointService service = Common.getBean(DataPointService.class);
         DataPointVO dp = new DataPointVO();
@@ -398,6 +427,7 @@ public class MangoTestBase {
         dp.setEnabled(enabled);
         dp.setPointLocator(vo);
         dp.setDataSourceId(dataSourceId);
+        dp.setDataSourceXid(dataSourceXid);
         dp.setReadRoles(readRoles);
         dp.setSetRoles(setRoles);
 
