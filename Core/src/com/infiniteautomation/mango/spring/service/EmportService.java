@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Map;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -111,6 +112,8 @@ public class EmportService {
      */
     public void export(Map<String, Object> data, Writer writer, int prettyIndent) throws PermissionException {
         PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         permissionService.ensureAdminRole(user);
         JsonTypeWriter typeWriter = new JsonTypeWriter(Common.JSON_CONTEXT);
         JsonWriter jsonWriter = new JsonWriter(Common.JSON_CONTEXT, writer);

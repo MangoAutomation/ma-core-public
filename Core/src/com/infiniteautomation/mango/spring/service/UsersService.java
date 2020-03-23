@@ -114,6 +114,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         if(vo == null)
             throw new NotFoundException();
         PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureReadPermission(user, vo);
         return vo;
     }
@@ -129,7 +131,10 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         User vo =  dao.getUserByEmail(emailAddress);
         if(vo == null)
             throw new NotFoundException();
-        ensureReadPermission(Common.getUser(), vo);
+
+        PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+        ensureReadPermission(user, vo);
         return vo;
     }
 
@@ -137,6 +142,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User insert(User vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         //Ensure they can create
         ensureCreatePermission(user, vo);
 
@@ -169,6 +176,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User update(User existing, User vo)
             throws PermissionException, ValidationException {
         PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         ensureEditPermission(user, existing);
         vo.setId(existing.getId());
 
@@ -204,6 +213,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public User delete(User vo)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         //You cannot delete yourself
         if (user instanceof User && ((User) user).getId() == vo.getId())
             throw new PermissionException(new TranslatableMessage("users.validate.badDelete"), user);
@@ -242,6 +253,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public void lockPassword(String username)
             throws PermissionException, NotFoundException {
         PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         permissionService.ensureAdminRole(user);
         User toLock = this.get(username);
         if (user instanceof User && ((User) user).getId() == toLock.getId())
@@ -266,6 +279,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
      */
     public Set<UserRolesDetails> getPermissionDetailsForAllUsers(Collection<String> query) {
         PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         Set<UserRolesDetails> details = new TreeSet<>();
         for (User u : dao.getActiveUsers()){
             UserRolesDetails deets = permissionService.getPermissionDetails(user, query, u);
@@ -290,6 +305,8 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
      */
     public Set<Role> getUserRoles(Collection<String> exclude) {
         PermissionHolder user = Common.getUser();
+        java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
+
         Set<Role> groups = new HashSet<>();
         groups.addAll(user.getRoles());
 
