@@ -30,6 +30,9 @@ public class RQLFilterJsonNode extends RQLFilter<JsonNode> {
         String[] propertyNames = RQLFilterJavaBean.PROPERTY_SEPARATOR.split(property);
         for (String subProperty : propertyNames) {
             item = item.get(subProperty);
+            if (item == null) {
+                return MissingProperty.INSTANCE;
+            }
         }
         return toJavaNative(item);
     }

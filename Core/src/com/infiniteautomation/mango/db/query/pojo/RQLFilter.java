@@ -237,11 +237,16 @@ public abstract class RQLFilter<T> implements UnaryOperator<Stream<T>> {
     }
 
     /**
-     * @param item String, Boolean, Integer, Long, BigInteger, Float, Double, BigDecimal or null
+     * @param item
      * @param propertyName
-     * @return
+     * @return String, Boolean, Integer, Long, BigInteger, Float, Double, BigDecimal or null. Return MissingProperty if property does not exist
      */
     protected abstract Object getProperty(T item, String propertyName);
+
+    public static final class MissingProperty {
+        public static final MissingProperty INSTANCE = new MissingProperty();
+        private MissingProperty() {}
+    }
 
     protected String mapPropertyName(String propertyName) {
         return propertyName;
