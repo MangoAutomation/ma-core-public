@@ -160,11 +160,13 @@ public class MangoTestBase {
             module.postRuntimeManagerTerminate(false);
         }
 
-        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
-        try {
-            proxy.clean();
-        } catch (Exception e) {
-            throw new ShouldNeverHappenException(e);
+        if(Common.databaseProxy instanceof H2InMemoryDatabaseProxy) {
+            H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
+            try {
+                proxy.clean();
+            } catch (Exception e) {
+                throw new ShouldNeverHappenException(e);
+            }
         }
     }
 

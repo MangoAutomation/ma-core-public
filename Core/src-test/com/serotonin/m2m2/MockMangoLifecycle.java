@@ -28,6 +28,7 @@ import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfig;
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigResolver;
 import com.infiniteautomation.mango.spring.MangoPropertySource;
 import com.infiniteautomation.mango.spring.MangoTestRuntimeContextConfiguration;
+import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
@@ -75,9 +76,10 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     private final List<Runnable> SHUTDOWN_TASKS = new ArrayList<>();
 
     //Members to use for non defaults
+    protected MangoProperties properties;
     protected TimerProvider<AbstractTimer> timer;
     protected EventManager eventManager;
-    protected H2InMemoryDatabaseProxy db;
+    protected DatabaseProxy db;
     protected RuntimeManager runtimeManager;
     protected SerialPortManager serialPortManager;
     protected MockBackgroundProcessing backgroundProcessing;
@@ -97,11 +99,15 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     public MockMangoLifecycle(List<Module> modules, boolean enableWebConsole, int webPort) {
+        this(modules, null, enableWebConsole, webPort);
+    }
+
+    public MockMangoLifecycle(List<Module> modules, MangoProperties properties, boolean enableWebConsole, int webPort) {
         this.enableWebConsole = enableWebConsole;
+        this.properties = properties;
         this.webPort = webPort;
         this.modules = modules;
     }
-
 
     /**
      * Startup a dummy Mango with a basic infrastructure
@@ -122,7 +128,15 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             throw new RuntimeException(e);
         }
 
-        Providers.add(MangoProperties.class, getEnvProps());
+        if(this.properties == null) {
+            this.properties = new MockMangoProperties();
+        }
+
+        if(this.properties instanceof MockMangoProperties) {
+            setDefaultEnvProps((MockMangoProperties)this.properties);
+        }
+
+        Providers.add(MangoProperties.class, this.properties);
         Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
 
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
@@ -396,14 +410,28 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             return this.timer;
     }
 
-    protected MangoProperties getEnvProps() {
-        MockMangoProperties props = new MockMangoProperties();
-        props.setProperty("paths.temp", tempPath.toString());
-        props.setProperty("paths.filedata", filedataPath.toString());
-        props.setProperty("filestore.location", filestorePath.toString());
-        props.setProperty("moduleData.location", moduleDataPath.toString());
-        props.setProperty("paths.logs", logsPath.toString());
-        return props;
+    protected void setDefaultEnvProps(MockMangoProperties props) {
+        if(props.getString("paths.temp") == null) {
+            props.setProperty("paths.temp", tempPath.toString());
+        }
+        if(props.getString("paths.filedata") == null) {
+            props.setProperty("paths.filedata", filedataPath.toString());
+        }
+
+        if(props.getString("filestore.location") == null) {
+            props.setProperty("filestore.location", filestorePath.toString());
+        }
+        if(props.getString("moduleData.location") == null) {
+            props.setProperty("moduleData.location", moduleDataPath.toString());
+        }
+        if(props.getString("paths.logs") == null) {
+            props.setProperty("paths.logs", logsPath.toString());
+        }
+
+    }
+
+    public void setEnvProps(MockMangoProperties props) {
+        this.properties = props;
     }
 
     protected EventManager getEventManager() {
@@ -413,7 +441,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             return this.eventManager;
     }
 
-    protected H2InMemoryDatabaseProxy getDatabaseProxy() {
+    protected DatabaseProxy getDatabaseProxy() {
         if(this.db == null)
             return new H2InMemoryDatabaseProxy(enableWebConsole, webPort);
         else
@@ -461,7 +489,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         this.eventManager = eventManager;
     }
 
-    public void setDb(H2InMemoryDatabaseProxy db) {
+    public void setDb(DatabaseProxy db) {
         this.db = db;
     }
 
