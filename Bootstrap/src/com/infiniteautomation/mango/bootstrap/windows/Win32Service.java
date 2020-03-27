@@ -22,6 +22,9 @@
  */
 package com.infiniteautomation.mango.bootstrap.windows;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.infiniteautomation.mango.bootstrap.windows.ServiceControlManager.Service;
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
@@ -32,6 +35,7 @@ import com.sun.jna.platform.win32.WinError;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.platform.win32.Winsvc;
 import com.sun.jna.platform.win32.Winsvc.HandlerEx;
+import com.sun.jna.platform.win32.Winsvc.SC_ACTION;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_MAIN_FUNCTION;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_STATUS;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_STATUS_HANDLE;
@@ -185,13 +189,34 @@ public abstract class Win32Service {
      * @param password     password for service account or null
      * @param command      command line to start the service
      */
-    public static void install(String serviceName, String displayName, String description, String[] dependencies, String account, String password, String command) {
+    public static void install(String serviceName, String displayName, String description, String[] dependencies, String account, String password, String command, boolean restartOnFail) {
         try (ServiceControlManager sc = new ServiceControlManager(null, null, Winsvc.SC_MANAGER_ALL_ACCESS)) {
             try (Service service = sc.createService(serviceName, displayName, Winsvc.SERVICE_ALL_ACCESS, WinNT.SERVICE_WIN32_OWN_PROCESS, WinNT.SERVICE_AUTO_START,
                     WinNT.SERVICE_ERROR_NORMAL, command, null, null, dependencies, account, password)) {
                 service.setDescription(description);
+                if (restartOnFail) {
+                    List<SC_ACTION> actions = new ArrayList<>(3);
+                    actions.add(action(0x01, 0)); // SC_ACTION_RESTART, 0 second delay
+                    actions.add(action(0x01, 30000)); // SC_ACTION_RESTART, 30 second delay
+                    actions.add(action(0x01, 60000)); // SC_ACTION_RESTART, 60 second delay
+                    actions.add(action(0x01, 120000)); // SC_ACTION_RESTART, 120 second delay
+                    actions.add(action(0x00, 0)); // SC_ACTION_NONE, give up
+
+                    // failure count resets after 15 minutes
+                    service.setFailureActions(actions, 900, null, null);
+
+                    // trigger failure actions if service stops with error code (default is to only run when process terminates unexpectedly)
+                    service.setFailureActionsFlag(true);
+                }
             }
         }
+    }
+
+    private static SC_ACTION action(int type, int delay) {
+        SC_ACTION action = new SC_ACTION();
+        action.type = type;
+        action.delay = delay;
+        return action;
     }
 
     /**

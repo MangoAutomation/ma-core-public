@@ -68,7 +68,10 @@ public class WindowsService extends Win32Service {
         String password = System.getProperty("service.password");
         String command = System.getProperty("service.command", defaultCommand);
 
-        Win32Service.install(serviceName, displayName, description, new String [] {}, account, password, command);
+        String dependenciesStr = System.getProperty("service.dependencies", "Tcpip,iphlpsvc,Dnscache");
+        String[] dependencies = dependenciesStr.split("\\s*,\\s*");
+
+        Win32Service.install(serviceName, displayName, description, dependencies, account, password, command, true);
     }
 
     private volatile MangoFunctions functions;

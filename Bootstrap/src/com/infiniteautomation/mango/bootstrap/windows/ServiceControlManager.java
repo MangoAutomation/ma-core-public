@@ -3,13 +3,20 @@
  */
 package com.infiniteautomation.mango.bootstrap.windows;
 
+import java.util.List;
+
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.platform.win32.Advapi32;
+import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.Kernel32Util;
+import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.Winsvc;
+import com.sun.jna.platform.win32.Winsvc.SC_ACTION;
 import com.sun.jna.platform.win32.Winsvc.SC_HANDLE;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_DESCRIPTION;
+import com.sun.jna.platform.win32.Winsvc.SERVICE_FAILURE_ACTIONS;
+import com.sun.jna.platform.win32.Winsvc.SERVICE_FAILURE_ACTIONS_FLAG;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_STATUS;
 import com.sun.jna.ptr.IntByReference;
 
@@ -94,6 +101,37 @@ public class ServiceControlManager implements AutoCloseable {
             desc.lpDescription = description;
             if (!Advapi32.INSTANCE.ChangeServiceConfig2(serviceHandle, Winsvc.SERVICE_CONFIG_DESCRIPTION, desc)) {
                 throwLastError();
+            }
+        }
+
+        public void setFailureActions(List<SC_ACTION> actions, int resetPeriod, String rebootMsg, String command) {
+            SERVICE_FAILURE_ACTIONS.ByReference actionStruct = new SERVICE_FAILURE_ACTIONS.ByReference();
+            actionStruct.dwResetPeriod = resetPeriod;
+            actionStruct.lpRebootMsg = rebootMsg;
+            actionStruct.lpCommand = command;
+            actionStruct.cActions = actions.size();
+
+            actionStruct.lpsaActions = new SC_ACTION.ByReference();
+            SC_ACTION[] actionArray = (SC_ACTION[]) actionStruct.lpsaActions.toArray(actions.size());
+
+            int i = 0;
+            for (SC_ACTION action : actions) {
+                actionArray[i].type = action.type;
+                actionArray[i].delay = action.delay;
+                i++;
+            }
+
+            if (!Advapi32.INSTANCE.ChangeServiceConfig2(serviceHandle, Winsvc.SERVICE_CONFIG_FAILURE_ACTIONS, actionStruct)) {
+                throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
+            }
+        }
+
+        public void setFailureActionsFlag(boolean flagValue) {
+            SERVICE_FAILURE_ACTIONS_FLAG flag = new SERVICE_FAILURE_ACTIONS_FLAG();
+            flag.fFailureActionsOnNonCrashFailures = flagValue ? 1 : 0;
+
+            if (!Advapi32.INSTANCE.ChangeServiceConfig2(serviceHandle, Winsvc.SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, flag)) {
+                throw new Win32Exception(Kernel32.INSTANCE.GetLastError());
             }
         }
 
