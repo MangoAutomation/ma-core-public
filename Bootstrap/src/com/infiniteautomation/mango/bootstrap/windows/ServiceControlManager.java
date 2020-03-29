@@ -5,11 +5,9 @@ package com.infiniteautomation.mango.bootstrap.windows;
 
 import java.util.List;
 
-import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.platform.win32.Advapi32;
 import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.platform.win32.Kernel32Util;
 import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.Winsvc;
 import com.sun.jna.platform.win32.Winsvc.SC_ACTION;
@@ -30,21 +28,15 @@ public class ServiceControlManager implements AutoCloseable {
     public ServiceControlManager(String lpMachineName, String lpDatabaseName, int dwDesiredAccess) {
         this.handle = Advapi32.INSTANCE.OpenSCManager(lpMachineName, lpDatabaseName, dwDesiredAccess);
         if (this.handle == null) {
-            throwLastError();
+            throw new Win32Exception(Native.getLastError());
         }
     }
 
     @Override
     public void close() {
         if (!Advapi32.INSTANCE.CloseServiceHandle(this.handle)) {
-            throwLastError();
+            throw new Win32Exception(Native.getLastError());
         }
-    }
-
-    private void throwLastError() {
-        int error = Native.getLastError();
-        String message = Kernel32Util.formatMessage(error);
-        throw new LastErrorException(String.format("GetLastError() returned %d: %s", error, message));
     }
 
     public Service createService(String lpServiceName,
@@ -68,7 +60,7 @@ public class ServiceControlManager implements AutoCloseable {
                 lpBinaryPathName,
                 lpLoadOrderGroup, lpdwTagId, dep.toString(), lpServiceStartName, lpPassword);
         if (serviceHandle == null) {
-            throwLastError();
+            throw new Win32Exception(Native.getLastError());
         }
         return new Service(serviceHandle);
     }
@@ -76,7 +68,7 @@ public class ServiceControlManager implements AutoCloseable {
     public Service openService(String lpServiceName, int dwDesiredAccess) {
         SC_HANDLE serviceHandle = Advapi32.INSTANCE.OpenService(this.handle, lpServiceName, dwDesiredAccess);
         if (serviceHandle == null) {
-            throwLastError();
+            throw new Win32Exception(Native.getLastError());
         }
         return new Service(serviceHandle);
     }
@@ -92,7 +84,7 @@ public class ServiceControlManager implements AutoCloseable {
         @Override
         public void close() {
             if (!Advapi32.INSTANCE.CloseServiceHandle(this.serviceHandle)) {
-                throwLastError();
+                throw new Win32Exception(Native.getLastError());
             }
         }
 
@@ -100,7 +92,7 @@ public class ServiceControlManager implements AutoCloseable {
             SERVICE_DESCRIPTION desc = new SERVICE_DESCRIPTION();
             desc.lpDescription = description;
             if (!Advapi32.INSTANCE.ChangeServiceConfig2(serviceHandle, Winsvc.SERVICE_CONFIG_DESCRIPTION, desc)) {
-                throwLastError();
+                throw new Win32Exception(Native.getLastError());
             }
         }
 
@@ -137,13 +129,13 @@ public class ServiceControlManager implements AutoCloseable {
 
         public void delete() {
             if (!Advapi32.INSTANCE.DeleteService(serviceHandle)) {
-                throwLastError();
+                throw new Win32Exception(Native.getLastError());
             }
         }
 
         public void start(int dwNumServiceArgs, String[] lpServiceArgVectors) {
             if (!Advapi32.INSTANCE.StartService(serviceHandle, dwNumServiceArgs, lpServiceArgVectors)) {
-                throwLastError();
+                throw new Win32Exception(Native.getLastError());
             }
         }
 
@@ -154,7 +146,7 @@ public class ServiceControlManager implements AutoCloseable {
         public SERVICE_STATUS control(int dwControl) {
             SERVICE_STATUS serviceStatus = new SERVICE_STATUS();
             if (!Advapi32.INSTANCE.ControlService(serviceHandle, dwControl, serviceStatus)) {
-                throwLastError();
+                throw new Win32Exception(Native.getLastError());
             }
             return serviceStatus;
         }

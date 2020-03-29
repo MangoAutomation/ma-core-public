@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.infiniteautomation.mango.bootstrap.MangoBootstrap;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinError;
 
 /**
  * @author Jared Wiltshire
@@ -19,18 +21,43 @@ public class WindowsService extends Win32Service {
     public static void main(String[] args) throws Exception {
         String serviceName = System.getProperty("service.name", "MangoAutomation");
 
-        if (args.length > 0) {
-            String action = args[0];
-            switch(action) {
-                case "install": WindowsService.install(serviceName); break;
-                case "uninstall": Win32Service.uninstall(serviceName); break;
-                default:
-                    throw new IllegalArgumentException("Invalid option, the only arguments accepted are install, or uninstall");
-            }
-            return;
-        }
+        try {
 
-        new WindowsService(serviceName);
+            if (args.length > 0) {
+                String action = args[0];
+                switch(action) {
+                    case "install": WindowsService.install(serviceName); break;
+                    case "uninstall": Win32Service.uninstall(serviceName); break;
+                    case "start": Win32Service.start(serviceName); break;
+                    case "stop": Win32Service.stop(serviceName); break;
+                    case "init": new WindowsService(serviceName); break;
+                    default:
+                        throw new IllegalArgumentException("Invalid option, the only arguments accepted are init, start, stop, install, or uninstall");
+                }
+                return;
+            }
+
+            // default action is to start the service, if not already installed it will be installed then started
+            try {
+                Win32Service.start(serviceName);
+            } catch (Win32Exception e) {
+                if (e.getErrorCode() == WinError.ERROR_SERVICE_DOES_NOT_EXIST) {
+                    WindowsService.install(serviceName);
+                    Win32Service.start(serviceName);
+                } else {
+                    throw e;
+                }
+            }
+
+        } catch (Win32Exception e) {
+            // if we are not allowed to start/stop/install etc we restart using ShellExecuteEx "runas"
+            // UAC will prompt for administrator access and the the JVM will be restarted using the same command line
+            if (e.getErrorCode() == WinError.ERROR_ACCESS_DENIED) {
+                Win32Service.restartAsAdmin();
+            } else {
+                throw e;
+            }
+        }
     }
 
     public static void install(String serviceName) {
@@ -58,13 +85,13 @@ public class WindowsService extends Win32Service {
                 "\"" + javaExe + "\"",
                 javaOptions,
                 "-Dma.home=\"" + maHome + "\"",
-                "-jar \"" + jarFile + "\""
+                "-jar \"" + jarFile + "\"",
+                "init"
         });
 
         String displayName = System.getProperty("service.displayName", "Mango Automation");
         String description = System.getProperty("service.description", "Mango Automation by Infinite Automation Systems Inc");
         String account = System.getProperty("service.account");
-        //String account = System.getProperty("service.account", "NT AUTHORITY\\LocalService");
         String password = System.getProperty("service.password");
         String command = System.getProperty("service.command", defaultCommand);
 

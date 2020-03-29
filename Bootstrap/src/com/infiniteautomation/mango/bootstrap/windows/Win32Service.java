@@ -23,14 +23,18 @@
 package com.infiniteautomation.mango.bootstrap.windows;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.infiniteautomation.mango.bootstrap.windows.ServiceControlManager.Service;
-import com.sun.jna.LastErrorException;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Advapi32;
-import com.sun.jna.platform.win32.Kernel32Util;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.platform.win32.Shell32;
+import com.sun.jna.platform.win32.ShellAPI.SHELLEXECUTEINFO;
+import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinError;
 import com.sun.jna.platform.win32.WinNT;
 import com.sun.jna.platform.win32.Winsvc;
@@ -40,6 +44,8 @@ import com.sun.jna.platform.win32.Winsvc.SERVICE_MAIN_FUNCTION;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_STATUS;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_STATUS_HANDLE;
 import com.sun.jna.platform.win32.Winsvc.SERVICE_TABLE_ENTRY;
+import com.sun.jna.ptr.IntByReference;
+import com.sun.jna.win32.W32APIOptions;
 
 /**
  * Baseclass for a Win32 service.
@@ -78,7 +84,7 @@ public abstract class Win32Service {
         entry.lpServiceProc = serviceMainFunction;
 
         if (!Advapi32.INSTANCE.StartServiceCtrlDispatcher((SERVICE_TABLE_ENTRY[]) entry.toArray(2))) {
-            throwLastError();
+            throw new Win32Exception(Native.getLastError());
         }
     }
 
@@ -172,12 +178,6 @@ public abstract class Win32Service {
         }
     }
 
-    protected void throwLastError() {
-        int error = Native.getLastError();
-        String message = Kernel32Util.formatMessage(error);
-        throw new LastErrorException(String.format("GetLastError() returned %d: %s", error, message));
-    }
-
     /**
      * Install the service.
      *
@@ -209,6 +209,32 @@ public abstract class Win32Service {
                     service.setFailureActionsFlag(true);
                 }
             }
+        }
+    }
+
+    public static void restartAsAdmin() {
+        String cmd = Kernel32Ext.INSTANCE.GetCommandLine();
+        if (cmd == null) {
+            throw new Win32Exception(Native.getLastError());
+        }
+
+        IntByReference arraySize = new IntByReference();
+        Pointer arrayPtr = Shell32Ext.INSTANCE.CommandLineToArgv(cmd, arraySize.getPointer());
+        if (arrayPtr == null) {
+            throw new Win32Exception(Native.getLastError());
+        }
+        String[] paramArray = arrayPtr.getWideStringArray(0, arraySize.getValue());
+        String params = Arrays.stream(paramArray).skip(1).collect(Collectors.joining(" "));
+
+        SHELLEXECUTEINFO info = new SHELLEXECUTEINFO();
+        info.lpVerb = "runas";
+        info.lpFile = paramArray[0];
+        info.lpParameters = params;
+        info.fMask = 0x00000100 | 0x00008000;
+        //info.fMask = SEE_MASK_NOASYNC | SEE_MASK_NO_CONSOLE;
+
+        if (!Shell32.INSTANCE.ShellExecuteEx(info)) {
+            throw new Win32Exception(Native.getLastError());
         }
     }
 
@@ -250,6 +276,18 @@ public abstract class Win32Service {
                 service.stop();
             }
         }
+    }
+
+    public interface Kernel32Ext extends Kernel32 {
+        Kernel32Ext INSTANCE = Native.load("kernel32", Kernel32Ext.class, W32APIOptions.DEFAULT_OPTIONS);
+
+        String GetCommandLine();
+    }
+
+    public interface Shell32Ext extends Shell32 {
+        Shell32Ext INSTANCE = Native.load("shell32", Shell32Ext.class, W32APIOptions.DEFAULT_OPTIONS);
+
+        Pointer CommandLineToArgv(String commandLine, Pointer numArgs);
     }
 
 }
