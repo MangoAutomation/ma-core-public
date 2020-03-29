@@ -3,7 +3,6 @@
  */
 package com.infiniteautomation.mango.bootstrap.windows;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -61,24 +60,15 @@ public class WindowsService extends Win32Service {
     }
 
     public static void install(String serviceName) {
-        String maHomeStr = System.getProperty("ma.home");
-        if (maHomeStr == null) {
-            if (Files.isRegularFile(Paths.get(JAR_FILENAME))) {
-                maHomeStr = "..";
-            } else {
-                maHomeStr = ".";
-            }
-        }
-
-        Path javaHome = Paths.get(System.getProperty("java.home")).normalize().toAbsolutePath();
+        Path javaHome = Paths.get(System.getProperty("java.home")).toAbsolutePath().normalize();
         Path javaExe = javaHome.resolve("bin").resolve("java.exe");
         String javaOptions = System.getProperty("service.javaOptions", "-server");
 
-        Path maHome = Paths.get(maHomeStr).normalize().toAbsolutePath();
+        Path maHome = MangoBootstrap.maHome();
         Path jarFile = maHome.resolve("boot").resolve(JAR_FILENAME);
         String userJarFile = System.getProperty("service.jar");
         if (userJarFile != null) {
-            jarFile = Paths.get(userJarFile).normalize().toAbsolutePath();
+            jarFile = Paths.get(userJarFile).toAbsolutePath().normalize();
         }
 
         String defaultCommand = String.join(" ", new String[] {

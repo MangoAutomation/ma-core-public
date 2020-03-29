@@ -88,6 +88,6 @@ public class MangoBootstrap {
                 maHomeStr = ".";
             }
         }
-        return Paths.get(maHomeStr).normalize().toAbsolutePath();
+        return Paths.get(maHomeStr).toAbsolutePath().normalize();
     }
 }
