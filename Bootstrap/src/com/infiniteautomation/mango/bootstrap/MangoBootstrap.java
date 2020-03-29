@@ -80,14 +80,33 @@ public class MangoBootstrap {
     }
 
     public static Path maHome() {
-        String maHomeStr = System.getProperty("ma.home");
-        if (maHomeStr == null) {
-            if (Files.isRegularFile(Paths.get(JAR_FILENAME))) {
-                maHomeStr = "..";
-            } else {
-                maHomeStr = ".";
+        String[] possibleMaHomes = new String[] {
+                System.getProperty("ma.home"),
+                "..",
+                "."
+        };
+
+        Path maHome = null;
+        for (String possibleMaHome : possibleMaHomes) {
+            if (possibleMaHome == null) {
+                continue;
+            }
+
+            Path test = Paths.get(possibleMaHome);
+            if (isMaHome(test)) {
+                maHome = test;
+                break;
             }
         }
-        return Paths.get(maHomeStr).toAbsolutePath().normalize();
+
+        if (maHome == null) {
+            throw new RuntimeException("Can't find MA_HOME, please set a Java system property -Dma.home=\"path\\to\\mango\"");
+        }
+
+        return maHome.toAbsolutePath().normalize();
+    }
+
+    private static boolean isMaHome(Path testMaHome) {
+        return Files.isRegularFile(testMaHome.resolve("release.properties")) || Files.isRegularFile(testMaHome.resolve("release.signed"));
     }
 }
