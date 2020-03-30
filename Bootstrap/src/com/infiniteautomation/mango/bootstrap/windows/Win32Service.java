@@ -71,13 +71,12 @@ public abstract class Win32Service {
         this.serviceMainFunction = this::serviceMain;
         this.startWaitHint = 60000;
         this.stopWaitHint = 60000;
-        this.init();
     }
 
     /**
      * Initialize the service, connect to the ServiceControlManager.
      */
-    private void init() {
+    public void init() {
         Thread.currentThread().setName("Service " + serviceName + " control handler");
         SERVICE_TABLE_ENTRY entry = new SERVICE_TABLE_ENTRY();
         entry.lpServiceName = serviceName;

@@ -22,7 +22,12 @@ public class MangoBootstrap {
     public static final String JAR_FILENAME = "ma-bootstrap.jar";
 
     public static void main(String[] args) throws Exception {
-        ClassLoader cl = new MangoBootstrap().getClassLoader();
+        Path maHome = maHome();
+
+        CoreUpgrade upgrade = new CoreUpgrade(maHome);
+        upgrade.upgrade();
+
+        ClassLoader cl = new MangoBootstrap(maHome).getClassLoader();
         Class<?> mainClass = cl.loadClass("com.serotonin.m2m2.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, (Object) args);
@@ -31,8 +36,8 @@ public class MangoBootstrap {
     private List<URL> urls = new ArrayList<>();
     private final Path maHome;
 
-    public MangoBootstrap() {
-        this.maHome = maHome();
+    public MangoBootstrap(Path maHome) {
+        this.maHome = maHome;
 
         addUrl(maHome.resolve("overrides").resolve("classes"));
         addUrl(maHome.resolve("classes"));

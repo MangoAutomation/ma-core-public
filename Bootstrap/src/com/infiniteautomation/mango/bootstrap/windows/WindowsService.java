@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.bootstrap.windows;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.infiniteautomation.mango.bootstrap.CoreUpgrade;
 import com.infiniteautomation.mango.bootstrap.MangoBootstrap;
 import com.sun.jna.platform.win32.Win32Exception;
 import com.sun.jna.platform.win32.WinError;
@@ -29,7 +30,11 @@ public class WindowsService extends Win32Service {
                     case "uninstall": Win32Service.uninstall(serviceName); break;
                     case "start": Win32Service.start(serviceName); break;
                     case "stop": Win32Service.stop(serviceName); break;
-                    case "init": new WindowsService(serviceName); break;
+                    case "init": {
+                        WindowsService service = new WindowsService(serviceName);
+                        service.init();
+                        break;
+                    }
                     default:
                         throw new IllegalArgumentException("Invalid option, the only arguments accepted are init, start, stop, install, or uninstall");
                 }
@@ -99,7 +104,12 @@ public class WindowsService extends Win32Service {
 
     @Override
     protected void startImpl() throws Exception {
-        ClassLoader cl = new PrefixClassLoader("stage2", new MangoBootstrap().getClassLoader());
+        Path maHome = MangoBootstrap.maHome();
+
+        CoreUpgrade upgrade = new CoreUpgrade(maHome);
+        upgrade.upgrade();
+
+        ClassLoader cl = new PrefixClassLoader("stage2", new MangoBootstrap(maHome).getClassLoader());
         Class<?> implClass = cl.loadClass("com.infiniteautomation.mango.bootstrap.windows.stage2.MangoFunctionsImpl");
         this.functions = (MangoFunctions) implClass.newInstance();
 
