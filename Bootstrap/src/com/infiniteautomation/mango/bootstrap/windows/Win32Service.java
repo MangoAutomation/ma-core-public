@@ -236,6 +236,14 @@ public abstract class Win32Service {
         if (!Shell32.INSTANCE.ShellExecuteEx(info)) {
             throw new Win32Exception(Native.getLastError());
         }
+
+        // wait for process to complete
+        // set SEE_MASK_NOCLOSEPROCESS 0x00000040
+        //        IntByReference exitCode = new IntByReference();
+        //        Kernel32.INSTANCE.WaitForSingleObject(info.hProcess, 30000);
+        //        Kernel32.INSTANCE.GetExitCodeProcess(info.hProcess, exitCode);
+        //        System.out.println(exitCode.getValue());
+        //        Kernel32.INSTANCE.CloseHandle(info.hProcess);
     }
 
     private static SC_ACTION action(int type, int delay) {
