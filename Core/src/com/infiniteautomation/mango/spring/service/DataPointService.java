@@ -270,22 +270,24 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     protected boolean setDataPointState(DataPointVO vo, boolean enabled, boolean restart) {
         vo.setEnabled(enabled);
         boolean running = Common.runtimeManager.isDataPointRunning(vo.getId());
-        if (running && !enabled) {
+        boolean dataSourceRunning = Common.runtimeManager.isDataSourceRunning(vo.getDataSourceId());
+        if (running && !enabled && dataSourceRunning) {
             //Running, so stop it
             Common.runtimeManager.stopDataPoint(vo.getId());
             return true;
-        } else if (!running && enabled) {
+        } else if (!running && enabled && dataSourceRunning) {
             //Not running, so start it
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
             Common.runtimeManager.startDataPoint(dp);
             return true;
-        }else if(running && enabled) {
+        }else if(running && enabled && dataSourceRunning) {
             //Running, so restart it
             Common.runtimeManager.stopDataPoint(vo.getId());
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
             Common.runtimeManager.startDataPoint(dp);
+            return false;
         }
         DataPointDao.getInstance().saveEnabledColumn(vo);
         return false;
