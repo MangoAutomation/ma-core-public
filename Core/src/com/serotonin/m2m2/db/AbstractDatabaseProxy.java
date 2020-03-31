@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.MissingResourceException;
@@ -70,6 +71,22 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         ejt.setDataSource(getDataSource());
 
         transactionManager = new DataSourceTransactionManager(getDataSource());
+
+        //First confirm that if we are MySQL we have JSON Support
+        if(getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
+            try {
+                runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)enginInnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
+            }catch(Exception e) {
+                String version = "unknown";
+                try {
+                    DatabaseMetaData dmd = getDataSource().getConnection().getMetaData();
+                    version = dmd.getDatabaseProductVersion();
+                }catch(Exception ex) {
+                    //Munch
+                }
+                throw new ShouldNeverHappenException("Unable to start Mango, MySQL version must be at least 5.7.8 to support JSON columns. You have " + version);
+            }
+        }
 
         boolean newDatabase = false;
         try {
@@ -150,15 +167,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
-            //First confirm that if we are MySQL we have JSON Support
-            if(Common.databaseProxy.getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
-                try {
-                    runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)enginInnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
-                }catch(Exception e) {
-                    throw new ShouldNeverHappenException("Unable to upgrade Mango, MySQL version must be at least 5.7.8 to support JSON columns");
-                }
-            }
-
             // Create the tables
             try {
                 String scriptName = "createTables-" + getType().name() + ".sql";
