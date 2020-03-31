@@ -48,7 +48,7 @@ import com.serotonin.m2m2.vo.template.DefaultDataPointPropertiesTemplateFactory;
 import com.serotonin.provider.Providers;
 
 abstract public class AbstractDatabaseProxy implements DatabaseProxy {
- 
+
     public static DatabaseProxy createDatabaseProxy() {
         String type = Common.envProps.getString("db.type", "h2");
         DatabaseType dt = DatabaseType.valueOf(type.toUpperCase());
@@ -75,7 +75,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
         ejt.setDataSource(getDataSource());
-        
+
         transactionManager = new DataSourceTransactionManager(getDataSource());
 
         boolean newDatabase = false;
@@ -117,20 +117,20 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 else {
 
                     // Record the current version.
-                	    SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
+                    SystemSettingsDao.instance.setValue(SystemSettingsDao.DATABASE_SCHEMA_VERSION,
                             Integer.toString(Common.getDatabaseSchemaVersion()));
 
                     // Add the settings flag that this is a new instance. This flag is removed when an administrator
                     // logs in.
-                	    SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
-                    
+                    SystemSettingsDao.instance.setBooleanValue(SystemSettingsDao.NEW_INSTANCE, true);
+
                     /**
-                     * Add a startup task to run after the Audit system is ready 
+                     * Add a startup task to run after the Audit system is ready
                      */
                     Providers.get(IMangoLifecycle.class).addStartupTask(new Runnable() {
                         @Override
                         public void run() {
-                        	    // New database. Create a default user.
+                            // New database. Create a default user.
                             User user = new User();
                             user.setId(Common.NEW_ID);
                             user.setName("Administrator");
@@ -142,10 +142,10 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                             user.setDisabled(false);
                             user.setHomeUrl("/ui/administration/home");
                             UserDao.getInstance().saveUser(user);
-                        	
+
                             DefaultDataPointPropertiesTemplateFactory factory = new DefaultDataPointPropertiesTemplateFactory();
                             factory.saveDefaultTemplates();
-                       }
+                        }
                     });
                 }
             }
@@ -176,11 +176,21 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         postInitialize(ejt, "", newDatabase);
     }
 
-	private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
+    private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
         boolean coreIsNew = false;
 
         if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
+
+            //First confirm that if we are MySQL we have JSON Support
+            if(Common.databaseProxy.getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
+                try {
+                    runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)enginInnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
+                }catch(Exception e) {
+                    throw new ShouldNeverHappenException("Unable to upgrade Mango, MySQL version must be at least 5.7.8 to support JSON columns");
+                }
+            }
+
             // Create the tables
             try {
                 File installScript = Common.MA_HOME_PATH
@@ -428,11 +438,11 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         return transactionManager;
     }
 
-    //  TODO: could potentially expose Logging DAO for use in application	
+    //  TODO: could potentially expose Logging DAO for use in application
     //  	currently not implemented except for IasTsdb
     //	/**
     //	 * Get an instance of the Logging Dao
-    //	 * 
+    //	 *
     //	 * @return
     //	 */
     //	public LoggingDao newLoggingDao() {
@@ -448,5 +458,5 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     //        		return noSQLProxy.createLoggingDao();
     //        }
     //	}
-    
+
 }

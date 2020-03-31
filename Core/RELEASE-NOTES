@@ -1,3 +1,7 @@
+*Version 3.7.6*
+* Fix bug in upgrade to 3.7.x that would fail on some versions of MySQL now force checking for JSON support
+* Fix new installs to confirm that the MySQL version supports JSON data types
+
 *Version 3.7.5*
 * Fix bug in upgrade to 3.7.0 that would create invalid email addresses out of the duplicates.
 * Fix bug where only the first global script JSON import would work
