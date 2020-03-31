@@ -150,6 +150,15 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
 
         if (!tableExists(ejt, SchemaDefinition.USERS_TABLE)) {
             // The users table wasn't found, so assume that this is a new instance.
+            //First confirm that if we are MySQL we have JSON Support
+            if(Common.databaseProxy.getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
+                try {
+                    runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)enginInnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
+                }catch(Exception e) {
+                    throw new ShouldNeverHappenException("Unable to upgrade Mango, MySQL version must be at least 5.7.8 to support JSON columns");
+                }
+            }
+
             // Create the tables
             try {
                 String scriptName = "createTables-" + getType().name() + ".sql";
