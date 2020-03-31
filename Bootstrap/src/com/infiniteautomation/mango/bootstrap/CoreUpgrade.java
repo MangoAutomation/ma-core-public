@@ -5,9 +5,10 @@ package com.infiniteautomation.mango.bootstrap;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -85,7 +86,10 @@ public class CoreUpgrade {
                 Files.createDirectories(entryPath);
             } else {
                 try (InputStream in = zip.getInputStream(entry)) {
-                    Files.copy(in, entryPath, StandardCopyOption.REPLACE_EXISTING);
+                    // overwrite files in place
+                    try (OutputStream out = Files.newOutputStream(entryPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                        copy(in, out);
+                    }
                 }
 
                 Files.setLastModifiedTime(entryPath, entry.getLastModifiedTime());
@@ -96,6 +100,20 @@ public class CoreUpgrade {
         } catch (IOException e) {
             throw new CoreUpgradeException(e);
         }
+    }
+
+    public static long copy(InputStream from, OutputStream to) throws IOException {
+        byte[] buf = new byte[8192];
+        long total = 0;
+        while (true) {
+            int r = from.read(buf);
+            if (r == -1) {
+                break;
+            }
+            to.write(buf, 0, r);
+            total += r;
+        }
+        return total;
     }
 
     public static class CoreUpgradeException extends RuntimeException {
