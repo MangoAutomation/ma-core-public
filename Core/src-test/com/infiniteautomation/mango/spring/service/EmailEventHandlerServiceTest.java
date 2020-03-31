@@ -6,7 +6,10 @@ package com.infiniteautomation.mango.spring.service;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -19,6 +22,7 @@ import com.serotonin.m2m2.MockMangoLifecycle;
 import com.serotonin.m2m2.MockRuntimeManager;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.vo.User;
@@ -139,7 +143,10 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
 
     void addRoleToCreatePermission(Role vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
-            roleService.addRoleToPermission(vo, EventHandlerCreatePermission.PERMISSION);
+            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(EventHandlerCreatePermission.PERMISSION);
+            Set<Role> roles = new HashSet<>(def.getRoles());
+            roles.add(vo);
+            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
         });
     }
 

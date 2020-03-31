@@ -168,6 +168,10 @@ public class MangoTestBase {
                 throw new ShouldNeverHappenException(e);
             }
         }
+
+        for (Module module : ModuleRegistry.getModules()) {
+            module.postTerminate(false);
+        }
     }
 
     @AfterClass

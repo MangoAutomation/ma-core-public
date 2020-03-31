@@ -4,7 +4,6 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import java.sql.Clob;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,7 +13,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,8 +34,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
@@ -48,14 +44,11 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.systemSettings.SystemSettingsListener;
 import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
 
 /**
@@ -64,7 +57,7 @@ import com.serotonin.m2m2.web.mvc.spring.security.MangoSessionRegistry;
  *
  */
 @Repository
-public class UserDao extends AbstractDao<User, UserTableDefinition> implements SystemSettingsListener {
+public class UserDao extends AbstractDao<User, UserTableDefinition> {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {
@@ -476,27 +469,12 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> implements S
         return "";
     }
 
-    @Override
-    public void systemSettingsSaved(String key, String oldValue, String newValue) {
+    /**
+     * When a permission was modified, require the reload of granted permissions
+     */
+    public void permissionChanged() {
         this.userCache.values().stream().forEach((user) -> {
             user.resetGrantedPermissions();
         });
-    }
-
-    @Override
-    public void systemSettingsRemoved(String key, String lastValue, String defaultValue) {
-        this.userCache.values().stream().forEach((user) -> {
-            user.resetGrantedPermissions();
-        });
-    }
-
-    @Override
-    public List<String> getKeys() {
-        //We listen for permissions definition changes
-        List<String> keys = new ArrayList<>();
-        for(Entry<String, PermissionDefinition> def : ModuleRegistry.getPermissionDefinitions().entrySet()) {
-            keys.add(def.getKey());
-        }
-        return keys;
     }
 }

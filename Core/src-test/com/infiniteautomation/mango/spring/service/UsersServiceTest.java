@@ -21,6 +21,8 @@ import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
 import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
@@ -257,8 +259,11 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             removeRoleFromEditSelfPermission(PermissionHolder.USER_ROLE);
             addRoleToEditSelfPermission(readRole);
             getService().permissionService.runAsSystemAdmin(() -> {
-                roleService.removeRoleFromPermission(PermissionHolder.USER_ROLE, ChangeOwnUsernamePermissionDefinition.PERMISSION);
-                roleService.addRoleToPermission(editRole, ChangeOwnUsernamePermissionDefinition.PERMISSION);
+                PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
+                Set<Role> roles = new HashSet<>(def.getRoles());
+                roles.remove(PermissionHolder.USER_ROLE);
+                roles.add(editRole);
+                def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
             });
 
             User vo = newVO(readUser);
@@ -279,7 +284,10 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
         //Add read role to change username permission
         getService().permissionService.runAsSystemAdmin(() -> {
-            roleService.addRoleToPermission(readRole, ChangeOwnUsernamePermissionDefinition.PERMISSION);
+            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
+            Set<Role> roles = new HashSet<>(def.getRoles());
+            roles.add(readRole);
+            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
         });
 
         //Ensure they can edit self
@@ -300,13 +308,19 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     void addRoleToEditSelfPermission(Role vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
-            roleService.addRoleToPermission(vo, UserEditSelfPermission.PERMISSION);
+            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
+            Set<Role> roles = new HashSet<>(def.getRoles());
+            roles.add(vo);
+            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
         });
     }
 
     void removeRoleFromEditSelfPermission(Role vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
-            roleService.removeRoleFromPermission(vo, UserEditSelfPermission.PERMISSION);
+            PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
+            Set<Role> roles = new HashSet<>(def.getRoles());
+            roles.remove(vo);
+            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
         });
     }
 

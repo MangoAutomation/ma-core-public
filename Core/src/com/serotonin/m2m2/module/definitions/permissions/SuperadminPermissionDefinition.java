@@ -7,8 +7,7 @@ package com.serotonin.m2m2.module.definitions.permissions;
 import java.util.Collections;
 import java.util.Set;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
-import com.serotonin.m2m2.db.dao.RoleDao;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -21,9 +20,9 @@ import com.serotonin.m2m2.vo.role.Role;
 public class SuperadminPermissionDefinition extends PermissionDefinition {
     public static final String GROUP_NAME = "superadmin";
     public static final String PERMISSION = "permissions.superadmin";
-    
+
     public SuperadminPermissionDefinition() {
-    
+
     }
 
     @Override
@@ -42,7 +41,7 @@ public class SuperadminPermissionDefinition extends PermissionDefinition {
     }
 
     @Override
-    public MangoPermission getPermission() {
-        return new MangoPermission(PERMISSION, Collections.singleton(RoleDao.getInstance().getByXid(PermissionHolder.SUPERADMIN_ROLE_XID)));
+    public void setRoles(Set<String> roles) {
+        throw new ShouldNeverHappenException("Can't set superadmin roles");
     }
 }

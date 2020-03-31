@@ -6,16 +6,18 @@ package com.serotonin.m2m2.module;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.serotonin.m2m2.db.dao.RoleDao;
+import com.infiniteautomation.mango.spring.service.RoleService;
+import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * A permission definition allows a module to define a single permission string. The enforcement of this permission is
@@ -29,7 +31,12 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 abstract public class PermissionDefinition extends ModuleElementDefinition {
 
     @Autowired
-    protected RoleDao roleDao;
+    protected UserDao userDao;
+    protected RoleService roleService;
+
+    //TODO Mango 4.0 is this the ideal data structure or should be be using sync blocks?
+    //TODO Collections unmodifiable
+    protected final Set<Role> roles = Collections.newSetFromMap(new ConcurrentHashMap<Role, Boolean>());
 
     /**
      * A  human readable and translatable brief description of the permission.
@@ -64,7 +71,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return
      */
     public Set<Role> getRoles() {
-        return roleDao.getRoles(getPermissionTypeName());
+        return roles;
     }
 
     /**
@@ -72,20 +79,39 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return
      */
     public MangoPermission getPermission() {
-        return new MangoPermission(getPermissionTypeName(), roleDao.getRoleVOs(getPermissionTypeName()));
+        return new MangoPermission(getPermissionTypeName(), roles);
     }
 
     @Override
     public void postDatabase(Version previousVersion, Version current) {
+        //Get the role service as we can't autowire it due to circular dependency isses
+        this.roleService = Common.getBean(RoleService.class);
+
         //Install our default roles if there are none in the database
+        Set<Role> roles;
         if(previousVersion == null) {
-            Set<RoleVO> roles = roleDao.getRoleVOs(getPermissionTypeName());
+            roles = roleService.getDao().getRoles(getPermissionTypeName());
             if(roles.isEmpty()) {
                 for(Role role : getDefaultRoles()) {
-                    roleDao.addRoleToPermission(role, getPermissionTypeName());
+                    roleService.getDao().addRoleToPermission(role, getPermissionTypeName());
+                    this.roles.add(role);
                 }
+            }else {
+
+            }
+        }else {
+            roles = roleService.getDao().getRoles(getPermissionTypeName());
+            for(Role role : roles) {
+                this.roles.add(role);
             }
         }
+    }
+
+    @Override
+    public void postTerminate(boolean uninstall) {
+        //This is here mainly to get our tests to pass, so that we can run multiple tests
+        // simulating mango terminating
+        this.roles.clear();
     }
 
     /**
@@ -94,6 +120,23 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder) {
-        return roleDao.isGrantedPermission(getPermissionTypeName(), holder.getRoles());
+        return this.roleService.getPermissionService().hasAnyRole(holder, roles);
     }
+
+    /**
+     * Replace the roles on this permission
+     *
+     * @param roles
+     */
+    public void setRoles(Set<String> roleXids) {
+        //TODO Transaction rollback etc?
+        Set<Role> roles = this.roleService.replaceAllRolesOnPermission(roleXids, this);
+        this.roles.clear();
+        for(Role role : roles) {
+            this.roles.add(role);
+        }
+        //notify user cache
+        this.userDao.permissionChanged();
+    }
+
 }

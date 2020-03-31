@@ -5,30 +5,30 @@ package com.infiniteautomation.mango.permission;
 
 import java.util.Set;
 
-import com.serotonin.m2m2.vo.role.RoleVO;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Container for a set of roles that apply to a permission such as 'permissionDatasource' or  'permissions.user.editSelf'
  *   or a specific VO permission such as data point set permission.
  *
  * This class is sorted/ordered and equaled on the permissionType only
- * 
+ *
  * @author Terry Packer
  *
  */
 public class MangoPermission {
-    
+
     private final String permissionType;
     private final String voType;
     private final Integer voId;
-    private final Set<RoleVO> roles;
-    
+    private final Set<Role> roles;
+
     /**
-     * 
+     *
      * @param permissionType
      * @param roles
      */
-    public MangoPermission(String permissionType, Set<RoleVO> roles) {
+    public MangoPermission(String permissionType, Set<Role> roles) {
         super();
         this.permissionType = permissionType;
         this.voType = null;
@@ -42,7 +42,7 @@ public class MangoPermission {
      * @param voId
      * @param roles
      */
-    public MangoPermission(String permissionType, String voType, Integer voId, Set<RoleVO> roles) {
+    public MangoPermission(String permissionType, String voType, Integer voId, Set<Role> roles) {
         super();
         this.permissionType = permissionType;
         this.voType = voType;
@@ -62,7 +62,7 @@ public class MangoPermission {
         return voId;
     }
 
-    public Set<RoleVO> getRoles() {
+    public Set<Role> getRoles() {
         return roles;
     }
 

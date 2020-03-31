@@ -6,13 +6,17 @@ package com.infiniteautomation.mango.spring.service;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.AbstractDao;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.role.Role;
@@ -396,7 +400,10 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
             getService().permissionService.runAsSystemAdmin(() -> {
-                roleService.addRoleToPermission(vo, getCreatePermissionType());
+                PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getCreatePermissionType());
+                Set<Role> roles = new HashSet<>(def.getRoles());
+                roles.add(vo);
+                def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
             });
         }
     }
@@ -405,7 +412,10 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
         String permissionType = getCreatePermissionType();
         if(permissionType != null) {
             getService().permissionService.runAsSystemAdmin(() -> {
-                roleService.removeRoleFromPermission(vo, getCreatePermissionType());
+                PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getCreatePermissionType());
+                Set<Role> roles = new HashSet<>(def.getRoles());
+                roles.remove(vo);
+                def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
             });
         }
     }

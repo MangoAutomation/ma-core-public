@@ -160,8 +160,7 @@ public class PermissionService {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder, MangoPermission permission) {
-        Set<RoleVO> roles = permission.getRoles();
-        return hasAnyRole(holder, roles.stream().map(RoleVO::getRole).collect(Collectors.toSet()));
+        return hasAnyRole(holder, permission.getRoles());
     }
 
     /**

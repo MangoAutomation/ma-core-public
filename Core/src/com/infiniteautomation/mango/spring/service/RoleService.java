@@ -20,7 +20,6 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -94,69 +93,16 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
     }
 
     /**
-     * Get the roles for a permission
-     * @param permissionType
-     * @return
-     */
-    public Set<Role> getRoles(String permissionType) {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        permissionService.ensureAdminRole(user);
-        return this.dao.getRoles(permissionType);
-    }
-
-    /**
-     * Remove a role from a permission type
-     * @param role
-     * @param permissionType
-     * @param user
-     */
-    public void removeRoleFromPermission(Role role, String permissionType) throws PermissionException, NotFoundException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        permissionService.ensureAdminRole(user);
-        Set<Role> permissionRoles = this.dao.getRoles(permissionType);
-        if(!permissionRoles.contains(role)) {
-            throw new NotFoundException();
-        }
-
-        dao.removeRoleFromPermission(role, permissionType);
-    }
-
-    /**
-     * Add a role to a permission type
-     * @param role
-     * @param permissionType
-     */
-    public void addRoleToPermission(Role role, String permissionType) throws PermissionException, ValidationException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        permissionService.ensureAdminRole(user);
-        Set<Role> permissionRoles = this.dao.getRoles(permissionType);
-        if(permissionRoles.contains(role)) {
-            ProcessResult result = new ProcessResult();
-            result.addGenericMessage("roleAlreadyAssignedToPermission", role.getXid(), permissionType);
-            throw new ValidationException(result);
-        }
-
-        dao.addRoleToPermission(role, permissionType);
-    }
-
-    /**
      *
      * @param roleXids
      * @param permissionType
      */
-    public void replaceAllRolesOnPermission(Set<String> roleXids, String permissionType) {
+    public Set<Role> replaceAllRolesOnPermission(Set<String> roleXids, PermissionDefinition def) {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         permissionService.ensureAdminRole(user);
 
-        PermissionDefinition def = ModuleRegistry.getPermissionDefinition(permissionType);
         if(def == null) {
             throw new NotFoundException();
         }
@@ -179,18 +125,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         }
 
         dao.replaceRolesOnPermission(roles, def.getPermissionTypeName());
-    }
-
-    /**
-     * Replace all roles to a permission type
-     * @param role
-     * @param permissionType
-     */
-    public void replaceAllRolesOnPermission(Set<Role> roles, PermissionDefinition def) throws PermissionException, ValidationException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-        permissionService.ensureAdminRole(user);
-        dao.replaceRolesOnPermission(roles, def.getPermissionTypeName());
+        return roles;
     }
 
     /**

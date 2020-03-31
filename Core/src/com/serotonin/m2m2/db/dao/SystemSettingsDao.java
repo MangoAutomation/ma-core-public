@@ -50,7 +50,6 @@ import com.serotonin.m2m2.email.MangoEmailContent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.AuditEventTypeDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
-import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.SystemEventTypeDefinition;
 import com.serotonin.m2m2.module.SystemSettingsDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
@@ -1394,11 +1393,6 @@ public class SystemSettingsDao extends BaseDao {
      */
     public Map<String, Object> getAllSystemSettingsAsCodes() {
         Map<String, Object> settings = new HashMap<String,Object>(DEFAULT_VALUES.size());
-
-        //Add The Permissions with empty values since they don't necessarily have defaults
-        for (PermissionDefinition def : ModuleRegistry.getDefinitions(PermissionDefinition.class)) {
-            settings.put(def.getPermissionTypeName(), "");
-        }
 
         //Start with all the defaults
         Iterator<String> it = DEFAULT_VALUES.keySet().iterator();
