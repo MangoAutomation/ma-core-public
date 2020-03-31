@@ -88,7 +88,7 @@ public class CoreUpgrade {
                 try (InputStream in = zip.getInputStream(entry)) {
                     // overwrite files in place
                     try (OutputStream out = Files.newOutputStream(entryPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                        copy(in, out);
+                        BootstrapUtils.copy(in, out);
                     }
                 }
 
@@ -100,20 +100,6 @@ public class CoreUpgrade {
         } catch (IOException e) {
             throw new CoreUpgradeException(e);
         }
-    }
-
-    public static long copy(InputStream from, OutputStream to) throws IOException {
-        byte[] buf = new byte[8192];
-        long total = 0;
-        while (true) {
-            int r = from.read(buf);
-            if (r == -1) {
-                break;
-            }
-            to.write(buf, 0, r);
-            total += r;
-        }
-        return total;
     }
 
     public static class CoreUpgradeException extends RuntimeException {

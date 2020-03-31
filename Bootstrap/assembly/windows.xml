@@ -9,13 +9,6 @@
         <dependencySet>
             <unpack>true</unpack>
             <scope>runtime</scope>
-            <excludes>
-                <exclude>com.infiniteautomation.mango:ma-bootstrap</exclude>
-            </excludes>
-        </dependencySet>
-        <dependencySet>
-            <unpack>true</unpack>
-            <scope>runtime</scope>
             <includes>
                 <include>com.infiniteautomation.mango:ma-bootstrap</include>
             </includes>
@@ -24,22 +17,19 @@
                     <include>com/infiniteautomation/mango/bootstrap/**</include>
                 </includes>
                 <excludes>
-                    <exclude>com/infiniteautomation/mango/bootstrap/windows/stage2/**</exclude>
+                    <exclude>com/infiniteautomation/mango/bootstrap/windows/**</exclude>
                 </excludes>
             </unpackOptions>
         </dependencySet>
         <dependencySet>
-            <unpack>true</unpack>
+            <unpack>false</unpack>
             <scope>runtime</scope>
-            <outputDirectory>stage2</outputDirectory>
+            <useProjectAttachments>true</useProjectAttachments>
             <includes>
-                <include>com.infiniteautomation.mango:ma-bootstrap</include>
+                <include>com.infiniteautomation.mango:ma-bootstrap:jar:windows</include>
             </includes>
-            <unpackOptions>
-                <includes>
-                    <include>com/infiniteautomation/mango/bootstrap/windows/stage2/**</include>
-                </includes>
-            </unpackOptions>
+            <outputDirectory>com/infiniteautomation/mango/bootstrap</outputDirectory>
+            <outputFileNameMapping>${artifact.classifier}.${artifact.extension}</outputFileNameMapping>
         </dependencySet>
     </dependencySets>
 </assembly>

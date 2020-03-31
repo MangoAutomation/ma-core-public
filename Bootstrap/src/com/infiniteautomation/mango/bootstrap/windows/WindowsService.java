@@ -3,9 +3,11 @@
  */
 package com.infiniteautomation.mango.bootstrap.windows;
 
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.infiniteautomation.mango.bootstrap.BootstrapUtils;
 import com.infiniteautomation.mango.bootstrap.CoreUpgrade;
 import com.infiniteautomation.mango.bootstrap.MangoBootstrap;
 import com.sun.jna.platform.win32.Win32Exception;
@@ -69,7 +71,7 @@ public class WindowsService extends Win32Service {
         Path javaExe = javaHome.resolve("bin").resolve("java.exe");
         String javaOptions = System.getProperty("service.javaOptions", "-server");
 
-        Path maHome = MangoBootstrap.maHome();
+        Path maHome = BootstrapUtils.maHome();
         Path jarFile = maHome.resolve("boot").resolve(JAR_FILENAME);
         String userJarFile = System.getProperty("service.jar");
         if (userJarFile != null) {
@@ -96,7 +98,7 @@ public class WindowsService extends Win32Service {
         Win32Service.install(serviceName, displayName, description, dependencies, account, password, command, true);
     }
 
-    private volatile MangoFunctions functions;
+    private volatile ClassLoader cl;
 
     public WindowsService(String serviceName) {
         super(serviceName);
@@ -104,21 +106,26 @@ public class WindowsService extends Win32Service {
 
     @Override
     protected void startImpl() throws Exception {
-        Path maHome = MangoBootstrap.maHome();
+        Path maHome = BootstrapUtils.maHome();
 
         CoreUpgrade upgrade = new CoreUpgrade(maHome);
         upgrade.upgrade();
 
-        ClassLoader cl = new PrefixClassLoader("stage2", new MangoBootstrap(maHome).getClassLoader());
-        Class<?> implClass = cl.loadClass("com.infiniteautomation.mango.bootstrap.windows.stage2.MangoFunctionsImpl");
-        this.functions = (MangoFunctions) implClass.newInstance();
-
-        this.functions.start();
+        cl = new MangoBootstrap(maHome).getClassLoader();
+        Class<?> mainClass = cl.loadClass("com.serotonin.m2m2.Main");
+        Method mainMethod = mainClass.getMethod("main", String[].class);
+        mainMethod.invoke(null, (Object) new String[0]);
     }
 
     @Override
     protected void stopImpl() throws Exception {
-        functions.stop();
+        Class<?> providersClass = cl.loadClass("com.serotonin.provider.Providers");
+        Method getMethod = providersClass.getMethod("get", Class.class);
+        Class<?> lifecycleClass = cl.loadClass("com.serotonin.m2m2.IMangoLifecycle");
+        Method terminateMethod = lifecycleClass.getMethod("terminate");
+
+        Object lifecycleInstance = getMethod.invoke(null, lifecycleClass);
+        terminateMethod.invoke(lifecycleInstance);
     }
 
 }

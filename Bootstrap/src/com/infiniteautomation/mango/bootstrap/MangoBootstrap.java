@@ -10,7 +10,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,7 @@ public class MangoBootstrap {
     public static final String JAR_FILENAME = "ma-bootstrap.jar";
 
     public static void main(String[] args) throws Exception {
-        Path maHome = maHome();
+        Path maHome = BootstrapUtils.maHome();
 
         CoreUpgrade upgrade = new CoreUpgrade(maHome);
         upgrade.upgrade();
@@ -84,34 +83,4 @@ public class MangoBootstrap {
         return maHome;
     }
 
-    public static Path maHome() {
-        String[] possibleMaHomes = new String[] {
-                System.getProperty("ma.home"),
-                "..",
-                "."
-        };
-
-        Path maHome = null;
-        for (String possibleMaHome : possibleMaHomes) {
-            if (possibleMaHome == null) {
-                continue;
-            }
-
-            Path test = Paths.get(possibleMaHome);
-            if (isMaHome(test)) {
-                maHome = test;
-                break;
-            }
-        }
-
-        if (maHome == null) {
-            throw new RuntimeException("Can't find MA_HOME, please set a Java system property -Dma.home=\"path\\to\\mango\"");
-        }
-
-        return maHome.toAbsolutePath().normalize();
-    }
-
-    private static boolean isMaHome(Path testMaHome) {
-        return Files.isRegularFile(testMaHome.resolve("release.properties")) || Files.isRegularFile(testMaHome.resolve("release.signed"));
-    }
 }

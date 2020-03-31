@@ -14,7 +14,22 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
-                    <!-- The order of the executions is important as the second execution (boot) replaces the main jar  -->
+                    <!-- The order of the executions is important as the second execution (boot) replaces the main jar -->
+                    <execution>
+                        <id>windowsjna</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>assembly/windowsjna.xml</descriptor>
+                            </descriptors>
+                            <archiverConfig>
+                                <compress>false</compress>
+                            </archiverConfig>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>windows</id>
                         <phase>package</phase>
@@ -27,7 +42,7 @@
                             </descriptors>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.infiniteautomation.mango.bootstrap.windows.WindowsService</mainClass>
+                                    <mainClass>com.infiniteautomation.mango.bootstrap.WindowsBootstrap</mainClass>
                                 </manifest>
                             </archive>
                         </configuration>
@@ -59,18 +74,6 @@
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna-platform</artifactId>
             <version>5.5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.infiniteautomation</groupId>
-            <artifactId>mango</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.infiniteautomation.mango</groupId>
-            <artifactId>ma-priv</artifactId>
-            <version>${project.parent.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
     <description>Used to bootstrap Mango by locating MA_HOME and including the necessary classpath directories and jars into a class loader which is then used to start Mango.

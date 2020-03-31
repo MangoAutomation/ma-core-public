@@ -1,6 +1,6 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>boot</id>
+    <id>windows</id>
     <formats>
         <format>jar</format>
     </formats>
@@ -14,14 +14,16 @@
             </includes>
             <unpackOptions>
                 <includes>
-                    <include>com/infiniteautomation/mango/bootstrap/**</include>
+                    <include>com/infiniteautomation/mango/bootstrap/windows/**</include>
                 </includes>
-                <excludes>
-                    <exclude>com/infiniteautomation/mango/bootstrap/WindowsBootstrap.class</exclude>
-                    <exclude>com/infiniteautomation/mango/bootstrap/windows/**</exclude>
-                    <exclude>com/infiniteautomation/mango/bootstrap/classloader/**</exclude>
-                </excludes>
             </unpackOptions>
+        </dependencySet>
+        <dependencySet>
+            <unpack>true</unpack>
+            <scope>runtime</scope>
+            <excludes>
+                <exclude>com.infiniteautomation.mango:ma-bootstrap</exclude>
+            </excludes>
         </dependencySet>
     </dependencySets>
 </assembly>
