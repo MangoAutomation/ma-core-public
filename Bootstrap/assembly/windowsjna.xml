@@ -21,9 +21,20 @@
         <dependencySet>
             <unpack>true</unpack>
             <scope>runtime</scope>
-            <excludes>
-                <exclude>com.infiniteautomation.mango:ma-bootstrap</exclude>
-            </excludes>
+            <includes>
+                <include>net.java.dev.jna</include>
+            </includes>
+            <unpackOptions>
+                <includes>
+                    <include>com/sun/jna/*.class</include>
+                    <include>com/sun/jna/internal/**</include>
+                    <include>com/sun/jna/ptr/**</include>
+                    <include>com/sun/jna/win32/**</include>
+                    <include>com/sun/jna/win32-x86/**</include>
+                    <include>com/sun/jna/win32-x86-64/**</include>
+                    <include>com/sun/jna/platform/win32/*.class</include>
+                </includes>
+            </unpackOptions>
         </dependencySet>
     </dependencySets>
 </assembly>
