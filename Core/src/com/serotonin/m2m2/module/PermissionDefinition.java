@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.RoleService;
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -124,11 +125,11 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     }
 
     /**
-     * Replace the roles on this permission
+     * Replace the roles on this permission.  Throws validation exeption if xids DNE
      *
      * @param roles
      */
-    public void setRoles(Set<String> roleXids) {
+    public void setRoles(Set<String> roleXids) throws ValidationException {
         //TODO Transaction rollback etc?
         Set<Role> roles = this.roleService.replaceAllRolesOnPermission(roleXids, this);
         this.roles.clear();

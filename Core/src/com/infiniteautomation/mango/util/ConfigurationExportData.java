@@ -12,6 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.infiniteautomation.mango.io.serial.virtual.VirtualSerialPortConfigDao;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.db.pair.StringStringPair;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.db.dao.DataSourceDao;
@@ -25,6 +26,8 @@ import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.module.EmportDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
 
 /**
  * Common repo for export data
@@ -45,12 +48,12 @@ public class ConfigurationExportData {
     public static final String USERS = SchemaDefinition.USERS_TABLE;
     public static final String VIRTUAL_SERIAL_PORTS = "virtualSerialPorts";
     public static final String ROLES = "roles";
-
+    public static final String PERMISSIONS = "permissions";
     /**
      * Get a list of all available export elements
      * @return
      */
-    public static String[] getAllExportNames() {
+    private static String[] getAllExportNames() {
         List<String> names = new ArrayList<>();
         names.add(DATA_SOURCES);
         names.add(DATA_POINTS);
@@ -63,6 +66,8 @@ public class ConfigurationExportData {
         names.add(SYSTEM_SETTINGS);
         names.add(USERS);
         names.add(VIRTUAL_SERIAL_PORTS);
+        names.add(ROLES);
+        names.add(PERMISSIONS);
 
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class))
             if(def.getInView())
@@ -89,6 +94,7 @@ public class ConfigurationExportData {
         elements.add(new StringStringPair("header.users", USERS));
         elements.add(new StringStringPair("header.virtualSerialPorts", VIRTUAL_SERIAL_PORTS));
         elements.add(new StringStringPair("header.roles", ROLES));
+        elements.add(new StringStringPair("header.permissions", PERMISSIONS));
 
         for (EmportDefinition def : ModuleRegistry.getDefinitions(EmportDefinition.class)) {
             if(def.getInView())
@@ -131,6 +137,18 @@ public class ConfigurationExportData {
             data.put(JSON_DATA, JsonDataDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, ROLES))
             data.put(ROLES, RoleDao.getInstance().getAll());
+
+        if (ArrayUtils.contains(exportElements, PERMISSIONS)) {
+            List<MangoPermission> permissions = new ArrayList<>();
+            for(PermissionDefinition def : ModuleRegistry.getPermissionDefinitions().values()) {
+                //Don't export superadmin as we can't change it anyway.
+                if(def instanceof SuperadminPermissionDefinition) {
+                    continue;
+                }
+                permissions.add(def.getPermission());
+            }
+            data.put(PERMISSIONS, permissions);
+        }
 
         //TODO Add EVENT_DETECTORS
         //TODO Write the ImportTask properly for EventDetectors...

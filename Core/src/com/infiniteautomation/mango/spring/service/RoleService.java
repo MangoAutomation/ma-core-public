@@ -97,15 +97,12 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      * @param roleXids
      * @param permissionType
      */
-    public Set<Role> replaceAllRolesOnPermission(Set<String> roleXids, PermissionDefinition def) {
+    public Set<Role> replaceAllRolesOnPermission(Set<String> roleXids, PermissionDefinition def) throws ValidationException {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
+        Objects.requireNonNull(def, "Permission definition cannot be null");
 
         permissionService.ensureAdminRole(user);
-
-        if(def == null) {
-            throw new NotFoundException();
-        }
 
         ProcessResult validation = new ProcessResult();
         Set<Role> roles = new HashSet<>();

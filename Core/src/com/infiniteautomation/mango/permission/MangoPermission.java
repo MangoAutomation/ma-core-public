@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.permission;
 
 import java.util.Set;
 
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
@@ -18,9 +19,11 @@ import com.serotonin.m2m2.vo.role.Role;
  */
 public class MangoPermission {
 
+    @JsonProperty
     private final String permissionType;
     private final String voType;
     private final Integer voId;
+    @JsonProperty
     private final Set<Role> roles;
 
     /**

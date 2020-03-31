@@ -89,6 +89,8 @@ public class ImportTask extends ProgressiveTask {
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.ROLES))
             addImporter(new RoleImporter(jv.toJsonObject(), roleService));
 
+        for (JsonValue jv : nonNullList(root, ConfigurationExportData.PERMISSIONS))
+            addImporter(new PermissionImporter(jv.toJsonObject()));
 
         for (JsonValue jv : nonNullList(root, ConfigurationExportData.USERS))
             addImporter(new UserImporter(jv.toJsonObject(), usersService, user));
