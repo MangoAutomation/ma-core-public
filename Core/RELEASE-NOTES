@@ -1,6 +1,5 @@
 *Version 3.7.6*
-* Fix bug in upgrade to 3.7.x that would fail on some versions of MySQL now force checking for JSON support
-* Fix new installs to confirm that the MySQL version supports JSON data types
+* If using a MySQL database Mango will only start on versions with JSON support which is 5.7.8 and above to ensure all upgrades and installation will work properly once the correct version is used
 
 *Version 3.7.5*
 * Fix bug in upgrade to 3.7.0 that would create invalid email addresses out of the duplicates.

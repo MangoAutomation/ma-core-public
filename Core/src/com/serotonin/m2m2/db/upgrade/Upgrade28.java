@@ -17,7 +17,6 @@ import java.util.UUID;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 
@@ -46,20 +45,6 @@ public class Upgrade28 extends DBUpgrade {
         //Update User table to have unique email addresses
         //First update duplicate email addresses
         try {
-            //Ensure if we are using MySQL we are at least 5.7.8 or we won't upgrade as we require JSON Support
-            if(Common.databaseProxy.getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
-                try {
-                    Map<String, String[]> scripts = new HashMap<>();
-                    scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(),
-                            new String[] {
-                                    "CREATE TABLE mangoUpgrade28 (test JSON)enginInnoDB;",
-                                    "DROP TABLE mangoUpgrade28;"
-                    });
-                    runScript(scripts, out);
-                }catch(Exception e) {
-                    throw new ShouldNeverHappenException("Unable to upgrade Mango, MySQL version must be at least 5.7.8 to support JSON columns");
-                }
-            }
 
             List<UsernameEmail> duplicates = query("SELECT id,username,email FROM users ORDER BY id asc", rs -> {
                 List<UsernameEmail> dupes = new ArrayList<>();
