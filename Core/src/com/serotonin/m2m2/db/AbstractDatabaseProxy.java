@@ -84,7 +84,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             try {
                 runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)enginInnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
             }catch(Exception e) {
-                String version = "unkown";
+                String version = "unknown";
                 try {
                     DatabaseMetaData dmd = getDataSource().getConnection().getMetaData();
                     version = dmd.getDatabaseProductVersion();
