@@ -9,6 +9,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
@@ -22,6 +23,7 @@ import com.infiniteautomation.mango.bootstrap.BootstrapUtils;
 public class MemoryClassLoader extends ClassLoader {
 
     private final ConcurrentHashMap<String, byte[]> entries = new ConcurrentHashMap<>();
+    private final AtomicLong size = new AtomicLong();
 
     public MemoryClassLoader() {
         super();
@@ -36,6 +38,7 @@ public class MemoryClassLoader extends ClassLoader {
             for (JarEntry entry; (entry = in.getNextJarEntry()) != null;) {
                 if (!entry.isDirectory()) {
                     byte[] data = BootstrapUtils.toByteArray(in, (int) entry.getSize());
+                    size.addAndGet(data.length);
                     entries.put(entry.getName(), data);
                 }
             }
@@ -50,6 +53,7 @@ public class MemoryClassLoader extends ClassLoader {
         if (data == null) {
             throw new ClassNotFoundException(name);
         }
+        size.addAndGet(-data.length);
 
         return defineClass(name, data, 0, data.length);
     }
@@ -75,6 +79,10 @@ public class MemoryClassLoader extends ClassLoader {
             return Collections.emptyEnumeration();
         }
         return Collections.enumeration(Collections.singletonList(resource));
+    }
+
+    public long getSize() {
+        return size.get();
     }
 
 }
