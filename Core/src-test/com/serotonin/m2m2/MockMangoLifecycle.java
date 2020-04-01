@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -366,13 +367,13 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     @Override
-    public float getStartupProgress() {
+    public int getStartupProgress() {
         // TODO Auto-generated method stub
         return 0;
     }
 
     @Override
-    public float getShutdownProgress() {
+    public int getShutdownProgress() {
         // TODO Auto-generated method stub
         return 0;
     }
@@ -508,6 +509,18 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     @Override
     public boolean verifyProperties(InputStream in, boolean signed, Map<String, String> verify) {
         return true;
+    }
+
+    @Override
+    public void addListener(Consumer<LifecycleState> listener) {
+        // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void removeListener(Consumer<LifecycleState> listener) {
+        // TODO Auto-generated method stub
+
     }
 
 }

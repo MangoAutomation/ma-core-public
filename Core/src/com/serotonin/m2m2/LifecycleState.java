@@ -63,10 +63,10 @@ public enum LifecycleState {
      * 100 is running
      * @return
      */
-    public float getStartupProgress() {
+    public int getStartupProgress() {
         if (this.value >= RUNNING.value)
-            return 100.0f;
-        return 100f * ((float) this.value / (float) RUNNING.value);
+            return 100;
+        return 100 * (this.value - NOT_STARTED.value) / (RUNNING.value - NOT_STARTED.value);
     }
 
     /**
@@ -75,11 +75,11 @@ public enum LifecycleState {
      * 100 is Shutdown
      * @return
      */
-    public float getShutdownProgress() {
+    public int getShutdownProgress() {
         if (this.value <= RUNNING.value)
-            return 0.0f;
+            return 0;
         if (this.value >= TERMINATED.value)
-            return 100.0f;
-        return 100f * (((float) this.value - (float) RUNNING.value) / ((float) TERMINATED.value - (float) RUNNING.value));
+            return 100;
+        return 100 * (this.value - RUNNING.value) / (TERMINATED.value - RUNNING.value);
     }
 }

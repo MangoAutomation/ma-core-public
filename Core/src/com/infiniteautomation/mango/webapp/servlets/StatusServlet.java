@@ -50,13 +50,13 @@ public class StatusServlet extends HttpServlet {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         LifecycleState state = lifecycle.getLifecycleState();
-        Float startupProgress = state.getStartupProgress();
-        Float shutdownProgress = state.getShutdownProgress();
+        int startupProgress = state.getStartupProgress();
+        int shutdownProgress = state.getShutdownProgress();
 
         Map<String, Object> data = new HashMap<>();
 
-        data.put("startupProgress", startupProgress.intValue());
-        data.put("shutdownProgress", shutdownProgress.intValue());
+        data.put("startupProgress", startupProgress);
+        data.put("shutdownProgress", shutdownProgress);
         data.put("state", state.getDescription().translate(translations));
         data.put("stateName", state.name());
         data.put("stateValue", state.getValue());

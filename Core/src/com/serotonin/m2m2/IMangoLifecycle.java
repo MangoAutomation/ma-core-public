@@ -2,6 +2,7 @@ package com.serotonin.m2m2;
 
 import java.io.InputStream;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.provider.Provider;
@@ -13,8 +14,10 @@ public interface IMangoLifecycle extends Provider {
     void terminate();
 
     void addStartupTask(Runnable task);
-
     void addShutdownTask(Runnable task);
+
+    void addListener(Consumer<LifecycleState> listener);
+    void removeListener(Consumer<LifecycleState> listener);
 
     /**
      * Get the state of the Lifecycle
@@ -31,7 +34,7 @@ public interface IMangoLifecycle extends Provider {
      *
      * @return
      */
-    public float getStartupProgress();
+    public int getStartupProgress();
 
     /**
      * Get the percentage 0-100
@@ -40,7 +43,7 @@ public interface IMangoLifecycle extends Provider {
      *
      * @return
      */
-    public float getShutdownProgress();
+    public int getShutdownProgress();
 
     /**
      * (Re)load the license
