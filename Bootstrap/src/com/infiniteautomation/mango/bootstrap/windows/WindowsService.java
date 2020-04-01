@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.bootstrap.windows;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.function.Consumer;
 
 import com.infiniteautomation.mango.bootstrap.BootstrapUtils;
 import com.infiniteautomation.mango.bootstrap.CoreUpgrade;
@@ -115,6 +116,14 @@ public class WindowsService extends Win32Service {
         Class<?> mainClass = cl.loadClass("com.serotonin.m2m2.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, (Object) new String[0]);
+
+        Class<?> providersClass = cl.loadClass("com.serotonin.provider.Providers");
+        Method getMethod = providersClass.getMethod("get", Class.class);
+        Class<?> lifecycleClass = cl.loadClass("com.serotonin.m2m2.IMangoLifecycle");
+        Method addListenerMethod = lifecycleClass.getMethod("addListener", Consumer.class);
+
+        Object lifecycleInstance = getMethod.invoke(null, lifecycleClass);
+        addListenerMethod.invoke(lifecycleInstance, (Consumer<?>) this::lifecycleStateChanged);
     }
 
     @Override
@@ -128,4 +137,30 @@ public class WindowsService extends Win32Service {
         terminateMethod.invoke(lifecycleInstance);
     }
 
+    private void lifecycleStateChanged(Object state) {
+        try {
+            Class<?> lifecycleStateClass = cl.loadClass("com.serotonin.m2m2.LifecycleState");
+            Method getValueMethod = lifecycleStateClass.getMethod("getValue");
+            int value = (Integer) getValueMethod.invoke(state);
+
+            if (value == 220) { // SHUTDOWN_TASKS_RUNNING
+                this.setStatusStopPending();
+            } else if (value == 400) { // TERMINATED
+                Class<?> providersClass = cl.loadClass("com.serotonin.provider.Providers");
+                Method getMethod = providersClass.getMethod("get", Class.class);
+                Class<?> lifecycleClass = cl.loadClass("com.serotonin.m2m2.IMangoLifecycle");
+                Method isRestartingMethod = lifecycleClass.getMethod("isRestarting");
+
+                Object lifecycleInstance = getMethod.invoke(null, lifecycleClass);
+                boolean restarting = (Boolean) isRestartingMethod.invoke(lifecycleInstance);
+                if (restarting) {
+                    this.setStatusStopped(WinError.ERROR_SERVICE_SPECIFIC_ERROR, 2);
+                } else {
+                    this.setStatusStopped();
+                }
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
