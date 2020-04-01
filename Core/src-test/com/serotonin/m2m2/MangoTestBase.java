@@ -177,7 +177,7 @@ public class MangoTestBase {
     @AfterClass
     public static void staticTearDown() {
         if(lifecycle != null) {
-            lifecycle.terminate();
+            lifecycle.terminate(TerminationReason.SHUTDOWN);
         }
     }
 

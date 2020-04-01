@@ -10,8 +10,9 @@ import com.serotonin.provider.Provider;
 public interface IMangoLifecycle extends Provider {
 
     boolean isTerminated();
+    TerminationReason getTerminationReason();
 
-    void terminate();
+    void terminate(TerminationReason reason);
 
     void addStartupTask(Runnable task);
     void addShutdownTask(Runnable task);

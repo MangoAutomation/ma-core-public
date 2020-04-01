@@ -291,7 +291,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     }
 
     @Override
-    public void terminate() {
+    public void terminate(TerminationReason reason) {
         //        H2InMemoryDatabaseProxy proxy = (H2InMemoryDatabaseProxy) Common.databaseProxy;
         //        try {
         //            proxy.clean();
@@ -521,6 +521,12 @@ public class MockMangoLifecycle implements IMangoLifecycle {
     public void removeListener(Consumer<LifecycleState> listener) {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public TerminationReason getTerminationReason() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
