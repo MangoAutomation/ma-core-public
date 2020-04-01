@@ -1,3 +1,6 @@
+*Version 3.7.7*
+* Fix syntax error in database type check for MySQL databases
+
 *Version 3.7.6*
 * If using a MySQL database Mango will only start on versions with JSON support which is 5.7.8 and above to ensure all upgrades and installation will work properly once the correct version is used
 
