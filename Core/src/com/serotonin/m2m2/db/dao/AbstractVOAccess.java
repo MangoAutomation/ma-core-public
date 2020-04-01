@@ -15,6 +15,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
  * Interface to outline the DAO access methods for Abstract VOs and aid in mocks for testing.
  *
  * TODO Mango 4.0 Would really like the Generics to be T extends AbstractVO
+ * TODO Mango 4.0 Rename to something DAO-ish
  *
  * @author Terry Packer
  *
