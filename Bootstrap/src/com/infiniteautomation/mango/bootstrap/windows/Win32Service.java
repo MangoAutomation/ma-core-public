@@ -194,7 +194,9 @@ public abstract class Win32Service {
                     WinNT.SERVICE_ERROR_NORMAL, command, null, null, dependencies, account, password)) {
                 service.setDescription(description);
                 if (restartOnFail) {
-                    List<SC_ACTION> actions = new ArrayList<>(3);
+                    List<SC_ACTION> actions = new ArrayList<>(7);
+                    actions.add(action(0x01, 0)); // SC_ACTION_RESTART, 0 second delay
+                    actions.add(action(0x01, 0)); // SC_ACTION_RESTART, 0 second delay
                     actions.add(action(0x01, 0)); // SC_ACTION_RESTART, 0 second delay
                     actions.add(action(0x01, 30000)); // SC_ACTION_RESTART, 30 second delay
                     actions.add(action(0x01, 60000)); // SC_ACTION_RESTART, 60 second delay
