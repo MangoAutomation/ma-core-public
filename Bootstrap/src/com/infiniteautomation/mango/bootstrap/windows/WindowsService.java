@@ -99,7 +99,7 @@ public class WindowsService extends Win32Service {
         Win32Service.install(serviceName, displayName, description, dependencies, account, password, command, true);
     }
 
-    private volatile ClassLoader cl;
+    private volatile Object lifecycle;
 
     public WindowsService(String serviceName) {
         super(serviceName);
@@ -112,51 +112,56 @@ public class WindowsService extends Win32Service {
         CoreUpgrade upgrade = new CoreUpgrade(maHome);
         upgrade.upgrade();
 
-        cl = new MangoBootstrap(maHome).getClassLoader();
-        Class<?> mainClass = cl.loadClass("com.serotonin.m2m2.Main");
-        Method mainMethod = mainClass.getMethod("main", String[].class);
-        mainMethod.invoke(null, (Object) new String[0]);
+        ClassLoader cl = new MangoBootstrap(maHome).getClassLoader();
+        this.lifecycle = cl.loadClass("com.serotonin.m2m2.Main")
+                .getMethod("createLifecycle")
+                .invoke(null);
 
-        Class<?> providersClass = cl.loadClass("com.serotonin.provider.Providers");
-        Method getMethod = providersClass.getMethod("get", Class.class);
-        Class<?> lifecycleClass = cl.loadClass("com.serotonin.m2m2.IMangoLifecycle");
-        Method addListenerMethod = lifecycleClass.getMethod("addListener", Consumer.class);
+        Method addListener = lifecycle.getClass().getMethod("addListener", Consumer.class);
+        addListener.invoke(lifecycle, (Consumer<?>) this::lifecycleStateChanged);
 
-        Object lifecycleInstance = getMethod.invoke(null, lifecycleClass);
-        addListenerMethod.invoke(lifecycleInstance, (Consumer<?>) this::lifecycleStateChanged);
+        lifecycle.getClass().getMethod("initialize", ClassLoader.class)
+        .invoke(lifecycle, Thread.currentThread().getContextClassLoader());
     }
 
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected void stopImpl() throws Exception {
-        Class<?> providersClass = cl.loadClass("com.serotonin.provider.Providers");
-        Method getMethod = providersClass.getMethod("get", Class.class);
-        Class<?> lifecycleClass = cl.loadClass("com.serotonin.m2m2.IMangoLifecycle");
-        Method terminateMethod = lifecycleClass.getMethod("terminate");
+        ClassLoader cl = lifecycle.getClass().getClassLoader();
 
-        Object lifecycleInstance = getMethod.invoke(null, lifecycleClass);
-        terminateMethod.invoke(lifecycleInstance);
+        Class<Enum> terminationReasonClass = (Class<Enum>) cl.loadClass("com.serotonin.m2m2.TerminationReason");
+        Enum shutdown = Enum.valueOf(terminationReasonClass, "SHUTDOWN");
+
+        lifecycle.getClass()
+        .getMethod("terminate", terminationReasonClass)
+        .invoke(lifecycle, shutdown);
     }
 
     private void lifecycleStateChanged(Object state) {
         try {
-            Class<?> lifecycleStateClass = cl.loadClass("com.serotonin.m2m2.LifecycleState");
-            Method getValueMethod = lifecycleStateClass.getMethod("getValue");
-            int value = (Integer) getValueMethod.invoke(state);
+            String name = (String) state.getClass().getMethod("name").invoke(state);
 
-            if (value == 220) { // SHUTDOWN_TASKS_RUNNING
+            if (name.equals("SHUTDOWN_TASKS_RUNNING")) {
                 this.setStatusStopPending();
-            } else if (value == 400) { // TERMINATED
-                Class<?> providersClass = cl.loadClass("com.serotonin.provider.Providers");
-                Method getMethod = providersClass.getMethod("get", Class.class);
-                Class<?> lifecycleClass = cl.loadClass("com.serotonin.m2m2.IMangoLifecycle");
-                Method isRestartingMethod = lifecycleClass.getMethod("isRestarting");
+            } else if (name.equals("TERMINATED")) {
+                Object reason = lifecycle.getClass()
+                        .getMethod("getTerminationReason")
+                        .invoke(lifecycle);
 
-                Object lifecycleInstance = getMethod.invoke(null, lifecycleClass);
-                boolean restarting = (Boolean) isRestartingMethod.invoke(lifecycleInstance);
-                if (restarting) {
-                    this.setStatusStopped(WinError.ERROR_SERVICE_SPECIFIC_ERROR, 2);
-                } else {
-                    this.setStatusStopped();
+                String reasonName = (String) reason.getClass().getMethod("name").invoke(reason);
+                switch (reasonName) {
+                    case "SHUTDOWN":
+                    case "SHUTDOWN_HOOK":
+                    case "LICENSE_VIOLATION":
+                        // clean shutdown
+                        this.setStatusStopped();
+                        break;
+                    case "ERROR":
+                        this.setStatusStopped(WinError.ERROR_SERVICE_SPECIFIC_ERROR, 1);
+                        break;
+                    case "RESTART":
+                        this.setStatusStopped(WinError.ERROR_SERVICE_SPECIFIC_ERROR, 2);
+                        break;
                 }
             }
         } catch (ReflectiveOperationException e) {
