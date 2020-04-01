@@ -60,7 +60,12 @@ public class BootstrapUtils {
             throw new RuntimeException("Can't find MA_HOME, please set a Java system property -Dma.home=\"path\\to\\mango\"");
         }
 
-        return maHome.toAbsolutePath().normalize();
+        Path maHomeAbs = maHome.toAbsolutePath().normalize();
+
+        // ensure Mango Core can find Mango home
+        System.setProperty("ma.home", maHomeAbs.toString());
+
+        return maHomeAbs;
     }
 
     public static boolean isMaHome(Path testMaHome) {
