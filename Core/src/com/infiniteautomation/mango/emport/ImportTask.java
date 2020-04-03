@@ -297,6 +297,7 @@ public class ImportTask extends ProgressiveTask {
                 }catch(ValidationException e) {
                     importContext.copyValidationMessages(e.getValidationResult(), "emport.eventDetector.prefix", ed.getXid());
                 }catch(Exception e) {
+                    addException(e);
                     LOG.error("Event detector import failed.", e);
                 }
             }
