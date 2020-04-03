@@ -4,9 +4,6 @@
 
 package com.infiniteautomation.mango.spring.service;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -15,6 +12,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
+import oshi.hardware.CentralProcessor.LogicalProcessor;
 import oshi.hardware.HardwareAbstractionLayer;
 import oshi.software.os.OSProcess;
 import oshi.software.os.OperatingSystem;
@@ -36,10 +34,13 @@ public class ServerInformationService {
     private long previousProcessTime = -1;
     private long lastProcessCpuPollTime;
     private Double lastProcessLoad;
-    private static final long MIN_PROCESS_POLL_PERIOD = 1000;
+    private static final long MIN_PROCESS_LOAD_POLL_PERIOD = 1000;
 
-    //TODO Remove after testing
-    private final OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+    //System CPU Load
+    private long lastTicks[];
+    private long lastSystemCpuPollTime;
+    private Double lastSystemCpuLoad;
+    private static final long MIN_CPU_LOAD_POLL_PERIOD = 1000;
 
     public ServerInformationService() {
         SystemInfo si = new SystemInfo();
@@ -91,14 +92,13 @@ public class ServerInformationService {
      *
      * @return
      */
-    public Double getProcessCpuLoad() {
+    public Double processCpuLoad() {
         //https://github.com/oshi/oshi/issues/359
         long lpcpt = this.lastProcessCpuPollTime;
         long now = Common.timer.currentTimeMillis();
-        if(now < lpcpt + MIN_PROCESS_POLL_PERIOD) {
+        if(now < lpcpt + MIN_PROCESS_LOAD_POLL_PERIOD) {
             return this.lastProcessLoad;
         }
-
 
         CentralProcessor processor = getProcessor();
         int cpuCount = processor.getLogicalProcessorCount();
@@ -108,6 +108,7 @@ public class ServerInformationService {
             this.lastProcessCpuPollTime = now;
             return null;
         }
+
         long currentTime = p.getKernelTime() + p.getUserTime();
         long processCpuPollPeriod = now - this.lastProcessCpuPollTime;
         this.lastProcessCpuPollTime = now;
@@ -123,15 +124,11 @@ public class ServerInformationService {
     }
 
     /**
-     * Get the 1 minute load average
-     * @return
-     */
-    /**
      * Get the load average
      * @param increment - 1=1 minute, 2=5 minute, 3=15 minute
      * @return
      */
-    public Double getSystemCpuLoad(int increment) throws ValidationException {
+    public Double systemLoadAverage(int increment) throws ValidationException {
         if(increment < 1 || increment > 3) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("increment", "validate.invalidValue");
@@ -141,5 +138,56 @@ public class ServerInformationService {
         double[] loadAverage = processor.getSystemLoadAverage(increment);
 
         return loadAverage[increment - 1];
+    }
+
+    /**
+     * Returns the "recent cpu usage" for the whole system by counting ticks from a previous call
+     *
+     *  This is limited to only allow an updated value every
+     *  MIN_CPU_LOAD_POLL_PERIOD ms to increase accuracy.
+     *
+     *  This is mildly thread safe in terms of accuracy, as
+     *   it is possible to call this faster than desired
+     *   but will only result is slightly less accurate readings
+     */
+    public Double systemCpuLoad() {
+        long lpcpt = this.lastSystemCpuPollTime;
+        long now = Common.timer.currentTimeMillis();
+        if(now < lpcpt + MIN_CPU_LOAD_POLL_PERIOD) {
+            return this.lastSystemCpuLoad;
+        }
+
+        CentralProcessor processor = getProcessor();
+
+        if(this.lastSystemCpuPollTime == 0) {
+            this.lastSystemCpuPollTime = now;
+            return null;
+        }
+
+        if(this.lastTicks == null) {
+            this.lastTicks = processor.getSystemCpuLoadTicks();
+            this.lastSystemCpuPollTime = now;
+            return null;
+        }else {
+            double load = processor.getSystemCpuLoadBetweenTicks(this.lastTicks);
+            this.lastTicks = processor.getSystemCpuLoadTicks();
+            this.lastSystemCpuPollTime = now;
+            return load;
+        }
+    }
+
+    /**
+     * Get the logical processors of the machine, this will never return null
+     *  but could be an empty array.
+     * @return
+     */
+    public LogicalProcessor[] availableProcessors() {
+        CentralProcessor processor = getProcessor();
+        LogicalProcessor[] processors = processor.getLogicalProcessors();
+        if(processors == null) {
+            return new LogicalProcessor[0];
+        }else {
+            return processors;
+        }
     }
 }
