@@ -99,9 +99,9 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
 
     @Override
     protected Object[] voToObjectArray(AbstractEventDetectorVO vo) {
-        String jsonData = null;
+        String data = null;
         try{
-            jsonData = writeValueAsString(vo);
+            data = writeValueAsString(vo);
         }catch(JsonException | IOException e){
             LOG.error(e.getMessage(), e);
         }
@@ -109,18 +109,19 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
         //Find the index of our sourceIdColumn
         int sourceIdIndex = getSourceIdIndex(vo.getDefinition().getSourceTypeName());
 
-        Object[] o = new Object[4 + this.sourceTypeToColumnNameMap.size()];
+        Object[] o = new Object[5 + this.sourceTypeToColumnNameMap.size()];
         o[0] = vo.getXid();
         o[1] = vo.getDetectorSourceType();
         o[2] = vo.getDetectorType();
-        o[3] = jsonData;
-        o[4 + sourceIdIndex] = vo.getSourceId();
+        o[3] = convertData(vo.getData());
+        o[4] = data;
+        o[5 + sourceIdIndex] = vo.getSourceId();
         return o;
     }
 
     @Override
     public RowMapper<AbstractEventDetectorVO> getRowMapper() {
-        return new EventDetectorRowMapper<AbstractEventDetectorVO>();
+        return new EventDetectorRowMapper<AbstractEventDetectorVO>((c) -> this.extractData(c));
     }
 
     public JsonObject readValueFromString(String json) throws JsonException, IOException {
@@ -189,7 +190,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
         Select<Record> query = getJoinedSelectQuery().where(sourceIdColumnName.eq(sourceId)).orderBy(this.table.getIdAlias());
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
-        return query(sql, args.toArray(new Object[args.size()]), new PointEventDetectorRowMapper(dp));
+        return query(sql, args.toArray(new Object[args.size()]), new PointEventDetectorRowMapper(dp, (c) -> this.extractData(c)));
     }
 
     /**
@@ -239,7 +240,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
             RowMapper<DataPointVO> pointRowMapper = DataPointDao.getInstance().getRowMapper();
             while(rs.next()) {
                 DataPointVO dpvo = pointRowMapper.mapRow(rs, rs.getRow());
-                PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(dataPointTable.getSelectFields().size() + 3 + 1, 5, dpvo);
+                PointEventDetectorRowMapper mapper = new PointEventDetectorRowMapper(dataPointTable.getSelectFields().size() + 3 + 1, 5, (c) -> EventDetectorDao.this.extractData(c), dpvo);
                 AbstractPointEventDetectorVO ped = mapper.mapRow(rs, rs.getRow());
                 results.add(ped);
             }
@@ -272,7 +273,7 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
                         .where(this.table.getAlias("sourceTypeName").eq(sourceType));
                 customizedQuery(select, new EventDetectorWithDataPointResultSetExtractor());
             default:
-                return query(getJoinedSelectQuery().getSQL() + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>());
+                return query(getJoinedSelectQuery().getSQL() + " WHERE sourceTypeName=?", new Object[]{sourceType}, new EventDetectorRowMapper<X>((c) -> this.extractData(c)));
         }
     }
 }

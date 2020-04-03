@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.io.IOException;
+import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -12,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.jdbc.core.RowMapper;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -38,20 +40,23 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
     protected int firstColumn;
     //Column offset for the sourceId to use, -1 means use definition mappings
     protected int sourceIdColumnOffset;
+    protected ExtractJson<Clob, JsonNode> extractJson;
+
+    public EventDetectorRowMapper(ExtractJson<Clob, JsonNode> extractJson){
+        this(1, -1, extractJson);
+    }
 
     /**
      *
      * @param firstColumn - First column of Event Detector columns in ResultSet
      * @param sourceIdColumnOffset - Offset from first column to where
      * 	the sourceId column is located < 0 means use definition and expect all sourceId columns in result
+     * @param extractJson - method to extract a JsonNode from the Clob in the table
      */
-    public EventDetectorRowMapper(int firstColumn, int sourceIdColumnOffset){
+    public EventDetectorRowMapper(int firstColumn, int sourceIdColumnOffset, ExtractJson<Clob, JsonNode> extractData){
         this.firstColumn = firstColumn;
         this.sourceIdColumnOffset = sourceIdColumnOffset;
-    }
-
-    public EventDetectorRowMapper(){
-        this(1, -1);
+        this.extractJson = extractData;
     }
 
     @Override
@@ -65,7 +70,7 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
         //Extract the source id
         int sourceIdColumnIndex;
         if(this.sourceIdColumnOffset < 0)
-            sourceIdColumnIndex= this.firstColumn + 5 + EventDetectorDao.getInstance().getSourceIdIndex(definition.getSourceTypeName());
+            sourceIdColumnIndex= this.firstColumn + 6 + EventDetectorDao.getInstance().getSourceIdIndex(definition.getSourceTypeName());
         else
             sourceIdColumnIndex = this.firstColumn + this.sourceIdColumnOffset;
         int sourceId = rs.getInt(sourceIdColumnIndex);
@@ -74,11 +79,12 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
 
         vo.setId(rs.getInt(this.firstColumn));
         vo.setXid(rs.getString(this.firstColumn + 1));
+        vo.setData(this.extractJson.extract(rs.getClob(this.firstColumn + 4)));
         vo.setDefinition(definition);
         vo.setSourceId(sourceId);
 
         //Read Into Detector
-        JsonTypeReader typeReader = new JsonTypeReader(rs.getString(this.firstColumn + 4));
+        JsonTypeReader typeReader = new JsonTypeReader(rs.getString(this.firstColumn + 5));
         try {
             JsonValue value = typeReader.read();
             JsonObject root = value.toJsonObject();
@@ -99,6 +105,18 @@ public class EventDetectorRowMapper<T extends AbstractEventDetectorVO> implement
     @SuppressWarnings("unchecked")
     protected T createEventDetector(int sourceId, EventDetectorDefinition<?> definition) {
         return (T) definition.baseCreateEventDetectorVO(sourceId);
+    }
+
+    @FunctionalInterface
+    public interface ExtractJson<T, R> {
+
+        /**
+         * Applies this function to the given argument.
+         *
+         * @param t the function argument
+         * @return the function result
+         */
+        R extract(T t) throws SQLException;
     }
 
 }

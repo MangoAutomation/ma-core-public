@@ -329,15 +329,18 @@ public class Upgrade29 extends DBUpgrade {
     //JSON Data
     private String[] jsonDataColumnsSql = new String[]{
             "ALTER TABLE dataPoints ADD COLUMN jsonData longtext;",
-            "ALTER TABLE dataSources ADD COLUMN jsonData longtext;"
+            "ALTER TABLE dataSources ADD COLUMN jsonData longtext;",
+            "ALTER TABLE eventDetectors ADD COLUMN jsonData longtext;"
     };
     private String[] jsonDataColumnsMySQL = new String[]{
             "ALTER TABLE dataPoints ADD COLUMN jsonData JSON;",
-            "ALTER TABLE dataSources ADD COLUMN jsonData JSON;"
+            "ALTER TABLE dataSources ADD COLUMN jsonData JSON;",
+            "ALTER TABLE eventDetectors ADD COLUMN jsonData JSON;"
     };
     private String[] jsonDataColumnsMSSQL = new String[]{
             "ALTER TABLE dataPoints ADD COLUMN jsonData ntext;",
-            "ALTER TABLE dataSources ADD COLUMN jsonData ntext;"
+            "ALTER TABLE dataSources ADD COLUMN jsonData ntext;",
+            "ALTER TABLE eventDetectors ADD COLUMN jsonData ntext;"
     };
 
     //Data source fix

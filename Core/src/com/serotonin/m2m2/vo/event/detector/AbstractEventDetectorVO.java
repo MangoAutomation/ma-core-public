@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -42,6 +43,8 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
     private Set<Role> editRoles = Collections.emptySet(); //Roles for those who can edit.
     @JsonProperty
     private Set<Role> readRoles = Collections.emptySet(); //Roles for those who can view the resulting report
+    @JsonProperty
+    private JsonNode data;
 
     /* Source of the detector */
     protected int sourceId;
@@ -157,6 +160,14 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
 
     public void setReadRoles(Set<Role> readRoles) {
         this.readRoles = readRoles;
+    }
+
+    public JsonNode getData() {
+        return data;
+    }
+
+    public void setData(JsonNode data) {
+        this.data = data;
     }
 
     public int getSourceId(){

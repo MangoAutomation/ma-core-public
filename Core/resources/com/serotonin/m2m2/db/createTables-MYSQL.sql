@@ -189,6 +189,7 @@ CREATE TABLE eventDetectors (
   typeName varchar(32) NOT NULL,
   dataPointId int,
   data longtext NOT NULL,
+  jsonData JSON,
   PRIMARY KEY (id)
 )engine=InnoDB;
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);

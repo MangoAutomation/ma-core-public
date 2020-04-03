@@ -3,6 +3,9 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import java.sql.Clob;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.serotonin.m2m2.module.EventDetectorDefinition;
 import com.serotonin.m2m2.module.definitions.event.detectors.PointEventDetectorDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -18,13 +21,13 @@ public class PointEventDetectorRowMapper extends EventDetectorRowMapper<Abstract
 
     private final DataPointVO dp;
 
-    public PointEventDetectorRowMapper(DataPointVO dp) {
-        super();
+    public PointEventDetectorRowMapper(DataPointVO dp, ExtractJson<Clob, JsonNode> extractJson) {
+        super(extractJson);
         this.dp = dp;
     }
 
-    public PointEventDetectorRowMapper(int firstColumn, int sourceIdColumnOffset, DataPointVO dp){
-        super(firstColumn, sourceIdColumnOffset);
+    public PointEventDetectorRowMapper(int firstColumn, int sourceIdColumnOffset, ExtractJson<Clob, JsonNode> extractJson, DataPointVO dp){
+        super(firstColumn, sourceIdColumnOffset, extractJson);
         this.dp = dp;
     }
 

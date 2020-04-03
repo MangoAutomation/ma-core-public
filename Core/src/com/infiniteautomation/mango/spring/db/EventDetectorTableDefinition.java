@@ -39,6 +39,7 @@ public class EventDetectorTableDefinition extends AbstractTableDefinition {
         super.addFields(fields);
         fields.add(DSL.field(DSL.name("sourceTypeName"), SQLDataType.VARCHAR(32)));
         fields.add(DSL.field(DSL.name("typeName"), SQLDataType.VARCHAR(32)));
+        fields.add(DSL.field(DSL.name("jsonData"), SQLDataType.CLOB));
         fields.add(DSL.field(DSL.name("data"), SQLDataType.CLOB));
 
         Map<String, Field<?>> definitionFields = new LinkedHashMap<>();

@@ -185,6 +185,7 @@ CREATE TABLE eventDetectors (
   typeName varchar(32) NOT NULL,
   dataPointId int NOT NULL,
   data longtext NOT NULL,
+  jsonData JSON,
   PRIMARY KEY (id)
 );
 ALTER TABLE eventDetectors ADD CONSTRAINT eventDetectorsUn1 UNIQUE (xid);
