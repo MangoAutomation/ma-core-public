@@ -16,15 +16,17 @@
 * Upgrade Jackson library to 2.10.2
 * Upgrade Apache POI to 4.1.2 which is used in Excel Report generation
 * Upgrade MySQL connector to 8.0.19 driver classname is now com.mysql.cj.jdbc.Driver
-* Add permission to allow users to change thier own username defaults to allow all users to do this
+* Add permission to allow users to change their own username defaults to allow all users to do this
 * Add new types to Mailing List to allow any phone number and User phone numbers
 * Adding a system setting that allows control over what tags are displayed this defaults to all tags
 * Add read and edit permission to event detectors default to previous behavior if no permissions are set
 * Add events view permission that has a default of the user role to be consistent with previous versions of Mango this permission can restrict a user to not be able to see any events
 * Leverage module versions database table for more robust upgrade/installation support
 * Adding system setting emailDisabled to allow globally disabling email temporarily
-* Add free form data field to data point and data source to allow storage of custom data in the configuration
+* Add free form JSON data field to data point and data source to allow storage of custom data in the configuration
 * Expose 'data' field in Mango javascript context for data point wrappers. Usage contextPointKey.dataPointWrapper.data
+* Change disk space monitoring metrics to report GB rather than bytes
+* Add more monitored values to monitor server hardware performance and various disk partition sizes in GB
 
 *Version 3.7.4*
 * Improve work item failure logging
