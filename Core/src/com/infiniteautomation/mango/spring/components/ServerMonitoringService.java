@@ -80,7 +80,6 @@ public class ServerMonitoringService {
     public static final String LOAD_AVERAGE_MONITOR_ID = "internal.monitor.LOAD_AVERAGE";
     public static final String OS_CPU_LOAD_PROCESS_ID = "os.cpu_load.process";
     public static final String OS_CPU_LOAD_SYSTEM_ID = "os.cpu_load.system";
-    public static final String OS_CPU_LOAD_TOTAL_ID = "os.cpu_load.total";
     public static final String RUNTIME_UPTIME_ID = "runtime.uptime";
     public static final String CLASS_LOADING_LOADED_ID = "class_loading.loaded";
     public static final String CLASS_LOADING_TOTAL_LOADED_ID = "class_loading.total_loaded";
@@ -182,17 +181,8 @@ public class ServerMonitoringService {
 
         mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).supplier(() -> this.serverInfoService.systemLoadAverage(1)).addTo(monitors).buildPollable();
 
-        PollableMonitor<Double> processCpuLoad = mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::processCpuLoad).addTo(monitors).buildPollable();
-        PollableMonitor<Double> systemCpuLoad = mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this.serverInfoService::systemCpuLoad).addTo(monitors).buildPollable();
-        mv.<Double>create(OS_CPU_LOAD_TOTAL_ID).function(ts -> {
-            Double pCpuLoad = processCpuLoad.poll(ts);
-            Double sCpuLoad = systemCpuLoad.poll(ts);
-            if(pCpuLoad != null && sCpuLoad != null) {
-                return pCpuLoad + sCpuLoad;
-            }else {
-                return null;
-            }
-        }).addTo(monitors).buildPollable();
+        mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::processCpuLoad).addTo(monitors).buildPollable();
+        mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this.serverInfoService::systemCpuLoad).addTo(monitors).buildPollable();
 
         mv.<Long>create(RUNTIME_UPTIME_ID).supplier(() -> {
             return runtimeBean.getUptime() / 1000;
