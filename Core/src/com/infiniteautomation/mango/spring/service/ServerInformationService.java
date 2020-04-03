@@ -9,7 +9,9 @@ import java.lang.management.OperatingSystemMXBean;
 
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.i18n.ProcessResult;
 
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -117,8 +119,27 @@ public class ServerInformationService {
             this.lastProcessLoad = (timeDifference / ((double) processCpuPollPeriod)) / cpuCount;
         }
         previousProcessTime = currentTime;
-
-        System.out.println("Oshi: " + this.lastProcessLoad);
         return this.lastProcessLoad;
+    }
+
+    /**
+     * Get the 1 minute load average
+     * @return
+     */
+    /**
+     * Get the load average
+     * @param increment - 1=1 minute, 2=5 minute, 3=15 minute
+     * @return
+     */
+    public Double getSystemCpuLoad(int increment) throws ValidationException {
+        if(increment < 1 || increment > 3) {
+            ProcessResult result = new ProcessResult();
+            result.addContextualMessage("increment", "validate.invalidValue");
+        }
+
+        CentralProcessor processor = getProcessor();
+        double[] loadAverage = processor.getSystemLoadAverage(increment);
+
+        return loadAverage[increment - 1];
     }
 }

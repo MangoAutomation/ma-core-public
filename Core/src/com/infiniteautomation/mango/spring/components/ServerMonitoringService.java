@@ -185,7 +185,7 @@ public class ServerMonitoringService {
         mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).supplier(osBean::getSystemLoadAverage).addTo(monitors).buildPollable();
 
         PollableMonitor<Double> processCpuLoad = mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::getProcessCpuLoad).addTo(monitors).buildPollable();
-        PollableMonitor<Double> systemCpuLoad = mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this::getSystemCpuLoad).addTo(monitors).buildPollable();
+        PollableMonitor<Double> systemCpuLoad = mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(() -> this.serverInfoService.getSystemCpuLoad(1)).addTo(monitors).buildPollable();
         mv.<Double>create(OS_CPU_LOAD_TOTAL_ID).function(ts -> {
             Double pCpuLoad = processCpuLoad.poll(ts);
             Double sCpuLoad = systemCpuLoad.poll(ts);
@@ -291,14 +291,6 @@ public class ServerMonitoringService {
                 log.warn("Failed to poll monitor {}", monitor.getId(), e);
             }
         }
-    }
-
-    @SuppressWarnings("restriction")
-    private Double getSystemCpuLoad() {
-        if (osBean instanceof com.sun.management.OperatingSystemMXBean) {
-            return ((com.sun.management.OperatingSystemMXBean) osBean).getSystemCpuLoad();
-        }
-        return null;
     }
 
 }
