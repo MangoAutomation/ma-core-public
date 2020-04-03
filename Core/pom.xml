@@ -590,6 +590,11 @@
   			<artifactId>jaxb-impl</artifactId>
   			<version>2.3.1</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.oshi</groupId>
+			<artifactId>oshi-core</artifactId>
+			<version>4.4.2</version>
+		</dependency>
 		<!-- Testing -->
 		<dependency>
 			<groupId>junit</groupId>

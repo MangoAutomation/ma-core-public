@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.monitor.PollableMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
+import com.infiniteautomation.mango.spring.service.ServerInformationService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.ServerStatus;
@@ -123,20 +124,24 @@ public class ServerMonitoringService {
     private final long period;
     private volatile ScheduledFuture<?> scheduledFuture;
     private final IMangoLifecycle lifecycle;
+    private final ServerInformationService serverInfoService;
     private final Set<ValueMonitor<?>> monitors = new HashSet<>();
     private final Logger log = LoggerFactory.getLogger(this.getClass());
+
 
     @Autowired
     private ServerMonitoringService(ExecutorService executor,
             ScheduledExecutorService scheduledExecutor,
             @Value("${internal.monitor.pollPeriod:10000}") long period,
             IMangoLifecycle lifecycle,
+            ServerInformationService serverInfoService,
             MonitoredValues mv) {
 
         this.executor = executor;
         this.scheduledExecutor = scheduledExecutor;
         this.period = period;
         this.lifecycle = lifecycle;
+        this.serverInfoService = serverInfoService;
 
         threads = mv.<Integer>create(SERVER_THREADS).name(new TranslatableMessage(SERVER_THREADS)).build();
         idleThreads = mv.<Integer>create(SERVER_IDLE_THREADS).name(new TranslatableMessage(SERVER_IDLE_THREADS)).build();
@@ -179,10 +184,16 @@ public class ServerMonitoringService {
 
         mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).supplier(osBean::getSystemLoadAverage).addTo(monitors).buildPollable();
 
-        PollableMonitor<Double> processCpuLoad = mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this::getProcessCpuLoad).addTo(monitors).buildPollable();
+        PollableMonitor<Double> processCpuLoad = mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::getProcessCpuLoad).addTo(monitors).buildPollable();
         PollableMonitor<Double> systemCpuLoad = mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this::getSystemCpuLoad).addTo(monitors).buildPollable();
         mv.<Double>create(OS_CPU_LOAD_TOTAL_ID).function(ts -> {
-            return processCpuLoad.poll(ts) + systemCpuLoad.poll(ts);
+            Double pCpuLoad = processCpuLoad.poll(ts);
+            Double sCpuLoad = systemCpuLoad.poll(ts);
+            if(pCpuLoad != null && sCpuLoad != null) {
+                return pCpuLoad + sCpuLoad;
+            }else {
+                return null;
+            }
         }).addTo(monitors).buildPollable();
 
         mv.<Long>create(RUNTIME_UPTIME_ID).supplier(() -> {
@@ -280,14 +291,6 @@ public class ServerMonitoringService {
                 log.warn("Failed to poll monitor {}", monitor.getId(), e);
             }
         }
-    }
-
-    @SuppressWarnings("restriction")
-    private Double getProcessCpuLoad() {
-        if (osBean instanceof com.sun.management.OperatingSystemMXBean) {
-            return ((com.sun.management.OperatingSystemMXBean) osBean).getProcessCpuLoad();
-        }
-        return null;
     }
 
     @SuppressWarnings("restriction")
