@@ -145,6 +145,7 @@ public class DataPointImporter extends Importer {
 
                             // Create a new one
                             ped.setId(Common.NEW_ID);
+                            ped.setXid(pedXid);
                             dp.addOrReplaceDetector(ped);
                         }
 
