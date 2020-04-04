@@ -4,6 +4,8 @@
 
 package com.infiniteautomation.mango.spring.service;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -24,11 +26,15 @@ import oshi.software.os.OperatingSystem;
 @Service
 public class ServerInformationService {
 
-    private final HardwareAbstractionLayer hal;
-    private final OperatingSystem os;
+    private static final Log LOG = LogFactory.getLog(ServerInformationService.class);
+
+    private HardwareAbstractionLayer hal;
+    private OperatingSystem os;
+    private boolean failedToLoad;
+
 
     //Mango Process ID
-    private final int pid;
+    private int pid;
 
     //Process CPU Load
     private long previousProcessTime = -1;
@@ -43,10 +49,21 @@ public class ServerInformationService {
     private static final long MIN_CPU_LOAD_POLL_PERIOD = 1000;
 
     public ServerInformationService() {
-        SystemInfo si = new SystemInfo();
-        this.hal = si.getHardware();
-        this.os = si.getOperatingSystem();
-        this.pid = os.getProcessId();
+        try {
+            SystemInfo si = new SystemInfo();
+            this.hal = si.getHardware();
+            this.os = si.getOperatingSystem();
+            this.pid = os.getProcessId();
+            this.failedToLoad = false;
+            throw new RuntimeException("Failed");
+        }catch(Exception e) {
+            //If no JNA is supported
+            LOG.fatal("Server Information Service failed to start, no data will be availble on server hardware or processes", e);
+            this.hal = null;
+            this.os = null;
+            this.pid = -1;
+            this.failedToLoad = true;
+        }
     }
 
     /**
@@ -93,6 +110,9 @@ public class ServerInformationService {
      * @return
      */
     public Double processCpuLoadPercent() {
+        if(failedToLoad) {
+            return null;
+        }
         //https://github.com/oshi/oshi/issues/359
         long lpcpt = this.lastProcessCpuPollTime;
         long now = Common.timer.currentTimeMillis();
@@ -129,6 +149,10 @@ public class ServerInformationService {
      * @return
      */
     public Double systemLoadAverage(int increment) throws ValidationException {
+        if(failedToLoad) {
+            return null;
+        }
+
         if(increment < 1 || increment > 3) {
             ProcessResult result = new ProcessResult();
             result.addContextualMessage("increment", "validate.invalidValue");
@@ -151,6 +175,10 @@ public class ServerInformationService {
      *   but will only result is slightly less accurate readings
      */
     public Double systemCpuLoadPercent() {
+        if(failedToLoad) {
+            return null;
+        }
+
         long lpcpt = this.lastSystemCpuPollTime;
         long now = Common.timer.currentTimeMillis();
         if(now < lpcpt + MIN_CPU_LOAD_POLL_PERIOD) {
@@ -182,6 +210,10 @@ public class ServerInformationService {
      * @return
      */
     public LogicalProcessor[] availableProcessors() {
+        if(failedToLoad) {
+            return new LogicalProcessor[0];
+        }
+
         CentralProcessor processor = getProcessor();
         LogicalProcessor[] processors = processor.getLogicalProcessors();
         if(processors == null) {
