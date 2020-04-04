@@ -181,8 +181,8 @@ public class ServerMonitoringService {
 
         mv.<Double>create(LOAD_AVERAGE_MONITOR_ID).supplier(() -> this.serverInfoService.systemLoadAverage(1)).addTo(monitors).buildPollable();
 
-        mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::processCpuLoad).addTo(monitors).buildPollable();
-        mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this.serverInfoService::systemCpuLoad).addTo(monitors).buildPollable();
+        mv.<Double>create(OS_CPU_LOAD_PROCESS_ID).supplier(this.serverInfoService::processCpuLoadPercent).addTo(monitors).buildPollable();
+        mv.<Double>create(OS_CPU_LOAD_SYSTEM_ID).supplier(this.serverInfoService::systemCpuLoadPercent).addTo(monitors).buildPollable();
 
         mv.<Long>create(RUNTIME_UPTIME_ID).supplier(() -> {
             return runtimeBean.getUptime() / 1000;

@@ -92,7 +92,7 @@ public class ServerInformationService {
      *
      * @return
      */
-    public Double processCpuLoad() {
+    public Double processCpuLoadPercent() {
         //https://github.com/oshi/oshi/issues/359
         long lpcpt = this.lastProcessCpuPollTime;
         long now = Common.timer.currentTimeMillis();
@@ -117,7 +117,7 @@ public class ServerInformationService {
             // If we have both a previous and a current time
             // we can calculate the CPU usage
             long timeDifference = currentTime - previousProcessTime;
-            this.lastProcessLoad = (timeDifference / ((double) processCpuPollPeriod)) / cpuCount;
+            this.lastProcessLoad = ((timeDifference / ((double) processCpuPollPeriod)) / cpuCount)*100d;
         }
         previousProcessTime = currentTime;
         return this.lastProcessLoad;
@@ -150,7 +150,7 @@ public class ServerInformationService {
      *   it is possible to call this faster than desired
      *   but will only result is slightly less accurate readings
      */
-    public Double systemCpuLoad() {
+    public Double systemCpuLoadPercent() {
         long lpcpt = this.lastSystemCpuPollTime;
         long now = Common.timer.currentTimeMillis();
         if(now < lpcpt + MIN_CPU_LOAD_POLL_PERIOD) {
@@ -169,7 +169,7 @@ public class ServerInformationService {
             this.lastSystemCpuPollTime = now;
             return null;
         }else {
-            double load = processor.getSystemCpuLoadBetweenTicks(this.lastTicks);
+            double load = processor.getSystemCpuLoadBetweenTicks(this.lastTicks)*100d;
             this.lastTicks = processor.getSystemCpuLoadTicks();
             this.lastSystemCpuPollTime = now;
             return load;
