@@ -166,7 +166,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
         public DataPointStartupResultSetExtractor() {
             this.firstEventDetectorColumn = getSelectFields().size() + 1;
-            this.eventRowMapper = new EventDetectorRowMapper<AbstractEventDetectorVO>(this.firstEventDetectorColumn, 5, (c) -> DataPointDao.this.extractData(c));
+            this.eventRowMapper = new EventDetectorRowMapper<AbstractEventDetectorVO>(this.firstEventDetectorColumn, 6, (c) -> DataPointDao.this.extractData(c));
         }
 
         @Override
