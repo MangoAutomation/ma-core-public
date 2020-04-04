@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.infiniteautomation.mango.monitor.MonitoredValues;
+import com.infiniteautomation.mango.monitor.PollableMonitor;
 import com.infiniteautomation.mango.monitor.ValueMonitor;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.NoSQLProxy;
@@ -50,10 +51,12 @@ public class DiskUsageMonitoringService {
     public static final String NOSQL_PARTITION_TOTAL_SPACE = "internal.monitor.NOSQL_PARTITION_TOTAL_SPACE";
     public static final String NOSQL_PARTITION_USABLE_SPACE = "internal.monitor.NOSQL_PARTITION_USABLE_SPACE";
     public static final String NOSQL_PARTITION_USED_SPACE = "internal.monitor.NOSQL_PARTITION_USED_SPACE";
+    public static final String NOSQL_DATABASE_SIZE = "internal.monitor.NO_SQL_DATABASE_SIZE";
 
     public static final String SQL_PARTITION_TOTAL_SPACE = "internal.monitor.SQL_PARTITION_TOTAL_SPACE";
     public static final String SQL_PARTITION_USABLE_SPACE = "internal.monitor.SQL_PARTITION_USABLE_SPACE";
     public static final String SQL_PARTITION_USED_SPACE = "internal.monitor.SQL_PARTITION_USED_SPACE";
+    public static final String SQL_DATABASE_SIZE = "internal.monitor.SQL_DATABASE_SIZE";
 
     public static final String FILESTORE_PARTITION_TOTAL_SPACE = "internal.monitor.FILESTORE_PARTITION_TOTAL_SPACE";
     public static final String FILESTORE_PARTITION_USABLE_SPACE = "internal.monitor.FILESTORE_PARTITION_USABLE_SPACE";
@@ -72,9 +75,11 @@ public class DiskUsageMonitoringService {
     private final ValueMonitor<Double> noSqlPartitionTotalSpace;
     private final ValueMonitor<Double> noSqlPartitionUsableSpace;
     private final ValueMonitor<Double> noSqlPartitionUsedSpace;
+    private final PollableMonitor<Double> noSqlDatabaseSize;
     private final ValueMonitor<Double> sqlPartitionTotalSpace;
     private final ValueMonitor<Double> sqlPartitionUsableSpace;
     private final ValueMonitor<Double> sqlPartitionUsedSpace;
+    private final PollableMonitor<Double> sqlDatabaseSize;
     private final ValueMonitor<Double> filestorePartitionTotalSpace;
     private final ValueMonitor<Double> filestorePartitionUsableSpace;
     private final ValueMonitor<Double> filestorePartitionUsedSpace;
@@ -84,6 +89,16 @@ public class DiskUsageMonitoringService {
     private volatile ScheduledFuture<?> scheduledFuture;
 
     private final double gb = 1024*1024*1024;
+
+    //NoSQL disk space
+    private Double lastNoSqlDatabaseSize;
+    private long lastNoSqlDatabaseSizePollTime;
+    private static final long MIN_NOSQL_DISK_SIZE_POLL_PERIOD = 1000 * 60 * 60 * 6;
+
+    //SQL disk space
+    private Double lastSqlDatabaseSize;
+    private long lastSqlDatabaseSizePollTime;
+    private static final long MIN_SQL_DISK_SIZE_POLL_PERIOD = 1000 * 60 * 60 * 6;
 
     /**
      *
@@ -120,6 +135,8 @@ public class DiskUsageMonitoringService {
         noSqlPartitionUsedSpace = monitoredValues.<Double>create(NOSQL_PARTITION_USED_SPACE)
                 .name(new TranslatableMessage(NOSQL_PARTITION_USED_SPACE))
                 .build();
+        noSqlDatabaseSize = monitoredValues.<Double>create(NOSQL_DATABASE_SIZE).name(new TranslatableMessage(NOSQL_DATABASE_SIZE)).supplier(this::getNoSqlDatabaseSizeMB).buildPollable();
+
         sqlPartitionTotalSpace = monitoredValues.<Double>create(SQL_PARTITION_TOTAL_SPACE)
                 .name(new TranslatableMessage(SQL_PARTITION_TOTAL_SPACE))
                 .build();
@@ -129,6 +146,8 @@ public class DiskUsageMonitoringService {
         sqlPartitionUsedSpace = monitoredValues.<Double>create(SQL_PARTITION_USED_SPACE)
                 .name(new TranslatableMessage(SQL_PARTITION_USED_SPACE))
                 .build();
+        sqlDatabaseSize = monitoredValues.<Double>create(SQL_DATABASE_SIZE).name(new TranslatableMessage(SQL_DATABASE_SIZE)).supplier(this::getSqlDatabaseSizeMB).buildPollable();
+
         filestorePartitionTotalSpace = monitoredValues.<Double>create(FILESTORE_PARTITION_TOTAL_SPACE)
                 .name(new TranslatableMessage(FILESTORE_PARTITION_TOTAL_SPACE))
                 .build();
@@ -222,6 +241,10 @@ public class DiskUsageMonitoringService {
             maHomeSize.setValue(getGb(getSize(Common.MA_HOME_PATH.toFile())));
         }
 
+        long now = Common.timer.currentTimeMillis();
+        this.sqlDatabaseSize.poll(now);
+        this.noSqlDatabaseSize.poll(now);
+
         fileStoreMonitors.entrySet().stream().forEach(monitor -> {
             monitor.getValue().setValue(getGb(getSize(ModuleRegistry.getFileStoreDefinition(monitor.getKey()).getRoot())));
         });
@@ -241,6 +264,41 @@ public class DiskUsageMonitoringService {
             log.error("Unable to compute size of " + directory.getAbsolutePath(), e);
             return 0l;
         }
+    }
+
+    /**
+     * Get the SQL database size, limit how often
+     * @return
+     */
+    private Double getSqlDatabaseSizeMB() {
+        long last = this.lastSqlDatabaseSizePollTime;
+        long now = Common.timer.currentTimeMillis();
+        if(now < last + MIN_SQL_DISK_SIZE_POLL_PERIOD) {
+            return this.lastSqlDatabaseSize;
+        }
+        this.lastSqlDatabaseSizePollTime = now;
+        this.lastSqlDatabaseSize = getGb(Common.databaseProxy.getDatabaseSizeInBytes());
+        return this.lastSqlDatabaseSize;
+    }
+
+    /**
+     * Get the NoSQ database size, limit how often
+     * @return
+     */
+    private Double getNoSqlDatabaseSizeMB() {
+        long last = this.lastNoSqlDatabaseSizePollTime;
+        long now = Common.timer.currentTimeMillis();
+        if(now < last + MIN_NOSQL_DISK_SIZE_POLL_PERIOD) {
+            return this.lastNoSqlDatabaseSize;
+        }
+        this.lastNoSqlDatabaseSizePollTime = now;
+        if (Common.databaseProxy.getNoSQLProxy() != null) {
+            String pointDataStoreName = Common.envProps.getString("db.nosql.pointDataStoreName", "mangoTSDB");
+            this.lastNoSqlDatabaseSize = getGb(Common.databaseProxy.getNoSQLProxy().getDatabaseSizeInBytes(pointDataStoreName));
+        }else {
+            this.lastNoSqlDatabaseSize = 0d;
+        }
+        return this.lastNoSqlDatabaseSize;
     }
 
     /**
