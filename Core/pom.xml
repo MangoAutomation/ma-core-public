@@ -590,10 +590,21 @@
   			<artifactId>jaxb-impl</artifactId>
   			<version>2.3.1</version>
 		</dependency>
+		<!-- Oshi has a tight dependency on the version of JNA and we must include it to be packaged in the core -->
 		<dependency>
 			<groupId>com.github.oshi</groupId>
 			<artifactId>oshi-core</artifactId>
 			<version>4.4.2</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>${jna.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna-platform</artifactId>
+			<version>${jna.version}</version>
 		</dependency>
 		<!-- Testing -->
 		<dependency>
