@@ -55,7 +55,6 @@ public class ServerInformationService {
             this.os = si.getOperatingSystem();
             this.pid = os.getProcessId();
             this.failedToLoad = false;
-            throw new RuntimeException("Failed");
         }catch(Throwable e) {
             //If no JNA is supported
             LOG.fatal("Server Information Service failed to start, no data will be availble on server hardware or processes", e);
