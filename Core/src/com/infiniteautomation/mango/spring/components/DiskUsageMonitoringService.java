@@ -51,7 +51,7 @@ public class DiskUsageMonitoringService {
     public static final String NOSQL_PARTITION_TOTAL_SPACE = "internal.monitor.NOSQL_PARTITION_TOTAL_SPACE";
     public static final String NOSQL_PARTITION_USABLE_SPACE = "internal.monitor.NOSQL_PARTITION_USABLE_SPACE";
     public static final String NOSQL_PARTITION_USED_SPACE = "internal.monitor.NOSQL_PARTITION_USED_SPACE";
-    public static final String NOSQL_DATABASE_SIZE = "internal.monitor.NO_SQL_DATABASE_SIZE";
+    public static final String NOSQL_DATABASE_SIZE = "internal.monitor.NOSQL_DATABASE_SIZE";
 
     public static final String SQL_PARTITION_TOTAL_SPACE = "internal.monitor.SQL_PARTITION_TOTAL_SPACE";
     public static final String SQL_PARTITION_USABLE_SPACE = "internal.monitor.SQL_PARTITION_USABLE_SPACE";
