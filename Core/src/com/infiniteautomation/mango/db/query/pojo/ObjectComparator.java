@@ -33,7 +33,7 @@ public class ObjectComparator implements Comparator<Object> {
             if (isInteger(a) && isInteger(b)) {
                 return Long.valueOf(((Number) a).longValue()).compareTo(((Number) b).longValue());
             }
-            return Double.valueOf(((Number) a).doubleValue()).compareTo(((Double) b).doubleValue());
+            return Double.valueOf(((Number) a).doubleValue()).compareTo(((Number) b).doubleValue());
         }
 
         return a.toString().compareTo(b.toString());
