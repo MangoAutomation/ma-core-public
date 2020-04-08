@@ -201,8 +201,19 @@ public class MangoJavaScriptService {
      * @throws ValidationException
      * @throws PermissionException
      */
+    public MangoJavaScriptResult testScript(MangoJavaScript vo, String noChangeKey) throws ValidationException, PermissionException {
+        return testScript(vo, (result, holder) ->{ return createValidationSetter(result);}, noChangeKey);
+    }
+
+    /**
+     * Test a script using the default no change key
+     * @param vo
+     * @return
+     * @throws ValidationException
+     * @throws PermissionException
+     */
     public MangoJavaScriptResult testScript(MangoJavaScript vo) throws ValidationException, PermissionException {
-        return testScript(vo, (result, holder) ->{ return createValidationSetter(result);});
+        return testScript(vo, (result, holder) ->{ return createValidationSetter(result);}, "eventHandlers.script.successUnchanged");
     }
 
     /**
@@ -212,7 +223,7 @@ public class MangoJavaScriptService {
      * @param user
      * @return
      */
-    public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter) {
+    public MangoJavaScriptResult testScript(MangoJavaScript vo, BiFunction<MangoJavaScriptResult, PermissionHolder, ScriptPointValueSetter> createSetter, String noChangeKey) {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
@@ -237,9 +248,9 @@ public class MangoJavaScriptService {
                         //TODO fix this display hack:
                         String unchanged;
                         if(user instanceof User) {
-                            unchanged = new TranslatableMessage("eventHandlers.script.successUnchanged").translate(((User)user).getTranslations());
+                            unchanged = new TranslatableMessage(noChangeKey).translate(((User)user).getTranslations());
                         }else {
-                            unchanged = new TranslatableMessage("eventHandlers.script.successUnchanged").translate(Common.getTranslations());
+                            unchanged = new TranslatableMessage(noChangeKey).translate(Common.getTranslations());
                         }
                         script.getResult().setResult(new PointValueTime(unchanged, ((PointValueTime)o).getTime()));
                     }
