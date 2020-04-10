@@ -3,9 +3,11 @@
  */
 package com.serotonin.util.properties;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Properties;
@@ -68,8 +70,8 @@ public class DefaultMangoProperties implements MangoProperties {
         Properties properties = new Properties();
         ArrayList<URL> resources = Collections.list(cl.getResources("env.properties"));
         for (URL resource : resources) {
-            try (InputStream is = resource.openStream()) {
-                properties.load(is);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream(), StandardCharsets.UTF_8))) {
+                properties.load(reader);
             }
         }
         return properties;
