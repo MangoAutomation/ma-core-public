@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.bootstrap.windows;
+package com.infiniteautomation.mango.windowsservice.stage2;
 
 import java.util.List;
 

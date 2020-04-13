@@ -1,11 +1,9 @@
 /*
  * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.bootstrap;
+package com.infiniteautomation.mango.windowsservice;
 
 import java.lang.reflect.Method;
-
-import com.infiniteautomation.mango.bootstrap.classloader.MemoryClassLoader;
 
 /**
  * @author Jared Wiltshire
@@ -14,9 +12,9 @@ public class WindowsBootstrap {
 
     public static void main(String[] args) throws Exception {
         MemoryClassLoader cl = new MemoryClassLoader();
-        cl.loadJar("com/infiniteautomation/mango/bootstrap/windows.jar");
+        cl.loadJar("com/infiniteautomation/mango/windowsservice/stage2.jar");
 
-        Class<?> mainClass = cl.loadClass("com.infiniteautomation.mango.bootstrap.windows.WindowsService");
+        Class<?> mainClass = cl.loadClass("com.infiniteautomation.mango.windowsservice.stage2.WindowsService");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, (Object) args);
     }

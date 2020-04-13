@@ -20,14 +20,14 @@
  * A copy is also included in the downloadable source code package
  * containing JNA, in file "AL2.0".
  */
-package com.infiniteautomation.mango.bootstrap.windows;
+package com.infiniteautomation.mango.windowsservice.stage2;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.infiniteautomation.mango.bootstrap.windows.ServiceControlManager.Service;
+import com.infiniteautomation.mango.windowsservice.stage2.ServiceControlManager.Service;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Advapi32;

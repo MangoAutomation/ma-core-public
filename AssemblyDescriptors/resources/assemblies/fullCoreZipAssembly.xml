@@ -121,6 +121,7 @@
       	<excludes>
       		<exclude>com.infiniteautomation.mango:*:zip:*</exclude>
             <exclude>com.infiniteautomation.mango:ma-bootstrap</exclude>
+            <exclude>com.infiniteautomation.mango:ma-windows-service</exclude>
       	</excludes>
      	<outputDirectory>lib</outputDirectory>
       	<useProjectArtifact>false</useProjectArtifact>
@@ -140,6 +141,7 @@
     <dependencySet>
         <includes>
             <include>com.infiniteautomation.mango:ma-bootstrap</include>
+            <include>com.infiniteautomation.mango:ma-windows-service</include>
         </includes>
         <outputDirectory>boot</outputDirectory>
         <outputFileNameMapping>${artifact.artifactId}${dashClassifier?}.${artifact.extension}</outputFileNameMapping>
