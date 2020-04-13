@@ -112,8 +112,10 @@ public class WindowsService extends Win32Service {
         CoreUpgrade upgrade = new CoreUpgrade(maHome);
         upgrade.upgrade();
 
-        ClassLoader cl = new MangoBootstrap(maHome).getClassLoader();
-        this.lifecycle = cl.loadClass("com.serotonin.m2m2.Main")
+        // use the system classloader as the parent so that the JNA classes loaded into the memory classloader are not
+        // accessible from within Mango
+        ClassLoader classLoader = new MangoBootstrap(maHome).createClassLoader(ClassLoader.getSystemClassLoader());
+        this.lifecycle = classLoader.loadClass("com.serotonin.m2m2.Main")
                 .getMethod("createLifecycle")
                 .invoke(null);
 
