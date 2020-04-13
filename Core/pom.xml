@@ -558,7 +558,7 @@
 		<dependency>
 			<groupId>org.jooq</groupId>
 			<artifactId>jooq</artifactId>
-			<version>3.12.3</version>
+			<version>3.13.1</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.github.ben-manes.caffeine</groupId>
