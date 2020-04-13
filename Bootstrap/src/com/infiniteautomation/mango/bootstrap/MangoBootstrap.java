@@ -18,8 +18,6 @@ import java.util.List;
  */
 public class MangoBootstrap {
 
-    public static final String JAR_FILENAME = "ma-bootstrap.jar";
-
     public static void main(String[] args) throws Exception {
         Path maHome = BootstrapUtils.maHome();
 
