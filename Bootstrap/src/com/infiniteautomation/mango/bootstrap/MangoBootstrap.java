@@ -24,8 +24,8 @@ public class MangoBootstrap {
         CoreUpgrade upgrade = new CoreUpgrade(maHome);
         upgrade.upgrade();
 
-        ClassLoader cl = new MangoBootstrap(maHome).getClassLoader();
-        Class<?> mainClass = cl.loadClass("com.serotonin.m2m2.Main");
+        ClassLoader classLoader = new MangoBootstrap(maHome).createClassLoader();
+        Class<?> mainClass = classLoader.loadClass("com.serotonin.m2m2.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, (Object) args);
     }
@@ -43,10 +43,12 @@ public class MangoBootstrap {
         addJars(maHome.resolve("lib"));
     }
 
-    public ClassLoader getClassLoader() {
-        URLClassLoader classLoader = new URLClassLoader(urls.toArray(new URL[urls.size()]));
-        Thread.currentThread().setContextClassLoader(classLoader);
-        return classLoader;
+    public URLClassLoader createClassLoader() {
+        return createClassLoader(MangoBootstrap.class.getClassLoader());
+    }
+
+    public URLClassLoader createClassLoader(ClassLoader parent) {
+        return new URLClassLoader(urls.toArray(new URL[urls.size()]), parent);
     }
 
     public MangoBootstrap addJars(Path directory) {
