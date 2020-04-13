@@ -1,11 +1,15 @@
 /*
  * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.bootstrap.classloader;
+package com.infiniteautomation.mango.windowsservice;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
@@ -85,4 +89,35 @@ public class MemoryClassLoader extends ClassLoader {
         return size.get();
     }
 
+    public static class ByteArrayURLStreamHandler extends URLStreamHandler {
+        private final byte[] data;
+
+        public ByteArrayURLStreamHandler(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        protected URLConnection openConnection(URL u) throws IOException {
+            return new ByteArrayURLConnection(u, this.data);
+        }
+    }
+
+    public static class ByteArrayURLConnection extends URLConnection {
+        private final byte[] data;
+
+        protected ByteArrayURLConnection(URL url, byte[] data) {
+            super(url);
+            this.data = data;
+        }
+
+        @Override
+        public void connect() throws IOException {
+            this.connected = true;
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return new ByteArrayInputStream(data);
+        }
+    }
 }

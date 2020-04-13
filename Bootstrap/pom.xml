@@ -12,52 +12,11 @@
     <build>
         <plugins>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <artifactId>maven-jar-plugin</artifactId>
                 <executions>
-                    <!-- The order of the executions is important as the second execution (boot) replaces the main jar -->
                     <execution>
-                        <id>windowsjna</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
+                        <id>default-jar</id>
                         <configuration>
-                            <descriptors>
-                                <descriptor>assembly/windowsjna.xml</descriptor>
-                            </descriptors>
-                            <archiverConfig>
-                                <compress>false</compress>
-                            </archiverConfig>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>windows</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <descriptors>
-                                <descriptor>assembly/windows.xml</descriptor>
-                            </descriptors>
-                            <archive>
-                                <manifest>
-                                    <mainClass>com.infiniteautomation.mango.bootstrap.WindowsBootstrap</mainClass>
-                                </manifest>
-                            </archive>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>boot</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <appendAssemblyId>false</appendAssemblyId>
-                            <descriptors>
-                                <descriptor>assembly/boot.xml</descriptor>
-                            </descriptors>
                             <archive>
                                 <manifest>
                                     <mainClass>com.infiniteautomation.mango.bootstrap.MangoBootstrap</mainClass>
@@ -69,14 +28,5 @@
             </plugin>
         </plugins>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>net.java.dev.jna</groupId>
-            <artifactId>jna-platform</artifactId>
-            <version>5.5.0</version>
-        </dependency>
-    </dependencies>
-    <description>Used to bootstrap Mango by locating MA_HOME and including the necessary classpath directories and jars into a class loader which is then used to start Mango.
-
-Builds two jar files, one which simply starts Mango, the other is a Windows Service implementation which uses JNA to talk to the Windows Service Manager.</description>
+    <description>Used to bootstrap Mango by locating MA_HOME and including the necessary classpath directories and jars into a class loader which is then used to start Mango.</description>
 </project>

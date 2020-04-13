@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.bootstrap.windows;
+package com.infiniteautomation.mango.windowsservice.stage2;
 
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -19,7 +19,7 @@ import com.sun.jna.platform.win32.WinError;
  */
 public class WindowsService extends Win32Service {
 
-    public static final String JAR_FILENAME = "ma-bootstrap-windows.jar";
+    public static final String JAR_FILENAME = "ma-windows-service.jar";
 
     public static void main(String[] args) throws Exception {
         String serviceName = System.getProperty("service.name", "MangoAutomation");

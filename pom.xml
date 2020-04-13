@@ -33,6 +33,7 @@
    <module>Core</module>
    <module>Modules</module>
    <module>Bootstrap</module>
+   <module>WindowsService</module>
  </modules>
  <profiles>
     <profile>
