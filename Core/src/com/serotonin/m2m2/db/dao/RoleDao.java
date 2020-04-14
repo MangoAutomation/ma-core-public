@@ -127,7 +127,7 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
                 public void setValues(PreparedStatement ps, int i) throws SQLException {
                     MangoPermissionEncoded r = encoded.get(i);
                     ps.setInt(1, r.getRole().getId());
-                    ps.setString(2, null);
+                    ps.setNull(2, java.sql.Types.INTEGER);
                     ps.setString(3, null);
                     ps.setString(4, permissionType);
                     ps.setLong(5, r.getMask());
