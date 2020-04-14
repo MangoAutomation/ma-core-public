@@ -22,7 +22,7 @@ import com.serotonin.json.util.TypeUtils;
  * This class is the general purpose converter for objects for which no other converter has been explicitly provided.
  * Instance of this class are typically generated automatically by the JSON context, but can also be provided by client
  * code.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class JsonPropertyConverter extends AbstractClassConverter {
@@ -31,7 +31,7 @@ public class JsonPropertyConverter extends AbstractClassConverter {
 
     /**
      * Constructor.
-     * 
+     *
      * @param jsonSerializable
      *            does the class implement JsonSerializable?
      * @param properties
@@ -61,7 +61,7 @@ public class JsonPropertyConverter extends AbstractClassConverter {
     }
 
     public void jsonWrite(String includeHint, Object value, ObjectWriter objectWriter) throws IOException,
-            JsonException {
+    JsonException {
         if (jsonSerializable)
             ((JsonSerializable) value).jsonWrite(objectWriter);
 
@@ -148,8 +148,20 @@ public class JsonPropertyConverter extends AbstractClassConverter {
                 String name = prop.getNameToUse();
 
                 JsonValue propJsonValue = jsonObject.get(name);
-                if (propJsonValue == null)
-                    continue;
+                if (propJsonValue == null) {
+                    //Try the aliases
+                    if(prop.getReadAliases().length > 0 ) {
+                        for(String readAlias : prop.getReadAliases()) {
+                            propJsonValue = jsonObject.get(readAlias);
+                            if(propJsonValue != null) {
+                                break;
+                            }
+                        }
+                    }
+                    if (propJsonValue == null) {
+                        continue;
+                    }
+                }
 
                 Type propType = writeMethod.getGenericParameterTypes()[0];
                 propType = TypeUtils.resolveTypeVariable(type, propType);

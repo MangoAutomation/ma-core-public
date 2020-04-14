@@ -25,9 +25,9 @@ public class MailingList extends AbstractVO {
     @JsonProperty
     private List<MailingListRecipient> entries;
     private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
-    @JsonProperty
+    @JsonProperty(readAliases = {"editPermissions"})
     private MangoPermission editPermission = new MangoPermission();
-    @JsonProperty
+    @JsonProperty(readAliases = {"readPermissions"})
     private MangoPermission readPermission = new MangoPermission();
 
     /**

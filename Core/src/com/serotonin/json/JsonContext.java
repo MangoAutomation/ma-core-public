@@ -338,6 +338,7 @@ public class JsonContext {
                 prop.setAlias(anno.alias());
             prop.setSuppressDefaultValue(anno.suppressDefaultValue());
             prop.setIncludeHints(anno.includeHints());
+            prop.setReadAliases(anno.readAliases());
 
             maybeAddProperty(properties, prop);
         }

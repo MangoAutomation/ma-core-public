@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 
 /**
  * Describes how any given attribute of an object can be serialized/deserialized to/from JSON.
- * 
+ *
  * @author Matthew Lohbihler
  */
 public class SerializableProperty {
@@ -14,6 +14,7 @@ public class SerializableProperty {
     private String alias;
     private boolean suppressDefaultValue;
     private String[] includeHints;
+    private String[] readAliases;
 
     public boolean include(String includeHint) {
         // If no hints were specified, always include.
@@ -75,7 +76,16 @@ public class SerializableProperty {
     public void setIncludeHints(String[] includeHints) {
         this.includeHints = includeHints;
     }
-    
+
+    public void setReadAliases(String[] readAliases) {
+        this.readAliases = readAliases;
+    }
+
+    public String[] getReadAliases() {
+        return readAliases;
+    }
+
+    @Override
     public String toString() {
         return getNameToUse();
     }
