@@ -104,7 +104,6 @@
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.6</version>
 				<executions>
 					<execution>
 						<goals>
@@ -638,17 +637,22 @@
 			<scope>test</scope>
 		</dependency>
 		<!-- end Testing -->
-		<dependency>
-		    <groupId>org.codehaus.groovy</groupId>
-		    <artifactId>groovy</artifactId>
-		    <version>${groovy.version}</version>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>${groovy.version}</version>
             <classifier>indy</classifier>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-jsr223</artifactId>
             <version>${groovy.version}</version>
-            <classifier>indy</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
           <groupId>org.graalvm.truffle</groupId>
@@ -671,4 +675,34 @@
           <version>${graalvm.js.version}</version>
         </dependency>
 	</dependencies>
+	<dependencyManagement>
+	    <dependencies>
+            <!-- ASM library used by both Jetty annotations and GraalVM JS -->
+	        <dependency>
+	            <groupId>org.ow2.asm</groupId>
+	            <artifactId>asm</artifactId>
+	            <version>7.2</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.ow2.asm</groupId>
+	            <artifactId>asm-commons</artifactId>
+	            <version>7.2</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.ow2.asm</groupId>
+	            <artifactId>asm-tree</artifactId>
+	            <version>7.2</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.ow2.asm</groupId>
+	            <artifactId>asm-analysis</artifactId>
+	            <version>7.2</version>
+	        </dependency>
+	        <dependency>
+	            <groupId>org.ow2.asm</groupId>
+	            <artifactId>asm-util</artifactId>
+	            <version>7.2</version>
+	        </dependency>
+	    </dependencies>
+	</dependencyManagement>
 </project>
