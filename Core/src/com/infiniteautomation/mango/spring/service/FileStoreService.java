@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -30,11 +29,11 @@ import com.serotonin.m2m2.i18n.TranslatableException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -44,34 +43,37 @@ import com.serotonin.validation.StringValidation;
 @Service
 public class FileStoreService extends AbstractBasicVOService<FileStore, FileStoreTableDefinition, FileStoreDao> {
 
+    private final UserFileStoreCreatePermissionDefinition createPermission;
+
     /**
      * @param dao
      * @param permissionService
      * @param createPermissionDefinition
      */
     @Autowired
-    public FileStoreService(FileStoreDao dao, PermissionService permissionService) {
+    public FileStoreService(FileStoreDao dao, PermissionService permissionService, UserFileStoreCreatePermissionDefinition createPermission) {
         super(dao, permissionService);
+        this.createPermission = createPermission;
     }
 
     @Override
-    public Set<Role> getCreatePermissionRoles() {
-        return ModuleRegistry.getPermissionDefinition(UserFileStoreCreatePermissionDefinition.TYPE_NAME).getRoles();
+    public PermissionDefinition getCreatePermission() {
+        return createPermission;
     }
 
     @Override
     public ProcessResult validate(FileStore vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        permissionService.validateVoRoles(result, "readRoles", user, false, null, vo.getReadRoles());
-        permissionService.validateVoRoles(result, "writeRoles", user, false, null, vo.getWriteRoles());
+        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
+        permissionService.validateVoRoles(result, "writePermission", user, false, null, vo.getWritePermission());
         return result;
     }
 
     @Override
     public ProcessResult validate(FileStore existing, FileStore vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
-        permissionService.validateVoRoles(result, "readRoles", user, false, existing.getReadRoles(), vo.getReadRoles());
-        permissionService.validateVoRoles(result, "writeRoles", user, false, existing.getWriteRoles(), vo.getWriteRoles());
+        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validateVoRoles(result, "writePermission", user, false, existing.getWritePermission(), vo.getWritePermission());
         return result;
     }
 
@@ -91,7 +93,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         if(user == null) {
             return  false;
         }else {
-            return permissionService.hasAnyRole(user, vo.getWriteRoles());
+            return permissionService.hasPermission(user, vo.getWritePermission());
         }
     }
 
@@ -102,7 +104,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         if(user == null) {
             return  false;
         }else {
-            return permissionService.hasAnyRole(user, vo.getReadRoles());
+            return permissionService.hasPermission(user, vo.getReadPermission());
         }
     }
 

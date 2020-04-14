@@ -5,8 +5,10 @@
 package com.serotonin.m2m2.module.definitions.permissions;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -36,12 +38,14 @@ public class SuperadminPermissionDefinition extends PermissionDefinition {
     }
 
     @Override
-    public Set<Role> getDefaultRoles() {
-        return Collections.singleton(PermissionHolder.SUPERADMIN_ROLE);
+    public Set<Set<Role>> getDefaultRoles() {
+        Set<Set<Role>> roles = new HashSet<Set<Role>>();
+        roles.add(Collections.singleton(PermissionHolder.SUPERADMIN_ROLE));
+        return roles;
     }
 
     @Override
-    public void setRoles(Set<String> roles) {
+    public void update(MangoPermission permission) {
         throw new ShouldNeverHappenException("Can't set superadmin roles");
     }
 }

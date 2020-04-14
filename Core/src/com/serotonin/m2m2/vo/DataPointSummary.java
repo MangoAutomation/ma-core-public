@@ -5,9 +5,8 @@
 package com.serotonin.m2m2.vo;
 
 import java.util.Map;
-import java.util.Set;
 
-import com.serotonin.m2m2.vo.role.Role;
+import com.infiniteautomation.mango.permission.MangoPermission;
 
 /**
  * Summary of a data point
@@ -21,8 +20,8 @@ public class DataPointSummary implements IDataPoint {
     private String name;
     private int dataSourceId;
     private String deviceName;
-    private Set<Role> readRoles;
-    private Set<Role> setRoles;
+    private MangoPermission readPermission;
+    private MangoPermission setPermission;
     private Map<String, String> tags;
 
     public DataPointSummary() {
@@ -35,8 +34,8 @@ public class DataPointSummary implements IDataPoint {
         name = vo.getName();
         dataSourceId = vo.getDataSourceId();
         deviceName = vo.getDeviceName();
-        readRoles = vo.getReadRoles();
-        setRoles = vo.getSetRoles();
+        readPermission = vo.getReadPermission();
+        setPermission = vo.getSetPermission();
         tags = vo.getTags();
     }
 
@@ -86,21 +85,21 @@ public class DataPointSummary implements IDataPoint {
     }
 
     @Override
-    public Set<Role> getReadRoles() {
-        return readRoles;
+    public MangoPermission getReadPermission() {
+        return readPermission;
     }
 
-    public void setReadRoles(Set<Role>  readRoles) {
-        this.readRoles = readRoles;
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
 
     @Override
-    public Set<Role>  getSetRoles() {
-        return setRoles;
+    public MangoPermission getSetPermission() {
+        return setPermission;
     }
 
-    public void setSetRoles(Set<Role> setRoles) {
-        this.setRoles = setRoles;
+    public void setSetPermission(MangoPermission setPermission) {
+        this.setPermission = setPermission;
     }
 
     @Override

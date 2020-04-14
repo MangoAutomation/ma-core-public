@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,8 +16,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
@@ -237,7 +240,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
                 return service.get(vo.getId());
             });
             getService().permissionService.runAs(saved, () -> {
-                saved.setRoles(Collections.emptySet());
+                saved.setRoles(Collections.singleton(PermissionHolder.USER_ROLE));
                 service.update(saved.getUsername(), saved);
             });
         }, "roles", "roles");
@@ -260,10 +263,17 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
             addRoleToEditSelfPermission(readRole);
             getService().permissionService.runAsSystemAdmin(() -> {
                 PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
-                Set<Role> roles = new HashSet<>(def.getRoles());
-                roles.remove(PermissionHolder.USER_ROLE);
-                roles.add(editRole);
-                def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
+
+                Set<Set<Role>> roleSet = def.getPermission().getRoles();
+                Set<Set<Role>> newRoles = new HashSet<>();
+                newRoles.add(Collections.singleton(editRole));
+                for(Set<Role> roles : roleSet) {
+                    if(roles.contains(PermissionHolder.USER_ROLE)) {
+                        continue; //skip the user role
+                    }
+                    newRoles.add(roles);
+                }
+                def.update(new MangoPermission(newRoles));
             });
 
             User vo = newVO(readUser);
@@ -285,9 +295,13 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         //Add read role to change username permission
         getService().permissionService.runAsSystemAdmin(() -> {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
-            Set<Role> roles = new HashSet<>(def.getRoles());
-            roles.add(readRole);
-            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
+            Set<Set<Role>> roleSet = def.getPermission().getRoles();
+            Set<Set<Role>> newRoles = new HashSet<>();
+            newRoles.add(Collections.singleton(readRole));
+            for(Set<Role> roles : roleSet) {
+                newRoles.add(new HashSet<>(roles));
+            }
+            def.update(new MangoPermission(newRoles));
         });
 
         //Ensure they can edit self
@@ -309,18 +323,21 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     void addRoleToEditSelfPermission(Role vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-            Set<Role> roles = new HashSet<>(def.getRoles());
-            roles.add(vo);
-            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
+            Set<Set<Role>> roleSet = def.getPermission().getRoles();
+            Set<Set<Role>> newRoles = new HashSet<>();
+            newRoles.add(Collections.singleton(vo));
+            for(Set<Role> roles : roleSet) {
+                newRoles.add(new HashSet<>(roles));
+            }
+            def.update(new MangoPermission(newRoles));
         });
     }
 
     void removeRoleFromEditSelfPermission(Role vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
-            Set<Role> roles = new HashSet<>(def.getRoles());
-            roles.remove(vo);
-            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
+            MangoPermission permission = def.getPermission();
+            def.update(permission.removeRole(vo));
         });
     }
 
@@ -330,12 +347,12 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     }
 
     @Override
-    void setReadRoles(Set<Role> roles, User vo) {
+    void setReadPermission(MangoPermission permission, User vo) {
 
     }
 
     @Override
-    void setEditRoles(Set<Role> roles, User vo) {
+    void setEditPermission(MangoPermission permission, User vo) {
 
     }
 
@@ -467,5 +484,29 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
     @Override
     String getEditRolesContextKey() {
         throw new UnsupportedOperationException();
+    }
+
+    void assertRoles(Set<Role> expected, Set<Role> actual) {
+        assertEquals(expected.size(), actual.size());
+        Set<Role> missing = new HashSet<>();
+        for(Role expectedRole : expected) {
+            boolean found = false;
+            for(Role actualRole : actual) {
+                if(StringUtils.equals(expectedRole.getXid(), actualRole.getXid())) {
+                    found = true;
+                    break;
+                }
+            }
+            if(!found) {
+                missing.add(expectedRole);
+            }
+        }
+        if(missing.size() > 0) {
+            String missingRoles = "";
+            for(Role missingRole : missing) {
+                missingRoles += "< " + missingRole.getId() + " - " + missingRole.getXid() + "> ";
+            }
+            fail("Not all roles matched, missing: " + missingRoles);
+        }
     }
 }

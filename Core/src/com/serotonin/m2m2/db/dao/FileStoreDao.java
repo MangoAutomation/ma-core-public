@@ -84,16 +84,16 @@ public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefi
     @Override
     public void saveRelationalData(FileStore vo, boolean insert) {
         //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getWriteRoles(), vo, PermissionService.WRITE, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo, PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getWritePermission(), vo, PermissionService.WRITE, insert);
 
     }
 
     @Override
     public void loadRelationalData(FileStore vo) {
         //Populate permissions
-        vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
-        vo.setWriteRoles(RoleDao.getInstance().getRoles(vo, PermissionService.WRITE));
+        vo.setReadPermission(RoleDao.getInstance().getPermission(vo, PermissionService.READ));
+        vo.setWritePermission(RoleDao.getInstance().getPermission(vo, PermissionService.WRITE));
     }
 
     @Override

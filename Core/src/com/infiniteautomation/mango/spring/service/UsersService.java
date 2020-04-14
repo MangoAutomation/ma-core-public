@@ -73,22 +73,25 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     private final PasswordService passwordService;
     private final PermissionDefinition editSelfPermission;
     private final PermissionDefinition changeOwnUsernamePermission;
+    private final UserCreatePermission createPermission;
 
     @Autowired
     public UsersService(UserDao dao, PermissionService permissionService,
             RoleDao roleDao, SystemSettingsDao systemSettings,
-            PasswordService passwordService) {
+            PasswordService passwordService,
+            UserCreatePermission createPermission) {
         super(dao, permissionService);
         this.systemSettings = systemSettings;
         this.passwordService = passwordService;
         this.roleDao = roleDao;
         this.editSelfPermission = ModuleRegistry.getPermissionDefinition(UserEditSelfPermission.PERMISSION);
         this.changeOwnUsernamePermission = ModuleRegistry.getPermissionDefinition(ChangeOwnUsernamePermissionDefinition.PERMISSION);
+        this.createPermission = createPermission;
     }
 
     @Override
-    public Set<Role> getCreatePermissionRoles() {
-        return ModuleRegistry.getPermissionDefinition(UserCreatePermission.PERMISSION).getRoles();
+    public PermissionDefinition getCreatePermission() {
+        return createPermission;
     }
 
     @Override
@@ -349,7 +352,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         //Validate roles
-        permissionService.validateVoRoles(result, "roles", holder, false, null, vo.getRoles());
+        validateUserRoles(result, "roles", holder, false, null, vo.getRoles());
         return result;
     }
 
@@ -369,7 +372,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         if(holder instanceof User) {
             savingSelf = ((User)holder).getId() == existing.getId();
         }
-        permissionService.validateVoRoles(result, "roles", holder, savingSelf, existing.getRoles(), vo.getRoles());
+        validateUserRoles(result, "roles", holder, savingSelf, existing.getRoles(), vo.getRoles());
 
         //Things we cannot do to ourselves
         if (holder instanceof User && ((User) holder).getId() == existing.getId()) {
@@ -427,7 +430,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
         //Ensure they can change the username if they try
         if(!StringUtils.equals(existing.getUsername(), vo.getUsername())) {
-            if(!permissionService.hasAnyRole(holder, changeOwnUsernamePermission.getRoles())) {
+            if(!permissionService.hasPermission(holder, changeOwnUsernamePermission.getPermission())) {
                 result.addMessage("username", new TranslatableMessage("users.validate.cannotChangeOwnUsername"));
             }
         }
@@ -523,11 +526,85 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         return response;
     }
 
+    /**
+     * Validate roles.  This will validate that:
+     *
+     *   1. the new permissions are non null
+     *   2. all new permissions are not empty
+     *   3. the new permissions do not contain spaces
+     *   (then for non admin/owners)
+     *   4. the saving user will at least retain one permission
+     *   5. the user cannot not remove an existing permission they do not have
+     *   6. the user has all of the new permissions being added
+     *
+     *   If the saving user is also the owner, then the new permissions need not contain
+     *   one of the user's roles
+     *
+     * @param result - the result of the validation
+     * @param contextKey - the key to apply the messages to
+     * @param holder - the saving permission holder
+     * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
+     * @param existingRoles - the currently saved permissions
+     * @param newRoles - the new permissions to validate
+     */
+    public void validateUserRoles(ProcessResult result, String contextKey, PermissionHolder holder,
+            boolean savedByOwner, Set<Role> existingRoles, Set<Role> newRoles) {
+        if (holder == null) {
+            result.addContextualMessage(contextKey, "validate.userRequired");
+            return;
+        }
+
+        if(newRoles == null) {
+            result.addContextualMessage(contextKey, "validate.permission.null");
+            return;
+        }
+
+        for (Role role : newRoles) {
+            if (role == null) {
+                result.addContextualMessage(contextKey, "validate.role.empty");
+                return;
+            } else {
+                Integer id = roleDao.getIdByXid(role.getXid());
+                if( id == null) {
+                    result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+                }else if (id != role.getId()) {
+                    result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
+                }
+            }
+        }
+
+        if(holder.hasAdminRole())
+            return;
+
+        //Ensure the holder has at least one of the new permissions
+        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getRoles(), newRoles)) {
+            result.addContextualMessage(contextKey, "validate.mustRetainPermission");
+        }
+
+        if(existingRoles != null) {
+            //Check for permissions being added that the user does not have
+            Set<Role> added = new HashSet<>(newRoles);
+            added.removeAll(existingRoles);
+            added.removeAll(holder.getRoles());
+            if(added.size() > 0) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getRoles()));
+            }
+            //Check for permissions being removed that the user does not have
+            Set<Role> removed = new HashSet<>(existingRoles);
+            removed.removeAll(newRoles);
+            removed.removeAll(holder.getRoles());
+            if(removed.size() > 0) {
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getRoles()));
+            }
+        }
+        return;
+    }
+
     @Override
     public boolean hasEditPermission(PermissionHolder holder, User vo) {
         if(holder.hasAdminRole()) {
             return true;
-        }else if (holder instanceof User && ((User) holder).getId()  == vo.getId() && permissionService.hasAnyRole(holder, editSelfPermission.getRoles()))
+        }else if (holder instanceof User && ((User) holder).getId()  == vo.getId() && permissionService.hasPermission(holder, editSelfPermission.getPermission()))
             return true;
         else
             return false;

@@ -9,11 +9,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -98,7 +98,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
                 service.delete(vo.getId());
 
                 //Ensure the mappings are gone
-                assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
+                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.SCRIPT).getUniqueRoles().size());
 
                 service.get(vo.getId());
             });
@@ -120,7 +120,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
-        assertRoles(((EmailEventHandlerVO)expected).getScriptRoles().getRoles(), ((EmailEventHandlerVO)actual).getScriptRoles().getRoles());
+        assertPermission(((EmailEventHandlerVO)expected).getScriptRoles().getPermission(), ((EmailEventHandlerVO)actual).getScriptRoles().getPermission());
 
         //TODO assert remaining
     }
@@ -144,10 +144,13 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
     void addRoleToCreatePermission(Role vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(EventHandlerCreatePermission.PERMISSION);
-            Set<Role> roles = new HashSet<>(def.getRoles());
-            roles.add(vo);
-            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
+            Set<Set<Role>> roleSet = def.getPermission().getRoles();
+            Set<Set<Role>> newRoles = new HashSet<>();
+            newRoles.add(Collections.singleton(vo));
+            for(Set<Role> roles : roleSet) {
+                newRoles.add(new HashSet<>(roles));
+            }
+            def.update(new MangoPermission(newRoles));
         });
     }
-
 }

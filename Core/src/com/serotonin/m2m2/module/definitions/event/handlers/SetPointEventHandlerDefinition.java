@@ -5,11 +5,11 @@
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -23,7 +23,6 @@ import com.serotonin.m2m2.rt.script.ScriptError;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.event.SetPointEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -57,13 +56,13 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     @Override
     public void saveRelationalData(SetPointEventHandlerVO eh, boolean insert) {
         if(eh.getScriptRoles() != null) {
-            RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getRoles(), eh, PermissionService.SCRIPT, insert);
+            RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getPermission(), eh, PermissionService.SCRIPT, insert);
         }
     }
 
     @Override
     public void loadRelationalData(SetPointEventHandlerVO eh) {
-        eh.setScriptRoles(new ScriptPermissions(RoleDao.getInstance().getRoles(eh, PermissionService.SCRIPT)));
+        eh.setScriptRoles(new ScriptPermissions(RoleDao.getInstance().getPermission(eh, PermissionService.SCRIPT)));
     }
 
     @Override
@@ -75,7 +74,7 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
     public void validate(ProcessResult result, SetPointEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
         if(vo.getScriptRoles() != null) {
-            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getRoles());
+            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getPermission());
         }
     }
 
@@ -85,9 +84,9 @@ public class SetPointEventHandlerDefinition extends EventHandlerDefinition<SetPo
         if (vo.getScriptRoles() == null) {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
-            Set<Role> existingRoles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
+            MangoPermission existingPermission = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getPermission();
             service.validateVoRoles(result, "scriptRoles", savingUser, false,
-                    existingRoles, vo.getScriptRoles().getRoles());
+                    existingPermission, vo.getScriptRoles().getPermission());
         }
     }
 

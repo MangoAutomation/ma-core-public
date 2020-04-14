@@ -4,12 +4,10 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 
 import org.jooq.Condition;
@@ -30,10 +28,10 @@ import com.serotonin.m2m2.db.dao.AbstractBasicVOAccess;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 import net.jazdw.rql.parser.ASTNode;
@@ -87,12 +85,12 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
 
 
     /**
-     * Get any create permission roles
+     * Get the create permission if defined
      *  override as necessary
      * @return
      */
-    public Set<Role> getCreatePermissionRoles() {
-        return Collections.emptySet();
+    public PermissionDefinition getCreatePermission() {
+        return null;
     }
 
     /**
@@ -305,8 +303,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
 
     /**
      * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
-     *  and value converters to translate the RQL conditions into the values expected from the database.  Security context user
-     *  is used to enforce read permission for the items
+     *  and value converters to translate the RQL conditions into the values expected from the database.
      *
      * @param rql
      * @param fieldMap - can be null
@@ -317,36 +314,20 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        return dao.rqlToCondition(rql, fieldMap, valueConverters, user);
-    }
-
-    /**
-     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
-     *  and value converters to translate the RQL conditions into the values expected from the database.  Security context user
-     *  is used to enforce supplied type of permission for the items
-     *
-     *
-     * @param rql
-     * @param fieldMap - can be null
-     * @param valueConverters - can be null
-     * @param permissionType
-     * @return
-     */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, String permissionType) {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        return dao.rqlToCondition(rql, fieldMap, valueConverters, user, permissionType);
+        return dao.rqlToCondition(rql, fieldMap, valueConverters);
     }
 
     /**
      * Query for VOs with a callback for each row, filtering within the database is supported
-     * by the conditions input, if not using database filtering you must manually filter on permissions
+     * by the conditions input, if dao does not using database filtering you must manually filter on permissions
      * @param conditions
      * @param callback
      */
     public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
-        dao.customizedQuery(conditions, (item, index) ->{
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        dao.customizedQuery(conditions, user, (item, index) ->{
             dao.loadRelationalData(item);
             callback.row(item, index);
         });
@@ -363,7 +344,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        dao.customizedQuery(dao.rqlToCondition(conditions, null, null, user), (item, index) ->{
+        dao.customizedQuery(dao.rqlToCondition(conditions, null, null), user, (item, index) ->{
             dao.loadRelationalData(item);
             callback.row(item, index);
         });
@@ -377,24 +358,23 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @param sort - optional
      * @param limit - optional
      * @param offset - optional
+     * @param join permissions - should permissions be filtered in database via join for non admin users
      * @param callback
      */
-    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, boolean joinPermissions, MappedRowCallback<T> callback) {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         if(!user.hasAdminRole()) {
-            Condition readRoleCondition = getDao().hasPermission(user, PermissionService.READ);
-            if(readRoleCondition != null) {
+            if(joinPermissions) {
                 //In database query filter
-                conditions.and(readRoleCondition);
-                dao.customizedQuery(conditions, sort, limit, offset, (vo, index) -> {
+                dao.customizedQuery(conditions, sort, limit, offset, user, (vo, index) -> {
                     dao.loadRelationalData(vo);
                     callback.row(vo, index);
                 });
             }else {
                 //Manually filter
-                dao.customizedQuery(conditions, sort, limit, offset, (vo, index) -> {
+                dao.customizedQuery(conditions, sort, limit, offset, user, (vo, index) -> {
                     if(hasReadPermission(user, vo)) {
                         dao.loadRelationalData(vo);
                         callback.row(vo, index);
@@ -403,7 +383,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
             }
 
         }else {
-            dao.customizedQuery(conditions, sort, limit, offset, (vo, index) -> {
+            dao.customizedQuery(conditions, sort, limit, offset, user, (vo, index) -> {
                 dao.loadRelationalData(vo);
                 callback.row(vo, index);
             });
@@ -444,7 +424,10 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @return
      */
     public int customizedCount(ConditionSortLimit conditions) {
-        return dao.customizedCount(conditions);
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        return dao.customizedCount(conditions, user);
     }
 
     /**
@@ -456,7 +439,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        return dao.customizedCount(dao.rqlToCondition(conditions, null, null, user));
+        return dao.customizedCount(dao.rqlToCondition(conditions, null, null), user);
     }
 
     /**
@@ -475,7 +458,12 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @return
      */
     public boolean hasCreatePermission(PermissionHolder user, T vo) {
-        return permissionService.hasAnyRole(user, getCreatePermissionRoles());
+        PermissionDefinition create = getCreatePermission();
+        if(create == null) {
+            return permissionService.hasAdminRole(user);
+        }else {
+            return permissionService.hasPermission(user, create.getPermission());
+        }
     }
 
     /**

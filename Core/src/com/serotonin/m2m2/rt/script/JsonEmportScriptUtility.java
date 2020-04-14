@@ -112,8 +112,8 @@ public class JsonEmportScriptUtility extends ScriptUtility {
         if(permissionService.hasAdminRole(permissions)) {
             ASTNode root = parser.parse(query);
             List<DataPointVO> dataPoints = new ArrayList<>();
-            ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null, permissions);
-            DataPointDao.getInstance().customizedQuery(conditions, new MappedRowCallback<DataPointVO>() {
+            ConditionSortLimitWithTagKeys conditions = (ConditionSortLimitWithTagKeys) DataPointDao.getInstance().rqlToCondition(root, null, null);
+            DataPointDao.getInstance().customizedQuery(conditions, permissions, new MappedRowCallback<DataPointVO>() {
                 @Override
                 public void row(DataPointVO item, int index) {
                     dataPoints.add(item);

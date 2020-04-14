@@ -7,14 +7,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Set;
 
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -29,7 +26,6 @@ import org.jooq.SelectHavingStep;
 import org.jooq.SelectJoinStep;
 import org.jooq.SelectLimitStep;
 import org.jooq.SortField;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataAccessException;
@@ -69,7 +65,6 @@ import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -119,15 +114,11 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
         for(DataPointRT rt : Common.runtimeManager.getRunningDataPoints()) {
-            if(rt.getVO().getReadRoles().contains(event.getRole().getRole())) {
-                Set<Role> newReadRoles = new HashSet<>(rt.getVO().getReadRoles());
-                newReadRoles.remove(event.getRole().getRole());
-                rt.getVO().setReadRoles(Collections.unmodifiableSet(newReadRoles));
+            if(rt.getVO().getReadPermission().containsRole(event.getRole().getRole())) {
+                rt.getVO().setReadPermission(rt.getVO().getReadPermission().removeRole(event.getRole().getRole()));
             }
-            if(rt.getVO().getSetRoles().contains(event.getRole().getRole())) {
-                Set<Role> newSetRoles = new HashSet<>(rt.getVO().getSetRoles());
-                newSetRoles.remove(event.getRole().getRole());
-                rt.getVO().setSetRoles(Collections.unmodifiableSet(newSetRoles));
+            if(rt.getVO().getSetPermission().containsRole(event.getRole().getRole())) {
+                rt.getVO().setSetPermission(rt.getVO().getSetPermission().removeRole(event.getRole().getRole()));
             }
         }
     }
@@ -355,7 +346,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         select = dao.joinTables(select, null);
 
         if(!user.hasAdminRole()) {
-            conditions = DSL.and(getDao().hasPermission(user, PermissionService.READ), conditions);
+            select = dao.joinPermissions(select, user);
         }
 
         SelectConnectByStep<Record> afterWhere = conditions == null ? select : select.where(conditions);
@@ -407,8 +398,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             }
         }
 
-        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadRoles());
-        permissionService.validateVoRoles(result, "setPermission", user, false, null, vo.getSetRoles());
+        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
+        permissionService.validateVoRoles(result, "setPermission", user, false, null, vo.getSetPermission());
         return result;
     }
 
@@ -439,8 +430,8 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         }
 
         //Validate permissions
-        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadRoles(), vo.getReadRoles());
-        permissionService.validateVoRoles(result, "setPermission", user, false, existing.getSetRoles(), vo.getSetRoles());
+        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validateVoRoles(result, "setPermission", user, false, existing.getSetPermission(), vo.getSetPermission());
         return result;
     }
 

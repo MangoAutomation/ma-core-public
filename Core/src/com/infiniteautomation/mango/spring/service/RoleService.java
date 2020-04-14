@@ -3,7 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -12,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.util.Functions;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
@@ -21,7 +21,6 @@ import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
-import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -94,10 +93,10 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     /**
      *
-     * @param roleXids
+     * @param permission
      * @param permissionType
      */
-    public Set<Role> replaceAllRolesOnPermission(Set<String> roleXids, PermissionDefinition def) throws ValidationException {
+    public void replaceAllRolesOnPermission(MangoPermission permission, PermissionDefinition def) throws ValidationException {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
         Objects.requireNonNull(def, "Permission definition cannot be null");
@@ -105,14 +104,14 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         permissionService.ensureAdminRole(user);
 
         ProcessResult validation = new ProcessResult();
-        Set<Role> roles = new HashSet<>();
-        if(roleXids != null) {
-            for(String xid : roleXids) {
+        Set<Role> roles = permission.getUniqueRoles();
+        if(roles != null) {
+            for(Role role : roles) {
                 try {
-                    RoleVO roleVO = get(xid);
+                    RoleVO roleVO = get(role.getXid());
                     roles.add(roleVO.getRole());
                 }catch(NotFoundException e) {
-                    validation.addGenericMessage("validate.role.notFound", xid);
+                    validation.addGenericMessage("validate.role.notFound", role.getXid());
                 }
             }
         }
@@ -121,32 +120,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
             throw new ValidationException(validation);
         }
 
-        dao.replaceRolesOnPermission(roles, def.getPermissionTypeName());
-        return roles;
-    }
-
-    /**
-     * Add a role to a permission
-     * @param voId
-     * @param role
-     * @param permissionType
-     */
-    public void addRoleToVoPermission(Role role, AbstractVO vo, String permissionType) throws ValidationException {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        permissionService.ensureAdminRole(user);
-        //TODO Mango 4.0 PermissionHolder check?
-        // Superadmin ok
-        // holder must contain the role already?
-        //Cannot add an existing mapping
-        Set<Role> roles = this.dao.getRoles(vo.getId(), vo.getClass().getSimpleName(), permissionType);
-        if(roles.contains(role)) {
-            ProcessResult result = new ProcessResult();
-            result.addGenericMessage("role.alreadyAssignedToPermission", role.getXid(), permissionType,  vo.getClass().getSimpleName());
-            throw new ValidationException(result);
-        }
-        this.dao.addRoleToVoPermission(role, vo, permissionType);
+        dao.replaceRolesOnPermission(permission, def.getPermissionTypeName());
     }
 
     /**

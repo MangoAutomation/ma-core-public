@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MangoTestBase;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -68,7 +69,7 @@ public class PermissionServiceTest extends MangoTestBase {
     MockDataSourceVO createDataSource(Set<Role> editRoles) {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
-        dsVo.setEditRoles(editRoles);
+        dsVo.setEditPermission(MangoPermission.createOrSet(editRoles));
         return (MockDataSourceVO) permissionService.runAsSystemAdmin(() -> {
             return dataSourceService.insert(dsVo);
         });
@@ -91,8 +92,8 @@ public class PermissionServiceTest extends MangoTestBase {
         DataPointVO point = new DataPointVO();
         point.setDataSourceId(dsVo.getId());
         point.setName("permissions_test_datasource");
-        point.setReadRoles(readRoles);
-        point.setSetRoles(setRoles);
+        point.setReadPermission(MangoPermission.createOrSet(readRoles));
+        point.setSetPermission(MangoPermission.createOrSet(setRoles));
         point.setPointLocator(new MockPointLocatorVO());
         return permissionService.runAsSystemAdmin(() -> {
             dataPointService.insert(point);
@@ -285,28 +286,28 @@ public class PermissionServiceTest extends MangoTestBase {
     public void ensureDataPointReadPermissionOKHasDataSourcePermission() {
         MockDataSourceVO ds = createDataSource(randomRole());
         DataPointVO dp = createDataPoint(ds);
-        User testUser = createTestUser(ds.getEditRoles());
+        User testUser = createTestUser(ds.getEditPermission().getUniqueRoles());
         permissionService.ensureDataPointReadPermission(testUser, dp);
     }
 
     @Test
     public void ensureDataPointReadPermissionOKHasSetPermission() {
         DataPointVO dp = createDataPoint(Collections.emptySet(), randomRoles(1));
-        User testUser = createTestUser(dp.getSetRoles());
+        User testUser = createTestUser(dp.getSetPermission().getUniqueRoles());
         permissionService.ensureDataPointReadPermission(testUser, dp);
     }
 
     @Test
     public void ensureDataPointReadPermissionOKHasReadPermission() {
         DataPointVO dp = createDataPoint(randomRoles(1), Collections.emptySet());
-        User testUser = createTestUser(dp.getReadRoles());
+        User testUser = createTestUser(dp.getReadPermission().getUniqueRoles());
         permissionService.ensureDataPointReadPermission(testUser, dp);
     }
 
     @Test
     public void ensureDataPointSetPermissionOKHasDataSourcePermission() {
         MockDataSourceVO ds = createDataSource(randomRoles(1));
-        User testUser = createTestUser(ds.getEditRoles());
+        User testUser = createTestUser(ds.getEditPermission().getUniqueRoles());
         DataPointVO dp = createDataPoint(ds);
         permissionService.ensureDataPointSetPermission(testUser, dp);
     }
@@ -314,14 +315,14 @@ public class PermissionServiceTest extends MangoTestBase {
     @Test
     public void ensureDataPointSetPermissionOKHasSetPermission() {
         DataPointVO dp = createDataPoint(Collections.emptySet(), randomRoles(1));
-        User testUser = createTestUser(dp.getSetRoles());
+        User testUser = createTestUser(dp.getSetPermission().getUniqueRoles());
         permissionService.ensureDataPointSetPermission(testUser, dp);
     }
 
     @Test(expected = PermissionException.class)
     public void ensureDataPointSetPermissionFailHasReadPermission() {
         DataPointVO dp = createDataPoint(randomRoles(1), randomRoles(1));
-        User testUser = this.createTestUser(dp.getReadRoles());
+        User testUser = this.createTestUser(dp.getReadPermission().getUniqueRoles());
         permissionService.ensureDataPointSetPermission(testUser, dp);
     }
 

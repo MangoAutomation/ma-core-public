@@ -6,13 +6,13 @@ package com.serotonin.m2m2.module;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.RoleService;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -33,11 +33,13 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
 
     @Autowired
     protected UserDao userDao;
-    protected RoleService roleService;
+
+    private final LazyInitSupplier<RoleService> roleService = new LazyInitSupplier<>(() -> {
+        return Common.getBean(RoleService.class);
+    });
 
     //TODO Mango 4.0 is this the ideal data structure or should be be using sync blocks?
-    //TODO Collections unmodifiable
-    protected final Set<Role> roles = Collections.newSetFromMap(new ConcurrentHashMap<Role, Boolean>());
+    protected MangoPermission permission;
 
     /**
      * A  human readable and translatable brief description of the permission.
@@ -63,16 +65,8 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * or installed.  The roles must already exist in the roles table
      * @return - Set of roles to assign to permission
      */
-    protected Set<Role> getDefaultRoles(){
+    protected Set<Set<Role>> getDefaultRoles(){
         return Collections.emptySet();
-    }
-
-    /**
-     * Get the current set of Role objects for this permission
-     * @return
-     */
-    public Set<Role> getRoles() {
-        return roles;
     }
 
     /**
@@ -80,39 +74,19 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return
      */
     public MangoPermission getPermission() {
-        return new MangoPermission(getPermissionTypeName(), roles);
+        return permission;
     }
 
     @Override
     public void postDatabase(Version previousVersion, Version current) {
-        //Get the role service as we can't autowire it due to circular dependency isses
-        this.roleService = Common.getBean(RoleService.class);
-
         //Install our default roles if there are none in the database
-        Set<Role> roles;
+        this.permission = roleService.get().getDao().getPermission(getPermissionTypeName());
         if(previousVersion == null) {
-            roles = roleService.getDao().getRoles(getPermissionTypeName());
-            if(roles.isEmpty()) {
-                for(Role role : getDefaultRoles()) {
-                    roleService.getDao().addRoleToPermission(role, getPermissionTypeName());
-                    this.roles.add(role);
-                }
-            }else {
-
-            }
-        }else {
-            roles = roleService.getDao().getRoles(getPermissionTypeName());
-            for(Role role : roles) {
-                this.roles.add(role);
+            if(permission.getRoles().isEmpty()) {
+                this.permission = new MangoPermission(getDefaultRoles());
+                roleService.get().getDao().replaceRolesOnPermission(this.permission, getPermissionTypeName());
             }
         }
-    }
-
-    @Override
-    public void postTerminate(boolean uninstall) {
-        //This is here mainly to get our tests to pass, so that we can run multiple tests
-        // simulating mango terminating
-        this.roles.clear();
     }
 
     /**
@@ -121,7 +95,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder) {
-        return this.roleService.getPermissionService().hasAnyRole(holder, roles);
+        return this.roleService.get().getPermissionService().hasPermission(holder, permission);
     }
 
     /**
@@ -129,13 +103,10 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      *
      * @param roles
      */
-    public void setRoles(Set<String> roleXids) throws ValidationException {
-        //TODO Transaction rollback etc?
-        Set<Role> roles = this.roleService.replaceAllRolesOnPermission(roleXids, this);
-        this.roles.clear();
-        for(Role role : roles) {
-            this.roles.add(role);
-        }
+    public void update(MangoPermission permission) throws ValidationException {
+        //TODO Mango 4.0 Transaction rollback etc?
+        this.roleService.get().replaceAllRolesOnPermission(permission, this);
+        this.permission = permission;
         //notify user cache
         this.userDao.permissionChanged();
     }

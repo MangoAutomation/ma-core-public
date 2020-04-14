@@ -72,7 +72,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
         if(permission == null) {
             return true;
         }else {
-            return permissionService.get().hasAnyRole(holder, permission.getRoles());
+            return permissionService.get().hasPermission(holder, permission.getPermission());
         }
     }
 
@@ -97,7 +97,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
         if(permission == null) {
             return true;
         }else {
-            return permissionService.get().hasAnyRole(holder, permission.getRoles());
+            return permissionService.get().hasPermission(holder, permission.getPermission());
         }
     }
 

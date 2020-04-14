@@ -5,11 +5,12 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Set;
+import java.util.Collections;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
@@ -30,13 +31,13 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
     }
 
     @Override
-    void setReadRoles(Set<Role> roles, JsonDataVO vo) {
-        vo.setReadRoles(roles);
+    void setReadPermission(MangoPermission permission, JsonDataVO vo) {
+        vo.setReadPermission(permission);
     }
 
     @Override
-    void setEditRoles(Set<Role> roles, JsonDataVO vo) {
-        vo.setEditRoles(roles);
+    void setEditPermission(MangoPermission permission, JsonDataVO vo) {
+        vo.setEditPermission(permission);
     }
 
     @Override
@@ -82,21 +83,21 @@ public class JsonDataServiceTest extends AbstractVOServiceWithPermissionsTest<Js
 
     @Override
     void addReadRoleToFail(Role role, JsonDataVO vo) {
-        vo.getEditRoles().add(role);
+        vo.getReadPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getReadRolesContextKey() {
-        return "readRoles";
+        return "readPermission";
     }
 
     @Override
     void addEditRoleToFail(Role role, JsonDataVO vo) {
-        vo.getReadRoles().add(role);
+        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getEditRolesContextKey() {
-        return "editRoles";
+        return "editPermission";
     }
 }

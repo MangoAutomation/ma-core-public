@@ -131,7 +131,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param conditions
      * @return
      */
-    public int customizedCount(ConditionSortLimit conditions);
+    public int customizedCount(ConditionSortLimit conditions, PermissionHolder user);
 
     /**
      * Get the default count query
@@ -154,7 +154,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param conditions
      * @param callback
      */
-    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback);
+    public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback);
 
     /**
      * Execute a query for VOs with a callback per row
@@ -182,7 +182,8 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      */
     public void customizedQuery(SelectJoinStep<Record> select,
             Condition condition, List<SortField<Object>> sort,
-            Integer limit, Integer offset, MappedRowCallback<T> callback);
+            Integer limit, Integer offset,
+            MappedRowCallback<T> callback);
 
 
     /**
@@ -195,7 +196,7 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * @param callback
      */
     public void customizedQuery(Condition conditions, List<SortField<Object>> sort,
-            Integer limit, Integer offset, MappedRowCallback<T> callback);
+            Integer limit, Integer offset, PermissionHolder user, MappedRowCallback<T> callback);
 
     /**
      * Get the select query for the supplied fields without any joins
@@ -220,6 +221,14 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      */
     public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions);
 
+    /**
+     * Join the permissions table to restrict to viewable records
+     * @param <R>
+     * @param select
+     * @param user
+     * @return
+     */
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, PermissionHolder user);
 
     /**
      * Get the table model
@@ -229,39 +238,15 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
 
     /**
      * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
-     *  and value converters to translate the RQL conditions into the values expected from the database.  Supplied user
-     *  is used to enforce read permission for the items
-     *
-     * @param rql
-     * @param fieldMap - can be null
-     * @param valueConverters - can be null
-     * @param user - cannot be null if the item has permissions
-     * @return
-     */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user);
-
-    /**
-     * Create a ConditionSortLimit configuration and allow supplying extra field mappings for model fields to columns
-     *  and value converters to translate the RQL conditions into the values expected from the database.  Supplied user
-     *  is used to enforce supplied type of permission for the items
+     *  and value converters to translate the RQL conditions into the values expected from the database.
      *
      *
      * @param rql
      * @param fieldMap - can be null
      * @param valueConverters - can be null
-     * @param user - cannot be null if the item has permissions
-     * @param permissionType
      * @return
      */
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user, String permissionType);
-
-    /**
-     * If this VO has permissions then restrict based on role mapping conditions
-     * @param user
-     * @param permissionType
-     * @return
-     */
-    public Condition hasPermission(PermissionHolder user, String permissionType);
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters);
 
     /**
      * Issues a SELECT FOR UPDATE for the row with the given id. Enables transactional updates on rows.

@@ -4,7 +4,6 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.util.Objects;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +20,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.DataSourceDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
 import com.serotonin.m2m2.rt.dataSource.DataSourceRT;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
@@ -28,7 +28,6 @@ import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.validation.StringValidation;
 
 /**
@@ -52,8 +51,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     }
 
     @Override
-    public Set<Role> getCreatePermissionRoles() {
-        return createPermission.getRoles();
+    public PermissionDefinition getCreatePermission() {
+        return createPermission;
     }
 
     @Override
@@ -237,8 +236,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
     public ProcessResult validate(DataSourceVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
-        permissionService.validateVoRoles(response, "editRoles", user, owner, null, vo.getEditRoles());
-        permissionService.validateVoRoles(response, "readRoles", user, owner, null, vo.getReadRoles());
+        permissionService.validateVoRoles(response, "editPermission", user, owner, null, vo.getEditPermission());
+        permissionService.validateVoRoles(response, "readPermission", user, owner, null, vo.getReadPermission());
 
         //Allow module to define validation logic
         vo.getDefinition().validate(response, vo, user);
@@ -250,8 +249,8 @@ public class DataSourceService extends AbstractVOService<DataSourceVO, DataSourc
         ProcessResult response = commonValidation(vo, user);
         //If we have global data source permission then we are the 'owner' and don't need any edit permission for this source
         boolean owner = user != null ? permissionService.hasDataSourcePermission(user) : false;
-        permissionService.validateVoRoles(response, "editRoles", user, owner, existing.getEditRoles(), vo.getEditRoles());
-        permissionService.validateVoRoles(response, "readRoles", user, owner, existing.getReadRoles(), vo.getReadRoles());
+        permissionService.validateVoRoles(response, "editPermission", user, owner, existing.getEditPermission(), vo.getEditPermission());
+        permissionService.validateVoRoles(response, "readPermission", user, owner, existing.getReadPermission(), vo.getReadPermission());
 
         //Allow module to define validation logic
         vo.getDefinition().validate(response, existing, vo, user);

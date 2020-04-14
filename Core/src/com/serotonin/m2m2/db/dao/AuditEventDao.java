@@ -34,7 +34,7 @@ import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
  *
  */
 @Repository()
-public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditEventTableDefinition>{
+public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditEventTableDefinition> {
     private static final LazyInitializer<AuditEventDao> springInstance = new LazyInitializer<>();
 
     /**

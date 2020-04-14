@@ -2,15 +2,14 @@ package com.serotonin.m2m2.vo;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.module.definitions.settings.DataPointTagsDisplaySettingDefinition;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Interface that represents both full data point VOs and summary objects.
@@ -39,13 +38,13 @@ public interface IDataPoint {
      * Roles that can read this point's value and configuration
      * @return
      */
-    Set<Role> getReadRoles();
+    MangoPermission getReadPermission();
 
     /**
      * Roles that can set the point's value
      * @return
      */
-    Set<Role> getSetRoles();
+    MangoPermission getSetPermission();
 
     final static String DASH = " — ";
     final static String OPEN_BRACKET = " [";

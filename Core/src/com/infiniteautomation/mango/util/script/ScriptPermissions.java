@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -31,6 +32,8 @@ import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
+ * TODO Mango 4.0 re-think if we want these in the mapping table
+ *
  * Script Permissions Container, to replace com.serotonin.m2m2.rt.script.ScriptPermissions
  * @author Terry Packer
  *
@@ -44,6 +47,11 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
 
     public ScriptPermissions() {
         this(Collections.emptySet());
+    }
+
+    public ScriptPermissions(MangoPermission permission) {
+        //Always an outer OR group
+        this(permission.getUniqueRoles());
     }
 
     public ScriptPermissions(Set<Role> permissionsSet) {
@@ -61,6 +69,15 @@ public class ScriptPermissions implements JsonSerializable, Serializable, Permis
             this.roles = Collections.unmodifiableSet(Collections.emptySet());
         }
         this.permissionHolderName = permissionHolderName;
+    }
+
+    public MangoPermission getPermission() {
+        //These represent a the roles the script runs on and as such will always be a Set of singleton roles
+        Set<Set<Role>> orSet = new HashSet<>();
+        for(Role role : roles) {
+            orSet.add(roles);
+        }
+        return new MangoPermission(orSet);
     }
 
     @Override

@@ -154,13 +154,21 @@ public class PermissionService {
     }
 
     /**
-     * Does this permission holder have any role defined in this permission?
-     * @param holder
+     * Does this permission holder have access based on the permission's role logic?
+     * @param user
      * @param permission
      * @return
      */
-    public boolean hasPermission(PermissionHolder holder, MangoPermission permission) {
-        return hasAnyRole(holder, permission.getRoles());
+    public boolean hasPermission(PermissionHolder user, MangoPermission permission) {
+        if (!isValidPermissionHolder(user)) return false;
+        if(hasAdminRole(user)) return true;
+
+        for(Set<Role> group : permission.getRoles()) {
+            if(hasAllRoles(user, group)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -181,7 +189,7 @@ public class PermissionService {
      * @return
      */
     public boolean isGrantedPermission(PermissionDefinition definition, PermissionHolder holder) {
-        return roleDao.isGrantedPermission(definition.getPermissionTypeName(), holder.getRoles());
+        return hasPermission(holder, definition.getPermission());
     }
 
     /**
@@ -215,8 +223,8 @@ public class PermissionService {
      * @return
      */
     public boolean hasPermission(PermissionHolder holder, AbstractVO vo, String permissionType) {
-        Set<Role> roles = roleDao.getRoles(vo, permissionType);
-        return hasAnyRole(holder, roles);
+        MangoPermission permission = roleDao.getPermission(vo, permissionType);
+        return hasPermission(holder, permission);
     }
 
     /**
@@ -276,7 +284,7 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataSourceEditPermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
-        return hasAnyRole(user, ds.getEditRoles());
+        return hasPermission(user, ds.getEditPermission());
     }
 
     /**
@@ -289,8 +297,8 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataSourceEditPermission(PermissionHolder user, int dsId) throws PermissionException {
-        Set<Role> editRoles = roleDao.getRoles(dsId, DataSourceVO.class.getSimpleName(), EDIT);
-        return hasAnyRole(user, editRoles);
+        MangoPermission permission = roleDao.getPermission(dsId, DataSourceVO.class.getSimpleName(), EDIT);
+        return hasPermission(user, permission);
     }
 
     /**
@@ -326,7 +334,7 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataSourceReadPermission(PermissionHolder user, DataSourceVO ds) throws PermissionException {
-        return hasAnyRole(user, ds.getReadRoles());
+        return hasPermission(user, ds.getReadPermission());
     }
 
     /**
@@ -339,8 +347,8 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataSourceReadPermission(PermissionHolder user, int dsId) throws PermissionException {
-        Set<Role> readRoles = roleDao.getRoles(dsId, DataSourceVO.class.getSimpleName(), READ);
-        return hasAnyRole(user, readRoles);
+        MangoPermission permission = roleDao.getPermission(dsId, DataSourceVO.class.getSimpleName(), READ);
+        return hasPermission(user, permission);
     }
 
     //
@@ -367,7 +375,7 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataPointReadPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
-        if (hasAnyRole(user, point.getReadRoles())) {
+        if (hasPermission(user, point.getReadPermission())) {
             return true;
         }else if(hasDataSourceReadPermission(user, point.getDataSourceId())) {
             return true;
@@ -395,7 +403,7 @@ public class PermissionService {
      * @throws PermissionException
      */
     public boolean hasDataPointSetPermission(PermissionHolder user, IDataPoint point) throws PermissionException {
-        if (hasAnyRole(user, point.getSetRoles())) {
+        if (hasPermission(user, point.getSetPermission())) {
             return true;
         }
         return hasDataSourceEditPermission(user, point.getDataSourceId());
@@ -645,54 +653,66 @@ public class PermissionService {
      * @param contextKey - the key to apply the messages to
      * @param holder - the saving permission holder
      * @param savedByOwner - is the saving user the owner of this item (use false if no owner is possible)
-     * @param existingRoles - the currently saved permissions
-     * @param newRoles - the new permissions to validate
+     * @param existingPermission - the currently saved permissions
+     * @param newPermission - the new permissions to validate
      */
     public void validateVoRoles(ProcessResult result, String contextKey, PermissionHolder holder,
-            boolean savedByOwner, Set<Role> existingRoles, Set<Role> newRoles) {
+            boolean savedByOwner, MangoPermission existingPermission, MangoPermission newPermission) {
         if (holder == null) {
             result.addContextualMessage(contextKey, "validate.userRequired");
             return;
         }
 
-        if(newRoles == null) {
+        if(newPermission == null) {
             result.addContextualMessage(contextKey, "validate.permission.null");
             return;
         }
 
-        for (Role role : newRoles) {
-            if (role == null) {
+        for (Set<Role> roles : newPermission.getRoles()) {
+            if (roles == null) {
                 result.addContextualMessage(contextKey, "validate.role.empty");
                 return;
             } else {
-                Integer id = roleDao.getIdByXid(role.getXid());
-                if( id == null) {
-                    result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
-                }else if (id != role.getId()) {
-                    result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
+                for(Role role : roles) {
+                    if(role == null) {
+                        result.addContextualMessage(contextKey, "validate.role.empty");
+                    }else {
+                        Integer id = roleDao.getIdByXid(role.getXid());
+                        if( id == null) {
+                            result.addContextualMessage(contextKey, "validate.role.notFound", role.getXid());
+                        }else if (id != role.getId()) {
+                            result.addContextualMessage(contextKey, "validate.role.invalidReference", role.getXid(), role.getId());
+                        }
+                    }
                 }
             }
+        }
+
+        //Ensure no more than 64 role sets
+        if(newPermission.getRoles().size() > 64) {
+            result.addContextualMessage(contextKey, "validate.role.tooManyGroups");
+            return;
         }
 
         if(holder.hasAdminRole())
             return;
 
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getRoles(), newRoles)) {
+        if(!savedByOwner && !newPermission.containsRole(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getRoles(), newPermission.getUniqueRoles())) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 
-        if(existingRoles != null) {
+        if(existingPermission != null) {
             //Check for permissions being added that the user does not have
-            Set<Role> added = new HashSet<>(newRoles);
-            added.removeAll(existingRoles);
+            Set<Role> added = new HashSet<>(newPermission.getUniqueRoles());
+            added.removeAll(existingPermission.getUniqueRoles());
             added.removeAll(holder.getRoles());
             if(added.size() > 0) {
                 result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getRoles()));
             }
             //Check for permissions being removed that the user does not have
-            Set<Role> removed = new HashSet<>(existingRoles);
-            removed.removeAll(newRoles);
+            Set<Role> removed = new HashSet<>(existingPermission.getUniqueRoles());
+            removed.removeAll(newPermission.getUniqueRoles());
             removed.removeAll(holder.getRoles());
             if(removed.size() > 0) {
                 result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getRoles()));

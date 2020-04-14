@@ -9,14 +9,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
@@ -38,7 +37,6 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.vo.AbstractActionVO;
 import com.serotonin.m2m2.vo.DataPointVO.PurgeTypes;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.role.Role;
 
 abstract public class DataSourceVO extends AbstractActionVO {
     public static final String XID_PREFIX = "DS_";
@@ -74,9 +72,9 @@ abstract public class DataSourceVO extends AbstractActionVO {
     @JsonProperty
     private int purgePeriod = 1;
     @JsonProperty
-    private Set<Role> editRoles = Collections.emptySet();
+    private MangoPermission editPermission = new MangoPermission();
     @JsonProperty
-    private Set<Role> readRoles = Collections.emptySet();
+    private MangoPermission readPermission = new MangoPermission();
     @JsonProperty
     private JsonNode data;
 
@@ -150,20 +148,20 @@ abstract public class DataSourceVO extends AbstractActionVO {
         this.purgePeriod = purgePeriod;
     }
 
-    public Set<Role> getEditRoles() {
-        return editRoles;
+    public MangoPermission getEditPermission() {
+        return editPermission;
     }
 
-    public void setEditRoles(Set<Role> editRoles) {
-        this.editRoles = editRoles;
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission = editPermission;
     }
 
-    public Set<Role> getReadRoles() {
-        return readRoles;
+    public MangoPermission getReadPermission() {
+        return readPermission;
     }
 
-    public void setReadRoles(Set<Role> readRoles) {
-        this.readRoles = readRoles;
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
 
     public JsonNode getData() {
@@ -354,8 +352,6 @@ abstract public class DataSourceVO extends AbstractActionVO {
                 throw new TranslatableJsonException("emport.error.invalid", "purgeType", text,
                         Common.TIME_PERIOD_CODES.getCodeList());
         }
-
-        this.editRoles = readLegacyPermissions("editPermission", this.editRoles, jsonObject);
     }
 
     protected void writeUpdatePeriodType(ObjectWriter writer, int updatePeriodType) throws IOException, JsonException {

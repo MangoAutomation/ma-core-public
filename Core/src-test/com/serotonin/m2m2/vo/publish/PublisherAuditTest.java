@@ -81,6 +81,7 @@ public class PublisherAuditTest extends MangoTestBase {
                         Arrays.asList(table.getAlias("id").asc()),
                         null,
                         null,
+                        false,
                         (evt, index) -> {
                             events.add(evt);
                         });

@@ -6,10 +6,9 @@ package com.serotonin.m2m2.vo.json;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -19,7 +18,6 @@ import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -37,9 +35,9 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
     private JsonNode jsonData;
 
     @JsonProperty
-    private Set<Role> readRoles = Collections.emptySet();
+    private MangoPermission editPermission = new MangoPermission();
     @JsonProperty
-    private Set<Role> editRoles = Collections.emptySet();
+    private MangoPermission readPermission = new MangoPermission();
     @JsonProperty
     private boolean publicData;
 
@@ -50,18 +48,22 @@ public class JsonDataVO extends AbstractVO implements Serializable, JsonSerializ
         this.jsonData = data;
     }
 
-    public Set<Role> getReadRoles() {
-        return readRoles;
+    public MangoPermission getEditPermission() {
+        return editPermission;
     }
-    public void setReadRoles(Set<Role> readRoles) {
-        this.readRoles = readRoles;
+
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission = editPermission;
     }
-    public Set<Role> getEditRoles() {
-        return editRoles;
+
+    public MangoPermission getReadPermission() {
+        return readPermission;
     }
-    public void setEditRoles(Set<Role> editRoles) {
-        this.editRoles = editRoles;
+
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
+
     public boolean isPublicData() {
         return publicData;
     }

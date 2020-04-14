@@ -15,11 +15,11 @@ import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.serotonin.m2m2.db.dao.EventHandlerDao;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
 import com.serotonin.m2m2.rt.event.type.EventType;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * Service for access to event handlers
@@ -39,8 +39,8 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
     }
 
     @Override
-    public Set<Role> getCreatePermissionRoles() {
-        return createPermission.getRoles();
+    public PermissionDefinition getCreatePermission() {
+        return createPermission;
     }
 
     @Override
