@@ -5,9 +5,9 @@ package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import javax.script.ScriptException;
 
-import com.infiniteautomation.mango.spring.service.ScriptExecutor.EngineNotFoundException;
-import com.infiniteautomation.mango.spring.service.ScriptExecutor.ScriptEvalException;
-import com.infiniteautomation.mango.spring.service.ScriptExecutor.ScriptInterfaceException;
+import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
+import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
+import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
