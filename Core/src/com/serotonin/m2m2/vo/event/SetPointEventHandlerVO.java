@@ -10,11 +10,13 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
@@ -57,7 +59,8 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
     private int inactivePointId;
     private String activeScript;
     private String inactiveScript;
-    private ScriptPermissions scriptRoles;
+    @JsonProperty(readAliases = {"scriptPermissions"})
+    private ScriptPermissions scriptRoles = new ScriptPermissions();
     private List<IntStringPair> additionalContext = new ArrayList<>();
 
     public int getTargetPointId() {
@@ -211,7 +214,7 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null)
-                scriptRoles = new ScriptPermissions(oldPermissions.getRoles());
+                scriptRoles = new ScriptPermissions(PermissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
             else
                 scriptRoles = new ScriptPermissions();
         } else if (ver == 4) {
@@ -269,9 +272,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
             }
         }
         writer.writeEntry("additionalContext", context);
-        if(scriptRoles != null) {
-            writer.writeEntry(ScriptPermissions.JSON_KEY, scriptRoles.getRoles());
-        }
     }
 
     @Override
@@ -370,7 +370,6 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
         } else {
             this.additionalContext = new ArrayList<>();
         }
-        this.scriptRoles = ScriptPermissions.readJsonSafely(reader, jsonObject);
     }
 
     @Override

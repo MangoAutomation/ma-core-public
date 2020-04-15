@@ -76,7 +76,7 @@ public class MangoPermission {
         for(Set<Role> roleSet : roles) {
             unique.addAll(roleSet);
         }
-        return unique;
+        return Collections.unmodifiableSet(unique);
     }
 
     public List<MangoPermissionEncoded> encode() {

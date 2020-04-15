@@ -13,11 +13,13 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.MailingListService;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.db.pair.IntStringPair;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
+import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonObject;
@@ -75,7 +77,8 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
     private boolean includeLogfile;
     private String customTemplate;
     private List<IntStringPair> additionalContext = new ArrayList<IntStringPair>();
-    private ScriptPermissions scriptRoles;
+    @JsonProperty(readAliases = {"scriptPermissions"})
+    private ScriptPermissions scriptRoles = new ScriptPermissions();
     private String script;
     private int subject = SUBJECT_INCLUDE_EVENT_MESSAGE;
 
@@ -405,7 +408,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null)
-                scriptRoles = new ScriptPermissions(oldPermissions.getRoles());
+                scriptRoles = new ScriptPermissions(PermissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
             else
                 scriptRoles = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
@@ -449,7 +452,7 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
             if(oldPermissions != null)
-                scriptRoles = new ScriptPermissions(oldPermissions.getRoles());
+                scriptRoles = new ScriptPermissions(PermissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
             else
                 scriptRoles = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
@@ -589,9 +592,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
         }
         writer.writeEntry("additionalContext", context);
         writer.writeEntry("script", script);
-        if(scriptRoles != null) {
-            writer.writeEntry(ScriptPermissions.JSON_KEY, scriptRoles.getRoles());
-        }
         writer.writeEntry("subject", SUBJECT_INCLUDE_CODES.getCode(subject));
     }
 
@@ -685,8 +685,6 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             this.additionalContext = new ArrayList<>();
 
         script = jsonObject.getString("script");
-
-        this.scriptRoles = ScriptPermissions.readJsonSafely(reader, jsonObject);
 
         text = jsonObject.getString("subject");
         if (text != null) {

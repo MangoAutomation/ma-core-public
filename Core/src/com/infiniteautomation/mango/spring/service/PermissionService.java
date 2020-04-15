@@ -863,4 +863,46 @@ public class PermissionService {
         }
         return Collections.unmodifiableSet(set);
     }
+
+    /**
+     * This should only be called on the upgrade to Mango 4.0 as it will create new roles,
+     *  it is designed to be used during serialization to extract and create roles from serialized data
+     * @param permissions
+     * @return
+     */
+    public static MangoPermission upgradePermissions(String permissions) {
+        Set<String> permissionSet = PermissionService.explodeLegacyPermissionGroups(permissions);
+        return upgradePermissions(permissionSet);
+    }
+
+    /**
+     * This should only be called on the upgrade to Mango 4.0 as it will create new roles,
+     *  it is designed to be used during serialization to extract and create roles from serialized data
+     * @param permissionSet
+     * @return
+     */
+    public static MangoPermission upgradePermissions(Set<String> permissionSet) {
+        if(permissionSet == null) {
+            return new MangoPermission();
+        }
+
+        Set<Role> roles = new HashSet<>();
+        for(String permission : permissionSet) {
+            RoleVO role = RoleDao.getInstance().getByXid(permission);
+            if(role != null) {
+                roles.add(role.getRole());
+            }else {
+                RoleVO r = new RoleVO(Common.NEW_ID, permission, permission);
+                try {
+                    RoleDao.getInstance().insert(r);
+                    roles.add(r.getRole());
+                }catch(Exception e) {
+                    //Someone maybe inserted this role while we were doing this.
+                    roles.add(r.getRole());
+                }
+            }
+        }
+
+        return MangoPermission.createOrSet(roles);
+    }
 }

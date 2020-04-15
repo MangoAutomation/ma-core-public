@@ -6,17 +6,15 @@
 package com.serotonin.m2m2.rt.script;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.spi.JsonProperty;
-import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
-import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * This is a legacy class left here for deserialization puposes
@@ -102,47 +100,18 @@ public class ScriptPermissions extends ScriptPermissionParent implements Seriali
         return false;
     }
 
-
+    public Set<String> getAllLegacyPermissions() {
+        Set<String> combined = new HashSet<>();
+        combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataSourcePermissions));
+        combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointSetPermissions));
+        combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
+        combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.customPermissions));
+        return combined;
+    }
 
     @JsonIgnore
     @Override
     public Set<Role> getRoles() {
-        if(combinedRoles == null) {
-            Set<String> combined = new HashSet<>();
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataSourcePermissions));
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointSetPermissions));
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.customPermissions));
-            Set<Role> roles = new HashSet<>(combined.size() + 1);
-            roles.add(PermissionHolder.USER_ROLE);
-            for(String group : combined) {
-                RoleVO role = RoleDao.getInstance().getByXid(group);
-                if(role != null) {
-                    roles.add(role.getRole());
-                }else {
-                    roles.add(com.infiniteautomation.mango.util.script.ScriptPermissions.addNewRole(group).getRole());
-                }
-            }
-            return Collections.unmodifiableSet(roles);
-        }
-
-        return combinedRoles.get(() -> {
-            Set<String> combined = new HashSet<>();
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataSourcePermissions));
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointSetPermissions));
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.dataPointReadPermissions));
-            combined.addAll(PermissionService.explodeLegacyPermissionGroups(this.customPermissions));
-            Set<Role> roles = new HashSet<>(combined.size() + 1);
-            roles.add(PermissionHolder.USER_ROLE);
-            for(String group : combined) {
-                RoleVO role = RoleDao.getInstance().getByXid(group);
-                if(role != null) {
-                    roles.add(role.getRole());
-                }else {
-                    roles.add(com.infiniteautomation.mango.util.script.ScriptPermissions.addNewRole(group).getRole());
-                }
-            }
-            return Collections.unmodifiableSet(roles);
-        });
+        throw new ShouldNeverHappenException("deprecated and should never be used, convert to com.infiniteautomation.mango.util.script.ScriptPermissions via getAllLegacyPermissions()");
     }
 }

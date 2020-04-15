@@ -28,13 +28,16 @@ import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.util.SerializationHelper;
 
 /**
  * Fix MySQL data source table to have a name column length of 255
@@ -97,6 +100,8 @@ public class Upgrade29 extends DBUpgrade {
             convertJsonData(roles, out);
             convertMailingLists(roles, out);
             convertFileStores(roles, out);
+            convertEmailEventHandlers(out);
+            convertSetPointEventHandlers(out);
             dropTemplates(out);
             dropPointHierarchy(out);
             dropUserEvents(out);
@@ -329,6 +334,39 @@ public class Upgrade29 extends DBUpgrade {
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), fileStoreSQL);
         scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), fileStoreSQL);
         runScript(scripts, out);
+    }
+
+    /**
+     * Read out data and re-serialize to convert script roles
+     */
+    private void convertEmailEventHandlers(OutputStream out) {
+        //Read and save all persistent data sources to bump their serialization version
+        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int id = rs.getInt(1);
+                AbstractEventHandlerVO vo = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
+                ejt.update("UPDATE eventHandlers SET data=? where id=?",
+                        new Object[] {SerializationHelper.writeObjectToArray(vo), id});
+            }
+        });
+    }
+
+    /**
+     * Read out data and re-serialize to convert script roles
+     * @param out
+     */
+    private void convertSetPointEventHandlers(OutputStream out) {
+        //Read and save all persistent data sources to bump their serialization version
+        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int id = rs.getInt(1);
+                AbstractEventHandlerVO vo = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
+                ejt.update("UPDATE eventHandlers SET data=? where id=?",
+                        new Object[] {SerializationHelper.writeObjectToArray(vo), id});
+            }
+        });
     }
 
     //JSON Data
