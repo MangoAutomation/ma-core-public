@@ -100,7 +100,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
     /**
      * Replace the roles on this permission.  Throws validation exeption if xids DNE
      *
-     * @param roles
+     * @param scriptRoles
      */
     public void update(Set<Set<Role>> permission) throws ValidationException {
         //TODO Mango 4.0 Transaction rollback etc?

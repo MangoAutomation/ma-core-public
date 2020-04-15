@@ -87,24 +87,26 @@ public class ScriptService {
     }
 
     private Object evalScript(MangoScript script, ScriptEngine engine) {
-        try {
-            if (script instanceof CompiledMangoScript) {
-                return ((CompiledMangoScript) script).compiled.eval();
-            }
+        return this.permissionService.runAs(script, () -> {
+            try {
+                if (script instanceof CompiledMangoScript) {
+                    return ((CompiledMangoScript) script).compiled.eval();
+                }
 
-            try (Reader reader = script.readScript()) {
-                return engine.eval(reader);
+                try (Reader reader = script.readScript()) {
+                    return engine.eval(reader);
+                }
+            } catch (ScriptException e) {
+                throw new ScriptEvalException(e);
+            } catch (IOException e) {
+                throw new ScriptIOException(e);
             }
-        } catch (ScriptException e) {
-            throw new ScriptEvalException(e);
-        } catch (IOException e) {
-            throw new ScriptIOException(e);
-        }
+        });
     }
 
     private void configureBindings(MangoScript script, ScriptEngine engine) {
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-        //engineBindings.put("polyglot.js.allowHostAccess", true);
+        engineBindings.put("polyglot.js.allowHostAccess", true);
 
         engineBindings.put(ScriptEngine.FILENAME, script.getScriptName());
         engineBindings.putAll(script.getBindings());

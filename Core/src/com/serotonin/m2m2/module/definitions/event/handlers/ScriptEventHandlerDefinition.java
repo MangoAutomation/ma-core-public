@@ -3,6 +3,8 @@
  */
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
+import java.util.Set;
+
 import javax.script.ScriptException;
 
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
@@ -12,6 +14,7 @@ import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Jared Wiltshire
@@ -40,12 +43,16 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
     public void validate(ProcessResult response, ScriptEventHandlerVO handler, PermissionHolder user) {
         String script = handler.getScript();
         String engineName = handler.getEngineName();
+        Set<Role> scriptRoles = handler.getScriptRoles();
 
         if (script == null || script.isEmpty()) {
             response.addContextualMessage("script", "validate.required");
         }
         if (engineName == null || engineName.isEmpty()) {
             response.addContextualMessage("engineName", "validate.required");
+        }
+        if (scriptRoles == null) {
+            response.addContextualMessage("scriptRoles", "validate.required");
         }
 
         try {

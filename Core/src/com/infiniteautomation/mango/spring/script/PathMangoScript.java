@@ -38,6 +38,11 @@ public class PathMangoScript implements MangoScript {
 
     @Override
     public String getScriptName() {
+        return scriptPath.toAbsolutePath().normalize().toString();
+    }
+
+    @Override
+    public String getPermissionHolderName() {
         return scriptPath.getFileName().toString();
     }
 

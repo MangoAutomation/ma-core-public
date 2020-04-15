@@ -16,6 +16,8 @@ import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
  */
 public class ScriptEventHandlerRT extends EventHandlerRT<ScriptEventHandlerVO> {
 
+    public static final String EVENT_HANDLER_KEY = "eventHandler";
+
     final EventHandlerInterface scriptHandlerDelegate;
 
     public ScriptEventHandlerRT(ScriptEventHandlerVO vo) {
@@ -23,7 +25,7 @@ public class ScriptEventHandlerRT extends EventHandlerRT<ScriptEventHandlerVO> {
 
         ScriptService scriptService = Common.getBean(ScriptService.class);
         StringMangoScript script = new StringMangoScript(vo.getEngineName(), vo.getName(), vo.getScript());
-        script.setBindings(Collections.singletonMap("eventHandler", vo));
+        script.setBindings(Collections.singletonMap(EVENT_HANDLER_KEY, vo));
         this.scriptHandlerDelegate = scriptService.getInterface(script, EventHandlerInterface.class);
     }
 
