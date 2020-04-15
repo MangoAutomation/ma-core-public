@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.json.convert.ArrayConverter;
 import com.serotonin.json.convert.BigDecimalConverter;
 import com.serotonin.json.convert.BigIntegerConverter;
@@ -45,6 +46,7 @@ import com.serotonin.json.convert.MangoPermissionConverter;
 import com.serotonin.json.convert.MapConverter;
 import com.serotonin.json.convert.ObjectConverter;
 import com.serotonin.json.convert.RoleConverter;
+import com.serotonin.json.convert.ScriptPermissionConverter;
 import com.serotonin.json.convert.SerializerConverter;
 import com.serotonin.json.convert.ShortConverter;
 import com.serotonin.json.convert.StringConverter;
@@ -148,6 +150,7 @@ public class JsonContext {
         addConverter(new DateConverter(), Date.class);
         addConverter(new RoleConverter(), Role.class);
         addConverter(new MangoPermissionConverter(), MangoPermission.class);
+        addConverter(new ScriptPermissionConverter(), ScriptPermissions.class);
 
         // Object factories
         addFactory(new ListFactory(), List.class);
