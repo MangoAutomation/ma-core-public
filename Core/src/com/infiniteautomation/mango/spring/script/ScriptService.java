@@ -106,7 +106,11 @@ public class ScriptService {
 
     private void configureBindings(MangoScript script, ScriptEngine engine) {
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+
         engineBindings.put("polyglot.js.allowHostAccess", true);
+        if (permissionService.hasAdminRole(script)) {
+            engineBindings.put("polyglot.js.allowAllAccess", true);
+        }
 
         engineBindings.put(ScriptEngine.FILENAME, script.getScriptName());
         engineBindings.putAll(script.getBindings());

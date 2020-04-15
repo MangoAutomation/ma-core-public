@@ -11,17 +11,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.infiniteautomation.mango.spring.service.RoleService;
-import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.rt.event.handlers.EventHandlerRT;
 import com.serotonin.m2m2.rt.event.handlers.ScriptEventHandlerRT;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Jared Wiltshire
@@ -107,13 +107,10 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
     }
 
     private void setScriptRoleXids(Set<String> xids) {
-        RoleService roleService = Common.getBean(RoleService.class);
+        RoleDao roleDao = Common.getBean(RoleDao.class);
         this.scriptRoles = xids.stream().map(xid -> {
-            try {
-                return roleService.get(xid).getRole();
-            } catch (NotFoundException e) {
-                return null;
-            }
+            RoleVO vo = roleDao.getByXid(xid);
+            return vo != null ? vo.getRole() : null;
         }).filter(r -> r != null).collect(Collectors.toSet());
     }
 }
