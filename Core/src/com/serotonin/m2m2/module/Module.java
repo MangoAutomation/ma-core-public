@@ -20,6 +20,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.util.exception.ModuleUpgradeException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
@@ -168,15 +169,36 @@ public class Module {
     }
 
     /**
-     * Called immediately after the database is initialized, but before the event and runtime managers. Should not be
+     * Called after the database is initialized to perform any database related upgrades outside
+     *  of a schema definition
+     */
+    public boolean upgrade() throws Exception {
+        this.previousVersion = InstalledModulesDao.instance.getModuleVersion(name);
+        if(this.previousVersion == null) {
+            return true;
+        }
+        try {
+            for (ModuleElementDefinition df : definitions) {
+                if(df instanceof UpgradeDefinition) {
+                    ((UpgradeDefinition)df).upgrade(this.previousVersion, this.version);
+                }
+            }
+            //Fully running so update our version
+            InstalledModulesDao.instance.updateModuleVersion(this);
+        }catch(Throwable t) {
+            throw new ModuleUpgradeException(t, name, previousVersion, version);
+        }
+        return false;
+    }
+
+    /**
+     * Called after the database is initialized, but before the event and runtime managers. Should not be
      * used by client code.
      * @return true if module is new
      */
-    public boolean postDatabase() {
-        this.previousVersion = InstalledModulesDao.instance.getModuleVersion(name);
+    public void postDatabase() {
         for (ModuleElementDefinition df : definitions)
             df.postDatabase(this.previousVersion, this.version);
-        return this.previousVersion == null;
     }
 
     /**
@@ -195,8 +217,6 @@ public class Module {
     public void postInitialize() {
         for (ModuleElementDefinition df : definitions)
             df.postInitialize(this.previousVersion, this.version);
-        //Fully running so update our version
-        InstalledModulesDao.instance.updateModuleVersion(this);
     }
 
     /**
