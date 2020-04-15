@@ -155,13 +155,14 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
             throw e;
         }
 
-        // Allow modules to upgrade themselves
+        // Allow modules to upgrade their schemas
         for (DatabaseSchemaDefinition def : ModuleRegistry.getDefinitions(DatabaseSchemaDefinition.class))
             DBUpgrade.checkUpgrade(def, classLoader);
 
         postInitialize(ejt, "", newDatabase);
     }
 
+    //TODO Mango 4.0 it seems possible that if a core is installed, new modules can be installed and THEN the core and modules will be upgraded.
     private boolean newDatabaseCheck(ExtendedJdbcTemplate ejt) {
         boolean coreIsNew = false;
 
