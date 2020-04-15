@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -47,7 +48,9 @@ import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
+import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
@@ -257,10 +260,53 @@ public class MangoTestBase {
         }
     }
 
+    /**
+     * Convert an object to sero json
+     * @param o
+     * @return
+     * @throws IOException
+     */
+    protected String convertToSeroJson(Object o) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
+        writer.setPrettyOutput(true);
+        writer.setPrettyIndent(2);
+        try {
+            writer.writeObject(o);
+            writer.flush();
+            return stringWriter.toString();
+        }
+        catch (JsonException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
+     * Convert from json string to Object
+     * @param clazz
+     * @param json
+     * @return
+     * @throws IOException
+     */
+    protected Object readSeroJson(Class<? extends Object> clazz, String json) throws IOException {
+        JsonReader jr = new JsonReader(json);
+        try {
+            JsonValue jo = jr.read(JsonValue.class);
+            JsonReader reader = new JsonReader(Common.JSON_CONTEXT, jo);
+            return reader.read(clazz);
+        }catch(JsonException e){
+            throw new IOException(e);
+        }
+    }
+
     protected List<RoleVO> createRoles(int count) {
+        return createRoles(count, UUID.randomUUID().toString());
+    }
+
+    protected List<RoleVO> createRoles(int count, String prefix) {
         List<RoleVO> roles = new ArrayList<>();
         for(int i=0; i<count; i++) {
-            roles.add(createRole("role" + i, "Role " + i));
+            roles.add(createRole(prefix + i, prefix + i));
         }
         return roles;
     }
