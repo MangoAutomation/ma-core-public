@@ -24,10 +24,9 @@ public class ScriptEventHandlerRT extends EventHandlerRT<ScriptEventHandlerVO> {
         super(vo);
 
         ScriptService scriptService = Common.getBean(ScriptService.class);
-        StringMangoScript script = new StringMangoScript(vo.getEngineName(), vo.getName(), vo.getScript());
-        script.setBindings(Collections.singletonMap(EVENT_HANDLER_KEY, vo));
-        script.setRoles(vo.getScriptRoles());
-        this.scriptHandlerDelegate = scriptService.getInterface(script, EventHandlerInterface.class);
+
+        StringMangoScript script = new StringMangoScript(vo.getEngineName(), vo.getXid(), vo.getScriptRoles(), vo.getScript());
+        this.scriptHandlerDelegate = scriptService.getInterface(script, EventHandlerInterface.class, Collections.singletonMap(EVENT_HANDLER_KEY, vo));
     }
 
     @Override

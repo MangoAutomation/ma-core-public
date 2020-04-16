@@ -5,8 +5,6 @@ package com.infiniteautomation.mango.spring.script;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import javax.script.CompiledScript;
@@ -19,14 +17,14 @@ import com.serotonin.m2m2.vo.role.Role;
 public class CompiledMangoScript implements MangoScript {
 
     final CompiledScript compiled;
-    String scriptName;
-    Map<String, Object> bindings = Collections.emptyMap();
-    Set<Role> roles = Collections.emptySet();
+    final String scriptName;
+    final String scriptFilename;
+    final Set<Role> roles;
 
     CompiledMangoScript(CompiledScript compiled, MangoScript source) {
         this.compiled = compiled;
         this.scriptName = source.getScriptName();
-        this.bindings = source.getBindings();
+        this.scriptFilename = source.getScriptFilename();
         this.roles = source.getRoles();
     }
 
@@ -45,26 +43,14 @@ public class CompiledMangoScript implements MangoScript {
         return scriptName;
     }
 
-    public void setScriptName(String scriptName) {
-        this.scriptName = scriptName;
-    }
-
-    @Override
-    public Map<String, Object> getBindings() {
-        return bindings;
-    }
-
-    public void setBindings(Map<String, Object> bindings) {
-        this.bindings = bindings;
-    }
-
     @Override
     public Set<Role> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+    @Override
+    public String getScriptFilename() {
+        return scriptFilename;
     }
 
 }

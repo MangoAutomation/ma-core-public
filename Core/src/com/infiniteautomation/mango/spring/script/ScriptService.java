@@ -6,7 +6,9 @@ package com.infiniteautomation.mango.spring.script;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -17,6 +19,8 @@ import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -104,7 +108,7 @@ public class ScriptService {
         });
     }
 
-    private void configureBindings(MangoScript script, ScriptEngine engine) {
+    private void configureBindings(MangoScript script, ScriptEngine engine, Map<String, Object> bindings) {
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
         engineBindings.put("polyglot.js.allowHostAccess", true);
@@ -112,24 +116,36 @@ public class ScriptService {
             engineBindings.put("polyglot.js.allowAllAccess", true);
         }
 
+        Logger log = LoggerFactory.getLogger("script." + script.getScriptName());
+        engineBindings.put("log", log);
+
         engineBindings.put(ScriptEngine.FILENAME, script.getScriptName());
-        engineBindings.putAll(script.getBindings());
+        engineBindings.putAll(bindings);
     }
 
+
     public Object eval(MangoScript script) {
+        return eval(script, Collections.emptyMap());
+    }
+
+    public Object eval(MangoScript script, Map<String, Object> bindings) {
         ScriptEngine engine = scriptEngine(script);
-        configureBindings(script, engine);
+        configureBindings(script, engine, bindings);
         return evalScript(script, engine);
     }
 
     public <T> T getInterface(MangoScript script, Class<T> clazz) {
+        return getInterface(script, clazz, Collections.emptyMap());
+    }
+
+    public <T> T getInterface(MangoScript script, Class<T> clazz, Map<String, Object> bindings) {
         ScriptEngine engine = scriptEngine(script);
         if (!(engine instanceof Invocable)) {
             throw new EngineNotInvocableException(engine);
         }
         Invocable invocableEngine = (Invocable) engine;
 
-        configureBindings(script, engine);
+        configureBindings(script, engine, bindings);
         evalScript(script, engine);
 
         T instance = invocableEngine.getInterface(clazz);

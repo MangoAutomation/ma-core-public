@@ -6,11 +6,9 @@ package com.infiniteautomation.mango.spring.script;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import com.serotonin.m2m2.vo.role.Role;
@@ -20,15 +18,18 @@ import com.serotonin.m2m2.vo.role.Role;
  */
 public class PathMangoScript implements MangoScript {
 
-    String engineName;
-    Path scriptPath;
-    Charset charset = StandardCharsets.UTF_8;
-    Map<String, Object> bindings = Collections.emptyMap();
-    Set<Role> roles = Collections.emptySet();
+    final String engineName;
+    final String scriptName;
+    final Set<Role> roles;
+    final Path scriptPath;
+    final Charset charset;
 
-    public PathMangoScript(String engineName, Path scriptPath) {
+    public PathMangoScript(String engineName, String scriptName, Set<Role> roles, Path scriptPath, Charset charset) {
         this.engineName = engineName;
+        this.scriptName = scriptName;
+        this.roles = Collections.unmodifiableSet(roles);
         this.scriptPath = scriptPath;
+        this.charset = charset;
     }
 
     @Override
@@ -38,12 +39,7 @@ public class PathMangoScript implements MangoScript {
 
     @Override
     public String getScriptName() {
-        return scriptPath.toAbsolutePath().normalize().toString();
-    }
-
-    @Override
-    public String getPermissionHolderName() {
-        return scriptPath.getFileName().toString();
+        return scriptName;
     }
 
     @Override
@@ -51,33 +47,12 @@ public class PathMangoScript implements MangoScript {
         return engineName;
     }
 
-    public void setEngineName(String engineName) {
-        this.engineName = engineName;
-    }
-
     public Path getScriptPath() {
         return scriptPath;
     }
 
-    public void setScriptPath(Path scriptPath) {
-        this.scriptPath = scriptPath;
-    }
-
     public Charset getCharset() {
         return charset;
-    }
-
-    public void setCharset(Charset charset) {
-        this.charset = charset;
-    }
-
-    @Override
-    public Map<String, Object> getBindings() {
-        return bindings;
-    }
-
-    public void setBindings(Map<String, Object> bindings) {
-        this.bindings = bindings;
     }
 
     @Override
@@ -85,8 +60,9 @@ public class PathMangoScript implements MangoScript {
         return roles;
     }
 
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
+    @Override
+    public String getScriptFilename() {
+        return scriptPath.toAbsolutePath().normalize().toString();
     }
 
 }
