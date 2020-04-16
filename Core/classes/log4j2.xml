@@ -22,14 +22,14 @@
 -->
 <Configuration packages="com.serotonin.m2m2.rt.console">
     <Properties>
-        <Property name="MA_LOG4J_STDOUT_PATTERN">%-5p %d{ISO8601} (%C.%M:%L) - %m %n</Property>
+        <Property name="MA_LOG4J_STDOUT_PATTERN">%-5p %d{ISO8601} (%C.%M:%L) - %m%n</Property>
     </Properties>
 	<Appenders>
 		<Console name="stdout" target="SYSTEM_OUT">
 			<PatternLayout pattern="${env:MA_LOG4J_STDOUT_PATTERN}"/>
 		</Console>
 		<RollingRandomAccessFile name="logfile" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.ma.log" fileName="${sys:ma.logs}/ma.log">
-			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m%n"/>
 			<Policies>
 				<OnStartupTriggeringPolicy />
 				<TimeBasedTriggeringPolicy />
@@ -43,7 +43,7 @@
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
 		<MangoFrontendAppender name="frontend">
-			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m%n"/>
 		</MangoFrontendAppender>
 		<!-- IasTsdb Logging -->
 		<RollingRandomAccessFile name="corruption" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log" fileName="${sys:ma.logs}/iastsdb-corruption.log">
@@ -82,6 +82,18 @@
 				</Delete>
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
+        <RollingRandomAccessFile name="script" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.script.log" fileName="${sys:ma.logs}/script.log">
+            <PatternLayout pattern="%-5p %d{ISO8601} %c - %m%n"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="5MB"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${sys:ma.logs}" >
+                    <IfFileName regex=".*.script.log" />
+                    <IfAccumulatedFileCount exceeds="20"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingRandomAccessFile>
 	</Appenders>
 	<Loggers>
 		<AsyncLogger name="com.infiniteautomation.tsdb.corruption" level="info" additivity="false">
@@ -93,6 +105,9 @@
 		<AsyncLogger name="com.infiniteautomation.tsdb.reverser" level="info" additivity="false">
 		  <AppenderRef ref="reverser"/>
 		</AsyncLogger>
+        <AsyncLogger includeLocation="false" name="script" level="trace" additivity="false">
+            <AppenderRef ref="script" />
+        </AsyncLogger>
 	
 		<AsyncLogger includeLocation="true" name="com.serotonin.m2m2" level="info"/>
 		<AsyncLogger includeLocation="true" name="com.infiniteautomation" level="info"/>
