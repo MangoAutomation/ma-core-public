@@ -31,7 +31,7 @@ import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNot
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptIOException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
-import com.infiniteautomation.mango.spring.service.DataPointService;
+import com.infiniteautomation.mango.spring.service.AbstractVOService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -128,10 +128,15 @@ public class ScriptService {
             engineBindings.put("polyglot.js.allowAllAccess", true);
         }
 
+
         Logger log = LoggerFactory.getLogger("script." + script.getScriptName());
         engineBindings.put("log", log);
 
-        engineBindings.put("dataPoints", context.getBean(DataPointService.class));
+        if (permissionService.hasPermission(Common.getUser(), scriptPermission.getPermission())) {
+            @SuppressWarnings("rawtypes")
+            Map<String, AbstractVOService> services = context.getBeansOfType(AbstractVOService.class);
+            engineBindings.put("services", services);
+        }
 
         engineBindings.put(ScriptEngine.FILENAME, script.getScriptName());
         engineBindings.putAll(bindings);
