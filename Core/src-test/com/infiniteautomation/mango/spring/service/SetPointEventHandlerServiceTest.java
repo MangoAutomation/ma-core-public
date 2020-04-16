@@ -202,7 +202,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             for(Set<Role> roles : roleSet) {
                 newRoles.add(new HashSet<>(roles));
             }
-            def.update(new MangoPermission(newRoles));
+            def.update(newRoles);
         });
     }
 

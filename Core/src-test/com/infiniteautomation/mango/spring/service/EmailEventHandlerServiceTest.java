@@ -13,7 +13,6 @@ import java.util.UUID;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -150,7 +149,7 @@ public class EmailEventHandlerServiceTest extends AbstractVOServiceTest<Abstract
             for(Set<Role> roles : roleSet) {
                 newRoles.add(new HashSet<>(roles));
             }
-            def.update(new MangoPermission(newRoles));
+            def.update(newRoles);
         });
     }
 }

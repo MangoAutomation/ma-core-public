@@ -407,9 +407,10 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
-            if(oldPermissions != null)
-                scriptRoles = new ScriptPermissions(PermissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
-            else
+            if(oldPermissions != null) {
+                PermissionService permissionService = Common.getBean(PermissionService.class);
+                scriptRoles = new ScriptPermissions(permissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
+            }else
                 scriptRoles = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
         }
@@ -451,9 +452,10 @@ public class EmailEventHandlerVO extends AbstractEventHandlerVO {
             customTemplate = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
-            if(oldPermissions != null)
-                scriptRoles = new ScriptPermissions(PermissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
-            else
+            if(oldPermissions != null) {
+                PermissionService permissionService = Common.getBean(PermissionService.class);
+                scriptRoles = new ScriptPermissions(permissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
+            }else
                 scriptRoles = new ScriptPermissions();
             script = SerializationHelper.readSafeUTF(in);
         }else if (ver == 6) {

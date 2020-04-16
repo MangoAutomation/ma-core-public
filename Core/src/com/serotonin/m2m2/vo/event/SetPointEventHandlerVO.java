@@ -20,6 +20,7 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.DataPointDao;
 import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -213,9 +214,10 @@ public class SetPointEventHandlerVO extends AbstractEventHandlerVO {
             inactiveScript = SerializationHelper.readSafeUTF(in);
             additionalContext = (List<IntStringPair>) in.readObject();
             com.serotonin.m2m2.rt.script.ScriptPermissions oldPermissions = (com.serotonin.m2m2.rt.script.ScriptPermissions) in.readObject();
-            if(oldPermissions != null)
-                scriptRoles = new ScriptPermissions(PermissionService.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
-            else
+            if(oldPermissions != null) {
+                PermissionService service = Common.getBean(PermissionService.class);
+                scriptRoles = new ScriptPermissions(service.upgradePermissions(oldPermissions.getAllLegacyPermissions()));
+            }else
                 scriptRoles = new ScriptPermissions();
         } else if (ver == 4) {
             targetPointId = in.readInt();

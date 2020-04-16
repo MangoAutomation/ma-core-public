@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -97,7 +98,8 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         int ver = in.readInt();
         if(ver == 1) {
-            MangoPermission permission = PermissionService.upgradePermissions((Set<String>) in.readObject());
+            PermissionService service = Common.getBean(PermissionService.class);
+            MangoPermission permission = service.upgradePermissions((Set<String>) in.readObject());
             roles = permission.getUniqueRoles();
         }else if(ver == 2) {
             //Nada

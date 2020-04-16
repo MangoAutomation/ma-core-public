@@ -407,7 +407,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
                 for(Set<Role> roles : roleSet) {
                     newRoles.add(new HashSet<>(roles));
                 }
-                def.update(new MangoPermission(newRoles));
+                def.update(newRoles);
             });
         }
     }
@@ -418,7 +418,7 @@ public abstract class AbstractVOServiceWithPermissionsTest<VO extends AbstractVO
             getService().permissionService.runAsSystemAdmin(() -> {
                 PermissionDefinition def = ModuleRegistry.getPermissionDefinition(getCreatePermissionType());
                 MangoPermission permission = def.getPermission();
-                def.update(permission.removeRole(vo));
+                def.update(permission.removeRole(vo).getRoles());
             });
         }
     }

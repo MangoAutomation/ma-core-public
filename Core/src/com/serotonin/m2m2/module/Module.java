@@ -186,6 +186,7 @@ public class Module {
             //Fully running so update our version
             InstalledModulesDao.instance.updateModuleVersion(this);
         }catch(Throwable t) {
+            //TODO Mango 4.0 unload module here
             throw new ModuleUpgradeException(t, name, previousVersion, version);
         }
         return false;

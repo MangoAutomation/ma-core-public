@@ -401,7 +401,7 @@ public abstract class AbstractBasicVOServiceWithPermissionsTestBase<VO extends A
                 for(Set<Role> roles : roleSet) {
                     newRoles.add(new HashSet<>(roles));
                 }
-                def.update(new MangoPermission(newRoles));
+                def.update(newRoles);
             });
         }
     }

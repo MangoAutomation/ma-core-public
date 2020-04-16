@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.type.JsonObject;
@@ -72,7 +71,7 @@ public class SystemSettingsImporter extends Importer {
                                         roles.add(Collections.singleton(new Role(Common.NEW_ID, xid)));
                                     }
                                 }
-                                def.update(new MangoPermission(roles));
+                                def.update(roles);
                                 addSuccessMessage(false, "emport.permission.prefix", key);
                             }catch(ValidationException e) {
                                 setValidationMessages(e.getValidationResult(), "emport.permission.prefix", key);

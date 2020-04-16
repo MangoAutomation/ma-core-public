@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -45,7 +44,7 @@ public class SuperadminPermissionDefinition extends PermissionDefinition {
     }
 
     @Override
-    public void update(MangoPermission permission) {
+    public void update(Set<Set<Role>> permission) {
         throw new ShouldNeverHappenException("Can't set superadmin roles");
     }
 }

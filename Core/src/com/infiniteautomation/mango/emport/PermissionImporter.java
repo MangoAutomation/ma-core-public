@@ -32,7 +32,7 @@ public class PermissionImporter extends Importer {
                 JsonValue v = json.get("roles");
                 if(v != null) {
                     MangoPermission permission = ctx.getReader().read(MangoPermission.class, v);
-                    def.update(permission);
+                    def.update(permission.getRoles());
                 }
                 addSuccessMessage(false, "emport.permission.prefix", permissionType);
             }catch(ValidationException e) {

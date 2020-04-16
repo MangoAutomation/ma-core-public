@@ -211,7 +211,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     //
     private String dataSourceTypeName;
     private String dataSourceName;
-    private MangoPermission dataSourceEditPermission;
+    private MangoPermission dataSourceEditPermission = new MangoPermission();
 
     //
     //

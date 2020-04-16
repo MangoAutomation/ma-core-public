@@ -111,12 +111,13 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
      * @param roles
      * @param permissionType
      */
-    public void replaceRolesOnPermission(MangoPermission permission, String permissionType) {
+    public MangoPermission replaceRolesOnPermission(Set<Set<Role>> roles, String permissionType) {
+        MangoPermission newPermission = new MangoPermission(roles);
         doInTransaction((status) -> {
             ejt.update("DELETE FROM roleMappings WHERE voId IS null AND voType IS null AND permissionType=?",
                     new Object[]{permissionType});
 
-            List<MangoPermissionEncoded> encoded = permission.encode();
+            List<MangoPermissionEncoded> encoded = newPermission.encode();
             ejt.batchUpdate(INSERT_VO_ROLE_MAPPING, new BatchPreparedStatementSetter() {
                 @Override
                 public int getBatchSize() {
@@ -134,6 +135,7 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
                 }
             });
         });
+        return newPermission;
     }
 
     /**

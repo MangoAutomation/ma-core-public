@@ -870,7 +870,7 @@ public class PermissionService {
      * @param permissions
      * @return
      */
-    public static MangoPermission upgradePermissions(String permissions) {
+    public MangoPermission upgradePermissions(String permissions) {
         Set<String> permissionSet = PermissionService.explodeLegacyPermissionGroups(permissions);
         return upgradePermissions(permissionSet);
     }
@@ -881,14 +881,15 @@ public class PermissionService {
      * @param permissionSet
      * @return
      */
-    public static MangoPermission upgradePermissions(Set<String> permissionSet) {
+    //TODO Mango 4.0 use the role dao
+    public MangoPermission upgradePermissions(Set<String> permissionSet) {
         if(permissionSet == null) {
             return new MangoPermission();
         }
 
         Set<Role> roles = new HashSet<>();
         for(String permission : permissionSet) {
-            RoleVO role = RoleDao.getInstance().getByXid(permission);
+            RoleVO role = roleDao.getByXid(permission);
             if(role != null) {
                 roles.add(role.getRole());
             }else {

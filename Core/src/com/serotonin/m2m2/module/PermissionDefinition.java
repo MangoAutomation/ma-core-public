@@ -83,8 +83,7 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
         this.permission = roleService.get().getDao().getPermission(getPermissionTypeName());
         if(previousVersion == null) {
             if(permission.getRoles().isEmpty()) {
-                this.permission = new MangoPermission(getDefaultRoles());
-                roleService.get().getDao().replaceRolesOnPermission(this.permission, getPermissionTypeName());
+                this.permission = roleService.get().getDao().replaceRolesOnPermission(getDefaultRoles(), getPermissionTypeName());
             }
         }
     }
@@ -103,10 +102,9 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
      *
      * @param roles
      */
-    public void update(MangoPermission permission) throws ValidationException {
+    public void update(Set<Set<Role>> permission) throws ValidationException {
         //TODO Mango 4.0 Transaction rollback etc?
-        this.roleService.get().replaceAllRolesOnPermission(permission, this);
-        this.permission = permission;
+        this.permission = this.roleService.get().replaceAllRolesOnPermission(permission, this);
         //notify user cache
         this.userDao.permissionChanged();
     }

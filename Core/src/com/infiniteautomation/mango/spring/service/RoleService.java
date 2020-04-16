@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -93,10 +94,10 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
 
     /**
      *
-     * @param permission
+     * @param roles
      * @param permissionType
      */
-    public void replaceAllRolesOnPermission(MangoPermission permission, PermissionDefinition def) throws ValidationException {
+    public MangoPermission replaceAllRolesOnPermission(Set<Set<Role>> roles, PermissionDefinition def) throws ValidationException {
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
         Objects.requireNonNull(def, "Permission definition cannot be null");
@@ -104,15 +105,21 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         permissionService.ensureAdminRole(user);
 
         ProcessResult validation = new ProcessResult();
-        Set<Role> roles = permission.getUniqueRoles();
-        if(roles != null) {
-            for(Role role : roles) {
-                try {
-                    RoleVO roleVO = get(role.getXid());
-                    roles.add(roleVO.getRole());
-                }catch(NotFoundException e) {
-                    validation.addGenericMessage("validate.role.notFound", role.getXid());
-                }
+        if(roles == null) {
+            validation.addContextualMessage("roles", "validate.required");
+            throw new ValidationException(validation);
+        }
+
+        Set<Role> unique = new HashSet<>();
+        for(Set<Role> roleSet : roles) {
+            unique.addAll(roleSet);
+        }
+
+        for(Role role : unique) {
+            try {
+                get(role.getXid());
+            }catch(NotFoundException e) {
+                validation.addGenericMessage("validate.role.notFound", role.getXid());
             }
         }
 
@@ -120,7 +127,7 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
             throw new ValidationException(validation);
         }
 
-        dao.replaceRolesOnPermission(permission, def.getPermissionTypeName());
+        return dao.replaceRolesOnPermission(roles, def.getPermissionTypeName());
     }
 
     /**
