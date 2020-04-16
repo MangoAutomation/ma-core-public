@@ -67,9 +67,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
         int numThreads = 5; //25;
         int numDataSources = 10; //100;
 
-        //Insert 0 roles
-        Set<Role> roles = new HashSet<>();
-
         PermissionService permissionService = Common.getBean(PermissionService.class);
         DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
         DataPointService dataPointService = Common.getBean(DataPointService.class);
@@ -89,7 +86,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 //Create data source
                                 MockDataSourceVO ds = new MockDataSourceVO();
                                 ds.setName(Common.generateXid("Mock "));
-                                ds.setEditRoles(roles);
 
                                 dataSourceService.insert(ds);
 
@@ -134,9 +130,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
         int numThreads = 5; //25;
         int numDataSources = 10; //100;
 
-        //Insert 0 roles
-        Set<Role> roles = new HashSet<>();
-
         PermissionService permissionService = Common.getBean(PermissionService.class);
         DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
 
@@ -155,7 +148,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 //Create data source
                                 MockDataSourceVO ds = new MockDataSourceVO();
                                 ds.setName(Common.generateXid("Mock "));
-                                ds.setEditRoles(roles);
 
                                 dataSourceService.insert(ds);
 
@@ -192,9 +184,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
         int numThreads = 5; //25;
         int numDataSources = 10; //100;
 
-        //Insert 0 roles
-        Set<Role> roles = new HashSet<>();
-
         PermissionService permissionService = Common.getBean(PermissionService.class);
         DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
 
@@ -213,7 +202,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 //Create data source
                                 MockDataSourceVO ds = new MockDataSourceVO();
                                 ds.setName(Common.generateXid("Mock "));
-                                ds.setEditRoles(roles);
 
                                 dataSourceService.insert(ds);
 
@@ -252,9 +240,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
 
         PermissionService permissionService = Common.getBean(PermissionService.class);
 
-        //Insert 0 roles
-        Set<Role> roles = new HashSet<>();
-
         DataSource dataSource = Common.databaseProxy.getDataSource();
         JdbcConnectionPool pool = (JdbcConnectionPool)dataSource;
         pool.setMaxConnections(numThreads*100);
@@ -291,7 +276,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 //Create data source
                                 MockDataSourceVO ds = new MockDataSourceVO();
                                 ds.setName(Common.generateXid("Mock "));
-                                ds.setEditRoles(roles);
 
                                 DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
                                 dataSourceService.insert(ds);
@@ -341,7 +325,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 //Create data source
                                 MockDataSourceVO ds = new MockDataSourceVO();
                                 ds.setName(Common.generateXid("Mock "));
-                                ds.setEditRoles(roles);
 
                                 DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
                                 dataSourceService.insert(ds);
@@ -435,7 +418,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 //Create data source
                                 MockDataSourceVO ds = new MockDataSourceVO();
                                 ds.setName(Common.generateXid("Mock "));
-                                ds.setEditRoles(roles);
 
                                 DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
                                 dataSourceService.insert(ds);
@@ -493,7 +475,6 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 //Create data source
                                 MockDataSourceVO ds = new MockDataSourceVO();
                                 ds.setName(Common.generateXid("Mock "));
-                                ds.setEditRoles(roles);
 
                                 DataSourceService dataSourceService = Common.getBean(DataSourceService.class);
                                 dataSourceService.insert(ds);
@@ -505,7 +486,7 @@ public class DataSourceDaoDeadlockDetection extends MangoTestBase {
                                 new TransactionTemplate(transactionManager).execute((status) -> {
                                     ejt.update("UPDATE dataSources SET xid=? WHERE id=?", new Object[] {ds.getXid() + "1", ds.getId()});
 
-                                    RoleDao.getInstance().replaceRolesOnVoPermission(ds.getEditRoles(), ds.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, false);
+                                    RoleDao.getInstance().replaceRolesOnVoPermission(ds.getEditPermission(), ds.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, false);
 
                                     return null;
                                 });

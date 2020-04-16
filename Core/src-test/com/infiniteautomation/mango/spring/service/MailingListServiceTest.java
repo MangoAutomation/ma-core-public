@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MailingListDao;
@@ -46,7 +47,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         runTest(() -> {
             MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
-            vo.setEditRoles(editRoles);
+            vo.setEditPermission(MangoPermission.createOrSet(editRoles));
             getService().permissionService.runAs(readUser, () -> {
                 service.insert(vo);
             });
@@ -58,7 +59,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         runTest(() -> {
             MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
-            vo.setEditRoles(editRoles);
+            vo.setEditPermission(MangoPermission.createOrSet(editRoles));
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
                 MailingList fromDb = service.get(vo.getId());
@@ -76,7 +77,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         runTest(() -> {
             MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
-            vo.setEditRoles(editRoles);
+            vo.setEditPermission(MangoPermission.createOrSet(editRoles));
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
                 MailingList fromDb = service.get(vo.getId());
@@ -84,7 +85,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             });
 
             getService().permissionService.runAs(readUser, () -> {
-                vo.setEditRoles(Collections.emptySet());
+                vo.setEditPermission(MangoPermission.createOrSet(Collections.emptySet()));
                 service.update(vo.getXid(), vo);
             });
         });
@@ -96,11 +97,11 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
             MailingList vo = newVO(readUser);
             Role role = new Role(10000, "new-role");
             Set<Role> editRoles = Collections.singleton(role);
-            vo.setEditRoles(editRoles);
+            vo.setEditPermission(MangoPermission.createOrSet(editRoles));
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
             });
-        }, "editRoles");
+        }, "editPermission");
     }
 
     @Test
@@ -108,11 +109,11 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         runTest(() -> {
             MailingList vo = newVO(readUser);
             Set<Role> editRoles = Collections.singleton(editRole);
-            vo.setEditRoles(editRoles);
+            vo.setEditPermission(MangoPermission.createOrSet(editRoles));
             getService().permissionService.runAsSystemAdmin(() -> {
                 service.insert(vo);
                 roleService.delete(editRole.getXid());
-                vo.setEditRoles(Collections.emptySet());
+                vo.setEditPermission(MangoPermission.createOrSet(Collections.emptySet()));
                 MailingList fromDb = service.get(vo.getId());
                 assertVoEqual(vo, fromDb);
             });
@@ -142,8 +143,8 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
 
             }
         }
-        assertRoles(expected.getReadRoles(), actual.getReadRoles());
-        assertRoles(expected.getEditRoles(), actual.getEditRoles());
+        assertPermission(expected.getReadPermission(), actual.getReadPermission());
+        assertPermission(expected.getEditPermission(), actual.getEditPermission());
     }
 
     @Override
@@ -152,13 +153,13 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
     }
 
     @Override
-    void setReadRoles(Set<Role> roles, MailingList vo) {
-        vo.setReadRoles(roles);
+    void setReadPermission(MangoPermission permission, MailingList vo) {
+        vo.setReadPermission(permission);
     }
 
     @Override
-    void setEditRoles(Set<Role> roles, MailingList vo) {
-        vo.setEditRoles(roles);
+    void setEditPermission(MangoPermission permission, MailingList vo) {
+        vo.setEditPermission(permission);
     }
 
     @Override
@@ -166,7 +167,7 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
         MailingList updated = (MailingList) existing.copy();
         updated.setName("updated");
         updated.setXid("NEW_XID");
-        updated.setReadRoles(Collections.singleton(readRole));
+        updated.setReadPermission(MangoPermission.createOrSet(Collections.singleton(readRole)));
         return updated;
     }
 
@@ -188,22 +189,22 @@ public class MailingListServiceTest extends AbstractVOServiceWithPermissionsTest
 
     @Override
     void addReadRoleToFail(Role role, MailingList vo) {
-        vo.getReadRoles().add(role);
+        vo.getReadPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getReadRolesContextKey() {
-        return "readRoles";
+        return "readPermission";
     }
 
     @Override
     void addEditRoleToFail(Role role, MailingList vo) {
-        vo.getEditRoles().add(role);
+        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getEditRolesContextKey() {
-        return "editRoles";
+        return "editPermission";
     }
 
 }

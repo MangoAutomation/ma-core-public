@@ -6,12 +6,10 @@ package com.serotonin.m2m2.vo;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Set;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.FileStoreDefinition;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  *
@@ -19,8 +17,8 @@ import com.serotonin.m2m2.vo.role.Role;
  */
 public class FileStore extends AbstractBasicVO {
     private String storeName;
-    private Set<Role> readRoles = Collections.emptySet();
-    private Set<Role> writeRoles = Collections.emptySet();
+    private MangoPermission readPermission = new MangoPermission();
+    private MangoPermission writePermission = new MangoPermission();
 
     public String getStoreName() {
         return storeName;
@@ -29,17 +27,20 @@ public class FileStore extends AbstractBasicVO {
         this.storeName = storeName;
     }
 
-    public Set<Role> getReadRoles() {
-        return readRoles;
+    public MangoPermission getReadPermission() {
+        return readPermission;
     }
-    public void setReadRoles(Set<Role> readRoles) {
-        this.readRoles = readRoles;
+
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
-    public Set<Role> getWriteRoles() {
-        return writeRoles;
+
+    public MangoPermission getWritePermission() {
+        return writePermission;
     }
-    public void setWriteRoles(Set<Role> writeRoles) {
-        this.writeRoles = writeRoles;
+
+    public void setWritePermission(MangoPermission writePermission) {
+        this.writePermission = writePermission;
     }
 
     /**

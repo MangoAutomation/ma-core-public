@@ -15,26 +15,26 @@ import com.serotonin.m2m2.vo.User;
 
 /**
  * This class proaction that can be actived via the REST system-action endpoint.
- * 
+ *
  * @author Terry Packer
  */
 /* See SystemActionTemporaryResourceManager and Implement these as single rest controllers inside modules */
-@Deprecated 
+@Deprecated
 abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     @Autowired
     private PermissionService service;
-    
+
     /**
      * The reference key to the action. Should be unique across all Modules and Mango Core
-     * 
+     *
      * @return the reference key
      */
     abstract public String getKey();
 
     /**
      * Validate the inputs and create the Task with input that will be scheduled and run
-     * 
+     *
      * @param input
      * @return
      */
@@ -47,7 +47,7 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     /**
      * Check the permission to the task
-     * 
+     *
      * @param user
      * @throws AccessDeniedException
      */
@@ -55,12 +55,12 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
         PermissionDefinition permission = getPermissionDefinition();
         if(permission == null)
             return;
-        service.hasAnyRole(user, permission.getRoles());
+        service.hasPermission(user, permission.getPermission());
     }
 
     /**
      * Get the permission definition for this action
-     * 
+     *
      * @return
      */
     protected PermissionDefinition getPermissionDefinition() {
@@ -69,14 +69,14 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     /**
      * Get the TypeName of the permission definition
-     * 
+     *
      * @return
      */
     abstract protected String getPermissionTypeName();
 
     /**
      * Return the Task configured with inputs
-     * 
+     *
      * @param input
      * @return
      */
@@ -84,7 +84,7 @@ abstract public class SystemActionDefinition extends ModuleElementDefinition {
 
     /**
      * Validate the inputs for the task
-     * 
+     *
      * @param input
      * @throws ValidationException
      */

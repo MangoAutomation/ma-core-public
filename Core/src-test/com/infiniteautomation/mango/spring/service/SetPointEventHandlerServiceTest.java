@@ -9,12 +9,12 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Sets;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.script.ScriptPermissions;
@@ -63,7 +63,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     MockDataSourceVO createDataSource(Set<Role> editRoles) {
         MockDataSourceVO dsVo = new MockDataSourceVO();
         dsVo.setName("permissions_test_datasource");
-        dsVo.setEditRoles(editRoles);
+        dsVo.setEditPermission(MangoPermission.createOrSet(editRoles));
         return (MockDataSourceVO) getService().permissionService.runAsSystemAdmin(() -> {
             return dataSourceService.insert(dsVo);
         });
@@ -74,8 +74,8 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
             DataPointVO point = new DataPointVO();
             point.setDataSourceId(dsVo.getId());
             point.setName("permissions_test_datasource");
-            point.setReadRoles(readRoles);
-            point.setSetRoles(setRoles);
+            point.setReadPermission(MangoPermission.createOrSet(readRoles));
+            point.setSetPermission(MangoPermission.createOrSet(setRoles));
             point.setPointLocator(new MockPointLocatorVO(DataTypes.NUMERIC, true));
 
             point = dataPointService.insert(point);
@@ -144,7 +144,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
                 service.delete(vo.getId());
 
                 //Ensure the mappings are gone
-                assertEquals(0, roleService.getDao().getRoles(vo, PermissionService.SCRIPT).size());
+                assertEquals(0, roleService.getDao().getPermission(vo, PermissionService.SCRIPT).getUniqueRoles().size());
 
                 service.get(vo.getId());
             });
@@ -166,7 +166,7 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getXid(), actual.getXid());
         assertEquals(expected.getName(), actual.getName());
-        assertRoles(((SetPointEventHandlerVO)expected).getScriptRoles().getRoles(), ((SetPointEventHandlerVO)actual).getScriptRoles().getRoles());
+        assertPermission(((SetPointEventHandlerVO)expected).getScriptRoles().getPermission(), ((SetPointEventHandlerVO)actual).getScriptRoles().getPermission());
 
         //TODO assert remaining
     }
@@ -196,9 +196,13 @@ public class SetPointEventHandlerServiceTest extends AbstractVOServiceTest<Abstr
     void addRoleToCreatePermission(Role vo) {
         getService().permissionService.runAsSystemAdmin(() -> {
             PermissionDefinition def = ModuleRegistry.getPermissionDefinition(EventHandlerCreatePermission.PERMISSION);
-            Set<Role> roles = new HashSet<>(def.getRoles());
-            roles.add(vo);
-            def.setRoles(roles.stream().map(Role::getXid).collect(Collectors.toSet()));
+            Set<Set<Role>> roleSet = def.getPermission().getRoles();
+            Set<Set<Role>> newRoles = new HashSet<>();
+            newRoles.add(Collections.singleton(vo));
+            for(Set<Role> roles : roleSet) {
+                newRoles.add(new HashSet<>(roles));
+            }
+            def.update(newRoles);
         });
     }
 

@@ -7,13 +7,12 @@ package com.serotonin.m2m2.vo.event.detector;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -27,7 +26,6 @@ import com.serotonin.m2m2.rt.event.detectors.AbstractEventDetectorRT;
 import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -40,9 +38,9 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
     public static final String XID_PREFIX = "ED_";
 
     @JsonProperty
-    private Set<Role> editRoles = Collections.emptySet(); //Roles for those who can edit.
+    private MangoPermission editPermission = new MangoPermission();
     @JsonProperty
-    private Set<Role> readRoles = Collections.emptySet(); //Roles for those who can view the resulting report
+    private MangoPermission readPermission = new MangoPermission();
     @JsonProperty
     private JsonNode data;
 
@@ -146,20 +144,20 @@ public abstract class AbstractEventDetectorVO extends AbstractVO {
         this.name = alias;
     }
 
-    public Set<Role> getEditRoles() {
-        return editRoles;
+    public MangoPermission getEditPermission() {
+        return editPermission;
     }
 
-    public void setEditRoles(Set<Role> editRoles) {
-        this.editRoles = editRoles;
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission = editPermission;
     }
 
-    public Set<Role> getReadRoles() {
-        return readRoles;
+    public MangoPermission getReadPermission() {
+        return readPermission;
     }
 
-    public void setReadRoles(Set<Role> readRoles) {
-        this.readRoles = readRoles;
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
 
     public JsonNode getData() {

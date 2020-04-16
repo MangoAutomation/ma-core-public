@@ -52,7 +52,6 @@ import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -395,14 +394,22 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         return select;
     }
 
+    /**
+     * Join on permission read conditions to limit results to what the user can 'see'
+     */
     @Override
-    public int customizedCount(ConditionSortLimit conditions) {
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, PermissionHolder user) {
+        return select;
+    }
+
+    @Override
+    public int customizedCount(ConditionSortLimit conditions, PermissionHolder user) {
         Condition condition = conditions.getCondition();
         SelectSelectStep<Record1<Integer>> count = getCountQuery();
 
         SelectJoinStep<Record1<Integer>> select = count.from(this.table.getTableAsAlias());
         select = joinTables(select, conditions);
-
+        select = joinPermissions(select, user);
         return customizedCount(select, condition);
     }
 
@@ -432,22 +439,25 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public void customizedQuery(ConditionSortLimit conditions, MappedRowCallback<T> callback) {
+    public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
+        select = joinPermissions(select, user);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 
     @Override
-    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, PermissionHolder user, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
 
         select = joinTables(select, null);
+        select = joinPermissions(select, user);
         customizedQuery(select, conditions, sort, limit, offset, callback);
     }
 
     @Override
-    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset, MappedRowCallback<T> callback) {
+    public void customizedQuery(SelectJoinStep<Record> select, Condition condition, List<SortField<Object>> sort, Integer limit, Integer offset,
+            MappedRowCallback<T> callback) {
         SelectConnectByStep<Record> afterWhere = condition == null ? select : select.where(condition);
 
         SelectLimitStep<Record> afterSort = sort == null ? afterWhere : afterWhere.orderBy(sort);
@@ -497,12 +507,7 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     }
 
     @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user) {
-        return rqlToCondition(rql, fieldMap, valueConverters, user, PermissionService.READ);
-    }
-
-    @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user, String permissionType) {
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
 
         Map<String, Function<Object, Object>> fullMap;
         if(valueConverters == null) {
@@ -523,14 +528,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
         RQLToCondition rqlToCondition = createRqlToCondition(fullFields, fullMap);
         ConditionSortLimit conditions = rqlToCondition.visit(rql);
 
-        //By default add the read role conditions
-        if(!user.hasAdminRole()) {
-            Condition readRoleCondition = hasPermission(user, PermissionService.READ);
-            if(readRoleCondition != null) {
-                conditions.addCondition(readRoleCondition);
-            }
-        }
-
         return conditions;
     }
 
@@ -542,17 +539,6 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      */
     protected RQLToCondition createRqlToCondition(Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> converterMap) {
         return new RQLToCondition(fieldMap, converterMap);
-    }
-
-    /**
-     * If this VO has permissions then restrict based on role mappings
-     * @param user
-     * @param permissionType
-     * @return
-     */
-    @Override
-    public Condition hasPermission(PermissionHolder user, String permissionType) {
-        return null;
     }
 
     protected DaoEvent<T> createDaoEvent(DaoEventType type, T vo, T existing) {

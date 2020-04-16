@@ -45,7 +45,6 @@ import com.serotonin.m2m2.rt.event.type.PublisherEventType;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
 import com.serotonin.m2m2.vo.comment.UserCommentVO;
 import com.serotonin.m2m2.vo.event.EventInstanceVO;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 import net.jazdw.rql.parser.ASTNode;
 
@@ -213,7 +212,7 @@ public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstance
     }
 
     @Override
-    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters, PermissionHolder user) {
+    public ConditionSortLimit rqlToCondition(ASTNode rql, Map<String, Field<?>> fieldMap, Map<String, Function<Object, Object>> valueConverters) {
         Map<String, Function<Object, Object>> fullMap;
         if(valueConverters == null) {
             fullMap = new HashMap<>(this.valueConverterMap);

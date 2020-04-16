@@ -4,32 +4,40 @@
 package com.serotonin.m2m2.db.upgrade;
 
 import java.io.OutputStream;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.permission.MangoPermission.MangoPermissionEncoded;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.Functions;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
+import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.FileStore;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.event.AbstractEventHandlerVO;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.mailingList.MailingList;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.util.SerializationHelper;
 
 /**
  * Fix MySQL data source table to have a name column length of 255
@@ -92,6 +100,8 @@ public class Upgrade29 extends DBUpgrade {
             convertJsonData(roles, out);
             convertMailingLists(roles, out);
             convertFileStores(roles, out);
+            convertEmailEventHandlers(out);
+            convertSetPointEventHandlers(out);
             dropTemplates(out);
             dropPointHierarchy(out);
             dropUserEvents(out);
@@ -326,6 +336,39 @@ public class Upgrade29 extends DBUpgrade {
         runScript(scripts, out);
     }
 
+    /**
+     * Read out data and re-serialize to convert script roles
+     */
+    private void convertEmailEventHandlers(OutputStream out) {
+        //Read and save all persistent data sources to bump their serialization version
+        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int id = rs.getInt(1);
+                AbstractEventHandlerVO vo = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
+                ejt.update("UPDATE eventHandlers SET data=? where id=?",
+                        new Object[] {SerializationHelper.writeObjectToArray(vo), id});
+            }
+        });
+    }
+
+    /**
+     * Read out data and re-serialize to convert script roles
+     * @param out
+     */
+    private void convertSetPointEventHandlers(OutputStream out) {
+        //Read and save all persistent data sources to bump their serialization version
+        this.ejt.query("SELECT id, data FROM eventHandlers eh WHERE eh.eventHandlerType=?", new Object[] {EmailEventHandlerDefinition.TYPE_NAME}, new RowCallbackHandler() {
+            @Override
+            public void processRow(ResultSet rs) throws SQLException {
+                int id = rs.getInt(1);
+                AbstractEventHandlerVO vo = (AbstractEventHandlerVO) SerializationHelper.readObjectInContext(rs.getBinaryStream(2));
+                ejt.update("UPDATE eventHandlers SET data=? where id=?",
+                        new Object[] {SerializationHelper.writeObjectToArray(vo), id});
+            }
+        });
+    }
+
     //JSON Data
     private String[] jsonDataColumnsSql = new String[]{
             "ALTER TABLE dataPoints ADD COLUMN jsonData longtext;",
@@ -364,7 +407,7 @@ public class Upgrade29 extends DBUpgrade {
             "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));",
             "ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);",
 
-            "CREATE TABLE roleMappings (roleId int not null, voId int, voType varchar(255), permissionType varchar(255) not null);",
+            "CREATE TABLE roleMappings (roleId int not null, voId int, voType varchar(255), permissionType varchar(255) not null, mask BIGINT NOT NULL);",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);",
 
@@ -378,7 +421,7 @@ public class Upgrade29 extends DBUpgrade {
             "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id)) engine=InnoDB;",
             "ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);",
 
-            "CREATE TABLE roleMappings (roleId int not null, voId int, voType varchar(255), permissionType varchar(255) not null) engine=InnoDB;",
+            "CREATE TABLE roleMappings (roleId int not null, voId int, voType varchar(255), permissionType varchar(255) not null, mask BIGINT NOT NULL) engine=InnoDB;",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);",
 
@@ -391,7 +434,7 @@ public class Upgrade29 extends DBUpgrade {
             "CREATE TABLE roles (id int not null auto_increment, xid varchar(100) not null, name varchar(255) not null, primary key (id));",
             "ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);",
 
-            "CREATE TABLE roleMappings (roleId int not null, voId int, voType nvarchar(255), permissionType varchar(255) not null);",
+            "CREATE TABLE roleMappings (roleId int not null, voId int, voType nvarchar(255), permissionType varchar(255) not null, mask BIGINT NOT NULL);",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;",
             "ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);",
 
@@ -492,7 +535,7 @@ public class Upgrade29 extends DBUpgrade {
     }
 
     /**
-     * Ensure role exists and insert mappings for this permission
+     * Ensure role exists and insert OR mappings for this permission
      *  this is protected for use in modules for this upgrade
      * @param voId
      * @param voType
@@ -502,7 +545,7 @@ public class Upgrade29 extends DBUpgrade {
      */
     protected void insertMapping(Integer voId, String voType, String permissionType, Set<String> existingPermissions, Map<String, Role> roles) {
         //Ensure each role is only used 1x for this permission
-        Set<String> voRoles = new HashSet<>();
+        Set<Set<Role>> permissionOrSet = new HashSet<>();
         for(String permission : existingPermissions) {
             //ensure all roles are lower case and don't have spaces on the ends
             permission = permission.trim();
@@ -511,20 +554,33 @@ public class Upgrade29 extends DBUpgrade {
                 if(r == null) {
                     r = new Role(ejt.doInsert("INSERT INTO roles (xid, name) values (?,?)", new Object[] {role, role}), role);
                 }
-                if(!voRoles.contains(role)) {
-                    //Add a mapping
-                    ejt.doInsert("INSERT INTO roleMappings (roleId, voId, voType, permissionType) VALUES (?,?,?,?)",
-                            new Object[] {
-                                    r.getId(),
-                                    voId,
-                                    voType,
-                                    permissionType
-                    });
-                    voRoles.add(role);
-                }
+                //Add an or mapping
+                permissionOrSet.add(Collections.singleton(r));
                 return r;
             });
         }
+        MangoPermission mangoPermission = new MangoPermission(permissionOrSet);
+        List<MangoPermissionEncoded> encoded = mangoPermission.encode();
+        ejt.batchUpdate("INSERT INTO roleMappings (roleId, voId, voType, permissionType, mask) VALUES (?,?,?,?,?)", new BatchPreparedStatementSetter() {
+            @Override
+            public int getBatchSize() {
+                return encoded.size();
+            }
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                MangoPermissionEncoded r = encoded.get(i);
+                ps.setInt(1, r.getRole().getId());
+                if(voId == null) {
+                    ps.setNull(2, java.sql.Types.INTEGER);
+                }else {
+                    ps.setInt(2, voId);
+                }
+                ps.setString(3, voType);
+                ps.setString(4, permissionType);
+                ps.setLong(5, r.getMask());
+            }
+        });
     }
 
 

@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.IllformedLocaleException;
 import java.util.Locale;
 import java.util.Set;
@@ -34,16 +35,21 @@ import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
 import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.spi.JsonSerializable;
+import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.db.dao.UserDao;
+import com.serotonin.m2m2.i18n.TranslatableJsonException;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.i18n.Translations;
 import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
 
 public class User extends AbstractVO implements SetPointSource, JsonSerializable, UserDetails, PermissionHolder {
@@ -103,7 +109,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     @JsonProperty
     private JsonNode data;
     @JsonProperty
-    private Set<Role> roles = Collections.unmodifiableSet(Collections.emptySet());
+    private Set<Role> roles = Collections.unmodifiableSet(Collections.singleton(PermissionHolder.USER_ROLE));
 
     //
     // Session data. The user object is stored in session, and some other session-based information is cached here
@@ -686,5 +692,48 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         localeObject = new LazyInitializer<>();
         grantedPermissions = new LazyInitializer<>();
         authorities = new LazyInitializer<>();
+    }
+
+    Set<Role> readLegacyPermissions(String permissionName, Set<Role> existing, JsonObject jsonObject) throws TranslatableJsonException {
+        //Legacy permissions support
+        if(jsonObject.containsKey(permissionName)) {
+            Set<Role> roles;
+            if(existing != null) {
+                roles = new HashSet<>(existing);
+            }else {
+                roles = new HashSet<>();
+            }
+            //Try string format
+            try {
+                String groups = jsonObject.getString(permissionName);
+                for(String permission : PermissionService.explodeLegacyPermissionGroups(groups)) {
+                    RoleVO role = RoleDao.getInstance().getByXid(permission);
+                    if(role != null) {
+                        roles.add(role.getRole());
+                    } else {
+                        throw new TranslatableJsonException("emport.error.missingRole", permission, permissionName);
+                    }
+                }
+
+            }catch(ClassCastException e) {
+                //Might be an array
+                //Try array
+                try {
+                    JsonArray permissions = jsonObject.getJsonArray(permissionName);
+                    for(JsonValue jv : permissions) {
+                        RoleVO role = RoleDao.getInstance().getByXid(jv.toString());
+                        if(role != null) {
+                            roles.add(role.getRole());
+                        } else {
+                            throw new TranslatableJsonException("emport.error.missingRole", jv.toString(), permissionName);
+                        }
+                    }
+                }catch(ClassCastException e2) {
+                    throw e2; //Give up
+                }
+            }
+            return Collections.unmodifiableSet(roles);
+        }
+        return Collections.emptySet();
     }
 }

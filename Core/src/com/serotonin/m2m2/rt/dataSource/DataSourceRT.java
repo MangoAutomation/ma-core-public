@@ -5,12 +5,9 @@
 package com.serotonin.m2m2.rt.dataSource;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -28,7 +25,6 @@ import com.serotonin.m2m2.rt.dataImage.SetPointSource;
 import com.serotonin.m2m2.rt.event.type.DataSourceEventType;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.util.ILifecycle;
 
 /**
@@ -274,10 +270,11 @@ abstract public class DataSourceRT<VO extends DataSourceVO> extends AbstractRT<V
      * @param event
      */
     public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        if(getVo().getEditRoles().contains(event.getRole().getRole())) {
-            Set<Role> newEditRoles = new HashSet<>(getVo().getEditRoles());
-            newEditRoles.remove(event.getRole().getRole());
-            getVo().setEditRoles(Collections.unmodifiableSet(newEditRoles));
+        if(getVo().getEditPermission().containsRole(event.getRole().getRole())) {
+            getVo().setEditPermission(getVo().getEditPermission().removeRole(event.getRole().getRole()));
+        }
+        if(getVo().getReadPermission().containsRole(event.getRole().getRole())) {
+            getVo().setReadPermission(getVo().getReadPermission().removeRole(event.getRole().getRole()));
         }
     }
 }

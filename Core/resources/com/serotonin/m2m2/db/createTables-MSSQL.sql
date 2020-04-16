@@ -327,7 +327,8 @@ CREATE TABLE roleMappings (
 	roleId int not null,
 	voId int,
 	voType nvarchar(255),
-	permissionType nvarchar(255) not null
+	permissionType nvarchar(255) not NULL,
+	mask BIGINT NOT NULL
 );
 ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
 ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);

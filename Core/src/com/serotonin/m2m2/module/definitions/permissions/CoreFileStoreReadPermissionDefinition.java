@@ -5,6 +5,7 @@
 package com.serotonin.m2m2.module.definitions.permissions;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -31,7 +32,9 @@ public class CoreFileStoreReadPermissionDefinition extends PermissionDefinition{
     }
 
     @Override
-    public Set<Role> getDefaultRoles() {
-        return Collections.singleton(PermissionHolder.USER_ROLE);
+    public Set<Set<Role>> getDefaultRoles() {
+        Set<Set<Role>> roles = new HashSet<Set<Role>>();
+        roles.add(Collections.singleton(PermissionHolder.USER_ROLE));
+        return roles;
     }
 }

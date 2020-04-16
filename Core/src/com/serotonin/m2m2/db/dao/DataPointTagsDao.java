@@ -35,7 +35,6 @@ import org.springframework.stereotype.Repository;
 import com.infiniteautomation.mango.db.query.ConditionSortLimitWithTagKeys;
 import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
-import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
@@ -180,9 +179,9 @@ public class DataPointTagsDao extends BaseDao {
                 .from(fromTable);
 
         if (!user.hasAdminRole()) {
-            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
             query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
-            try (Stream<Record1<String>> stream = query.where(userHasPermission).stream()) {
+            query = DataPointDao.getInstance().joinPermissions(query, user);
+            try (Stream<Record1<String>> stream = query.stream()) {
                 return stream.map(r -> r.value1()).collect(Collectors.toSet());
             }
         }else {
@@ -200,9 +199,9 @@ public class DataPointTagsDao extends BaseDao {
 
         SelectConditionStep<Record1<String>> conditional;
         if (!user.hasAdminRole()) {
-            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
             query = query.join(dataPointTable.getTableAsAlias()).on(DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
-            conditional = query.where(userHasPermission, TAG_KEY.eq(tagKey));
+            query = DataPointDao.getInstance().joinPermissions(query, user);
+            conditional = query.where(TAG_KEY.eq(tagKey));
         }else {
             conditional = query.where(TAG_KEY.eq(tagKey));
         }
@@ -235,9 +234,8 @@ public class DataPointTagsDao extends BaseDao {
                 .from(from);
 
         if (!user.hasAdminRole()) {
-            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
             query = query.join(dataPointTable.getTableAsAlias()).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
-            conditions.add(userHasPermission);
+            query = DataPointDao.getInstance().joinPermissions(query, user);
         }
 
         SelectConditionStep<Record1<String>> conditional = query.where(DSL.and(conditions));
@@ -266,9 +264,8 @@ public class DataPointTagsDao extends BaseDao {
 
 
         if (!user.hasAdminRole()) {
-            Condition userHasPermission = DataPointDao.getInstance().hasPermission(user, PermissionService.READ);
             query = query.join(dataPointTable.getTableAsAlias()).on(PIVOT_ALIAS_DATA_POINT_ID.eq(dataPointTable.getIdAlias()));
-            conditionList.add(userHasPermission);
+            query = DataPointDao.getInstance().joinPermissions(query, user);
         }
 
         Select<Record1<String>> result = query;

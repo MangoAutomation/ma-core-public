@@ -5,11 +5,11 @@
 package com.serotonin.m2m2.vo.mailingList;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -17,7 +17,6 @@ import com.serotonin.json.spi.JsonProperty;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.vo.AbstractVO;
-import com.serotonin.m2m2.vo.role.Role;
 
 public class MailingList extends AbstractVO {
 
@@ -26,10 +25,10 @@ public class MailingList extends AbstractVO {
     @JsonProperty
     private List<MailingListRecipient> entries;
     private AlarmLevels receiveAlarmEmails = AlarmLevels.IGNORE;
-    @JsonProperty
-    private Set<Role> readRoles = Collections.emptySet();
-    @JsonProperty
-    private Set<Role> editRoles = Collections.emptySet();
+    @JsonProperty(readAliases = {"editPermissions"})
+    private MangoPermission editPermission = new MangoPermission();
+    @JsonProperty(readAliases = {"readPermissions"})
+    private MangoPermission readPermission = new MangoPermission();
 
     /**
      * Integers that are present in the inactive intervals set are times at which the mailing list schedule is not to be
@@ -63,20 +62,20 @@ public class MailingList extends AbstractVO {
         this.receiveAlarmEmails = receiveAlarmEmails;
     }
 
-    public Set<Role> getReadRoles() {
-        return readRoles;
+    public MangoPermission getEditPermission() {
+        return editPermission;
     }
 
-    public void setReadRoles(Set<Role> readRoles) {
-        this.readRoles = readRoles;
+    public void setEditPermission(MangoPermission editPermission) {
+        this.editPermission = editPermission;
     }
 
-    public Set<Role> getEditRoles() {
-        return editRoles;
+    public MangoPermission getReadPermission() {
+        return readPermission;
     }
 
-    public void setEditRoles(Set<Role> editRoles) {
-        this.editRoles = editRoles;
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
 
     @Override
@@ -98,9 +97,6 @@ public class MailingList extends AbstractVO {
         if(text != null){
             receiveAlarmEmails = AlarmLevels.fromName(text);
         }
-        //Legacy permissions support
-        this.readRoles = readLegacyPermissions("readPermissions", this.readRoles, jsonObject);
-        this.editRoles = readLegacyPermissions("editPermissions", this.editRoles, jsonObject);
     }
 
     @Override

@@ -19,6 +19,7 @@ import org.jooq.Field;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectJoinStep;
 import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
@@ -36,6 +37,7 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition.GrantedAccess;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
@@ -275,15 +277,15 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
 
     @Override
     public void loadRelationalData(DataSourceVO vo) {
-        vo.setEditRoles(RoleDao.getInstance().getRoles(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
-        vo.setReadRoles(RoleDao.getInstance().getRoles(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ));
+        vo.setEditPermission(RoleDao.getInstance().getPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
+        vo.setReadPermission(RoleDao.getInstance().getPermission(vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ));
         vo.getDefinition().loadRelationalData(vo);
     }
 
     @Override
     public void saveRelationalData(DataSourceVO vo, boolean insert) {
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ, insert);
         vo.getDefinition().saveRelationalData(vo, insert);
     }
 
@@ -299,38 +301,34 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     }
 
     @Override
-    public Condition hasPermission(PermissionHolder user, String permissionType) {
-        List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
-        Condition roleIdsIn = RoleTableDefinition.roleIdFieldAlias.in(roleIds);
-        if(PermissionService.EDIT.equals(permissionType)) {
-            Condition editCondition = DSL.and(
-                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
-                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
-                    );
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
+            PermissionHolder user) {
+        if(!user.hasAdminRole()) {
+            List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            return this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
-                    .from(RoleTableDefinition.roleMappingTableAsAlias)
-                    .where(editCondition, roleIdsIn));
-        }else if(PermissionService.READ.equals(permissionType)) {
-            Condition readConditions = DSL.or(
-                    DSL.and(
-                            RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
-                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.READ)
-                            ),
-                    DSL.and(
-                            RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                            RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
-                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
-                            )
-                    );
+            Table<?> permission = create.select(
+                    RoleTableDefinition.voTypeField,
+                    RoleTableDefinition.voIdField,
+                    RoleTableDefinition.permissionTypeField).from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .groupBy(RoleTableDefinition.voTypeField,
+                            RoleTableDefinition.voIdField,
+                            RoleTableDefinition.permissionTypeField)
+                    .having(granted)
+                    .asTable("rm");
 
-            return this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
-                    .from(RoleTableDefinition.roleMappingTableAsAlias)
-                    .where(readConditions, roleIdsIn));
-        }else {
-            return DSL.falseCondition();
+
+            Condition readConditions = DSL.and(
+                    RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
+                    this.table.getAlias("id").eq(permission.field("voId")),
+                    RoleTableDefinition.permissionTypeField.in(PermissionService.READ, PermissionService.EDIT));
+
+            //Join on role mappings select with conditions
+            select = select
+                    .join(permission)
+                    .on(DSL.or(readConditions));
         }
+        return select;
     }
 }

@@ -5,20 +5,26 @@
  */
 package com.infiniteautomation.mango.emport;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
+import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
  * @author Terry Packer
@@ -55,7 +61,17 @@ public class SystemSettingsImporter extends Importer {
                         if (def != null) {
                             //Legacy permission import
                             try{
-                                def.setRoles(PermissionService.explodeLegacyPermissionGroups((String)o));
+                                Set<String> xids = PermissionService.explodeLegacyPermissionGroups((String)o);
+                                Set<Set<Role>> roles = new HashSet<>();
+                                for(String xid : xids) {
+                                    RoleVO role = RoleDao.getInstance().getByXid(xid);
+                                    if(role != null) {
+                                        roles.add(Collections.singleton(role.getRole()));
+                                    }else {
+                                        roles.add(Collections.singleton(new Role(Common.NEW_ID, xid)));
+                                    }
+                                }
+                                def.update(roles);
                                 addSuccessMessage(false, "emport.permission.prefix", key);
                             }catch(ValidationException e) {
                                 setValidationMessages(e.getValidationResult(), "emport.permission.prefix", key);

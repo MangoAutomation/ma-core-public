@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -20,7 +21,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 
 import com.infiniteautomation.mango.emport.ImportTask;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.DataPointService;
 import com.infiniteautomation.mango.spring.service.DataSourceService;
 import com.infiniteautomation.mango.spring.service.EventDetectorsService;
@@ -47,7 +48,9 @@ import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
+import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonValue;
 import com.serotonin.m2m2.db.H2InMemoryDatabaseProxy;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.ProcessMessage;
@@ -257,10 +260,53 @@ public class MangoTestBase {
         }
     }
 
+    /**
+     * Convert an object to sero json
+     * @param o
+     * @return
+     * @throws IOException
+     */
+    protected String convertToSeroJson(Object o) throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        JsonWriter writer = new JsonWriter(Common.JSON_CONTEXT, stringWriter);
+        writer.setPrettyOutput(true);
+        writer.setPrettyIndent(2);
+        try {
+            writer.writeObject(o);
+            writer.flush();
+            return stringWriter.toString();
+        }
+        catch (JsonException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
+     * Convert from json string to Object
+     * @param clazz
+     * @param json
+     * @return
+     * @throws IOException
+     */
+    protected Object readSeroJson(Class<? extends Object> clazz, String json) throws IOException {
+        JsonReader jr = new JsonReader(json);
+        try {
+            JsonValue jo = jr.read(JsonValue.class);
+            JsonReader reader = new JsonReader(Common.JSON_CONTEXT, jo);
+            return reader.read(clazz);
+        }catch(JsonException e){
+            throw new IOException(e);
+        }
+    }
+
     protected List<RoleVO> createRoles(int count) {
+        return createRoles(count, UUID.randomUUID().toString());
+    }
+
+    protected List<RoleVO> createRoles(int count, String prefix) {
         List<RoleVO> roles = new ArrayList<>();
         for(int i=0; i<count; i++) {
-            roles.add(createRole("role" + i, "Role " + i));
+            roles.add(createRole(prefix + i, prefix + i));
         }
         return roles;
     }
@@ -341,17 +387,17 @@ public class MangoTestBase {
     }
 
     protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled) {
-        return createMockDataSource(name, xid, enabled, Collections.emptySet(), Collections.emptySet());
+        return createMockDataSource(name, xid, enabled, new MangoPermission(), new MangoPermission());
     }
 
-    protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled, Set<Role> readRoles, Set<Role> editRoles) {
+    protected MockDataSourceVO createMockDataSource(String name, String xid, boolean enabled, MangoPermission readPermission, MangoPermission editPermission) {
         DataSourceService service = Common.getBean(DataSourceService.class);
         MockDataSourceVO vo = new MockDataSourceVO();
         vo.setXid(name);
         vo.setName(xid);
         vo.setEnabled(enabled);
-        vo.setReadRoles(readRoles);
-        vo.setEditRoles(editRoles);
+        vo.setReadPermission(readPermission);
+        vo.setEditPermission(editPermission);
 
         return (MockDataSourceVO) service.getPermissionService().runAsSystemAdmin(() -> {
             try {
@@ -377,14 +423,14 @@ public class MangoTestBase {
         return points;
     }
 
-    protected List<IDataPoint> createMockDataPoints(int count, boolean enabled, Set<Role> readRoles, Set<Role> setRoles) {
-        return createMockDataPoints(count, enabled, readRoles, setRoles, createMockDataSource(enabled));
+    protected List<IDataPoint> createMockDataPoints(int count, boolean enabled, MangoPermission readPermission, MangoPermission setPermission) {
+        return createMockDataPoints(count, enabled, readPermission, setPermission, createMockDataSource(enabled));
     }
 
-    protected List<IDataPoint> createMockDataPoints(int count, boolean enabled, Set<Role> readRoles, Set<Role> setRoles, DataSourceVO ds) {
+    protected List<IDataPoint> createMockDataPoints(int count, boolean enabled, MangoPermission readPermission, MangoPermission setPermission, DataSourceVO ds) {
         List<IDataPoint> points = new ArrayList<>(count);
-        String name = UUID.randomUUID().toString();
         for(int i=0; i<count; i++) {
+            String name = UUID.randomUUID().toString();
             points.add(createMockDataPoint(Common.NEW_ID,
                     UUID.randomUUID().toString(),
                     name,
@@ -392,8 +438,8 @@ public class MangoTestBase {
                     enabled,
                     ds.getId(),
                     ds.getXid(),
-                    readRoles,
-                    setRoles,
+                    readPermission,
+                    setPermission,
                     new MockPointLocatorVO()));
         }
         return points;
@@ -418,11 +464,11 @@ public class MangoTestBase {
     protected DataPointVO createMockDataPoint(int id, String xid, String name,
             String deviceName, boolean enabled, int dataSourceId, String dataSourceXid, MockPointLocatorVO vo) {
         return createMockDataPoint(id, xid,
-                name, deviceName, enabled, dataSourceId, dataSourceXid, new HashSet<>(), new HashSet<>(), vo);
+                name, deviceName, enabled, dataSourceId, dataSourceXid, new MangoPermission(), new MangoPermission(), vo);
     }
 
     protected DataPointVO createMockDataPoint(int id, String xid, String name, String deviceName, boolean enabled, int dataSourceId,
-            String dataSourceXid, Set<Role> readRoles, Set<Role> setRoles, MockPointLocatorVO vo) {
+            String dataSourceXid, MangoPermission readPermission, MangoPermission setPermission, MockPointLocatorVO vo) {
 
         DataPointService service = Common.getBean(DataPointService.class);
         DataPointVO dp = new DataPointVO();
@@ -434,8 +480,8 @@ public class MangoTestBase {
         dp.setPointLocator(vo);
         dp.setDataSourceId(dataSourceId);
         dp.setDataSourceXid(dataSourceXid);
-        dp.setReadRoles(readRoles);
-        dp.setSetRoles(setRoles);
+        dp.setReadPermission(readPermission);
+        dp.setSetPermission(setPermission);
 
         return service.getPermissionService().runAsSystemAdmin(() -> {
             try {

@@ -10,13 +10,13 @@ import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
@@ -38,7 +38,6 @@ import com.serotonin.m2m2.view.text.NoneRenderer;
 import com.serotonin.m2m2.view.text.PlainRenderer;
 import com.serotonin.m2m2.view.text.TextRenderer;
 import com.serotonin.m2m2.vo.dataSource.PointLocatorVO;
-import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.util.SerializationHelper;
 
 public class DataPointVO extends AbstractActionVO implements IDataPoint {
@@ -200,9 +199,9 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     @JsonProperty
     private int intervalLoggingSampleWindowSize;
     @JsonProperty
-    private Set<Role> readRoles = Collections.emptySet();
+    private MangoPermission readPermission = new MangoPermission();
     @JsonProperty
-    private Set<Role> setRoles = Collections.emptySet();
+    private MangoPermission setPermission = new MangoPermission();
     @JsonProperty
     private JsonNode data;
 
@@ -212,7 +211,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     //
     private String dataSourceTypeName;
     private String dataSourceName;
-    private Set<Role> dataSourceEditRoles;
+    private MangoPermission dataSourceEditPermission = new MangoPermission();
 
     //
     //
@@ -612,21 +611,21 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
     }
 
     @Override
-    public Set<Role> getReadRoles() {
-        return readRoles;
+    public MangoPermission getReadPermission() {
+        return readPermission;
     }
 
-    public void setReadRoles(Set<Role> readRoles) {
-        this.readRoles = readRoles;
+    public void setReadPermission(MangoPermission readPermission) {
+        this.readPermission = readPermission;
     }
 
     @Override
-    public Set<Role> getSetRoles() {
-        return setRoles;
+    public MangoPermission getSetPermission() {
+        return setPermission;
     }
 
-    public void setSetRoles(Set<Role> setRoles) {
-        this.setRoles = setRoles;
+    public void setSetPermission(MangoPermission setPermission) {
+        this.setPermission = setPermission;
     }
 
     public JsonNode getData() {
@@ -641,15 +640,15 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
      * Roles joined from database (not saved into point)
      * @return the dataSourceEditRoles
      */
-    public Set<Role> getDataSourceEditRoles() {
-        return dataSourceEditRoles;
+    public MangoPermission getDataSourceEditRoles() {
+        return dataSourceEditPermission;
     }
     /**
      * Roles joined from database (not saved into point)
      * @param dataSourceEditRoles the dataSourceEditRoles to set
      */
-    public void setDataSourceEditRoles(Set<Role> dataSourceEditRoles) {
-        this.dataSourceEditRoles = dataSourceEditRoles;
+    public void setDataSourceEditPermission(MangoPermission dataSourceEditPermission) {
+        this.dataSourceEditPermission = dataSourceEditPermission;
     }
     /* ############################## */
 
@@ -665,7 +664,7 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             copy.setDataSourceName(dataSourceName);
             copy.setDataSourceTypeName(dataSourceTypeName);
             copy.setDataSourceXid(dataSourceXid);
-            copy.setDataSourceEditRoles(dataSourceEditRoles);
+            copy.setDataSourceEditPermission(dataSourceEditPermission);
             copy.setDefaultCacheSize(defaultCacheSize);
             copy.setDeviceName(deviceName);
             copy.setDiscardExtremeValues(discardExtremeValues);
@@ -695,8 +694,8 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
             copy.setXid(xid);
             copy.setOverrideIntervalLoggingSamples(overrideIntervalLoggingSamples);
             copy.setIntervalLoggingSampleWindowSize(intervalLoggingSampleWindowSize);
-            copy.setReadRoles(readRoles);
-            copy.setSetRoles(setRoles);
+            copy.setReadPermission(readPermission);
+            copy.setSetPermission(setPermission);
             copy.setPreventSetExtremeValues(preventSetExtremeValues);
             copy.setSetExtremeHighLimit(setExtremeHighLimit);
             copy.setSetExtremeLowLimit(setExtremeLowLimit);
@@ -770,8 +769,8 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
                 + ", plotType=" + plotType + ", pointLocator=" + pointLocator + ", dataSourceTypeName=" + dataSourceTypeName
                 + ", dataSourceName=" + dataSourceName + ", dataSourceXid=" + dataSourceXid
                 + ", overrideIntervalLoggingSamples=" + overrideIntervalLoggingSamples
-                + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readRoles="
-                + readRoles + ", setRoles=" + setRoles
+                + ", intervalLoggingSampleWindowSize=" + intervalLoggingSampleWindowSize + ", readPermission="
+                + readPermission + ", setPermission=" + setPermission
                 + ", preventSetExtremeValues=" + preventSetExtremeValues + ", setExtremeLowLimit=" + setExtremeLowLimit
                 + ", setExtremeHighLimit=" + setExtremeHighLimit + "]";
     }
@@ -1415,10 +1414,6 @@ public class DataPointVO extends AbstractActionVO implements IDataPoint {
         double simplifyTolerance = jsonObject.getDouble("simplifyTolerance", Double.NaN);
         if (simplifyTolerance != Double.NaN)
             this.simplifyTolerance = simplifyTolerance;
-
-        //Legacy permissions support
-        this.readRoles = readLegacyPermissions("readPermission", this.readRoles, jsonObject);
-        this.setRoles = readLegacyPermissions("setPermission", this.setRoles, jsonObject);
     }
 
     private Unit<?> parseUnitString(String string, String item) throws TranslatableJsonException {

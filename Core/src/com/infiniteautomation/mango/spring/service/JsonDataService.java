@@ -3,9 +3,9 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonPointer;
@@ -18,11 +18,10 @@ import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.db.dao.JsonDataDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 
 /**
  * @author Terry Packer
@@ -31,23 +30,27 @@ import com.serotonin.m2m2.vo.role.Role;
 @Service
 public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTableDefinition, JsonDataDao> {
 
-    public JsonDataService(JsonDataDao dao, PermissionService permissionService) {
+    private final JsonDataCreatePermissionDefinition createPermission;
+
+    @Autowired
+    public JsonDataService(JsonDataDao dao, PermissionService permissionService, JsonDataCreatePermissionDefinition createPermission) {
         super(dao, permissionService);
+        this.createPermission = createPermission;
     }
 
     @Override
-    public Set<Role> getCreatePermissionRoles() {
-        return ModuleRegistry.getPermissionDefinition(JsonDataCreatePermissionDefinition.TYPE_NAME).getRoles();
+    public PermissionDefinition getCreatePermission() {
+        return createPermission;
     }
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, JsonDataVO vo) {
-        return permissionService.hasAnyRole(user, vo.getEditRoles());
+        return permissionService.hasPermission(user, vo.getEditPermission());
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, JsonDataVO vo) {
-        return permissionService.hasAnyRole(user, vo.getReadRoles());
+        return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
@@ -71,8 +74,8 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
     public ProcessResult validate(JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
 
-        permissionService.validateVoRoles(result, "readRoles", user, false, null, vo.getReadRoles());
-        permissionService.validateVoRoles(result, "editRoles", user, false, null, vo.getEditRoles());
+        permissionService.validateVoRoles(result, "readPermission", user, false, null, vo.getReadPermission());
+        permissionService.validateVoRoles(result, "editPermission", user, false, null, vo.getEditPermission());
 
         return result;
     }
@@ -81,8 +84,8 @@ public class JsonDataService extends AbstractVOService<JsonDataVO, JsonDataTable
     public ProcessResult validate(JsonDataVO existing, JsonDataVO vo, PermissionHolder user) {
         ProcessResult result = commonValidation(vo, user);
         //Additional checks for existing list
-        permissionService.validateVoRoles(result, "readRoles", user, false, existing.getReadRoles(), vo.getReadRoles());
-        permissionService.validateVoRoles(result, "editRoles", user, false, existing.getEditRoles(), vo.getEditRoles());
+        permissionService.validateVoRoles(result, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validateVoRoles(result, "editPermission", user, false, existing.getEditPermission(), vo.getEditPermission());
 
         return result;
     }

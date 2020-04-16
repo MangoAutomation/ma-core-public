@@ -20,6 +20,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.infiniteautomation.mango.permission.MangoPermission;
+import com.infiniteautomation.mango.util.script.ScriptPermissions;
 import com.serotonin.json.convert.ArrayConverter;
 import com.serotonin.json.convert.BigDecimalConverter;
 import com.serotonin.json.convert.BigIntegerConverter;
@@ -40,9 +42,11 @@ import com.serotonin.json.convert.JsonPropertyConverter;
 import com.serotonin.json.convert.JsonStringConverter;
 import com.serotonin.json.convert.JsonValueConverter;
 import com.serotonin.json.convert.LongConverter;
+import com.serotonin.json.convert.MangoPermissionConverter;
 import com.serotonin.json.convert.MapConverter;
 import com.serotonin.json.convert.ObjectConverter;
 import com.serotonin.json.convert.RoleConverter;
+import com.serotonin.json.convert.ScriptPermissionConverter;
 import com.serotonin.json.convert.SerializerConverter;
 import com.serotonin.json.convert.ShortConverter;
 import com.serotonin.json.convert.StringConverter;
@@ -145,6 +149,8 @@ public class JsonContext {
         addConverter(new JacksonJsonNodeConverter(), JsonNode.class);
         addConverter(new DateConverter(), Date.class);
         addConverter(new RoleConverter(), Role.class);
+        addConverter(new MangoPermissionConverter(), MangoPermission.class);
+        addConverter(new ScriptPermissionConverter(), ScriptPermissions.class);
 
         // Object factories
         addFactory(new ListFactory(), List.class);
@@ -335,6 +341,7 @@ public class JsonContext {
                 prop.setAlias(anno.alias());
             prop.setSuppressDefaultValue(anno.suppressDefaultValue());
             prop.setIncludeHints(anno.includeHints());
+            prop.setReadAliases(anno.readAliases());
 
             maybeAddProperty(properties, prop);
         }

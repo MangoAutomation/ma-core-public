@@ -14,6 +14,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -57,8 +58,8 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
             //Mock up the insert into the mapping table for now
             RoleService roleService = Common.getBean(RoleService.class);
             getService().permissionService.runAsSystemAdmin(() -> {
-                roleService.addRoleToVoPermission(readRole, dp, PermissionService.READ);
-                roleService.addRoleToVoPermission(editRole, dp, PermissionService.EDIT);
+                roleService.getDao().replaceRolesOnVoPermission(MangoPermission.createOrSet(readRole), dp, PermissionService.READ, true);
+                roleService.getDao().replaceRolesOnVoPermission(MangoPermission.createOrSet(editRole), dp, PermissionService.EDIT, true);
             });
 
             PermissionService service = Common.getBean(PermissionService.class);

@@ -126,16 +126,16 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
     @Override
     public void loadRelationalData(JsonDataVO vo) {
         //Populate permissions
-        vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
-        vo.setEditRoles(RoleDao.getInstance().getRoles(vo, PermissionService.EDIT));
+        vo.setReadPermission(RoleDao.getInstance().getPermission(vo, PermissionService.READ));
+        vo.setEditPermission(RoleDao.getInstance().getPermission(vo, PermissionService.EDIT));
 
     }
 
     @Override
     public void saveRelationalData(JsonDataVO vo, boolean insert) {
         //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo, PermissionService.EDIT, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo, PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditPermission(), vo, PermissionService.EDIT, insert);
     }
 
     @Override

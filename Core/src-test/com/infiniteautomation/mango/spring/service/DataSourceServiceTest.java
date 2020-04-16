@@ -5,9 +5,10 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Set;
+import java.util.Collections;
 import java.util.UUID;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.MockMangoLifecycle;
@@ -31,13 +32,13 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
     }
 
     @Override
-    void setReadRoles(Set<Role> roles, DataSourceVO vo) {
-        vo.setReadRoles(roles);
+    void setReadPermission(MangoPermission permission, DataSourceVO vo) {
+        vo.setReadPermission(permission);
     }
 
     @Override
-    void setEditRoles(Set<Role> roles, DataSourceVO vo) {
-        vo.setEditRoles(roles);
+    void setEditPermission(MangoPermission permission, DataSourceVO vo) {
+        vo.setEditPermission(permission);
     }
 
     @Override
@@ -57,7 +58,8 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
         assertEquals(expected.getName(), actual.getName());
         assertEquals(expected.getDefinition().getDataSourceTypeName(), actual.getDefinition().getDataSourceTypeName());
 
-        assertRoles(expected.getEditRoles(), actual.getEditRoles());
+        assertPermission(expected.getReadPermission(), actual.getReadPermission());
+        assertPermission(expected.getEditPermission(), actual.getEditPermission());
         //TODO Flesh out all fields
     }
 
@@ -87,22 +89,22 @@ public class DataSourceServiceTest extends AbstractVOServiceWithPermissionsTest<
 
     @Override
     void addReadRoleToFail(Role role, DataSourceVO vo) {
-        vo.getReadRoles().add(role);
+        vo.getReadPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getReadRolesContextKey() {
-        return "readRoles";
+        return "readPermission";
     }
 
     @Override
     void addEditRoleToFail(Role role, DataSourceVO vo) {
-        vo.getEditRoles().add(role);
+        vo.getEditPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getEditRolesContextKey() {
-        return "editRoles";
+        return "editPermission";
     }
 
 }

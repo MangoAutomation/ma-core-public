@@ -91,7 +91,7 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     public boolean hasEditPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
         if(user.hasAdminRole())
             return true;
-        if(permissionService.hasAnyRole(user, vo.getEditRoles()))
+        if(permissionService.hasPermission(user, vo.getEditPermission()))
             return true;
         return vo.getDefinition().hasEditPermission(user, vo);
     }
@@ -100,7 +100,7 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     public boolean hasReadPermission(PermissionHolder user, AbstractEventDetectorVO vo) {
         if(user.hasAdminRole())
             return true;
-        if(permissionService.hasAnyRole(user, vo.getReadRoles()))
+        if(permissionService.hasPermission(user, vo.getReadPermission()))
             return true;
         return vo.getDefinition().hasReadPermission(user, vo);
     }
@@ -108,8 +108,8 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     @Override
     public ProcessResult validate(AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        permissionService.validateVoRoles(response, "readRoles", user, false, null, vo.getReadRoles());
-        permissionService.validateVoRoles(response, "editRoles", user, false, null, vo.getEditRoles());
+        permissionService.validateVoRoles(response, "readPermission", user, false, null, vo.getReadPermission());
+        permissionService.validateVoRoles(response, "editPermission", user, false, null, vo.getEditPermission());
         vo.getDefinition().validate(response, vo, user);
         return response;
     }
@@ -117,8 +117,8 @@ public class EventDetectorsService extends AbstractVOService<AbstractEventDetect
     @Override
     public ProcessResult validate(AbstractEventDetectorVO existing, AbstractEventDetectorVO vo, PermissionHolder user) {
         ProcessResult response = commonValidation(vo, user);
-        permissionService.validateVoRoles(response, "readRoles", user, false, existing.getReadRoles(), vo.getReadRoles());
-        permissionService.validateVoRoles(response, "editRoles", user, false, existing.getEditRoles(), vo.getEditRoles());
+        permissionService.validateVoRoles(response, "readPermission", user, false, existing.getReadPermission(), vo.getReadPermission());
+        permissionService.validateVoRoles(response, "editPermission", user, false, existing.getEditPermission(), vo.getEditPermission());
 
         vo.getDefinition().validate(response, existing, vo, user);
         return response;

@@ -47,6 +47,7 @@ import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventDetectorTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition.GrantedAccess;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
@@ -382,8 +383,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
                     }
                 });
         if (item != null) {
-            item.setReadRoles(RoleDao.getInstance().getRoles(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.READ));
-            item.setSetRoles(RoleDao.getInstance().getRoles(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.SET));
+            item.setReadPermission(RoleDao.getInstance().getPermission(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.READ));
+            item.setSetPermission(RoleDao.getInstance().getPermission(item.getId(), DataPointVO.class.getSimpleName(), PermissionService.SET));
         }
         return item;
     }
@@ -595,9 +596,9 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         vo.setTags(DataPointTagsDao.getInstance().getTagsForDataPointId(vo.getId()));
 
         //Populate permissions
-        vo.setReadRoles(RoleDao.getInstance().getRoles(vo, PermissionService.READ));
-        vo.setSetRoles(RoleDao.getInstance().getRoles(vo, PermissionService.SET));
-        vo.setDataSourceEditRoles(RoleDao.getInstance().getRoles(vo.getDataSourceId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
+        vo.setReadPermission(RoleDao.getInstance().getPermission(vo, PermissionService.READ));
+        vo.setSetPermission(RoleDao.getInstance().getPermission(vo, PermissionService.SET));
+        vo.setDataSourceEditPermission(RoleDao.getInstance().getPermission(vo.getDataSourceId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT));
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
@@ -621,70 +622,12 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
 
         DataPointTagsDao.getInstance().insertTagsForDataPoint(vo, tags);
         //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo, PermissionService.READ, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getSetRoles(), vo, PermissionService.SET, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo, PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getSetPermission(), vo, PermissionService.SET, insert);
 
         DataSourceDefinition<? extends DataSourceVO> def = ModuleRegistry.getDataSourceDefinition(vo.getPointLocator().getDataSourceType());
         if(def != null) {
             def.saveRelationalData(vo, insert);
-        }
-    }
-
-    @Override
-    public Condition hasPermission(PermissionHolder user, String permissionType) {
-        List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
-        Condition roleIdsIn = RoleTableDefinition.roleIdFieldAlias.in(roleIds);
-        if(PermissionService.EDIT.equals(permissionType)) {
-            Condition editConditions = DSL.and(
-                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
-                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
-                    );
-            return this.table.getAlias("dataSourceId").in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
-                    .from(RoleTableDefinition.roleMappingTableAsAlias)
-                    .where(editConditions, roleIdsIn));
-        }else if(PermissionService.SET.equals(permissionType)) {
-            Condition setConditions = DSL.and(
-                    RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
-                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
-                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET)
-                    );
-            Condition editConditions = DSL.and(
-                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
-                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
-                    );
-            return DSL.or(this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
-                    .from(RoleTableDefinition.roleMappingTableAsAlias)
-                    .where(setConditions, roleIdsIn)),
-                    this.table.getAlias("dataSourceId").in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
-                            .from(RoleTableDefinition.roleMappingTableAsAlias)
-                            .where(editConditions, roleIdsIn))
-                    );
-        }else if(PermissionService.READ.equals(permissionType)) {
-            Condition readConditions = DSL.and(
-                    RoleTableDefinition.voTypeFieldAlias.eq(DataPointVO.class.getSimpleName()),
-                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getIdAlias()),
-                    DSL.or(
-                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.SET),
-                            RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.READ)
-                            )
-                    );
-            Condition editConditions = DSL.and(
-                    RoleTableDefinition.voTypeFieldAlias.eq(DataSourceVO.class.getSimpleName()),
-                    RoleTableDefinition.voIdFieldAlias.eq(this.table.getAlias("dataSourceId")),
-                    RoleTableDefinition.permissionTypeFieldAlias.eq(PermissionService.EDIT)
-                    );
-
-            return DSL.or(this.table.getIdAlias().in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
-                    .from(RoleTableDefinition.roleMappingTableAsAlias)
-                    .where(readConditions, roleIdsIn)),
-                    this.table.getAlias("dataSourceId").in(this.create.selectDistinct(RoleTableDefinition.voIdFieldAlias)
-                            .from(RoleTableDefinition.roleMappingTableAsAlias)
-                            .where(editConditions, roleIdsIn))
-                    );
-        }else {
-            return DSL.falseCondition();
         }
     }
 
@@ -714,10 +657,95 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     }
 
     @Override
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
+            PermissionHolder user) {
+        //Join on permissions
+        if(!user.hasAdminRole()) {
+            List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+
+            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
+
+            Table<?> permission = create.select(
+                    RoleTableDefinition.voTypeField,
+                    RoleTableDefinition.voIdField,
+                    RoleTableDefinition.permissionTypeField).from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .groupBy(RoleTableDefinition.voTypeField,
+                            RoleTableDefinition.voIdField,
+                            RoleTableDefinition.permissionTypeField)
+                    .having(granted)
+                    .asTable("rm");
+
+
+            Condition readConditions = DSL.and(
+                    RoleTableDefinition.voTypeField.eq(DataPointVO.class.getSimpleName()),
+                    this.table.getAlias("id").eq(permission.field("voId")),
+                    RoleTableDefinition.permissionTypeField.in(PermissionService.READ, PermissionService.SET));
+
+            Condition editConditions = DSL.and(
+                    RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
+                    this.table.getAlias("dataSourceId").eq(permission.field("voId")),
+                    RoleTableDefinition.permissionTypeField.in(PermissionService.READ, PermissionService.EDIT));
+
+            //Join on role mappings select with conditions
+            select = select
+                    .join(permission)
+                    .on(DSL.or(readConditions, editConditions));
+        }
+        return select;
+    }
+
+    @Override
     protected RQLToCondition createRqlToCondition(Map<String, Field<?>> fieldMap,
             Map<String, Function<Object, Object>> converterMap) {
         return new RQLToConditionWithTagKeys(fieldMap, converterMap);
     }
+
+    /**
+     * Query points that the user has edit permission for
+     * @param conditions
+     * @param user
+     * @param callback
+     */
+    public void customizedEditQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<DataPointVO> callback) {
+        SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
+        select = joinTables(select, conditions);
+        select = joinEditPermissions(select, user);
+        customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
+    }
+
+    public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select,
+            PermissionHolder user) {
+        //Join on permissions
+        if(!user.hasAdminRole()) {
+            List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+
+            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
+
+            Table<?> permission = create.select(
+                    RoleTableDefinition.voTypeField,
+                    RoleTableDefinition.voIdField,
+                    RoleTableDefinition.permissionTypeField).from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .groupBy(RoleTableDefinition.voTypeField,
+                            RoleTableDefinition.voIdField,
+                            RoleTableDefinition.permissionTypeField)
+                    .having(granted)
+                    .asTable("rm");
+
+            Condition editConditions = DSL.and(
+                    RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
+                    this.table.getAlias("dataSourceId").eq(permission.field("voId")),
+                    RoleTableDefinition.permissionTypeField.in(PermissionService.EDIT));
+
+            //Join on role mappings select with conditions
+            select = select
+                    .join(permission)
+                    .on(DSL.or(editConditions));
+        }
+        return select;
+    }
+
 
     protected void notifyTagsUpdated(DataPointVO dataPoint) {
         this.eventPublisher.publishEvent(new DataPointTagsUpdatedEvent(this, dataPoint));

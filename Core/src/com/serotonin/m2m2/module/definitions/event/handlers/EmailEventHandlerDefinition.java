@@ -7,11 +7,11 @@ package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.service.MailingListService;
 import com.infiniteautomation.mango.spring.service.MangoJavaScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -25,7 +25,6 @@ import com.serotonin.m2m2.vo.event.EmailEventHandlerVO;
 import com.serotonin.m2m2.vo.mailingList.MailingListRecipient;
 import com.serotonin.m2m2.vo.mailingList.RecipientListEntryType;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
-import com.serotonin.m2m2.vo.role.Role;
 
 import freemarker.template.Template;
 
@@ -62,7 +61,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     @Override
     public void saveRelationalData(EmailEventHandlerVO eh, boolean insert) {
         if (eh.getScriptRoles() != null) {
-            RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getRoles(), eh,
+            RoleDao.getInstance().replaceRolesOnVoPermission(eh.getScriptRoles().getPermission(), eh,
                     PermissionService.SCRIPT, insert);
         }
     }
@@ -70,7 +69,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     @Override
     public void loadRelationalData(EmailEventHandlerVO eh) {
         eh.setScriptRoles(new ScriptPermissions(
-                RoleDao.getInstance().getRoles(eh, PermissionService.SCRIPT)));
+                RoleDao.getInstance().getPermission(eh, PermissionService.SCRIPT)));
     }
 
     @Override
@@ -82,7 +81,7 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
     public void validate(ProcessResult result, EmailEventHandlerVO vo, PermissionHolder savingUser) {
         commonValidation(result, vo, savingUser);
         if(vo.getScriptRoles() != null) {
-            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getRoles());
+            service.validateVoRoles(result, "scriptRoles", savingUser, false, null, vo.getScriptRoles().getPermission());
         }
 
     }
@@ -94,9 +93,9 @@ public class EmailEventHandlerDefinition extends EventHandlerDefinition<EmailEve
         if (vo.getScriptRoles() == null) {
             result.addContextualMessage("scriptRoles", "validate.permission.null");
         }else {
-            Set<Role> existingRoles = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getRoles();
+            MangoPermission permission = existing.getScriptRoles() == null ? null : existing.getScriptRoles().getPermission();
             service.validateVoRoles(result, "scriptRoles", savingUser, false,
-                    existingRoles, vo.getScriptRoles().getRoles());
+                    permission, vo.getScriptRoles().getPermission());
         }
     }
 

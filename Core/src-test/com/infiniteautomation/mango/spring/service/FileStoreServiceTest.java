@@ -5,9 +5,10 @@ package com.infiniteautomation.mango.spring.service;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Set;
+import java.util.Collections;
 import java.util.UUID;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
@@ -37,8 +38,8 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getStoreName(), actual.getStoreName());
 
-        assertRoles(expected.getReadRoles(), actual.getReadRoles());
-        assertRoles(expected.getWriteRoles(), actual.getWriteRoles());
+        assertPermission(expected.getReadPermission(), actual.getReadPermission());
+        assertPermission(expected.getWritePermission(), actual.getWritePermission());
     }
 
     @Override
@@ -62,33 +63,33 @@ public class FileStoreServiceTest extends AbstractBasicVOServiceWithPermissionsT
     }
 
     @Override
-    void setReadRoles(Set<Role> roles, FileStore vo) {
-        vo.setReadRoles(roles);
+    void setReadPermission(MangoPermission permission, FileStore vo) {
+        vo.setReadPermission(permission);
     }
 
     @Override
-    void setEditRoles(Set<Role> roles, FileStore vo) {
-        vo.setWriteRoles(roles);
+    void setEditPermission(MangoPermission permission, FileStore vo) {
+        vo.setWritePermission(permission);
     }
 
     @Override
     void addReadRoleToFail(Role role, FileStore vo) {
-        vo.getReadRoles().add(role);
+        vo.getReadPermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getReadRolesContextKey() {
-        return "readRoles";
+        return "readPermission";
     }
 
     @Override
     void addEditRoleToFail(Role role, FileStore vo) {
-        vo.getWriteRoles().add(role);
+        vo.getWritePermission().getRoles().add(Collections.singleton(role));
     }
 
     @Override
     String getEditRolesContextKey() {
-        return "writeRoles";
+        return "writePermission";
     }
 
 }

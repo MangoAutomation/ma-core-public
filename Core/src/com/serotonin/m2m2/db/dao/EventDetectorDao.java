@@ -157,16 +157,16 @@ public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, Event
             }
         }
         //Replace the role mappings
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadRoles(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ, insert);
-        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditRoles(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ, insert);
+        RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditPermission(), vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT, insert);
 
     }
 
     @Override
     public void loadRelationalData(AbstractEventDetectorVO vo) {
         vo.setEventHandlerXids(EventHandlerDao.getInstance().getEventHandlerXids(vo.getEventType().getEventType()));
-        vo.setReadRoles(RoleDao.getInstance().getRoles(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ));
-        vo.setEditRoles(RoleDao.getInstance().getRoles(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT));
+        vo.setReadPermission(RoleDao.getInstance().getPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.READ));
+        vo.setEditPermission(RoleDao.getInstance().getPermission(vo.getId(), AbstractEventDetectorVO.class.getSimpleName(), PermissionService.EDIT));
     }
 
     @Override
