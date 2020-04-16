@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.util.exception.ModuleUpgradeException;
+import com.serotonin.db.spring.ExtendedJdbcTemplate;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.Constants;
 import com.serotonin.m2m2.UpgradeVersionState;
@@ -178,8 +179,12 @@ public class Module {
             return true;
         }
         try {
+            ExtendedJdbcTemplate ejt = new ExtendedJdbcTemplate();
+            ejt.setDataSource(Common.databaseProxy.getDataSource());
+
             for (ModuleElementDefinition df : definitions) {
                 if(df instanceof UpgradeDefinition) {
+                    ((UpgradeDefinition)df).ejt = ejt;
                     ((UpgradeDefinition)df).upgrade(this.previousVersion, this.version);
                 }
             }
