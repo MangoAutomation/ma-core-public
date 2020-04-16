@@ -4,12 +4,17 @@
 package com.serotonin.m2m2.module.definitions.event.handlers;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.script.ScriptException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
+import com.infiniteautomation.mango.spring.script.ScriptPermissionDefinition;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
@@ -23,6 +28,11 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
 
     public static final String TYPE_NAME = "SCRIPT";
     public static final String DESC_KEY = "eventHandlers.type.script";
+
+    @Autowired
+    ScriptPermissionDefinition scriptPermission;
+    @Autowired
+    PermissionService permissionService;
 
     @Override
     public String getEventHandlerTypeName() {
@@ -41,6 +51,10 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
 
     @Override
     public void validate(ProcessResult response, ScriptEventHandlerVO handler, PermissionHolder user) {
+        if (!permissionService.hasPermission(user, scriptPermission.getPermission()) || !permissionService.hasAllRoles(user, handler.getScriptRoles())) {
+            response.addContextualMessage("scriptRoles", "validate.role.invalidModification", user.getRoles().stream().map(r -> r.getXid()).collect(Collectors.toList()));
+        }
+
         String script = handler.getScript();
         String engineName = handler.getEngineName();
         Set<Role> scriptRoles = handler.getScriptRoles();

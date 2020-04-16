@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.github.zafarkhaja.semver.Version;
+import com.infiniteautomation.mango.spring.script.ScriptPermissionDefinition;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -872,6 +873,7 @@ public class ModuleRegistry {
         core.addDefinition(new EventHandlerCreatePermission());
         core.addDefinition(new SystemMetricsReadPermissionDefinition());
         core.addDefinition(new EventsViewPermissionDefinition());
+        core.addDefinition(new ScriptPermissionDefinition());
 
         /* Read Only Settings */
         core.addDefinition(new TimezoneInfoDefinition());

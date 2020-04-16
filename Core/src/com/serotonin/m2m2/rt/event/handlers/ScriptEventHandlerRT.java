@@ -7,6 +7,7 @@ import java.util.Collections;
 
 import com.infiniteautomation.mango.spring.script.ScriptService;
 import com.infiniteautomation.mango.spring.script.StringMangoScript;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.EventInstance;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
@@ -24,9 +25,13 @@ public class ScriptEventHandlerRT extends EventHandlerRT<ScriptEventHandlerVO> {
         super(vo);
 
         ScriptService scriptService = Common.getBean(ScriptService.class);
+        PermissionService permissionService = Common.getBean(PermissionService.class);
 
         StringMangoScript script = new StringMangoScript(vo.getEngineName(), vo.getXid(), vo.getScriptRoles(), vo.getScript());
-        this.scriptHandlerDelegate = scriptService.getInterface(script, EventHandlerInterface.class, Collections.singletonMap(EVENT_HANDLER_KEY, vo));
+
+        this.scriptHandlerDelegate = permissionService.runAsSystemAdmin(() -> {
+            return scriptService.getInterface(script, EventHandlerInterface.class, Collections.singletonMap(EVENT_HANDLER_KEY, vo));
+        });
     }
 
     @Override
