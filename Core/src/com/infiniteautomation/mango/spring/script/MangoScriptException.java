@@ -87,4 +87,12 @@ public class MangoScriptException extends RuntimeException {
             return availableEngines;
         }
     }
+
+    public static class NoDefinitionForFactory extends MangoScriptException {
+        private static final long serialVersionUID = 1L;
+
+        NoDefinitionForFactory(String factoryName) {
+            super("No definition for engine found: " + factoryName);
+        }
+    }
 }

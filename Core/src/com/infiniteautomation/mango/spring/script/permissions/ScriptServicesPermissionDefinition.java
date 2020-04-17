@@ -1,13 +1,13 @@
 /*
  * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.script;
+package com.infiniteautomation.mango.spring.script.permissions;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
- * Most basic script permission allowing you to eval a script / list script engines.
+ * Allows access to the runtime context services from a script
  *
  * @author Jared Wiltshire
  */

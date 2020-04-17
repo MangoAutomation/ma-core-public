@@ -1,19 +1,18 @@
 /*
  * Copyright (C) 2020 Infinite Automation Software. All rights reserved.
  */
-package com.infiniteautomation.mango.spring.script;
+package com.infiniteautomation.mango.spring.script.permissions;
 
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.PermissionDefinition;
 
 /**
- * Most basic script permission allowing you to eval a script / list script engines.
- *
+ * Grants access to use an unknown scripting engine
  * @author Jared Wiltshire
  */
-public class ScriptPermissionDefinition extends PermissionDefinition {
+public class UnknownEnginePermission extends PermissionDefinition {
 
-    public static final String PERMISSION = "script.eval";
+    public static final String PERMISSION = "script.unknown";
 
     @Override
     public TranslatableMessage getDescription() {

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -25,15 +26,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotCompilableException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotInvocableException;
+import com.infiniteautomation.mango.spring.script.MangoScriptException.NoDefinitionForFactory;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptIOException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
+import com.infiniteautomation.mango.spring.script.permissions.ScriptServicesPermissionDefinition;
 import com.infiniteautomation.mango.spring.service.AbstractVOService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.module.ScriptEngineDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
@@ -45,17 +50,17 @@ public class ScriptService {
     final ScriptEngineManager manager;
     final PermissionService permissionService;
     final ApplicationContext context;
-    final ScriptPermissionDefinition scriptPermission;
     final ScriptServicesPermissionDefinition scriptServicesPermission;
+    final List<ScriptEngineDefinition> engineDefinitions;
 
     @Autowired
-    public ScriptService(ScriptEngineManager manager, PermissionService permissionService, ApplicationContext context, ScriptPermissionDefinition scriptPermission,
-            ScriptServicesPermissionDefinition scriptServicesPermission) {
+    public ScriptService(ScriptEngineManager manager, PermissionService permissionService, ApplicationContext context,
+            ScriptServicesPermissionDefinition scriptServicesPermission, List<ScriptEngineDefinition> engineDefinitions) {
         this.manager = manager;
         this.permissionService = permissionService;
         this.context = context;
-        this.scriptPermission = scriptPermission;
         this.scriptServicesPermission = scriptServicesPermission;
+        this.engineDefinitions = engineDefinitions;
     }
 
     private ScriptEngine getEngineByName(String engineName) {
@@ -68,20 +73,27 @@ public class ScriptService {
         return engine;
     }
 
-    public List<ScriptEngineFactory> getEngineFactories() {
-        permissionService.ensurePermission(Common.getUser(), scriptPermission.getPermission());
+    private ScriptEngineDefinition definitionForFactory(ScriptEngineFactory factory) {
+        return engineDefinitions.stream()
+                .filter(def -> def.supports(factory))
+                .findFirst()
+                .orElseThrow(() -> new NoDefinitionForFactory(factory.getEngineName()));
+    }
 
-        return manager.getEngineFactories();
+    public List<ScriptEngineFactory> getEngineFactories() {
+        PermissionHolder user = Common.getUser();
+        return manager.getEngineFactories().stream().filter(f -> {
+            MangoPermission permission = definitionForFactory(f).accessPermission();
+            return permissionService.hasPermission(user, permission);
+        }).collect(Collectors.toList());
     }
 
     public CompiledMangoScript compile(MangoScript script) {
-        ensureEvalPermission(script);
-
         if (script instanceof CompiledMangoScript) {
             return (CompiledMangoScript) script;
         }
 
-        ScriptEngine engine = getEngineByName(script.getEngineName());
+        ScriptEngine engine = getScriptEngine(script);
 
         if (!(engine instanceof Compilable)) {
             throw new EngineNotCompilableException(engine);
@@ -97,12 +109,32 @@ public class ScriptService {
         }
     }
 
-    private ScriptEngine scriptEngine(MangoScript script) {
+    public ScriptEngineDefinition definitionForScript(MangoScript script) {
+        ScriptEngine engine;
         if (script instanceof CompiledMangoScript) {
-            return ((CompiledMangoScript) script).compiled.getEngine();
+            engine = ((CompiledMangoScript) script).compiled.getEngine();
         } else {
-            return getEngineByName(script.getEngineName());
+            engine = getEngineByName(script.getEngineName());
         }
+
+        return definitionForFactory(engine.getFactory());
+    }
+
+    private ScriptEngine getScriptEngine(MangoScript script) {
+        ScriptEngine engine;
+        if (script instanceof CompiledMangoScript) {
+            engine = ((CompiledMangoScript) script).compiled.getEngine();
+        } else {
+            engine = getEngineByName(script.getEngineName());
+        }
+
+        ScriptEngineDefinition definition = definitionForFactory(engine.getFactory());
+
+        PermissionHolder user = Common.getUser();
+        permissionService.ensurePermission(user, definition.accessPermission());
+        permissionService.ensureHasAllRoles(user, script.getRoles());
+
+        return engine;
     }
 
     private Object evalScript(MangoScript script, ScriptEngine engine) {
@@ -126,10 +158,8 @@ public class ScriptService {
     private void configureBindings(MangoScript script, ScriptEngine engine, Map<String, Object> bindings) {
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-        engineBindings.put("polyglot.js.allowHostAccess", true);
-        if (permissionService.hasAdminRole(script)) {
-            engineBindings.put("polyglot.js.allowAllAccess", true);
-        }
+        ScriptEngineDefinition definition = definitionForFactory(engine.getFactory());
+        definition.applyRestrictions(engine, script);
 
         Logger log = LoggerFactory.getLogger("script." + script.getScriptName());
         engineBindings.put("log", log);
@@ -140,7 +170,10 @@ public class ScriptService {
             engineBindings.put("services", services);
         }
 
-        engineBindings.put(ScriptEngine.FILENAME, script.getScriptName());
+        String scriptName = script.getScriptName();
+        if (scriptName != null) {
+            engineBindings.put(ScriptEngine.FILENAME, scriptName);
+        }
         engineBindings.putAll(bindings);
     }
 
@@ -149,9 +182,7 @@ public class ScriptService {
     }
 
     public Object eval(MangoScript script, Map<String, Object> bindings) {
-        ensureEvalPermission(script);
-
-        ScriptEngine engine = scriptEngine(script);
+        ScriptEngine engine = getScriptEngine(script);
         configureBindings(script, engine, bindings);
         return evalScript(script, engine);
     }
@@ -161,9 +192,7 @@ public class ScriptService {
     }
 
     public <T> T getInterface(MangoScript script, Class<T> clazz, Map<String, Object> bindings) {
-        ensureEvalPermission(script);
-
-        ScriptEngine engine = scriptEngine(script);
+        ScriptEngine engine = getScriptEngine(script);
         if (!(engine instanceof Invocable)) {
             throw new EngineNotInvocableException(engine);
         }
@@ -177,12 +206,6 @@ public class ScriptService {
             throw new ScriptInterfaceException(clazz);
         }
         return instance;
-    }
-
-    private void ensureEvalPermission(MangoScript script) {
-        PermissionHolder user = Common.getUser();
-        permissionService.ensurePermission(user, scriptPermission.getPermission());
-        permissionService.ensureHasAllRoles(user, script.getRoles());
     }
 
 }

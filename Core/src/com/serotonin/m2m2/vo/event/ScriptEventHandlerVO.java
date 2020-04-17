@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.infiniteautomation.mango.spring.script.MangoScript;
+import com.infiniteautomation.mango.spring.script.StringMangoScript;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -76,6 +78,10 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
         Set<String> roleXids = new HashSet<>();
         reader.readInto(roleXids, jsonObject.get("scriptRoles"));
         setScriptRoleXids(roleXids);
+    }
+
+    public MangoScript toMangoScript() {
+        return new StringMangoScript(engineName, xid, scriptRoles, script);
     }
 
     public String getScript() {

@@ -10,13 +10,15 @@ import javax.script.ScriptException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
-import com.infiniteautomation.mango.spring.script.ScriptPermissionDefinition;
+import com.infiniteautomation.mango.spring.script.ScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
+import com.serotonin.m2m2.module.ScriptEngineDefinition;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.vo.role.Role;
@@ -30,7 +32,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
     public static final String DESC_KEY = "eventHandlers.type.script";
 
     @Autowired
-    ScriptPermissionDefinition scriptPermission;
+    ScriptService scriptService;
     @Autowired
     PermissionService permissionService;
 
@@ -51,10 +53,6 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
 
     @Override
     public void validate(ProcessResult response, ScriptEventHandlerVO handler, PermissionHolder user) {
-        if (!permissionService.hasPermission(user, scriptPermission.getPermission()) || !permissionService.hasAllRoles(user, handler.getScriptRoles())) {
-            response.addContextualMessage("scriptRoles", "validate.role.invalidModification", user.getRoles().stream().map(r -> r.getXid()).collect(Collectors.toList()));
-        }
-
         String script = handler.getScript();
         String engineName = handler.getEngineName();
         Set<Role> scriptRoles = handler.getScriptRoles();
@@ -67,6 +65,23 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         }
         if (scriptRoles == null) {
             response.addContextualMessage("scriptRoles", "validate.required");
+        }
+
+        if (!response.isValid()) {
+            return;
+        }
+
+        MangoScript mangoScript = handler.toMangoScript();
+        ScriptEngineDefinition def = scriptService.definitionForScript(mangoScript);
+        if (!permissionService.hasPermission(user, def.accessPermission())) {
+            response.addContextualMessage("engineName", "script.permissionMissing", engineName);
+        }
+        if (!permissionService.hasAllRoles(user, scriptRoles)) {
+            response.addContextualMessage("scriptRoles", "validate.role.invalidModification", user.getRoles().stream().map(r -> r.getXid()).collect(Collectors.toList()));
+        }
+
+        if (!response.isValid()) {
+            return;
         }
 
         try {
