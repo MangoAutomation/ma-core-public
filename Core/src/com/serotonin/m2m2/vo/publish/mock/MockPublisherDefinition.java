@@ -5,15 +5,15 @@
 package com.serotonin.m2m2.vo.publish.mock;
 
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.m2m2.module.PublisherDefinition;
-import com.serotonin.m2m2.module.TestDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  *
  * @author Terry Packer
  */
-@TestDefinition
+@ConditionalDefinition("testing.enabled")
 public class MockPublisherDefinition extends PublisherDefinition<MockPublisherVO> {
 
     public static final String TYPE_NAME = "MOCK";

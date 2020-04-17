@@ -6,10 +6,12 @@ package com.serotonin.m2m2.module;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.core.Ordered;
 
 import com.github.zafarkhaja.semver.Version;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.util.MangoServiceLoader;
 
 /**
@@ -109,7 +111,24 @@ abstract public class ModuleElementDefinition implements Ordered {
         return DEFAULT_PRECEDENCE;
     }
 
+    /**
+     * Loads all the module element definition classes and uses ConditionalDefinition to filter them
+     * @param classloader
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public static Set<Class<? extends ModuleElementDefinition>> loadDefinitions(ClassLoader classloader) throws IOException, ClassNotFoundException {
-        return MangoServiceLoader.load(ModuleElementDefinition.class, classloader);
+        return MangoServiceLoader.load(ModuleElementDefinition.class, classloader).stream()
+                .filter(clazz -> {
+                    if (!clazz.isAnnotationPresent(ConditionalDefinition.class)) {
+                        return true;
+                    }
+                    ConditionalDefinition conditional = clazz.getAnnotation(ConditionalDefinition.class);
+                    if (!conditional.autoLoad()) {
+                        return false;
+                    }
+                    return Common.envProps.getBoolean(conditional.value());
+                }).collect(Collectors.toSet());
     }
 }

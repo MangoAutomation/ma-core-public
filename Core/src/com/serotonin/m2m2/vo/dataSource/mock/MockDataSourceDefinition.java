@@ -5,8 +5,8 @@
 package com.serotonin.m2m2.vo.dataSource.mock;
 
 import com.serotonin.m2m2.i18n.ProcessResult;
+import com.serotonin.m2m2.module.ConditionalDefinition;
 import com.serotonin.m2m2.module.DataSourceDefinition;
-import com.serotonin.m2m2.module.TestDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -15,7 +15,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
  * @author Terry Packer
  *
  */
-@TestDefinition
+@ConditionalDefinition("testing.enabled")
 public class MockDataSourceDefinition extends DataSourceDefinition<MockDataSourceVO> {
 
     public static final String TYPE_NAME = "MOCK";
