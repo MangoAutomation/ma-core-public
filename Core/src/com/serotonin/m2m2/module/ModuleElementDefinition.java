@@ -4,6 +4,8 @@
  */
 package com.serotonin.m2m2.module;
 
+import org.springframework.core.Ordered;
+
 import com.github.zafarkhaja.semver.Version;
 
 /**
@@ -13,7 +15,10 @@ import com.github.zafarkhaja.semver.Version;
  *
  * @author Matthew Lohbihler
  */
-abstract public class ModuleElementDefinition {
+abstract public class ModuleElementDefinition implements Ordered {
+
+    public static final int DEFAULT_PRECEDENCE = 0;
+
     private Module module;
 
     /**
@@ -93,5 +98,10 @@ abstract public class ModuleElementDefinition {
      */
     public void postTerminate(boolean uninstall) {
         // Override as required
+    }
+
+    @Override
+    public int getOrder() {
+        return DEFAULT_PRECEDENCE;
     }
 }

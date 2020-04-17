@@ -558,6 +558,10 @@ public class ModuleRegistry {
         return defs;
     }
 
+    public static <T extends ModuleElementDefinition> T getDefinition(Class<T> clazz) {
+        return getDefinition(clazz, true);
+    }
+
     public static <T extends ModuleElementDefinition> T getDefinition(Class<T> clazz, boolean first) {
         List<T> defs = getDefinitions(clazz);
         if (defs.isEmpty())

@@ -58,15 +58,6 @@ public abstract class AngularJSModuleDefinition extends ModuleElementDefinition 
     }
 
     /**
-     * Default is 0
-     *
-     * @return priority for bundling, higher priority means it comes earlier in the bundle
-     */
-    public int priority() {
-        return 0;
-    }
-
-    /**
      * @return list of AngularJS module names to load into the UI web app after the bundle is loaded
      */
     public List<String> angularJsModuleNames() {

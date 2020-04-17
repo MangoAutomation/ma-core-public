@@ -220,24 +220,30 @@ public class Module {
      * code.
      */
     public void preTerminate(boolean uninstall) {
-        for (ModuleElementDefinition df : definitions)
+        for (int i = definitions.size() - 1; i >= 0; i--) {
+            ModuleElementDefinition df = definitions.get(i);
             df.preTerminate(uninstall);
+        }
     }
 
     /**
      * Called upon shutdown after the runtime, but before the event manager, has been terminated.  Should not be used by client code.
      */
     public void postRuntimeManagerTerminate(boolean uninstall) {
-        for (ModuleElementDefinition df : definitions)
+        for (int i = definitions.size() - 1; i >= 0; i--) {
+            ModuleElementDefinition df = definitions.get(i);
             df.postRuntimeManagerTerminate(uninstall);
+        }
     }
 
     /**
      * Called after the system is terminated. Should not be used by client code.
      */
     public void postTerminate(boolean uninstall) {
-        for (ModuleElementDefinition df : definitions)
+        for (int i = definitions.size() - 1; i >= 0; i--) {
+            ModuleElementDefinition df = definitions.get(i);
             df.postTerminate(uninstall);
+        }
     }
 
     /**
@@ -367,6 +373,7 @@ public class Module {
     public void addDefinition(ModuleElementDefinition definition) {
         definition.setModule(this);
         definitions.add(definition);
+        definitions.sort(OrderComparator.INSTANCE);
     }
 
     @SuppressWarnings("unchecked")
@@ -376,7 +383,6 @@ public class Module {
             if (clazz.isAssignableFrom(def.getClass()))
                 defs.add((T) def);
         }
-        defs.sort(OrderComparator.INSTANCE);
         return defs;
     }
 

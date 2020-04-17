@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 import com.serotonin.m2m2.vo.User;
 
@@ -16,7 +15,6 @@ import com.serotonin.m2m2.vo.User;
  *
  * @author Jared Wiltshire
  */
-@Order(Ordered.LOWEST_PRECEDENCE)
 public class CoreDefaultPagesDefinition extends DefaultPagesDefinition {
     @Override
     public String getLoginPageUri(HttpServletRequest request, HttpServletResponse response) {
@@ -46,5 +44,10 @@ public class CoreDefaultPagesDefinition extends DefaultPagesDefinition {
     @Override
     public String getNotFoundPageUri(HttpServletRequest request, HttpServletResponse response) {
         return "/";
+    }
+
+    @Override
+    public int getOrder() {
+        return Ordered.LOWEST_PRECEDENCE;
     }
 }
