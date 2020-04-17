@@ -18,6 +18,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.OrderComparator;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.util.exception.ModuleUpgradeException;
@@ -69,17 +70,6 @@ public class Module {
                 }
             }
         });
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T extends ModuleElementDefinition> List<T> getDefinitions(List<ModuleElementDefinition> definitions,
-            Class<T> clazz) {
-        List<T> defs = new ArrayList<>();
-        for (ModuleElementDefinition def : definitions) {
-            if (clazz.isAssignableFrom(def.getClass()))
-                defs.add((T) def);
-        }
-        return defs;
     }
 
     private final String name;
@@ -379,8 +369,15 @@ public class Module {
         definitions.add(definition);
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends ModuleElementDefinition> List<T> getDefinitions(Class<T> clazz) {
-        return getDefinitions(definitions, clazz);
+        List<T> defs = new ArrayList<>();
+        for (ModuleElementDefinition def : definitions) {
+            if (clazz.isAssignableFrom(def.getClass()))
+                defs.add((T) def);
+        }
+        defs.sort(OrderComparator.INSTANCE);
+        return defs;
     }
 
     public <T extends ModuleElementDefinition> T getDefinition(Class<T> clazz) {

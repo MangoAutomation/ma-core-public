@@ -6,7 +6,6 @@ package com.serotonin.m2m2.module;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -15,18 +14,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.core.OrderComparator;
 
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
-import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
 
@@ -63,8 +59,6 @@ public class ModuleRegistry {
     private static List<MangoJavascriptContextObjectDefinition> JAVASCRIPT_CONTEXT_DEFINITIONS;
 
     private static final List<LicenseEnforcement> licenseEnforcements = new ArrayList<LicenseEnforcement>();
-    private static final List<ModuleElementDefinition> preDefaults = new ArrayList<ModuleElementDefinition>();
-    private static final List<ModuleElementDefinition> postDefaults = new ArrayList<ModuleElementDefinition>();
 
 
     /**
@@ -284,15 +278,9 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (EVENT_HANDLER_DEFINITIONS == null) {
                     Map<String, EventHandlerDefinition<?>> map = new HashMap<String, EventHandlerDefinition<?>>();
-                    for(EventHandlerDefinition<?> def : Module.getDefinitions(preDefaults, EventHandlerDefinition.class)){
-                        map.put(def.getEventHandlerTypeName(), def);
-                    }
                     for (Module module : MODULES.values()) {
                         for (EventHandlerDefinition<?> def : module.getDefinitions(EventHandlerDefinition.class))
                             map.put(def.getEventHandlerTypeName(), def);
-                    }
-                    for(EventHandlerDefinition<?> def : Module.getDefinitions(postDefaults, EventHandlerDefinition.class)){
-                        map.put(def.getEventHandlerTypeName(), def);
                     }
                     EVENT_HANDLER_DEFINITIONS = map;
                 }
@@ -342,15 +330,9 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (EVENT_DETECTOR_DEFINITIONS == null) {
                     Map<String, EventDetectorDefinition<? extends AbstractEventDetectorVO>> map = new HashMap<>();
-                    for(EventDetectorDefinition<?> def : Module.getDefinitions(preDefaults, EventDetectorDefinition.class)){
-                        map.put(def.getEventDetectorTypeName(), def);
-                    }
                     for (Module module : MODULES.values()) {
                         for (EventDetectorDefinition<?> def : module.getDefinitions(EventDetectorDefinition.class))
                             map.put(def.getEventDetectorTypeName(), def);
-                    }
-                    for(EventDetectorDefinition<?> def : Module.getDefinitions(postDefaults, EventDetectorDefinition.class)){
-                        map.put(def.getEventDetectorTypeName(), def);
                     }
                     EVENT_DETECTOR_DEFINITIONS = map;
                 }
@@ -377,15 +359,9 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (PERMISSION_DEFINITIONS == null) {
                     Map<String, PermissionDefinition> map = new HashMap<String, PermissionDefinition>();
-                    for(PermissionDefinition def : Module.getDefinitions(preDefaults, PermissionDefinition.class)){
-                        map.put(def.getPermissionTypeName(), def);
-                    }
                     for (Module module : MODULES.values()) {
                         for (PermissionDefinition def : module.getDefinitions(PermissionDefinition.class))
                             map.put(def.getPermissionTypeName(), def);
-                    }
-                    for(PermissionDefinition def : Module.getDefinitions(postDefaults, PermissionDefinition.class)){
-                        map.put(def.getPermissionTypeName(), def);
                     }
                     PERMISSION_DEFINITIONS = map;
                 }
@@ -406,19 +382,7 @@ public class ModuleRegistry {
         if (ANGULARJS_MODULE_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (ANGULARJS_MODULE_DEFINITIONS == null) {
-                    List<AngularJSModuleDefinition> list = new ArrayList<AngularJSModuleDefinition>();
-                    for(AngularJSModuleDefinition def : Module.getDefinitions(preDefaults, AngularJSModuleDefinition.class)){
-                        list.add(def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (AngularJSModuleDefinition def : module.getDefinitions(AngularJSModuleDefinition.class))
-                            list.add(def);
-                    }
-                    for(AngularJSModuleDefinition def : Module.getDefinitions(postDefaults, AngularJSModuleDefinition.class)){
-                        list.add(def);
-                    }
-                    list.sort((a, b) -> ((Integer) b.priority()).compareTo(a.priority()));
-                    ANGULARJS_MODULE_DEFINITIONS = Collections.unmodifiableList(list);
+                    ANGULARJS_MODULE_DEFINITIONS = getDefinitions(AngularJSModuleDefinition.class);
                 }
             }
         }
@@ -437,18 +401,7 @@ public class ModuleRegistry {
         if (SYSTEM_SETTINGS_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (SYSTEM_SETTINGS_DEFINITIONS == null) {
-                    List<SystemSettingsDefinition> list = new ArrayList<SystemSettingsDefinition>();
-                    for(SystemSettingsDefinition def : Module.getDefinitions(preDefaults, SystemSettingsDefinition.class)){
-                        list.add(def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (SystemSettingsDefinition def : module.getDefinitions(SystemSettingsDefinition.class))
-                            list.add(def);
-                    }
-                    for(SystemSettingsDefinition def : Module.getDefinitions(postDefaults, SystemSettingsDefinition.class)){
-                        list.add(def);
-                    }
-                    SYSTEM_SETTINGS_DEFINITIONS = list;
+                    SYSTEM_SETTINGS_DEFINITIONS = getDefinitions(SystemSettingsDefinition.class);
                 }
             }
         }
@@ -467,18 +420,7 @@ public class ModuleRegistry {
         if (SYSTEM_SETTINGS_LISTENER_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (SYSTEM_SETTINGS_LISTENER_DEFINITIONS == null) {
-                    List<SystemSettingsListenerDefinition> list = new ArrayList<SystemSettingsListenerDefinition>();
-                    for(SystemSettingsListenerDefinition def : Module.getDefinitions(preDefaults, SystemSettingsListenerDefinition.class)){
-                        list.add(def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (SystemSettingsListenerDefinition def : module.getDefinitions(SystemSettingsListenerDefinition.class))
-                            list.add(def);
-                    }
-                    for(SystemSettingsListenerDefinition def : Module.getDefinitions(postDefaults, SystemSettingsListenerDefinition.class)){
-                        list.add(def);
-                    }
-                    SYSTEM_SETTINGS_LISTENER_DEFINITIONS = list;
+                    SYSTEM_SETTINGS_LISTENER_DEFINITIONS = getDefinitions(SystemSettingsListenerDefinition.class);
                 }
             }
         }
@@ -503,15 +445,9 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (SYSTEM_INFO_DEFINITIONS == null) {
                     Map<String, SystemInfoDefinition<?>> map = new HashMap<String, SystemInfoDefinition<?>>();
-                    for(SystemInfoDefinition<?> def : Module.getDefinitions(preDefaults, SystemInfoDefinition.class)){
-                        map.put(def.getKey(), def);
-                    }
                     for (Module module : MODULES.values()) {
                         for (SystemInfoDefinition<?> def : module.getDefinitions(SystemInfoDefinition.class))
                             map.put(def.getKey(), def);
-                    }
-                    for(SystemInfoDefinition<?> def : Module.getDefinitions(postDefaults, SystemInfoDefinition.class)){
-                        map.put(def.getKey(), def);
                     }
                     SYSTEM_INFO_DEFINITIONS = map;
                 }
@@ -538,15 +474,9 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (SYSTEM_ACTION_DEFINITIONS == null) {
                     Map<String, SystemActionDefinition> map = new HashMap<>();
-                    for(SystemActionDefinition def : Module.getDefinitions(preDefaults, SystemActionDefinition.class)){
-                        map.put(def.getKey(), def);
-                    }
                     for (Module module : MODULES.values()) {
                         for (SystemActionDefinition def : module.getDefinitions(SystemActionDefinition.class))
                             map.put(def.getKey(), def);
-                    }
-                    for(SystemActionDefinition def : Module.getDefinitions(postDefaults, SystemActionDefinition.class)){
-                        map.put(def.getKey(), def);
                     }
                     SYSTEM_ACTION_DEFINITIONS = map;
                 }
@@ -581,9 +511,6 @@ public class ModuleRegistry {
             synchronized (LOCK) {
                 if (FILE_STORE_DEFINITIONS == null) {
                     Map<String, FileStoreDefinition> map = new HashMap<>();
-                    for(FileStoreDefinition def : Module.getDefinitions(preDefaults, FileStoreDefinition.class)){
-                        map.put(def.getStoreName(), def);
-                    }
                     for (Module module : MODULES.values()) {
                         for (FileStoreDefinition def : module.getDefinitions(FileStoreDefinition.class)) {
                             try {
@@ -593,9 +520,6 @@ public class ModuleRegistry {
                             }
                             map.put(def.getStoreName(), def);
                         }
-                    }
-                    for(FileStoreDefinition def : Module.getDefinitions(postDefaults, FileStoreDefinition.class)){
-                        map.put(def.getStoreName(), def);
                     }
                     FILE_STORE_DEFINITIONS = map;
                 }
@@ -616,18 +540,7 @@ public class ModuleRegistry {
         if (JAVASCRIPT_CONTEXT_DEFINITIONS == null) {
             synchronized (LOCK) {
                 if (JAVASCRIPT_CONTEXT_DEFINITIONS == null) {
-                    List<MangoJavascriptContextObjectDefinition> list = new ArrayList<MangoJavascriptContextObjectDefinition>();
-                    for(MangoJavascriptContextObjectDefinition def : Module.getDefinitions(preDefaults, MangoJavascriptContextObjectDefinition.class)){
-                        list.add(def);
-                    }
-                    for (Module module : MODULES.values()) {
-                        for (MangoJavascriptContextObjectDefinition def : module.getDefinitions(MangoJavascriptContextObjectDefinition.class))
-                            list.add(def);
-                    }
-                    for(MangoJavascriptContextObjectDefinition def : Module.getDefinitions(postDefaults, MangoJavascriptContextObjectDefinition.class)){
-                        list.add(def);
-                    }
-                    JAVASCRIPT_CONTEXT_DEFINITIONS = list;
+                    JAVASCRIPT_CONTEXT_DEFINITIONS = getDefinitions(MangoJavascriptContextObjectDefinition.class);
                 }
             }
         }
@@ -639,10 +552,9 @@ public class ModuleRegistry {
     //
     public static <T extends ModuleElementDefinition> List<T> getDefinitions(Class<T> clazz) {
         List<T> defs = new ArrayList<T>();
-        defs.addAll(Module.getDefinitions(preDefaults, clazz));
         for (Module module : MODULES.values())
             defs.addAll(module.getDefinitions(clazz));
-        defs.addAll(Module.getDefinitions(postDefaults, clazz));
+        defs.sort(OrderComparator.INSTANCE);
         return defs;
     }
 
@@ -687,39 +599,6 @@ public class ModuleRegistry {
             null, -1, Common.isCoreSigned());
 
     static {
-        // Add default definitions
-        postDefaults.add(new DefaultPagesDefinition() {
-            @Override
-            public String getLoginPageUri(HttpServletRequest request, HttpServletResponse response) {
-                return "/login.htm";
-            }
-
-            @Override
-            public String getLoggedInPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
-                return "/data_point_details.shtm";
-            }
-
-            @Override
-            public String getFirstUserLoginPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
-                return "/help.htm";
-            }
-
-            @Override
-            public String getUnauthorizedPageUri(HttpServletRequest request, HttpServletResponse response, User user) {
-                return "/unauthorized.htm";
-            }
-
-            @Override
-            public String getErrorPageUri(HttpServletRequest request, HttpServletResponse response) {
-                return "/error.htm";
-            }
-
-            @Override
-            public String getNotFoundPageUri(HttpServletRequest request, HttpServletResponse response) {
-                return "/not-found.htm";
-            }
-        });
-
         /*
          * Add a module for the core
          */
