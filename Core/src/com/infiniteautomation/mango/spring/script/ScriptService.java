@@ -46,13 +46,16 @@ public class ScriptService {
     final PermissionService permissionService;
     final ApplicationContext context;
     final ScriptPermissionDefinition scriptPermission;
+    final ScriptServicesPermissionDefinition scriptServicesPermission;
 
     @Autowired
-    public ScriptService(ScriptEngineManager manager, PermissionService permissionService, ApplicationContext context, ScriptPermissionDefinition scriptPermission) {
+    public ScriptService(ScriptEngineManager manager, PermissionService permissionService, ApplicationContext context, ScriptPermissionDefinition scriptPermission,
+            ScriptServicesPermissionDefinition scriptServicesPermission) {
         this.manager = manager;
         this.permissionService = permissionService;
         this.context = context;
         this.scriptPermission = scriptPermission;
+        this.scriptServicesPermission = scriptServicesPermission;
     }
 
     private ScriptEngine getEngineByName(String engineName) {
@@ -128,11 +131,10 @@ public class ScriptService {
             engineBindings.put("polyglot.js.allowAllAccess", true);
         }
 
-
         Logger log = LoggerFactory.getLogger("script." + script.getScriptName());
         engineBindings.put("log", log);
 
-        if (permissionService.hasPermission(Common.getUser(), scriptPermission.getPermission())) {
+        if (permissionService.hasPermission(script, scriptServicesPermission.getPermission())) {
             @SuppressWarnings("rawtypes")
             Map<String, AbstractVOService> services = context.getBeansOfType(AbstractVOService.class);
             engineBindings.put("services", services);
@@ -141,7 +143,6 @@ public class ScriptService {
         engineBindings.put(ScriptEngine.FILENAME, script.getScriptName());
         engineBindings.putAll(bindings);
     }
-
 
     public Object eval(MangoScript script) {
         return eval(script, Collections.emptyMap());
