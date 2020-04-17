@@ -4,9 +4,13 @@
  */
 package com.serotonin.m2m2.module;
 
+import java.io.IOException;
+import java.util.Set;
+
 import org.springframework.core.Ordered;
 
 import com.github.zafarkhaja.semver.Version;
+import com.serotonin.m2m2.util.MangoServiceLoader;
 
 /**
  * The base level of a module definition class. In general this class should not be directly extended. Instead, the sub
@@ -103,5 +107,9 @@ abstract public class ModuleElementDefinition implements Ordered {
     @Override
     public int getOrder() {
         return DEFAULT_PRECEDENCE;
+    }
+
+    public static Set<Class<? extends ModuleElementDefinition>> loadDefinitions(ClassLoader classloader) throws IOException, ClassNotFoundException {
+        return MangoServiceLoader.load(ModuleElementDefinition.class, classloader);
     }
 }

@@ -21,10 +21,13 @@ import org.springframework.core.OrderComparator;
 
 import com.github.zafarkhaja.semver.Version;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
+import com.serotonin.m2m2.module.license.BasicModuleLicense;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
+import com.serotonin.provider.Providers;
 
 /**
  * The registry of all modules in an MA instance.
@@ -602,13 +605,6 @@ public class ModuleRegistry {
             "https://www.infiniteautomation.com",
             null, -1, Common.isCoreSigned());
 
-    static {
-        /*
-         * Add a module for the core
-         */
-        addModule(CORE_MODULE);
-    }
-
     /**
      * Class marker for special core module
      *
@@ -620,6 +616,9 @@ public class ModuleRegistry {
                 String vendor, String vendorUrl, String dependencies, int loadOrder,
                 boolean signed) {
             super(name, version, description, vendor, vendorUrl, dependencies, loadOrder, signed);
+
+            loadCoreModules();
+            addModule(this);
         }
 
         @Override
@@ -631,5 +630,28 @@ public class ModuleRegistry {
             }
         }
 
+        private void loadCoreModules() {
+            try {
+                ClassLoader classLoader = CoreModule.class.getClassLoader();
+                boolean testingEnabled = Common.envProps.getBoolean("testing.enabled");
+
+                for (Class<? extends ModuleElementDefinition> defClass : ModuleElementDefinition.loadDefinitions(classLoader)) {
+                    if (BasicModuleLicense.class.equals(defClass) || defClass.isAnnotationPresent(TestDefinition.class) && !testingEnabled) {
+                        continue;
+                    }
+
+                    Class<?> clazz = classLoader.loadClass(defClass.getName());
+                    Object definitionInstance = clazz.newInstance();
+
+                    addDefinition(ModuleElementDefinition.class.cast(definitionInstance));
+
+                    if (definitionInstance instanceof ICoreLicense) {
+                        Providers.add(ICoreLicense.class, (ICoreLicense) definitionInstance);
+                    }
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
