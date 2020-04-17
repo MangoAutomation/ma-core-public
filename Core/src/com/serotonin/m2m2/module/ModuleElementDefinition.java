@@ -112,14 +112,14 @@ abstract public class ModuleElementDefinition implements Ordered {
     }
 
     /**
-     * Loads all the module element definition classes and uses ConditionalDefinition to filter them
+     * Loads all the module element definition classes and uses ConditionalDefinition to filter them. Does not return any definitions from parent classloaders.
      * @param classloader
      * @return
      * @throws IOException
      * @throws ClassNotFoundException
      */
     public static Set<Class<? extends ModuleElementDefinition>> loadDefinitions(ClassLoader classloader) throws IOException, ClassNotFoundException {
-        return MangoServiceLoader.load(ModuleElementDefinition.class, classloader).stream()
+        return MangoServiceLoader.load(ModuleElementDefinition.class, classloader, true).stream()
                 .filter(clazz -> {
                     if (!clazz.isAnnotationPresent(ConditionalDefinition.class)) {
                         return true;
