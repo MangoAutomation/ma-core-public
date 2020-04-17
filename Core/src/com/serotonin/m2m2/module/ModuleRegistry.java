@@ -23,107 +23,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.github.zafarkhaja.semver.Version;
-import com.infiniteautomation.mango.spring.script.ScriptPermissionDefinition;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.ICoreLicense;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.definitions.actions.ConfigurationBackupActionDefinition;
-import com.serotonin.m2m2.module.definitions.actions.PurgeAllEventsActionDefinition;
-import com.serotonin.m2m2.module.definitions.actions.PurgeAllPointValuesActionDefinition;
-import com.serotonin.m2m2.module.definitions.actions.PurgeWithPurgeSettingsActionDefinition;
-import com.serotonin.m2m2.module.definitions.actions.SqlBackupActionDefinition;
-import com.serotonin.m2m2.module.definitions.actions.SqlRestoreActionDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericRegexStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AlphanumericStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AnalogChangeEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AnalogHighLimitEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AnalogLowLimitEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.AnalogRangeEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.BinaryStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.MultistateStateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.NegativeCusumEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.NoChangeEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.NoUpdateEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.PointChangeEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.PositiveCusumEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.RateOfChangeDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.SmoothnessEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.detectors.StateChangeCountEventDetectorDefinition;
-import com.serotonin.m2m2.module.definitions.event.handlers.EmailEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.event.handlers.ProcessEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.event.handlers.ScriptEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.event.handlers.SetPointEventHandlerDefinition;
-import com.serotonin.m2m2.module.definitions.filestore.CoreFileStoreDefinition;
-import com.serotonin.m2m2.module.definitions.filestore.DocsFileStoreDefinition;
-import com.serotonin.m2m2.module.definitions.filestore.PublicFileStoreDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.ChangeOwnUsernamePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.ConfigurationBackupActionPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreReadPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.CoreFileStoreWritePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.DataSourcePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreReadPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.DocsFileStoreWritePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.EventHandlerCreatePermission;
-import com.serotonin.m2m2.module.definitions.permissions.EventsViewPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.JsonDataCreatePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.MailingListCreatePermission;
-import com.serotonin.m2m2.module.definitions.permissions.PublicFileStoreWritePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.PurgeAllEventsActionPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.PurgeAllPointValuesActionPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.PurgeWithPurgeSettingsActionPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.SendToMailingListPermission;
-import com.serotonin.m2m2.module.definitions.permissions.SqlBackupActionPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.SqlRestoreActionPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.SuperadminPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.SystemMetricsReadPermissionDefinition;
-import com.serotonin.m2m2.module.definitions.permissions.UserCreatePermission;
-import com.serotonin.m2m2.module.definitions.permissions.UserEditSelfPermission;
-import com.serotonin.m2m2.module.definitions.permissions.UserFileStoreCreatePermissionDefinition;
-import com.serotonin.m2m2.module.definitions.script.DataPointQueryScriptUtilityDefinition;
-import com.serotonin.m2m2.module.definitions.script.DataSourceQueryScriptUtilityDefinition;
-import com.serotonin.m2m2.module.definitions.script.HttpBuilderScriptUtilityDefinition;
-import com.serotonin.m2m2.module.definitions.script.JsonEmportScriptUtilityDefinition;
-import com.serotonin.m2m2.module.definitions.script.PointValueTimeStreamScriptUtilityDefinition;
-import com.serotonin.m2m2.module.definitions.script.RuntimeManagerScriptUtilityDefinition;
-import com.serotonin.m2m2.module.definitions.settings.BackupSettingsListenerDefinition;
-import com.serotonin.m2m2.module.definitions.settings.DataPointTagsDisplaySettingDefinition;
-import com.serotonin.m2m2.module.definitions.settings.DatabaseBackupSettingsListenerDefinition;
-import com.serotonin.m2m2.module.definitions.settings.DatabaseTypeInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.DiskInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.EventsCountInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.FiledataCountInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.FiledataSizeInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.LanguageSettingListenerDefinition;
-import com.serotonin.m2m2.module.definitions.settings.LastUpgradeSettingsListenerDefinition;
-import com.serotonin.m2m2.module.definitions.settings.LoadAverageInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.NoSqlPointValueDatabaseSizeInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.OperatingSystemInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseBackupFileListInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.SqlDatabaseSizeInfoDefinition;
-import com.serotonin.m2m2.module.definitions.settings.TimezoneInfoDefinition;
 import com.serotonin.m2m2.module.license.LicenseEnforcement;
-import com.serotonin.m2m2.rt.event.type.AuditEventTypeSettingsListenerDefinition;
-import com.serotonin.m2m2.rt.event.type.SystemEventTypeSettingsListenerDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.BackupFailureEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.EmailSendFailureEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.FailedUserLoginEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.LicenseCheckEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.MaxAlarmLevelChangedEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.MissingModuleDependencyEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.NewUserRegisteredEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.ProcessFailureEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.RejectedWorkItemEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.SetPointHandlerFailureEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.SystemShutdownEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.SystemStartupEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.UpgradeCheckEventTypeDefinition;
-import com.serotonin.m2m2.rt.event.type.definition.UserLoginEventTypeDefinition;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
-import com.serotonin.m2m2.vo.dataSource.mock.MockDataSourceDefinition;
 import com.serotonin.m2m2.vo.event.detector.AbstractEventDetectorVO;
-import com.serotonin.m2m2.vo.publish.mock.MockPublisherDefinition;
-import com.serotonin.provider.Providers;
 
 /**
  * The registry of all modules in an MA instance.
@@ -774,6 +679,13 @@ public class ModuleRegistry {
         return result;
     }
 
+    public static final CoreModule CORE_MODULE = new CoreModule(ModuleRegistry.CORE_MODULE_NAME,
+            Common.getVersion(),
+            new TranslatableMessage("modules.core.description"),
+            "Infinite Automation Systems, Inc.",
+            "https://www.infiniteautomation.com",
+            null, -1, Common.isCoreSigned());
+
     static {
         // Add default definitions
         postDefaults.add(new DefaultPagesDefinition() {
@@ -811,142 +723,7 @@ public class ModuleRegistry {
         /*
          * Add a module for the core
          */
-        addModule(getCoreModule());
-
-    }
-
-    /**
-     * Helper Method to create a Module with Core Information
-     * @return
-     */
-    private static CoreModule getCoreModule(){
-        CoreModule core = new CoreModule(ModuleRegistry.CORE_MODULE_NAME, Common.getVersion(), new TranslatableMessage("modules.core.description"),
-                "Infinite Automation Systems, Inc.", "https://www.infiniteautomation.com", null, -1, Common.isCoreSigned());
-
-        core.addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
-
-        //Add in Core Event Handlers
-        core.addDefinition(new ScriptEventHandlerDefinition());
-        core.addDefinition(new EmailEventHandlerDefinition());
-        core.addDefinition(new ProcessEventHandlerDefinition());
-        core.addDefinition(new SetPointEventHandlerDefinition());
-
-        //Add in Core Event Detectors
-        core.addDefinition(new AlphanumericRegexStateEventDetectorDefinition());
-        core.addDefinition(new AlphanumericStateEventDetectorDefinition());
-        core.addDefinition(new AnalogChangeEventDetectorDefinition());
-        core.addDefinition(new AnalogHighLimitEventDetectorDefinition());
-        core.addDefinition(new AnalogLowLimitEventDetectorDefinition());
-        core.addDefinition(new AnalogRangeEventDetectorDefinition());
-        core.addDefinition(new BinaryStateEventDetectorDefinition());
-        core.addDefinition(new MultistateStateEventDetectorDefinition());
-        core.addDefinition(new NegativeCusumEventDetectorDefinition());
-        core.addDefinition(new NoChangeEventDetectorDefinition());
-        core.addDefinition(new PointChangeEventDetectorDefinition());
-        core.addDefinition(new PositiveCusumEventDetectorDefinition());
-        core.addDefinition(new SmoothnessEventDetectorDefinition());
-        core.addDefinition(new StateChangeCountEventDetectorDefinition());
-        core.addDefinition(new NoUpdateEventDetectorDefinition());
-        core.addDefinition(new RateOfChangeDetectorDefinition());
-
-        /* Permissions Settings */
-        core.addDefinition(new SuperadminPermissionDefinition());
-        core.addDefinition(new DataSourcePermissionDefinition());
-        core.addDefinition(new ConfigurationBackupActionPermissionDefinition());
-        core.addDefinition(new PurgeAllEventsActionPermissionDefinition());
-        core.addDefinition(new PurgeAllPointValuesActionPermissionDefinition());
-        core.addDefinition(new PurgeWithPurgeSettingsActionPermissionDefinition());
-        core.addDefinition(new SqlBackupActionPermissionDefinition());
-        core.addDefinition(new SqlRestoreActionPermissionDefinition());
-        core.addDefinition(new CoreFileStoreReadPermissionDefinition());
-        core.addDefinition(new CoreFileStoreWritePermissionDefinition());
-        core.addDefinition(new PublicFileStoreWritePermissionDefinition());
-        core.addDefinition(new DocsFileStoreReadPermissionDefinition());
-        core.addDefinition(new DocsFileStoreWritePermissionDefinition());
-        core.addDefinition(new UserFileStoreCreatePermissionDefinition());
-        core.addDefinition(new JsonDataCreatePermissionDefinition());
-        core.addDefinition(new MailingListCreatePermission());
-        core.addDefinition(new UserEditSelfPermission());
-        core.addDefinition(new ChangeOwnUsernamePermissionDefinition());
-        core.addDefinition(new SendToMailingListPermission());
-        core.addDefinition(new UserCreatePermission());
-        core.addDefinition(new EventHandlerCreatePermission());
-        core.addDefinition(new SystemMetricsReadPermissionDefinition());
-        core.addDefinition(new EventsViewPermissionDefinition());
-        core.addDefinition(new ScriptPermissionDefinition());
-
-        /* Read Only Settings */
-        core.addDefinition(new TimezoneInfoDefinition());
-        core.addDefinition(new DatabaseTypeInfoDefinition());
-        core.addDefinition(new SqlDatabaseSizeInfoDefinition());
-        core.addDefinition(new FiledataSizeInfoDefinition());
-        core.addDefinition(new FiledataCountInfoDefinition());
-        core.addDefinition(new NoSqlPointValueDatabaseSizeInfoDefinition());
-        core.addDefinition(new SqlDatabaseBackupFileListInfoDefinition());
-        core.addDefinition(new EventsCountInfoDefinition());
-        core.addDefinition(new DiskInfoDefinition());
-        core.addDefinition(new LoadAverageInfoDefinition());
-        core.addDefinition(new OperatingSystemInfoDefinition());
-        core.addDefinition(new DiskInfoDefinition());
-
-        /* System Settings Listeners */
-        // Do NOT Use the ThreadPoolListener as if the pools are full we can't spawn threads to update the settings...
-        // core.addDefinition(new ThreadPoolSettingsListenerDefinition());
-        //
-        core.addDefinition(new LanguageSettingListenerDefinition());
-        core.addDefinition(new BackupSettingsListenerDefinition());
-        core.addDefinition(new DatabaseBackupSettingsListenerDefinition());
-        core.addDefinition(new AuditEventTypeSettingsListenerDefinition());
-        core.addDefinition(new SystemEventTypeSettingsListenerDefinition());
-        core.addDefinition(new LastUpgradeSettingsListenerDefinition());
-
-        /* System Actions */
-        core.addDefinition(new PurgeAllPointValuesActionDefinition());
-        core.addDefinition(new PurgeAllEventsActionDefinition());
-        core.addDefinition(new PurgeWithPurgeSettingsActionDefinition());
-        core.addDefinition(new ConfigurationBackupActionDefinition());
-        core.addDefinition(new SqlBackupActionDefinition());
-        core.addDefinition(new SqlRestoreActionDefinition());
-
-        /* File Store */
-        core.addDefinition(new CoreFileStoreDefinition());
-        core.addDefinition(new PublicFileStoreDefinition());
-        core.addDefinition(new DocsFileStoreDefinition());
-
-        /* Script Utilities */
-        core.addDefinition(new DataPointQueryScriptUtilityDefinition());
-        core.addDefinition(new DataSourceQueryScriptUtilityDefinition());
-        core.addDefinition(new HttpBuilderScriptUtilityDefinition());
-        core.addDefinition(new JsonEmportScriptUtilityDefinition());
-        core.addDefinition(new PointValueTimeStreamScriptUtilityDefinition());
-        core.addDefinition(new RuntimeManagerScriptUtilityDefinition());
-
-        /* System Event Types */
-        core.addDefinition(new BackupFailureEventTypeDefinition());
-        core.addDefinition(new EmailSendFailureEventTypeDefinition());
-        core.addDefinition(new FailedUserLoginEventTypeDefinition());
-        core.addDefinition(new LicenseCheckEventTypeDefinition());
-        core.addDefinition(new MaxAlarmLevelChangedEventTypeDefinition());
-        core.addDefinition(new MissingModuleDependencyEventTypeDefinition());
-        core.addDefinition(new ProcessFailureEventTypeDefinition());
-        core.addDefinition(new RejectedWorkItemEventTypeDefinition());
-        core.addDefinition(new SetPointHandlerFailureEventTypeDefinition());
-        core.addDefinition(new SystemShutdownEventTypeDefinition());
-        core.addDefinition(new SystemStartupEventTypeDefinition());
-        core.addDefinition(new UpgradeCheckEventTypeDefinition());
-        core.addDefinition(new UserLoginEventTypeDefinition());
-        core.addDefinition(new NewUserRegisteredEventTypeDefinition());
-
-        /* System Settings Definitions */
-        core.addDefinition(new DataPointTagsDisplaySettingDefinition());
-
-        /* Test Definitions */
-        if(Common.envProps.getBoolean("testing.enabled")) {
-            core.addDefinition(new MockDataSourceDefinition());
-            core.addDefinition(new MockPublisherDefinition());
-        }
-
-        return core;
+        addModule(CORE_MODULE);
     }
 
     /**

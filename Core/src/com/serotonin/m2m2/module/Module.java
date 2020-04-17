@@ -383,6 +383,14 @@ public class Module {
         return getDefinitions(definitions, clazz);
     }
 
+    public <T extends ModuleElementDefinition> T getDefinition(Class<T> clazz) {
+        List<T> defs = getDefinitions(clazz);
+        if (defs.isEmpty()) {
+            return null;
+        }
+        return defs.get(0);
+    }
+
     public List<TranslatableMessage> getLicenseErrors() {
         List<TranslatableMessage> errors = new ArrayList<>();
         for (LicenseDefinition def : getDefinitions(LicenseDefinition.class))

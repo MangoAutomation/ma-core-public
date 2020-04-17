@@ -112,6 +112,10 @@
 					</execution>
 				</executions>
 			</plugin>
+            <plugin>
+                <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
+                <artifactId>serviceloader-maven-plugin</artifactId>
+            </plugin>
 		</plugins>
 		<pluginManagement>
 			<plugins>

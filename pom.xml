@@ -313,6 +313,24 @@
             <artifactId>spotbugs-maven-plugin</artifactId>
             <version>3.1.12.2</version>
         </plugin>
+            <plugin>
+                <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
+                <artifactId>serviceloader-maven-plugin</artifactId>
+                <version>1.1.0</version>
+                <executions>
+                    <execution>
+                        <id>find-module-definitions</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <services>
+                                <param>com.serotonin.m2m2.module.ModuleElementDefinition</param>
+                            </services>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </pluginManagement>
     <plugins>
