@@ -365,7 +365,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        if(!user.hasAdminRole()) {
+        if(!permissionService.hasAdminRole(user)) {
             if(joinPermissions) {
                 //In database query filter
                 dao.customizedQuery(conditions, sort, limit, offset, user, (vo, index) -> {

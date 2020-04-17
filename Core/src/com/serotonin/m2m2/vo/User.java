@@ -127,6 +127,9 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     //
     private transient LazyInitializer<Set<GrantedAuthority>> authorities = new LazyInitializer<>();
 
+    //All inherited roles for this permission holder
+    private transient LazyInitializer<Set<Role>> allInheritedRoles = new LazyInitializer<>();
+
     public User() {
         this.name = "";
         this.timezone = "";
@@ -428,7 +431,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.authorities.get(() -> {
-            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(getRoles()));
+            return Collections.unmodifiableSet(MangoUserDetailsService.getGrantedAuthorities(getAllInheritedRoles()));
         });
     }
 
@@ -664,14 +667,28 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         return true;
     }
 
-    @Override
     public Set<Role> getRoles() {
         return roles;
     }
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+        this.grantedPermissions.reset();
         this.authorities.reset();
+        this.allInheritedRoles.reset();
+    }
+
+    @Override
+    public Set<Role> getAllInheritedRoles() {
+        return this.allInheritedRoles.get(() -> {
+            RoleDao dao = RoleDao.getInstance();
+            Set<Role> allRoles = new HashSet<>();
+            for(Role role : roles) {
+                allRoles.add(role);
+                allRoles.addAll(dao.getFlatInheritance(role));
+            }
+            return allRoles;
+        });
     }
 
     @Override
@@ -692,6 +709,7 @@ public class User extends AbstractVO implements SetPointSource, JsonSerializable
         localeObject = new LazyInitializer<>();
         grantedPermissions = new LazyInitializer<>();
         authorities = new LazyInitializer<>();
+        allInheritedRoles = new LazyInitializer<>();
     }
 
     Set<Role> readLegacyPermissions(String permissionName, Set<Role> existing, JsonObject jsonObject) throws TranslatableJsonException {

@@ -81,7 +81,7 @@ public class MockEventType extends EventType {
 
     @Override
     public boolean hasPermission(PermissionHolder user, PermissionService service) {
-        return user.hasAdminRole() || user.hasSingleRole(this.required);
+        return service.hasAdminRole(user) || service.hasSingleRole(user, this.required);
     }
 
     @Override

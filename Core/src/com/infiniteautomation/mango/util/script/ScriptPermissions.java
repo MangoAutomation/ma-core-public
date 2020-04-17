@@ -83,7 +83,7 @@ public class ScriptPermissions implements Serializable, PermissionHolder {
     }
 
     @Override
-    public Set<Role> getRoles() {
+    public Set<Role> getAllInheritedRoles() {
         return roles;
     }
 

@@ -8,13 +8,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.role.Role;
 
 /**
- * TODO Mango 4.0 remove permissionService field (and all methods that use it) and force the use of the service instead of the methods on this interface.
  * Something that holds permissions, typically a user. Could however in the future be groups, data source scripts etc.
  *
  * @author Jared Wiltshire
@@ -56,14 +52,10 @@ public interface PermissionHolder {
         }
 
         @Override
-        public Set<Role> getRoles() {
+        public Set<Role> getAllInheritedRoles() {
             return roles;
         }
     };
-
-    static final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
-        return Common.getBean(PermissionService.class);
-    });
 
     /**
      * @return a name for the permission holder, typically the username
@@ -76,55 +68,9 @@ public interface PermissionHolder {
     boolean isPermissionHolderDisabled();
 
     /**
-     * The roles for this permission holder
+     * The roles for this permission holder, including all inherited roles
      * @return
      */
-    Set<Role> getRoles();
+    Set<Role> getAllInheritedRoles();
 
-    default boolean hasAdminRole() {
-        return permissionService.get().hasAdminRole(this);
-    }
-
-    /**
-     * Is the exact required role in the permission holder's roles?
-     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
-     *  specially
-     *
-     * @param requiredRole
-     * @return
-     */
-    default boolean hasSingleRole(Role requiredRole) {
-        return permissionService.get().hasSingleRole(this, requiredRole);
-    }
-
-    default boolean hasAnyRole(Set<Role> requiredRoles) {
-        return permissionService.get().hasAnyRole(this, requiredRoles);
-    }
-
-    default boolean hasAllRoles(Set<Role> requiredRoles) {
-        return permissionService.get().hasAllRoles(this, requiredRoles);
-    }
-
-    default void ensureHasAdminRole() {
-        permissionService.get().ensureAdminRole(this);
-    }
-
-    /**
-     *  Ensure the exact required role is in the permission holder's roles
-     *  NOTE: superadmin must have this role for this to be true for them. i.e. they are not treated
-     *  specially
-     *
-     * @param requiredRole
-     */
-    default void ensureHasSingleRole(Role requiredRole) {
-        permissionService.get().ensureSingleRole(this, requiredRole);
-    }
-
-    default void ensureHasAnyRole(Set<Role> requiredRoles) {
-        permissionService.get().ensureHasAnyRole(this, requiredRoles);
-    }
-
-    default void ensureHasAllRoles(Set<Role> requiredRoles) {
-        permissionService.get().ensureHasAllRoles(this, requiredRoles);
-    }
 }

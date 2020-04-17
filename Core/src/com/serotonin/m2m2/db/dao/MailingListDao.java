@@ -58,14 +58,18 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
         return (MailingListDao)o;
     });
 
+    private final PermissionService permissionService;
+
     @Autowired
     private MailingListDao(MailingListTableDefinition table,
+            PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher){
         super(AuditEventType.TYPE_MAILING_LIST,
                 table,
                 new TranslatableMessage("internal.monitor.MAILING_LIST_COUNT"),
                 mapper, publisher);
+        this.permissionService = permissionService;
     }
 
     public static MailingListDao getInstance() {
@@ -151,8 +155,8 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
             PermissionHolder user) {
         //Join on permissions
-        if(!user.hasAdminRole()) {
-            List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+        if(!permissionService.hasAdminRole(user)) {
+            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
             Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);

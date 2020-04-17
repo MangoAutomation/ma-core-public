@@ -345,7 +345,7 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         SelectJoinStep<Record> select = this.dao.getSelectQuery(Arrays.asList(deviceName));
         select = dao.joinTables(select, null);
 
-        if(!user.hasAdminRole()) {
+        if(!permissionService.hasAdminRole(user)) {
             select = dao.joinPermissions(select, user);
         }
 

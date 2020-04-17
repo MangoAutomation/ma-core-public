@@ -19,7 +19,7 @@ import com.serotonin.m2m2.vo.role.Role;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
- * Read/Write roles as a string instead of an object
+ * Read/Write roles as a string instead of an object  this is for the Role class NOT RoleVOs
  * @author Terry Packer
  */
 public class RoleConverter extends ImmutableClassConverter {

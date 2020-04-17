@@ -35,7 +35,7 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     }
 
     @Override
-    public boolean hasCreatePermission(PermissionHolder user) {
+    public boolean hasCreatePermission(PermissionHolder user, PermissionService service) {
         // TODO Auto-generated method stub
         return false;
     }
@@ -59,7 +59,7 @@ public class MockEventTypeDefinition extends EventTypeDefinition {
     }
 
     @Override
-    public List<String> getEventSubTypes(PermissionHolder user) {
+    public List<String> getEventSubTypes(PermissionHolder user, PermissionService service) {
         return Collections.emptyList();
     }
 

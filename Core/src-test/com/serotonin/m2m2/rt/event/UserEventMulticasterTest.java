@@ -277,7 +277,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
 
         //Confirm those with correct permissions permissions saw all raised
         for(MockUserEventListener l : listeners) {
-            if(!(l.getUser().hasSingleRole(mockRole.getRole()) || l.getUser().hasAdminRole())) {
+            if(!(service.hasSingleRole(l.getUser(), mockRole.getRole()) || service.hasAdminRole(l.getUser()))) {
                 assertEquals(0, l.getRaised().size());
             }else {
                 assertEquals(eventCount, l.getRaised().size());
@@ -286,7 +286,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
 
         //Confirm those with permissions saw all acked
         for(MockUserEventListener l : listeners) {
-            if(!(l.getUser().hasSingleRole(mockRole.getRole()) || l.getUser().hasAdminRole())) {
+            if(!(service.hasSingleRole(l.getUser(), mockRole.getRole()) || service.hasAdminRole(l.getUser()))) {
                 assertEquals(0, l.getAcknowledged().size());
             }else {
                 assertEquals(eventCount, l.getAcknowledged().size());
@@ -295,7 +295,7 @@ public class UserEventMulticasterTest extends MangoTestBase {
 
         //Confirm those with permissions saw all rtned
         for(MockUserEventListener l : listeners) {
-            if(!(l.getUser().hasSingleRole(mockRole.getRole()) || l.getUser().hasAdminRole())) {
+            if(!(service.hasSingleRole(l.getUser(), mockRole.getRole()) || service.hasAdminRole(l.getUser()))) {
                 assertEquals(0, l.getReturned().size());
             }else {
                 assertEquals(eventCount, l.getReturned().size());

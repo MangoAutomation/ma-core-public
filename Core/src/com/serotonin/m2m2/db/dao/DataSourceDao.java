@@ -73,14 +73,18 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         return (DataSourceDao)o;
     });
 
+    private final PermissionService permissionService;
+
     @Autowired
     private DataSourceDao(
             DataSourceTableDefinition table,
+            PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(AuditEventType.TYPE_DATA_SOURCE, table,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
+        this.permissionService = permissionService;
     }
 
     /**
@@ -303,8 +307,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
             PermissionHolder user) {
-        if(!user.hasAdminRole()) {
-            List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+        if(!permissionService.hasAdminRole(user)) {
+            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
             Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 

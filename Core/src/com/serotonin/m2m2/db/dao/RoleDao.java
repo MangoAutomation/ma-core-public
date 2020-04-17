@@ -6,11 +6,13 @@ package com.serotonin.m2m2.db.dao;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.jooq.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEvent;
@@ -34,6 +36,7 @@ import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.role.Role;
+import com.serotonin.m2m2.vo.role.RoleTree;
 import com.serotonin.m2m2.vo.role.RoleVO;
 
 /**
@@ -238,6 +241,119 @@ public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
     public RowMapper<RoleVO> getRowMapper() {
         return new RoleVORowMapper();
     }
+
+    /**
+     * Get the full trees of all permissions
+     * @return
+     */
+    public List<RoleTree> getTrees() {
+        List<RoleVO> all = getAll();
+        List<RoleTree> allTrees = new ArrayList<>();
+        for(RoleVO vo : all) {
+            allTrees.add(getInheritanceTree(vo));
+        }
+        return allTrees;
+    }
+
+    /**
+     * Get the tree of role inheritance for this vo
+     * @param role
+     * @return
+     */
+    public RoleTree getInheritanceTree(RoleVO role) {
+        Set<RoleVO> roleVOs = getInherited(role.getId());
+        Set<RoleTree> branch = new HashSet<>();
+        RoleTree roleTree = new RoleTree(role, branch);
+        for(RoleVO inherited : roleVOs) {
+            RoleTree inheritedTree = new RoleTree(inherited, new HashSet<>());
+            createInheritanceTree(inheritedTree);
+            branch.add(inheritedTree);
+        }
+
+        return roleTree;
+    }
+
+    private void createInheritanceTree(RoleTree branch) {
+        Set<RoleVO> roleVOs = getInherited(branch.getId());
+        for(RoleVO inherited : roleVOs) {
+            RoleTree inheritedTree = new RoleTree(inherited, new HashSet<>());
+            branch.getInheritedRoles().add(inheritedTree);
+            createInheritanceTree(inheritedTree);
+        }
+    }
+
+    /**
+     * Get a set of all inherited roles of this role
+     * @param vo
+     * @return
+     */
+    public Set<Role> getFlatInheritance(Role role){
+        Set<Role> all = new HashSet<Role>();
+        addInheritance(role, all);
+        return all;
+    }
+
+    /**
+     * Recursively add all inherited roles
+     * @param role
+     * @param all
+     */
+    private void addInheritance(Role role, Set<Role> all) {
+        Set<Role> inherited = getInherited(role);
+        for(Role inheritedRole : inherited) {
+            all.add(inheritedRole);
+            addInheritance(inheritedRole, all);
+        }
+    }
+
+    /**
+     * Get the inherited roles of this role from the database
+     * @param vo
+     * @return
+     */
+    private Set<Role> getInherited(Role role) {
+        Set<RoleVO> roleVOs = getInherited(role.getId());
+        Set<Role> roles = new HashSet<>();
+        for(RoleVO vo : roleVOs) {
+            roles.add(vo.getRole());
+        }
+        return roles;
+    }
+
+    private Set<RoleVO> getInherited(int roleId) {
+        Select<?> select = this.getSelectQuery(getSelectFields())
+                .join(RoleTableDefinition.roleInheritanceTableAsAlias)
+                .on(this.table.getIdAlias().eq(RoleTableDefinition.roleInheritanceTableInheritedRoleIdField))
+                .where(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias.eq(roleId));
+        List<Object> args = select.getBindValues();
+        return query(select.getSQL(), args.toArray(new Object[args.size()]), new RoleVoSetResultSetExtractor());
+    }
+
+
+
+    //    /**
+    //     * @param vo
+    //     * @return
+    //     */
+    //    public Set<RoleVO> getInheritedRoles(RoleVO vo) {
+    //        Name roleId = DSL.name("roleId");
+    //        Name inheritedRoleId = DSL.name("inheritedRoleId");
+    //        Name getInheritance = DSL.name("getInheritance");
+    //        Select<?> getRoles = this.create.with(getInheritance, inheritedRoleId, roleId)
+    //                .as(this.create.select(
+    //                        RoleTableDefinition.roleIdField,
+    //                        RoleTableDefinition.roleInheritanceTableInheritedRoleIdField)
+    //                        .from(RoleTableDefinition.roleInheritanceTable).where(RoleTableDefinition.roleIdField.eq(vo.getId()))
+    //                        .unionAll(this.create.select(
+    //                                RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias,
+    //                                RoleTableDefinition.roleInheritanceTableInheritedRoleIdFieldAlias).from(RoleTableDefinition.roleInheritanceTableAsAlias)
+    //                                .join(getInheritance).on(DSL.field(inheritedRoleId).eq(RoleTableDefinition.roleInheritanceTableRoleIdFieldAlias))))
+    //                .select(
+    //                        RoleTableDefinition.roleIdField,
+    //                        RoleTableDefinition.roleInheritanceTableInheritedRoleIdField).from(getInheritance);
+    //        String sql = getRoles.getSQL();
+    //        return new HashSet<>();
+    //    }
 
     /**
      * Get a result set extractor for an unmodifiable set of role vos

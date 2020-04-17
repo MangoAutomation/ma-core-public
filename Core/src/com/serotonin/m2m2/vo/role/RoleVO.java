@@ -41,6 +41,7 @@ public class RoleVO extends AbstractVO {
     }
 
     public Role getRole() {
-        return new Role(id, xid);
+        return new Role(this);
     }
+
 }

@@ -48,7 +48,7 @@ public class StringMangoScript implements MangoScript {
     }
 
     @Override
-    public Set<Role> getRoles() {
+    public Set<Role> getAllInheritedRoles() {
         return roles;
     }
 
