@@ -5,10 +5,11 @@ package com.infiniteautomation.mango.spring.script;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.script.Bindings;
@@ -52,6 +53,7 @@ public class ScriptService {
     final ApplicationContext context;
     final ScriptServicesPermissionDefinition scriptServicesPermission;
     final List<ScriptEngineDefinition> engineDefinitions;
+    final Map<String, ScriptEngineFactory> factories;
 
     @Autowired
     public ScriptService(ScriptEngineManager manager, PermissionService permissionService, ApplicationContext context,
@@ -61,16 +63,15 @@ public class ScriptService {
         this.context = context;
         this.scriptServicesPermission = scriptServicesPermission;
         this.engineDefinitions = engineDefinitions;
+
+        this.factories = manager.getEngineFactories().stream()
+                .collect(Collectors.toMap(ScriptEngineFactory::getEngineName, Function.identity()));
     }
 
-    private ScriptEngine getEngineByName(String engineName) {
-        ScriptEngine engine = manager.getEngineByName(engineName);
-        if (engine == null) {
-            List<String> names = new ArrayList<>();
-            manager.getEngineFactories().stream().forEach(f -> names.addAll(f.getNames()));
-            throw new EngineNotFoundException(engineName, names);
-        }
-        return engine;
+    private ScriptEngineFactory getFactoryByName(String engineName) {
+        return Optional.ofNullable(factories.get(engineName)).orElseThrow(() -> {
+            return new EngineNotFoundException(engineName, factories.keySet());
+        });
     }
 
     private ScriptEngineDefinition definitionForFactory(ScriptEngineFactory factory) {
@@ -110,25 +111,30 @@ public class ScriptService {
     }
 
     public ScriptEngineDefinition definitionForScript(MangoScript script) {
-        ScriptEngine engine;
+        ScriptEngineFactory factory;
+
         if (script instanceof CompiledMangoScript) {
-            engine = ((CompiledMangoScript) script).compiled.getEngine();
+            ScriptEngine engine = ((CompiledMangoScript) script).compiled.getEngine();
+            factory = engine.getFactory();
         } else {
-            engine = getEngineByName(script.getEngineName());
+            factory = getFactoryByName(script.getEngineName());
         }
 
-        return definitionForFactory(engine.getFactory());
+        return definitionForFactory(factory);
     }
 
     private ScriptEngine getScriptEngine(MangoScript script) {
         ScriptEngine engine;
+        ScriptEngineDefinition definition;
+
         if (script instanceof CompiledMangoScript) {
             engine = ((CompiledMangoScript) script).compiled.getEngine();
+            definition = definitionForFactory(engine.getFactory());
         } else {
-            engine = getEngineByName(script.getEngineName());
+            ScriptEngineFactory factory = getFactoryByName(script.getEngineName());
+            definition = definitionForFactory(factory);
+            engine = definition.createEngine(factory, script);
         }
-
-        ScriptEngineDefinition definition = definitionForFactory(engine.getFactory());
 
         PermissionHolder user = Common.getUser();
         permissionService.ensurePermission(user, definition.accessPermission());
@@ -159,7 +165,6 @@ public class ScriptService {
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
         ScriptEngineDefinition definition = definitionForFactory(engine.getFactory());
-        definition.applyRestrictions(engine, script);
 
         Logger log = LoggerFactory.getLogger("script." + script.getScriptName());
         engineBindings.put("log", log);

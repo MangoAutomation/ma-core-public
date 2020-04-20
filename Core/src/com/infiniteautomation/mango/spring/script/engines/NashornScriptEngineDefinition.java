@@ -13,25 +13,29 @@ import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.permissions.NashornPermission;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+
 /**
  * @author Jared Wiltshire
  */
+@SuppressWarnings("restriction")
 public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
-
-    public static final String SUPPORTED_ENGINE_NAME = "Oracle Nashorn";
 
     @Autowired
     NashornPermission permission;
 
     @Override
     public boolean supports(ScriptEngineFactory engineFactory) {
-        return SUPPORTED_ENGINE_NAME.equals(engineFactory.getEngineName());
+        return "jdk.nashorn.api.scripting.NashornScriptEngineFactory".equals(engineFactory.getClass().getName());
     }
 
     @Override
-    public void applyRestrictions(ScriptEngine engine, MangoScript script) {
-        // TODO Auto-generated method stub
+    public ScriptEngine createEngine(ScriptEngineFactory engineFactory, MangoScript script) {
+        if (permissionService.hasAdminRole(script)) {
+            return engineFactory.getScriptEngine();
+        }
 
+        return ((NashornScriptEngineFactory) engineFactory).getScriptEngine(name -> false);
     }
 
     @Override

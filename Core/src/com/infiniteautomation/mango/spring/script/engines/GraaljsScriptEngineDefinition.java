@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.permissions.GraaljsPermission;
+import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 
 /**
@@ -23,14 +24,12 @@ import com.serotonin.m2m2.module.ScriptEngineDefinition;
  */
 public class GraaljsScriptEngineDefinition extends ScriptEngineDefinition {
 
-    public static final String SUPPORTED_ENGINE_NAME = "Graal.js";
-
     @Autowired
     GraaljsPermission permission;
 
     @Override
     public boolean supports(ScriptEngineFactory engineFactory) {
-        return SUPPORTED_ENGINE_NAME.equals(engineFactory.getEngineName());
+        return engineFactory instanceof GraalJSEngineFactory;
     }
 
     @Override
@@ -39,7 +38,8 @@ public class GraaljsScriptEngineDefinition extends ScriptEngineDefinition {
     }
 
     @Override
-    public void applyRestrictions(ScriptEngine engine, MangoScript script) {
+    public ScriptEngine createEngine(ScriptEngineFactory engineFactory, MangoScript script) {
+        ScriptEngine engine = engineFactory.getScriptEngine();
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
         if (permissionService.hasAdminRole(script)) {
@@ -49,6 +49,7 @@ public class GraaljsScriptEngineDefinition extends ScriptEngineDefinition {
         engineBindings.put("polyglot.js.allowHostAccess", true);
         engineBindings.put("polyglot.js.nashorn-compat", true);
 
+        return engine;
     }
 
     @SuppressWarnings("unchecked")

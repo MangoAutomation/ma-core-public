@@ -3,13 +3,12 @@
  */
 package com.infiniteautomation.mango.spring.script.engines;
 
-import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
+import org.codehaus.groovy.jsr223.GroovyScriptEngineFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
-import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.permissions.GroovyPermission;
 import com.serotonin.m2m2.module.ScriptEngineDefinition;
 
@@ -18,20 +17,12 @@ import com.serotonin.m2m2.module.ScriptEngineDefinition;
  */
 public class GroovyScriptingEngineDefinition extends ScriptEngineDefinition {
 
-    public static final String SUPPORTED_ENGINE_NAME = "Groovy Scripting Engine";
-
     @Autowired
     GroovyPermission permission;
 
     @Override
     public boolean supports(ScriptEngineFactory engineFactory) {
-        return SUPPORTED_ENGINE_NAME.equals(engineFactory.getEngineName());
-    }
-
-    @Override
-    public void applyRestrictions(ScriptEngine engine, MangoScript script) {
-        // TODO Auto-generated method stub
-
+        return engineFactory instanceof GroovyScriptEngineFactory;
     }
 
     @Override

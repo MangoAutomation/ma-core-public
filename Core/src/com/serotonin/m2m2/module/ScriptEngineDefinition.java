@@ -25,7 +25,9 @@ public abstract class ScriptEngineDefinition extends ModuleElementDefinition {
 
     public abstract MangoPermission accessPermission();
     public abstract boolean supports(ScriptEngineFactory engineFactory);
-    public abstract void applyRestrictions(ScriptEngine engine, MangoScript script);
+    public ScriptEngine createEngine(ScriptEngineFactory engineFactory, MangoScript script) {
+        return engineFactory.getScriptEngine();
+    }
 
     public void addToBindings(Bindings bindings, String name, Object value) {
         bindings.put(name, value);

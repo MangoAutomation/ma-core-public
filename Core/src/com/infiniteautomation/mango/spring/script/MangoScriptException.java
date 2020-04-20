@@ -4,7 +4,7 @@
 package com.infiniteautomation.mango.spring.script;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -76,14 +76,14 @@ public class MangoScriptException extends RuntimeException {
 
     public static class EngineNotFoundException extends MangoScriptException {
         private static final long serialVersionUID = 1L;
-        private final List<String> availableEngines;
+        private final Set<String> availableEngines;
 
-        EngineNotFoundException(String engineName, List<String> availableEngines) {
+        EngineNotFoundException(String engineName, Set<String> availableEngines) {
             super("Script engine not found: " + engineName);
             this.availableEngines = availableEngines;
         }
 
-        public List<String> getAvailableEngines() {
+        public Set<String> getAvailableEngines() {
             return availableEngines;
         }
     }
