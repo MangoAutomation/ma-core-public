@@ -641,43 +641,6 @@
 			<scope>test</scope>
 		</dependency>
 		<!-- end Testing -->
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy</artifactId>
-            <version>${groovy.version}</version>
-            <classifier>indy</classifier>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.groovy</groupId>
-            <artifactId>groovy-jsr223</artifactId>
-            <version>${groovy.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.truffle</groupId>
-          <artifactId>truffle-api</artifactId>
-          <version>${graalvm.js.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.js</groupId>
-          <artifactId>js</artifactId>
-          <version>${graalvm.js.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.js</groupId>
-          <artifactId>js-scriptengine</artifactId>
-          <version>${graalvm.js.version}</version>
-        </dependency>
-        <dependency>
-          <groupId>org.graalvm.sdk</groupId>
-          <artifactId>graal-sdk</artifactId>
-          <version>${graalvm.js.version}</version>
-        </dependency>
 	</dependencies>
 	<dependencyManagement>
 	    <dependencies>

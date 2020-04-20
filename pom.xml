@@ -23,8 +23,6 @@
   <bouncyCastleVersion>1.62</bouncyCastleVersion>
   <jna.version>5.5.0</jna.version>
   <junitVersion>4.12</junitVersion>
-  <groovy.version>3.0.3</groovy.version>
-  <graalvm.js.version>20.0.0</graalvm.js.version>
  </properties>
  <organization>
    <name>Infinite Automation Systems, Inc.</name>
