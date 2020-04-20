@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -95,7 +96,7 @@ public class PermissionService {
     public void runAs(PermissionHolder user, Runnable command) {
         SecurityContext original = SecurityContextHolder.getContext();
         try {
-            newSecurityContext(user);
+            SecurityContextHolder.setContext(newSecurityContext(user));
             command.run();
         } finally {
             SecurityContextHolder.setContext(original);
@@ -105,7 +106,7 @@ public class PermissionService {
     public <T> T runAs(PermissionHolder user, Supplier<T> command) {
         SecurityContext original = SecurityContextHolder.getContext();
         try {
-            newSecurityContext(user);
+            SecurityContextHolder.setContext(newSecurityContext(user));
             return command.get();
         } finally {
             SecurityContextHolder.setContext(original);
@@ -115,7 +116,7 @@ public class PermissionService {
     public <T> T runAsCallable(PermissionHolder user, Callable<T> command) throws Exception {
         SecurityContext original = SecurityContextHolder.getContext();
         try {
-            newSecurityContext(user);
+            SecurityContextHolder.setContext(newSecurityContext(user));
             return command.call();
         } finally {
             SecurityContextHolder.setContext(original);
@@ -123,14 +124,38 @@ public class PermissionService {
     }
 
     /**
-     * Creates and sets a new security context for the user
+     * Creates a proxy object for the supplied instance where every method invoked is run as the supplied user.
+     * The returned proxy object will implement all interfaces of the supplied instance.
+     *
+     * @param <T> must be an interface
+     * @param user
+     * @param instance
+     * @return
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T runAsProxy(PermissionHolder user, T instance) {
+        Class<?> clazz = instance.getClass();
+        SecurityContext runAsContext = newSecurityContext(user);
+
+        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), clazz.getInterfaces(), (proxy, method, args) -> {
+            SecurityContext original = SecurityContextHolder.getContext();
+            try {
+                SecurityContextHolder.setContext(runAsContext);
+                return method.invoke(instance, args);
+            } finally {
+                SecurityContextHolder.setContext(original);
+            }
+        });
+    }
+
+    /**
+     * Creates a new security context for the supplied user
      * @param user
      * @return
      */
     private SecurityContext newSecurityContext(PermissionHolder user) {
         SecurityContext newContext = SecurityContextHolder.createEmptyContext();
         newContext.setAuthentication(new PreAuthenticatedAuthenticationToken(user, null));
-        SecurityContextHolder.setContext(newContext);
         return newContext;
     }
 

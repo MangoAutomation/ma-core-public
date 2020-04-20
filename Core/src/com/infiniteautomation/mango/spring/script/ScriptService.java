@@ -208,7 +208,8 @@ public class ScriptService {
         if (instance == null) {
             throw new ScriptInterfaceException(clazz);
         }
-        return instance;
+
+        return permissionService.runAsProxy(script, instance);
     }
 
 }

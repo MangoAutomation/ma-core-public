@@ -37,16 +37,12 @@ public class ScriptEventHandlerRT extends EventHandlerRT<ScriptEventHandlerVO> {
 
     @Override
     public void eventRaised(EventInstance evt) {
-        permissionService.runAs(script, () -> {
-            this.scriptHandlerDelegate.eventRaised(evt);
-        });
+        this.scriptHandlerDelegate.eventRaised(evt);
     }
 
     @Override
     public void eventInactive(EventInstance evt) {
-        permissionService.runAs(script, () -> {
-            this.scriptHandlerDelegate.eventInactive(evt);
-        });
+        this.scriptHandlerDelegate.eventInactive(evt);
     }
 
 }
