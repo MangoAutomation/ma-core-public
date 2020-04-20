@@ -42,12 +42,10 @@ public class GraaljsScriptEngineDefinition extends ScriptEngineDefinition {
         ScriptEngine engine = engineFactory.getScriptEngine();
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
+        engineBindings.put("polyglot.js.allowHostAccess", true);
         if (permissionService.hasAdminRole(script)) {
             engineBindings.put("polyglot.js.allowAllAccess", true);
         }
-
-        engineBindings.put("polyglot.js.allowHostAccess", true);
-        engineBindings.put("polyglot.js.nashorn-compat", true);
 
         return engine;
     }
