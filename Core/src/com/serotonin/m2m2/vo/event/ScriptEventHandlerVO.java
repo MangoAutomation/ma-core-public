@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import com.infiniteautomation.mango.spring.script.MangoScript;
 import com.infiniteautomation.mango.spring.script.StringMangoScript;
+import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonReader;
 import com.serotonin.json.ObjectWriter;
@@ -39,7 +40,10 @@ public class ScriptEventHandlerVO extends AbstractEventHandlerVO {
 
     @Override
     public EventHandlerRT<ScriptEventHandlerVO> createRuntime() {
-        return new ScriptEventHandlerRT(this);
+        PermissionService permissionService = Common.getBean(PermissionService.class);
+        return permissionService.runAsSystemAdmin(() -> {
+            return new ScriptEventHandlerRT(this);
+        });
     }
 
     private static final long serialVersionUID = -1L;

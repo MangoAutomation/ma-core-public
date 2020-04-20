@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.script.engines;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.script.Bindings;
@@ -10,6 +11,7 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
+import org.graalvm.polyglot.proxy.ProxyArray;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -33,7 +35,7 @@ public class GraaljsScriptEngineDefinition extends ScriptEngineDefinition {
     }
 
     @Override
-    public MangoPermission accessPermission() {
+    public MangoPermission requiredPermission() {
         return permission.getPermission();
     }
 
@@ -52,10 +54,14 @@ public class GraaljsScriptEngineDefinition extends ScriptEngineDefinition {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void addToBindings(Bindings bindings, String name, Object value) {
+    public Object toScriptNative(Object value) {
         if (value instanceof Map) {
-            value = ProxyObject.fromMap((Map<String, Object>) value);
+            return ProxyObject.fromMap((Map<String, Object>) value);
+        } else if (value instanceof List) {
+            return ProxyArray.fromList((List<Object>) value);
+        } else if (value instanceof Object[]) {
+            return ProxyArray.fromArray((Object[]) value);
         }
-        super.addToBindings(bindings, name, value);
+        return value;
     }
 }

@@ -39,7 +39,7 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
     }
 
     @Override
-    public MangoPermission accessPermission() {
+    public MangoPermission requiredPermission() {
         return permission.getPermission();
     }
 

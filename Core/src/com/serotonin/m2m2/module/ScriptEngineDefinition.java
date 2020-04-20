@@ -3,7 +3,6 @@
  */
 package com.serotonin.m2m2.module;
 
-import javax.script.Bindings;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
@@ -23,13 +22,14 @@ public abstract class ScriptEngineDefinition extends ModuleElementDefinition {
     @Autowired
     protected PermissionService permissionService;
 
-    public abstract MangoPermission accessPermission();
+    public abstract MangoPermission requiredPermission();
     public abstract boolean supports(ScriptEngineFactory engineFactory);
+
     public ScriptEngine createEngine(ScriptEngineFactory engineFactory, MangoScript script) {
         return engineFactory.getScriptEngine();
     }
 
-    public void addToBindings(Bindings bindings, String name, Object value) {
-        bindings.put(name, value);
+    public Object toScriptNative(Object value) {
+        return value;
     }
 }
