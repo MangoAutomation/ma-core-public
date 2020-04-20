@@ -3,11 +3,14 @@
  */
 package com.infiniteautomation.mango.spring.script.engines;
 
+import java.util.Map;
+
 import javax.script.Bindings;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 
+import org.graalvm.polyglot.proxy.ProxyObject;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -39,11 +42,21 @@ public class GraaljsScriptEngineDefinition extends ScriptEngineDefinition {
     public void applyRestrictions(ScriptEngine engine, MangoScript script) {
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-        engineBindings.put("polyglot.js.allowHostAccess", true);
-
         if (permissionService.hasAdminRole(script)) {
             engineBindings.put("polyglot.js.allowAllAccess", true);
         }
+
+        engineBindings.put("polyglot.js.allowHostAccess", true);
+        engineBindings.put("polyglot.js.nashorn-compat", true);
+
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public void addToBindings(Bindings bindings, String name, Object value) {
+        if (value instanceof Map) {
+            value = ProxyObject.fromMap((Map<String, Object>) value);
+        }
+        super.addToBindings(bindings, name, value);
+    }
 }

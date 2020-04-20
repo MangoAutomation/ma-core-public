@@ -165,9 +165,7 @@ public class ScriptService {
         engineBindings.put("log", log);
 
         if (permissionService.hasPermission(script, scriptServicesPermission.getPermission())) {
-            @SuppressWarnings("rawtypes")
-            Map<String, AbstractVOService> services = context.getBeansOfType(AbstractVOService.class);
-            engineBindings.put("services", services);
+            definition.addToBindings(engineBindings, "services", context.getBeansOfType(AbstractVOService.class));
         }
 
         String scriptName = script.getScriptName();
