@@ -223,8 +223,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             throw new PermissionException(new TranslatableMessage("users.validate.badDelete"), user);
 
         //Only admin can delete
-        user.ensureHasAdminRole();
-
+        permissionService.ensureAdminRole(user);
         dao.delete(vo);
         return vo;
     }
@@ -311,9 +310,9 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         java.util.Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         Set<Role> groups = new HashSet<>();
-        groups.addAll(user.getRoles());
+        groups.addAll(user.getAllInheritedRoles());
 
-        if (user.hasAdminRole()) {
+        if (permissionService.hasAdminRole(user)) {
             for (RoleVO role : this.roleDao.getAll())
                 groups.add(role.getRole());
         }
@@ -334,12 +333,12 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     public ProcessResult validate(User vo, PermissionHolder holder) {
         ProcessResult result = commonValidation(vo, holder);
         //Must not have a date created set if we are non admin
-        if(vo.getCreated() != null && !holder.hasAdminRole()) {
+        if(vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("created", "validate.invalidValue");
         }
 
         if(vo.isSessionExpirationOverride()) {
-            if(!holder.hasAdminRole()) {
+            if(!permissionService.hasAdminRole(holder)) {
                 result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
             }else {
                 if (-1 == Common.TIME_PERIOD_CODES.getId(vo.getSessionExpirationPeriodType(), Common.TimePeriods.MILLISECONDS)) {
@@ -361,7 +360,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         ProcessResult result = commonValidation(vo, holder);
 
         //Must not have a different date created set if we are non admin
-        if(vo.getCreated() != null && !holder.hasAdminRole()) {
+        if(vo.getCreated() != null && !permissionService.hasAdminRole(holder)) {
             if(vo.getCreated().getTime() != existing.getCreated().getTime()) {
                 result.addContextualMessage("created", "validate.invalidValue");
             }
@@ -384,36 +383,36 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
                 //If we are disabled this check will throw an exception, we are invalid anyway so
                 // don't check
                 //Cannot remove admin permission
-                if(existing.hasAdminRole())
-                    if(!vo.hasAdminRole())
+                if(permissionService.hasAdminRole(existing))
+                    if(!permissionService.hasAdminRole(vo))
                         result.addContextualMessage("roles", "users.validate.adminInvalid");
             }
         }
 
         //Things we cannot do as non-admin
-        if (!holder.hasAdminRole()) {
+        if (!permissionService.hasAdminRole(holder)) {
             if (!vo.getRoles().equals(existing.getRoles())) {
                 result.addContextualMessage("roles", "users.validate.cannotChangePermissions");
             }
         }
 
-        if(!Objects.equal(vo.getEmailVerified(), existing.getEmailVerified()) && !holder.hasAdminRole()) {
+        if(!Objects.equal(vo.getEmailVerified(), existing.getEmailVerified()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("emailVerified", "validate.invalidValue");
         }
 
-        if(!Objects.equal(vo.getCreated(), existing.getCreated()) && !holder.hasAdminRole()) {
+        if(!Objects.equal(vo.getCreated(), existing.getCreated()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("created", "validate.invalidValue");
         }
 
-        if(existing.isSessionExpirationOverride() != vo.isSessionExpirationOverride() && !holder.hasAdminRole()) {
+        if(existing.isSessionExpirationOverride() != vo.isSessionExpirationOverride() && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("sessionExpirationOverride", "permission.exception.mustBeAdmin");
         }
 
-        if(existing.getSessionExpirationPeriods() != vo.getSessionExpirationPeriods() && !holder.hasAdminRole()) {
+        if(existing.getSessionExpirationPeriods() != vo.getSessionExpirationPeriods() && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("sessionExpirationPeriods", "permission.exception.mustBeAdmin");
         }
 
-        if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), vo.getSessionExpirationPeriodType()) && !holder.hasAdminRole()) {
+        if(!StringUtils.equals(existing.getSessionExpirationPeriodType(), vo.getSessionExpirationPeriodType()) && !permissionService.hasAdminRole(holder)) {
             result.addContextualMessage("sessionExpirationPeriodType", "permission.exception.mustBeAdmin");
         }
 
@@ -507,7 +506,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
         }
 
         //Can't set email verified
-        if(vo.getEmailVerified() != null && !holder.hasAdminRole()) {
+        if(vo.getEmailVerified() != null && !permissionService.hasAdminRole(holder)) {
             response.addContextualMessage("emailVerified", "validate.invalidValue");
         }
 
@@ -573,11 +572,11 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             }
         }
 
-        if(holder.hasAdminRole())
+        if(permissionService.hasAdminRole(holder))
             return;
 
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getRoles(), newRoles)) {
+        if(!savedByOwner && !newRoles.contains(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getAllInheritedRoles(), newRoles)) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 
@@ -585,16 +584,16 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
             //Check for permissions being added that the user does not have
             Set<Role> added = new HashSet<>(newRoles);
             added.removeAll(existingRoles);
-            added.removeAll(holder.getRoles());
+            added.removeAll(holder.getAllInheritedRoles());
             if(added.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getRoles()));
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getAllInheritedRoles()));
             }
             //Check for permissions being removed that the user does not have
             Set<Role> removed = new HashSet<>(existingRoles);
             removed.removeAll(newRoles);
-            removed.removeAll(holder.getRoles());
+            removed.removeAll(holder.getAllInheritedRoles());
             if(removed.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getRoles()));
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", PermissionService.implodeRoles(holder.getAllInheritedRoles()));
             }
         }
         return;
@@ -602,7 +601,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
     @Override
     public boolean hasEditPermission(PermissionHolder holder, User vo) {
-        if(holder.hasAdminRole()) {
+        if(permissionService.hasAdminRole(holder)) {
             return true;
         }else if (holder instanceof User && ((User) holder).getId()  == vo.getId() && permissionService.hasPermission(holder, editSelfPermission.getPermission()))
             return true;
@@ -612,7 +611,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, User vo) {
-        if(user.hasAdminRole())
+        if(permissionService.hasAdminRole(user))
             return true;
         else if (user instanceof User && ((User) user).getId()  == vo.getId())
             return true;

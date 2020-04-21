@@ -409,7 +409,7 @@ public class ScriptingTest extends MangoTestBase {
         }
 
         @Override
-        public Set<Role> getRoles() {
+        public Set<Role> getAllInheritedRoles() {
             return Collections.singleton(PermissionHolder.SUPERADMIN_ROLE);
         }
     };

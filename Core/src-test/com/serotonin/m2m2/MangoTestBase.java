@@ -311,6 +311,12 @@ public class MangoTestBase {
         return roles;
     }
 
+    /**
+     * Create a role with a parent (
+     * @param xid
+     * @param name
+     * @return
+     */
     protected RoleVO createRole(String xid, String name) {
         RoleService service = Common.getBean(RoleService.class);
         RoleVO role = new RoleVO(Common.NEW_ID, xid, name);

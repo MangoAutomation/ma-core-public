@@ -80,6 +80,15 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         if(matcher.find()) {
             result.addContextualMessage("xid", "validate.role.noSpaceAllowed");
         }
+
+        //Ensure inherited roles exist
+        if(vo.getInherited() != null) {
+            for(Role role : vo.getInherited()) {
+                if(dao.getXidById(role.getId()) == null) {
+                    result.addContextualMessage("inherited", "validate.role.notFound", role.getXid());
+                }
+            }
+        }
         return result;
     }
 

@@ -322,6 +322,17 @@ CREATE TABLE roles (
 ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
 
 --
+-- Role Inheritance Mappings
+-- 
+CREATE TABLE roleInheritance (
+	roleId INT NOT NULL,
+	inheritedRoleId INT NOT NULL
+);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
+
+--
 --
 -- Role Mappings
 --

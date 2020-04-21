@@ -28,11 +28,13 @@ public class RoleTableDefinition extends AbstractTableDefinition {
 
     public static final String TABLE_NAME = "roles";
     public static final String ROLE_MAPPING_TABLE = "roleMappings";
+    public static final String ROLE_INHERITANCE_TABLE = "roleInheritance";
 
     public RoleTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("r"));
     }
 
+    //Role Mapping Table
     public static final Table<? extends Record> roleMappingTable = DSL.table(ROLE_MAPPING_TABLE);
     public static final Name roleMappingTableAlias = DSL.name("rm");
     public static final Table<? extends Record> roleMappingTableAsAlias = roleMappingTable.as(roleMappingTableAlias);
@@ -57,6 +59,16 @@ public class RoleTableDefinition extends AbstractTableDefinition {
     public static final Field<Long> maskField = DSL.field(maskFieldName, SQLDataType.BIGINT.nullable(false));
     public static final Field<Long> maskFieldAlias = DSL.field(roleMappingTableAlias.append(maskFieldName), SQLDataType.BIGINT.nullable(false));
 
+    //Role Inheritance table
+    public static final Table<? extends Record> roleInheritanceTable = DSL.table(ROLE_INHERITANCE_TABLE);
+    public static final Name roleInheritanceTableAlias = DSL.name("rh");
+    public static final Table<? extends Record> roleInheritanceTableAsAlias = roleInheritanceTable.as(roleInheritanceTableAlias);
+
+    public static final Field<Integer> roleInheritanceTableRoleIdFieldAlias = DSL.field(roleInheritanceTableAlias.append(roleIdFieldName), SQLDataType.INTEGER.nullable(false));
+
+    public static final Name roleInheritanceTableInheritedRoleIdName = DSL.name("inheritedRoleId");
+    public static final Field<Integer> roleInheritanceTableInheritedRoleIdField = DSL.field(roleInheritanceTableInheritedRoleIdName, SQLDataType.INTEGER);
+    public static final Field<Integer> roleInheritanceTableInheritedRoleIdFieldAlias = DSL.field(roleInheritanceTableAlias.append(roleInheritanceTableInheritedRoleIdName), SQLDataType.INTEGER);
 
     /**
      * Join on the mapping table via conditions (use aliases in the condition)

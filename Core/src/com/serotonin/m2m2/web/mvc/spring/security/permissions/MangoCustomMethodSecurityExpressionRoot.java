@@ -31,7 +31,7 @@ public class MangoCustomMethodSecurityExpressionRoot extends SecurityExpressionR
 implements MethodSecurityExpressionOperations {
 
     private final PermissionService permissionService;
-    
+
     public MangoCustomMethodSecurityExpressionRoot(Authentication authentication, PermissionService permissionService) {
         super(authentication);
         this.permissionService = permissionService;
@@ -78,7 +78,7 @@ implements MethodSecurityExpressionOperations {
      */
     public boolean hasDataSourceXidPermission(String xid){
         User user =  (User) this.getPrincipal();
-        if(user.hasAdminRole())
+        if(permissionService.hasAdminRole(user))
             return true;
         DataSourceVO dsvo = DataSourceDao.getInstance().getByXid(xid);
         if((dsvo == null)||(!permissionService.hasDataSourceEditPermission(user, dsvo)))

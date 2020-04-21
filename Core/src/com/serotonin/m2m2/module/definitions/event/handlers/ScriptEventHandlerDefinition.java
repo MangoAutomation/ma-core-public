@@ -73,7 +73,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         }
 
         if (!permissionService.hasAllRoles(user, scriptRoles)) {
-            response.addContextualMessage("scriptRoles", "validate.role.invalidModification", user.getRoles().stream().map(r -> r.getXid()).collect(Collectors.toList()));
+            response.addContextualMessage("scriptRoles", "validate.role.invalidModification", user.getAllInheritedRoles().stream().map(r -> r.getXid()).collect(Collectors.toList()));
             return;
         }
 

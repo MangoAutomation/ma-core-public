@@ -45,12 +45,12 @@ public class EventHandlerService extends AbstractVOService<AbstractEventHandlerV
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, AbstractEventHandlerVO vo) {
-        return user.hasAdminRole();
+        return permissionService.hasAdminRole(user);
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, AbstractEventHandlerVO vo) {
-        return user.hasAdminRole();
+        return permissionService.hasAdminRole(user);
     }
 
     @Override

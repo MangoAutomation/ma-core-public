@@ -18,8 +18,7 @@ public class Role implements Serializable {
     private final String xid;
 
     public Role(RoleVO vo) {
-        this.id = vo.getId();
-        this.xid = vo.getXid();
+        this(vo.getId(), vo.getXid());
     }
 
     public Role(int id, String xid){

@@ -153,7 +153,7 @@ public class MangoPermission {
     }
 
     public boolean isGranted(PermissionHolder user) {
-        Set<Role> userRoles = user.getRoles();
+        Set<Role> userRoles = user.getAllInheritedRoles();
         for (Set<Role> term : roles) {
             if (userRoles.containsAll(term)) {
                 return true;

@@ -274,7 +274,7 @@ public class PermissionService {
     public boolean hasDataSourcePermission(PermissionHolder user) throws PermissionException {
         if (!isValidPermissionHolder(user)) return false;
 
-        if(user.hasAdminRole()) return true;
+        if(hasAdminRole(user)) return true;
 
         return hasPermission(user, dataSourcePermission.getPermission());
     }
@@ -476,7 +476,7 @@ public class PermissionService {
     public boolean hasEventsViewPermission (PermissionHolder user) {
         if (!isValidPermissionHolder(user)) return false;
 
-        if(user.hasAdminRole()) return true;
+        if(hasAdminRole(user)) return true;
 
         return hasPermission(user, eventsViewPermission.getPermission());
     }
@@ -499,7 +499,7 @@ public class PermissionService {
     public boolean hasAnyRole(PermissionHolder user, Set<Role> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<Role> heldRoles = user.getRoles();
+        Set<Role> heldRoles = user.getAllInheritedRoles();
         return containsAnyRole(heldRoles, requiredRoles);
     }
 
@@ -526,7 +526,7 @@ public class PermissionService {
     public boolean hasSingleRole(PermissionHolder user, Role requiredRole) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<Role> heldRoles = user.getRoles();
+        Set<Role> heldRoles = user.getAllInheritedRoles();
         return containsSingleRole(heldRoles, requiredRole);
     }
 
@@ -554,7 +554,7 @@ public class PermissionService {
     public boolean hasAllRoles(PermissionHolder user, Set<Role> requiredRoles) {
         if (!isValidPermissionHolder(user)) return false;
 
-        Set<Role> heldRoles = user.getRoles();
+        Set<Role> heldRoles = user.getAllInheritedRoles();
         return containsAll(heldRoles, requiredRoles);
     }
 
@@ -722,11 +722,11 @@ public class PermissionService {
             return;
         }
 
-        if(holder.hasAdminRole())
+        if(hasAdminRole(holder))
             return;
 
         //Ensure the holder has at least one of the new permissions
-        if(!savedByOwner && !newPermission.containsRole(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getRoles(), newPermission.getUniqueRoles())) {
+        if(!savedByOwner && !newPermission.containsRole(PermissionHolder.USER_ROLE) && Collections.disjoint(holder.getAllInheritedRoles(), newPermission.getUniqueRoles())) {
             result.addContextualMessage(contextKey, "validate.mustRetainPermission");
         }
 
@@ -734,16 +734,16 @@ public class PermissionService {
             //Check for permissions being added that the user does not have
             Set<Role> added = new HashSet<>(newPermission.getUniqueRoles());
             added.removeAll(existingPermission.getUniqueRoles());
-            added.removeAll(holder.getRoles());
+            added.removeAll(holder.getAllInheritedRoles());
             if(added.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getRoles()));
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getAllInheritedRoles()));
             }
             //Check for permissions being removed that the user does not have
             Set<Role> removed = new HashSet<>(existingPermission.getUniqueRoles());
             removed.removeAll(newPermission.getUniqueRoles());
-            removed.removeAll(holder.getRoles());
+            removed.removeAll(holder.getAllInheritedRoles());
             if(removed.size() > 0) {
-                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getRoles()));
+                result.addContextualMessage(contextKey, "validate.role.invalidModification", implodeRoles(holder.getAllInheritedRoles()));
             }
         }
         return;
@@ -763,12 +763,12 @@ public class PermissionService {
      * @return Null if no permissions align else the permissions details with only the viewable groups
      */
     public UserRolesDetails getPermissionDetails(PermissionHolder currentUser, Collection<String> query, PermissionHolder user) {
-        UserRolesDetails d = new UserRolesDetails(user.getPermissionHolderName(), user.hasAdminRole());
+        UserRolesDetails d = new UserRolesDetails(user.getPermissionHolderName(), hasAdminRole(user));
 
-        boolean currentUserAdmin = currentUser.hasAdminRole();
+        boolean currentUserAdmin = hasAdminRole(currentUser);
 
         // Add any matching groups
-        for (Role role : user.getRoles()) {
+        for (Role role : user.getAllInheritedRoles()) {
             if (currentUserAdmin || hasSingleRole(currentUser, role)) {
                 d.getAllRoles().add(role);
 

@@ -126,7 +126,7 @@ public class ScriptService {
 
         PermissionHolder user = Common.getUser();
         permissionService.ensurePermission(user, definition.requiredPermission());
-        permissionService.ensureHasAllRoles(user, script.getRoles());
+        permissionService.ensureHasAllRoles(user, script.getAllInheritedRoles());
 
         return new ScriptAndEngine(script, definition, engine);
     }

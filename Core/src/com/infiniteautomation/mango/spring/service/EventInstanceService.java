@@ -47,7 +47,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Override
     public boolean hasCreatePermission(PermissionHolder user, EventInstanceVO vo) {
-        return user.hasAdminRole();
+        return permissionService.hasAdminRole(user);
     }
 
     @Override
@@ -57,7 +57,7 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, EventInstanceVO vo) {
-        if(user.hasAdminRole()) {
+        if(permissionService.hasAdminRole(user)) {
             return true;
         }else {
             return permissionService.hasEventTypePermission(user, vo.getEventType());

@@ -333,6 +333,18 @@ CREATE INDEX roleMappingsVoTypeIndex ON roleMappings (voType ASC);
 CREATE INDEX roleMappingsVoIdIndex ON roleMappings (voId ASC);
 
 --
+-- Role Inheritance Mappings
+-- 
+CREATE TABLE roleInheritance (
+	roleId INT NOT NULL,
+	inheritedRoleId INT NOT NULL
+);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
+
+
+--
 --
 -- User Role Mappings
 --

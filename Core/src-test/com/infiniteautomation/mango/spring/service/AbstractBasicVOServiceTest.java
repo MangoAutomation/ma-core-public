@@ -96,7 +96,7 @@ public abstract class AbstractBasicVOServiceTest<VO extends AbstractBasicVO, TAB
 
     public void setContextUser(PermissionHolder holder) {
         SecurityContextImpl sc = new SecurityContextImpl();
-        sc.setAuthentication(new PreAuthenticatedAuthenticationToken(holder, holder.getRoles()));
+        sc.setAuthentication(new PreAuthenticatedAuthenticationToken(holder, holder.getAllInheritedRoles()));
         SecurityContextHolder.setContext(sc);
     }
 

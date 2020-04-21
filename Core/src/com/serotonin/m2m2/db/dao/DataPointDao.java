@@ -90,6 +90,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     private final DataSourceTableDefinition dataSourceTable;
     private final EventDetectorTableDefinition eventDetectorTable;
     private final UserCommentTableDefinition userCommentTable;
+    private final PermissionService permissionService;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         Object o = Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -103,6 +104,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             DataSourceTableDefinition dataSourceTable,
             EventDetectorTableDefinition eventDetectorTable,
             UserCommentTableDefinition userCommentTable,
+            PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
             ApplicationEventPublisher publisher) {
         super(EventType.EventTypeNames.DATA_POINT, table,
@@ -111,6 +113,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         this.dataSourceTable = dataSourceTable;
         this.eventDetectorTable = eventDetectorTable;
         this.userCommentTable = userCommentTable;
+        this.permissionService = permissionService;
     }
 
     /**
@@ -660,8 +663,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
             PermissionHolder user) {
         //Join on permissions
-        if(!user.hasAdminRole()) {
-            List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+        if(!permissionService.hasAdminRole(user)) {
+            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
             Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
@@ -717,8 +720,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select,
             PermissionHolder user) {
         //Join on permissions
-        if(!user.hasAdminRole()) {
-            List<Integer> roleIds = user.getRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+        if(!permissionService.hasAdminRole(user)) {
+            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
 
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
             Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);

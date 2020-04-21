@@ -37,7 +37,7 @@ public class AuditEventService extends AbstractBasicVOService<AuditEventInstance
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, AuditEventInstanceVO vo) {
-        return user.hasAdminRole();
+        return permissionService.hasAdminRole(user);
     }
 
 }
