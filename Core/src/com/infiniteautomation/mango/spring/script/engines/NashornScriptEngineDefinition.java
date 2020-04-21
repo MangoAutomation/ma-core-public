@@ -3,6 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.script.engines;
 
+import javax.script.Bindings;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
@@ -38,6 +40,11 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
 
         // deny access to all java classes
         ScriptEngine engine = ((NashornScriptEngineFactory) engineFactory).getScriptEngine(name -> false);
+
+        // remove exit and quit functions from bindings
+        Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        engineBindings.remove("exit");
+        engineBindings.remove("quit");
 
         // make the engine and context inaccessible
         try {
