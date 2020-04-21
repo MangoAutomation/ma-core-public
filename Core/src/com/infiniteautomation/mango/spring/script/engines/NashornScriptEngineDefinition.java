@@ -5,6 +5,7 @@ package com.infiniteautomation.mango.spring.script.engines;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
+import javax.script.ScriptException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,7 +36,17 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
             return engineFactory.getScriptEngine();
         }
 
-        return ((NashornScriptEngineFactory) engineFactory).getScriptEngine(name -> false);
+        // deny access to all java classes
+        ScriptEngine engine = ((NashornScriptEngineFactory) engineFactory).getScriptEngine(name -> false);
+
+        // make the engine and context inaccessible
+        try {
+            engine.eval("Object.defineProperty(this, 'engine', {}); Object.defineProperty(this, 'context', {});");
+        } catch (ScriptException e) {
+            throw new RuntimeException(e);
+        }
+
+        return engine;
     }
 
     @Override
