@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -75,14 +76,15 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         //First confirm that if we are MySQL we have JSON Support
         if(getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
             try {
-                runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)engine=InnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
-            }catch(Exception e) {
+                runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)engine=InnoDB22;", "DROP TABLE mangoUpgrade28;"}, null);
+            }catch(BadSqlGrammarException e) {
                 String version = "unknown";
                 try {
                     DatabaseMetaData dmd = getDataSource().getConnection().getMetaData();
                     version = dmd.getDatabaseProductVersion();
                 }catch(Exception ex) {
                     //Munch
+                    ex.printStackTrace();
                 }
                 throw new ShouldNeverHappenException("Unable to start Mango, MySQL version must be at least 5.7.8 to support JSON columns. You have " + version);
             }
