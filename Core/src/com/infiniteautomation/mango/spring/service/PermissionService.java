@@ -3,6 +3,7 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Collections;
@@ -142,6 +143,8 @@ public class PermissionService {
             try {
                 SecurityContextHolder.setContext(runAsContext);
                 return method.invoke(instance, args);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
             } finally {
                 SecurityContextHolder.setContext(original);
             }
