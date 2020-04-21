@@ -27,6 +27,13 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
     @Autowired
     NashornPermission permission;
 
+    private static final String[] KEYS_TO_REMOVE = new String[] {
+            "exit", "quit",
+            "load", "loadWithNewGlobal",
+            "java", "javax", "javafx", "com", "edu", "org",
+            "Packages", "JavaImporter", "Java"
+    };
+
     @Override
     public boolean supports(ScriptEngineFactory engineFactory) {
         return "jdk.nashorn.api.scripting.NashornScriptEngineFactory".equals(engineFactory.getClass().getName());
@@ -43,8 +50,9 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
 
         // remove exit and quit functions from bindings
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-        engineBindings.remove("exit");
-        engineBindings.remove("quit");
+        for (String key : KEYS_TO_REMOVE) {
+            engineBindings.remove(key);
+        }
 
         // make the engine and context inaccessible
         try {
