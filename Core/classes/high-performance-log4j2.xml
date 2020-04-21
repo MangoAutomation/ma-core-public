@@ -26,10 +26,10 @@
 <Configuration packages="com.serotonin.m2m2.rt.console">
 	<Appenders>
 		<Console name="stdout" target="SYSTEM_OUT">
-			<PatternLayout pattern="%-5p %d{ISO8601} [%t] - %m %n"/>
+			<PatternLayout pattern="%-5p %d{ISO8601} [%t] - %m%n"/>
 		</Console>
 		<RollingRandomAccessFile name="logfile" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.ma.log" fileName="${sys:ma.logs}/ma.log">
-			<PatternLayout pattern="%-5p %d{ISO8601} [%t] - %m %n"/>
+			<PatternLayout pattern="%-5p %d{ISO8601} [%t] - %m%n"/>
 			<Policies>
 				<OnStartupTriggeringPolicy />
 				<TimeBasedTriggeringPolicy />

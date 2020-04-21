@@ -21,12 +21,15 @@
     
 -->
 <Configuration packages="com.serotonin.m2m2.rt.console">
+    <Properties>
+        <Property name="MA_LOG4J_STDOUT_PATTERN">%-5p %d{ISO8601} (%C.%M:%L) - %m%n</Property>
+    </Properties>
 	<Appenders>
 		<Console name="stdout" target="SYSTEM_OUT">
-			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+			<PatternLayout pattern="${env:MA_LOG4J_STDOUT_PATTERN}"/>
 		</Console>
 		<RollingRandomAccessFile name="logfile" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.ma.log" fileName="${sys:ma.logs}/ma.log">
-			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m%n"/>
 			<Policies>
 				<OnStartupTriggeringPolicy />
 				<TimeBasedTriggeringPolicy />
@@ -40,7 +43,7 @@
 			</DefaultRolloverStrategy>
 		</RollingRandomAccessFile>
 		<MangoFrontendAppender name="frontend">
-			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m %n"/>
+			<PatternLayout pattern="%-5p %d{ISO8601} (%C.%M:%L) - %m%n"/>
 		</MangoFrontendAppender>
 		<!-- IasTsdb Logging -->
 		<RollingRandomAccessFile name="corruption" filePattern="${sys:ma.logs}/%d{MM-dd-yyyy}-%i.iastsdb-corruption.log" fileName="${sys:ma.logs}/iastsdb-corruption.log">
