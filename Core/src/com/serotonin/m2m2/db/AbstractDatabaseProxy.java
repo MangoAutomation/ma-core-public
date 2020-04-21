@@ -76,7 +76,7 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
         //First confirm that if we are MySQL we have JSON Support
         if(getType().name().equals(DatabaseProxy.DatabaseType.MYSQL.name())) {
             try {
-                runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)engine=InnoDB22;", "DROP TABLE mangoUpgrade28;"}, null);
+                runScript(new String[] {"CREATE TABLE mangoUpgrade28 (test JSON)engine=InnoDB;", "DROP TABLE mangoUpgrade28;"}, null);
             }catch(BadSqlGrammarException e) {
                 String version = "unknown";
                 try {
