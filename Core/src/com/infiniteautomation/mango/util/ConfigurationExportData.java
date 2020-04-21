@@ -136,7 +136,7 @@ public class ConfigurationExportData {
         if (ArrayUtils.contains(exportElements, JSON_DATA))
             data.put(JSON_DATA, JsonDataDao.getInstance().getAll());
         if (ArrayUtils.contains(exportElements, ROLES))
-            data.put(ROLES, RoleDao.getInstance().getTrees());
+            data.put(ROLES, RoleDao.getInstance().getAll());
 
         if (ArrayUtils.contains(exportElements, PERMISSIONS)) {
             List<MangoPermission> permissions = new ArrayList<>();

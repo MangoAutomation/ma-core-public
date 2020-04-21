@@ -4,16 +4,12 @@
 
 package com.infiniteautomation.mango.emport;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.lang3.StringUtils;
 
 import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
-import com.serotonin.ShouldNeverHappenException;
-import com.serotonin.json.type.JsonArray;
+import com.serotonin.json.JsonException;
 import com.serotonin.json.type.JsonObject;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.vo.role.RoleVO;
@@ -35,12 +31,6 @@ public class RoleImporter extends Importer {
     protected void importImpl() {
         String xid = json.getString("xid");
         String name = json.getString("name");
-
-        Set<RoleVO> inheritedRoles = new HashSet<>();
-        if(json.containsKey("inheritedRoles")) {
-            importInheritedRoles(json.getJsonArray("inheritedRoles"), inheritedRoles);
-        }
-
         RoleVO vo = null;
 
         if (StringUtils.isBlank(xid)) {
@@ -48,7 +38,6 @@ public class RoleImporter extends Importer {
         }else {
             try {
                 vo = service.get(xid);
-                vo = new RoleVO(vo.getId(), xid, name);
             }catch(NotFoundException e) {
 
             }
@@ -59,6 +48,9 @@ public class RoleImporter extends Importer {
         }
 
         try {
+            //Read into the VO to get all properties
+            ctx.getReader().readInto(vo, json);
+
             boolean isnew = vo.getId() == Common.NEW_ID;
             if(isnew) {
                 service.insert(vo);
@@ -68,15 +60,8 @@ public class RoleImporter extends Importer {
             addSuccessMessage(isnew, "emport.role.prefix", xid);
         }catch(ValidationException e) {
             setValidationMessages(e.getValidationResult(), "emport.role.prefix", xid);
+        }catch (JsonException e) {
+            addFailureMessage("emport.role.prefix", xid, getJsonExceptionMessage(e));
         }
-    }
-
-    /**
-     * @param jsonArray
-     * @param inheritedRoles
-     */
-    private void importInheritedRoles(JsonArray jsonArray, Set<RoleVO> inheritedRoles) {
-        throw new ShouldNeverHappenException("unimplimented");
-
     }
 }
