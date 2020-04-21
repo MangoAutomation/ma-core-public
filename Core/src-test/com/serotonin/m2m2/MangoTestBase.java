@@ -312,14 +312,24 @@ public class MangoTestBase {
     }
 
     /**
-     * Create a role with a parent (
+     * Create a role
      * @param xid
      * @param name
      * @return
      */
     protected RoleVO createRole(String xid, String name) {
+        return createRole(xid, name, new Role[0]);
+    }
+
+    /**
+     * Create a role with inherited roles (
+     * @param xid
+     * @param name
+     * @return
+     */
+    protected RoleVO createRole(String xid, String name, Role... inherited) {
         RoleService service = Common.getBean(RoleService.class);
-        RoleVO role = new RoleVO(Common.NEW_ID, xid, name);
+        RoleVO role = new RoleVO(Common.NEW_ID, xid, name, new HashSet<>(Arrays.asList(inherited)));
         return service.getPermissionService().runAsSystemAdmin(() -> {
             return service.insert(role);
         });
