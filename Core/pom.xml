@@ -12,6 +12,7 @@
 	<name>Mango Core</name>
 	<properties>
 		<webDirectory>${project.basedir}/web</webDirectory>
+        <service.loader.directory>META-INF/services/core</service.loader.directory>
 	</properties>
 	<build>
 		<testResources>
