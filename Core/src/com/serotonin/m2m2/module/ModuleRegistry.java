@@ -616,7 +616,8 @@ public class ModuleRegistry {
                 boolean signed) {
             super(name, version, description, vendor, vendorUrl, dependencies, loadOrder, signed);
 
-            loadCoreModules();
+            loadDefinitions(CoreModule.class.getClassLoader());
+            addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
             addModule(this);
         }
 
@@ -626,19 +627,6 @@ public class ModuleRegistry {
                 return "Invalid";
             }else {
                 return Common.license() == null ? null : Common.license().getLicenseType();
-            }
-        }
-
-        private void loadCoreModules() {
-            try {
-                ClassLoader classLoader = CoreModule.class.getClassLoader();
-                for (Class<? extends ModuleElementDefinition> defClass : ModuleElementDefinition.loadDefinitions(classLoader)) {
-                    Class<?> clazz = classLoader.loadClass(defClass.getName());
-                    addDefinition(ModuleElementDefinition.class.cast(clazz.newInstance()));
-                }
-                addDefinition((LicenseDefinition) Providers.get(ICoreLicense.class));
-            } catch (Exception e) {
-                throw new RuntimeException(e);
             }
         }
     }

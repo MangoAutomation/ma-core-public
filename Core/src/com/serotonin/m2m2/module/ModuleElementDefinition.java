@@ -118,8 +118,8 @@ abstract public class ModuleElementDefinition implements Ordered {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static Set<Class<? extends ModuleElementDefinition>> loadDefinitions(ClassLoader classloader) throws IOException, ClassNotFoundException {
-        return MangoServiceLoader.load(ModuleElementDefinition.class, classloader, true).stream()
+    public static Set<Class<? extends ModuleElementDefinition>> loadDefinitions(ClassLoader classloader, String moduleName) throws IOException, ClassNotFoundException {
+        return MangoServiceLoader.load(ModuleElementDefinition.class, classloader, "META-INF/services/" + moduleName).stream()
                 .filter(clazz -> {
                     if (!clazz.isAnnotationPresent(ConditionalDefinition.class)) {
                         return true;

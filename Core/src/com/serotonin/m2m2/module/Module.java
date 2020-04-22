@@ -111,6 +111,21 @@ public class Module {
     }
 
     /**
+     * Loads all the module element definition classes and uses ConditionalDefinition to filter them. Does not return any definitions from parent classloaders.
+     * @param classloader
+     */
+    public void loadDefinitions(ClassLoader classLoader) {
+        try {
+            for (Class<? extends ModuleElementDefinition> defClass : ModuleElementDefinition.loadDefinitions(classLoader, name)) {
+                Class<?> clazz = classLoader.loadClass(defClass.getName());
+                addDefinition(ModuleElementDefinition.class.cast(clazz.newInstance()));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load definitions for module " + name, e);
+        }
+    }
+
+    /**
      * <p>Suitable for creating URLs to module assets.</p>
      *
      * @return relative URI from MA web root to the module's web directory

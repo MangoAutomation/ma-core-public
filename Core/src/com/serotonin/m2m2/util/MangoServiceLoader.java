@@ -18,6 +18,10 @@ import java.util.Set;
  */
 public class MangoServiceLoader {
 
+    public static <T> Set<Class<? extends T>> load(Class<T> service, ClassLoader classloader) throws IOException, ClassNotFoundException {
+        return load(service, classloader, null);
+    }
+
     /**
      * Rough equivalent of {@link java.util.ServiceLoader#load(Class, ClassLoader)} that does not instantiate the discovered classes.
      * We need to load the service file using a class loader for a single module then create the instances using the full class loader.
@@ -26,13 +30,16 @@ public class MangoServiceLoader {
      * @param <T>
      * @param service
      * @param classloader
-     * @param excludeClassesFromParents
+     * @param location defaults to "META-INF/services"
      * @return
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static <T> Set<Class<? extends T>> load(Class<T> service, ClassLoader classloader, boolean excludeClassesFromParents) throws IOException, ClassNotFoundException {
-        String fullName = "META-INF/services/" + service.getName();
+    public static <T> Set<Class<? extends T>> load(Class<T> service, ClassLoader classloader, String location) throws IOException, ClassNotFoundException {
+        if (location == null) {
+            location = "META-INF/services";
+        }
+        String fullName = location + "/" + service.getName();
         Enumeration<URL> serviceFileUrls = classloader.getResources(fullName);
         Set<Class<? extends T>> classes = new HashSet<>();
         for (URL url : Collections.list(serviceFileUrls)) {
@@ -44,9 +51,7 @@ public class MangoServiceLoader {
                     String className = line.trim();
                     if (!className.isEmpty()) {
                         Class<?> provider = Class.forName(className, false, classloader);
-                        if (!excludeClassesFromParents || classloader.equals(provider.getClassLoader())) {
-                            classes.add(provider.asSubclass(service));
-                        }
+                        classes.add(provider.asSubclass(service));
                     }
                 }
             }
