@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import java.util.function.Consumer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -137,6 +139,8 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         if(this.properties instanceof MockMangoProperties) {
             setDefaultEnvProps((MockMangoProperties)this.properties);
         }
+
+        Security.addProvider(new BouncyCastleProvider());
 
         Providers.add(MangoProperties.class, this.properties);
         Common.setModuleClassLoader(MockMangoLifecycle.class.getClassLoader());
