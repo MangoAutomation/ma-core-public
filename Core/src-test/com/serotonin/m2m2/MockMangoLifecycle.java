@@ -35,6 +35,7 @@ import com.serotonin.m2m2.module.EventManagerListenerDefinition;
 import com.serotonin.m2m2.module.Module;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.SystemSettingsListenerDefinition;
+import com.serotonin.m2m2.module.license.ITimedLicenseRegistrar;
 import com.serotonin.m2m2.rt.EventManager;
 import com.serotonin.m2m2.rt.RuntimeManager;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -138,7 +139,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         }
 
         Providers.add(MangoProperties.class, this.properties);
-        Common.setModuleClassLoader(Thread.currentThread().getContextClassLoader());
+        Common.setModuleClassLoader(MockMangoLifecycle.class.getClassLoader());
+
+        Providers.add(ITimedLicenseRegistrar.class, new MockTimedLicenseRegistrar());
 
         Providers.add(ICoreLicense.class, new TestLicenseDefinition());
         Providers.add(IMangoLifecycle.class, this);
@@ -179,7 +182,7 @@ public class MockMangoLifecycle implements IMangoLifecycle {
             Common.databaseProxy.initialize(null);
 
         //Setup the Spring Context
-        springRuntimeContextInitialize(Thread.currentThread().getContextClassLoader()).get();
+        springRuntimeContextInitialize(MockMangoLifecycle.class.getClassLoader()).get();
 
         //Ensure we start with the proper timer
         Common.backgroundProcessing = getBackgroundProcessing();
