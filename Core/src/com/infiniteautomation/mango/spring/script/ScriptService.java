@@ -138,9 +138,9 @@ public class ScriptService {
 
         Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-        String scriptName = script.getScriptName();
-        if (scriptName != null) {
-            engineBindings.put(ScriptEngine.FILENAME, scriptName);
+        String scriptFilename = script.getScriptFilename();
+        if (scriptFilename != null) {
+            engineBindings.put(ScriptEngine.FILENAME, scriptFilename);
         }
 
         for (ScriptBindingsDefinition bindingsDef : bindingsDefinitions) {

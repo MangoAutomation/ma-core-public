@@ -19,14 +19,12 @@ import com.serotonin.m2m2.vo.role.Role;
 public class PathMangoScript implements MangoScript {
 
     final String engineName;
-    final String scriptName;
     final Set<Role> roles;
     final Path scriptPath;
     final Charset charset;
 
-    public PathMangoScript(String engineName, String scriptName, Set<Role> roles, Path scriptPath, Charset charset) {
+    public PathMangoScript(String engineName, Set<Role> roles, Path scriptPath, Charset charset) {
         this.engineName = engineName;
-        this.scriptName = scriptName;
         this.roles = Collections.unmodifiableSet(roles);
         this.scriptPath = scriptPath;
         this.charset = charset;
@@ -39,7 +37,7 @@ public class PathMangoScript implements MangoScript {
 
     @Override
     public String getScriptName() {
-        return scriptName;
+        return scriptPath.getFileName().toString();
     }
 
     @Override
