@@ -115,6 +115,16 @@ public class MangoPermission {
         return new MangoPermission(roleSet);
     }
 
+    public static MangoPermission createAndSet(Role...roles) {
+        Set<Set<Role>> roleSet = new HashSet<>();
+        Set<Role> andSet = new HashSet<>();
+        roleSet.add(andSet);
+        for(Role role : roles) {
+            andSet.add(role);
+        }
+        return new MangoPermission(roleSet);
+    }
+
     /**
      * Assumes that all non-zero terms are packed into the lower bits.
      *
