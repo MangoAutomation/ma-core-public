@@ -208,10 +208,21 @@ public class MangoTestBase {
     protected static void addModule(String name, List<ModuleElementDefinition> definitions) {
 
         MangoTestModule module = new MangoTestModule(name);
+        module.loadDefinitions(MangoTestBase.class.getClassLoader());
 
         for(ModuleElementDefinition definition : definitions)
             module.addDefinition(definition);
 
+        modules.add(module);
+    }
+
+    /**
+     * Add module, load all definitions
+     * @param name
+     */
+    protected static void addModule(String name) {
+        MangoTestModule module = new MangoTestModule(name);
+        module.loadDefinitions(MangoTestBase.class.getClassLoader());
         modules.add(module);
     }
 

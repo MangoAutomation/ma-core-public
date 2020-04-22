@@ -147,8 +147,9 @@ public class MockMangoLifecycle implements IMangoLifecycle {
         Common.free = false;
 
         //Add in modules
-        for(Module module : modules)
+        for(Module module : modules) {
             ModuleRegistry.addModule(module);
+        }
 
         //Startup a simulation timer provider
         Providers.add(TimerProvider.class, getSimulationTimerProvider());
