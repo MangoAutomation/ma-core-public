@@ -6,6 +6,7 @@ package com.infiniteautomation.mango.spring.script;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -22,6 +23,10 @@ public class PathMangoScript implements MangoScript {
     final Set<Role> roles;
     final Path scriptPath;
     final Charset charset;
+
+    public PathMangoScript(String engineName, Set<Role> roles, Path scriptPath) {
+        this(engineName, roles, scriptPath, StandardCharsets.UTF_8);
+    }
 
     public PathMangoScript(String engineName, Set<Role> roles, Path scriptPath, Charset charset) {
         this.engineName = engineName;
