@@ -5,12 +5,15 @@ package com.infiniteautomation.mango.spring.script;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -28,6 +31,7 @@ import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotInvocableException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.NoDefinitionForFactory;
+import com.infiniteautomation.mango.spring.script.MangoScriptException.NoEngineForFileException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptIOException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
@@ -74,12 +78,12 @@ public class ScriptService {
                 .orElseThrow(() -> new NoDefinitionForFactory(factory.getEngineName()));
     }
 
-    public List<ScriptEngineFactory> getEngineFactories() {
+    public Stream<ScriptEngineFactory> getEngineFactories() {
         PermissionHolder user = Common.getUser();
         return manager.getEngineFactories().stream().filter(f -> {
             MangoPermission permission = definitionForFactory(f).requiredPermission();
             return permissionService.hasPermission(user, permission);
-        }).collect(Collectors.toList());
+        });
     }
 
     public CompiledMangoScript compile(MangoScript script) {
@@ -198,6 +202,25 @@ public class ScriptService {
         }
 
         return permissionService.runAsProxy(script, instance);
+    }
+
+    public String findEngineForFile(Path filePath) throws IOException {
+        String fileName = filePath.getFileName().toString();
+        int dotIndex = fileName.lastIndexOf(".");
+        String extension = dotIndex >= 0 ? fileName.substring(dotIndex + 1) : null;
+        String mimeType = Files.probeContentType(filePath);
+
+        return findEngine(extension, mimeType);
+    }
+
+    public String findEngine(String extension, String mimeType) throws IOException {
+        return getEngineFactories()
+                .filter(factory -> {
+                    return extension != null && factory.getExtensions().contains(extension) ||
+                            mimeType != null && factory.getMimeTypes().contains(mimeType);
+                }).map(f -> f.getEngineName())
+                .findFirst()
+                .orElseThrow(() -> new NoEngineForFileException(extension, mimeType));
     }
 
 }

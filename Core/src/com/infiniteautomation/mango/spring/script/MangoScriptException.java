@@ -88,6 +88,14 @@ public class MangoScriptException extends RuntimeException {
         }
     }
 
+    public static class NoEngineForFileException extends MangoScriptException {
+        private static final long serialVersionUID = 1L;
+
+        NoEngineForFileException(String extension, String mime) {
+            super(String.format("No engine found for extension %s or mime type %s", extension, mime));
+        }
+    }
+
     public static class NoDefinitionForFactory extends MangoScriptException {
         private static final long serialVersionUID = 1L;
 
