@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.io.Files;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.TranslatableIllegalArgumentException;
@@ -116,15 +117,15 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      * @throws PermissionException
      */
     public List<String> getStoreNames() throws PermissionException {
-        List<FileStore> fileStores = getAll();
+        List<String> names = new ArrayList<>();
         Collection<FileStoreDefinition> moduleDefs = ModuleRegistry.getFileStoreDefinitions().values();
 
         PermissionHolder user = Common.getUser();
 
-        List<String> names = new ArrayList<>(fileStores.size() + moduleDefs.size());
-        for(FileStore fs : fileStores) {
-            names.add(fs.getStoreName());
-        }
+        this.customizedQuery(new ConditionSortLimit(null, null, null, null), (item, row) -> {
+            names.add(item.getStoreName());
+        });
+
         for(FileStoreDefinition def : moduleDefs) {
             if(def.hasStoreReadPermission(user)) {
                 names.add(def.getStoreName());
