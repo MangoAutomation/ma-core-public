@@ -15,6 +15,7 @@ import org.jooq.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.EventInstanceTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.m2m2.Common;
@@ -108,9 +109,11 @@ public class EventInstanceService extends AbstractVOService<EventInstanceVO, Eve
         }
 
         Field<Long> ackTs = this.dao.getTable().getAlias("ackTs");
-        this.customizedQuery(ackTs.isNull(), null, null, null, false, (event, i) -> {
-            UserEventLevelSummary summary = summaries.get(event.getAlarmLevel());
-            summary.increment(event);
+        ConditionSortLimit conditions = new ConditionSortLimit(ackTs.isNull(), null, null, null);
+        dao.customizedQuery(conditions, user, (item, index) -> {
+            dao.loadRelationalData(item);
+            UserEventLevelSummary summary = summaries.get(item.getAlarmLevel());
+            summary.increment(item);
         });
 
         return new ArrayList<>(summaries.values());

@@ -185,19 +185,6 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
             Integer limit, Integer offset,
             MappedRowCallback<T> callback);
 
-
-    /**
-     * Execute a query for these VOs based on the conditions
-     *
-     * @param conditions
-     * @param sort
-     * @param limit
-     * @param offset
-     * @param callback
-     */
-    public void customizedQuery(Condition conditions, List<SortField<Object>> sort,
-            Integer limit, Integer offset, PermissionHolder user, MappedRowCallback<T> callback);
-
     /**
      * Get the select query for the supplied fields without any joins
      * @param fields
@@ -225,10 +212,11 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      * Join the permissions table to restrict to viewable records
      * @param <R>
      * @param select
+     * @param conditions
      * @param user
      * @return
      */
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, PermissionHolder user);
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user);
 
     /**
      * Get the table model

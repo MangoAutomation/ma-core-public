@@ -398,19 +398,18 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
      * Join on permission read conditions to limit results to what the user can 'see'
      */
     @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, PermissionHolder user) {
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions, PermissionHolder user) {
         return select;
     }
 
     @Override
     public int customizedCount(ConditionSortLimit conditions, PermissionHolder user) {
-        Condition condition = conditions.getCondition();
         SelectSelectStep<Record1<Integer>> count = getCountQuery();
 
         SelectJoinStep<Record1<Integer>> select = count.from(this.table.getTableAsAlias());
         select = joinTables(select, conditions);
-        select = joinPermissions(select, user);
-        return customizedCount(select, condition);
+        select = joinPermissions(select, conditions, user);
+        return customizedCount(select, conditions.getCondition());
     }
 
     @Override
@@ -442,17 +441,8 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
     public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
-        select = joinPermissions(select, user);
+        select = joinPermissions(select, conditions, user);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
-    }
-
-    @Override
-    public void customizedQuery(Condition conditions, List<SortField<Object>> sort, Integer limit, Integer offset, PermissionHolder user, MappedRowCallback<T> callback) {
-        SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
-
-        select = joinTables(select, null);
-        select = joinPermissions(select, user);
-        customizedQuery(select, conditions, sort, limit, offset, callback);
     }
 
     @Override

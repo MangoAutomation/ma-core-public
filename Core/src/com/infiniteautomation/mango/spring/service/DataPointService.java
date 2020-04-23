@@ -32,6 +32,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.stereotype.Service;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.infiniteautomation.mango.util.exception.ValidationException;
@@ -334,19 +335,21 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         PermissionHolder user = Common.getUser();
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
-        Field<String> deviceName = this.dao.getTable().getAlias("deviceName");
-        List<SortField<String>> sort = new ArrayList<>();
+        Field<Object> deviceName = this.dao.getTable().getAlias("deviceName");
+        List<SortField<Object>> sort = new ArrayList<>();
         if(sortAsc) {
             sort.add(deviceName.asc());
         }else {
             sort.add(deviceName.desc());
         }
 
+        ConditionSortLimit csl = new ConditionSortLimit(conditions, sort, limit, offset);
+
         SelectJoinStep<Record> select = this.dao.getSelectQuery(Arrays.asList(deviceName));
         select = dao.joinTables(select, null);
 
         if(!permissionService.hasAdminRole(user)) {
-            select = dao.joinPermissions(select, user);
+            select = dao.joinPermissions(select, csl, user);
         }
 
         SelectConnectByStep<Record> afterWhere = conditions == null ? select : select.where(conditions);

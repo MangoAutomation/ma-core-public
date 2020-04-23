@@ -14,6 +14,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
 import com.infiniteautomation.mango.spring.service.AuditEventService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
@@ -76,12 +77,9 @@ public class PublisherAuditTest extends MangoTestBase {
             AuditEventTableDefinition table = Common.getBean(AuditEventTableDefinition.class);
             Condition conditions = DSL.and(table.getAlias("typeName").eq(AuditEventType.TYPE_PUBLISHER), table.getAlias("objectId").eq(vo.getId()));
             Common.getBean(PermissionService.class).runAsSystemAdmin(() -> {
+                ConditionSortLimit c = new ConditionSortLimit(conditions, Arrays.asList(table.getAlias("id").asc()), null, null);
                 service.customizedQuery(
-                        conditions,
-                        Arrays.asList(table.getAlias("id").asc()),
-                        null,
-                        null,
-                        false,
+                        c,
                         (evt, index) -> {
                             events.add(evt);
                         });

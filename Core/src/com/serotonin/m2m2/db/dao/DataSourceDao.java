@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.DataSourceTableDefinition;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
@@ -305,33 +306,41 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
             Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            Table<?> permission = create.select(
-                    RoleTableDefinition.voTypeField,
+            Table<?> dataSourceReadSubselect = this.create.select(
                     RoleTableDefinition.voIdField,
-                    RoleTableDefinition.permissionTypeField).from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .groupBy(RoleTableDefinition.voTypeField,
-                            RoleTableDefinition.voIdField,
-                            RoleTableDefinition.permissionTypeField)
+                    DSL.inline(1).as("granted"))
+                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
+                    .groupBy(RoleTableDefinition.voIdField)
                     .having(granted)
-                    .asTable("rm");
+                    .asTable("dataSourceRead");
 
+            select = select.leftJoin(dataSourceReadSubselect).on(this.table.getIdAlias().eq(dataSourceReadSubselect.field(RoleTableDefinition.voIdField)));
 
-            Condition readConditions = DSL.and(
-                    RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
-                    this.table.getAlias("id").eq(permission.field("voId")),
-                    RoleTableDefinition.permissionTypeField.in(PermissionService.READ, PermissionService.EDIT));
+            Table<?> dataSourceEditSubselect = this.create.select(
+                    RoleTableDefinition.voIdField,
+                    DSL.inline(1).as("granted"))
+                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
+                    .groupBy(RoleTableDefinition.voIdField)
+                    .having(granted)
+                    .asTable("dataSourceEdit");
 
-            //Join on role mappings select with conditions
-            select = select
-                    .join(permission)
-                    .on(DSL.or(readConditions));
+            select = select.leftJoin(dataSourceEditSubselect).on(this.table.getIdAlias().eq(dataSourceEditSubselect.field(RoleTableDefinition.voIdField)));
+
+            conditions.addCondition(DSL.or(
+                    dataSourceReadSubselect.field("granted").isTrue(),
+                    dataSourceEditSubselect.field("granted").isTrue()));
         }
         return select;
     }

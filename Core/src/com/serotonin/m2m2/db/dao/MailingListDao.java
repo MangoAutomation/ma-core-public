@@ -25,6 +25,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.MailingListTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
@@ -152,7 +153,7 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
     }
 
     @Override
-    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select,
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
         //Join on permissions
         if(!permissionService.hasAdminRole(user)) {
@@ -161,26 +162,33 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
             Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            Table<?> permission = create.select(
-                    RoleTableDefinition.voTypeField,
+            Table<?> mailingListReadSubselect = this.create.select(
                     RoleTableDefinition.voIdField,
-                    RoleTableDefinition.permissionTypeField).from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .groupBy(RoleTableDefinition.voTypeField,
-                            RoleTableDefinition.voIdField,
-                            RoleTableDefinition.permissionTypeField)
+                    DSL.inline(1).as("granted"))
+                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .where(RoleTableDefinition.voTypeField.eq(MailingList.class.getSimpleName()),
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
+                    .groupBy(RoleTableDefinition.voIdField)
                     .having(granted)
-                    .asTable("rm");
+                    .asTable("dataPointRead");
 
+            select = select.leftJoin(mailingListReadSubselect).on(this.table.getIdAlias().eq(mailingListReadSubselect.field(RoleTableDefinition.voIdField)));
 
-            Condition readConditions = DSL.and(
-                    RoleTableDefinition.voTypeField.eq(MailingList.class.getSimpleName()),
-                    this.table.getAlias("id").eq(permission.field("voId")),
-                    RoleTableDefinition.permissionTypeField.in(PermissionService.READ, PermissionService.EDIT));
+            Table<?> mailingListEditSubselect = this.create.select(
+                    RoleTableDefinition.voIdField,
+                    DSL.inline(1).as("granted"))
+                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .where(RoleTableDefinition.voTypeField.eq(MailingList.class.getSimpleName()),
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.SET))
+                    .groupBy(RoleTableDefinition.voIdField)
+                    .having(granted)
+                    .asTable("dataPointEdit");
 
-            //Join on role mappings select with conditions
-            select = select
-                    .join(permission)
-                    .on(DSL.or(readConditions));
+            select = select.leftJoin(mailingListEditSubselect).on(this.table.getIdAlias().eq(mailingListEditSubselect.field(RoleTableDefinition.voIdField)));
+
+            conditions.addCondition(DSL.or(
+                    mailingListReadSubselect.field("granted").isTrue(),
+                    mailingListEditSubselect.field("granted").isTrue()));
         }
         return select;
     }
