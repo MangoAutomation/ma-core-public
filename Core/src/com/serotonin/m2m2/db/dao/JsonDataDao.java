@@ -8,7 +8,15 @@ import java.io.IOException;
 import java.sql.Clob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.jooq.Condition;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.SelectJoinStep;
+import org.jooq.Table;
+import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
@@ -21,8 +29,11 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.JsonDataTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
+import com.infiniteautomation.mango.spring.db.RoleTableDefinition.GrantedAccess;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.ShouldNeverHappenException;
@@ -30,6 +41,7 @@ import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
 import com.serotonin.m2m2.vo.json.JsonDataVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * @author Terry Packer
@@ -45,6 +57,8 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
         return (JsonDataDao)o;
     });
 
+    private final PermissionService permissionService;
+
     /**
      * @param handler
      * @param typeName
@@ -52,11 +66,13 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
     @Autowired
     private JsonDataDao(JsonDataTableDefinition table,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+            ApplicationEventPublisher publisher,
+            PermissionService permissionService) {
         super(AuditEventType.TYPE_JSON_DATA,
                 table,
                 new TranslatableMessage("internal.monitor.JSON_DATA_COUNT"),
                 mapper, publisher);
+        this.permissionService = permissionService;
     }
 
     /**
@@ -142,6 +158,47 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
     public void deleteRelationalData(JsonDataVO vo) {
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.READ);
         RoleDao.getInstance().deleteRolesForVoPermission(vo, PermissionService.EDIT);
+    }
+
+    @Override
+    public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
+            PermissionHolder user) {
+        //Join on permissions
+        if(!permissionService.hasAdminRole(user)) {
+            List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
+
+            Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
+            Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
+
+            Table<?> readSubselect = this.create.select(
+                    RoleTableDefinition.voIdField,
+                    DSL.inline(1).as("granted"))
+                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .where(RoleTableDefinition.voTypeField.eq(JsonDataVO.class.getSimpleName()),
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
+                    .groupBy(RoleTableDefinition.voIdField)
+                    .having(granted)
+                    .asTable("dataPointRead");
+
+            select = select.leftJoin(readSubselect).on(this.table.getIdAlias().eq(readSubselect.field(RoleTableDefinition.voIdField)));
+
+            Table<?> editSubselect = this.create.select(
+                    RoleTableDefinition.voIdField,
+                    DSL.inline(1).as("granted"))
+                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .where(RoleTableDefinition.voTypeField.eq(JsonDataVO.class.getSimpleName()),
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.SET))
+                    .groupBy(RoleTableDefinition.voIdField)
+                    .having(granted)
+                    .asTable("dataPointEdit");
+
+            select = select.leftJoin(editSubselect).on(this.table.getIdAlias().eq(editSubselect.field(RoleTableDefinition.voIdField)));
+
+            conditions.addCondition(DSL.or(
+                    readSubselect.field("granted").isTrue(),
+                    editSubselect.field("granted").isTrue()));
+        }
+        return select;
     }
 
     /**
