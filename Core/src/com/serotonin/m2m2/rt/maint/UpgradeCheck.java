@@ -12,7 +12,6 @@ import com.infiniteautomation.mango.spring.service.ModulesService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.rt.event.ReturnCause;
 import com.serotonin.m2m2.rt.event.type.DuplicateHandling;
 import com.serotonin.m2m2.rt.event.type.SystemEventType;
@@ -60,9 +59,7 @@ public class UpgradeCheck extends TimerTask {
             }
 
             if (available != null && available > 0) {
-
-                TranslatableMessage m = new TranslatableMessage("modules.event.upgrades",
-                        ModuleRegistry.getModule("mangoUI") != null ? "/ui/administration/modules" : "/modules.shtm");
+                TranslatableMessage m = new TranslatableMessage("modules.event.upgrades");
                 SystemEventType.raiseEvent(et, Common.timer.currentTimeMillis(), true, m);
             }
             else

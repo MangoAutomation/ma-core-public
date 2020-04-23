@@ -17,7 +17,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @Component
 @WebFilter(
         asyncSupported = true,
-        urlPatterns = {"/rest/*", "*.htm", "*.shtm"},
+        urlPatterns = {"/rest/*", "*.htm"},
         initParams = {
                 @WebInitParam(name = "encoding", value = "UTF-8"),
                 @WebInitParam(name = "forceResponseEncoding", value = "true")

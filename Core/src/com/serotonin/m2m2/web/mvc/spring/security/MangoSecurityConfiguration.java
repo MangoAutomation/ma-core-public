@@ -56,7 +56,6 @@ import org.springframework.security.web.header.writers.frameoptions.XFrameOption
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
-import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
@@ -237,13 +236,7 @@ public class MangoSecurityConfiguration {
     RequestMatcher notRestRequestMatcher = new NegatedRequestMatcher(restRequestMatcher);
     RequestMatcher proxiedRestRequestMatcher = new AntPathRequestMatcher("/cloud-connect-proxy/rest/**");
 
-    RequestMatcher legacyUiMatcher = new OrRequestMatcher(
-            new AntPathRequestMatcher("/*.htm"),
-            new AntPathRequestMatcher("/**/*.shtm"),
-            new AntPathRequestMatcher("/**/*.jsp"),
-            new AntPathRequestMatcher("/swagger/**"));
-    RequestMatcher legacyCspMatcher = new AndRequestMatcher(notRestRequestMatcher, legacyUiMatcher);
-    RequestMatcher standardCspMatcher = new AndRequestMatcher(notRestRequestMatcher, new NegatedRequestMatcher(legacyUiMatcher));
+    RequestMatcher standardCspMatcher = notRestRequestMatcher;
 
     @Value("${authentication.token.enabled:true}") boolean tokenAuthEnabled;
     @Value("${authentication.basic.enabled:true}") boolean basicAuthenticationEnabled;
@@ -261,10 +254,6 @@ public class MangoSecurityConfiguration {
     @Value("${web.security.contentSecurityPolicy.reportOnly:false}") boolean cspReportOnly;
     @Value("${web.security.contentSecurityPolicy.other:}") String cspOther;
 
-    @Value("${web.security.contentSecurityPolicy.legacyUi.enabled:false}") boolean legacyCspEnabled;
-    @Value("${web.security.contentSecurityPolicy.legacyUi.reportOnly:false}") boolean legacyCspReportOnly;
-    @Value("${web.security.contentSecurityPolicy.legacyUi.other:}") String legacyCspOther;
-
     @Value("${swagger.apidocs.protected:true}") boolean swaggerApiDocsProtected;
     @Value("${springfox.documentation.swagger.v2.path}") String swagger2Endpoint;
 
@@ -272,7 +261,7 @@ public class MangoSecurityConfiguration {
     @Value("${ssl.port:8443}") int sslPort;
 
     @Autowired MangoPortMapper portMapper;
-    
+
     final static String[] SRC_TYPES = new String[] {"default", "script", "style", "connect", "img", "font", "media", "object", "frame", "worker", "manifest"};
 
     @Configuration
@@ -389,7 +378,6 @@ public class MangoSecurityConfiguration {
             authRequests.requestMatchers(restRequestMatcher).authenticated()
             .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
             .antMatchers("/modules/**").denyAll()
-            .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
             .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
 
             authRequests.anyRequest().permitAll(); // default to permit all
@@ -492,7 +480,6 @@ public class MangoSecurityConfiguration {
             authRequests.requestMatchers(restRequestMatcher).authenticated()
             .antMatchers(HttpMethod.GET, "/modules/*/web/**").permitAll() // dont allow access to any modules folders other than web
             .antMatchers("/modules/**").denyAll()
-            .antMatchers("/**/*.shtm").authenticated() // access to *.shtm files must be authenticated
             .antMatchers("/protected/**").authenticated(); // protected folder requires authentication
 
             authRequests.anyRequest().permitAll(); // default to permit all
@@ -558,7 +545,7 @@ public class MangoSecurityConfiguration {
             PortMapperConfigurer<HttpSecurity> configurer = new PortMapperConfigurer<>();
             configurer.portMapper(portMapper);
             http.apply(configurer);
-            
+
             // only enable "requiresSecure" for browser requests (not for XHR/REST requests)
             // this options sets the REQUIRES_SECURE_CHANNEL attribute and causes ChannelProcessingFilter
             http.requiresChannel().requestMatchers(browserHtmlRequestMatcher).requiresSecure();
@@ -590,34 +577,22 @@ public class MangoSecurityConfiguration {
             headers.addHeaderWriter(headerWriter).frameOptions().disable();
         }
 
-        if (cspEnabled || legacyCspEnabled) {
+        if (cspEnabled) {
             List<String> policies = new ArrayList<>();
-            List<String> legacyPolicies = new ArrayList<>();
 
             for (String srcType : SRC_TYPES) {
                 String policy = env.getProperty("web.security.contentSecurityPolicy." + srcType + "Src");
                 if (policy !=null && !policy.isEmpty()) {
                     policies.add(srcType + "-src " + policy);
                 }
-
-                String legacyPolicy = env.getProperty("web.security.contentSecurityPolicy.legacyUi." + srcType + "Src");
-                if (legacyPolicy != null && !legacyPolicy.isEmpty()) {
-                    legacyPolicies.add(srcType + "-src " + legacyPolicy);
-                }
             }
 
             if (cspOther != null && !cspOther.isEmpty()) {
                 policies.add(cspOther);
             }
-            if (legacyCspOther != null && !legacyCspOther.isEmpty()) {
-                legacyPolicies.add(legacyCspOther);
-            }
 
             if (cspEnabled && !policies.isEmpty()) {
                 headers.addHeaderWriter(new MangoCSPHeaderWriter(cspReportOnly, policies, standardCspMatcher));
-            }
-            if (legacyCspEnabled && !legacyPolicies.isEmpty()) {
-                headers.addHeaderWriter(new MangoCSPHeaderWriter(legacyCspReportOnly, legacyPolicies, legacyCspMatcher));
             }
         }
     }
