@@ -4,8 +4,6 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -189,27 +187,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
 
         ensureReadPermission(user, vo);
         return vo;
-    }
-
-    /**
-     * Get a list of all items pruned based on the
-     * read permission using security context user
-     * @return
-     */
-    public List<T> getAll() {
-        PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
-
-        List<T> all = dao.getAll();
-        Iterator<T> it = all.iterator();
-        //Filter list based on permission
-        while(it.hasNext()) {
-            T vo = it.next();
-            if(!hasReadPermission(user, vo)) {
-                it.remove();
-            }
-        }
-        return all;
     }
 
     /**
