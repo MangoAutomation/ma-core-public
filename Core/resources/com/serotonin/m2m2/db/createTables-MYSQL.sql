@@ -369,6 +369,8 @@ ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,u
 CREATE INDEX roleMappingsPermissionTypeIndex ON roleMappings (permissionType ASC);
 CREATE INDEX roleMappingsVoTypeIndex ON roleMappings (voType ASC);
 CREATE INDEX roleMappingsVoIdIndex ON roleMappings (voId ASC);
+CREATE INDEX roleMappingsRoleIdIndex ON roleMappings (roleId ASC);
+CREATE INDEX roleMappingsVoTypeVoIdPermissionTypeIndex ON roleMappings (voType ASC, voId ASC, permissionType ASC);
 
 --
 --
