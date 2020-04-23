@@ -77,9 +77,8 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @throws PermissionException
      */
     public void ensureStoreReadPermission(PermissionHolder user) {
-        if(!hasStoreReadPermission(user)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
-        }
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
+        permissionService.get().ensurePermission(user, permission.getPermission());
     }
 
     /**
@@ -98,9 +97,8 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      * @throws PermissionException
      */
     public void ensureStoreWritePermission(PermissionHolder user) {
-        if(!hasStoreWritePermission(user)) {
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
-        }
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
+        permissionService.get().ensurePermission(user, permission.getPermission());
     }
 
     /**
