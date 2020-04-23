@@ -741,11 +741,11 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     public void customizedEditQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<DataPointVO> callback) {
         SelectJoinStep<Record> select = getSelectQuery(getSelectFields());
         select = joinTables(select, conditions);
-        select = joinEditPermissions(select, user);
+        select = joinEditPermissions(select, conditions, user);
         customizedQuery(select, conditions.getCondition(), conditions.getSort(), conditions.getLimit(), conditions.getOffset(), callback);
     }
 
-    public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select,
+    public <R extends Record> SelectJoinStep<R> joinEditPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
         //Join on permissions
         if(!permissionService.hasAdminRole(user)) {
@@ -754,25 +754,19 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             Condition roleIdsIn = RoleTableDefinition.roleIdField.in(roleIds);
             Field<Boolean> granted = new GrantedAccess(RoleTableDefinition.maskField, roleIdsIn);
 
-            Table<?> permission = create.select(
-                    RoleTableDefinition.voTypeField,
+            Table<?> dataSourceEditSubselect = this.create.select(
                     RoleTableDefinition.voIdField,
-                    RoleTableDefinition.permissionTypeField).from(RoleTableDefinition.ROLE_MAPPING_TABLE)
-                    .groupBy(RoleTableDefinition.voTypeField,
-                            RoleTableDefinition.voIdField,
-                            RoleTableDefinition.permissionTypeField)
+                    DSL.inline(1).as("granted"))
+                    .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
+                    .where(RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
+                    .groupBy(RoleTableDefinition.voIdField)
                     .having(granted)
-                    .asTable("rm");
+                    .asTable("dataSourceEdit");
 
-            Condition editConditions = DSL.and(
-                    RoleTableDefinition.voTypeField.eq(DataSourceVO.class.getSimpleName()),
-                    this.table.getAlias("dataSourceId").eq(permission.field("voId")),
-                    RoleTableDefinition.permissionTypeField.in(PermissionService.EDIT));
+            select = select.leftJoin(dataSourceEditSubselect).on(this.table.getAlias("dataSourceId").eq(dataSourceEditSubselect.field(RoleTableDefinition.voIdField)));
 
-            //Join on role mappings select with conditions
-            select = select
-                    .join(permission)
-                    .on(DSL.or(editConditions));
+            conditions.addCondition(dataSourceEditSubselect.field("granted").isTrue());
         }
         return select;
     }
