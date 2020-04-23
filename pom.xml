@@ -23,7 +23,7 @@
   <bouncyCastleVersion>1.62</bouncyCastleVersion>
   <jna.version>5.5.0</jna.version>
   <junitVersion>4.12</junitVersion>
-  <service.loader.directory>META-INF/services/${project.name}</service.loader.directory>
+  <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
  </properties>
  <organization>
    <name>Infinite Automation Systems, Inc.</name>
@@ -315,7 +315,7 @@
             <plugin>
                 <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
                 <artifactId>serviceloader-maven-plugin</artifactId>
-                <version>1.1.0</version>
+                <version>1.2.1-ias1</version>
                 <executions>
                     <execution>
                         <id>find-module-definitions</id>
@@ -326,6 +326,7 @@
                             <services>
                                 <param>com.serotonin.m2m2.module.ModuleElementDefinition</param>
                             </services>
+                            <outputDirectory>${service.loader.directory}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -399,32 +400,6 @@
             </dependency>
         </dependencies>
       </plugin>
-      <plugin>
-            <!-- copies the service loader file for ModuleElementDefinition into a directory specific to the module -->
-            <artifactId>maven-resources-plugin</artifactId>
-            <version>3.1.0</version>
-            <executions>
-                <execution>
-                    <id>copy-service-loader-file</id>
-                    <phase>process-classes</phase>
-                    <goals>
-                        <goal>copy-resources</goal>
-                    </goals>
-                    <configuration>
-                        <outputDirectory>${project.build.outputDirectory}/${service.loader.directory}</outputDirectory>
-                        <resources>
-                            <resource>
-                                <directory>${project.build.outputDirectory}/META-INF/services</directory>
-                                <includes>
-                                    <include>com.serotonin.m2m2.module.ModuleElementDefinition</include>
-                                </includes>
-                                <filtering>false</filtering>
-                            </resource>
-                        </resources>
-                    </configuration>
-                </execution>
-            </executions>
-        </plugin>
     </plugins>
   </build>
  <issueManagement>
