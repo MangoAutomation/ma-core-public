@@ -178,7 +178,7 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
                             RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
                     .groupBy(RoleTableDefinition.voIdField)
                     .having(granted)
-                    .asTable("dataPointRead");
+                    .asTable("jsonDataRead");
 
             select = select.leftJoin(readSubselect).on(this.table.getIdAlias().eq(readSubselect.field(RoleTableDefinition.voIdField)));
 
@@ -187,10 +187,10 @@ public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition
                     DSL.inline(1).as("granted"))
                     .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
                     .where(RoleTableDefinition.voTypeField.eq(JsonDataVO.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.SET))
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
                     .groupBy(RoleTableDefinition.voIdField)
                     .having(granted)
-                    .asTable("dataPointEdit");
+                    .asTable("jsonDataEdit");
 
             select = select.leftJoin(editSubselect).on(this.table.getIdAlias().eq(editSubselect.field(RoleTableDefinition.voIdField)));
 

@@ -170,7 +170,7 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
                             RoleTableDefinition.permissionTypeField.eq(PermissionService.READ))
                     .groupBy(RoleTableDefinition.voIdField)
                     .having(granted)
-                    .asTable("dataPointRead");
+                    .asTable("mailingListRead");
 
             select = select.leftJoin(mailingListReadSubselect).on(this.table.getIdAlias().eq(mailingListReadSubselect.field(RoleTableDefinition.voIdField)));
 
@@ -179,10 +179,10 @@ public class MailingListDao extends AbstractDao<MailingList, MailingListTableDef
                     DSL.inline(1).as("granted"))
                     .from(RoleTableDefinition.ROLE_MAPPING_TABLE)
                     .where(RoleTableDefinition.voTypeField.eq(MailingList.class.getSimpleName()),
-                            RoleTableDefinition.permissionTypeField.eq(PermissionService.SET))
+                            RoleTableDefinition.permissionTypeField.eq(PermissionService.EDIT))
                     .groupBy(RoleTableDefinition.voIdField)
                     .having(granted)
-                    .asTable("dataPointEdit");
+                    .asTable("mailingListEdit");
 
             select = select.leftJoin(mailingListEditSubselect).on(this.table.getIdAlias().eq(mailingListEditSubselect.field(RoleTableDefinition.voIdField)));
 

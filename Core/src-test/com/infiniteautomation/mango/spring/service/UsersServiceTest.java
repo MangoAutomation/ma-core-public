@@ -164,13 +164,25 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Test
     @Override
-    public void testCountQueryPermissionEnforcement() {
+    public void testCountQueryReadPermissionEnforcement() {
         //Skipped as we don't filter in DB (yet)
     }
 
     @Test
     @Override
-    public void testQueryPermissionEnforcement() {
+    public void testCountQueryEditPermissionEnforcement() {
+        //Skipped as we don't filter in DB (yet)
+    }
+
+    @Test
+    @Override
+    public void testQueryReadPermissionEnforcement() {
+        //Skipped as we don't filter in DB (yet)
+    }
+
+    @Test
+    @Override
+    public void testQueryEditPermissionEnforcement() {
         //Skipped as we don't filter in DB (yet)
     }
 
