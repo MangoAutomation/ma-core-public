@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import com.google.common.io.Files;
 import com.infiniteautomation.mango.spring.db.FileStoreTableDefinition;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
+import com.infiniteautomation.mango.util.exception.TranslatableIllegalArgumentException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.FileStoreDao;
 import com.serotonin.m2m2.i18n.ProcessResult;
@@ -167,11 +168,12 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
     /**
      * Get root path and ensure write access
-     *
+     * <p>Deprecated, prefer {@link #getPathForWrite(String, String)} instead</p>
      * @param name
      * @return
      * @throws PermissionException
      */
+    @Deprecated
     public Path getFileStoreRootForWrite(String name) throws PermissionException {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(name);
         //This user can be null
@@ -186,11 +188,13 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
     /**
      * Get root path and ensure read access
+     * <p>Deprecated, prefer {@link #getPathForRead(String, String)} instead</p>
      *
      * @param name
      * @return
      * @throws PermissionException
      */
+    @Deprecated
     public Path getFileStoreRootForRead(String name) throws PermissionException {
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(name);
         //This user can be null
@@ -203,7 +207,39 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         }
     }
 
+    /**
+     * Retrieves the path to a file in the file store, checking that the user has write permission for the file store.
+     *
+     * @param fileStoreName
+     * @param path
+     * @return
+     * @throws PermissionException
+     */
+    public Path getPathForWrite(String fileStoreName, String path) throws PermissionException {
+        Path root = getFileStoreRootForWrite(fileStoreName);
+        Path filePath = root.resolve(path);
+        if (!filePath.startsWith(root)) {
+            throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.belowRoot", path));
+        }
+        return filePath;
+    }
 
+    /**
+     * Retrieves the path to a file in the file store, checking that the user has read permission for the file store.
+     *
+     * @param fileStoreName
+     * @param path
+     * @return
+     * @throws PermissionException
+     */
+    public Path getPathForRead(String fileStoreName, String path) throws PermissionException {
+        Path root = getFileStoreRootForRead(fileStoreName);
+        Path filePath = root.resolve(path);
+        if (!filePath.startsWith(root)) {
+            throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.belowRoot", path));
+        }
+        return filePath;
+    }
 
     /**
      *
@@ -226,7 +262,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         File dstFile = new File(fileOrFolder.getParentFile(), moveTo).getCanonicalFile();
         Path dstPath = dstFile.toPath();
         if (!dstPath.startsWith(root.toPath())) {
-            throw new TranslatableException(new TranslatableMessage("filestore.belowRoot", moveTo));
+            throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.belowRoot", moveTo));
         }
 
         if (dstFile.isDirectory()) {
@@ -252,7 +288,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         File dstFile = new File(srcFile.getParentFile(), dst).getCanonicalFile();
         Path dstPath = dstFile.toPath();
         if (!dstPath.startsWith(root.toPath())) {
-            throw new TranslatableException(new TranslatableMessage("filestore.belowRoot", dst));
+            throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.belowRoot", dst));
         }
 
         if (dstFile.isDirectory()) {

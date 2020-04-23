@@ -69,11 +69,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      */
     public boolean hasStoreReadPermission(PermissionHolder holder) {
         PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
-        if(permission == null) {
-            return true;
-        }else {
-            return permissionService.get().hasPermission(holder, permission.getPermission());
-        }
+        return permissionService.get().hasPermission(holder, permission.getPermission());
     }
 
     /**
@@ -94,11 +90,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      */
     public boolean hasStoreWritePermission(PermissionHolder holder) {
         PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
-        if(permission == null) {
-            return true;
-        }else {
-            return permissionService.get().hasPermission(holder, permission.getPermission());
-        }
+        return permissionService.get().hasPermission(holder, permission.getPermission());
     }
 
     /**
@@ -118,7 +110,7 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
      */
     public Path getRootPath() {
         String location = Common.envProps.getString(FILE_STORE_LOCATION_ENV_PROPERTY, ROOT);
-        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName());
+        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName()).toAbsolutePath().normalize();
     }
 
     public File getRoot() {

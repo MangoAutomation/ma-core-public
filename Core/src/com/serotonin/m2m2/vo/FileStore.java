@@ -50,7 +50,7 @@ public class FileStore extends AbstractBasicVO {
      */
     public Path getRootPath() {
         String location = Common.envProps.getString(FileStoreDefinition.FILE_STORE_LOCATION_ENV_PROPERTY, FileStoreDefinition.ROOT);
-        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName());
+        return Common.MA_HOME_PATH.resolve(location).resolve(getStoreName()).toAbsolutePath().normalize();
     }
 
 }
