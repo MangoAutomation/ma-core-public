@@ -135,12 +135,18 @@ public class ScriptService {
         return new ScriptAndEngine(script, definition, engine);
     }
 
-    private Object evalScript(ScriptAndEngine scriptAndEngine, Map<String, Object> bindings) {
+    private Object evalScript(ScriptAndEngine scriptAndEngine, EvalContext evalContext) {
         MangoScript script = scriptAndEngine.script;
         ScriptEngine engine = scriptAndEngine.engine;
         ScriptEngineDefinition engineDefinition = scriptAndEngine.engineDefinition;
 
-        Bindings engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+        ScriptContext context = engine.getContext();
+        Bindings engineBindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
+
+        engineBindings.putAll(evalContext.bindings);
+        context.setWriter(evalContext.writer);
+        context.setErrorWriter(evalContext.errorWriter);
+        context.setReader(evalContext.reader);
 
         String scriptFilename = script.getScriptFilename();
         if (scriptFilename != null) {
@@ -153,8 +159,6 @@ public class ScriptService {
                 bindingsDef.addBindings(script, engineBindings, engineDefinition::toScriptNative);
             }
         }
-
-        engineBindings.putAll(bindings);
 
         return this.permissionService.runAs(script, () -> {
             try {
@@ -178,8 +182,12 @@ public class ScriptService {
     }
 
     public Object eval(MangoScript script, Map<String, Object> bindings) {
+        return eval(script, new EvalContext(bindings));
+    }
+
+    public Object eval(MangoScript script, EvalContext evalContext) {
         ScriptAndEngine scriptAndEngine = getScriptEngine(script);
-        return evalScript(scriptAndEngine, bindings);
+        return evalScript(scriptAndEngine, evalContext);
     }
 
     public <T> T getInterface(MangoScript script, Class<T> clazz) {
@@ -187,6 +195,10 @@ public class ScriptService {
     }
 
     public <T> T getInterface(MangoScript script, Class<T> clazz, Map<String, Object> bindings) {
+        return getInterface(script, clazz, new EvalContext(bindings));
+    }
+
+    public <T> T getInterface(MangoScript script, Class<T> clazz, EvalContext evalContext) {
         ScriptAndEngine scriptAndEngine = getScriptEngine(script);
         ScriptEngine engine = scriptAndEngine.engine;
 
@@ -194,7 +206,7 @@ public class ScriptService {
             throw new EngineNotInvocableException(engine);
         }
 
-        evalScript(scriptAndEngine, bindings);
+        evalScript(scriptAndEngine, evalContext);
 
         T instance = ((Invocable) engine).getInterface(clazz);
         if (instance == null) {
