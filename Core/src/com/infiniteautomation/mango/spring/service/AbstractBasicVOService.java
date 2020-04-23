@@ -70,7 +70,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * @param vo
      * @return
      */
-    abstract public  boolean hasEditPermission(PermissionHolder user, T vo);
+    abstract public boolean hasEditPermission(PermissionHolder user, T vo);
 
     /**
      * Can this user read this VO
@@ -442,7 +442,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public void ensureCreatePermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasCreatePermission(user, vo))
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
     }
 
     /**
@@ -453,7 +453,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public void ensureEditPermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasEditPermission(user, vo))
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
     }
 
     /**
@@ -465,7 +465,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public void ensureReadPermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasReadPermission(user, vo))
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
     }
 
     /**
@@ -476,7 +476,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      */
     public void ensureDeletePermission(PermissionHolder user, T vo) throws PermissionException {
         if(!hasDeletePermission(user, vo))
-            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user.getPermissionHolderName()), user);
+            throw new PermissionException(new TranslatableMessage("permission.exception.doesNotHaveRequiredPermission", user != null ? user.getPermissionHolderName() : null), user);
     }
 
     /**
