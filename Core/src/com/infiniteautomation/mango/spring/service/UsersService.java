@@ -97,14 +97,7 @@ public class UsersService extends AbstractVOService<User, UserTableDefinition, U
     @Override
     @EventListener
     protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
-        for(User user : dao.getAll()) {
-            if(user.getRoles().contains(event.getRole().getRole())) {
-                Set<Role> updated = new HashSet<>(user.getRoles());
-                updated.remove(event.getRole().getRole());
-                user.setRoles(updated);
-                dao.update(dao.get(user.getId()), user);
-            }
-        }
+        this.dao.handleRoleDeletedEvent(event);
     }
 
     /*

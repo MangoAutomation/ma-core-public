@@ -43,6 +43,7 @@ import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.AlarmLevels;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -475,6 +476,20 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> {
     public void permissionChanged() {
         this.userCache.values().stream().forEach((user) -> {
             user.resetGrantedPermissions();
+        });
+    }
+
+    /**
+     * Make sure roles are removed from cached users, the mappings are ON CASCADE DELETE so this only matters for the cache
+     * @param event
+     */
+    public void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        this.userCache.values().stream().forEach((user) -> {
+            if(user.getRoles().contains(event.getRole().getRole())) {
+                Set<Role> updated = new HashSet<>(user.getRoles());
+                updated.remove(event.getRole().getRole());
+                user.setRoles(updated);
+            }
         });
     }
 }
