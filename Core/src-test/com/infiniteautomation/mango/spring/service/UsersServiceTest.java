@@ -164,6 +164,18 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
 
     @Test
     @Override
+    public void testCountQueryPermissionEnforcement() {
+        //Skipped as we don't filter in DB (yet)
+    }
+
+    @Test
+    @Override
+    public void testQueryPermissionEnforcement() {
+        //Skipped as we don't filter in DB (yet)
+    }
+
+    @Test
+    @Override
     public void testAddEditRoleUserDoesNotHave() {
         runTest(() -> {
             User vo = newVO(readUser);
@@ -246,6 +258,7 @@ public class UsersServiceTest extends AbstractVOServiceWithPermissionsTest<User,
         }, "roles", "roles");
     }
 
+    @Test
     public void testChangeUsernameAsAdmin() {
         getService().permissionService.runAsSystemAdmin(() -> {
             User vo = newVO(readUser);
