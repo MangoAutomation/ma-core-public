@@ -139,6 +139,7 @@ public class SerialPortManagerImpl implements SerialPortManager {
                         Common.envProps.getString("serial.port.windows.path", ""),
                         Pattern.compile(
                                 Common.envProps.getString("serial.port.windows.regex", "")));
+                break;
             default:
                 portNames = SerialPortList.getPortNames();
                 break;

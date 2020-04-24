@@ -46,7 +46,7 @@ public class CsvWriter {
         // double quotes.
         if (fieldValue.indexOf('"') != -1) {
             needsQuotes = true;
-            fieldValue.replaceAll("\"", "\"\"");
+            fieldValue = fieldValue.replaceAll("\"", "\"\"");
         }
 
         // A field that contains embedded line-breaks must be surounded by double-quotes
