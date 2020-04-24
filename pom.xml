@@ -23,6 +23,8 @@
   <bouncyCastleVersion>1.62</bouncyCastleVersion>
   <jna.version>5.5.0</jna.version>
   <junitVersion>4.12</junitVersion>
+  <asm.version>7.2</asm.version>
+  <spotbugs.version>4.0.2</spotbugs.version>
   <service.loader.directory>${project.build.outputDirectory}/META-INF/services/${project.name}</service.loader.directory>
  </properties>
  <organization>
@@ -310,7 +312,7 @@
          <plugin>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-maven-plugin</artifactId>
-            <version>3.1.12.2</version>
+            <version>${spotbugs.version}</version>
         </plugin>
             <plugin>
                 <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
