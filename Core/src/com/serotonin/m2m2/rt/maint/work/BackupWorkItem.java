@@ -34,7 +34,6 @@ public class BackupWorkItem implements WorkItem {
     private static final String TASK_ID = "CONFIG_BACKUP";
 
     public static final String BACKUP_DATE_FORMAT = "MMM-dd-yyyy_HHmmss"; //Used to for filename and property value for last run
-    public static final SimpleDateFormat dateFormatter = new SimpleDateFormat(BACKUP_DATE_FORMAT);
 
     //Lock to ensure we don't clobber files by running a backup
     // during another one.
@@ -103,7 +102,7 @@ public class BackupWorkItem implements WorkItem {
             LOG.info("Starting backup WorkItem.");
             // Create the filename
             String filename = "Mango-Configuration";
-            String runtimeString = dateFormatter.format(new Date());
+            String runtimeString = new SimpleDateFormat(BACKUP_DATE_FORMAT).format(new Date());
             int maxFiles = SystemSettingsDao.instance.getIntValue(SystemSettingsDao.BACKUP_FILE_COUNT);
             // If > 1 then we will use a date in the filename
             if (maxFiles > 1) {
@@ -221,7 +220,7 @@ public class BackupWorkItem implements WorkItem {
                 if(lastRunDateString != null){
                     Date lastRunDate;
                     try {
-                        lastRunDate = dateFormatter.parse(lastRunDateString);
+                        lastRunDate = new SimpleDateFormat(BACKUP_DATE_FORMAT).parse(lastRunDateString);
                     }catch(Exception e) {
                         lastRunDate = new Date();
                         LOG.warn("Failed to parse last backup date, using Jan 1 1970.", e);
