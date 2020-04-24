@@ -1258,7 +1258,7 @@ public class SystemSettingsDao extends BaseDao {
         }
     }
 
-    private Integer getIntValue(String key, Map<String,Object> settings) throws NumberFormatException {
+    private int getIntValue(String key, Map<String,Object> settings) throws NumberFormatException {
         Object value = settings.get(key);
         if (value == null)
             value = getIntValue(key);

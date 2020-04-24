@@ -222,8 +222,8 @@ public class H2InMemoryDatabaseProxy implements DatabaseProxy {
 
     @Override
     public boolean tableExists(ExtendedJdbcTemplate ejt, String tableName) {
-        return ejt.queryForObject("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
-                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'", new Object[]{}, Integer.class, 0) > 0;
+        return ejt.queryForInt("SELECT COUNT(1) FROM INFORMATION_SCHEMA.TABLES WHERE table_name='"
+                + tableName.toUpperCase() + "' AND table_schema='PUBLIC'", new Object[]{}, 0) > 0;
     }
 
     @Override

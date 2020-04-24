@@ -13,6 +13,7 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
@@ -268,11 +269,11 @@ public class DaoUtils implements TransactionCapable {
         return ejt.queryForObject(sql, args, rowMapper);
     }
 
-    public <T> T queryForObject(String sql, Object[] args, RowMapper<T> rowMapper, T zeroResult) {
+    public <T> @Nullable T queryForObject(String sql, Object[] args, RowMapper<T> rowMapper, @Nullable T zeroResult) {
         return ejt.queryForObject(sql, args, rowMapper, zeroResult);
     }
 
-    public <T> T queryForObject(String sql, Object[] args, Class<T> requiredType, T zeroResult) {
+    public <T> @Nullable T queryForObject(String sql, Object[] args, Class<T> requiredType, @Nullable T zeroResult) {
         return ejt.queryForObject(sql, args, requiredType, zeroResult);
     }
 

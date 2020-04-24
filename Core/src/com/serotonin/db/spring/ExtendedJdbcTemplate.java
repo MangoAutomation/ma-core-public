@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.dao.support.DataAccessUtils;
@@ -28,24 +29,24 @@ import org.springframework.jdbc.support.KeyHolder;
 public class ExtendedJdbcTemplate extends JdbcTemplate {
     //    final Log logger = super.logger;
 
-    public <T> T optionalUniqueResult(List<T> results, T zeroResult) {
+    public <T> @Nullable T optionalUniqueResult(List<T> results, @Nullable T zeroResult) {
         T result = DataAccessUtils.uniqueResult(results);
         if (result == null)
             return zeroResult;
         return result;
     }
 
-    public <T> T queryForObject(String sql, Object[] args, RowMapper<T> rowMapper, T zeroResult) {
+    public <T> @Nullable T queryForObject(String sql, Object[] args, RowMapper<T> rowMapper, @Nullable T zeroResult) {
         List<T> results = query(sql, args, new RowMapperResultSetExtractor<T>(rowMapper, 1));
         return optionalUniqueResult(results, zeroResult);
     }
 
-    public <T> T queryForObject(String sql, Object[] args, int[] argTypes, RowMapper<T> rowMapper, T zeroResult) {
+    public <T> @Nullable T queryForObject(String sql, Object[] args, int[] argTypes, RowMapper<T> rowMapper, @Nullable T zeroResult) {
         List<T> results = query(sql, args, argTypes, new RowMapperResultSetExtractor<T>(rowMapper, 1));
         return optionalUniqueResult(results, zeroResult);
     }
 
-    public <T> T queryForObject(String sql, Object[] args, int[] argTypes, Class<T> requiredType, T zeroResult) {
+    public <T> @Nullable T queryForObject(String sql, Object[] args, int[] argTypes, Class<T> requiredType, @Nullable T zeroResult) {
         return queryForObject(sql, args, argTypes, getSingleColumnRowMapper(requiredType), zeroResult);
     }
 
@@ -59,7 +60,7 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
         return (number != null ? number.intValue() : zeroResult);
     }
 
-    public <T> T queryForObject(String sql, Object[] args, Class<T> requiredType, T zeroResult) {
+    public <T> @Nullable T queryForObject(String sql, Object[] args, Class<T> requiredType, @Nullable T zeroResult) {
         return queryForObject(sql, args, getSingleColumnRowMapper(requiredType), zeroResult);
     }
 
