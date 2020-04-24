@@ -56,7 +56,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataPointUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.DataTypes;
@@ -93,10 +92,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     private final PermissionService permissionService;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(DataPointDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (DataPointDao)o;
+        return Common.getRuntimeContext().getBean(DataPointDao.class);
     });
 
     @Autowired

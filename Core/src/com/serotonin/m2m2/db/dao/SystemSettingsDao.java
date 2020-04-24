@@ -1420,9 +1420,9 @@ public class SystemSettingsDao extends BaseDao {
                         } catch (NumberFormatException e) {
                             // Are we a boolean
                             if (settingValue.equalsIgnoreCase("y")) {
-                                settings.put(settingName, new Boolean(true));
+                                settings.put(settingName, Boolean.valueOf(true));
                             } else if (settingValue.equalsIgnoreCase("n")) {
-                                settings.put(settingName, new Boolean(false));
+                                settings.put(settingName, Boolean.valueOf(false));
                             } else {
                                 // Must be a string
                                 settings.put(settingName, settingValue);

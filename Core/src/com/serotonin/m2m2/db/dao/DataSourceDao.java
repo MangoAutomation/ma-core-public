@@ -44,7 +44,6 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.usage.DataSourceUsageStatistics;
 import com.serotonin.ModuleNotLoadedException;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -68,10 +67,7 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     static final Log LOG = LogFactory.getLog(DataSourceDao.class);
 
     private static final LazyInitSupplier<DataSourceDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(DataSourceDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (DataSourceDao)o;
+        return Common.getRuntimeContext().getBean(DataSourceDao.class);
     });
 
     private final PermissionService permissionService;

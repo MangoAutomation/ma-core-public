@@ -27,20 +27,20 @@ import com.serotonin.m2m2.rt.dataImage.types.NumericValue;
  */
 public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
 
-    
+
     @Test
     public void testNoData() throws IOException {
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
-        
+
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -69,15 +69,15 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(0, stats.getCount());
                 //Test delta
                 Assert.assertEquals(Double.NaN, stats.getDelta(), 0.0001);
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testNoStartValueOneValuePerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
@@ -89,18 +89,18 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             data.add(new IdPointValueTime(1, new NumericValue(value), time.toInstant().toEpochMilli()));
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
-                
+                AnalogStatistics stats = statisticsGenerator;
+
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -113,8 +113,8 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
 
                 if(counter.getValue() == 1) {
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                    Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                 }else {
                     //Period start if there was a start value
                     Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
@@ -136,10 +136,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
                 //Test first
                 Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(null, stats.getStartValue());
@@ -149,35 +149,35 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(1, stats.getCount());
                 //Test delta
                 Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(null, 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testStartValueNoPeriodValues() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periodEnd
@@ -208,32 +208,32 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(0, stats.getCount());
                 //Test delta
                 Assert.assertEquals(0.0d, stats.getDelta(), 0.0001);
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
 
     @Test
     public void testStartValueAtPeriodStartNoPeriodValues() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periodEnd
@@ -242,10 +242,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 if(counter.getValue() == 1) {
                     //Test Minimum
                     Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getMinimumTime());
                     //Test Maximum
                     Assert.assertEquals(1.0, stats.getMaximumValue(), 0.0001);
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                    Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                     //Test Average
                     Assert.assertEquals(1.0d, stats.getAverage(), 0.0001);
                     //Test Integral
@@ -256,10 +256,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
                     //Test first
                     Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                    Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                     //Test last
                     Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
-                    Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
+                    Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                     //Test start
                     Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
                     //Test count
@@ -294,17 +294,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     //Test delta
                     Assert.assertEquals(0.0d, stats.getDelta(), 0.0001);
                 }
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.toInstant().toEpochMilli()), 0, false);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     //Test with Start Value and Values
     @Test
     public void testStartValueOneValuePerPeriod() throws IOException {
@@ -317,17 +317,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             data.add(new IdPointValueTime(1, new NumericValue(value), time.toInstant().toEpochMilli()));
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -352,17 +352,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(1.0d, stats.getSum(), 0.0001);
                 //Test first
                 Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(1.0d, stats.getLastValue(), 0.0001);
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
                 //Test count
                 Assert.assertEquals(1, stats.getCount());
                 //Test delta
                 Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
@@ -373,20 +373,20 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
     //TODO Test with End Value on edge of period end i.e. not a bookend (this won't happen via a query)
-    
+
     //
     //Many Values Per Period Tests
     //
-    
+
     @Test
     public void testNoStartValueManyValuesPerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
-        
+
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
@@ -400,17 +400,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -419,10 +419,10 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 if(counter.getValue() == 1) {
                     //Test Minimum
                     Assert.assertEquals(1.0, stats.getMinimumValue(), 0.0001);
-                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
+                    Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getMinimumTime());
                     //Test Maximum
                     Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
-                    Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
+                    Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                 }else {
                     //Have start value
                     //Test Minimum
@@ -449,16 +449,16 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     //Test Integral
                     Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
                 }
-                
-                
+
+
                 //Test sum
                 Assert.assertEquals(55d, stats.getSum(), 0.0001);
                 //Test first
                 Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(null, stats.getStartValue());
@@ -473,26 +473,26 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 }else {
                     Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
                 }
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(null, 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testStartValueManyValuesPerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
-        
+
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
@@ -506,17 +506,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -537,7 +537,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
                     Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                 }
-                
+
                 //Test Average
                 //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
                 if(counter.getValue() == 1) {
@@ -555,15 +555,15 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     //Test Integral
                     Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
                 }
-                
+
                 //Test sum
                 Assert.assertEquals(55d, stats.getSum(), 0.0001);
                 //Test first
                 Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
@@ -578,26 +578,26 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 }else {
                     Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
                 }
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testStartValueAtStartManyValuesPerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
-        
+
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
@@ -611,17 +611,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         AnalogStatisticsQuantizer quantizer = new AnalogStatisticsQuantizer(bc, new StatisticsGeneratorQuantizerCallback<AnalogStatistics>() {
-            
+
             @Override
             public void quantizedStatistics(AnalogStatistics statisticsGenerator) throws IOException {
                 counter.increment();
-                AnalogStatistics stats = (AnalogStatistics)statisticsGenerator;
+                AnalogStatistics stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -642,7 +642,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     Assert.assertEquals(10.0, stats.getMaximumValue(), 0.0001);
                     Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getMaximumTime());
                 }
-                
+
                 //Test Average
                 //1-9 for 1hr each, 10 for 12hrs at the start and 2hrs at the end
                 if(counter.getValue() == 1) {
@@ -660,23 +660,23 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     //Test Integral
                     Assert.assertEquals(integral, stats.getIntegral(), 0.0001);
                 }
-                
+
                 //Test sum
                 if(counter.getValue() == 1) {
                     Assert.assertEquals(56d, stats.getSum(), 0.0001);
                     //Test first
                     Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                    Assert.assertEquals((long)time.toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }else {
                     Assert.assertEquals(55d, stats.getSum(), 0.0001);
                     //Test first
                     Assert.assertEquals(1.0d, stats.getFirstValue(), 0.0001);
-                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());                    
+                    Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }
                 //Test last
                 Assert.assertEquals(10.0d, stats.getLastValue(), 0.0001);
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
-                
+                Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
+
                 if(counter.getValue() == 1) {
                     //Test start (the first start value will be null
                     Assert.assertEquals(1.0, stats.getStartValue(), 0.0001);
@@ -688,7 +688,7 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                     //Test count
                     Assert.assertEquals(10, stats.getCount());
                 }
-                
+
                 //Test delta
                 if(counter.getValue() == 1) {
                     //1 to 10
@@ -696,17 +696,17 @@ public class AnalogStatisticsQuantizerTest extends BaseQuantizerTest{
                 }else {
                     Assert.assertEquals(0.0, stats.getDelta(), 0.0001);
                 }
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new NumericValue(1.0), time.toInstant().toEpochMilli()), 0, false);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
 }

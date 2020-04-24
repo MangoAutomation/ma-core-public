@@ -31,7 +31,6 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.eventMulticaster.PropagatingEvent;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -47,10 +46,7 @@ import com.serotonin.m2m2.vo.role.RoleVO;
 public class RoleDao extends AbstractDao<RoleVO, RoleTableDefinition> {
 
     private static final LazyInitSupplier<RoleDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(RoleDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (RoleDao)o;
+        return Common.getRuntimeContext().getBean(RoleDao.class);
     });
 
     @Autowired

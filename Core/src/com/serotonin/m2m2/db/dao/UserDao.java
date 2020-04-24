@@ -41,7 +41,6 @@ import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.NotFoundException;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -62,10 +61,7 @@ public class UserDao extends AbstractDao<User, UserTableDefinition> {
     private static final Log LOG = LogFactory.getLog(UserDao.class);
 
     private static final LazyInitSupplier<UserDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(UserDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (UserDao)o;
+        return Common.getRuntimeContext().getBean(UserDao.class);
     });
 
     private final RoleDao roleDao;

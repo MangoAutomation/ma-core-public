@@ -28,20 +28,20 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
     public void testNoData() throws IOException {
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
-        
+
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-                
+
                 //Test first
                 Assert.assertEquals(null, stats.getFirstValue());
                 Assert.assertEquals(null, stats.getFirstTime());
@@ -52,15 +52,15 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(null, stats.getStartValue());
                 //Test count
                 Assert.assertEquals(0, stats.getCount());
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testNoStartValueOneValuePerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
@@ -72,30 +72,30 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
             data.add(new IdPointValueTime(1, new MultistateValue(value), time.toInstant().toEpochMilli()));
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
                 ZonedDateTime sampleTime = time.plusHours(12);
-                
+
                 //Test first
                 Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(1, stats.getLastValue().getIntegerValue());
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(null, stats.getStartValue());
@@ -103,7 +103,7 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                     Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(1, stats.getCount());
-                
+
                 //Test Changes
                 if(counter.getValue() == 1)
                     Assert.assertEquals(1, stats.getChanges());
@@ -113,35 +113,35 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(null, 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testStartValueNoPeriodValues() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-                
+
                 //Test first
                 Assert.assertEquals(null, stats.getFirstValue());
                 Assert.assertEquals(null, stats.getFirstTime());
@@ -152,35 +152,35 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                 Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(0, stats.getCount());
-                
+
                 //Test Changes
                 Assert.assertEquals(0, stats.getChanges());
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
 
     @Test
     public void testStartValueAtPeriodStartNoPeriodValues() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periodEnd
@@ -198,12 +198,12 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), 0, false);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testStartValueOneValuePerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
@@ -215,37 +215,37 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
             data.add(new IdPointValueTime(1, new MultistateValue(value), time.toInstant().toEpochMilli()));
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
 
                 ZonedDateTime sampleTime = time.plusHours(12);
-                
+
                 //Test first
                 Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(1, stats.getLastValue().getIntegerValue());
-                Assert.assertEquals((long)sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(sampleTime.toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
                 //Test count
                 Assert.assertEquals(1, stats.getCount());
                 //Test Changes
                 Assert.assertEquals(0, stats.getChanges());
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
@@ -256,15 +256,15 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testNoStartValueManyValuesPerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
-        
+
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
@@ -278,17 +278,17 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
@@ -296,10 +296,10 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
 
                 //Test first
                 Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(10, stats.getLastValue().getIntegerValue());
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(null, stats.getStartValue());
@@ -310,26 +310,26 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                 //Ensure data
                 //Test Changes
                 Assert.assertEquals(10, stats.getChanges());
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(null, 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testStartValueManyValuesPerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
-        
+
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
@@ -343,28 +343,28 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-              
+
                 //Test first
                 Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
-                Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 //Test last
                 Assert.assertEquals(10, stats.getLastValue().getIntegerValue());
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1)
                     Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
@@ -380,26 +380,26 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                     //Test Changes
                     Assert.assertEquals(10, stats.getChanges());
                 }
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.minusHours(3).toInstant().toEpochMilli()), 0, true);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
+
     @Test
     public void testStartValueAtStartManyValuesPerPeriod() throws IOException {
         //Generate data at 12 noon for every day in the period
         NextTimePeriodAdjuster adjuster = new NextTimePeriodAdjuster(TimePeriods.DAYS, 1);
         NextTimePeriodAdjuster hourlyAdjuster = new NextTimePeriodAdjuster(TimePeriods.HOURS, 1);
-        
+
         time = ZonedDateTime.of(2017, 01, 01, 12, 00, 00, 0, zoneId);
         List<IdPointValueTime> data = new ArrayList<>();
         while(time.toInstant().isBefore(to.toInstant())) {
@@ -413,34 +413,34 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
             }
             time = (ZonedDateTime) adjuster.adjustInto(time);
         }
-        
+
         //Reset time to track periods
         time = ZonedDateTime.of(2017, 01, 01, 00, 00, 00, 0, zoneId);
         MutableInt counter = new MutableInt(0);
         BucketCalculator bc = new TimePeriodBucketCalculator(from, to, TimePeriods.DAYS, 1);
         ValueChangeCounterQuantizer quantizer = new ValueChangeCounterQuantizer(bc, new StatisticsGeneratorQuantizerCallback<ValueChangeCounter>() {
-            
+
             @Override
             public void quantizedStatistics(ValueChangeCounter statisticsGenerator) throws IOException {
                 counter.increment();
-                ValueChangeCounter stats = (ValueChangeCounter)statisticsGenerator;
+                ValueChangeCounter stats = statisticsGenerator;
                 //Test periodStart
                 Assert.assertEquals(time.toInstant().toEpochMilli(), stats.getPeriodStartTime());
                 //Test periiodEnd
                 Assert.assertEquals(time.plusDays(1).toInstant().toEpochMilli(), stats.getPeriodEndTime());
-                
+
                 if(counter.getValue() == 1) {
                     //Test first
                     Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
-                    Assert.assertEquals((long)time.toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                    Assert.assertEquals(time.toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }else {
                     //Test first
                     Assert.assertEquals(1, stats.getFirstValue().getIntegerValue());
-                    Assert.assertEquals((long)time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
+                    Assert.assertEquals(time.plusHours(12).toInstant().toEpochMilli(), (long)stats.getFirstTime());
                 }
                 //Test last
                 Assert.assertEquals(10, stats.getLastValue().getIntegerValue());
-                Assert.assertEquals((long)time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
+                Assert.assertEquals(time.plusHours(12).plusHours(9).toInstant().toEpochMilli(), (long)stats.getLastTime());
                 //Test start (the first start value will be null
                 if(counter.getValue() == 1) {
                     Assert.assertEquals(1, stats.getStartValue().getIntegerValue());
@@ -452,23 +452,23 @@ public class ValueChangeCounterQuantizerTest extends BaseQuantizerTest{
                     Assert.assertEquals(10, stats.getStartValue().getIntegerValue());
                     //Test count
                     Assert.assertEquals(10, stats.getCount());
-                  //Test changes
+                    //Test changes
                     Assert.assertEquals(10, stats.getChanges());
                 }
-                
+
                 //Move to next period time
                 time = (ZonedDateTime)adjuster.adjustInto(time);
             }
         });
-        
+
         quantizer.firstValue(new IdPointValueTime(1, new MultistateValue(1), time.toInstant().toEpochMilli()), 0, false);
         for(int count = 0; count < data.size(); count++)
             quantizer.row(data.get(count), count + 1);
         quantizer.lastValue(data.get(data.size() - 1), data.size() + 1, true);
         quantizer.done();
-        Assert.assertEquals(new Integer(31), counter.getValue());
+        Assert.assertEquals(Integer.valueOf(31), counter.getValue());
     }
-    
-    
-    
+
+
+
 }

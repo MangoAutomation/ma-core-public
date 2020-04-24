@@ -25,7 +25,6 @@ import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.UserCommentTableDefinition;
 import com.infiniteautomation.mango.spring.db.UserTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -41,10 +40,7 @@ import com.serotonin.m2m2.vo.comment.UserCommentVO;
 public class UserCommentDao  extends AbstractDao<UserCommentVO, UserCommentTableDefinition>{
 
     private static final LazyInitSupplier<UserCommentDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(UserCommentDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (UserCommentDao)o;
+        return Common.getRuntimeContext().getBean(UserCommentDao.class);
     });
 
     private final UserTableDefinition userTable;

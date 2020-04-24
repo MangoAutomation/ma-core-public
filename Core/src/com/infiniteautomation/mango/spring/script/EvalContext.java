@@ -8,7 +8,8 @@ import java.io.StringReader;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+
+import org.eclipse.jdt.annotation.NonNull;
 
 import com.google.common.io.CharStreams;
 
@@ -25,7 +26,7 @@ public class EvalContext {
         this(new HashMap<>());
     }
 
-    public EvalContext(Map<String, Object> bindings) {
+    public EvalContext(@NonNull Map<String, Object> bindings) {
         this.bindings = bindings;
         this.writer = CharStreams.nullWriter();
         this.errorWriter = CharStreams.nullWriter();
@@ -35,26 +36,26 @@ public class EvalContext {
     public Writer getWriter() {
         return writer;
     }
-    public void setWriter(Writer writer) {
-        this.writer = Objects.requireNonNull(writer);
+    public void setWriter(@NonNull Writer writer) {
+        this.writer = writer;
     }
     public Writer getErrorWriter() {
         return errorWriter;
     }
-    public void setErrorWriter(Writer errorWriter) {
-        this.errorWriter = Objects.requireNonNull(errorWriter);
+    public void setErrorWriter(@NonNull Writer errorWriter) {
+        this.errorWriter = errorWriter;
     }
     public Reader getReader() {
         return reader;
     }
-    public void setReader(Reader reader) {
-        this.reader = Objects.requireNonNull(reader);
+    public void setReader(@NonNull Reader reader) {
+        this.reader = reader;
     }
     public Map<String, Object> getBindings() {
         return bindings;
     }
-    public void setBindings(Map<String, Object> bindings) {
-        this.bindings = Objects.requireNonNull(bindings);
+    public void setBindings(@NonNull Map<String, Object> bindings) {
+        this.bindings = bindings;
     }
     public void addBinding(String key, Object value) {
         this.bindings.put(key, value);

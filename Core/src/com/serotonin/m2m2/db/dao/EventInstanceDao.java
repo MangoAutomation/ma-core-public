@@ -58,10 +58,7 @@ import net.jazdw.rql.parser.ASTNode;
 public class EventInstanceDao extends AbstractDao<EventInstanceVO, EventInstanceTableDefinition> {
 
     private static final LazyInitSupplier<EventInstanceDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(EventInstanceDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (EventInstanceDao)o;
+        return Common.getRuntimeContext().getBean(EventInstanceDao.class);
     });
 
     private final UserTableDefinition userTable;

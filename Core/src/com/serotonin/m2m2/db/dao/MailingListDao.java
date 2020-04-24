@@ -53,10 +53,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class MailingListDao extends AbstractDao<MailingList, MailingListTableDefinition> {
 
     private static final LazyInitSupplier<MailingListDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(MailingListDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (MailingListDao)o;
+        return Common.getRuntimeContext().getBean(MailingListDao.class);
     });
 
     private final PermissionService permissionService;

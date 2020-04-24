@@ -16,9 +16,9 @@ import java.util.TreeSet;
 
 /**
  * Significant portions of this code (i.e. most of it) were lifted from the Quartz scheduling library for Java.
- * 
+ *
  * @see http://www.quartz-scheduler.org/api/2.1.0/
- * 
+ *
  * @author Matthew Lohbihler (edits to make compatible with this package)
  */
 public class CronExpression implements Cloneable {
@@ -33,32 +33,32 @@ public class CronExpression implements Cloneable {
     protected static final int YEAR = 6;
     protected static final int ALL_SPEC_INT = 99; // '*'
     protected static final int NO_SPEC_INT = 98; // '?'
-    protected static final Integer ALL_SPEC = new Integer(ALL_SPEC_INT);
-    protected static final Integer NO_SPEC = new Integer(NO_SPEC_INT);
+    protected static final Integer ALL_SPEC = Integer.valueOf(ALL_SPEC_INT);
+    protected static final Integer NO_SPEC = Integer.valueOf(NO_SPEC_INT);
 
     protected static final Map<String, Integer> monthMap = new HashMap<String, Integer>(20);
     protected static final Map<String, Integer> dayMap = new HashMap<String, Integer>(60);
     static {
-        monthMap.put("JAN", new Integer(0));
-        monthMap.put("FEB", new Integer(1));
-        monthMap.put("MAR", new Integer(2));
-        monthMap.put("APR", new Integer(3));
-        monthMap.put("MAY", new Integer(4));
-        monthMap.put("JUN", new Integer(5));
-        monthMap.put("JUL", new Integer(6));
-        monthMap.put("AUG", new Integer(7));
-        monthMap.put("SEP", new Integer(8));
-        monthMap.put("OCT", new Integer(9));
-        monthMap.put("NOV", new Integer(10));
-        monthMap.put("DEC", new Integer(11));
+        monthMap.put("JAN", Integer.valueOf(0));
+        monthMap.put("FEB", Integer.valueOf(1));
+        monthMap.put("MAR", Integer.valueOf(2));
+        monthMap.put("APR", Integer.valueOf(3));
+        monthMap.put("MAY", Integer.valueOf(4));
+        monthMap.put("JUN", Integer.valueOf(5));
+        monthMap.put("JUL", Integer.valueOf(6));
+        monthMap.put("AUG", Integer.valueOf(7));
+        monthMap.put("SEP", Integer.valueOf(8));
+        monthMap.put("OCT", Integer.valueOf(9));
+        monthMap.put("NOV", Integer.valueOf(10));
+        monthMap.put("DEC", Integer.valueOf(11));
 
-        dayMap.put("SUN", new Integer(1));
-        dayMap.put("MON", new Integer(2));
-        dayMap.put("TUE", new Integer(3));
-        dayMap.put("WED", new Integer(4));
-        dayMap.put("THU", new Integer(5));
-        dayMap.put("FRI", new Integer(6));
-        dayMap.put("SAT", new Integer(7));
+        dayMap.put("SUN", Integer.valueOf(1));
+        dayMap.put("MON", Integer.valueOf(2));
+        dayMap.put("TUE", Integer.valueOf(3));
+        dayMap.put("WED", Integer.valueOf(4));
+        dayMap.put("THU", Integer.valueOf(5));
+        dayMap.put("FRI", Integer.valueOf(6));
+        dayMap.put("SAT", Integer.valueOf(7));
     }
 
     private String cronExpression = null;
@@ -79,7 +79,7 @@ public class CronExpression implements Cloneable {
 
     /**
      * Constructs a new <CODE>CronExpression</CODE> based on the specified parameter.
-     * 
+     *
      * @param cronExpression
      *            String representation of the cron expression the new object should represent
      * @throws java.text.ParseException
@@ -98,7 +98,7 @@ public class CronExpression implements Cloneable {
     /**
      * Indicates whether the given date satisfies the cron expression. Note that milliseconds are ignored, so two Dates
      * falling on different milliseconds of the same second will always have the same result here.
-     * 
+     *
      * @param date
      *            the date to evaluate
      * @return a boolean indicating whether the given date satisfies the cron expression
@@ -118,7 +118,7 @@ public class CronExpression implements Cloneable {
 
     /**
      * Returns the next date/time <I>after</I> the given date/time which satisfies the cron expression.
-     * 
+     *
      * @param date
      *            the date/time at which to begin the search for the next valid date/time
      * @return the next valid date/time
@@ -129,7 +129,7 @@ public class CronExpression implements Cloneable {
 
     /**
      * Returns the next date/time <I>after</I> the given date/time which does <I>not</I> satisfy the expression
-     * 
+     *
      * @param date
      *            the date/time at which to begin the search for the next invalid date/time
      * @return the next valid date/time
@@ -184,7 +184,7 @@ public class CronExpression implements Cloneable {
 
     /**
      * Returns the string representation of the <CODE>CronExpression</CODE>
-     * 
+     *
      * @return a string representation of the <CODE>CronExpression</CODE>
      */
     @Override
@@ -194,7 +194,7 @@ public class CronExpression implements Cloneable {
 
     /**
      * Indicates whether the specified cron expression can be parsed into a valid cron expression
-     * 
+     *
      * @param cronExpression
      *            the expression to evaluate
      * @return a boolean indicating whether the given expression is a valid cron expression
@@ -505,7 +505,7 @@ public class CronExpression implements Cloneable {
                 throw new ParseException("'L' option is not valid here. (pos=" + i + ")", i);
             }
             TreeSet<Integer> set = getSet(type);
-            set.add(new Integer(val));
+            set.add(Integer.valueOf(val));
             i++;
             return i;
         }
@@ -518,7 +518,7 @@ public class CronExpression implements Cloneable {
                 throw new ParseException("'W' option is not valid here. (pos=" + i + ")", i);
             }
             TreeSet<Integer> set = getSet(type);
-            set.add(new Integer(val));
+            set.add(Integer.valueOf(val));
             i++;
             return i;
         }
@@ -539,7 +539,7 @@ public class CronExpression implements Cloneable {
             }
 
             TreeSet<Integer> set = getSet(type);
-            set.add(new Integer(val));
+            set.add(Integer.valueOf(val));
             i++;
             return i;
         }
@@ -757,7 +757,7 @@ public class CronExpression implements Cloneable {
 
         if ((incr == 0 || incr == -1) && val != ALL_SPEC_INT) {
             if (val != -1) {
-                set.add(new Integer(val));
+                set.add(Integer.valueOf(val));
             }
             else {
                 set.add(NO_SPEC);
@@ -829,28 +829,28 @@ public class CronExpression implements Cloneable {
         int max = -1;
         if (stopAt < startAt) {
             switch (type) {
-            case SECOND:
-                max = 60;
-                break;
-            case MINUTE:
-                max = 60;
-                break;
-            case HOUR:
-                max = 24;
-                break;
-            case MONTH:
-                max = 12;
-                break;
-            case DAY_OF_WEEK:
-                max = 7;
-                break;
-            case DAY_OF_MONTH:
-                max = 31;
-                break;
-            case YEAR:
-                throw new IllegalArgumentException("Start year must be less than stop year");
-            default:
-                throw new IllegalArgumentException("Unexpected type encountered");
+                case SECOND:
+                    max = 60;
+                    break;
+                case MINUTE:
+                    max = 60;
+                    break;
+                case HOUR:
+                    max = 24;
+                    break;
+                case MONTH:
+                    max = 12;
+                    break;
+                case DAY_OF_WEEK:
+                    max = 7;
+                    break;
+                case DAY_OF_MONTH:
+                    max = 31;
+                    break;
+                case YEAR:
+                    throw new IllegalArgumentException("Start year must be less than stop year");
+                default:
+                    throw new IllegalArgumentException("Unexpected type encountered");
             }
             stopAt += max;
         }
@@ -858,7 +858,7 @@ public class CronExpression implements Cloneable {
         for (int i = startAt; i <= stopAt; i += incr) {
             if (max == -1) {
                 // ie: there's no max to overflow over
-                set.add(new Integer(i));
+                set.add(Integer.valueOf(i));
             }
             else {
                 // take the modulus to get the real value
@@ -869,29 +869,29 @@ public class CronExpression implements Cloneable {
                     i2 = max;
                 }
 
-                set.add(new Integer(i2));
+                set.add(Integer.valueOf(i2));
             }
         }
     }
 
     protected TreeSet<Integer> getSet(int type) {
         switch (type) {
-        case SECOND:
-            return seconds;
-        case MINUTE:
-            return minutes;
-        case HOUR:
-            return hours;
-        case DAY_OF_MONTH:
-            return daysOfMonth;
-        case MONTH:
-            return months;
-        case DAY_OF_WEEK:
-            return daysOfWeek;
-        case YEAR:
-            return years;
-        default:
-            return null;
+            case SECOND:
+                return seconds;
+            case MINUTE:
+                return minutes;
+            case HOUR:
+                return hours;
+            case DAY_OF_MONTH:
+                return daysOfMonth;
+            case MONTH:
+                return months;
+            case DAY_OF_WEEK:
+                return daysOfWeek;
+            case YEAR:
+                return years;
+            default:
+                return null;
         }
     }
 
@@ -973,7 +973,7 @@ public class CronExpression implements Cloneable {
             int min = cl.get(Calendar.MINUTE);
 
             // get second.................................................
-            st = seconds.tailSet(new Integer(sec));
+            st = seconds.tailSet(Integer.valueOf(sec));
             if (st != null && st.size() != 0) {
                 sec = (st.first()).intValue();
             }
@@ -989,7 +989,7 @@ public class CronExpression implements Cloneable {
             t = -1;
 
             // get minute.................................................
-            st = minutes.tailSet(new Integer(min));
+            st = minutes.tailSet(Integer.valueOf(min));
             if (st != null && st.size() != 0) {
                 t = min;
                 min = (st.first()).intValue();
@@ -1011,7 +1011,7 @@ public class CronExpression implements Cloneable {
             t = -1;
 
             // get hour...................................................
-            st = hours.tailSet(new Integer(hr));
+            st = hours.tailSet(Integer.valueOf(hr));
             if (st != null && st.size() != 0) {
                 t = hr;
                 hr = (st.first()).intValue();
@@ -1040,7 +1040,7 @@ public class CronExpression implements Cloneable {
             boolean dayOfMSpec = !daysOfMonth.contains(NO_SPEC);
             boolean dayOfWSpec = !daysOfWeek.contains(NO_SPEC);
             if (dayOfMSpec && !dayOfWSpec) { // get day by day of month rule
-                st = daysOfMonth.tailSet(new Integer(day));
+                st = daysOfMonth.tailSet(Integer.valueOf(day));
                 if (lastdayOfMonth) {
                     if (!nearestWeekday) {
                         t = day;
@@ -1245,7 +1245,7 @@ public class CronExpression implements Cloneable {
                     int cDow = cl.get(Calendar.DAY_OF_WEEK); // current d-o-w
                     int dow = (daysOfWeek.first()).intValue(); // desired
                     // d-o-w
-                    st = daysOfWeek.tailSet(new Integer(cDow));
+                    st = daysOfWeek.tailSet(Integer.valueOf(cDow));
                     if (st != null && st.size() > 0) {
                         dow = (st.first()).intValue();
                     }
@@ -1302,7 +1302,7 @@ public class CronExpression implements Cloneable {
             }
 
             // get month...................................................
-            st = months.tailSet(new Integer(mon));
+            st = months.tailSet(Integer.valueOf(mon));
             if (st != null && st.size() != 0) {
                 t = mon;
                 mon = (st.first()).intValue();
@@ -1330,7 +1330,7 @@ public class CronExpression implements Cloneable {
             t = -1;
 
             // get year...................................................
-            st = years.tailSet(new Integer(year));
+            st = years.tailSet(Integer.valueOf(year));
             if (st != null && st.size() != 0) {
                 t = year;
                 year = (st.first()).intValue();
@@ -1360,7 +1360,7 @@ public class CronExpression implements Cloneable {
 
     /**
      * Advance the calendar to the particular hour paying particular attention to daylight saving problems.
-     * 
+     *
      * @param cal
      * @param hour
      */
@@ -1394,32 +1394,32 @@ public class CronExpression implements Cloneable {
     protected int getLastDayOfMonth(int monthNum, int year) {
 
         switch (monthNum) {
-        case 1:
-            return 31;
-        case 2:
-            return (isLeapYear(year)) ? 29 : 28;
-        case 3:
-            return 31;
-        case 4:
-            return 30;
-        case 5:
-            return 31;
-        case 6:
-            return 30;
-        case 7:
-            return 31;
-        case 8:
-            return 31;
-        case 9:
-            return 30;
-        case 10:
-            return 31;
-        case 11:
-            return 30;
-        case 12:
-            return 31;
-        default:
-            throw new IllegalArgumentException("Illegal month number: " + monthNum);
+            case 1:
+                return 31;
+            case 2:
+                return (isLeapYear(year)) ? 29 : 28;
+            case 3:
+                return 31;
+            case 4:
+                return 30;
+            case 5:
+                return 31;
+            case 6:
+                return 30;
+            case 7:
+                return 31;
+            case 8:
+                return 31;
+            case 9:
+                return 30;
+            case 10:
+                return 31;
+            case 11:
+                return 30;
+            case 12:
+                return 31;
+            default:
+                throw new IllegalArgumentException("Illegal month number: " + monthNum);
         }
     }
 

@@ -36,7 +36,6 @@ import com.infiniteautomation.mango.spring.db.RoleTableDefinition;
 import com.infiniteautomation.mango.spring.db.RoleTableDefinition.GrantedAccess;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.rt.event.type.AuditEventType;
@@ -51,10 +50,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class JsonDataDao extends AbstractDao<JsonDataVO, JsonDataTableDefinition>{
 
     private static final LazyInitSupplier<JsonDataDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(JsonDataDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (JsonDataDao)o;
+        return Common.getRuntimeContext().getBean(JsonDataDao.class);
     });
 
     private final PermissionService permissionService;

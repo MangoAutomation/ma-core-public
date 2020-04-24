@@ -51,9 +51,9 @@ public class JsonSerializableTestObject implements JsonSerializable{
     private int[] intArray = new int[] {0,1,2,3};
     //NOTE this cannot be filled with new Object() as there is no writer for this type
     @JsonProperty
-    private Object[] objectArray = new Object[] {new Double(0.0), new Double(0.1)};
+    private Object[] objectArray = new Object[] {Double.valueOf(0.0), Double.valueOf(0.1)};
     @JsonProperty
-    private Integer[] integerArray = new Integer[] {new Integer(0), new Integer(1)};
+    private Integer[] integerArray = new Integer[] {Integer.valueOf(0), Integer.valueOf(1)};
 
     private JsonSerializableTestEnum writerInnerEnum = JsonSerializableTestEnum.ONE;
     private Map<String, Object> writerMap;

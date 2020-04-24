@@ -50,10 +50,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
     public static DatabaseProxy createDatabaseProxy() {
         String type = Common.envProps.getString("db.type", "h2");
         DatabaseType dt = DatabaseType.valueOf(type.toUpperCase());
-
-        if (dt == null)
-            throw new IllegalArgumentException("Unknown database type: " + type);
-
         return dt.getImpl();
     }
 
@@ -106,8 +102,6 @@ abstract public class AbstractDatabaseProxy implements DatabaseProxy {
                 if (!StringUtils.isBlank(convertTypeStr)) {
                     // Found a database type from which to convert.
                     DatabaseType convertType = DatabaseType.valueOf(convertTypeStr.toUpperCase());
-                    if (convertType == null)
-                        throw new IllegalArgumentException("Unknown convert database type: " + convertType);
 
                     // TODO check that the convert source has the current DB version, or upgrade it if not.
 

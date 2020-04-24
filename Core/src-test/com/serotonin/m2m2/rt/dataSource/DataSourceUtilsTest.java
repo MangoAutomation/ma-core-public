@@ -32,7 +32,7 @@ public class DataSourceUtilsTest extends MangoTestBase {
         DataValue value = DataSourceUtils.getValue(valuePattern, valueGroup, "result=15" , DataTypes.NUMERIC,
                 "false", renderer, valueFormat, "Test Point Name");
 
-        Double expected = new Double(15);
+        Double expected = Double.valueOf(15);
         Assert.assertEquals(expected.toString(), Double.toString(value.getDoubleValue()));
 
     }

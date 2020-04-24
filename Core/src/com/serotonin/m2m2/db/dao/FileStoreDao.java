@@ -42,10 +42,7 @@ import com.serotonin.m2m2.vo.permission.PermissionHolder;
 public class FileStoreDao extends AbstractBasicDao<FileStore, FileStoreTableDefinition> {
 
     private static final LazyInitSupplier<FileStoreDao> springInstance = new LazyInitSupplier<>(() -> {
-        FileStoreDao dao = Common.getRuntimeContext().getBean(FileStoreDao.class);
-        if (dao == null)
-            throw new IllegalStateException("DAO not initialized in Spring Runtime Context");
-        return dao;
+        return Common.getRuntimeContext().getBean(FileStoreDao.class);
     });
 
     private final PermissionService permissionService;

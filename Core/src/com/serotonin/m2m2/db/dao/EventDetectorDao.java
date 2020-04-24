@@ -57,10 +57,7 @@ import com.serotonin.m2m2.vo.event.detector.AbstractPointEventDetectorVO;
 public class EventDetectorDao extends AbstractDao<AbstractEventDetectorVO, EventDetectorTableDefinition> {
 
     private static final LazyInitSupplier<EventDetectorDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(EventDetectorDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (EventDetectorDao)o;
+        return Common.getRuntimeContext().getBean(EventDetectorDao.class);
     });
 
     /* Map of Source Type to Source ID Column Names */

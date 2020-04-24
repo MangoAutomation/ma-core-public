@@ -71,12 +71,12 @@ public class JsonSerializableUtilityTest {
     public void testAnnotatedMapOrder() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         Map<String, Object> annotatedMap1 = new LinkedHashMap<>();
-        annotatedMap1.put("int", new Integer(1));
+        annotatedMap1.put("int", Integer.valueOf(1));
         annotatedMap1.put("string", new String("one"));
 
         Map<String, Object> annotatedMap2 = new LinkedHashMap<>();
         annotatedMap2.put("string", new String("one"));
-        annotatedMap2.put("int", new Integer(1));
+        annotatedMap2.put("int", Integer.valueOf(1));
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
         o1.setAnnotatedMap(annotatedMap1);
@@ -95,11 +95,11 @@ public class JsonSerializableUtilityTest {
     public void testAnnotatedMap() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         Map<String, Object> annotatedMap1 = new HashMap<>();
-        annotatedMap1.put("int", new Integer(1));
+        annotatedMap1.put("int", Integer.valueOf(1));
         annotatedMap1.put("string", new String("one"));
 
         Map<String, Object> annotatedMap2 = new HashMap<>();
-        annotatedMap2.put("int", new Integer(1));
+        annotatedMap2.put("int", Integer.valueOf(1));
         annotatedMap2.put("string", new String("one"));
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
@@ -116,7 +116,7 @@ public class JsonSerializableUtilityTest {
 
         //Make change
         annotatedMap2.put("string", new String("two"));
-        annotatedMap2.put("int", new Integer(2));
+        annotatedMap2.put("int", Integer.valueOf(2));
         changes = util.findChanges(o1, o2);
         if(changes.size() != 1)
             Assert.fail("annotatedMap should have changed");
@@ -133,12 +133,12 @@ public class JsonSerializableUtilityTest {
     public void testwriterListLength() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         List<Object> annotatedList1 = new ArrayList<>();
-        annotatedList1.add(new Integer(1));
-        annotatedList1.add(new Integer(2));
+        annotatedList1.add(Integer.valueOf(1));
+        annotatedList1.add(Integer.valueOf(2));
 
         List<Object> annotatedList2 = new ArrayList<>();
-        annotatedList2.add(new Integer(1));
-        annotatedList2.add(new Integer(2));
+        annotatedList2.add(Integer.valueOf(1));
+        annotatedList2.add(Integer.valueOf(2));
 
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
@@ -170,12 +170,12 @@ public class JsonSerializableUtilityTest {
     public void testAnnotatedListOrder() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         List<Object> annotatedList1 = new ArrayList<>();
-        annotatedList1.add(new Integer(1));
-        annotatedList1.add(new Integer(2));
+        annotatedList1.add(Integer.valueOf(1));
+        annotatedList1.add(Integer.valueOf(2));
 
         List<Object> annotatedList2 = new ArrayList<>();
-        annotatedList2.add(new Integer(1));
-        annotatedList2.add(new Integer(2));
+        annotatedList2.add(Integer.valueOf(1));
+        annotatedList2.add(Integer.valueOf(2));
 
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
@@ -193,8 +193,8 @@ public class JsonSerializableUtilityTest {
 
         //Modify the List
         annotatedList2.clear();
-        annotatedList2.add(new Integer(2));
-        annotatedList2.add(new Integer(1));
+        annotatedList2.add(Integer.valueOf(2));
+        annotatedList2.add(Integer.valueOf(1));
         changes = util.findChanges(o1, o2);
         if(changes.size() != 1)
             Assert.fail("List should have changed");
@@ -210,12 +210,12 @@ public class JsonSerializableUtilityTest {
     public void testAnnotatedList() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         List<Object> annotatedList1 = new ArrayList<>();
-        annotatedList1.add(new Integer(1));
-        annotatedList1.add(new Integer(2));
+        annotatedList1.add(Integer.valueOf(1));
+        annotatedList1.add(Integer.valueOf(2));
 
         List<Object> annotatedList2 = new ArrayList<>();
-        annotatedList2.add(new Integer(2));
-        annotatedList2.add(new Integer(3));
+        annotatedList2.add(Integer.valueOf(2));
+        annotatedList2.add(Integer.valueOf(3));
 
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
@@ -241,12 +241,12 @@ public class JsonSerializableUtilityTest {
     public void testWriterListLength() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         List<Object> writerList1 = new ArrayList<>();
-        writerList1.add(new Integer(1));
-        writerList1.add(new Integer(2));
+        writerList1.add(Integer.valueOf(1));
+        writerList1.add(Integer.valueOf(2));
 
         List<Object> writerList2 = new ArrayList<>();
-        writerList2.add(new Integer(1));
-        writerList2.add(new Integer(2));
+        writerList2.add(Integer.valueOf(1));
+        writerList2.add(Integer.valueOf(2));
 
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
@@ -278,12 +278,12 @@ public class JsonSerializableUtilityTest {
     public void testWriterListOrder() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         List<Object> writerList1 = new ArrayList<>();
-        writerList1.add(new Integer(1));
-        writerList1.add(new Integer(2));
+        writerList1.add(Integer.valueOf(1));
+        writerList1.add(Integer.valueOf(2));
 
         List<Object> writerList2 = new ArrayList<>();
-        writerList2.add(new Integer(1));
-        writerList2.add(new Integer(2));
+        writerList2.add(Integer.valueOf(1));
+        writerList2.add(Integer.valueOf(2));
 
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
@@ -301,8 +301,8 @@ public class JsonSerializableUtilityTest {
 
         //Modify the List
         writerList2.clear();
-        writerList2.add(new Integer(2));
-        writerList2.add(new Integer(1));
+        writerList2.add(Integer.valueOf(2));
+        writerList2.add(Integer.valueOf(1));
         changes = util.findChanges(o1, o2);
         if(changes.size() != 1)
             Assert.fail("List should have changed");
@@ -318,12 +318,12 @@ public class JsonSerializableUtilityTest {
     public void testWriterList() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, JsonException, IOException {
 
         List<Object> writerList1 = new ArrayList<>();
-        writerList1.add(new Integer(1));
-        writerList1.add(new Integer(2));
+        writerList1.add(Integer.valueOf(1));
+        writerList1.add(Integer.valueOf(2));
 
         List<Object> writerList2 = new ArrayList<>();
-        writerList2.add(new Integer(2));
-        writerList2.add(new Integer(3));
+        writerList2.add(Integer.valueOf(2));
+        writerList2.add(Integer.valueOf(3));
 
 
         JsonSerializableTestObject o1 = new JsonSerializableTestObject();
@@ -467,8 +467,8 @@ public class JsonSerializableUtilityTest {
         if(changes.size() != 0)
             Assert.fail("Object array should not have changed");
 
-        o1.setObjectArray(new Object[] {new Integer(0), new Integer(1)});
-        o2.setObjectArray(new Object[] {new Integer(2), new Integer(3)});
+        o1.setObjectArray(new Object[] {Integer.valueOf(0), Integer.valueOf(1)});
+        o2.setObjectArray(new Object[] {Integer.valueOf(2), Integer.valueOf(3)});
         changes = util.findChanges(o1, o2);
         if(changes.size() != 1)
             Assert.fail("Object array should have changed");
@@ -492,8 +492,8 @@ public class JsonSerializableUtilityTest {
         if(changes.size() != 0)
             Assert.fail("Integer array should not have changed");
 
-        o1.setIntegerArray(new Integer[] {new Integer(0), new Integer(1)});
-        o2.setIntegerArray(new Integer[] {new Integer(2), new Integer(3)});
+        o1.setIntegerArray(new Integer[] {Integer.valueOf(0), Integer.valueOf(1)});
+        o2.setIntegerArray(new Integer[] {Integer.valueOf(2), Integer.valueOf(3)});
         changes = util.findChanges(o1, o2);
         if(changes.size() != 1)
             Assert.fail("Integer array should have changed");

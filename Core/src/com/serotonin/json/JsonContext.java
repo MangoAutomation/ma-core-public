@@ -414,8 +414,6 @@ public class JsonContext {
         Method[] methods = clazz.getDeclaredMethods();
         for (Method method : methods) {
             JsonProperty anno = method.getAnnotation(JsonProperty.class);
-            if (anno == null)
-                continue;
 
             // Convert the method name to a property name using the JavaBean rules.
             String name = method.getName();

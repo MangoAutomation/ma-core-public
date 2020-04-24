@@ -38,7 +38,6 @@ import com.infiniteautomation.mango.db.query.RQLToConditionWithTagKeys;
 import com.infiniteautomation.mango.spring.db.DataPointTableDefinition;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.LazyInitializer;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.dataImage.DataPointRT;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -87,10 +86,7 @@ public class DataPointTagsDao extends BaseDao {
      */
     public static DataPointTagsDao getInstance() {
         return springInstance.get(() -> {
-            Object o = Common.getRuntimeContext().getBean(DataPointTagsDao.class);
-            if(o == null)
-                throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-            return (DataPointTagsDao)o;
+            return Common.getRuntimeContext().getBean(DataPointTagsDao.class);
         });
     }
 

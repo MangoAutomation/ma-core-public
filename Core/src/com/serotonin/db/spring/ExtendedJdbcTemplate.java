@@ -22,7 +22,7 @@ import org.springframework.jdbc.support.KeyHolder;
 
 /**
  * Extends the Spring Framework JdbcTemplate object, adding several convenience methods.
- * 
+ *
  * @author mlohbihler
  */
 public class ExtendedJdbcTemplate extends JdbcTemplate {
@@ -110,6 +110,7 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
         }
 
         Integer result = execute(psc, new PreparedStatementCallback<Integer>() {
+            @Override
             @SuppressWarnings("synthetic-access")
             public Integer doInPreparedStatement(PreparedStatement ps) throws SQLException {
                 try {
@@ -133,8 +134,8 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
                     }
                     if (logger.isDebugEnabled())
                         logger.debug("SQL update affected " + rows + " rows and returned " + generatedKeys.size()
-                                + " keys");
-                    return new Integer(rows);
+                        + " keys");
+                    return Integer.valueOf(rows);
                 }
                 finally {
                     if (pss instanceof ParameterDisposer) {

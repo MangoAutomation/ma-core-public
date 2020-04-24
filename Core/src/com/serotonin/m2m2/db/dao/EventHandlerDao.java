@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.EventHandlerTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -40,10 +39,7 @@ import com.serotonin.util.SerializationHelper;
 public class EventHandlerDao extends AbstractDao<AbstractEventHandlerVO, EventHandlerTableDefinition>{
 
     private static final LazyInitSupplier<EventHandlerDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(EventHandlerDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (EventHandlerDao)o;
+        return Common.getRuntimeContext().getBean(EventHandlerDao.class);
     });
 
     private static final boolean H2_SYNTAX;

@@ -54,10 +54,7 @@ import com.serotonin.util.SerializationHelper;
 public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPointVO>, PublisherTableDefinition> {
 
     private static final LazyInitSupplier<PublisherDao> springInstance = new LazyInitSupplier<>(() -> {
-        Object o = Common.getRuntimeContext().getBean(PublisherDao.class);
-        if(o == null)
-            throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-        return (PublisherDao)o;
+        return Common.getRuntimeContext().getBean(PublisherDao.class);
     });
 
     static final Log LOG = LogFactory.getLog(PublisherDao.class);

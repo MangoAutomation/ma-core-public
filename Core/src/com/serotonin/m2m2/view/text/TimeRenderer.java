@@ -63,7 +63,7 @@ public class TimeRenderer extends BaseTextRenderer {
         long l = (long) value;
 
         if (hint == HINT_RAW || hint == HINT_SPECIFIC)
-            return new Long(l).toString();
+            return Long.valueOf(l).toString();
 
         l *= (long) Math.pow(10, conversionExponent);
 
@@ -127,7 +127,7 @@ public class TimeRenderer extends BaseTextRenderer {
     @Override
     public void validate(ProcessResult result, int sourcePointDataTypeId) {
         super.validate(result, sourcePointDataTypeId);
-		if((format == null)||(format.equals("")))
-			result.addContextualMessage("textRenderer.format", "validate.required");
-	}
+        if((format == null)||(format.equals("")))
+            result.addContextualMessage("textRenderer.format", "validate.required");
+    }
 }

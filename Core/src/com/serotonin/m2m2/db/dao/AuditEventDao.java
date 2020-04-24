@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.db.AuditEventTableDefinition;
 import com.infiniteautomation.mango.util.LazyInitializer;
-import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.json.JsonException;
 import com.serotonin.json.JsonWriter;
 import com.serotonin.json.type.JsonObject;
@@ -56,10 +55,7 @@ public class AuditEventDao extends AbstractBasicDao<AuditEventInstanceVO, AuditE
      */
     public static AuditEventDao getInstance() {
         return springInstance.get(() -> {
-            Object o = Common.getRuntimeContext().getBean(AuditEventDao.class);
-            if(o == null)
-                throw new ShouldNeverHappenException("DAO not initialized in Spring Runtime Context");
-            return (AuditEventDao)o;
+            return Common.getRuntimeContext().getBean(AuditEventDao.class);
         });
     }
 
