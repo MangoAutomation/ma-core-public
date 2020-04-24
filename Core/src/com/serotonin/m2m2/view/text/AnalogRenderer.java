@@ -239,6 +239,7 @@ public class AnalogRenderer extends ConvertingRenderer {
         super.validate(result, sourceDataTypeId);
         if((format == null)||(format.equals("")))
             result.addContextualMessage("textRenderer.format", "validate.required");
+        if (format == null) return;
         if(format.startsWith("0x") || format.startsWith("0X")) {
             String[] parts = format.toUpperCase().split("0X");
             if(parts.length != 2) {
