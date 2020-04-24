@@ -159,7 +159,6 @@
         </releases>
         <snapshots>
             <enabled>true</enabled>
-            <updatePolicy>always</updatePolicy>
         </snapshots>
         <id>ias-snapshots</id>
         <name>Mango Dependencies</name>
