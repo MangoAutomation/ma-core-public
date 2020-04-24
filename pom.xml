@@ -311,7 +311,14 @@
          <plugin>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-maven-plugin</artifactId>
-            <version>${spotbugs.version}</version>
+            <version>4.0.0</version>
+            <dependencies>
+                <dependency>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs</artifactId>
+                    <version>${spotbugs.version}</version>
+                </dependency>
+            </dependencies>
         </plugin>
             <plugin>
                 <groupId>eu.somatik.serviceloader-maven-plugin</groupId>
