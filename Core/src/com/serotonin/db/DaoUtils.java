@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -291,36 +290,6 @@ public class DaoUtils implements TransactionCapable {
                 rowNum++;
             }
         });
-    }
-
-    public static byte[] uuidToBytes(UUID uuid) {
-        byte[] b = new byte[16];
-        long l = uuid.getMostSignificantBits();
-        for (int i = 0; i < 8; i++) {
-            b[7 - i] = (byte) (0xFF & l);
-            l >>>= 8;
-        }
-        l = uuid.getLeastSignificantBits();
-        for (int i = 0; i < 8; i++) {
-            b[15 - i] = (byte) (0xFF & l);
-            l >>>= 8;
-        }
-        return b;
-    }
-
-    public static UUID bytesToUuid(byte[] b) {
-        long msb = 0, lsb = 0;
-        msb |= b[0];
-        for (int i = 1; i < 8; i++) {
-            msb <<= 8;
-            msb |= b[i];
-        }
-        lsb |= b[8];
-        for (int i = 1; i < 8; i++) {
-            lsb <<= 8;
-            lsb |= b[i + 8];
-        }
-        return new UUID(msb, lsb);
     }
 
     //
