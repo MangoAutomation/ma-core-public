@@ -266,12 +266,14 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
         if (running && !enabled && dataSourceRunning) {
             //Running, so stop it
             Common.runtimeManager.stopDataPoint(vo.getId());
+            DataPointDao.getInstance().saveEnabledColumn(vo);
             return true;
         } else if (!running && enabled && dataSourceRunning) {
             //Not running, so start it
             List<AbstractPointEventDetectorVO> detectors = eventDetectorDao.getWithSource(vo.getId(), vo);
             DataPointWithEventDetectors dp = new DataPointWithEventDetectors(vo, detectors);
             Common.runtimeManager.startDataPoint(dp);
+            DataPointDao.getInstance().saveEnabledColumn(vo);
             return true;
         }else if(running && enabled && dataSourceRunning) {
             //Running, so restart it
@@ -281,7 +283,6 @@ public class DataPointService extends AbstractVOService<DataPointVO, DataPointTa
             Common.runtimeManager.startDataPoint(dp);
             return false;
         }
-        DataPointDao.getInstance().saveEnabledColumn(vo);
         return false;
     }
 
