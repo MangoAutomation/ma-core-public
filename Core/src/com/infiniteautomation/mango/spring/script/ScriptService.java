@@ -135,7 +135,7 @@ public class ScriptService {
         return new ScriptAndEngine(script, definition, engine);
     }
 
-    private Object evalScript(ScriptAndEngine scriptAndEngine, EvalContext evalContext) {
+    private EvalResult evalScript(ScriptAndEngine scriptAndEngine, EvalContext evalContext) {
         MangoScript script = scriptAndEngine.script;
         ScriptEngine engine = scriptAndEngine.engine;
         ScriptEngineDefinition engineDefinition = scriptAndEngine.engineDefinition;
@@ -162,13 +162,15 @@ public class ScriptService {
 
         return this.permissionService.runAs(script, () -> {
             try {
+                Object value;
                 if (script instanceof CompiledMangoScript) {
-                    return ((CompiledMangoScript) script).compiled.eval();
+                    value = ((CompiledMangoScript) script).compiled.eval();
+                } else {
+                    try (Reader reader = script.readScript()) {
+                        value = engine.eval(reader);
+                    }
                 }
-
-                try (Reader reader = script.readScript()) {
-                    return engine.eval(reader);
-                }
+                return new EvalResult(value, engineBindings);
             } catch (ScriptException e) {
                 throw new ScriptEvalException(e);
             } catch (IOException e) {
@@ -177,15 +179,15 @@ public class ScriptService {
         });
     }
 
-    public Object eval(MangoScript script) {
+    public EvalResult eval(MangoScript script) {
         return eval(script, Collections.emptyMap());
     }
 
-    public Object eval(MangoScript script, Map<String, Object> bindings) {
+    public EvalResult eval(MangoScript script, Map<String, Object> bindings) {
         return eval(script, new EvalContext(bindings));
     }
 
-    public Object eval(MangoScript script, EvalContext evalContext) {
+    public EvalResult eval(MangoScript script, EvalContext evalContext) {
         ScriptAndEngine scriptAndEngine = getScriptEngine(script);
         return evalScript(scriptAndEngine, evalContext);
     }
