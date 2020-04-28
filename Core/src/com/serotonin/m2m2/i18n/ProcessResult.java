@@ -50,6 +50,10 @@ public class ProcessResult implements Serializable {
         addMessage(new ProcessMessage(this.contextKeyPrefix + contextKey, contextualMessageKey, params));
     }
 
+    public void addContextualMessage(String contextKey, TranslatableMessage contextualMessage) {
+        addMessage(new ProcessMessage(this.contextKeyPrefix + contextKey, contextualMessage));
+    }
+
     public void addMessage(TranslatableMessage genericMessage) {
         addMessage(new ProcessMessage(genericMessage));
     }
