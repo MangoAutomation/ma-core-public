@@ -12,12 +12,9 @@ import java.nio.file.Path;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.infiniteautomation.mango.spring.service.PermissionService;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
+import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
-import com.serotonin.m2m2.vo.permission.PermissionException;
-import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Define a file storage area within the filestore directory of the core
@@ -30,10 +27,6 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     //Root directory within core
     public static final String ROOT = "filestore";
     public static final String FILE_STORE_LOCATION_ENV_PROPERTY = "filestore.location";
-
-    private final LazyInitSupplier<PermissionService> permissionService = new LazyInitSupplier<>(() -> {
-        return Common.getBean(PermissionService.class);
-    });
 
     /**
      * The translation for the name of the store
@@ -62,43 +55,21 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     abstract protected String getWritePermissionTypeName();
 
     /**
-     * Does this permission holder have read permission?
-     *  Override as necessary
-     * @param holder
+     * Get the write permission
      * @return
      */
-    public boolean hasStoreReadPermission(PermissionHolder holder) {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
-        return permissionService.get().hasPermission(holder, permission.getPermission());
+    public MangoPermission getWritePermission() {
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
+        return permission.getPermission();
     }
 
     /**
-     * Ensure that a User has read permission
-     * @throws PermissionException
-     */
-    public void ensureStoreReadPermission(PermissionHolder user) {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
-        permissionService.get().ensurePermission(user, permission.getPermission());
-    }
-
-    /**
-     * Does this permission holder have write permission?
-     *  Override as necessary
-     * @param holder
+     * Get the read permission
      * @return
      */
-    public boolean hasStoreWritePermission(PermissionHolder holder) {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
-        return permissionService.get().hasPermission(holder, permission.getPermission());
-    }
-
-    /**
-     * Ensure that a User has write permission
-     * @throws PermissionException
-     */
-    public void ensureStoreWritePermission(PermissionHolder user) {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
-        permissionService.get().ensurePermission(user, permission.getPermission());
+    public MangoPermission getReadPermission() {
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
+        return permission.getPermission();
     }
 
     /**

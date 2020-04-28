@@ -127,7 +127,7 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         });
 
         for(FileStoreDefinition def : moduleDefs) {
-            if(def.hasStoreReadPermission(user)) {
+            if(this.permissionService.hasPermission(user, def.getReadPermission())) {
                 names.add(def.getStoreName());
             }
         }
@@ -168,47 +168,6 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
     }
 
     /**
-     * Get root path and ensure write access
-     * <p>Deprecated, prefer {@link #getPathForWrite(String, String)} instead</p>
-     * @param name
-     * @return
-     * @throws PermissionException
-     */
-    @Deprecated
-    public Path getFileStoreRootForWrite(String name) throws PermissionException {
-        FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(name);
-        //This user can be null
-        PermissionHolder user = Common.getUser();
-        if(fsd != null) {
-            fsd.ensureStoreWritePermission(user);
-            return fsd.getRootPath();
-        }else {
-            return getByName(name, true).getRootPath();
-        }
-    }
-
-    /**
-     * Get root path and ensure read access
-     * <p>Deprecated, prefer {@link #getPathForRead(String, String)} instead</p>
-     *
-     * @param name
-     * @return
-     * @throws PermissionException
-     */
-    @Deprecated
-    public Path getFileStoreRootForRead(String name) throws PermissionException {
-        FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(name);
-        //This user can be null
-        PermissionHolder user = Common.getUser();
-        if(fsd != null) {
-            fsd.ensureStoreReadPermission(user);
-            return fsd.getRootPath();
-        }else {
-            return getByName(name, false).getRootPath();
-        }
-    }
-
-    /**
      * Retrieves the path to a file in the file store, checking that the user has write permission for the file store.
      *
      * @param fileStoreName
@@ -216,9 +175,21 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      * @return
      * @throws PermissionException
      */
-    public Path getPathForWrite(String fileStoreName, String path) throws PermissionException {
-        Path root = getFileStoreRootForWrite(fileStoreName);
-        Path filePath = root.resolve(path);
+    public Path getPathForWrite(String fileStoreName, String path) throws PermissionException, NotFoundException, TranslatableIllegalArgumentException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        Path root;
+        FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(fileStoreName);
+        if(fsd != null) {
+            this.permissionService.ensurePermission(user, fsd.getWritePermission());
+            root = fsd.getRootPath();
+        }else {
+            FileStore fs = getByName(fileStoreName, true);
+            root = fs.getRootPath();
+        }
+
+        Path filePath = root.resolve(path).toAbsolutePath().normalize();
         if (!filePath.startsWith(root)) {
             throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.belowRoot", path));
         }
@@ -233,9 +204,21 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      * @return
      * @throws PermissionException
      */
-    public Path getPathForRead(String fileStoreName, String path) throws PermissionException {
-        Path root = getFileStoreRootForRead(fileStoreName);
-        Path filePath = root.resolve(path);
+    public Path getPathForRead(String fileStoreName, String path) throws PermissionException, NotFoundException, TranslatableIllegalArgumentException {
+        PermissionHolder user = Common.getUser();
+        Objects.requireNonNull(user, "Permission holder must be set in security context");
+
+        Path root;
+        FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(fileStoreName);
+        if(fsd != null) {
+            this.permissionService.ensurePermission(user, fsd.getReadPermission());
+            root = fsd.getRootPath();
+        }else {
+            FileStore fs = getByName(fileStoreName, false);
+            root = fs.getRootPath();
+        }
+
+        Path filePath = root.resolve(path).toAbsolutePath().normalize();
         if (!filePath.startsWith(root)) {
             throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.belowRoot", path));
         }
