@@ -31,6 +31,7 @@ public class MangoPermission {
     }
 
     public MangoPermission(Set<Set<Role>> roles) {
+        //TODO Mango 4.0 make inner sets unmodifiable or enforce that they must be
         this.roles = Collections.unmodifiableSet(roles);
     }
 

@@ -5,9 +5,11 @@ Copyright (C) 2014 Infinite Automation Systems Inc. All rights reserved.
 package com.serotonin.m2m2.module;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 
 import com.github.zafarkhaja.semver.Version;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -15,6 +17,7 @@ import com.infiniteautomation.mango.spring.service.RoleService;
 import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.db.dao.UserDao;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -107,6 +110,20 @@ abstract public class PermissionDefinition extends ModuleElementDefinition {
         this.permission = this.roleService.get().replaceAllRolesOnPermission(permission, this);
         //notify user cache
         this.userDao.permissionChanged();
+    }
+
+    @EventListener
+    protected void handleRoleDeletedEvent(RoleDeletedDaoEvent event) {
+        //Make sure we don't have a reference to this role
+        if(this.permission.containsRole(event.getRole().getRole())) {
+            Set<Set<Role>> newPermission = new HashSet<>();
+            for(Set<Role> roles : this.permission.getRoles()) {
+                Set<Role> newRoles = new HashSet<>(roles);
+                newRoles.remove(event.getRole().getRole());
+                newPermission.add(Collections.unmodifiableSet(newRoles));
+            }
+            this.permission = new MangoPermission(newPermission);
+        }
     }
 
 }
