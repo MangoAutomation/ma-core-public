@@ -3,9 +3,8 @@
  */
 package com.infiniteautomation.mango.spring.script.engines;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.function.Function;
 
 import javax.script.Bindings;
@@ -86,21 +85,27 @@ public class NashornScriptEngineDefinition extends ScriptEngineDefinition {
         }
 
         Function<Object, Object> load = source -> {
-            if (source instanceof String) {
-                String sourceStr = (String) source;
-                if (sourceStr.startsWith("filestore:") && permissionService.hasPermission(script, loadFileStorePermission.getPermission())) {
-                    try {
-                        URI uri = new URI(sourceStr);
-                        Path filePath = fileStoreService.getPathForRead(uri);
-                        return loadFn.call(null, filePath.toFile());
-                    } catch (URISyntaxException e) {
-                        throw new IllegalArgumentException(e);
-                    }
+            URL url = null;
+            if (source instanceof URL) {
+                url = (URL) source;
+            } else if (source instanceof String && ((String) source).indexOf(':') >= 0) {
+                try {
+                    url = new URL((String) source);
+                } catch (MalformedURLException e) {
                 }
-                if ((sourceStr.startsWith("http:") || sourceStr.startsWith("https:")) && permissionService.hasPermission(script, loadWebPermission.getPermission())) {
+            }
+
+            if (url != null) {
+                String protocol = url.getProtocol();
+                boolean isFileStore = "filestore".equals(protocol);
+                boolean isWeb = "http".equals(protocol) || "https".equals(protocol);
+
+                if (isFileStore && permissionService.hasPermission(script, loadFileStorePermission.getPermission()) ||
+                        isWeb && permissionService.hasPermission(script, loadWebPermission.getPermission())) {
                     return loadFn.call(null, source);
                 }
             }
+
             permissionService.ensurePermission(script, loadOtherPermission.getPermission());
             return loadFn.call(null, source);
         };
