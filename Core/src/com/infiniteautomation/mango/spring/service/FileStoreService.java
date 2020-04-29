@@ -6,7 +6,6 @@ package com.infiniteautomation.mango.spring.service;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
@@ -220,20 +219,6 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
             throw new TranslatableIllegalArgumentException(new TranslatableMessage("filestore.belowRoot", path));
         }
         return filePath;
-    }
-
-    public Path getPathForWrite(URI fileStoreUri) {
-        if (!"filestore".equals(fileStoreUri.getScheme())) throw new IllegalArgumentException();
-        String fileStoreName = fileStoreUri.getHost();
-        String fileStorePath = fileStoreUri.getPath().substring(1);
-        return getPathForWrite(fileStoreName, fileStorePath);
-    }
-
-    public Path getPathForRead(URI fileStoreUri) {
-        if (!"filestore".equals(fileStoreUri.getScheme())) throw new IllegalArgumentException();
-        String fileStoreName = fileStoreUri.getHost();
-        String fileStorePath = fileStoreUri.getPath().substring(1);
-        return getPathForRead(fileStoreName, fileStorePath);
     }
 
     /**

@@ -4,7 +4,6 @@
 package com.infiniteautomation.mango.spring.components.urlhandlers;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -31,12 +30,10 @@ public class FileStoreURLStreamHandler extends URLStreamHandler {
 
     @Override
     protected URLConnection openConnection(URL u) throws IOException {
-        try {
-            Path path = fileStoreService.getPathForRead(u.toURI());
-            return path.toUri().toURL().openConnection();
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
-        }
+        String fileStoreName = u.getHost();
+        String fileStorePath = u.getPath().substring(1);
+        Path path = fileStoreService.getPathForRead(fileStoreName, fileStorePath);
+        return path.toUri().toURL().openConnection();
     }
 
 }
