@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -154,7 +153,6 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      */
     protected FileStore getByName(String name, boolean write) {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         FileStore store = dao.getByName(name);
         if(store == null) {
@@ -178,7 +176,6 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      */
     public Path getPathForWrite(String fileStoreName, String path) throws PermissionException, NotFoundException, TranslatableIllegalArgumentException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         Path root;
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(fileStoreName);
@@ -207,7 +204,6 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      */
     public Path getPathForRead(String fileStoreName, String path) throws PermissionException, NotFoundException, TranslatableIllegalArgumentException {
         PermissionHolder user = Common.getUser();
-        Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         Path root;
         FileStoreDefinition fsd = ModuleRegistry.getFileStoreDefinition(fileStoreName);
