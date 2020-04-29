@@ -16,6 +16,7 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import com.google.common.io.Files;
@@ -45,6 +46,7 @@ import com.serotonin.validation.StringValidation;
 public class FileStoreService extends AbstractBasicVOService<FileStore, FileStoreTableDefinition, FileStoreDao> {
 
     private final UserFileStoreCreatePermissionDefinition createPermission;
+    private final Path fileStoreRoot;
 
     /**
      * @param dao
@@ -52,9 +54,13 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      * @param createPermissionDefinition
      */
     @Autowired
-    public FileStoreService(FileStoreDao dao, PermissionService permissionService, UserFileStoreCreatePermissionDefinition createPermission) {
+    public FileStoreService(FileStoreDao dao, PermissionService permissionService, UserFileStoreCreatePermissionDefinition createPermission,
+            Environment env) {
         super(dao, permissionService);
         this.createPermission = createPermission;
+
+        String location = env.getProperty(FileStoreDefinition.FILE_STORE_LOCATION_ENV_PROPERTY, FileStoreDefinition.ROOT);
+        this.fileStoreRoot = Common.MA_HOME_PATH.resolve(location).toAbsolutePath().normalize();
     }
 
     @Override
@@ -329,4 +335,16 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
         return relativePathStr;
     }
 
+    /**
+     * @param path
+     * @return path relative to the file store root
+     * @throws IllegalArgumentException if the path is not a file store path
+     */
+    public Path relativize(Path path) throws IllegalArgumentException {
+        Path relative = fileStoreRoot.relativize(path.toAbsolutePath().normalize());
+        if (relative.getNameCount() == 0) {
+            throw new IllegalArgumentException("File store name not present");
+        }
+        return relative;
+    }
 }
