@@ -49,6 +49,7 @@ import com.serotonin.json.convert.RoleConverter;
 import com.serotonin.json.convert.ScriptPermissionConverter;
 import com.serotonin.json.convert.SerializerConverter;
 import com.serotonin.json.convert.ShortConverter;
+import com.serotonin.json.convert.StreamedArrayConverter;
 import com.serotonin.json.convert.StringConverter;
 import com.serotonin.json.convert.UUIDConverter;
 import com.serotonin.json.factory.DefaultConstructorFactory;
@@ -66,6 +67,7 @@ import com.serotonin.json.type.JsonArray;
 import com.serotonin.json.type.JsonBoolean;
 import com.serotonin.json.type.JsonNumber;
 import com.serotonin.json.type.JsonObject;
+import com.serotonin.json.type.JsonStreamedArray;
 import com.serotonin.json.type.JsonString;
 import com.serotonin.json.type.JsonValue;
 import com.serotonin.json.util.MaxCharacterCountExceededException;
@@ -143,6 +145,7 @@ public class JsonContext {
         addConverter(new CollectionConverter(), Collection.class);
         addConverter(new EnumConverter(), Enum.class);
         addConverter(new MapConverter(), Map.class);
+        addConverter(new StreamedArrayConverter(), JsonStreamedArray.class);
 
         // Other converters
         addConverter(new UUIDConverter(), UUID.class);
@@ -250,6 +253,14 @@ public class JsonContext {
         // Check for array
         if (clazz.isArray()) {
             converter = classConverters.get(Array.class);
+            if (converter != null) {
+                classConverters.put(clazz, converter);
+                return converter;
+            }
+        }
+
+        if(JsonStreamedArray.class.isAssignableFrom(clazz)) {
+            converter = classConverters.get(JsonStreamedArray.class);
             if (converter != null) {
                 classConverters.put(clazz, converter);
                 return converter;
