@@ -42,35 +42,16 @@ public abstract class FileStoreDefinition extends ModuleElementDefinition {
     abstract public String getStoreName();
 
     /**
-     * Get the TypeName of the read permission definition, return null to allow access to all (including unauthenticated / public users)
-     * @return
-     */
-    abstract protected String getReadPermissionTypeName();
-
-
-    /**
-     * Get the TypeName of the write permission definition, return null to allow access to all (including unauthenticated / public users)
-     * @return
-     */
-    abstract protected String getWritePermissionTypeName();
-
-    /**
      * Get the write permission
      * @return
      */
-    public MangoPermission getWritePermission() {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getWritePermissionTypeName());
-        return permission.getPermission();
-    }
+    public abstract MangoPermission getWritePermission();
 
     /**
      * Get the read permission
      * @return
      */
-    public MangoPermission getReadPermission() {
-        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(getReadPermissionTypeName());
-        return permission.getPermission();
-    }
+    public abstract MangoPermission getReadPermission();
 
     /**
      * Get the root of this filestore
