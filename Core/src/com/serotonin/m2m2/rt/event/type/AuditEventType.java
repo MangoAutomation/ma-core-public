@@ -34,6 +34,7 @@ import com.serotonin.m2m2.vo.AbstractVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.event.EventTypeVO;
 import com.serotonin.m2m2.vo.event.audit.AuditEventInstanceVO;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.timer.RejectedTaskReason;
 
@@ -153,16 +154,19 @@ public class AuditEventType extends EventType {
     }
 
     private static void raiseEvent(int changeType, String auditEventType, AbstractVO to, String key, Map<String, Object> context) {
-        PermissionHolder user = Common.getUser();
-        User raisingUser = null;
         Object username;
-        if (user instanceof User) {
-            raisingUser = (User)user;
-            username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
+        User raisingUser = null;
 
-        }else if(user != null) {
-            username = user.getPermissionHolderName();
-        }else {
+        try{
+            PermissionHolder user = Common.getUser();
+            if (user instanceof User) {
+                raisingUser = (User)user;
+                username = raisingUser.getUsername() + " (" + raisingUser.getId() + ")";
+            }else {
+                username = user.getPermissionHolderName();
+            }
+        }catch(PermissionException e) {
+            //No user in context
             username = new TranslatableMessage("common.unknown");
         }
 
