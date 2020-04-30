@@ -122,7 +122,8 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
                 List<RoleVO> all = service.dao.getAll();
                 for(RoleVO vo : all) {
                     if(!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID,vo.getXid())
-                            && !StringUtils.equals(PermissionHolder.USER_ROLE_XID,vo.getXid())) {
+                            && !StringUtils.equals(PermissionHolder.USER_ROLE_XID,vo.getXid())
+                            && !StringUtils.equals(PermissionHolder.ANONYMOUS_ROLE_XID,vo.getXid())) {
                         service.delete(vo.getId());
                     }
                 }
@@ -131,7 +132,7 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
                 for(int i=0; i<5; i++) {
                     vos.add(insertNewVO(readUser));
                 }
-                assertEquals(7, service.dao.count());
+                assertEquals(8, service.dao.count());
             });
         });
     }
@@ -144,13 +145,15 @@ public class RoleServiceTest extends AbstractVOServiceTest<RoleVO, RoleTableDefi
                 List<RoleVO> all = service.dao.getAll();
                 for(RoleVO vo : all) {
                     if(!StringUtils.equals(PermissionHolder.SUPERADMIN_ROLE_XID,vo.getXid())
-                            && !StringUtils.equals(PermissionHolder.USER_ROLE_XID,vo.getXid())) {
+                            && !StringUtils.equals(PermissionHolder.USER_ROLE_XID,vo.getXid())
+                            && !StringUtils.equals(PermissionHolder.ANONYMOUS_ROLE_XID,vo.getXid())) {
                         service.delete(vo.getId());
                     }
                 }
                 List<RoleVO> vos = new ArrayList<>();
                 vos.add(service.get(PermissionHolder.SUPERADMIN_ROLE_XID));
                 vos.add(service.get(PermissionHolder.USER_ROLE_XID));
+                vos.add(service.get(PermissionHolder.ANONYMOUS_ROLE_XID));
 
                 for(int i=0; i<5; i++) {
                     vos.add(insertNewVO(readUser));
