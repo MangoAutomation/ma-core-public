@@ -7,6 +7,8 @@ package com.serotonin.m2m2.module.definitions.filestore;
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
 import com.serotonin.m2m2.module.FileStoreDefinition;
+import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.module.definitions.permissions.PublicFileStoreWritePermissionDefinition;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
@@ -22,8 +24,7 @@ public class PublicFileStoreDefinition extends FileStoreDefinition {
     private final MangoPermission readPermission;
 
     public PublicFileStoreDefinition() {
-        //TODO Mango 4.0 should change to new 'public' role
-        this.readPermission = MangoPermission.createAndSet(PermissionHolder.USER_ROLE);
+        this.readPermission = MangoPermission.createAndSet(PermissionHolder.ANONYMOUS_ROLE);
     }
 
     @Override
@@ -37,18 +38,14 @@ public class PublicFileStoreDefinition extends FileStoreDefinition {
     }
 
     @Override
-    protected String getReadPermissionTypeName() {
-        return null;
-    }
-
-    @Override
     public MangoPermission getReadPermission() {
         return readPermission;
     }
 
     @Override
-    protected String getWritePermissionTypeName() {
-        return PublicFileStoreWritePermissionDefinition.TYPE_NAME;
+    public MangoPermission getWritePermission() {
+        PermissionDefinition permission = ModuleRegistry.getPermissionDefinition(PublicFileStoreWritePermissionDefinition.TYPE_NAME);
+        return permission.getPermission();
     }
 
 }
