@@ -82,7 +82,7 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         } catch (EngineNotFoundException e) {
             response.addContextualMessage("engineName", "validate.invalidValueWithAcceptable", e.getAvailableEngines());
         } catch (ScriptEvalException e) {
-            ScriptException cause = e.getCause();
+            ScriptException cause = e.getScriptExceptionCause();
 
             if (cause.getLineNumber() < 0) {
                 response.addContextualMessage("script", "script.scriptException", cause.getMessage());

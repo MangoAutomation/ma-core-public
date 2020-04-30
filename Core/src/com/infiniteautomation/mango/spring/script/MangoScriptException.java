@@ -64,13 +64,16 @@ public class MangoScriptException extends RuntimeException {
 
     public static class ScriptEvalException extends MangoScriptException {
         private static final long serialVersionUID = 1L;
+
+        private final ScriptException scriptExceptionCause;
+
         ScriptEvalException(ScriptException cause) {
             super(cause);
+            this.scriptExceptionCause = cause;
         }
 
-        @Override
-        public synchronized javax.script.ScriptException getCause() {
-            return (javax.script.ScriptException) super.getCause();
+        public javax.script.ScriptException getScriptExceptionCause() {
+            return scriptExceptionCause;
         }
     }
 
