@@ -19,6 +19,7 @@ public interface PermissionHolder {
 
     public static final String SUPERADMIN_ROLE_XID = "superadmin";
     public static final String USER_ROLE_XID = "user";
+    public static final String ANONYMOUS_ROLE_XID = "anonymous";
 
     /**
      * The superadmin role from the database upon initialization
@@ -28,6 +29,11 @@ public interface PermissionHolder {
      * The user role from the database upon initialization
      */
     public static final Role USER_ROLE = new Role(2, USER_ROLE_XID);
+    /**
+     * The anonymous role from the database upon initialization
+     */
+    public static final Role ANONYMOUS_ROLE = new Role(3, ANONYMOUS_ROLE_XID);
+
 
     /**
      * Represents the Mango system and is a member of the superadmin role. This PermissionHolder should only be used in scenarios
@@ -44,6 +50,34 @@ public interface PermissionHolder {
         @Override
         public String getPermissionHolderName() {
             return "SYSTEM_SUPERADMIN";
+        }
+
+        @Override
+        public boolean isPermissionHolderDisabled() {
+            return false;
+        }
+
+        @Override
+        public Set<Role> getAllInheritedRoles() {
+            return roles;
+        }
+    };
+
+    /**
+     * Represents any un-authenticated permission holder and is a member of the anonymous role. This PermissionHolder should only be used in scenarios
+     * where the code needs to use a service that requires a PermissionHolder but there is no user currently logged in. i.e. for public endpoints and
+     * background processes or operations.
+     *
+     * Note: When working in a Spring service or controller prefer injecting
+     * @Qualifier(ANONYMOUS_PERMISSION_HOLDER) PermissionHolder
+     */
+    public static final PermissionHolder ANONYMOUS = new PermissionHolder() {
+
+        final Set<Role> roles = Collections.singleton(ANONYMOUS_ROLE);
+
+        @Override
+        public String getPermissionHolderName() {
+            return "ANONYMOUS";
         }
 
         @Override

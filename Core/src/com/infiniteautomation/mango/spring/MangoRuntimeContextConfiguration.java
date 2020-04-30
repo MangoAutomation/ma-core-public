@@ -115,6 +115,7 @@ public class MangoRuntimeContextConfiguration {
     public static final String SCHEDULED_EXECUTOR_SERVICE_NAME = "scheduledExecutorService";
     public static final String EXECUTOR_SERVICE_NAME = "executorService";
     public static final String SYSTEM_SUPERADMIN_PERMISSION_HOLDER = "systemSuperadminPermissionHolder";
+    public static final String ANONYMOUS_PERMISSION_HOLDER = "anonymousPermissionHolder";
     public static final String SYSTEM_SETTING_DAO_NAME = "systemSettingsDao";
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
@@ -256,6 +257,11 @@ public class MangoRuntimeContextConfiguration {
     @Bean(SYSTEM_SUPERADMIN_PERMISSION_HOLDER)
     public PermissionHolder systemSuperadminPermissionHolder() {
         return PermissionHolder.SYSTEM_SUPERADMIN;
+    }
+
+    @Bean(ANONYMOUS_PERMISSION_HOLDER)
+    public PermissionHolder systemAnonymousPermissionHolder() {
+        return PermissionHolder.ANONYMOUS;
     }
 
     @Bean(SYSTEM_SETTING_DAO_NAME)

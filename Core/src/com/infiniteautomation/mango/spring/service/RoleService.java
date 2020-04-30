@@ -59,6 +59,9 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         }else if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
             PermissionHolder user = Common.getUser();
             throw new PermissionException(new TranslatableMessage("roles.cannotAlterUserRole"), user);
+        }else if(StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
+            PermissionHolder user = Common.getUser();
+            throw new PermissionException(new TranslatableMessage("roles.cannotAlterAnonymousRole"), user);
         }
         return super.delete(vo);
     }
@@ -73,6 +76,9 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
         }
         if(StringUtils.equalsIgnoreCase(vo.getXid(), getUserRole().getXid())) {
             result.addContextualMessage("xid", "roles.cannotAlterUserRole");
+        }
+        if(StringUtils.equalsIgnoreCase(vo.getXid(), getAnonymousRole().getXid())) {
+            result.addContextualMessage("xid", "roles.cannotAlterAnonymousRole");
         }
 
         //Don't allow spaces in the XID
@@ -153,5 +159,13 @@ public class RoleService extends AbstractVOService<RoleVO, RoleTableDefinition, 
      */
     public Role getUserRole() {
         return PermissionHolder.USER_ROLE;
+    }
+
+    /**
+     * Get the default anonymous role
+     * @return
+     */
+    public Role getAnonymousRole() {
+        return PermissionHolder.ANONYMOUS_ROLE;
     }
 }

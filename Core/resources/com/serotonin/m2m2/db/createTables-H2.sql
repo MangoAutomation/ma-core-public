@@ -373,6 +373,7 @@ INSERT INTO users (id, name, username, password, email, phone, disabled, lastLog
 -- Insert default roles
 INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmin role');
 INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'User role');
+INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous role');
 -- Add admin user role mappings
 INSERT INTO userRoleMappings (roleId, userId) VALUES (1, 1);
 INSERT INTO userRoleMappings (roleId, userId) VALUES (2, 1);

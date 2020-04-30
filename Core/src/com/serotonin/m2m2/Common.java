@@ -78,6 +78,7 @@ import com.serotonin.m2m2.util.ExportCodes;
 import com.serotonin.m2m2.util.license.InstanceLicense;
 import com.serotonin.m2m2.util.license.LicenseFeature;
 import com.serotonin.m2m2.vo.User;
+import com.serotonin.m2m2.vo.permission.PermissionException;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.comparators.StringStringPairComparator;
 import com.serotonin.provider.Providers;
@@ -436,12 +437,14 @@ public class Common {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             Object principle = auth.getPrincipal();
-            // auth could be some token which does not have a User as its principle such as AnonymousAuthenticationToken
+            // Ensure that the principle is a permission holder
             if(principle instanceof PermissionHolder) {
                 return (PermissionHolder)principle;
+            }else {
+                throw new PermissionException(new TranslatableMessage("permission.exception.invalidAuthenticationPrinciple"), null);
             }
         }
-        return null;
+        throw new PermissionException(new TranslatableMessage("permission.exception.noAuthenticationSet"), null);
     }
 
     public static TimeZone getUserTimeZone(User user) {

@@ -70,6 +70,7 @@ import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.module.AuthenticationDefinition;
 import com.serotonin.m2m2.module.ModuleRegistry;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoTokenAuthenticationProvider;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoUserDetailsService;
@@ -289,6 +290,9 @@ public class MangoSecurityConfiguration {
             .sessionFixation()
             .newSession();
 
+            //Set the anonymous principle for unauthenticated requests
+            http.anonymous().principal(PermissionHolder.ANONYMOUS);
+
             http.authorizeRequests().anyRequest().permitAll();
 
             http.csrf()
@@ -352,6 +356,9 @@ public class MangoSecurityConfiguration {
             // stops authentication being stored in the session
             http.securityContext().disable();
             // .securityContextRepository(new NullSecurityContextRepository())
+
+            //Set the anonymous principle for unauthenticated requests
+            http.anonymous().principal(PermissionHolder.ANONYMOUS);
 
             ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authRequests = http.authorizeRequests();
             authRequests.antMatchers(HttpMethod.OPTIONS).permitAll()
@@ -455,6 +462,9 @@ public class MangoSecurityConfiguration {
             .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             .sessionFixation()
             .newSession();
+
+            //Set the anonymous principle for unauthenticated requests
+            http.anonymous().principal(PermissionHolder.ANONYMOUS);
 
             ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authRequests = http.authorizeRequests();
             authRequests.antMatchers(HttpMethod.OPTIONS).permitAll()
