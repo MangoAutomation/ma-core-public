@@ -20,6 +20,7 @@ import com.serotonin.m2m2.module.PermissionDefinition;
 import com.serotonin.m2m2.vo.DataPointVO;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.dataSource.DataSourceVO;
+import com.serotonin.m2m2.vo.permission.PermissionHolder;
 
 /**
  * Class to define Custom Spring EL Expressions for use in @PreAuthorize and @PostAuthorize annotations
@@ -67,7 +68,7 @@ implements MethodSecurityExpressionOperations {
      * @return
      */
     public boolean hasDataSourcePermission(){
-        User user =  (User) this.getPrincipal();
+        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         return permissionService.hasDataSourcePermission(user);
     }
 
@@ -77,7 +78,7 @@ implements MethodSecurityExpressionOperations {
      * @return
      */
     public boolean hasDataSourceXidPermission(String xid){
-        User user =  (User) this.getPrincipal();
+        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         if(permissionService.hasAdminRole(user))
             return true;
         DataSourceVO dsvo = DataSourceDao.getInstance().getByXid(xid);
@@ -96,7 +97,7 @@ implements MethodSecurityExpressionOperations {
         if(def == null) {
             return false;
         }else {
-            return permissionService.hasPermission((User) this.getPrincipal(), def.getPermission());
+            return permissionService.hasPermission((PermissionHolder) this.getPrincipal(), def.getPermission());
         }
     }
 
@@ -106,7 +107,7 @@ implements MethodSecurityExpressionOperations {
      * @return
      */
     public boolean hasDataPointXidReadPermission(String xid){
-        User user =  (User) this.getPrincipal();
+        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 
         return (vo != null) && permissionService.hasDataPointReadPermission(user, vo);
@@ -134,7 +135,7 @@ implements MethodSecurityExpressionOperations {
      * @return
      */
     public boolean hasDataPointXidSetPermission(String xid){
-        User user =  (User) this.getPrincipal();
+        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
 
         return (vo != null) && permissionService.hasDataPointSetPermission(user, vo);
@@ -147,7 +148,7 @@ implements MethodSecurityExpressionOperations {
      * @return
      */
     public boolean hasDataPointXidsSetPermission(String[] xids){
-        User user =  (User) this.getPrincipal();
+        PermissionHolder user =  (PermissionHolder) this.getPrincipal();
         for(String xid : xids){
             DataPointVO vo = DataPointDao.getInstance().getByXid(xid);
             if((vo == null)||(!permissionService.hasDataPointSetPermission(user, vo)))
