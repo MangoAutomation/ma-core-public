@@ -341,7 +341,11 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
      * @throws IllegalArgumentException if the path is not a file store path
      */
     public Path relativize(Path path) throws IllegalArgumentException {
-        Path relative = fileStoreRoot.relativize(path.toAbsolutePath().normalize());
+        Path absolutePath = path.toAbsolutePath().normalize();
+        if (!absolutePath.startsWith(fileStoreRoot)) {
+            throw new IllegalArgumentException("Supplied path is outside the file store");
+        }
+        Path relative = fileStoreRoot.relativize(absolutePath);
         if (relative.getNameCount() == 0) {
             throw new IllegalArgumentException("File store name not present");
         }
