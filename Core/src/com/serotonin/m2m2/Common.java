@@ -433,7 +433,7 @@ public class Common {
      *  in which case this method will return null and you should use @see Common.getBackgroundContextPermissionHolder()
      * @return
      */
-    public static PermissionHolder getUser() {
+    public static PermissionHolder getUser() throws PermissionException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null) {
             Object principle = auth.getPrincipal();
