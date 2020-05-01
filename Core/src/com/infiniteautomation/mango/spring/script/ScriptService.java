@@ -97,7 +97,7 @@ public class ScriptService {
         try (Reader reader = script.readScript()) {
             return new CompiledMangoScript(((Compilable) engine).compile(reader), script);
         } catch (ScriptException e) {
-            throw new ScriptEvalException(e);
+            throw new ScriptEvalException(e, scriptAndEngine.engineDefinition.extractSourceLocation(e));
         } catch (IOException e) {
             throw new ScriptIOException(e);
         }
@@ -172,7 +172,7 @@ public class ScriptService {
                 }
                 return new EvalResult(value, engineBindings);
             } catch (ScriptException e) {
-                throw new ScriptEvalException(e);
+                throw new ScriptEvalException(e, scriptAndEngine.engineDefinition.extractSourceLocation(e));
             } catch (IOException e) {
                 throw new ScriptIOException(e);
             }

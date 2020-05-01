@@ -5,6 +5,7 @@ package com.serotonin.m2m2.module;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
+import javax.script.ScriptException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -31,5 +32,11 @@ public abstract class ScriptEngineDefinition extends ModuleElementDefinition {
 
     public Object toScriptNative(Object value) {
         return value;
+    }
+
+    public SourceLocation extractSourceLocation(ScriptException e) {
+        int lineNumber = e.getLineNumber();
+        int columnNumber = e.getColumnNumber();
+        return new SourceLocation(e.getFileName(), lineNumber >= 0 ? lineNumber : null, columnNumber >= 0 ? columnNumber : null);
     }
 }

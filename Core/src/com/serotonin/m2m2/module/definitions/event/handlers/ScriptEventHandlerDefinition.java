@@ -6,10 +6,9 @@ package com.serotonin.m2m2.module.definitions.event.handlers;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.script.ScriptException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.base.Throwables;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.EngineNotFoundException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptEvalException;
 import com.infiniteautomation.mango.spring.script.MangoScriptException.ScriptInterfaceException;
@@ -17,6 +16,7 @@ import com.infiniteautomation.mango.spring.script.ScriptService;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.module.EventHandlerDefinition;
+import com.serotonin.m2m2.module.SourceLocation;
 import com.serotonin.m2m2.rt.event.handlers.ScriptEventHandlerRT;
 import com.serotonin.m2m2.vo.event.ScriptEventHandlerVO;
 import com.serotonin.m2m2.vo.permission.PermissionException;
@@ -82,14 +82,15 @@ public class ScriptEventHandlerDefinition extends EventHandlerDefinition<ScriptE
         } catch (EngineNotFoundException e) {
             response.addContextualMessage("engineName", "validate.invalidValueWithAcceptable", e.getAvailableEngines());
         } catch (ScriptEvalException e) {
-            ScriptException cause = e.getScriptExceptionCause();
+            SourceLocation location = e.getSourceLocation();
+            String message = Throwables.getRootCause(e).getMessage();
 
-            if (cause.getLineNumber() < 0) {
-                response.addContextualMessage("script", "script.scriptException", cause.getMessage());
-            } else if (cause.getColumnNumber() < 0) {
-                response.addContextualMessage("script", "script.scriptExceptionLine", cause.getMessage(), cause.getLineNumber());
+            if (location.getLineNumber() == null) {
+                response.addContextualMessage("script", "script.scriptException", message, location.getFileName());
+            } else if (location.getColumnNumber() == null) {
+                response.addContextualMessage("script", "script.scriptExceptionLine", message, location.getFileName(), location.getLineNumber());
             } else {
-                response.addContextualMessage("script", "script.scriptExceptionLineColumn", cause.getMessage(), cause.getLineNumber(), cause.getColumnNumber());
+                response.addContextualMessage("script", "script.scriptExceptionLineColumn", message, location.getFileName(), location.getLineNumber(), location.getColumnNumber());
             }
         } catch (ScriptInterfaceException e) {
             response.addContextualMessage("script", "script.cantGetInterface", e.getInterfaceClass().getName());

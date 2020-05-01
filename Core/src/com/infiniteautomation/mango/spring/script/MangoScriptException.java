@@ -9,6 +9,8 @@ import java.util.Set;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+import com.serotonin.m2m2.module.SourceLocation;
+
 public class MangoScriptException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
@@ -65,15 +67,15 @@ public class MangoScriptException extends RuntimeException {
     public static class ScriptEvalException extends MangoScriptException {
         private static final long serialVersionUID = 1L;
 
-        private final ScriptException scriptExceptionCause;
+        private final SourceLocation sourceLocation;
 
-        ScriptEvalException(ScriptException cause) {
+        ScriptEvalException(ScriptException cause, SourceLocation sourceLocation) {
             super(cause);
-            this.scriptExceptionCause = cause;
+            this.sourceLocation = sourceLocation;
         }
 
-        public javax.script.ScriptException getScriptExceptionCause() {
-            return scriptExceptionCause;
+        public SourceLocation getSourceLocation() {
+            return sourceLocation;
         }
     }
 
