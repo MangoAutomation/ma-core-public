@@ -476,7 +476,8 @@ public class Upgrade29 extends DBUpgrade {
     //Default role data
     private String[] defaultRolesSQL = new String[] {
             "INSERT INTO roles (id, xid, name) VALUES (1, 'superadmin', 'Superadmin role');",
-            "INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'User role');"
+            "INSERT INTO roles (id, xid, name) VALUES (2, 'user', 'User role');",
+            "INSERT INTO roles (id, xid, name) VALUES (3, 'anonymous', 'Anonymous role');"
     };
 
     //Point Hierarchy
