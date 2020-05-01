@@ -151,6 +151,16 @@ public class ScriptService {
         String scriptFilename = script.getScriptFilename();
         if (scriptFilename != null) {
             engineBindings.put(ScriptEngine.FILENAME, scriptFilename);
+        } else {
+            String scriptName = script.getScriptName();
+            String fileName = scriptName;
+
+            List<String> extensions = engine.getFactory().getExtensions();
+            boolean hasExtension = extensions.stream().anyMatch(e -> scriptName.endsWith("." + e));
+            if (!hasExtension && !extensions.isEmpty()) {
+                fileName += "." + extensions.get(0);
+            }
+            engineBindings.put(ScriptEngine.FILENAME, fileName);
         }
 
         for (ScriptBindingsDefinition bindingsDef : bindingsDefinitions) {
@@ -172,7 +182,7 @@ public class ScriptService {
                 }
                 return new EvalResult(value, engineBindings);
             } catch (ScriptException e) {
-                throw new ScriptEvalException(e, scriptAndEngine.engineDefinition.extractSourceLocation(e));
+                throw new ScriptEvalException(e, engineDefinition.extractSourceLocation(e));
             } catch (IOException e) {
                 throw new ScriptIOException(e);
             }
