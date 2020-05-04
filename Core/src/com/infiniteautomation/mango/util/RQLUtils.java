@@ -39,7 +39,7 @@ public class RQLUtils {
         queryString = FORMAT_PARAMETER_PATTERN.matcher(queryString).replaceFirst("");
         if (queryString.isEmpty()) return DEFAULT_NODE;
 
-        RQLParser parser = new RQLParser();
+        RQLParser parser = new RQLParser(converter);
         try {
             return parser.parse(queryString);
         } catch(IllegalArgumentException | RQLParserException e) {
