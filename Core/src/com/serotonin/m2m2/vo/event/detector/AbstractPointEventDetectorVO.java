@@ -4,8 +4,12 @@
  */
 package com.serotonin.m2m2.vo.event.detector;
 
+import java.io.IOException;
+
 import org.apache.commons.lang3.ArrayUtils;
 
+import com.serotonin.json.JsonException;
+import com.serotonin.json.ObjectWriter;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.rt.event.type.DataPointEventType;
 import com.serotonin.m2m2.vo.DataPointVO;
@@ -57,6 +61,14 @@ public abstract class AbstractPointEventDetectorVO extends AbstractEventDetector
     public EventTypeVO getEventType() {
         return new EventTypeVO(new DataPointEventType(sourceId, id), getDescription(),
                 alarmLevel);
+    }
+
+    @Override
+    public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
+        super.jsonWrite(writer);
+        if(dataPoint != null) {
+            writer.writeEntry("dataPointXid", dataPoint.getXid());
+        }
     }
 
 }
