@@ -139,4 +139,8 @@ public abstract class AbstractVOService<T extends AbstractVO, TABLE extends Abst
         return delete(vo);
     }
 
+    public String generateUniqueXid() {
+        return dao.generateUniqueXid();
+    }
+
 }

@@ -3,7 +3,6 @@
  */
 package com.infiniteautomation.mango.spring.service;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,10 +10,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jooq.Field;
-import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.SelectJoinStep;
-import org.jooq.SelectSelectStep;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
@@ -329,34 +324,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
     }
 
     /**
-     * Join default tables for DAO
-     *
-     * @param <R>
-     * @param select
-     * @param conditions
-     * @return
-     */
-    public <R extends Record> SelectJoinStep<R> joinTables(SelectJoinStep<R> select, ConditionSortLimit conditions) {
-        return this.dao.joinTables(select, conditions);
-    }
-
-    /**
-     * Get the select query for the supplied fields without any joins
-     * @return
-     */
-    public SelectJoinStep<Record> getSelectQuery(Field<?>... fields) {
-        return dao.getSelectQuery(Arrays.asList(fields));
-    }
-
-    /**
-     * Get a select query to return full VOs using a row callback
-     * @return
-     */
-    public SelectJoinStep<Record> getJoinedSelectQuery() {
-        return dao.getJoinedSelectQuery();
-    }
-
-    /**
      * Count VOs
      * @param conditions
      * @return
@@ -378,14 +345,6 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         Objects.requireNonNull(user, "Permission holder must be set in security context");
 
         return dao.customizedCount(dao.rqlToCondition(conditions, null, null), user);
-    }
-
-    /**
-     * Get the count query for this table
-     * @return
-     */
-    public SelectSelectStep<Record1<Integer>> getCountQuery() {
-        return dao.getCountQuery();
     }
 
     /**
@@ -463,6 +422,7 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
      * Get the DAO
      * @return
      */
+    @Deprecated
     public DAO getDao() {
         return dao;
     }

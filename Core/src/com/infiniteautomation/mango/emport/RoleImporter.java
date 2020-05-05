@@ -34,7 +34,7 @@ public class RoleImporter extends Importer {
         RoleVO vo = null;
 
         if (StringUtils.isBlank(xid)) {
-            xid = service.getDao().generateUniqueXid();
+            xid = service.generateUniqueXid();
         }else {
             try {
                 vo = service.get(xid);

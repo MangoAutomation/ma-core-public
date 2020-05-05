@@ -35,7 +35,7 @@ public class EventHandlerImporter extends Importer {
         AbstractEventHandlerVO handler = null;
         String xid = json.getString("xid");
         if (StringUtils.isBlank(xid)) {
-            xid = service.getDao().generateUniqueXid();
+            xid = service.generateUniqueXid();
         }else {
             try {
                 handler = service.get(xid);

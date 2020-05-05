@@ -59,7 +59,7 @@ public class DataPointImporter extends Importer {
         DataPointWithEventDetectors dp = null;
 
         if (StringUtils.isBlank(xid)) {
-            xid = dataPointService.getDao().generateUniqueXid();
+            xid = dataPointService.generateUniqueXid();
         }else {
             try {
                 dp = dataPointService.getWithEventDetectors(xid);

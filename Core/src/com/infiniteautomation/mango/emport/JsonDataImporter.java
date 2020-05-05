@@ -32,7 +32,7 @@ public class JsonDataImporter extends Importer {
         JsonDataVO vo = null;
         boolean isNew = false;
         if(StringUtils.isBlank(xid)) {
-            xid = service.getDao().generateUniqueXid();
+            xid = service.generateUniqueXid();
         }else {
             try {
                 vo = service.get(xid);

@@ -31,7 +31,7 @@ public class MailingListImporter extends Importer {
         MailingList vo = null;
         
         if (StringUtils.isBlank(xid)) {
-            xid = service.getDao().generateUniqueXid();
+            xid = service.generateUniqueXid();
         }else {
             try {
                 vo = service.get(xid);

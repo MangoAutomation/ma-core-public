@@ -31,7 +31,7 @@ public class DataSourceImporter extends Importer {
         String xid = json.getString("xid");
         DataSourceVO vo = null;
         if (StringUtils.isBlank(xid)) {
-            xid = service.getDao().generateUniqueXid();
+            xid = service.generateUniqueXid();
         }else {
             try {
                 vo = service.get(xid);

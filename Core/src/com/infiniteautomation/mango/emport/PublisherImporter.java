@@ -29,7 +29,7 @@ public class PublisherImporter extends Importer {
         String xid = json.getString("xid");
         PublisherVO<? extends PublishedPointVO> vo = null;
         if (StringUtils.isBlank(xid)) {
-            xid = service.getDao().generateUniqueXid();
+            xid = service.generateUniqueXid();
         }else {
             try{
                 vo = service.get(xid);
