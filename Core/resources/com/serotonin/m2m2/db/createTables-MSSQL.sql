@@ -364,6 +364,29 @@ ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,u
 
 --
 --
+-- Persistent session data
+--
+CREATE TABLE mangoSessionData (
+	sessionId NVARCHAR(120),
+	contextPath NVARCHAR(60),
+	virtualHost NVARCHAR(60),
+	lastNode NVARCHAR(60),
+	accessTime BIGINT,
+	lastAccessTime BIGINT,
+	createTime BIGINT,
+	cookieTime BIGINT,
+	lastSavedTime BIGINT,
+	expiryTime BIGINT,
+	maxInterval BIGINT,
+	userId INT,
+	primary key (sessionId, contextPath, virtualHost)
+);
+CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);
+CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);
+
+
+--
+--
 -- Mango Default Data
 --
 -- Insert admin user

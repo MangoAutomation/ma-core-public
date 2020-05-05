@@ -374,6 +374,29 @@ CREATE INDEX roleMappingsVoTypeVoIdPermissionTypeIndex ON roleMappings (voType A
 
 --
 --
+-- Persistent session data
+--
+CREATE TABLE mangoSessionData (
+	sessionId VARCHAR(120),
+	contextPath VARCHAR(60),
+	virtualHost VARCHAR(60),
+	lastNode VARCHAR(60),
+	accessTime BIGINT,
+	lastAccessTime BIGINT,
+	createTime BIGINT,
+	cookieTime BIGINT,
+	lastSavedTime BIGINT,
+	expiryTime BIGINT,
+	maxInterval BIGINT,
+	userId INT,
+	primary key (sessionId, contextPath, virtualHost)
+)engine=InnoDB;
+CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);
+CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);
+
+
+--
+--
 -- Mango Default Data
 --
 -- Insert admin user

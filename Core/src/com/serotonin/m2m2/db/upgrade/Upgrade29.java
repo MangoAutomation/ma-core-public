@@ -65,8 +65,15 @@ public class Upgrade29 extends DBUpgrade {
 
         try {
 
-            //Add jsonData column to data points and data sources
+            //Add session data table for Jetty session persistence
             Map<String, String[]> scripts = new HashMap<>();
+            scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), sessionDataMySQL);
+            scripts.put(DatabaseProxy.DatabaseType.H2.name(), sessionDataSQL);
+            scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sessionDataMSSQL);
+            scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sessionDataSQL);
+
+            //Add jsonData column to data points and data sources
+            scripts = new HashMap<>();
             scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), jsonDataColumnsMySQL);
             scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataColumnsSql);
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataColumnsMSSQL);
@@ -543,6 +550,25 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE fileStores DROP COLUMN readPermission;",
             "ALTER TABLE fileStores DROP COLUMN writePermission;"
     };
+
+    private String [] sessionDataMySQL = new String[] {
+            "CREATE TABLE mangoSessionData (sessionId VARCHAR(120), contextPath VARCHAR(60), virtualHost VARCHAR(60), lastNode VARCHAR(60), accessTime BIGINT, lastAccessTime BIGINT, createTime BIGINT, cookieTime BIGINT, lastSavedTime BIGINT, expiryTime BIGINT, maxInterval BIGINT, userId INT, primary key (sessionId, contextPath, virtualHost))engine=InnoDB;",
+            "CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);",
+            "CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);"
+    };
+
+    private String[] sessionDataSQL = new String[] {
+            "CREATE TABLE mangoSessionData (sessionId VARCHAR(120), contextPath VARCHAR(60), virtualHost VARCHAR(60), lastNode VARCHAR(60), accessTime BIGINT, lastAccessTime BIGINT, createTime BIGINT, cookieTime BIGINT, lastSavedTime BIGINT, expiryTime BIGINT, maxInterval BIGINT, userId INT, primary key (sessionId, contextPath, virtualHost));",
+            "CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);",
+            "CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);"
+    };
+
+    private String[] sessionDataMSSQL = new String[] {
+            "CREATE TABLE mangoSessionData (sessionId NVARCHAR(120), contextPath NVARCHAR(60), virtualHost NVARCHAR(60), lastNode NVARCHAR(60), accessTime BIGINT, lastAccessTime BIGINT, createTime BIGINT, cookieTime BIGINT, lastSavedTime BIGINT, expiryTime BIGINT, maxInterval BIGINT, userId INT, primary key (sessionId, contextPath, virtualHost));",
+            "CREATE INDEX mangoSessionDataExpiryIndex ON mangoSessionData (expiryTime);",
+            "CREATE INDEX mangoSessionDataSessionIndex ON mangoSessionData (sessionId, contextPath);"
+    };
+
 
     /**
      * Get all existing roles so we can ensure we don't create duplicate roles only new mappings
