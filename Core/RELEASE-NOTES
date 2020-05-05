@@ -29,6 +29,7 @@
 * Add more monitored values to monitor server hardware performance and various disk partition sizes in GB
 * Add free form JSON data field to event detectors to allow storage of custom data in the configuration
 * Add anonymous role for public access to public file store
+* Upgrade H2 to 1.4.200 to pickup new features and bugfixes
 
 *Version 3.7.4*
 * Improve work item failure logging
