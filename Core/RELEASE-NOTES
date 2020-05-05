@@ -30,6 +30,8 @@
 * Add free form JSON data field to event detectors to allow storage of custom data in the configuration
 * Add anonymous role for public access to public file store
 * Upgrade H2 to 1.4.200 to pickup new features and bugfixes
+* Upgrade Spring to 5.2.6
+* Upgrade Spring security to 5.3.1
 
 *Version 3.7.4*
 * Improve work item failure logging
