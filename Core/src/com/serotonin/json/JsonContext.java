@@ -13,11 +13,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -60,6 +63,7 @@ import com.serotonin.json.spi.ClassConverter;
 import com.serotonin.json.spi.ClassSerializer;
 import com.serotonin.json.spi.JsonEntity;
 import com.serotonin.json.spi.JsonProperty;
+import com.serotonin.json.spi.JsonPropertyOrder;
 import com.serotonin.json.spi.JsonSerializable;
 import com.serotonin.json.spi.ObjectFactory;
 import com.serotonin.json.spi.TypeResolver;
@@ -285,6 +289,7 @@ public class JsonContext {
 
         // Annotations or beans
         Class<?> currentClazz = clazz;
+        List<String> propertyOrder = new ArrayList<>();
         while (currentClazz != Object.class) {
             boolean annotationsFound = addAnnotatedProperties(currentClazz, descriptors, properties);
 
@@ -292,11 +297,38 @@ public class JsonContext {
                 // Not annotated and no property annotations were found. Consider it a POJO.
                 addPojoProperties(currentClazz, descriptors, properties);
 
+            JsonPropertyOrder order = clazz.getAnnotation(JsonPropertyOrder.class);
+            if(order != null) {
+                for(String field : order.value()) {
+                    propertyOrder.add(field);
+                }
+            }
+
             currentClazz = currentClazz.getSuperclass();
         }
 
-        if (properties.isEmpty())
+        if (properties.isEmpty()) {
             properties = null;
+        }else {
+            List<SerializableProperty> ordered = new ArrayList<>();
+            for(String field : propertyOrder) {
+                Iterator<SerializableProperty> it = properties.listIterator();
+                while(it.hasNext()) {
+                    SerializableProperty property = it.next();
+                    if(StringUtils.equals(field, property.getNameToUse())) {
+                        ordered.add(property);
+                        it.remove();
+                        break;
+                    }
+                }
+            }
+            //Add in the remaining properties
+            for(SerializableProperty property : properties) {
+                ordered.add(property);
+            }
+            properties.clear();
+            properties.addAll(ordered);
+        }
 
         // Create a converter?
         if (jsonSerializable || jsonEntity || properties != null) {
