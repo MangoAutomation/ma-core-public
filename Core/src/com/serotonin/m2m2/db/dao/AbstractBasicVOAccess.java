@@ -5,6 +5,7 @@ package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jooq.Condition;
@@ -157,6 +158,17 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
     public void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, MappedRowCallback<T> callback);
 
     /**
+     * Adapts the callback to a consumer.
+     *
+     * @param conditions
+     * @param user
+     * @param consumer
+     */
+    public default void customizedQuery(ConditionSortLimit conditions, PermissionHolder user, Consumer<T> consumer) {
+        customizedQuery(conditions, user, (item, i) -> consumer.accept(item));
+    }
+
+    /**
      * Execute a query for VOs with a callback per row
      * @param select
      * @param callback
@@ -255,4 +267,18 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
             return callback.doInTransaction(txStatus);
         });
     }
+
+    public int count(PermissionHolder user);
+
+    public int count(PermissionHolder user, String rql);
+
+    public List<T> list(PermissionHolder user);
+
+    public void list(PermissionHolder user, Consumer<T> consumer);
+
+    public List<T> query(PermissionHolder user, String rql);
+
+    public void query(PermissionHolder user, String rql, Consumer<T> consumer);
+
+    public QueryBuilder<T> buildQuery(PermissionHolder user);
 }

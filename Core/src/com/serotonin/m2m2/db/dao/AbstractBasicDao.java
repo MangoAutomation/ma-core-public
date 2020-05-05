@@ -10,11 +10,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -52,6 +54,7 @@ import com.infiniteautomation.mango.monitor.AtomicIntegerMonitor;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.infiniteautomation.mango.spring.events.DaoEvent;
 import com.infiniteautomation.mango.spring.events.DaoEventType;
+import com.infiniteautomation.mango.util.RQLUtils;
 import com.serotonin.ModuleNotLoadedException;
 import com.serotonin.ShouldNeverHappenException;
 import com.serotonin.db.MappedRowCallback;
@@ -743,4 +746,46 @@ public abstract class AbstractBasicDao<T extends AbstractBasicVO, TABLE extends 
             throw new SQLException(e);
         }
     }
+
+    @Override
+    public int count(PermissionHolder user) {
+        return customizedCount(new ConditionSortLimit(null, null, null, null), user);
+    }
+
+    @Override
+    public int count(PermissionHolder user, String rql) {
+        ConditionSortLimit csl = rqlToCondition(RQLUtils.parseRQLtoAST(rql), Collections.emptyMap(), Collections.emptyMap());
+        return customizedCount(csl, user);
+    }
+
+    @Override
+    public List<T> list(PermissionHolder user) {
+        List<T> list = new ArrayList<>();
+        list(user, list::add);
+        return list;
+    }
+
+    @Override
+    public void list(PermissionHolder user, Consumer<T> consumer) {
+        customizedQuery(new ConditionSortLimit(null, null, null, null), user, consumer);
+    }
+
+    @Override
+    public List<T> query(PermissionHolder user, String rql) {
+        List<T> list = new ArrayList<>();
+        query(user, rql, list::add);
+        return list;
+    }
+
+    @Override
+    public void query(PermissionHolder user, String rql, Consumer<T> consumer) {
+        ConditionSortLimit csl = rqlToCondition(RQLUtils.parseRQLtoAST(rql), Collections.emptyMap(), Collections.emptyMap());
+        customizedQuery(csl, user, consumer);
+    }
+
+    @Override
+    public QueryBuilder<T> buildQuery(PermissionHolder user) {
+        return new QueryBuilder<T>(table.getFieldMap(), valueConverterMap, csl -> customizedCount(csl, user), (csl, consumer) -> customizedQuery(csl, user, consumer));
+    }
+
 }

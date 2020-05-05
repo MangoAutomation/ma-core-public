@@ -4,8 +4,10 @@
 package com.infiniteautomation.mango.spring.service;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jooq.Field;
@@ -21,6 +23,7 @@ import com.infiniteautomation.mango.util.exception.ValidationException;
 import com.serotonin.db.MappedRowCallback;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.AbstractBasicVOAccess;
+import com.serotonin.m2m2.db.dao.QueryBuilder;
 import com.serotonin.m2m2.db.dao.RoleDao.RoleDeletedDaoEvent;
 import com.serotonin.m2m2.i18n.ProcessResult;
 import com.serotonin.m2m2.i18n.TranslatableMessage;
@@ -472,4 +475,31 @@ public abstract class AbstractBasicVOService<T extends AbstractBasicVO, TABLE ex
         return permissionService;
     }
 
+    public int count() {
+        return dao.count(Common.getUser());
+    }
+
+    public int count(String rql) {
+        return dao.count(Common.getUser(), rql);
+    }
+
+    public List<T> list() {
+        return dao.list(Common.getUser());
+    }
+
+    public void list(Consumer<T> consumer) {
+        dao.list(Common.getUser(), consumer);
+    }
+
+    public List<T> query(String rql) {
+        return dao.query(Common.getUser(), rql);
+    }
+
+    public void query(String rql, Consumer<T> consumer) {
+        dao.query(Common.getUser(), rql, consumer);
+    }
+
+    public QueryBuilder<T> buildQuery() {
+        return dao.buildQuery(Common.getUser());
+    }
 }
