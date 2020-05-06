@@ -4,11 +4,12 @@
 package com.serotonin.m2m2.db.dao;
 
 import java.util.List;
+import java.util.function.Consumer;
 
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.spring.db.AbstractTableDefinition;
-import com.serotonin.db.TransactionCallbackNoResult;
 import com.serotonin.m2m2.vo.AbstractVO;
 
 /**
@@ -76,10 +77,10 @@ public interface AbstractVOAccess<T extends AbstractVO, TABLE extends AbstractTa
      */
     public void lockRow(String xid);
 
-    public default void withLockedRow(String xid, TransactionCallbackNoResult callback) {
+    public default void withLockedRow(String xid, Consumer<TransactionStatus> callback) {
         doInTransaction(txStatus -> {
             lockRow(xid);
-            callback.doInTransactionNoResult(txStatus);
+            callback.accept(txStatus);
         });
     }
 

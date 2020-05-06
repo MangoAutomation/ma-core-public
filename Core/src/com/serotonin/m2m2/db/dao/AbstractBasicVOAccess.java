@@ -17,12 +17,12 @@ import org.jooq.SelectJoinStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.SortField;
 import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.infiniteautomation.mango.db.query.ConditionSortLimit;
 import com.infiniteautomation.mango.spring.db.AbstractBasicTableDefinition;
 import com.serotonin.db.MappedRowCallback;
-import com.serotonin.db.TransactionCallbackNoResult;
 import com.serotonin.db.TransactionCapable;
 import com.serotonin.m2m2.vo.AbstractBasicVO;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
@@ -254,10 +254,10 @@ public interface AbstractBasicVOAccess<T extends AbstractBasicVO, TABLE extends 
      */
     public void lockRow(int id);
 
-    public default void withLockedRow(int id, TransactionCallbackNoResult callback) {
+    public default void withLockedRow(int id, Consumer<TransactionStatus> callback) {
         doInTransaction(txStatus -> {
             lockRow(id);
-            callback.doInTransactionNoResult(txStatus);
+            callback.accept(txStatus);
         });
     }
 

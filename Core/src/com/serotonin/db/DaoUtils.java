@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -27,6 +28,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 
 import com.serotonin.db.pair.IntStringPair;
@@ -306,7 +308,7 @@ public class DaoUtils implements TransactionCapable {
     }
 
     @Override
-    public void doInTransaction(TransactionCallbackNoResult callback) {
-        this.getTransactionTemplate().execute(callback);
+    public void doInTransaction(Consumer<TransactionStatus> callback) {
+        this.getTransactionTemplate().executeWithoutResult(callback);
     }
 }
