@@ -29,7 +29,7 @@ public abstract class EventHandlerDefinition<T extends AbstractEventHandlerVO> e
      * An internal identifier for this type of Event Handler. Must be unique within an MA instance, and is recommended
      * to have the form "&lt;moduleType&gt;.&lt;modelName&gt;" so as to be unique across all modules.
      *
-     * @return the model type name.
+     * @return the event handler type name.
      */
     abstract public String getEventHandlerTypeName();
 
