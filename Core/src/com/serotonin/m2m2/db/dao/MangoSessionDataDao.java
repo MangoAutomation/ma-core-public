@@ -20,7 +20,6 @@ import org.jooq.Record;
 import org.jooq.Record1;
 import org.jooq.Select;
 import org.jooq.UpdateConditionStep;
-import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.support.DataAccessUtils;
@@ -105,11 +104,9 @@ public class MangoSessionDataDao extends BaseDao {
      * Insert session data
      * @param vo
      */
-    public void insert(MangoSessionDataVO vo) {
+    public void insert(MangoSessionDataVO vo) throws DataAccessException {
         InsertValuesStepN<?> insert = this.create.insertInto(this.table.getTable()).columns(this.table.getInsertFields()).values(voToObjectArray(vo));
-        String sql = insert.getSQL();
-        List<Object> args = insert.getBindValues();
-        ejt.doInsert(sql, args.toArray(new Object[args.size()]));
+        insert.execute();
     }
 
     /**
@@ -147,10 +144,23 @@ public class MangoSessionDataDao extends BaseDao {
      * @return
      */
     public boolean sessionExists(String sessionId, String contextPath, String virtualHost) {
-        return this.create.select(DSL.countDistinct(this.table.getAlias("sessionId"))).where(
+        Select<Record1<Object>> query = this.create.select(this.table.getAlias("expiryTime")).where(
                 this.table.getAlias("sessionId").eq(sessionId),
                 this.table.getAlias("contextPath").eq(contextPath),
-                this.table.getAlias("virtualHost").eq(virtualHost)).execute() > 0;
+                this.table.getAlias("virtualHost").eq(virtualHost));
+
+        String sql = query.getSQL();
+        List<Object> args = query.getBindValues();
+        Long expiryTime = queryForObject(sql, args.toArray(), Long.class, null);
+
+        if(expiryTime == null) {
+            return false;
+        }else if(expiryTime <=0) {
+            return true; //Never expires
+        }else {
+            return expiryTime > Common.timer.currentTimeMillis();
+        }
+
     }
 
     /**
