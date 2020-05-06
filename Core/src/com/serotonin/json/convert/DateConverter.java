@@ -21,9 +21,9 @@ import com.serotonin.json.type.JsonValue;
  *
  */
 public class DateConverter extends ImmutableClassConverter {
-    
-    
-    
+
+
+
     @Override
     public JsonValue jsonWrite(JsonTypeWriter writer, Object value) {
         Instant instant = Instant.ofEpochMilli(((Date)value).getTime());
@@ -33,7 +33,9 @@ public class DateConverter extends ImmutableClassConverter {
     @Override
     public void jsonWrite(JsonWriter writer, Object value) throws IOException {
         Instant instant = Instant.ofEpochMilli(((Date)value).getTime());
+        writer.append("\"");
         writer.append(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC).toString());
+        writer.append("\"");
     }
 
     @Override
