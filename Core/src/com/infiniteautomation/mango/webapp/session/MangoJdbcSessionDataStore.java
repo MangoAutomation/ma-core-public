@@ -9,12 +9,16 @@ import java.util.Set;
 
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionData;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
+import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
+import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
+import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -30,6 +34,9 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
 
     private final UserDao userDao;
     private final MangoSessionDataDao sessionDao;
+    private final LazyInitSupplier<ApplicationContext> eventPublisher = new LazyInitSupplier<>(() -> {
+        return MangoRuntimeContextConfiguration.getRuntimeContext();
+    });
 
     public MangoJdbcSessionDataStore() {
         this.userDao = UserDao.getInstance();
@@ -58,13 +65,11 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
         }
 
         if (lastSaveTime <= 0) {
-            //TODO is session id set in data?
             MangoSessionDataVO vo = new MangoSessionDataVO(data);
             vo.setSessionId(id);
             maybeSetUserId(vo, data);
             sessionDao.insert(vo);
         }else{
-            //TODO are contextPatha and vHost set in data?
             MangoSessionDataVO vo = new MangoSessionDataVO(data);
             vo.setSessionId(id);
             maybeSetUserId(vo, data);
@@ -94,7 +99,7 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
 
     @Override
     public SessionData doLoad(String id) throws Exception {
-        MangoSessionDataVO vo =  sessionDao.get(id, _context.getCanonicalContextPath(), _context.getVhost());
+        MangoSessionDataVO vo = sessionDao.get(id, _context.getCanonicalContextPath(), _context.getVhost());
         if(vo == null) {
             return null;
         }
@@ -112,15 +117,16 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
         data.setLastSaved(vo.getLastSavedTime());
         data.setExpiry(vo.getExpiryTime());
 
-
         if(vo.getUserId() > 0) {
             User user = userDao.get(vo.getUserId());
             if(user != null) {
                 UsernamePasswordAuthenticationToken auth = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
                 SecurityContextImpl impl = new SecurityContextImpl(auth);
                 data.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, impl);
+                this.eventPublisher.get().publishEvent(new SessionLoadedEvent(this, id, user));
             }
         }
+
         return data;
     }
 

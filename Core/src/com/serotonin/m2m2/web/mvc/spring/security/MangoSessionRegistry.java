@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +22,9 @@ import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.stereotype.Component;
 
+import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
 import com.serotonin.m2m2.Common;
+import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
@@ -34,13 +38,22 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
 @Component
 public class MangoSessionRegistry extends SessionRegistryImpl {
 
+    private final MangoSessionDataDao dao;
+
+    @Autowired
+    public MangoSessionRegistry(MangoSessionDataDao dao) {
+        this.dao = dao;
+    }
+
     /**
      * Used to indicate that a user was migrated to a new session
      */
     public static final String USER_MIGRATED_TO_NEW_SESSION_ATTRIBUTE = "MANGO_MIGRATED_TO_NEW_SESSION";
 
     /**
-     * Return a count of all active sessions.
+     * Return a count of all active sessions.  This specifically counts
+     *  active sessions in Jetty and does not consider any
+     *  sessions in the store that have not yet been loaded
      *
      * @return
      */
@@ -70,6 +83,7 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
         for (SessionInformation info : userSessions) {
             info.expireNow();
         }
+        this.dao.deleteSessionsForUser(user.getId());
     }
 
     /**
@@ -109,7 +123,6 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
 
                     HttpSession newSession = request.getSession(true);
 
-
                     this.registerNewSession(newSession.getId(), user);
 
                     for (Entry<String, Object> entry : attributes.entrySet()) {
@@ -129,5 +142,15 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
                 SecurityContextHolder.getContext().setAuthentication(newAuthentication);
             }
         }
+    }
+
+    /**
+     * Be aware of any sessions that are loaded from the store this
+     *  assumes that sessions in the store that are not actively loaded
+     * @param event
+     */
+    @EventListener
+    public void handleSessionLoadedEvent(SessionLoadedEvent event) {
+        this.registerNewSession(event.getSessionId(), event.getPrinciple());
     }
 }

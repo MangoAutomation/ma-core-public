@@ -6,8 +6,10 @@ package com.serotonin.m2m2.vo;
 
 import org.eclipse.jetty.server.session.SessionData;
 
+import com.serotonin.m2m2.Common;
+
 /**
- *
+ * Container for persistent http session information
  * @author Terry Packer
  */
 public class MangoSessionDataVO {
@@ -16,14 +18,26 @@ public class MangoSessionDataVO {
     private String contextPath;
     private String virtualHost;
     private String lastNode;
+    /**
+     * the time of the last access
+     */
     private long accessTime;
+    /**
+     * the time of the last access excluding this one
+     */
     private long lastAccessTime;
     private long createTime;
     private long cookieTime;
+    /**
+     * time in msec since last save
+     */
     private long lastSavedTime;
+    /**
+     * precalculated time of expiry in ms since epoch
+     */
     private long expiryTime;
     private long maxInterval;
-    private int userId;
+    private int userId = Common.NEW_ID;
 
     public MangoSessionDataVO() {
 

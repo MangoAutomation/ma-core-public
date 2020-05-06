@@ -144,10 +144,11 @@ public class MangoSessionDataDao extends BaseDao {
      * @return
      */
     public boolean sessionExists(String sessionId, String contextPath, String virtualHost) {
-        Select<Record1<Object>> query = this.create.select(this.table.getAlias("expiryTime")).where(
-                this.table.getAlias("sessionId").eq(sessionId),
-                this.table.getAlias("contextPath").eq(contextPath),
-                this.table.getAlias("virtualHost").eq(virtualHost));
+        Select<Record1<Object>> query = this.create.select(this.table.getAlias("expiryTime"))
+                .from(this.table.getTableAsAlias())
+                .where(this.table.getAlias("sessionId").eq(sessionId),
+                        this.table.getAlias("contextPath").eq(contextPath),
+                        this.table.getAlias("virtualHost").eq(virtualHost));
 
         String sql = query.getSQL();
         List<Object> args = query.getBindValues();
@@ -243,6 +244,15 @@ public class MangoSessionDataDao extends BaseDao {
             }
             return null;
         }
+    }
+
+    /**
+     * Delete all session entries for this user
+     * @param id
+     */
+    public boolean deleteSessionsForUser(int userId) {
+        return this.create.deleteFrom(table.getTableAsAlias()).where(
+                this.table.getAlias("userId").eq(userId)).execute() > 0;
     }
 
 }

@@ -32,6 +32,7 @@
 * Upgrade H2 to 1.4.200 to pickup new features and bugfixes
 * Upgrade Spring to 5.2.6
 * Upgrade Spring security to 5.3.1
+* Persist HTTP sessions across reboots so Users are not logged out
 
 *Version 3.7.4*
 * Improve work item failure logging
