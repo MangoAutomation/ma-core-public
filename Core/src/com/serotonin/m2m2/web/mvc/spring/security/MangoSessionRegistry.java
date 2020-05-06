@@ -33,6 +33,8 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
  *
  * Customize Session Registration Actions
  *
+ * TODO Mango 4.0 consider this being merged into the @see MangoJdbcSessionDataStore
+ *
  * @author Terry Packer
  */
 @Component

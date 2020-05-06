@@ -2,23 +2,24 @@
  * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
 
-package com.infiniteautomation.mango.webapp.session;
+package com.infiniteautomation.mango.spring.session;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
+import org.eclipse.jetty.server.session.SessionContext;
 import org.eclipse.jetty.server.session.SessionData;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.stereotype.Component;
 
-import com.infiniteautomation.mango.spring.MangoRuntimeContextConfiguration;
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
-import com.infiniteautomation.mango.util.LazyInitSupplier;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
 import com.serotonin.m2m2.db.dao.UserDao;
@@ -30,17 +31,19 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
  *
  * @author Terry Packer
  */
+@Component
 public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
 
     private final UserDao userDao;
     private final MangoSessionDataDao sessionDao;
-    private final LazyInitSupplier<ApplicationContext> eventPublisher = new LazyInitSupplier<>(() -> {
-        return MangoRuntimeContextConfiguration.getRuntimeContext();
-    });
+    private final ApplicationEventPublisher eventPublisher;
 
-    public MangoJdbcSessionDataStore() {
-        this.userDao = UserDao.getInstance();
-        this.sessionDao = MangoSessionDataDao.getInstance();
+    @Autowired
+    public MangoJdbcSessionDataStore(UserDao userDao, MangoSessionDataDao sessionDao,
+            ApplicationEventPublisher publisher) {
+        this.userDao = userDao;
+        this.sessionDao = sessionDao;
+        this.eventPublisher = publisher;
     }
 
     @Override
@@ -123,7 +126,7 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
                 UsernamePasswordAuthenticationToken auth = MangoPasswordAuthenticationProvider.createAuthenticatedToken(user);
                 SecurityContextImpl impl = new SecurityContextImpl(auth);
                 data.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, impl);
-                this.eventPublisher.get().publishEvent(new SessionLoadedEvent(this, id, user));
+                this.eventPublisher.publishEvent(new SessionLoadedEvent(this, id, user));
             }
         }
 
@@ -173,5 +176,12 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
         }
 
         return expiredSessionKeys;
+    }
+
+    /**
+     * @return
+     */
+    public SessionContext getSessionContext() {
+        return _context;
     }
 }

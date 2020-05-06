@@ -2,12 +2,13 @@
  * Copyright (C) 2020  Infinite Automation Software. All rights reserved.
  */
 
-package com.infiniteautomation.mango.webapp.session;
+package com.infiniteautomation.mango.spring.session;
 
 import org.eclipse.jetty.server.session.SessionContext;
 import org.eclipse.jetty.server.session.SessionData;
 import org.eclipse.jetty.server.session.SessionDataMap;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
+import org.springframework.stereotype.Component;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -16,6 +17,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  *
  * @author Terry Packer
  */
+@Component
 public class MangoSessionDataMap extends AbstractLifeCycle implements SessionDataMap {
 
     private final Cache<String, SessionData> cache;

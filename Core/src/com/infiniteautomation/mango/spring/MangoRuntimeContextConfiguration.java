@@ -14,6 +14,7 @@ import java.util.function.Function;
 
 import javax.script.ScriptEngineManager;
 
+import org.eclipse.jetty.server.session.CachingSessionDataStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -41,6 +42,8 @@ import com.infiniteautomation.mango.monitor.MonitoredValues;
 import com.infiniteautomation.mango.spring.components.RegisterModuleElementDefinitions;
 import com.infiniteautomation.mango.spring.components.executors.MangoExecutors;
 import com.infiniteautomation.mango.spring.eventMulticaster.EventMulticasterRegistry;
+import com.infiniteautomation.mango.spring.session.MangoJdbcSessionDataStore;
+import com.infiniteautomation.mango.spring.session.MangoSessionDataMap;
 import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.IMangoLifecycle;
 import com.serotonin.m2m2.db.dao.SystemSettingsDao;
@@ -287,5 +290,10 @@ public class MangoRuntimeContextConfiguration {
     @Bean
     public ScriptEngineManager scriptEngineManager() {
         return new ScriptEngineManager();
+    }
+
+    @Bean
+    public CachingSessionDataStore sessionDataStore(MangoSessionDataMap dataMap, MangoJdbcSessionDataStore delegate) {
+        return new CachingSessionDataStore(dataMap, delegate);
     }
 }
