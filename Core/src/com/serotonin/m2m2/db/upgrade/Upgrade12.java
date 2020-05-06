@@ -260,7 +260,7 @@ public class Upgrade12 extends DBUpgrade {
                     "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType nvarchar(40) NOT NULL;",
             });
             scripts.put(DatabaseProxy.DatabaseType.H2.name(), new String[] {
-                    "ALTER TABLE eventHandlers MODIFY COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
+                    "ALTER TABLE eventHandlers ALTER COLUMN eventHandlerType VARCHAR(40) NOT NULL;",
             });
             runScript(scripts, os);
 

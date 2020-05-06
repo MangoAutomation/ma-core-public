@@ -156,7 +156,7 @@ create table pointValues (
   pointValue double,
   ts bigint not null,
   primary key (id)
-) engine=MyISAM;
+);
 create index pointValuesIdx1 on pointValues (dataPointId, ts);
 
 create table pointValueAnnotations (
@@ -165,7 +165,7 @@ create table pointValueAnnotations (
   textPointValueLong longtext,
   sourceMessage longtext,
   primary key (pointValueId)
-) engine=MyISAM;
+);
 
 
 --
