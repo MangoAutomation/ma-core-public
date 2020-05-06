@@ -33,9 +33,7 @@ public class DateConverter extends ImmutableClassConverter {
     @Override
     public void jsonWrite(JsonWriter writer, Object value) throws IOException {
         Instant instant = Instant.ofEpochMilli(((Date)value).getTime());
-        writer.append("\"");
-        writer.append(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC).toString());
-        writer.append("\"");
+        writer.quote(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC).toString());
     }
 
     @Override
