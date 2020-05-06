@@ -62,6 +62,57 @@ alter table userComments add constraint userCommentsUn1 unique (xid);
 ALTER TABLE userComments ADD INDEX userComments_performance1 (`commentType` ASC, `typeKey` ASC);
 
 --
+--
+-- Roles
+--
+CREATE TABLE roles (
+	id int not null auto_increment,
+	xid varchar(100) not null,
+	name varchar(255) not null,
+  	primary key (id)
+) engine=InnoDB;
+ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
+
+--
+-- Role Inheritance Mappings
+-- 
+CREATE TABLE roleInheritance (
+	roleId INT NOT NULL,
+	inheritedRoleId INT NOT NULL
+);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
+
+--
+--
+-- User Role Mappings
+--
+CREATE TABLE userRoleMappings (
+	roleId int not null,
+	userId int not null
+) engine=InnoDB;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
+ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
+
+CREATE TABLE `permissions_minterms` (
+  `id` int(11) NOT NULL,
+  `role_id` int(11) NOT NULL,
+  UNIQUE KEY `idx_permissions_minterms_id_role_id` (`id`,`role_id`),
+  KEY `permissions_minterms_fk1_idx` (`role_id`),
+  CONSTRAINT `permissions_minterms_fk1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `permissions` (
+  `id` int(11) NOT NULL,
+  `min_term_id` int(11) NOT NULL,
+  UNIQUE KEY `idx_permissions_id_min_term_id` (`id`,`min_term_id`),
+  KEY `permissions_fk1_idx` (`min_term_id`),
+  CONSTRAINT `permissions_fk1` FOREIGN KEY (`min_term_id`) REFERENCES `permissions_minterms` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
 -- Mailing lists
 create table mailingLists (
   id int not null auto_increment,
@@ -100,9 +151,13 @@ create table dataSources (
   data longblob not null,
   jsonData JSON,
   rtdata longblob,
+  read_permission int default null,
+  edit_permission int default null,
   primary key (id)
 ) engine=InnoDB;
 alter table dataSources add constraint dataSourcesUn1 unique (xid);
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk1 FOREIGN KEY (read_permission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataSources ADD CONSTRAINT dataSourcesFk2 FOREIGN KEY (edit_permission) REFERENCES permissions(id) ON DELETE SET NULL;
 ALTER TABLE dataSources ADD INDEX nameIndex (name ASC);
 
 --
@@ -133,10 +188,14 @@ CREATE TABLE dataPoints (
   dataTypeId int not null,
   settable char(1),
   jsonData JSON,
+  read_permission int default null,
+  set_permission int default null,
   primary key (id)
 ) engine=InnoDB;
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsUn1 UNIQUE (xid);
 ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk1 FOREIGN KEY (dataSourceId) REFERENCES dataSources(id);
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk2 FOREIGN KEY (read_permission) REFERENCES permissions(id) ON DELETE SET NULL;
+ALTER TABLE dataPoints ADD CONSTRAINT dataPointsFk3 FOREIGN KEY (set_permission) REFERENCES permissions(id) ON DELETE SET NULL;
 CREATE INDEX pointNameIndex on dataPoints (name ASC);
 CREATE INDEX deviceNameIndex on dataPoints (deviceName ASC);
 CREATE INDEX deviceNameNameIndex on dataPoints (deviceName ASC, name ASC);
@@ -319,18 +378,6 @@ ALTER TABLE fileStores ADD CONSTRAINT fileStoresUn1 UNIQUE (storeName);
 
 --
 --
--- Roles
---
-CREATE TABLE roles (
-	id int not null auto_increment,
-	xid varchar(100) not null,
-	name varchar(255) not null,
-  	primary key (id)
-) engine=InnoDB;
-ALTER TABLE roles ADD CONSTRAINT rolesUn1 UNIQUE (xid);
-
---
---
 -- Role Mappings
 --
 CREATE TABLE roleMappings (
@@ -342,36 +389,11 @@ CREATE TABLE roleMappings (
 ) engine=InnoDB;
 ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
 ALTER TABLE roleMappings ADD CONSTRAINT roleMappingsUn1 UNIQUE (roleId,voId,voType,permissionType);
-
---
--- Role Inheritance Mappings
--- 
-CREATE TABLE roleInheritance (
-	roleId INT NOT NULL,
-	inheritedRoleId INT NOT NULL
-);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceUn1 UNIQUE (roleId,inheritedRoleId);
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE roleInheritance ADD CONSTRAINT roleInheritanceFk2 FOREIGN KEY (inheritedRoleId) REFERENCES roles(id) ON DELETE CASCADE;
-
-
---
---
--- User Role Mappings
---
-CREATE TABLE userRoleMappings (
-	roleId int not null,
-	userId int not null
-) engine=InnoDB;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (roleId) REFERENCES roles(id) ON DELETE CASCADE;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
-ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
 CREATE INDEX roleMappingsPermissionTypeIndex ON roleMappings (permissionType ASC);
 CREATE INDEX roleMappingsVoTypeIndex ON roleMappings (voType ASC);
 CREATE INDEX roleMappingsVoIdIndex ON roleMappings (voId ASC);
 CREATE INDEX roleMappingsRoleIdIndex ON roleMappings (roleId ASC);
 CREATE INDEX roleMappingsVoTypeVoIdPermissionTypeIndex ON roleMappings (voType ASC, voId ASC, permissionType ASC);
-
 --
 --
 -- Persistent session data

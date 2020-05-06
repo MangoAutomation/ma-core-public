@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Table;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Component;
@@ -20,6 +22,10 @@ import org.springframework.stereotype.Component;
 public class DataPointTableDefinition extends AbstractTableDefinition {
 
     public static final String TABLE_NAME = "dataPoints";
+    public static final Table<Record> TABLE = DSL.table(TABLE_NAME);
+    public static final Field<Integer> ID = DSL.field(TABLE.getQualifiedName().append("id"), SQLDataType.INTEGER.nullable(false));
+    public static final Field<Integer> READ_PERMISSION = DSL.field(TABLE.getQualifiedName().append("read_permission"), SQLDataType.INTEGER.nullable(true));
+    public static final Field<Integer> SET_PERMISSION = DSL.field(TABLE.getQualifiedName().append("set_permission"), SQLDataType.INTEGER.nullable(true));
 
     public DataPointTableDefinition() {
         super(DSL.table(TABLE_NAME), DSL.name("dp"));

@@ -71,17 +71,20 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
     });
 
     private final PermissionService permissionService;
+    private final PermissionDao permissionDao;
 
     @Autowired
     private DataSourceDao(
             DataSourceTableDefinition table,
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+            ApplicationEventPublisher publisher,
+            PermissionDao permissionDao) {
         super(AuditEventType.TYPE_DATA_SOURCE, table,
                 new TranslatableMessage("internal.monitor.DATA_SOURCE_COUNT"),
                 mapper, publisher);
         this.permissionService = permissionService;
+        this.permissionDao = permissionDao;
     }
 
     /**
@@ -288,6 +291,14 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getEditPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.EDIT, insert);
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ, insert);
         vo.getDefinition().saveRelationalData(vo, insert);
+
+        Integer readPermissionId = permissionDao.getOrInsertPermission(vo.getReadPermission());
+        Integer editPermissionId = permissionDao.getOrInsertPermission(vo.getEditPermission());
+
+        create.update(DataSourceTableDefinition.TABLE)
+        .set(DataSourceTableDefinition.READ_PERMISSION, readPermissionId)
+        .set(DataSourceTableDefinition.EDIT_PERMISSION, editPermissionId)
+        .where(DataSourceTableDefinition.ID.equal(vo.getId())).execute();
     }
 
     @Override

@@ -90,6 +90,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     private final EventDetectorTableDefinition eventDetectorTable;
     private final UserCommentTableDefinition userCommentTable;
     private final PermissionService permissionService;
+    private final PermissionDao permissionDao;
 
     private static final LazyInitSupplier<DataPointDao> springInstance = new LazyInitSupplier<>(() -> {
         return Common.getRuntimeContext().getBean(DataPointDao.class);
@@ -102,7 +103,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             UserCommentTableDefinition userCommentTable,
             PermissionService permissionService,
             @Qualifier(MangoRuntimeContextConfiguration.DAO_OBJECT_MAPPER_NAME)ObjectMapper mapper,
-            ApplicationEventPublisher publisher) {
+            ApplicationEventPublisher publisher,
+            PermissionDao permissionDao) {
         super(EventType.EventTypeNames.DATA_POINT, table,
                 new TranslatableMessage("internal.monitor.DATA_POINT_COUNT"),
                 mapper, publisher);
@@ -110,6 +112,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         this.eventDetectorTable = eventDetectorTable;
         this.userCommentTable = userCommentTable;
         this.permissionService = permissionService;
+        this.permissionDao = permissionDao;
     }
 
     /**
@@ -628,6 +631,14 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
         if(def != null) {
             def.saveRelationalData(vo, insert);
         }
+
+        Integer readPermissionId = permissionDao.getOrInsertPermission(vo.getReadPermission());
+        Integer setPermissionId = permissionDao.getOrInsertPermission(vo.getSetPermission());
+
+        create.update(DataPointTableDefinition.TABLE)
+        .set(DataPointTableDefinition.READ_PERMISSION, readPermissionId)
+        .set(DataPointTableDefinition.SET_PERMISSION, setPermissionId)
+        .where(DataPointTableDefinition.ID.equal(vo.getId())).execute();
     }
 
     @Override
@@ -658,6 +669,7 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
     @Override
     public <R extends Record> SelectJoinStep<R> joinPermissions(SelectJoinStep<R> select, ConditionSortLimit conditions,
             PermissionHolder user) {
+
         //Join on permissions
         if(!permissionService.hasAdminRole(user)) {
             List<Integer> roleIds = user.getAllInheritedRoles().stream().map(r -> r.getId()).collect(Collectors.toList());
