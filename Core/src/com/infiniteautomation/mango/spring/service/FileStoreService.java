@@ -95,24 +95,12 @@ public class FileStoreService extends AbstractBasicVOService<FileStore, FileStor
 
     @Override
     public boolean hasEditPermission(PermissionHolder user, FileStore vo) {
-        //Since file stores can be accessed publicly and some of the definitions allow this
-        // we must check for a potentially null user.
-        if(user == null) {
-            return  false;
-        }else {
-            return permissionService.hasPermission(user, vo.getWritePermission());
-        }
+        return permissionService.hasPermission(user, vo.getWritePermission());
     }
 
     @Override
     public boolean hasReadPermission(PermissionHolder user, FileStore vo) {
-        //Since file stores can be accessed publicly and some of the definitions allow this
-        // we must check for a potentially null user.
-        if(user == null) {
-            return  false;
-        }else {
-            return permissionService.hasPermission(user, vo.getReadPermission());
-        }
+        return permissionService.hasPermission(user, vo.getReadPermission());
     }
 
     /**
