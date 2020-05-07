@@ -4,6 +4,8 @@
 package com.serotonin.m2m2.db.upgrade;
 
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,11 +22,13 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.util.FileSystemUtils;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
 import com.infiniteautomation.mango.permission.MangoPermission.MangoPermissionEncoded;
 import com.infiniteautomation.mango.spring.service.PermissionService;
 import com.infiniteautomation.mango.util.Functions;
+import com.serotonin.m2m2.Common;
 import com.serotonin.m2m2.db.DatabaseProxy;
 import com.serotonin.m2m2.module.ModuleRegistry;
 import com.serotonin.m2m2.module.PermissionDefinition;
@@ -71,6 +75,7 @@ public class Upgrade29 extends DBUpgrade {
             scripts.put(DatabaseProxy.DatabaseType.H2.name(), sessionDataSQL);
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), sessionDataMSSQL);
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), sessionDataSQL);
+            runScript(scripts, out);
 
             //Add jsonData column to data points and data sources
             scripts = new HashMap<>();
@@ -78,6 +83,7 @@ public class Upgrade29 extends DBUpgrade {
             scripts.put(DatabaseProxy.DatabaseType.H2.name(), jsonDataColumnsSql);
             scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), jsonDataColumnsMSSQL);
             scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), jsonDataColumnsMySQL);
+            runScript(scripts, out);
 
             //Update the data source name column length for MySQL
             scripts = new HashMap<>();
@@ -112,8 +118,21 @@ public class Upgrade29 extends DBUpgrade {
             dropTemplates(out);
             dropPointHierarchy(out);
             dropUserEvents(out);
+
+            //delete work directory
+            try {
+                Path workPath = Common.MA_HOME_PATH.resolve("work");
+                FileSystemUtils.deleteRecursively(workPath);
+                PrintWriter pw = new PrintWriter(out);
+                pw.write("Deleted " + workPath);
+                pw.flush();
+            }catch(Exception e) {
+                LOG.warn("Failed to delete work directory at " + Common.MA_HOME_PATH.resolve("work"), e);
+            }
+
         } catch(Exception e){
             LOG.error("Upgrade 29 failed.", e);
+            throw e;
         } finally {
             out.flush();
             out.close();
@@ -267,10 +286,10 @@ public class Upgrade29 extends DBUpgrade {
 
 
         Map<String, String[]> scripts = new HashMap<>();
-        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcesSQL);
-        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.MYSQL.name(), dataSourcesMySQL);
+        scripts.put(DatabaseProxy.DatabaseType.H2.name(), dataSourcesH2SQL);
         scripts.put(DatabaseProxy.DatabaseType.MSSQL.name(), dataSourcesMSSQL);
-        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcesSQL);
+        scripts.put(DatabaseProxy.DatabaseType.POSTGRES.name(), dataSourcesMySQL);
         runScript(scripts, out);
     }
 
@@ -503,6 +522,7 @@ public class Upgrade29 extends DBUpgrade {
     };
 
     private String[] dataPointsH2SQL = new String[] {
+            "DROP INDEX dataPointsPermissionIndex;",
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
@@ -511,6 +531,7 @@ public class Upgrade29 extends DBUpgrade {
     };
 
     private String[] dataPointsMySQL = new String[] {
+            "ALTER TABLE dataPoints DROP INDEX dataPointsPermissionIndex;",
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
@@ -519,6 +540,7 @@ public class Upgrade29 extends DBUpgrade {
     };
 
     private String[] dataPointsMSSQL = new String[] {
+            "DROP INDEX dataPoints.dataPointsPermissionIndex;",
             "ALTER TABLE dataPoints DROP COLUMN readPermission;",
             "ALTER TABLE dataPoints DROP COLUMN setPermission;",
             "ALTER TABLE dataPoints DROP COLUMN pointFolderId;",
@@ -526,12 +548,18 @@ public class Upgrade29 extends DBUpgrade {
             "ALTER TABLE dataPoints DROP COLUMN templateId;"
     };
 
+    private String[] dataSourcesH2SQL = new String[] {
+            "DROP INDEX dataSourcesPermissionIndex;",
+            "ALTER TABLE dataSources DROP COLUMN editPermission;",
+    };
 
-    private String[] dataSourcesSQL = new String[] {
+    private String[] dataSourcesMySQL = new String[] {
+            "ALTER TABLE dataPoints DROP INDEX dataSourcesPermissionIndex;",
             "ALTER TABLE dataSources DROP COLUMN editPermission;",
     };
 
     private String[] dataSourcesMSSQL = new String[] {
+            "DROP INDEX dataSources.dataSourcesPermissionIndex;",
             "ALTER TABLE dataSources DROP COLUMN editPermission;"
     };
 
