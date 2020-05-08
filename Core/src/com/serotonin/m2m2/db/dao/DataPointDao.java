@@ -4,7 +4,7 @@
  */
 package com.serotonin.m2m2.db.dao;
 
-import static com.serotonin.m2m2.db.dao.DataPointTagsDao.DATA_POINT_TAGS_PIVOT_ALIAS;
+import static com.serotonin.m2m2.db.dao.DataPointTagsDao.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -632,8 +632,8 @@ public class DataPointDao extends AbstractDao<DataPointVO, DataPointTableDefinit
             def.saveRelationalData(vo, insert);
         }
 
-        Integer readPermissionId = permissionDao.getOrInsertPermission(vo.getReadPermission());
-        Integer setPermissionId = permissionDao.getOrInsertPermission(vo.getSetPermission());
+        Integer readPermissionId = permissionDao.permissionId(vo.getReadPermission());
+        Integer setPermissionId = permissionDao.permissionId(vo.getSetPermission());
 
         create.update(DataPointTableDefinition.TABLE)
         .set(DataPointTableDefinition.READ_PERMISSION, readPermissionId)

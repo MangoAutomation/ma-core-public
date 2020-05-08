@@ -14,7 +14,6 @@ public class PermissionTable extends CustomTable<PermissionRecord> {
     public static final PermissionTable PERMISSIONS = new PermissionTable();
 
     public final TableField<PermissionRecord, Integer> id = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false));
-    public final TableField<PermissionRecord, Integer> minTermId = createField(DSL.name("min_term_id"), SQLDataType.INTEGER.nullable(false));
 
     protected PermissionTable() {
         super(DSL.name("permissions"));

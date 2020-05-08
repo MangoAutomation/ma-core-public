@@ -14,10 +14,9 @@ public class MintermTable extends CustomTable<MintermRecord> {
     public static final MintermTable MINTERMS = new MintermTable();
 
     public final TableField<MintermRecord, Integer> id = createField(DSL.name("id"), SQLDataType.INTEGER.nullable(false));
-    public final TableField<MintermRecord, Integer> roleId = createField(DSL.name("role_id"), SQLDataType.INTEGER.nullable(false));
 
     protected MintermTable() {
-        super(DSL.name("permissions_minterms"));
+        super(DSL.name("minterms"));
     }
 
     @Override

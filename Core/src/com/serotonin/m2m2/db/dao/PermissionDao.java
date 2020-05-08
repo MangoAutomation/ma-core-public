@@ -3,16 +3,15 @@
  */
 package com.serotonin.m2m2.db.dao;
 
+import static com.serotonin.m2m2.db.dao.tables.MintermMappingTable.*;
 import static com.serotonin.m2m2.db.dao.tables.MintermTable.*;
+import static com.serotonin.m2m2.db.dao.tables.PermissionMappingTable.*;
 import static com.serotonin.m2m2.db.dao.tables.PermissionTable.*;
 import static org.jooq.impl.DSL.*;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jooq.exception.NoDataFoundException;
 import org.springframework.stereotype.Repository;
 
 import com.infiniteautomation.mango.permission.MangoPermission;
@@ -24,80 +23,80 @@ import com.serotonin.m2m2.vo.role.Role;
 @Repository
 public class PermissionDao extends BaseDao {
 
-    public Integer getOrInsertPermission(MangoPermission permission) {
-        Set<Set<Role>> minterms = permission.getRoles();
-        if (minterms.isEmpty()) {
+    public Integer permissionId(MangoPermission permission) {
+        if (permission.getRoles().isEmpty()) {
             return null;
         }
 
         return getTransactionTemplate().execute(txStatus -> {
-            Set<Integer> mintermIds = new HashSet<>();
-
-            for (Set<Role> minterm : minterms) {
-                int id = getOrInsertMinterm(minterm);
-                mintermIds.add(id);
-            }
-
-            try {
-                return create.select(PERMISSIONS.id)
-                        .from(PERMISSIONS)
-                        .groupBy(PERMISSIONS.id)
-                        .having(count(when(PERMISSIONS.minTermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()))
-                        .limit(1)
-                        .fetchSingle(0, Integer.class);
-            } catch (NoDataFoundException e) {
-                // fall through
-            }
-
-            Integer maxId = create.select(max(PERMISSIONS.id)).from(PERMISSIONS).fetchOne(0, Integer.class);
-            if (maxId == null) {
-                maxId = 0;
-            }
-
-            final int newId = maxId + 1;
-            create.batch(
-                    mintermIds.stream()
-                    .map(id -> create.insertInto(PERMISSIONS)
-                            .columns(PERMISSIONS.id, PERMISSIONS.minTermId)
-                            .values(newId, id))
-                    .collect(Collectors.toList()))
-            .execute();
-
-            return newId;
+            return getOrInsertPermission(permission);
         });
     }
 
+    private Integer getOrInsertPermission(MangoPermission permission) {
+        Set<Integer> mintermIds = permission.getRoles().stream()
+                .map(this::getOrInsertMinterm)
+                .collect(Collectors.toSet());
+
+        Integer permissionId = create.select(PERMISSIONS_MAPPING.permissionId)
+                .from(PERMISSIONS_MAPPING)
+                .groupBy(PERMISSIONS_MAPPING.permissionId)
+                .having(count(when(PERMISSIONS_MAPPING.mintermId.in(mintermIds), 1).else_((Integer) null)).equal(mintermIds.size()))
+                .limit(1)
+                .fetchOne(0, Integer.class);
+
+        // no matching permission exists already, insert a new one
+        if (permissionId == null) {
+            permissionId = create.insertInto(PERMISSIONS)
+                    .columns(PERMISSIONS.id)
+                    .values(defaultValue(PERMISSIONS.id))
+                    .returning(PERMISSIONS.id)
+                    .fetchOne().get(PERMISSIONS.id);
+
+            int permissionIdFinal = permissionId;
+            create.batch(
+                    mintermIds.stream()
+                    .map(id -> create.insertInto(PERMISSIONS_MAPPING)
+                            .columns(PERMISSIONS_MAPPING.permissionId, PERMISSIONS_MAPPING.mintermId)
+                            .values(permissionIdFinal, id))
+                    .collect(Collectors.toList()))
+            .execute();
+        }
+
+        return permissionId;
+    }
+
     private int getOrInsertMinterm(Set<Role> minterm) {
-        List<Integer> roleIds = minterm.stream()
+        Set<Integer> roleIds = minterm.stream()
                 .map(Role::getId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
-        try {
-            return create.select(MINTERMS.id)
-                    .from(MINTERMS)
-                    .groupBy(MINTERMS.id)
-                    .having(count(when(MINTERMS.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()))
-                    .limit(1)
-                    .fetchSingle(0, Integer.class);
-        } catch (NoDataFoundException e) {
-            // fall through
+        Integer mintermId = create.select(MINTERMS_MAPPING.mintermId)
+                .from(MINTERMS_MAPPING)
+                .groupBy(MINTERMS_MAPPING.mintermId)
+                .having(count(when(MINTERMS_MAPPING.roleId.in(roleIds), 1).else_((Integer) null)).equal(minterm.size()))
+                .limit(1)
+                .fetchOne(0, Integer.class);
+
+        // no matching minterm exists already, insert a new one
+        if (mintermId == null) {
+            mintermId = create.insertInto(MINTERMS)
+                    .columns(MINTERMS.id)
+                    .values(defaultValue(MINTERMS.id))
+                    .returning(MINTERMS.id)
+                    .fetchOne().get(MINTERMS.id);
+
+            int mintermIdFinal = mintermId;
+            create.batch(
+                    roleIds.stream()
+                    .map(id -> create.insertInto(MINTERMS_MAPPING)
+                            .columns(MINTERMS_MAPPING.mintermId, MINTERMS_MAPPING.roleId)
+                            .values(mintermIdFinal, id))
+                    .collect(Collectors.toList()))
+            .execute();
         }
 
-        Integer maxId = create.select(max(MINTERMS.id)).from(MINTERMS).fetchOne(0, Integer.class);
-        if (maxId == null) {
-            maxId = 0;
-        }
-
-        final int newIdFinal = maxId + 1;
-        create.batch(
-                roleIds.stream()
-                .map(id -> create.insertInto(MINTERMS)
-                        .columns(MINTERMS.id, MINTERMS.roleId)
-                        .values(newIdFinal, id))
-                .collect(Collectors.toList()))
-        .execute();
-
-        return newIdFinal;
+        return mintermId;
     }
 
 }

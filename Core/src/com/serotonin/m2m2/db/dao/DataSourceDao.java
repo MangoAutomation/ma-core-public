@@ -292,8 +292,8 @@ public class DataSourceDao extends AbstractDao<DataSourceVO, DataSourceTableDefi
         RoleDao.getInstance().replaceRolesOnVoPermission(vo.getReadPermission(), vo.getId(), DataSourceVO.class.getSimpleName(), PermissionService.READ, insert);
         vo.getDefinition().saveRelationalData(vo, insert);
 
-        Integer readPermissionId = permissionDao.getOrInsertPermission(vo.getReadPermission());
-        Integer editPermissionId = permissionDao.getOrInsertPermission(vo.getEditPermission());
+        Integer readPermissionId = permissionDao.permissionId(vo.getReadPermission());
+        Integer editPermissionId = permissionDao.permissionId(vo.getEditPermission());
 
         create.update(DataSourceTableDefinition.TABLE)
         .set(DataSourceTableDefinition.READ_PERMISSION, readPermissionId)

@@ -8,11 +8,11 @@ import org.jooq.impl.CustomRecord;
 /**
  * @author Jared Wiltshire
  */
-public class MintermRecord extends CustomRecord<MintermRecord> {
+public class MintermMappingRecord extends CustomRecord<MintermMappingRecord> {
     private static final long serialVersionUID = 1L;
 
-    protected MintermRecord() {
-        super(MintermTable.MINTERMS);
+    protected MintermMappingRecord() {
+        super(MintermMappingTable.MINTERMS_MAPPING);
     }
 
 }
