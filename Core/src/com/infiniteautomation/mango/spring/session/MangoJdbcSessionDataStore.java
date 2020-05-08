@@ -10,14 +10,12 @@ import java.util.Set;
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionContext;
 import org.eclipse.jetty.server.session.SessionData;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
-import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
 import com.serotonin.m2m2.Common;
@@ -31,14 +29,12 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
  *
  * @author Terry Packer
  */
-@Component
-public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
+public class MangoJdbcSessionDataStore extends AbstractSessionDataStore implements MangoSessionDataStore {
 
     private final UserDao userDao;
     private final MangoSessionDataDao sessionDao;
     private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
     public MangoJdbcSessionDataStore(UserDao userDao, MangoSessionDataDao sessionDao,
             ApplicationEventPublisher publisher) {
         this.userDao = userDao;
@@ -181,7 +177,34 @@ public class MangoJdbcSessionDataStore extends AbstractSessionDataStore {
     /**
      * @return
      */
+    @Override
     public SessionContext getSessionContext() {
         return _context;
+    }
+
+    @Override
+    public boolean deleteSessionsForUser(int id) {
+        return sessionDao.deleteSessionsForUser(id);
+    }
+
+    @Override
+    public MangoSessionDataVO get(String sessionId, String contextPath, String virtualHost) {
+        return sessionDao.get(sessionId, contextPath, virtualHost);
+    }
+
+    @Override
+    public void update(String sessionId, String contextPath, String virtualHost,
+            MangoSessionDataVO vo) {
+        sessionDao.update(sessionId, contextPath, virtualHost, vo);
+    }
+
+    @Override
+    public boolean delete(String sessionId, String contextPath, String virtualHost) {
+        return sessionDao.delete(sessionId, contextPath, virtualHost);
+    }
+
+    @Override
+    public void add(MangoSessionDataVO vo) {
+        sessionDao.insert(vo);
     }
 }

@@ -8,16 +8,15 @@ import org.eclipse.jetty.server.session.SessionContext;
 import org.eclipse.jetty.server.session.SessionData;
 import org.eclipse.jetty.server.session.SessionDataMap;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.springframework.stereotype.Component;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
 /**
+ * L2 cache for JDBC session store
  *
  * @author Terry Packer
  */
-@Component
 public class MangoSessionDataMap extends AbstractLifeCycle implements SessionDataMap {
 
     private final Cache<String, SessionData> cache;

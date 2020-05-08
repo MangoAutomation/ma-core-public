@@ -23,8 +23,8 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.stereotype.Component;
 
 import com.infiniteautomation.mango.spring.events.SessionLoadedEvent;
+import com.infiniteautomation.mango.spring.session.MangoSessionDataStore;
 import com.serotonin.m2m2.Common;
-import com.serotonin.m2m2.db.dao.MangoSessionDataDao;
 import com.serotonin.m2m2.vo.User;
 import com.serotonin.m2m2.vo.permission.PermissionHolder;
 import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAuthenticationProvider;
@@ -40,11 +40,11 @@ import com.serotonin.m2m2.web.mvc.spring.security.authentication.MangoPasswordAu
 @Component
 public class MangoSessionRegistry extends SessionRegistryImpl {
 
-    private final MangoSessionDataDao dao;
+    private final MangoSessionDataStore store;
 
     @Autowired
-    public MangoSessionRegistry(MangoSessionDataDao dao) {
-        this.dao = dao;
+    public MangoSessionRegistry(MangoSessionDataStore store) {
+        this.store = store;
     }
 
     /**
@@ -85,7 +85,7 @@ public class MangoSessionRegistry extends SessionRegistryImpl {
         for (SessionInformation info : userSessions) {
             info.expireNow();
         }
-        this.dao.deleteSessionsForUser(user.getId());
+        this.store.deleteSessionsForUser(user.getId());
     }
 
     /**
