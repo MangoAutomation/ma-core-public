@@ -3,9 +3,11 @@
  */
 package com.serotonin.m2m2.db.dao.tables;
 
+import org.jooq.Identity;
 import org.jooq.TableField;
 import org.jooq.impl.CustomTable;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 
 public class PermissionTable extends CustomTable<PermissionRecord> {
@@ -22,5 +24,10 @@ public class PermissionTable extends CustomTable<PermissionRecord> {
     @Override
     public Class<? extends PermissionRecord> getRecordType() {
         return PermissionRecord.class;
+    }
+
+    @Override
+    public Identity<PermissionRecord, ?> getIdentity() {
+        return Internal.createIdentity(this, id);
     }
 }

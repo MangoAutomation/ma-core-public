@@ -47,10 +47,9 @@ public class PermissionDao extends BaseDao {
 
         // no matching permission exists already, insert a new one
         if (permissionId == null) {
-            permissionId = create.insertInto(PERMISSIONS)
-                    .columns(PERMISSIONS.id)
-                    .values(defaultValue(PERMISSIONS.id))
-                    .returning(PERMISSIONS.id)
+            permissionId = create.insertInto(PERMISSIONS, PERMISSIONS.id)
+                    .values(default_(PERMISSIONS.id))
+                    .returningResult(PERMISSIONS.id)
                     .fetchOne().get(PERMISSIONS.id);
 
             int permissionIdFinal = permissionId;
@@ -80,11 +79,10 @@ public class PermissionDao extends BaseDao {
 
         // no matching minterm exists already, insert a new one
         if (mintermId == null) {
-            mintermId = create.insertInto(MINTERMS)
-                    .columns(MINTERMS.id)
-                    .values(defaultValue(MINTERMS.id))
-                    .returning(MINTERMS.id)
-                    .fetchOne().get(MINTERMS.id);
+            mintermId = create.insertInto(MINTERMS, MINTERMS.id)
+                    .values(default_(MINTERMS.id))
+                    .returningResult(MINTERMS.id)
+                    .fetchOne().get(PERMISSIONS.id);
 
             int mintermIdFinal = mintermId;
             create.batch(

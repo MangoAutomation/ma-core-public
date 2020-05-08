@@ -3,9 +3,11 @@
  */
 package com.serotonin.m2m2.db.dao.tables;
 
+import org.jooq.Identity;
 import org.jooq.TableField;
 import org.jooq.impl.CustomTable;
 import org.jooq.impl.DSL;
+import org.jooq.impl.Internal;
 import org.jooq.impl.SQLDataType;
 
 public class MintermTable extends CustomTable<MintermRecord> {
@@ -22,6 +24,11 @@ public class MintermTable extends CustomTable<MintermRecord> {
     @Override
     public Class<? extends MintermRecord> getRecordType() {
         return MintermRecord.class;
+    }
+
+    @Override
+    public Identity<MintermRecord, ?> getIdentity() {
+        return Internal.createIdentity(this, id);
     }
 
 }
