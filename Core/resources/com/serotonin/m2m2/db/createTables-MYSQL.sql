@@ -96,21 +96,35 @@ ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk1 FOREIGN KEY (rol
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsFk2 FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE;
 ALTER TABLE userRoleMappings ADD CONSTRAINT userRoleMappingsUn1 UNIQUE (roleId,userId);
 
-CREATE TABLE `permissions_minterms` (
-  `id` int(11) NOT NULL,
+CREATE TABLE `minterms` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `minterms_roles` (
+  `minterm_id` int(11) NOT NULL,
   `role_id` int(11) NOT NULL,
-  UNIQUE KEY `idx_permissions_minterms_id_role_id` (`id`,`role_id`),
-  KEY `permissions_minterms_fk1_idx` (`role_id`),
-  CONSTRAINT `permissions_minterms_fk1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  UNIQUE KEY `minterms_roles_idx1` (`minterm_id`,`role_id`),
+  KEY `minterms_roles_fk1_idx` (`minterm_id`),
+  KEY `minterms_roles_fk2_idx` (`role_id`),
+  CONSTRAINT `minterms_roles_fk1` FOREIGN KEY (`minterm_id`) REFERENCES `minterms` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `minterms_roles_fk2` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB;
 
 CREATE TABLE `permissions` (
-  `id` int(11) NOT NULL,
-  `min_term_id` int(11) NOT NULL,
-  UNIQUE KEY `idx_permissions_id_min_term_id` (`id`,`min_term_id`),
-  KEY `permissions_fk1_idx` (`min_term_id`),
-  CONSTRAINT `permissions_fk1` FOREIGN KEY (`min_term_id`) REFERENCES `permissions_minterms` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+
+CREATE TABLE `permissions_minterms` (
+  `permission_id` int(11) NOT NULL,
+  `minterm_id` int(11) NOT NULL,
+  UNIQUE KEY `permissions_minterms_idx1` (`permission_id`,`minterm_id`),
+  KEY `permissions_minterms_fk1_idx` (`permission_id`),
+  KEY `permissions_minterms_fk2_idx` (`minterm_id`),
+  CONSTRAINT `permissions_minterms_fk1` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `permissions_minterms_fk2` FOREIGN KEY (`minterm_id`) REFERENCES `minterms` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB;
 
 --
 -- Mailing lists
