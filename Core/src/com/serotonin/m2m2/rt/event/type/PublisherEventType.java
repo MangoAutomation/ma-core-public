@@ -115,7 +115,7 @@ public class PublisherEventType extends EventType {
     @Override
     public void jsonWrite(ObjectWriter writer) throws IOException, JsonException {
         super.jsonWrite(writer);
-        PublisherVO<?> pub = PublisherDao.getInstance().getPublisher(publisherId);
+        PublisherVO<?> pub = PublisherDao.getInstance().get(publisherId);
         writer.writeEntry("XID", pub.getXid());
         writer.writeEntry("publisherEventTypeId", pub.getEventCodes().getCode(publisherEventTypeId));
     }

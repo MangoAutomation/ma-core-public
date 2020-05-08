@@ -256,12 +256,12 @@ abstract public class EventType implements JsonSerializable {
         String xid = json.getString(name);
         if (xid == null)
             throw new TranslatableJsonException("emport.error.eventType.missing.reference", name);
-        PublisherVO<?> pb = PublisherDao.getInstance().getPublisher(xid);
+        PublisherVO<?> pb = PublisherDao.getInstance().getByXid(xid);
         if (pb == null)
             throw new TranslatableJsonException("emport.error.eventType.invalid.reference", name, xid);
         return pb;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -274,9 +274,9 @@ abstract public class EventType implements JsonSerializable {
                     StringUtils.equals(this.getEventType(), other.getEventType()) &&
                     StringUtils.equals(this.getEventSubtype(), other.getEventSubtype()))
                 return true;
-        
+
         }
-        return false; 
+        return false;
     }
-    
+
 }

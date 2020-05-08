@@ -77,16 +77,6 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
         return springInstance.get();
     }
 
-    @Override
-    public String generateUniqueXid() {
-        return generateUniqueXid(PublisherVO.XID_PREFIX, SchemaDefinition.PUBLISHERS_TABLE);
-    }
-
-    @Override
-    public boolean isXidUnique(String xid, int excludeId) {
-        return isXidUnique(xid, excludeId, SchemaDefinition.PUBLISHERS_TABLE);
-    }
-
     private static final String PUBLISHER_SELECT = "select id, xid, publisherType, data from publishers ";
 
     public List<PublisherVO<? extends PublishedPointVO>> getPublishers() {
@@ -106,14 +96,6 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
                 return -1;
             return p1.getName().compareTo(p2.getName());
         }
-    }
-
-    public PublisherVO<? extends PublishedPointVO> getPublisher(int id) {
-        return queryForObject(PUBLISHER_SELECT + " where id=?", new Object[] { id }, new PublisherRowMapper(), null);
-    }
-
-    public PublisherVO<? extends PublishedPointVO> getPublisher(String xid) {
-        return queryForObject(PUBLISHER_SELECT + " where xid=?", new Object[] { xid }, new PublisherRowMapper(), null);
     }
 
     class PublisherExtractor implements ResultSetExtractor<List<PublisherVO<? extends PublishedPointVO>>> {
@@ -169,7 +151,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
             AuditEventType.raiseAddedEvent(AuditEventType.TYPE_PUBLISHER, vo);
             this.countMonitor.increment();
         }else{
-            PublisherVO<? extends PublishedPointVO> old = getPublisher(vo.getId());
+            PublisherVO<? extends PublishedPointVO> old = get(vo.getId());
             ejt.update("update publishers set xid=?, data=? where id=?", new Object[] { vo.getXid(),
                     SerializationHelper.writeObject(vo), vo.getId() }, new int[] { Types.VARCHAR, Types.BINARY,
                             Types.INTEGER });
@@ -180,7 +162,7 @@ public class PublisherDao extends AbstractDao<PublisherVO<? extends PublishedPoi
     }
 
     public void deletePublisher(final int publisherId) {
-        PublisherVO<? extends PublishedPointVO> vo = getPublisher(publisherId);
+        PublisherVO<? extends PublishedPointVO> vo = get(publisherId);
         final ExtendedJdbcTemplate ejt2 = ejt;
         getTransactionTemplate().execute(new TransactionCallbackWithoutResult() {
             @Override

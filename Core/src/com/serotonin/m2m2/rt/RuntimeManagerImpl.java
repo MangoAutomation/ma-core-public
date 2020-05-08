@@ -833,7 +833,7 @@ public class RuntimeManagerImpl implements RuntimeManager {
 
     @Override
     public PublisherVO<? extends PublishedPointVO> getPublisher(int publisherId) {
-        return PublisherDao.getInstance().getPublisher(publisherId);
+        return PublisherDao.getInstance().get(publisherId);
     }
 
     @Override
